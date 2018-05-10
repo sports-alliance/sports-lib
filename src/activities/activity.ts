@@ -10,20 +10,23 @@ import {Weather} from '../weather/app.weather';
 import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
 import {ActivityTypes} from './activity.types';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
+import {CreatorInterface} from '../creators/creatorInterface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
-  public creator = new Creator();
+  public creator: CreatorInterface;
   public ibiData = new IBIData();
   public intensityZones: Map<string, IntensityZonesInterface> = new Map<string, IntensityZonesInterface>();
-  public geoLocationInfo: GeoLocationInfo;
-  public weather: Weather;
+  public geoLocationInfo?: GeoLocationInfo;
+  public weather?: Weather;
 
   private points: Map<number, PointInterface> = new Map<number, PointInterface>();
   private laps: LapInterface[] = [];
 
-  constructor(startDate: Date, endDate: Date) {
+  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
     super(startDate, endDate);
+    this.type = type;
+    this.creator = creator;
   }
 
   addPoint(point: PointInterface, overrideAllDataOnCollision: boolean = false) {
@@ -114,11 +117,11 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   toJSON(): any {
-    const intensityZones = {};
+    const intensityZones: any = {};
     this.intensityZones.forEach((value: IntensityZonesInterface, key: string, map) => {
       intensityZones[key] = value.toJSON();
     });
-    const stats = [];
+    const stats: any[] = [];
     this.stats.forEach((value: DataInterface, key: string) => {
       stats.push(value.toJSON());
     });

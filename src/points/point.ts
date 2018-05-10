@@ -7,7 +7,6 @@ import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 export class Point implements PointInterface {
 
   private date: Date;
-  private position: DataPositionInterface;
   private data: Map<string, DataInterface> = new Map<string, DataInterface>();
 
   constructor(date: Date) {
@@ -30,25 +29,24 @@ export class Point implements PointInterface {
     return this.data;
   }
 
-  getDataByType(dataType: string): DataInterface {
+  getDataByType(dataType: string): DataInterface | void {
     return this.data.get(dataType);
   }
 
-  getPosition(): DataPositionInterface {
+  getPosition(): DataPositionInterface | void {
     const dataLatitudeDegrees = this.getData().get(DataLatitudeDegrees.type);
     const dataLongitudeDegrees = this.getData().get(DataLongitudeDegrees.type);
     if (!dataLongitudeDegrees || !dataLatitudeDegrees) {
-      return void 0;
+      return;
     }
-    this.position = {
+    return {
       latitudeDegrees: Number(dataLatitudeDegrees.getValue()),
-      longitudeDegrees: Number(dataLongitudeDegrees.getValue())
+      longitudeDegrees: Number(dataLongitudeDegrees.getValue()),
     };
-    return this.position;
   }
 
   toJSON(): any {
-    let dataArray = [];
+    let dataArray: any[] = [];
     this.getData().forEach((value, key, map) => {
       dataArray = dataArray.concat(value);
     });
@@ -57,7 +55,7 @@ export class Point implements PointInterface {
       data: dataArray.reduce((jsonDataArray: any[], data: DataInterface) => {
         jsonDataArray.push(data.toJSON());
         return jsonDataArray;
-      }, [])
+      }, []),
     };
   }
 }

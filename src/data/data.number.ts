@@ -2,11 +2,11 @@ import {DataBare} from './data.bare';
 
 export abstract class DataNumber extends DataBare {
   static className = 'DataNumber';
-  protected value;
+  protected value: number;
 
-  constructor(value: string | number) {
+  constructor(value: number) {
     super(value);
-    this.setValue(Number(value));
+    this.value = value;
   }
 
   getValue(): number {

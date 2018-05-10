@@ -3,7 +3,7 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 export class WeatherItem implements SerializableClassInterface {
   public date: Date;
   public conditions: string;
-  public temperatureInCelsius;
+  public temperatureInCelsius: number;
 
   constructor(date: Date, conditions: string, temperatureInCelsius: number) {
     this.date = date;

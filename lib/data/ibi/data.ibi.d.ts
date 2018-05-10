@@ -18,7 +18,7 @@ export declare class IBIData implements SerializableClassInterface {
      * @param time
      * @param ibi
      */
-    setIBI(time: any, ibi: any): void;
+    setIBI(time: number, ibi: number): void;
     /**
      * Gets the IBI data map
      * @return {Map<number, number>}

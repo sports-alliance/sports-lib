@@ -5,6 +5,9 @@ import {DataHeartRate} from '../data/data.heart-rate';
 import {DataAltitude} from '../data/data.altitude';
 import {DataTemperature} from '../data/data.temperature';
 import {Lap} from '../laps/lap';
+import {LapTypes} from '../laps/lap.types';
+import {ActivityTypes} from './activity.types';
+import {Creator} from '../creators/creator';
 
 describe('Activity', () => {
 
@@ -12,7 +15,12 @@ describe('Activity', () => {
 
   beforeEach(() => {
     // New activity that ends +6m
-    activity = new Activity(new Date(0), new Date((new Date(0)).getTime() + 10));
+    activity = new Activity(
+      new Date(0),
+      new Date((new Date(0)).getTime() + 10),
+      ActivityTypes.Running,
+      new Creator('Test')
+    );
     activity.setID('123');
   });
 
@@ -256,7 +264,7 @@ describe('Activity', () => {
   it('should export correctly to JSON', () => {
     const point = new Point(new Date());
     activity.addPoint(point);
-    const lap = new Lap(new Date(), new Date());
+    const lap = new Lap(new Date(), new Date(), LapTypes.AutoLap);
     activity.addLap(lap);
     spyOn(point, 'toJSON').and.returnValue({});
     spyOn(lap, 'toJSON').and.returnValue({});
@@ -266,15 +274,15 @@ describe('Activity', () => {
       'id': '123',
       'startDate': activity.startDate,
       'endDate': activity.endDate,
-      'type': undefined,
       'creator': {},
+      'type': ActivityTypes.Running,
       'points': [{}],
       'stats': [],
       'ibiData': [],
       'laps': [{}],
       'intensityZones': {},
       'geoLocationInfo': null,
-      'weather': null
+      'weather': null,
     });
     expect(point.toJSON).toHaveBeenCalled();
     expect(lap.toJSON).toHaveBeenCalled();

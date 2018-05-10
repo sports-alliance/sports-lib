@@ -3,9 +3,9 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 export class GeoLocationInfo implements SerializableClassInterface {
   public latitude: number;
   public longitude: number;
-  public city: string;
-  public country: string;
-  public province: string;
+  public city?: string;
+  public country?: string;
+  public province?: string;
 
   constructor(latitude: number, longitude: number) {
     this.latitude = latitude;

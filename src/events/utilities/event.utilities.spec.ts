@@ -8,14 +8,21 @@ import {DataAbsolutePressure} from '../../data/data.absolute-pressure';
 import {DataDistance} from '../../data/data.distance';
 import {DataDuration} from '../../data/data.duration';
 import {EventInterface} from '../event.interface';
+import {Creator} from '../../creators/creator';
+import {ActivityTypes} from '../../activities/activity.types';
 
 describe('EventUtilities', () => {
 
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event();
-    const activity = new Activity(new Date(0), new Date((new Date(0)).getTime() + 10));
+    event = new Event('New name');
+    const activity = new Activity(
+      new Date(0),
+      new Date((new Date(0)).getTime() + 10),
+      ActivityTypes.Running,
+      new Creator('Test')
+    );
     activity.setDuration(new DataDuration(10));
     activity.setDistance(new DataDistance(10));
     event.addActivity(activity);
@@ -40,7 +47,6 @@ describe('EventUtilities', () => {
 
     expect(EventUtilities.getDateTypeMinimum(event, DataHeartRate.type)).toBe(0);
     expect(EventUtilities.getDateTypeMinimum(event, DataAltitude.type)).toBe(200);
-    expect(EventUtilities.getDateTypeMinimum(event, DataAbsolutePressure.type)).toBe(null);
   });
 
   it('should get the correct maximum for a DataType', () => {
@@ -62,7 +68,6 @@ describe('EventUtilities', () => {
 
     expect(EventUtilities.getDateTypeMaximum(event, DataHeartRate.type)).toBe(100);
     expect(EventUtilities.getDateTypeMaximum(event, DataAltitude.type)).toBe(400);
-    expect(EventUtilities.getDateTypeMaximum(event, DataAbsolutePressure.type)).toBe(null);
   });
 
   it('should get the correct average for a DataType', () => {
@@ -84,7 +89,6 @@ describe('EventUtilities', () => {
 
     expect(EventUtilities.getDataTypeAverage(event, DataHeartRate.type)).toBe(50);
     expect(EventUtilities.getDataTypeAverage(event, DataAltitude.type)).toBe(300);
-    expect(EventUtilities.getDataTypeAverage(event, DataAbsolutePressure.type)).toBe(null);
   });
 
   it('should get the correct gain for a DataType', () => {
@@ -303,11 +307,6 @@ describe('EventUtilities', () => {
     event.getFirstActivity().addPoint(pointF);
 
     expect(EventUtilities.getEventDataTypeLoss(event, DataAltitude.type)).toBe(400);
-  });
-
-  it('should not get a gain or loss for an event with no points', () => {
-      expect(EventUtilities.getEventDataTypeLoss(event, DataAltitude.type)).toBe(null);
-      expect(EventUtilities.getEventDataTypeLoss(event, DataAltitude.type, new Date(), new Date())).toBe(null);
   });
 
   it('should get an event as tcx blob', (done) => {

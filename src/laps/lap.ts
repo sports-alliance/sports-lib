@@ -7,12 +7,13 @@ export class Lap extends DurationClassAbstract implements LapInterface {
 
   public type: LapTypes;
 
-  constructor(startDate: Date, endDate: Date) {
+  constructor(startDate: Date, endDate: Date, type: LapTypes) {
     super(startDate, endDate);
+    this.type = type;
   }
 
   toJSON(): any {
-    const stats = [];
+    const stats: any[] = [];
     this.stats.forEach((value: DataInterface, key: string) => {
       stats.push(value.toJSON());
     });

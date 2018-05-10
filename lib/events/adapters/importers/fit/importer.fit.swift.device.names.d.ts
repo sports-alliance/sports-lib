@@ -1,3 +1,3 @@
 export declare const ImporterZwiftDeviceNames: {
-    0: string;
+    [index: number]: string;
 };

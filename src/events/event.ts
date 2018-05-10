@@ -8,19 +8,20 @@ export class Event extends StatsClassAbstract implements EventInterface {
 
   public name: string;
   private activities: ActivityInterface[] = [];
-  private _hasPointsWithPosition: boolean = null;
 
+  constructor(name: string) {
+    super();
+    this.name = name
+  }
 
   addActivity(activity: ActivityInterface) {
     this.activities.push(activity);
-    this._hasPointsWithPosition = null;
   }
 
   removeActivity(activityToRemove: ActivityInterface) {
     this.getActivities().splice(this.getActivities().findIndex((activity: ActivityInterface) => {
       return activityToRemove.getID() === activity.getID();
     }), 1);
-    this._hasPointsWithPosition = null;
   }
 
   getActivities(): ActivityInterface[] {
@@ -55,16 +56,8 @@ export class Event extends StatsClassAbstract implements EventInterface {
       }, []);
   }
 
-  hasPointsWithPosition(): boolean {
-    // If not bool = not set
-    if (this._hasPointsWithPosition === null) {
-      this._hasPointsWithPosition = !!this.getPointsWithPosition().length;
-    }
-    return this._hasPointsWithPosition;
-  }
-
   toJSON(): any {
-    const stats = [];
+    const stats: any[] = [];
     this.stats.forEach((value: DataInterface, key: string) => {
       stats.push(value.toJSON());
     });

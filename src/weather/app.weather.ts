@@ -28,10 +28,10 @@ export class Weather implements SerializableClassInterface {
 
   toJSON(): any {
     return {
-      weatherItems: this.weatherItems.reduce((weatherItemArray, weatherItem) => {
+      weatherItems: this.weatherItems.reduce((weatherItemArray, weatherItem: WeatherItem) => {
         weatherItemArray.push(weatherItem.toJSON());
         return weatherItemArray;
-      }, [])
+      }, <any>[])
     };
   }
 }

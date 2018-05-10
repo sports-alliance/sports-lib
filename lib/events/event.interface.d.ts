@@ -4,12 +4,11 @@ import { StatsClassInterface } from '../stats/stats.class.interface';
 import { ActivityInterface } from '../activities/activity.interface';
 export interface EventInterface extends StatsClassInterface, SerializableClassInterface {
     name: string;
-    addActivity(activity: ActivityInterface): any;
-    removeActivity(activity: ActivityInterface): any;
+    addActivity(activity: ActivityInterface): void;
+    removeActivity(activity: ActivityInterface): void;
     getActivities(): ActivityInterface[];
     getFirstActivity(): ActivityInterface;
     getLastActivity(): ActivityInterface;
     getPoints(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
     getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
-    hasPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): boolean;
 }

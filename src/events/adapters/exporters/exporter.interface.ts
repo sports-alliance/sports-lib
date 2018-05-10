@@ -1,6 +1,6 @@
 import {EventInterface} from '../../event.interface';
 export interface EventExporterInterface  {
-  readonly fileType;
+  readonly fileType: string;
   readonly fileExtension: string;
 
   getfileExtension(): string;

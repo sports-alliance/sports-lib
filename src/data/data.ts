@@ -9,13 +9,10 @@ export abstract class Data implements DataInterface {
   protected value: number | string | boolean;
 
   protected constructor(value: string | number | boolean) {
-    this.setValue(value);
+    this.value = value;
   }
 
   setValue(value: string | number | boolean) {
-    if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
-      throw new Error('Only number, string and boolean are allowed');
-    }
     this.value = value;
   }
 

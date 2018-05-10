@@ -20,7 +20,7 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     return <DataPause>this.stats.get(DataPause.className);
   }
 
-  getStat(statType: string): DataInterface {
+  getStat(statType: string): DataInterface | void {
     return this.stats.get(statType);
   }
 

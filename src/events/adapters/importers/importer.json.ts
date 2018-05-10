@@ -13,21 +13,26 @@ import {DynamicDataLoader} from '../../../data/data.store';
 
 export class EventImporterJSON {
 
-  static getFromJSONString(jsonString: string, id?: string): EventInterface {
+  static getFromJSONString(jsonString: string, eventName = 'New Event'): EventInterface {
     const eventJSONObject = JSON.parse(jsonString);
 
-    const event = new Event();
+    const event = new Event(eventName);
     event.setID(eventJSONObject.id);
     event.name = eventJSONObject.name;
 
-    eventJSONObject.stats.forEach((stat) => {
+    eventJSONObject.stats.forEach((stat: any) => {
       event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });
 
     for (const activityObject of eventJSONObject.activities) {
-      const activity = new Activity(new Date(activityObject.startDate), new Date(activityObject.endDate));
+
+      const creator = new Creator(activityObject.creator.name);
+      creator.hwInfo = activityObject.creator.hwInfo;
+      creator.swInfo = activityObject.creator.swInfo;
+      creator.serialNumber = activityObject.creator.serialNumber;
+
+      const activity = new Activity(new Date(activityObject.startDate), new Date(activityObject.endDate), activityObject.type , creator);
       activity.setID(activityObject.id);
-      activity.type = activityObject.type;
       activity.ibiData = new IBIData(activityObject.ibiData);
       if (activityObject.weather) {
         activity.weather = this.getWeather(activityObject);
@@ -35,15 +40,14 @@ export class EventImporterJSON {
       if (activityObject.geoLocationInfo) {
         activity.geoLocationInfo = this.getGeoLocationInfo(activityObject);
       }
-      activityObject.stats.forEach((stat) => {
+      activityObject.stats.forEach((stat: any) => {
         activity.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
       });
 
       for (const lapObject of activityObject.laps) {
-        const lap = new Lap(new Date(lapObject.startDate), new Date(lapObject.endDate));
-        lap.type = lapObject.type;
+        const lap = new Lap(new Date(lapObject.startDate), new Date(lapObject.endDate), lapObject.type);
         lap.setID(lapObject.id);
-        lapObject.stats.forEach((stat) => {
+        lapObject.stats.forEach((stat: any) => {
           lap.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
         });
         activity.addLap(lap);
@@ -51,12 +55,7 @@ export class EventImporterJSON {
 
       event.addActivity(activity);
 
-      const creator = new Creator();
-      creator.name = activityObject.creator.name;
-      creator.hwInfo = activityObject.creator.hwInfo;
-      creator.swInfo = activityObject.creator.swInfo;
-      creator.serialNumber = activityObject.creator.serialNumber;
-      activity.creator = creator;
+
 
       if (activityObject.intensityZones) {
         for (const key in activityObject.intensityZones) {

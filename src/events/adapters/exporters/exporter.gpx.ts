@@ -7,7 +7,7 @@ export class EventExporterGPX implements EventExporterInterface {
   fileExtension = 'gpx';
 
   getAsString(event: EventInterface): string {
-    return undefined;
+    return '';
   }
 
   getfileExtension(): string {

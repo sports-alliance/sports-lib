@@ -9,7 +9,7 @@ export declare abstract class StatsClassAbstract extends IDClass implements Stat
     getDistance(): DataDistance;
     getDuration(): DataDuration;
     getPause(): DataPause;
-    getStat(statType: string): DataInterface;
+    getStat(statType: string): DataInterface | void;
     getStats(): Map<string, DataInterface>;
     removeStat(statType: string): void;
     setDistance(distance: DataDistance): void;

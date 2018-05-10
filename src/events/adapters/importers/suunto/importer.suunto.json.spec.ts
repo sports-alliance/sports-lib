@@ -1,8 +1,8 @@
 import {EventImporterSuuntoJSON} from './importer.suunto.json';
 import {Event} from '../../../event';
 
-const suuntoJSON = require('../../../../../../../samples/suunto/suunto.json');
-const suuntoMultiSportJSON = require('../../../../../../../samples/suunto/multisport.json');
+const suuntoJSON = require('../../../../../samples/suunto/suunto.json');
+const suuntoMultiSportJSON = require('../../../../../samples/suunto/multisport.json');
 
 
 describe('EventImporterSuuntoJSON', () => {

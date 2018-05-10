@@ -4,9 +4,9 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 
 export interface PointInterface extends SerializableClassInterface {
   getDate(): Date;
-  addData(data: DataInterface);
-  removeDataByType(dataType: string);
+  addData(data: DataInterface): void;
+  removeDataByType(dataType: string): void;
   getData(): Map<string, DataInterface>;
-  getDataByType(dataType: string): DataInterface;
-  getPosition(): DataPositionInterface;
+  getDataByType(dataType: string): DataInterface | void;
+  getPosition(): DataPositionInterface | void;
 }

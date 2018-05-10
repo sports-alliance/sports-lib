@@ -2,9 +2,9 @@ import { SerializableClassInterface } from '../serializable/serializable.class.i
 export declare class GeoLocationInfo implements SerializableClassInterface {
     latitude: number;
     longitude: number;
-    city: string;
-    country: string;
-    province: string;
+    city?: string;
+    country?: string;
+    province?: string;
     constructor(latitude: number, longitude: number);
     toJSON(): any;
 }

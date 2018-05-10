@@ -44,7 +44,7 @@ export class EventUtilities {
     return new Promise((resolve, reject) => {
       resolve(new Blob(
         [(new EventExporterTCX).getAsString(event)],
-        {type: (new EventExporterTCX).getFileType()}
+        {type: (new EventExporterTCX).getFileType()},
       ));
     });
   }
@@ -56,18 +56,15 @@ export class EventUtilities {
                                    activities?: ActivityInterface[]): number {
     let count = 0;
     const averageForDataType = event.getPoints(startDate, endDate, activities).reduce((average: number, point: PointInterface) => {
-      if (!point.getDataByType(dataType)) {
+      const data = point.getDataByType(dataType);
+      if (!data) {
         return average;
       }
-      const value = Number(point.getDataByType(dataType).getValue());
-      if (isNaN(value) || !isFinite(value)) {
-        return;
-      }
-      average += value;
+      average += Number(data.getValue());
       count++;
       return average;
     }, 0);
-    return count ? (averageForDataType / count) : null;
+    return (averageForDataType / count);
   }
 
   public static getDateTypeMaximum(event: EventInterface,
@@ -94,7 +91,7 @@ export class EventUtilities {
       events.sort((eventA: EventInterface, eventB: EventInterface) => {
         return +eventA.getFirstActivity().startDate - +eventB.getFirstActivity().startDate;
       });
-      const mergeEvent = new Event();
+      const mergeEvent = new Event(`Merged at ${(new Date()).toISOString()}`);
       mergeEvent.setDistance(new DataDistance(0));
       mergeEvent.setDuration(new DataDuration(0));
       mergeEvent.setPause(new DataPause(0));
@@ -107,9 +104,6 @@ export class EventUtilities {
           // @todo merge the rest of the stats
         }
       }
-
-      debugger
-      mergeEvent.name = 'Merged at ' + (new Date()).toISOString();
       return resolve(mergeEvent);
     });
   }
@@ -143,48 +137,49 @@ export class EventUtilities {
     return this.getEventDataTypeGainOrLoss(false, event, dataType, starDate, endDate, activities, minDiff);
   }
 
-  private static getEventDataTypeGainOrLoss(gain: boolean,
-                                            event: EventInterface,
-                                            dataType: string,
-                                            starDate?: Date,
-                                            endDate?: Date,
-                                            activities?: ActivityInterface[],
-                                            minDiff?: number): number {
-    // @todo safeguard on number data types
-    minDiff = minDiff || 3.1;
+  private static getEventDataTypeGainOrLoss(
+    gain: boolean,
+    event: EventInterface,
+    dataType: string,
+    starDate?: Date,
+    endDate?: Date,
+    activities?: ActivityInterface[],
+    minDiff = 3.1,
+  ): number {
     let gainOrLoss = 0;
     const points = event.getPoints(starDate, endDate, activities);
-    if (!points.length) {
-      return null
-    }
+    // Todo get by type
     points.reduce((previous: PointInterface, next: PointInterface) => {
-      if (!previous.getDataByType(dataType)) {
+      const previousDataType = previous.getDataByType(dataType);
+      const nextDataType = next.getDataByType(dataType);
+      if (!previousDataType) {
         return next;
       }
-      if (!next.getDataByType(dataType)) {
+      if (!nextDataType) {
         return previous;
       }
-      // Gain!
+
+      // For gain
       if (gain) {
         // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
-        if ((<number>previous.getDataByType(dataType).getValue() + minDiff) <= <number>next.getDataByType(dataType).getValue()) {
-          gainOrLoss += <number>next.getDataByType(dataType).getValue() - <number>previous.getDataByType(dataType).getValue();
+        if ((<number>previousDataType.getValue() + minDiff) <= <number>nextDataType.getValue()) {
+          gainOrLoss += <number>nextDataType.getValue() - <number>previousDataType.getValue();
           return next;
         }
         // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-        if (<number>previous.getDataByType(dataType).getValue() <= <number>next.getDataByType(dataType).getValue()) {
+        if (<number>previousDataType.getValue() <= <number>nextDataType.getValue()) {
           return previous;
         }
         return next
       }
-      // Loss
-      // Increase the loss if eligible
-      if ((<number>previous.getDataByType(dataType).getValue() - minDiff) >= <number>next.getDataByType(dataType).getValue()) {
-        gainOrLoss += <number>previous.getDataByType(dataType).getValue() - <number>next.getDataByType(dataType).getValue();
+
+      // For Loss
+      if ((<number>previousDataType.getValue() - minDiff) >= <number>nextDataType.getValue()) {
+        gainOrLoss += <number>previousDataType.getValue() - <number>nextDataType.getValue();
         return next;
       }
       // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-      if (<number>previous.getDataByType(dataType).getValue() >= <number>next.getDataByType(dataType).getValue()) {
+      if (<number>previousDataType.getValue() >= <number>nextDataType.getValue()) {
         return previous;
       }
       return next;
@@ -198,17 +193,17 @@ export class EventUtilities {
                                      startDate?: Date,
                                      endDate?: Date,
                                      activities?: ActivityInterface[]): number {
-
-    const dataValuesArray = event.getPoints(startDate, endDate, activities).reduce((dataValues, point: PointInterface) => {
-      if (point.getDataByType(dataType)) {
-        dataValues.push(point.getDataByType(dataType).getValue());
+    const dataValuesArray = event.getPoints(startDate, endDate, activities).reduce((dataValues: number[], point: PointInterface) => {
+      const pointData = point.getDataByType(dataType);
+      if (pointData) {
+        dataValues.push(<number>pointData.getValue());
       }
       return dataValues;
     }, []);
     if (max) {
-      return dataValuesArray.length ? Math.max(...dataValuesArray) : null;
+      return Math.max(...dataValuesArray);
     }
-    return dataValuesArray.length ? Math.min(...dataValuesArray) : null;
+    return Math.min(...dataValuesArray);
   }
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {

@@ -3,11 +3,11 @@ import {EventImporterJSON} from './importers/importer.json';
 import {Event} from '../event';
 import {EventImporterTCX} from './importers/importer.tcx';
 
-const json = require('../../../../../samples/json/app.json');
-const suuntoJSON = require('../../../../../samples/suunto/suunto.json');
-const movescountTCXJSON = require('../../../../../samples/tcx/movescount.tcx.json');
-const polarTCXJSON = require('../../../../../samples/tcx/polar.tcx.json');
-const garminTCXJSON = require('../../../../../samples/tcx/garmin.tcx.json');
+const json = require('../../../samples/json/app.json');
+const suuntoJSON = require('../../../samples/suunto/suunto.json');
+const movescountTCXJSON = require('../../../samples/tcx/movescount.tcx.json');
+const polarTCXJSON = require('../../../samples/tcx/polar.tcx.json');
+const garminTCXJSON = require('../../../samples/tcx/garmin.tcx.json');
 
 describe('EventAdapters', () => {
 

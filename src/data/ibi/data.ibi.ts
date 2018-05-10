@@ -36,7 +36,7 @@ export class IBIData implements SerializableClassInterface {
    * @param time
    * @param ibi
    */
-  public setIBI(time, ibi) {
+  public setIBI(time: number, ibi: number) {
     this.ibiDataMap.set(time, ibi)
   }
 

@@ -7,11 +7,11 @@ export interface StatsClassInterface extends IDClassInterface {
     getDistance(): DataDistance;
     getDuration(): DataDuration;
     getPause(): DataPause;
-    getStat(statType: string): DataInterface;
+    getStat(statType: string): DataInterface | void;
     getStats(): Map<string, DataInterface>;
-    removeStat(statType: string): any;
-    setDistance(distance: DataDistance): any;
-    setDuration(duration: DataDuration): any;
-    setPause(pause: DataPause): any;
-    addStat(stat: DataInterface): any;
+    removeStat(statType: string): void;
+    setDistance(distance: DataDistance): void;
+    setDuration(duration: DataDuration): void;
+    setPause(pause: DataPause): void;
+    addStat(stat: DataInterface): void;
 }

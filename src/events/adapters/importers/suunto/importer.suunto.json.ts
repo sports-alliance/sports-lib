@@ -75,7 +75,7 @@ export class EventImporterSuuntoJSON {
     debugger;
 
     // Create an event
-    const event = new Event();
+    const event = new Event('');
 
     // Populate the event stats from the Header Object
     this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
@@ -83,24 +83,23 @@ export class EventImporterSuuntoJSON {
     });
 
     // Create a creator and pass it to all activities (later)
-    const creator = new Creator();
-    creator.name = ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] || eventJSONObject.DeviceLog.Device.Name;
+    const creator = new Creator(ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] || eventJSONObject.DeviceLog.Device.Name);
     creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
     creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
     creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
 
     // Go over the samples and get the ones with activity start times
-    const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample) => {
+    const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
       return sample.Events && sample.Events[0].Activity;
     });
 
     // Get the lap start events
-    const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample) => {
+    const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
       return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop';
     });
 
     // Get the stop event
-    const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample) => {
+    const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample: any) => {
       return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
     });
 
@@ -108,28 +107,26 @@ export class EventImporterSuuntoJSON {
     lapEventSamples.push(stopEventSample);
 
     // Get the activity windows
-    const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj) => {
+    const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
       return windowObj.Window.Type === 'Activity';
-    }).map(activityWindow => {
-      return activityWindow.Window
-    });
+    }).map((activityWindow: any) => activityWindow.Window);
 
     // Get the lap windows
-    const lapWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj) => {
+    const lapWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
       return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
-    }).map(lapWindow => {
-      return lapWindow.Window
-    });
+    }).map((lapWindow: any) => lapWindow.Window);
 
     // Create the activities
-    const activities = activityStartEventSamples.map((activityStartEventSample, index): ActivityInterface => {
+    const activities = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
       const activity = new Activity(
         new Date(activityStartEventSample.TimeISO8601),
         activityStartEventSamples.length - 1 === index ?
           new Date(stopEventSample.TimeISO8601) :
-          new Date(activityStartEventSamples[index + 1].TimeISO8601));
-      activity.type = ActivityTypes[ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]];
-      activity.creator = creator;
+          new Date(activityStartEventSamples[index + 1].TimeISO8601),
+        <ActivityTypes>ActivityTypes[<any>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
+        creator,
+      );
+
       // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
       // Create the stats these are a 1:1 ref arrays
       this.getStats(activityWindows[index]).forEach((stat) => {
@@ -144,7 +141,7 @@ export class EventImporterSuuntoJSON {
     });
 
     // set the start dates of all lap types to the start of the first activity
-    const lapStartDatesByType = lapEventSamples.reduce((lapStartDatesByTypeObject, lapEventSample, index) => {
+    const lapStartDatesByType = lapEventSamples.reduce((lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
       // If its a stop event then set the start date to the previous
       if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
         lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(lapEventSamples[index - 1].TimeISO8601);
@@ -153,7 +150,7 @@ export class EventImporterSuuntoJSON {
       lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
       return lapStartDatesByTypeObject;
     }, {});
-    const laps = lapEventSamples.reduce((lapArray, lapEventSample, index): LapInterface => {
+    const laps = lapEventSamples.reduce((lapArray: LapInterface[], lapEventSample: any, index: number): LapInterface[] => {
       // if there is only one lap then skip it's the whole activity
       if (lapEventSamples.length === 1) {
         return lapArray;
@@ -161,12 +158,10 @@ export class EventImporterSuuntoJSON {
       // Set the end date
       const lapEndDate = new Date(lapEventSample.TimeISO8601);
       // Set the start date.
-      const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate);
       // Set it for the next run
-      lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
-      lap.type = LapTypes[<string>lapWindows[index].Type];
       // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
-
+      const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, <LapTypes>LapTypes[<any>lapWindows[index].Type]);
+      lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
       this.getStats(lapWindows[index]).forEach((stat) => {
         lap.addStat(stat);
@@ -190,21 +185,22 @@ export class EventImporterSuuntoJSON {
           return true
         }
         return false;
-      }).forEach((activityLap: LapInterface, index, activityLapArray) => {
+      }).forEach((activityLap: LapInterface) => {
         activity.addLap(activityLap);
       });
     });
 
     // Add the samples that belong to the activity and the ibi data.
-    activities.forEach((activity) => {
+    activities.forEach((activity: ActivityInterface) => {
       activity.addStat(new DataFusedLocation(false));
-      eventJSONObject.DeviceLog.Samples.forEach((sample) => {
+      eventJSONObject.DeviceLog.Samples.filter((sample: any) => !sample.Debug && !sample.Events).forEach((sample: any) => {
         const point = this.getPointFromSample(sample);
         if (point && (point.getDate() >= activity.startDate) && (point.getDate() <= activity.endDate)) {
           // add the point
           activity.addPoint(point);
           // if the point has fusedLocation data mark the activity by adding a stat
-          if (this.hasFusedLocData(sample) && !activity.getStat(DataFusedLocation.className).getValue()) {
+          const activityFusedData = activity.getStat(DataFusedLocation.className);
+          if (this.hasFusedLocData(sample) && !activityFusedData) {
             activity.addStat(new DataFusedLocation(true));
           }
         }
@@ -215,9 +211,9 @@ export class EventImporterSuuntoJSON {
     // Add the ibiData
     if (eventJSONObject.DeviceLog['R-R'] && eventJSONObject.DeviceLog['R-R'].Data) {
       // prepare the data array per activity removing the offset
-      activities.forEach((activity, activityIndex) => {
+      activities.forEach((activity: ActivityInterface) => {
         let timeSum = 0;
-        const ibiData = eventJSONObject.DeviceLog['R-R'].Data.filter((ibi) => {
+        const ibiData = eventJSONObject.DeviceLog['R-R'].Data.filter((ibi: number) => {
           timeSum += ibi;
           const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
           return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
@@ -234,11 +230,11 @@ export class EventImporterSuuntoJSON {
     return event;
   }
 
-  private static hasFusedLocData(sample): boolean {
-    return !!sample.Inertial || !!sample.GpsRef ;
+  private static hasFusedLocData(sample: any): boolean {
+    return !!sample.Inertial || !!sample.GpsRef;
   }
 
-  private static setIntensityZones(activity: ActivityInterface, object) {
+  private static setIntensityZones(activity: ActivityInterface, object: any) {
     // Create intensity zones from the header
     if (object.HrZones) {
       activity.intensityZones.set(DataHeartRate.type, this.getZones(object.HrZones));
@@ -253,7 +249,7 @@ export class EventImporterSuuntoJSON {
     }
   }
 
-  private static setIBIData(activity: Activity, ibiData: number[]) {
+  private static setIBIData(activity: ActivityInterface, ibiData: number[]) {
     activity.ibiData = new IBIData(ibiData);
     // @todo optimize
     // Create a second IBIData so we can have filtering on those with keeping the original
@@ -276,10 +272,6 @@ export class EventImporterSuuntoJSON {
   }
 
   private static getPointFromSample(sample: any): PointInterface {
-    // Skip unwanted sample
-    if (sample.Debug || sample.Events) {
-      return null;
-    }
     const point = new Point(new Date(sample.TimeISO8601));
     if (isNumberOrString(sample.HR)) {
       point.addData(new DataHeartRate(sample.HR * 60))

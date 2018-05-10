@@ -1,4 +1,4 @@
-export const ImporterFitGarminDeviceNames = {
+export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2697: 'Fenix 5',
   2604: 'Fenix 5X',
   2544: 'Fenix 5S',

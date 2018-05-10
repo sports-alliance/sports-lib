@@ -1,6 +1,7 @@
 import {IBIData} from './data.ibi';
-import CreateMedianFilter from 'moving-median';
-import LowPassFilter from 'lowpassf';
+const CreateMedianFilter  = require('moving-median');
+const LowPassFilter = require('lowpassf');
+
 
 /**
  * Collection of filters parsers and converters for IBI (R-R) data

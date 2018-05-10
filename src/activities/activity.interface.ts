@@ -15,17 +15,17 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   creator: CreatorInterface;
   ibiData: IBIData;
   intensityZones: Map<string, IntensityZonesInterface>;
-  geoLocationInfo: GeoLocationInfo;
-  weather: Weather;
+  geoLocationInfo?: GeoLocationInfo;
+  weather?: Weather;
 
-  addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean);
-  removePoint(point: PointInterface);
-  removePoint(point: PointInterface);
+  addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
+  removePoint(point: PointInterface): void;
+  removePoint(point: PointInterface): void;
   getPoints(startDate?: Date, endDate?: Date): PointInterface[];
   getPointsInterpolated(startDate?: Date, endDate?: Date): PointInterface[];
   getStartPoint(): PointInterface;
   getEndPoint(): PointInterface;
   getLaps(): LapInterface[];
-  addLap(lap: LapInterface);
+  addLap(lap: LapInterface): void;
   sortPointsByDate(): void; // Todo make return
 }

@@ -7,9 +7,9 @@ export interface EventInterface extends StatsClassInterface, SerializableClassIn
 
   name: string;
 
-  addActivity(activity: ActivityInterface);
+  addActivity(activity: ActivityInterface): void;
 
-  removeActivity(activity: ActivityInterface);
+  removeActivity(activity: ActivityInterface): void;
 
   getActivities(): ActivityInterface[];
 
@@ -20,6 +20,4 @@ export interface EventInterface extends StatsClassInterface, SerializableClassIn
   getPoints(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
 
   getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
-
-  hasPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): boolean;
 }

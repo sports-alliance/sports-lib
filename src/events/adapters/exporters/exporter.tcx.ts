@@ -64,8 +64,8 @@ export class EventExporterTCX implements EventExporterInterface {
 
       // If there are no laps create one and clone it from the activity
       if (!activityLaps.length) {
-        const lap = new Lap(activity.startDate, activity.endDate);
-        Array.from(activity.getStats().values()).forEach((stat: DataInterface) => {
+        const lap = new Lap(activity.startDate, activity.endDate, LapTypes.AutoLap);
+        Array.from(activity.getStats().values()).forEach((stat: any) => {
           lap.addStat(stat);
         });
         activityLaps.push(lap);
@@ -95,8 +95,9 @@ export class EventExporterTCX implements EventExporterInterface {
         lapElement.appendChild(distanceInMetersElement);
 
         const caloriesInKCALElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Calories');
-        if (lap.getStat(DataEnergy.className)) {
-          caloriesInKCALElement.textContent = lap.getStat(DataEnergy.className).getValue().toString();
+        const dataEnergy = lap.getStat(DataEnergy.className);
+        if (dataEnergy) {
+          caloriesInKCALElement.textContent = dataEnergy.getValue().toString();
         } else {
           caloriesInKCALElement.textContent = '0';
         }
@@ -111,7 +112,7 @@ export class EventExporterTCX implements EventExporterInterface {
         const trackElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Track');
         lapElement.appendChild(trackElement);
         // Go over the points and find the ones without position
-        let pointWithoutPosition: PointInterface;
+        let pointWithoutPosition: PointInterface|void;
         for (const point of activity.getPointsInterpolated(lap.startDate, lap.endDate)) {
           if (!point.getPosition()) {
             pointWithoutPosition = point;
@@ -149,8 +150,8 @@ export class EventExporterTCX implements EventExporterInterface {
           extensionsElement.appendChild(tpxElement);
           pointElement.appendChild(extensionsElement);
 
-          point.getData().forEach((data: DataInterface, key: string, map) => {
-            if ((data instanceof DataAltitude) && !(data instanceof DataGPSAltitude)) {
+          point.getData().forEach((data: DataInterface) => {
+            if ((data instanceof DataAltitude)) {
               const altitudeElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'AltitudeMeters');
               altitudeElement.textContent = data.getValue().toFixed(0).toString();
               pointElement.appendChild(altitudeElement);

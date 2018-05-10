@@ -11,7 +11,6 @@ import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
 import {DataTemperature} from '../../../../data/data.temperature';
 import {Creator} from '../../../../creators/creator';
-import EasyFit from 'easy-fit';
 import {CreatorInterface} from '../../../../creators/creatorInterface';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {DataDuration} from '../../../../data/data.duration';
@@ -40,9 +39,11 @@ import {DataSpeedMax} from '../../../../data/data.speed-max';
 import {DataPower} from '../../../../data/data.power';
 import {LapTypes} from '../../../../laps/lap.types';
 
+const EasyFit = require('easy-fit');
+
 export class EventImporterFIT {
 
-  static getFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<EventInterface> {
+  static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
 
       const easyFitParser = new EasyFit({
@@ -54,22 +55,20 @@ export class EventImporterFIT {
         mode: 'cascade',
       });
 
-      easyFitParser.parse(arrayBuffer, (error, fitDataObject: any) => {
+      easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         debugger;
         // Create an event
-        const event = new Event();
+        const event = new Event(name);
         // Iterate over the sessions and create their activities
-        fitDataObject.activity.sessions.forEach((sessionObject) => {
+        fitDataObject.activity.sessions.forEach((sessionObject: any) => {
           // Get the activity from the sessionObject
-          const activity = this.getActivityFromSessionObject(sessionObject);
-          // Set the creator to the activity
-          activity.creator = this.getCreatorFromFitDataObject(fitDataObject);
+          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
-          sessionObject.laps.forEach((sessionLapObject) => {
+          sessionObject.laps.forEach((sessionLapObject: any) => {
             // Get and add the lap to the activity
             const lap = this.getLapFromSessionLapObject(sessionLapObject);
             // Go over the records and add the points to the activity
-            sessionLapObject.records.forEach((sessionLapObjectRecord) => {
+            sessionLapObject.records.forEach((sessionLapObjectRecord: any) => {
               const point = this.getPointFromSessionLapObjectRecord(sessionLapObjectRecord);
               activity.addPoint(point);
             });
@@ -89,7 +88,7 @@ export class EventImporterFIT {
     });
   }
 
-  private static getPointFromSessionLapObjectRecord(sessionLapObjectRecord): PointInterface {
+  private static getPointFromSessionLapObjectRecord(sessionLapObjectRecord: any): PointInterface {
     const point = new Point(sessionLapObjectRecord.timestamp);
     // Add Lat
     if (isNumberOrString(sessionLapObjectRecord.position_lat)) {
@@ -135,29 +134,28 @@ export class EventImporterFIT {
     return point;
   }
 
-  private static getLapFromSessionLapObject(sessionLapObject): LapInterface {
+  private static getLapFromSessionLapObject(sessionLapObject: any): LapInterface {
     const lap = new Lap(
       sessionLapObject.start_time,
-      sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000) // Some dont have a timestamp
+      sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
+      <LapTypes>LapTypes[<any>sessionLapObject.lap_trigger],
     );
     // Set the calories
     if (sessionLapObject.total_calories) {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
     }
-    // Set the type
-    lap.type = LapTypes[<string>sessionLapObject.lap_trigger];
     // Add stats to the lap
     this.getStatsFromObject(sessionLapObject).forEach(stat => lap.addStat(stat));
     return lap;
   }
 
-  private static getActivityFromSessionObject(sessionObject): ActivityInterface {
+  private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
     // Create an activity
     const activity = new Activity(sessionObject.start_time,
-      sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000)
+      sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000),
+      this.getActivityTypeFromSessionObject(sessionObject),
+      this.getCreatorFromFitDataObject(fitDataObject),
     );
-    // Set the type
-    activity.type = this.getActivityTypeFromSessionObject(sessionObject);
     // Set the activity stats
     this.getStatsFromObject(sessionObject).forEach(stat => activity.addStat(stat));
     return activity;
@@ -165,12 +163,12 @@ export class EventImporterFIT {
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport !== 'generic') {
-      return ActivityTypes[<string>session.sub_sport] || ActivityTypes[<string>session.sport] || ActivityTypes['unknown'];
+      return <ActivityTypes>ActivityTypes[<any>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes['unknown'];
     }
-    return ActivityTypes[<string>session.sport] || ActivityTypes['unknown'];
+    return <ActivityTypes>ActivityTypes[<any>session.sport] || ActivityTypes['unknown'];
   }
 
-  private static getStatsFromObject(object): DataInterface[] {
+  private static getStatsFromObject(object: any): DataInterface[] {
     const stats = [];
     // Set the duration which is the moving time
     stats.push(new DataDuration(object.total_timer_time));
@@ -223,7 +221,28 @@ export class EventImporterFIT {
   }
 
   private static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
-    const creator = new Creator();
+    let creator: CreatorInterface;
+    switch (fitDataObject.file_id.manufacturer) {
+      case 'suunto': {
+        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product]);
+        break;
+      }
+      case 'garmin': {
+        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_id.product]);
+        break;
+      }
+      case 'zwift': {
+        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product]);
+        break;
+      }
+      default: {
+        creator = new Creator(
+          (fitDataObject.file_id.manufacturer || 'Invalid Manufacturer')
+          + ' (' + (fitDataObject.file_id.product || 'no model') + ')',
+        )
+      }
+    }
+
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {
       creator.hwInfo = String(fitDataObject.file_creator.hardware_version);
     }
@@ -236,27 +255,6 @@ export class EventImporterFIT {
       creator.serialNumber = fitDataObject.file_id.serial_number;
     } else if (fitDataObject.device_info && isNumberOrString(fitDataObject.device_info.serial_number)) {
       creator.serialNumber = fitDataObject.device_info.serial_number;
-    }
-
-    // Set the name
-    switch (fitDataObject.file_id.manufacturer) {
-      case 'suunto': {
-        creator.name = ImporterFitSuuntoDeviceNames[fitDataObject.file_id.product];
-        break;
-      }
-      case 'garmin': {
-        creator.name = ImporterFitGarminDeviceNames[fitDataObject.file_id.product];
-        break;
-      }
-      case 'zwift': {
-        creator.name = ImporterZwiftDeviceNames[fitDataObject.file_id.product];
-        break;
-      }
-    }
-    if (!creator.name) {
-      creator.name =
-        (fitDataObject.file_id.manufacturer || 'Invalid Manufacturer')
-        + ' (' + (fitDataObject.file_id.product || 'no model') + ')';
     }
     return creator;
   }

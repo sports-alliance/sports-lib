@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A Utility lib to work with tcx, fit and Suunto files",
   "main": "index.js",
-  "types": "dist/index.d.ts",
+  "types": "lib/index.d.ts",
   "scripts": {
     "watch": "tsc --watch",
     "build": "tsc",

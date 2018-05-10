@@ -1,0 +1,32 @@
+import { ActivityInterface } from './activity.interface';
+import { PointInterface } from '../points/point.interface';
+import { LapInterface } from '../laps/lap.interface';
+import { IBIData } from '../data/ibi/data.ibi';
+import { IntensityZonesInterface } from '../intensity-zones/intensity-zone.interface';
+import { Creator } from '../creators/creator';
+import { Weather } from '../weather/app.weather';
+import { GeoLocationInfo } from '../geo-location-info/geo-location-info';
+import { ActivityTypes } from './activity.types';
+import { DurationClassAbstract } from '../duration/duration.class.abstract';
+import { CreatorInterface } from '../creators/creatorInterface';
+export declare class Activity extends DurationClassAbstract implements ActivityInterface {
+    type: ActivityTypes;
+    creator: CreatorInterface;
+    ibiData: IBIData;
+    intensityZones: Map<string, IntensityZonesInterface>;
+    geoLocationInfo?: GeoLocationInfo;
+    weather?: Weather;
+    private points;
+    private laps;
+    constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator);
+    addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
+    removePoint(point: PointInterface): void;
+    getPoints(startDate?: Date, endDate?: Date): PointInterface[];
+    getPointsInterpolated(startDate?: Date, endDate?: Date, step?: number): PointInterface[];
+    getStartPoint(): PointInterface;
+    getEndPoint(): PointInterface;
+    addLap(lap: LapInterface): void;
+    getLaps(activity?: ActivityInterface): LapInterface[];
+    sortPointsByDate(): void;
+    toJSON(): any;
+}

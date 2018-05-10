@@ -10,9 +10,9 @@
     "test": "jest"
   },
   "bugs": {
-    "url": "https://github.com/philipszdavido/mypluralize/issues"
+    "url": "https://github.com/jimmykane/quantified-self-lib/issues"
   },
-  "homepage": "https://github.com/philipszdavido/mypluralize#readme",
+  "homepage": "https://github.com/jimmykane/quantified-self-lib",
   "author": "Dimitrios Kanellopoulos",
   "license": "N/A",
   "dependencies": {

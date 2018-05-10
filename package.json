@@ -1,5 +1,5 @@
 {
-  "name": "event-lib",
+  "name": "quantified-self-lib",
   "version": "1.0.0",
   "description": "A Utility lib to work with tcx, fit and Suunto files",
   "main": "index.js",

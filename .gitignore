@@ -43,4 +43,4 @@ testem.log
 Thumbs.db
 
 # build
-dist
+#dist

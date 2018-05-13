@@ -3,7 +3,6 @@ import {EventImporterFIT} from './importer.fit';
 
 describe('EventImporterFIT', () => {
 
-  let event: EventInterface;
 
   beforeEach(() => {
 

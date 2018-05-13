@@ -13,6 +13,6 @@ export declare class Event extends StatsClassAbstract implements EventInterface 
     getLastActivity(): ActivityInterface;
     getPoints(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
     getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
-    getPointsWithDataClass(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
+    getPointsWithDataType(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
     toJSON(): any;
 }

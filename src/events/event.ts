@@ -57,7 +57,7 @@ export class Event extends StatsClassAbstract implements EventInterface {
       }, []);
   }
 
-  getPointsWithDataClass(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
+  getPointsWithDataType(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
     return this.getPoints(startDate, endDate, activities)
       .reduce((pointsWithDataType: PointInterface[], point: PointInterface) => {
         if (point.getDataByType(dataType)) {

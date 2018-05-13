@@ -1,0 +1,33 @@
+os:
+  - linux
+sudo: required
+language: node_js
+node_js:
+  - "10.0.0"
+
+cache:
+  directories:
+    - node_modules
+
+branches:
+  only:
+    - master
+    - develop
+
+before_script:
+  - npm install codecov -g
+  - npm install -g codeclimate-test-reporter
+
+script:
+  - test --coverage
+  - ng build --prod
+
+after_success:
+  - codecov
+  - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && CODECLIMATE_API_HOST=$CODECLIMATE_API_HOST CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN_MASTER codeclimate-test-reporter < coverage/lcov.info
+  - test $TRAVIS_BRANCH = "develop" && test $TRAVIS_PULL_REQUEST = "false" && CODECLIMATE_API_HOST=$CODECLIMATE_API_HOST CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN_DEVELOP codeclimate-test-reporter < coverage/lcov.info
+
+notifications:
+  email:
+    on_failure: change
+    on_success: change

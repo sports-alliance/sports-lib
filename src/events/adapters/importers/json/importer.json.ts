@@ -1,15 +1,15 @@
-import {Event} from '../../event';
-import {Activity} from '../../../activities/activity';
-import {Lap} from '../../../laps/lap';
-import {Point} from '../../../points/point';
-import {EventInterface} from '../../event.interface';
-import {Creator} from '../../../creators/creator';
-import {WeatherItem} from '../../../weather/app.weather.item';
-import {Weather} from '../../../weather/app.weather';
-import {GeoLocationInfo} from '../../../geo-location-info/geo-location-info';
-import {IntensityZones} from '../../../intensity-zones/intensity-zone';
-import {IBIData} from '../../../data/ibi/data.ibi';
-import {DynamicDataLoader} from '../../../data/data.store';
+import {Event} from '../../../event';
+import {Activity} from '../../../../activities/activity';
+import {Lap} from '../../../../laps/lap';
+import {Point} from '../../../../points/point';
+import {EventInterface} from '../../../event.interface';
+import {Creator} from '../../../../creators/creator';
+import {WeatherItem} from '../../../../weather/app.weather.item';
+import {Weather} from '../../../../weather/app.weather';
+import {GeoLocationInfo} from '../../../../geo-location-info/geo-location-info';
+import {IntensityZones} from '../../../../intensity-zones/intensity-zone';
+import {IBIData} from '../../../../data/ibi/data.ibi';
+import {DynamicDataLoader} from '../../../../data/data.store';
 
 export class EventImporterJSON {
 

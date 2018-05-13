@@ -1,7 +1,7 @@
 import {EventImporterSuuntoJSON} from './importers/suunto/importer.suunto.json';
-import {EventImporterJSON} from './importers/importer.json';
+import {EventImporterJSON} from './importers/json/importer.json';
 import {Event} from '../event';
-import {EventImporterTCX} from './importers/importer.tcx';
+import {EventImporterTCX} from './importers/tcx/importer.tcx';
 
 const json = require('../../../samples/json/app.json');
 const suuntoJSON = require('../../../samples/suunto/suunto.json');

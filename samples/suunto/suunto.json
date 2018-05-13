@@ -14,11 +14,11 @@
       "DescentTime": 1171,
       "Device": {
         "Info": {
-          "HW": "LankkuD",
-          "SW": "2.0.26"
+          "HW": "hw",
+          "SW": "sw"
         },
         "Name": "Amsterdam",
-        "SerialNumber": "170810000701"
+        "SerialNumber": "sn"
       },
       "Distance": 10136,
       "DownhillCount": null,
@@ -1527,7 +1527,7 @@
         "HW": "hw",
         "SW": "sw"
       },
-      "Name": "name",
+      "Name": "Amsterdam",
       "SerialNumber": "sn"
     },
     "Samples": [

@@ -17,7 +17,7 @@
           "HW": "xx",
           "SW": "xx"
         },
-        "Name": "xx",
+        "Name": "Amsterdam",
         "SerialNumber": "xxx"
       },
       "Distance": 0,
@@ -669,11 +669,11 @@
     ],
     "Device": {
       "Info": {
-        "HW": "LankkuD",
-        "SW": "2.1.10"
+        "HW": "hw",
+        "SW": "sw"
       },
       "Name": "Amsterdam",
-      "SerialNumber": "170810000701"
+      "SerialNumber": "sn"
     },
     "Samples": [
       {

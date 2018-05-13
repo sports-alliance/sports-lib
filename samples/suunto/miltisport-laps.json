@@ -14,11 +14,11 @@
       "DescentTime": 0,
       "Device": {
         "Info": {
-          "HW": "K26NC",
-          "SW": "2.1.10"
+          "HW": "hw",
+          "SW": "sw"
         },
-        "Name": "Ibiza",
-        "SerialNumber": "018111300057"
+        "Name": "Amsterdam",
+        "SerialNumber": "sn"
       },
       "Distance": 0,
       "DownhillCount": null,
@@ -954,11 +954,11 @@
     ],
     "Device": {
       "Info": {
-        "HW": "K26NC",
-        "SW": "2.1.10"
+        "HW": "hw",
+        "SW": "sw"
       },
-      "Name": "Ibiza",
-      "SerialNumber": "018111300057"
+      "Name": "Amsterdam",
+      "SerialNumber": "sn"
     },
     "Samples": [
       {

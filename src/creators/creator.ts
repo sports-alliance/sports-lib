@@ -7,6 +7,7 @@ export class Creator implements CreatorInterface {
   public serialNumber?: string;
 
   constructor(name: string) {
+    debugger;
     this.name = name;
   }
 

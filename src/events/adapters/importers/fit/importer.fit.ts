@@ -137,7 +137,7 @@ export class EventImporterFIT {
     const lap = new Lap(
       sessionLapObject.start_time,
       sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
-      <LapTypes>LapTypes[<any>sessionLapObject.lap_trigger],
+      LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger],
     );
     // Set the calories
     if (sessionLapObject.total_calories) {
@@ -162,9 +162,9 @@ export class EventImporterFIT {
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport !== 'generic') {
-      return <ActivityTypes>ActivityTypes[<any>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes['unknown'];
+      return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes['unknown'];
     }
-    return <ActivityTypes>ActivityTypes[<any>session.sport] || ActivityTypes['unknown'];
+    return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || ActivityTypes['unknown'];
   }
 
   private static getStatsFromObject(object: any): DataInterface[] {

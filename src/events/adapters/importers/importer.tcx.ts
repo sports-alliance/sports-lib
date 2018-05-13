@@ -43,7 +43,7 @@ export class EventImporterTCX {
       const activity = new Activity(
         new Date(activityElement.getElementsByTagName('Lap')[0].getAttribute('StartTime')),
         laps[laps.length - 1].endDate,
-        <ActivityTypes>ActivityTypes[<any>activityElement.getAttribute('Sport')] || ActivityTypes['unknown'],
+        ActivityTypes[<keyof typeof ActivityTypes>activityElement.getAttribute('Sport')] || ActivityTypes['unknown'],
         this.getCreator(activityElement.getElementsByTagName('Creator')[0]),
       );
       event.addActivity(activity);
@@ -160,7 +160,7 @@ export class EventImporterTCX {
           +(new Date(<string>lapElement.getAttribute('StartTime'))) +
           1000 * Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)
         ),
-        <LapTypes>LapTypes[<any>lapElement.getElementsByTagName('TriggerMethod')[0].textContent]
+        LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent]
       );
 
       // Create a stats (required TCX fields)

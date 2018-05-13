@@ -124,7 +124,7 @@ export class EventImporterSuuntoJSON {
         activityStartEventSamples.length - 1 === index ?
           new Date(stopEventSample.TimeISO8601) :
           new Date(activityStartEventSamples[index + 1].TimeISO8601),
-        <ActivityTypes>ActivityTypes[<any>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
+        ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
         creator,
       );
 
@@ -161,7 +161,7 @@ export class EventImporterSuuntoJSON {
       // Set the start date.
       // Set it for the next run
       // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
-      const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, <LapTypes>LapTypes[<any>lapWindows[index].Type]);
+      const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapWindows[index].Type]);
       lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
       this.getStats(lapWindows[index]).forEach((stat) => {

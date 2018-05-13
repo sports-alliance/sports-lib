@@ -6,6 +6,7 @@ describe('EventImporterFIT', () => {
   let event: EventInterface;
 
   beforeEach(() => {
+
   });
 
   it('should be able to get a correct creator', () => {

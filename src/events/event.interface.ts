@@ -19,5 +19,7 @@ export interface EventInterface extends StatsClassInterface, SerializableClassIn
 
   getPoints(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
 
+  getPointsWithDataClass(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
+
   getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
 }

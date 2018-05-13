@@ -46,6 +46,7 @@ export class Event extends StatsClassAbstract implements EventInterface {
     }, []);
   }
 
+  // @todo maybe merge with below
   getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
     return this.getPoints(startDate, endDate, activities)
       .reduce((pointsWithPosition: PointInterface[], point: PointInterface) => {
@@ -53,6 +54,16 @@ export class Event extends StatsClassAbstract implements EventInterface {
           pointsWithPosition.push(point);
         }
         return pointsWithPosition;
+      }, []);
+  }
+
+  getPointsWithDataClass(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
+    return this.getPoints(startDate, endDate, activities)
+      .reduce((pointsWithDataType: PointInterface[], point: PointInterface) => {
+        if (point.getDataByType(dataType)) {
+          pointsWithDataType.push(point);
+        }
+        return pointsWithDataType;
       }, []);
   }
 

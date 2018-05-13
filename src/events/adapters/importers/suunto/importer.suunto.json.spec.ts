@@ -15,9 +15,8 @@ describe('EventImporterSuuntoJSON', () => {
 
   beforeEach(() => {
     event = EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
-    multiSportEvent = EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoMultiSportJSON);
+    multiSportEvent = EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoMultiSportJSON));
   });
-
 
   it('should import correctly a suunto multisport json activity', () => {
     expect(multiSportEvent instanceof Event).toBe(true);

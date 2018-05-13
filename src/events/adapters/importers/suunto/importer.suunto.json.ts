@@ -72,8 +72,6 @@ export class EventImporterSuuntoJSON {
   static getFromJSONString(jsonString: string): EventInterface {
     const eventJSONObject = JSON.parse(jsonString);
 
-    debugger;
-
     // Create an event
     const event = new Event('');
 

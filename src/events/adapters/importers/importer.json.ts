@@ -13,12 +13,11 @@ import {DynamicDataLoader} from '../../../data/data.store';
 
 export class EventImporterJSON {
 
-  static getFromJSONString(jsonString: string, eventName = 'New Event'): EventInterface {
+  static getFromJSONString(jsonString: string): EventInterface {
     const eventJSONObject = JSON.parse(jsonString);
 
-    const event = new Event(eventName);
+    const event = new Event(eventJSONObject.name);
     event.setID(eventJSONObject.id);
-    event.name = eventJSONObject.name;
 
     eventJSONObject.stats.forEach((stat: any) => {
       event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))

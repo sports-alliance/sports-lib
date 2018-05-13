@@ -81,7 +81,10 @@ export class EventImporterSuuntoJSON {
     });
 
     // Create a creator and pass it to all activities (later)
-    const creator = new Creator(ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name]);
+    const creator = new Creator(
+      ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
+      || eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
+    );
     creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
     creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
     creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;

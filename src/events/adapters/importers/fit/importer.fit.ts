@@ -39,15 +39,12 @@ import {DataSpeedMax} from '../../../../data/data.speed-max';
 import {DataPower} from '../../../../data/data.power';
 import {LapTypes} from '../../../../laps/lap.types';
 
-const EasyFit = require('easy-fit');
+const EasyFit = require('easy-fit').default;
 
 export class EventImporterFIT {
 
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
-
-      debugger;
-
       const easyFitParser = new EasyFit({
         force: false,
         speedUnit: 'm/s',

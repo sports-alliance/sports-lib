@@ -142,7 +142,7 @@ export class EventImporterTCX {
       return creator;
     }
     // Try to see if its a listed Suunto Device name
-    creator  = new Creator(ImporterSuuntoDeviceNames[<any>creatorElement.getElementsByTagName('Name')[0].textContent]
+    creator  = new Creator(ImporterSuuntoDeviceNames[<string>creatorElement.getElementsByTagName('Name')[0].textContent]
       || <string>creatorElement.getElementsByTagName('Name')[0].textContent);
 
     if (creatorElement.getElementsByTagName('Version')[0]) {

@@ -46,6 +46,8 @@ export class EventImporterFIT {
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
 
+      debugger;
+
       const easyFitParser = new EasyFit({
         force: false,
         speedUnit: 'm/s',

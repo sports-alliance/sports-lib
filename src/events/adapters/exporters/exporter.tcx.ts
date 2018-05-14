@@ -13,7 +13,6 @@ import {DataEnergy} from '../../../data/data.energy';
 import {LapTypes} from '../../../laps/lap.types';
 
 export class EventExporterTCX implements EventExporterInterface {
-  private xmlSerializer = new XMLSerializer();
   readonly fileType = 'application/tcx';
   readonly fileExtension = 'tcx';
 
@@ -185,7 +184,7 @@ export class EventExporterTCX implements EventExporterInterface {
         }
       }
     }
-    return '<?xml version="1.0" encoding="UTF-8"?>' + this.xmlSerializer.serializeToString(xmlDocument);
+    return '<?xml version="1.0" encoding="UTF-8"?>' + xmlDocument.documentElement.outerHTML;
   }
 
   getfileExtension(): string {

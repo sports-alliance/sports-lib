@@ -1,6 +1,6 @@
 {
   "name": "quantified-self-lib",
-  "version": "1.0.0-pre-2",
+  "version": "1.0.0-pre-3",
   "description": "A utility lib to work with tcx, fit and Suunto files",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,7 +48,6 @@
       "json",
       "node"
     ],
-    "collectCoverage": true,
     "globals": {
       "ts-jest": {
         "skipBabel": true

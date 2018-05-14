@@ -1,1 +1,1 @@
-# quantified-self-lib
+# Quantified Self Lib

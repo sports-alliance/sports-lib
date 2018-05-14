@@ -14,13 +14,14 @@ branches:
     - master
     - develop
 
-before_script:
+install:
   - npm install codecov -g
   - npm install -g codeclimate-test-reporter
+  - npm install
 
 script:
-  - test --coverage
-  - ng build --prod
+  - npm test --coverage
+  - npm build
 
 after_success:
   - codecov

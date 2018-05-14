@@ -1,8 +1,8 @@
 {
   "name": "quantified-self-lib",
-  "version": "1.0.0",
-  "description": "A Utility lib to work with tcx, fit and Suunto files",
-  "main": "index.js",
+  "version": "1.0.0-pre-1",
+  "description": "A utility lib to work with tcx, fit and Suunto files",
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "watch": "tsc --watch",
@@ -10,12 +10,16 @@
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jimmykane/quantified-self-lib.git"
+  },
   "bugs": {
     "url": "https://github.com/jimmykane/quantified-self-lib/issues"
   },
   "homepage": "https://github.com/jimmykane/quantified-self-lib",
   "author": "Dimitrios Kanellopoulos",
-  "license": "N/A",
+  "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "@types/uuid": "^3.4.3",
     "easy-fit": "github:jimmykane/easy-fit",

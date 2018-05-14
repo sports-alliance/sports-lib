@@ -85,11 +85,20 @@ export class EventExporterTCX implements EventExporterInterface {
         lapElement.setAttribute('StartTime', lap.startDate.toISOString().substring(0, 19) + 'Z');
 
         const totalTimeInSecondsElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'TotalTimeSeconds');
-        totalTimeInSecondsElement.textContent = lap.getDuration().getValue().toString();
+        // @todo fix
+        if (lap.getDuration()) {
+          totalTimeInSecondsElement.textContent = lap.getDuration().getValue().toString();
+        } else {
+          totalTimeInSecondsElement.textContent = '0';
+        }
         lapElement.appendChild(totalTimeInSecondsElement);
 
         const distanceInMetersElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'DistanceMeters');
-        distanceInMetersElement.textContent = lap.getDistance().getValue().toString();
+        if (lap.getDistance()) {
+          distanceInMetersElement.textContent = lap.getDistance().getValue().toString();
+        } else {
+          distanceInMetersElement.textContent = '0';
+        }
         lapElement.appendChild(distanceInMetersElement);
 
         const caloriesInKCALElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Calories');
@@ -110,7 +119,7 @@ export class EventExporterTCX implements EventExporterInterface {
         const trackElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Track');
         lapElement.appendChild(trackElement);
         // Go over the points and find the ones without position
-        let pointWithoutPosition: PointInterface|void;
+        let pointWithoutPosition: PointInterface | void;
         for (const point of activity.getPointsInterpolated(lap.startDate, lap.endDate)) {
           if (!point.getPosition()) {
             pointWithoutPosition = point;

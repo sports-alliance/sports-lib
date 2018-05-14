@@ -34,3 +34,10 @@ notifications:
     on_success: change
   slack: quantified-self-io:gWxqdRGo14eo9MoBMtIPX6ME
 
+deploy:
+  provider: npm
+  email: jimmykane9@gmail.com
+  api_key:
+    secure: qPFEpGo3nVdRaL7m2NGSEIuHTDD1bJH3xBHd+K78lxwI7bBdlKfpM/umrw0BiNGZUOUAUQN2KUYBQrspFGwSr3M+S3w7Rb79xxzPvR5+Y4MfS56LZbipFNFSusDjz5wTrN4RsUoE44O/NqwrCvG2ZGsHlYzn1FCBzKDL6iht88Jdx4R3iFBZgTndRPbPoBsaAuT6cwBp5x8XA4Njlq8pPHRHI8IZ4/bE+/dSZBos7yrtr4tDv/yOilk+dL3mUufckHKB8nlr3tTfpFVcn71WEBZSS4Vd3zVvkY81t6iWl0PWOXNZ6WogwqUsle3LWsSIANpP4uzjbhA992iqcKfnmuqoBRrqcz9VafYlA1uX4/iTcyZsYsCSGj/qQPphQEHNzEp8OblFNr6PPaetOiIt4A/YnnG1dFrP/tjJfKn4Y8UP42Q+X1Q+AgEfc3JN9fP8PZTnQHXL3xwV4+WUQh4huq6VpfiL2NKOIwtHc+7SjNSjdMYfQkoxkqcQtxLfngRj8jCgSmyWon/xw9wxVog5vDl7duYVpbvWhNoILYeBm/Q493wvdrsOnVuLE0rt4oNX1VXwCPNAfBo21FqJENOg+S/sDodmubpEeHQzseBl4/z8sBE7SxNIWTdi+IEwuO6NAxqEuhOB07Ipkpm4e/JC4TUKLE2v2w5irXRGtdedunY=
+  on:
+    branch: master

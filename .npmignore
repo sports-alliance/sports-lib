@@ -1,3 +1,7 @@
 src
 samples
 coverage
+.travis.yml
+tsconfig.json
+tslint.json
+.codebeatignore

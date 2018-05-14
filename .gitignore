@@ -42,4 +42,4 @@ testem.log
 Thumbs.db
 
 # build
-#dist
+lib

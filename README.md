@@ -2,6 +2,7 @@
 
 Master
 
+[![codebeat badge](https://codebeat.co/badges/e99f7c8a-3b7a-4d5b-9034-2dfd38c0e0a3)](https://codebeat.co/projects/github-com-jimmykane-quantified-self-develop)
 [![Build Status](https://travis-ci.org/jimmykane/quantified-self-lib.svg?branch=master)](https://travis-ci.org/jimmykane/quantified-self-lib.svg?branch=master)
 [![codecov](https://codecov.io/gh/jimmykane/quantified-self-lib/branch/master/graph/badge.svg)](https://codecov.io/gh/jimmykane/quantified-self)
 

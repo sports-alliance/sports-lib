@@ -21,7 +21,7 @@ install:
 
 script:
   - npm test-coverage
-  - npm build
+  - npm run build
 
 after_success:
   - codecov

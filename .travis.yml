@@ -20,7 +20,7 @@ install:
   - npm install
 
 script:
-  - npm test --coverage
+  - npm test-coverage
   - npm build
 
 after_success:

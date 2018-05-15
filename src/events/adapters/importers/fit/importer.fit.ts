@@ -74,6 +74,7 @@ export class EventImporterFIT {
             // Add the lap to the activity
             activity.addLap(lap);
           });
+          activity.sortPointsByDate();
           event.addActivity(activity);
         });
         // Set the totals for the event

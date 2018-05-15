@@ -37,6 +37,7 @@ import {DataDuration} from '../../data/data.duration';
 import {DataPause} from '../../data/data.pause';
 import {DataAscent} from '../../data/data.ascent';
 import {DataDescent} from '../../data/data.descent';
+import {GeoLibAdapter} from '../../geodesy/adapters/geolib.adapter';
 
 export class EventUtilities {
 
@@ -207,6 +208,22 @@ export class EventUtilities {
   }
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {
+
+    // If there is no duration define that from the start date and end date
+    if (!subject.getStat(DataDuration.className)) {
+      subject.addStat(new DataDuration((subject.endDate.getTime() - subject.startDate.getTime()) / 1000))
+    }
+
+    // If there is no pause define that from the start date and end date and duration
+    if (!subject.getStat(DataPause.className)) {
+      subject.addStat(new DataPause(((subject.endDate.getTime() - subject.startDate.getTime()) / 1000) - subject.getDuration().getValue()))
+    }
+
+    // If there is no distance
+    if (!subject.getStat(DataDistance.className)) {
+      subject.addStat(new DataDistance(this.getDistanceInMeters(event, subject.startDate, subject.endDate)));
+    }
+
     // Ascent (altitude gain)
     if (!subject.getStat(DataAscent.className)
       && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
@@ -322,6 +339,15 @@ export class EventUtilities {
       && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
       subject.addStat(new DataTemperatureAvg(this.getDataTypeAverage(event, DataTemperature.type, subject.startDate, subject.endDate)));
     }
+  }
+
+  public static getDistanceInMeters(
+    event: EventInterface,
+    startDate?: Date,
+    endDate?: Date,
+    activities?: ActivityInterface[],
+  ): number {
+    return (new GeoLibAdapter()).getDistance(event.getPointsWithPosition(startDate, endDate, activities));
   }
 }
 

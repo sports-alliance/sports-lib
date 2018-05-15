@@ -79,8 +79,6 @@ export class EventImporterGPX {
     event.setPause(new DataPause(activity.getPause().getValue()));
     event.setDistance(new DataDistance(activity.getDistance().getValue()));
 
-    debugger;
-
     return event;
   }
 

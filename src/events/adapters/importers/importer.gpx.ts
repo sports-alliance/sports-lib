@@ -17,7 +17,7 @@ import {DataLongitudeDegrees} from '../../../data/data.longitude-degrees';
 import {DataPower} from "../../../data/data.power";
 
 export class EventImporterGPX {
-  static getFromXML(xml: Document, id?: string): EventInterface {
+  static getFromString(xml: Document, id?: string): EventInterface {
     const event = new Event();
     event.setID(id || event.getID());
 

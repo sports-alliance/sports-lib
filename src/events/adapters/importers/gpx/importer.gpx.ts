@@ -114,28 +114,28 @@ export class EventImporterGPX {
         this.addExtensionDataToPoint(point, extensionData[key][0]);
       }
       if (key === 'altitude') {
-        point.addData(new DataAltitude(extensionData[key]));
+        point.addData(new DataAltitude(Number(extensionData[key][0])));
       }
       if (key === 'heartrate' || key === 'hr') {
-        point.addData(new DataHeartRate(extensionData[key]));
+        point.addData(new DataHeartRate(Number(extensionData[key][0])));
       }
       if (key === 'cadence' || key === 'cad') {
-        point.addData(new DataCadence(extensionData[key]));
+        point.addData(new DataCadence(Number(extensionData[key][0])));
       }
       if (key === 'seaLevelPressure') {
-        point.addData(new DataSeaLevelPressure(extensionData[key]));
+        point.addData(new DataSeaLevelPressure(Number(extensionData[key][0])));
       }
       if (key === 'speed') {
-        point.addData(new DataSpeed(extensionData[key]));
+        point.addData(new DataSpeed(Number(extensionData[key][0])));
       }
       if (key === 'verticalSpeed') {
-        point.addData(new DataVerticalSpeed(extensionData[key]));
+        point.addData(new DataVerticalSpeed(Number(extensionData[key][0])));
       }
       if (key === 'power') {
-        point.addData(new DataPower(extensionData[key]));
+        point.addData(new DataPower(Number(extensionData[key][0])));
       }
       if (key === 'temp' || key === 'atemp') {
-        point.addData(new DataTemperature(extensionData[key]));
+        point.addData(new DataTemperature(Number(extensionData[key][0])));
       }
     }
   }

@@ -74,6 +74,11 @@ export class EventImporterGPX {
     // Generate missing stats
     EventUtilities.generateStats(event);
 
+    // @todo move this elsewhere and refactor
+    event.setDuration(new DataDuration(activity.getDuration().getValue()));
+    event.setPause(new DataPause(activity.getPause().getValue()));
+    event.setDistance(new DataDistance(activity.getDistance().getValue()));
+
     debugger;
 
     return event;

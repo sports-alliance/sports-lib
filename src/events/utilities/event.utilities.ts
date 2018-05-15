@@ -112,6 +112,7 @@ export class EventUtilities {
   public static generateStats(event: EventInterface) {
     // Todo should also work for event
     event.getActivities().map((activity: ActivityInterface) => {
+      // Generate for activities
       this.generateStatsForActivityOrLap(event, activity);
       activity.getLaps().map((lap: LapInterface) => {
         this.generateStatsForActivityOrLap(event, lap);

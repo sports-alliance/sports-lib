@@ -9,6 +9,9 @@ export abstract class Data implements DataInterface {
   protected value: number | string | boolean;
 
   protected constructor(value: string | number | boolean) {
+    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean')) {
+      throw new Error('Value is not boolean or number or string ');
+    }
     this.value = value;
   }
 

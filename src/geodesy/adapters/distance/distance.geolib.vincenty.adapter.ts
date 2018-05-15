@@ -11,7 +11,7 @@ export class DistanceVincenty implements DistanceAdapterInterface {
     for (const pointB of excludeFirstPointsArray) {
       const positionA = pointA.getPosition();
       const positionB = pointB.getPosition();
-      if (!positionA || !positionB){
+      if (!positionA || !positionB) {
         continue;
       }
       const pointAPositionAsDecimal: PositionAsDecimal = {

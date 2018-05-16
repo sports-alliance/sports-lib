@@ -89,11 +89,11 @@ export class EventImporterGPX {
           // Create a point
           const point = new Point(new Date(trackPoint.time[0]));
           // Add lat long
-          point.addData(new DataLatitudeDegrees(trackPoint.lat));
-          point.addData(new DataLongitudeDegrees(trackPoint.lon));
+          point.addData(new DataLatitudeDegrees(Number(trackPoint.lat)));
+          point.addData(new DataLongitudeDegrees(Number(trackPoint.lon)));
           // Check if elevation is available and add it
           if (trackPoint.ele) {
-            point.addData(new DataAltitude(trackPoint.ele[0]));
+            point.addData(new DataAltitude(Number(trackPoint.ele[0])));
           }
           // Go over the extensions
           if (trackPoint.extensions && trackPoint.extensions[0]) {

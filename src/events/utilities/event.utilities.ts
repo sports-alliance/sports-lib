@@ -173,7 +173,7 @@ export class EventUtilities {
           return next;
         }
         // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-        if (<number>previousDataType.getValue() <= <number>nextDataType.getValue()) {
+        if (<number>previousDataType.getValue() < <number>nextDataType.getValue()) {
           return previous;
         }
         return next
@@ -185,7 +185,7 @@ export class EventUtilities {
         return next;
       }
       // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-      if (<number>previousDataType.getValue() >= <number>nextDataType.getValue()) {
+      if (<number>previousDataType.getValue() > <number>nextDataType.getValue()) {
         return previous;
       }
       return next;

@@ -5,6 +5,9 @@ export abstract class DataNumber extends DataBare {
   protected value: number;
 
   constructor(value: number) {
+    if (typeof value !== 'number') {
+      throw new Error('Only numbers are allowed for numeric data');
+    }
     super(value);
     this.value = value;
   }

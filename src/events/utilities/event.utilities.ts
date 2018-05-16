@@ -150,7 +150,7 @@ export class EventUtilities {
     starDate?: Date,
     endDate?: Date,
     activities?: ActivityInterface[],
-    minDiff = 1,
+    minDiff = 3.2,
   ): number {
     let gainOrLoss = 0;
     const points = event.getPoints(starDate, endDate, activities);

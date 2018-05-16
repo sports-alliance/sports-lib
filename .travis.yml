@@ -14,7 +14,7 @@ branches:
     - master
     - develop
 
-install:
+before_script:
   - npm install codecov -g
   - npm install -g codeclimate-test-reporter
   - npm install

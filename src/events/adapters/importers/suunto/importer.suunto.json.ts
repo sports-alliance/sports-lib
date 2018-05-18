@@ -199,9 +199,7 @@ export class EventImporterSuuntoJSON {
         if (point && (point.getDate() >= activity.startDate) && (point.getDate() <= activity.endDate)) {
           // add the point
           activity.addPoint(point);
-          // if the point has fusedLocation data mark the activity by adding a stat
-          const activityFusedData = activity.getStat(DataFusedLocation.className);
-          if (this.hasFusedLocData(sample) && !activityFusedData) {
+          if (this.hasFusedLocData(sample)) {
             activity.addStat(new DataFusedLocation(true));
           }
         }

@@ -119,7 +119,6 @@ export class EventImporterSuuntoJSON {
 
     // Create the activities
     const activities = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
-      debugger;
       const activity = new Activity(
         new Date(activityStartEventSample.TimeISO8601),
         activityStartEventSamples.length - 1 === index ?

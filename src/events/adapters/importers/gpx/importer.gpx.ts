@@ -154,7 +154,7 @@ export class EventImporterGPX {
         const lap = new Lap(
           new Date(lapExtension.startTime),
           new Date((new Date(lapExtension.startTime)).getTime() + (Number(lapExtension.elapsedTime) * 1000)),
-          LapTypes.AutoLap,
+          LapTypes.Manual,
         );
         lapsArray.push(lap);
       });

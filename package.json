@@ -1,7 +1,7 @@
 {
   "name": "quantified-self-lib",
   "version": "1.0.0-pre-9",
-  "description": "A utility lib to work with gpx, tcx, fit and Suunto files",
+  "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {

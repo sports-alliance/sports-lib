@@ -66,6 +66,7 @@ import {DataFusedLocation} from '../../../../data/data.fused-location';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {isNumberOrString} from '../../../utilities/event.utilities';
 import {LapTypes} from '../../../../laps/lap.types';
+import {DataPace} from '../../../../data/data.pace';
 
 export class EventImporterSuuntoJSON {
 
@@ -300,7 +301,8 @@ export class EventImporterSuuntoJSON {
       point.addData(new DataPower(sample.Power))
     }
     if (isNumberOrString(sample.Speed)) {
-      point.addData(new DataSpeed(sample.Speed))
+      point.addData(new DataSpeed(sample.Speed));
+      point.addData(new DataPace(1000 / sample.Speed))
     }
     if (isNumberOrString(sample.Temperature)) {
       point.addData(new DataTemperature(sample.Temperature - 273.15))

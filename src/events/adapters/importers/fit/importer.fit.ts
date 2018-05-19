@@ -118,6 +118,7 @@ export class EventImporterFIT {
     // Add Speed
     if (isNumberOrString(sessionLapObjectRecord.speed)) {
       point.addData(new DataSpeed(sessionLapObjectRecord.speed));
+      point.addData(new DataSpeed(1000 / sessionLapObjectRecord.speed));
     }
     // Add Vertical Speed
     if (isNumberOrString(sessionLapObjectRecord.vertical_speed)) {

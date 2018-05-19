@@ -26,6 +26,7 @@ import {ActivityTypes} from '../../../../activities/activity.types';
 import {DataSpeedAvg} from '../../../../data/data.speed-avg';
 import {LapTypes} from '../../../../laps/lap.types';
 import {ImporterSuuntoDeviceNames} from '../suunto/importer.suunto.device.names';
+import {DataPace} from '../../../../data/data.pace';
 
 export class EventImporterTCX {
 
@@ -115,6 +116,7 @@ export class EventImporterTCX {
               switch (dataExtensionElement.nodeName.replace(dataExtensionElement.prefix + ':', '')) {
                 case 'Speed': {
                   point.addData(new DataSpeed(Number(dataExtensionElement.textContent)));
+                  point.addData(new DataPace(1000 / Number(dataExtensionElement.textContent)));
                   break;
                 }
                 case 'RunCadence': {
@@ -142,7 +144,7 @@ export class EventImporterTCX {
       return creator;
     }
     // Try to see if its a listed Suunto Device name
-    creator  = new Creator(ImporterSuuntoDeviceNames[<string>creatorElement.getElementsByTagName('Name')[0].textContent]
+    creator = new Creator(ImporterSuuntoDeviceNames[<string>creatorElement.getElementsByTagName('Name')[0].textContent]
       || <string>creatorElement.getElementsByTagName('Name')[0].textContent);
 
     if (creatorElement.getElementsByTagName('Version')[0]) {
@@ -158,9 +160,9 @@ export class EventImporterTCX {
         new Date(<string>lapElement.getAttribute('StartTime')),
         new Date(
           +(new Date(<string>lapElement.getAttribute('StartTime'))) +
-          1000 * Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)
+          1000 * Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent),
         ),
-        LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent]
+        LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent],
       );
 
       // Create a stats (required TCX fields)

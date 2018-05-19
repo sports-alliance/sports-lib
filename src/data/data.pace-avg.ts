@@ -1,6 +1,6 @@
-import {DataNumber} from './data.number';
+import {DataPace} from './data.pace';
 
-export class DataPaceAvg extends DataNumber {
+export class DataPaceAvg extends DataPace {
   static className = 'DataPaceAvg';
   static type = 'Avg Pace';
 }

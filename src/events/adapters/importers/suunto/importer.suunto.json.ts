@@ -67,6 +67,9 @@ import {ActivityTypes} from '../../../../activities/activity.types';
 import {isNumberOrString} from '../../../utilities/event.utilities';
 import {LapTypes} from '../../../../laps/lap.types';
 import {DataPace} from '../../../../data/data.pace';
+import {DataPaceAvg} from '../../../../data/data.pace-avg';
+import {DataPaceMax} from '../../../../data/data.pace-max';
+import {DataPaceMin} from '../../../../data/data.pace-min';
 
 export class EventImporterSuuntoJSON {
 
@@ -84,7 +87,7 @@ export class EventImporterSuuntoJSON {
     // Create a creator and pass it to all activities (later)
     const creator = new Creator(
       ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
-      || eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
+      || eventJSONObject.DeviceLog.Device.Name, // If not fallback to typed
     );
     creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
     creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
@@ -449,12 +452,15 @@ export class EventImporterSuuntoJSON {
     if (object.Speed) {
       if (object.Speed[0].Avg !== null) {
         stats.push(new DataSpeedAvg(object.Speed[0].Avg));
+        stats.push(new DataPaceAvg(1000 / object.Speed[0].Avg));
       }
       if (object.Speed[0].Max !== null) {
         stats.push(new DataSpeedMax(object.Speed[0].Max));
+        stats.push(new DataPaceMax(1000 / object.Speed[0].Max));
       }
       if (object.Speed[0].Min !== null) {
         stats.push(new DataSpeedMin(object.Speed[0].Min));
+        stats.push(new DataPaceMin(1000 / object.Speed[0].Min));
       }
     }
 

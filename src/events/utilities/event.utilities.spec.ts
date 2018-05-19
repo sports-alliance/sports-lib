@@ -45,8 +45,8 @@ describe('EventUtilities', () => {
     event.getFirstActivity().addPoint(pointB);
     event.getFirstActivity().addPoint(pointC);
 
-    expect(EventUtilities.getDateTypeMinimum(event, DataHeartRate.type)).toBe(0);
-    expect(EventUtilities.getDateTypeMinimum(event, DataAltitude.type)).toBe(200);
+    expect(EventUtilities.getDateTypeMin(event, DataHeartRate.type)).toBe(0);
+    expect(EventUtilities.getDateTypeMin(event, DataAltitude.type)).toBe(200);
   });
 
   it('should get the correct maximum for a DataType', () => {
@@ -66,8 +66,8 @@ describe('EventUtilities', () => {
     event.getFirstActivity().addPoint(pointB);
     event.getFirstActivity().addPoint(pointC);
 
-    expect(EventUtilities.getDateTypeMaximum(event, DataHeartRate.type)).toBe(100);
-    expect(EventUtilities.getDateTypeMaximum(event, DataAltitude.type)).toBe(400);
+    expect(EventUtilities.getDateTypeMax(event, DataHeartRate.type)).toBe(100);
+    expect(EventUtilities.getDateTypeMax(event, DataAltitude.type)).toBe(400);
   });
 
   it('should get the correct average for a DataType', () => {
@@ -87,8 +87,8 @@ describe('EventUtilities', () => {
     event.getFirstActivity().addPoint(pointB);
     event.getFirstActivity().addPoint(pointC);
 
-    expect(EventUtilities.getDataTypeAverage(event, DataHeartRate.type)).toBe(50);
-    expect(EventUtilities.getDataTypeAverage(event, DataAltitude.type)).toBe(300);
+    expect(EventUtilities.getDataTypeAvg(event, DataHeartRate.type)).toBe(50);
+    expect(EventUtilities.getDataTypeAvg(event, DataAltitude.type)).toBe(300);
   });
 
   it('should get the correct gain for a DataType', () => {

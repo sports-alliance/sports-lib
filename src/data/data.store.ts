@@ -50,6 +50,10 @@ import {DataAscentTime} from './data.ascent-time';
 import {DataAscent} from './data.ascent';
 import {DataAltitudeAvg} from './data.altitude-avg';
 import {DataFusedLocation} from './data.fused-location';
+import {DataPaceMin} from './data.pace-min';
+import {DataPaceMax} from './data.pace-max';
+import {DataPaceAvg} from './data.pace-avg';
+import {DataPace} from './data.pace';
 
 /**
  * Only concrete classes no abstracts
@@ -106,6 +110,10 @@ export const DataStore: any = {
   DataAltitudeMax,
   DataAltitudeAvg,
   DataFusedLocation,
+  DataPace,
+  DataPaceMin,
+  DataPaceMax,
+  DataPaceAvg,
 };
 
 export class DynamicDataLoader {

@@ -38,6 +38,10 @@ import {DataPause} from '../../data/data.pause';
 import {DataAscent} from '../../data/data.ascent';
 import {DataDescent} from '../../data/data.descent';
 import {GeoLibAdapter} from '../../geodesy/adapters/geolib.adapter';
+import {DataPaceMax} from '../../data/data.pace-max';
+import {DataPace} from '../../data/data.pace';
+import {DataPaceMin} from '../../data/data.pace-min';
+import {DataPaceAvg} from '../../data/data.pace-avg';
 
 export class EventUtilities {
 
@@ -299,6 +303,21 @@ export class EventUtilities {
     if (!subject.getStat(DataSpeedAvg.className)
       && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
       subject.addStat(new DataSpeedAvg(this.getDataTypeAverage(event, DataSpeed.type, subject.startDate, subject.endDate)));
+    }
+    // Pace Max
+    if (!subject.getStat(DataPaceMax.className)
+      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+      subject.addStat(new DataPaceMax(this.getDateTypeMaximum(event, DataPace.type, subject.startDate, subject.endDate)));
+    }
+    // Pace Min
+    if (!subject.getStat(DataPaceMin.className)
+      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+      subject.addStat(new DataPaceMin(this.getDateTypeMinimum(event, DataPace.type, subject.startDate, subject.endDate)));
+    }
+    // Pace Avg
+    if (!subject.getStat(DataPaceAvg.className)
+      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+      subject.addStat(new DataPaceAvg(this.getDataTypeAverage(event, DataPace.type, subject.startDate, subject.endDate)));
     }
     // Vertical Speed Max
     if (!subject.getStat(DataVerticalSpeedMax.className)

@@ -55,7 +55,6 @@ export class EventImporterFIT {
       });
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        debugger;
         // Create an event
         const event = new Event(name);
         // Iterate over the sessions and create their activities

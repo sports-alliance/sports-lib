@@ -380,6 +380,11 @@ export function isNumberOrString(property: any) {
   return (typeof property === 'number' || typeof property === 'string');
 }
 
+/**
+ * Converts speed from m/s to pace as of seconds
+ * @param {number} number
+ * @return {number}
+ */
 export function convertSpeedToPace(number: number): number {
-  return number === 0 ? number : 1000 / number;
+  return number === 0 ? number : (1000 / number) * 60;
 }

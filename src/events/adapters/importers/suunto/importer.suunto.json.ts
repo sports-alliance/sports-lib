@@ -452,15 +452,15 @@ export class EventImporterSuuntoJSON {
     if (object.Speed) {
       if (object.Speed[0].Avg !== null) {
         stats.push(new DataSpeedAvg(object.Speed[0].Avg));
-        stats.push(new DataPaceAvg(1000 / object.Speed[0].Avg));
+        stats.push(new DataPaceAvg(convertSpeedToPace(object.Speed[0].Avg)));
       }
       if (object.Speed[0].Max !== null) {
         stats.push(new DataSpeedMax(object.Speed[0].Max));
-        stats.push(new DataPaceMax(1000 / object.Speed[0].Max));
+        stats.push(new DataPaceMax(convertSpeedToPace(object.Speed[0].Max)));
       }
       if (object.Speed[0].Min !== null) {
         stats.push(new DataSpeedMin(object.Speed[0].Min));
-        stats.push(new DataPaceMin(1000 / object.Speed[0].Min));
+        stats.push(new DataPaceMin(convertSpeedToPace(object.Speed[0].Min)));
       }
     }
 

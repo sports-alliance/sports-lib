@@ -25,7 +25,7 @@ import {ImporterFitSuuntoDeviceNames} from './importer.fit.suunto.device.names';
 import {ImporterZwiftDeviceNames} from './importer.fit.swift.device.names';
 import {DataPause} from '../../../../data/data.pause';
 import {DataInterface} from '../../../../data/data.interface';
-import {EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataCadenceAvg} from '../../../../data/data.cadence-avg';
 import {DataPowerAvg} from '../../../../data/data.power-avg';
 import {DataSpeedAvg} from '../../../../data/data.speed-avg';
@@ -56,6 +56,7 @@ export class EventImporterFIT {
       });
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
+        debugger;
         // Create an event
         const event = new Event(name);
         // Iterate over the sessions and create their activities
@@ -118,7 +119,7 @@ export class EventImporterFIT {
     // Add Speed
     if (isNumberOrString(sessionLapObjectRecord.speed)) {
       point.addData(new DataSpeed(sessionLapObjectRecord.speed));
-      point.addData(new DataPace(1000 / sessionLapObjectRecord.speed));
+      point.addData(new DataPace(convertSpeedToPace(sessionLapObjectRecord.speed)));
     }
     // Add Vertical Speed
     if (isNumberOrString(sessionLapObjectRecord.vertical_speed)) {

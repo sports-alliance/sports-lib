@@ -21,7 +21,7 @@ import {LapTypes} from '../../../../laps/lap.types';
 import {DataDistance} from '../../../../data/data.distance';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataPause} from '../../../../data/data.pause';
-import {EventUtilities} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities} from '../../../utilities/event.utilities';
 import {DataPace} from '../../../../data/data.pace';
 
 const GXParser = require('gxparser').GXParser;
@@ -128,7 +128,7 @@ export class EventImporterGPX {
       }
       if (key === 'speed') {
         point.addData(new DataSpeed(Number(extensionData[key][0])));
-        point.addData(new DataPace(1000 / Number(extensionData[key][0])));
+        point.addData(new DataPace(convertSpeedToPace(Number(extensionData[key][0]))));
       }
       if (key === 'verticalSpeed') {
         point.addData(new DataVerticalSpeed(Number(extensionData[key][0])));

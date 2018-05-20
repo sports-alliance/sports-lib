@@ -64,7 +64,7 @@ import {DataAltitudeAvg} from '../../../../data/data.altitude-avg';
 import {DataAltitudeMin} from '../../../../data/data.altitude-min';
 import {DataFusedLocation} from '../../../../data/data.fused-location';
 import {ActivityTypes} from '../../../../activities/activity.types';
-import {isNumberOrString} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, isNumberOrString} from '../../../utilities/event.utilities';
 import {LapTypes} from '../../../../laps/lap.types';
 import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
@@ -305,7 +305,7 @@ export class EventImporterSuuntoJSON {
     }
     if (isNumberOrString(sample.Speed)) {
       point.addData(new DataSpeed(sample.Speed));
-      point.addData(new DataPace(1000 / sample.Speed))
+      point.addData(new DataPace(convertSpeedToPace(sample.Speed)));
     }
     if (isNumberOrString(sample.Temperature)) {
       point.addData(new DataTemperature(sample.Temperature - 273.15))

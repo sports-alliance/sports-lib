@@ -14,7 +14,7 @@ import {DataPower} from '../../../../data/data.power';
 import {PointInterface} from '../../../../points/point.interface';
 import {CreatorInterface} from '../../../../creators/creatorInterface';
 import {LapInterface} from '../../../../laps/lap.interface';
-import {EventUtilities} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities} from '../../../utilities/event.utilities';
 import {DataEnergy} from '../../../../data/data.energy';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataDistance} from '../../../../data/data.distance';
@@ -116,7 +116,7 @@ export class EventImporterTCX {
               switch (dataExtensionElement.nodeName.replace(dataExtensionElement.prefix + ':', '')) {
                 case 'Speed': {
                   point.addData(new DataSpeed(Number(dataExtensionElement.textContent)));
-                  point.addData(new DataPace(1000 / Number(dataExtensionElement.textContent)));
+                  point.addData(new DataPace(convertSpeedToPace(Number(dataExtensionElement.textContent))));
                   break;
                 }
                 case 'RunCadence': {

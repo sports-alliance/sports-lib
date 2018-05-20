@@ -22,6 +22,7 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "@types/uuid": "^3.4.3",
+    "convert-units": "^2.3.4",
     "easy-fit": "github:jimmykane/easy-fit",
     "geolib": "^2.0.24",
     "gxparser": "^1.0.0",

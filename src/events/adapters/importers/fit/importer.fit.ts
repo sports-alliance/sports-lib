@@ -38,6 +38,7 @@ import {DataHeartRateMax} from '../../../../data/data.heart-rate-max';
 import {DataSpeedMax} from '../../../../data/data.speed-max';
 import {DataPower} from '../../../../data/data.power';
 import {LapTypes} from '../../../../laps/lap.types';
+import {DataPace} from '../../../../data/data.pace';
 
 const EasyFit = require('easy-fit').default;
 
@@ -117,7 +118,7 @@ export class EventImporterFIT {
     // Add Speed
     if (isNumberOrString(sessionLapObjectRecord.speed)) {
       point.addData(new DataSpeed(sessionLapObjectRecord.speed));
-      point.addData(new DataSpeed(1000 / sessionLapObjectRecord.speed));
+      point.addData(new DataPace(1000 / sessionLapObjectRecord.speed));
     }
     // Add Vertical Speed
     if (isNumberOrString(sessionLapObjectRecord.vertical_speed)) {

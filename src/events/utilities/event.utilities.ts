@@ -386,5 +386,5 @@ export function isNumberOrString(property: any) {
  * @return {number}
  */
 export function convertSpeedToPace(number: number): number {
-  return number === 0 ? number : (1000 / number) * 60;
+  return number === 0 ? number : (1000 / number);
 }

@@ -39,6 +39,12 @@ import {DataSpeedMax} from '../../../../data/data.speed-max';
 import {DataPower} from '../../../../data/data.power';
 import {LapTypes} from '../../../../laps/lap.types';
 import {DataPace} from '../../../../data/data.pace';
+import {DataPaceAvg} from '../../../../data/data.pace-avg';
+import {DataPaceMax} from '../../../../data/data.pace-max';
+import {DataHeartRateMin} from '../../../../data/data.heart-rate-min';
+import {DataCadenceMin} from '../../../../data/data.cadence-min';
+import {DataPowerMin} from '../../../../data/data.power-min';
+import {DataPaceMin} from '../../../../data/data.pace-min';
 
 const EasyFit = require('easy-fit').default;
 
@@ -189,26 +195,41 @@ export class EventImporterFIT {
     if (isNumberOrString(object.avg_heart_rate)) {
       stats.push(new DataHeartRateAvg(object.avg_heart_rate));
     }
+    if (isNumberOrString(object.min_heart_rate)) {
+      stats.push(new DataHeartRateMin(object.min_heart_rate));
+    }
     if (isNumberOrString(object.max_heart_rate)) {
       stats.push(new DataHeartRateMax(object.max_heart_rate));
     }
     if (isNumberOrString(object.avg_cadence)) {
       stats.push(new DataCadenceAvg(object.avg_cadence));
     }
+    if (isNumberOrString(object.min_cadence)) {
+      stats.push(new DataCadenceAvg(object.avg_cadence));
+    }
     if (isNumberOrString(object.max_cadence)) {
-      stats.push(new DataCadenceMax(object.max_cadence));
+      stats.push(new DataCadenceMin(object.min_cadence));
     }
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));
+    }
+    if (isNumberOrString(object.min_power)) {
+      stats.push(new DataPowerMin(object.min_power));
     }
     if (isNumberOrString(object.max_power)) {
       stats.push(new DataPowerMax(object.max_power));
     }
     if (isNumberOrString(object.avg_speed)) {
       stats.push(new DataSpeedAvg(object.avg_speed));
+      stats.push(new DataPaceAvg(convertSpeedToPace(object.avg_speed)));
+    }
+    if (isNumberOrString(object.min_speed)) {
+      stats.push(new DataSpeedAvg(object.min_speed));
+      stats.push(new DataPaceMin(convertSpeedToPace(object.min_speed)));
     }
     if (isNumberOrString(object.max_speed)) {
       stats.push(new DataSpeedMax(object.max_speed));
+      stats.push(new DataPaceMax(convertSpeedToPace(object.max_speed)));
     }
     if (isNumberOrString(object.total_ascent)) {
       stats.push(new DataAscent(object.total_ascent));

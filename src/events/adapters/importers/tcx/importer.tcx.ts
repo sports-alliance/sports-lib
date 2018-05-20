@@ -27,6 +27,8 @@ import {DataSpeedAvg} from '../../../../data/data.speed-avg';
 import {LapTypes} from '../../../../laps/lap.types';
 import {ImporterSuuntoDeviceNames} from '../suunto/importer.suunto.device.names';
 import {DataPace} from '../../../../data/data.pace';
+import {DataPaceAvg} from '../../../../data/data.pace-avg';
+import {DataPaceMax} from '../../../../data/data.pace-max';
 
 export class EventImporterTCX {
 
@@ -174,6 +176,7 @@ export class EventImporterTCX {
       // Optionals
       if (lapElement.getElementsByTagName('MaximumSpeed')[0]) {
         lap.addStat(new DataSpeedMax(Number(lapElement.getElementsByTagName('MaximumSpeed')[0].textContent)));
+        lap.addStat(new DataPaceMax(convertSpeedToPace(Number(lapElement.getElementsByTagName('MaximumSpeed')[0].textContent))));
       }
 
       if (lapElement.getElementsByTagName('AverageHeartRateBpm')[0]) {
@@ -186,6 +189,7 @@ export class EventImporterTCX {
 
       if (lapElement.getElementsByTagName('Extensions')[0] && lapElement.getElementsByTagName('Extensions')[0].getElementsByTagName('AvgSpeed')[0]) {
         lap.addStat(new DataSpeedAvg(Number(lapElement.getElementsByTagName('Extensions')[0].getElementsByTagName('AvgSpeed')[0].textContent)));
+        lap.addStat(new DataPaceAvg(convertSpeedToPace(Number(lapElement.getElementsByTagName('Extensions')[0].getElementsByTagName('AvgSpeed')[0].textContent))));
       }
 
       // Should check the track

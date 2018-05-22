@@ -208,7 +208,7 @@ export class EventImporterFIT {
       stats.push(new DataCadenceAvg(object.avg_cadence));
     }
     if (isNumberOrString(object.max_cadence)) {
-      stats.push(new DataCadenceMin(object.min_cadence));
+      stats.push(new DataCadenceMax(object.max_cadence));
     }
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));

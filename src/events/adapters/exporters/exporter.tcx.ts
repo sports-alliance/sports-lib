@@ -182,8 +182,8 @@ export class EventExporterTCX implements EventExporterInterface {
               if (data instanceof DataCadence) {
                 const cadenceElement = document.createElementNS('http://www.garmin.com/xmlschemas/ActivityExtension/v2', 'RunCadence');
                 const cadenceElementNoNS = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Cadence');
-                cadenceElement.textContent = (data.getValue() / 2).toFixed(0).toString();
-                cadenceElementNoNS.textContent = (data.getValue() / 2).toFixed(0).toString();
+                cadenceElement.textContent = (data.getValue()).toFixed(0).toString();
+                cadenceElementNoNS.textContent = (data.getValue()).toFixed(0).toString();
                 tpxElement.appendChild(cadenceElement);
                 // Apend a normal and an extension one
                 pointElement.appendChild(cadenceElementNoNS);

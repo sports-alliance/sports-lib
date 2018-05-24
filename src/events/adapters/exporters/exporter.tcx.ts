@@ -11,6 +11,7 @@ import {LapInterface} from '../../../laps/lap.interface';
 import {DataPower} from '../../../data/data.power';
 import {DataEnergy} from '../../../data/data.energy';
 import {LapTypes} from '../../../laps/lap.types';
+import {DataGPSAltitude} from '../../../data/data.altitude-gps';
 
 export class EventExporterTCX implements EventExporterInterface {
   readonly fileType = 'application/tcx';
@@ -158,7 +159,7 @@ export class EventExporterTCX implements EventExporterInterface {
           pointElement.appendChild(extensionsElement);
 
           point.getData().forEach((data: DataInterface) => {
-            if ((data instanceof DataAltitude)) {
+            if ((data instanceof DataAltitude) && !(data instanceof DataGPSAltitude)) {
               const altitudeElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'AltitudeMeters');
               altitudeElement.textContent = data.getValue().toFixed(0).toString();
               pointElement.appendChild(altitudeElement);

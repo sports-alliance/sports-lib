@@ -1,6 +1,6 @@
 {
   "name": "quantified-self-lib",
-  "version": "1.0.0-pre-13",
+  "version": "1.0.0-pre-14",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
     "gpx",
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@types/jest": "^22.2.3",
-    "jest": "^22.4.3",
+    "jest": "^23.0.0",
     "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
     "typescript": "^2.8.3"

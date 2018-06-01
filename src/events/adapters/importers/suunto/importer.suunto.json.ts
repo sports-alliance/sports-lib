@@ -70,6 +70,7 @@ import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {DataPaceMin} from '../../../../data/data.pace-min';
+import {DataFusedAltitude} from '../../../../data/data.fused-altitude';
 
 export class EventImporterSuuntoJSON {
 
@@ -96,6 +97,11 @@ export class EventImporterSuuntoJSON {
     // Go over the samples and get the ones with activity start times
     const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
       return sample.Events && sample.Events[0].Activity;
+    });
+
+    // Check if there is a Fused Altitude event
+    const fusedAltitudeEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
+      return sample.Events && sample.Events[0].Altitude;
     });
 
     // Get the lap start events
@@ -141,6 +147,13 @@ export class EventImporterSuuntoJSON {
       activity.setPause(new DataPause((activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()));
       // Set the zones for the activity @todo fix
       this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header);
+
+      // Add the fused altitude event
+      if (fusedAltitudeEventSamples.length){
+        activity.addStat(new DataFusedAltitude(true))
+      }else {
+        activity.addStat(new DataFusedAltitude(false))
+      }
 
       return activity;
     });

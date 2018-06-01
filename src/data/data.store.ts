@@ -54,6 +54,7 @@ import {DataPaceMin} from './data.pace-min';
 import {DataPaceMax} from './data.pace-max';
 import {DataPaceAvg} from './data.pace-avg';
 import {DataPace} from './data.pace';
+import {DataFusedAltitude} from './data.fused-altitude';
 
 /**
  * Only concrete classes no abstracts
@@ -110,6 +111,7 @@ export const DataStore: any = {
   DataAltitudeMax,
   DataAltitudeAvg,
   DataFusedLocation,
+  DataFusedAltitude,
   DataPace,
   DataPaceMin,
   DataPaceMax,

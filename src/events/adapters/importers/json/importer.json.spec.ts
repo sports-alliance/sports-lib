@@ -9,7 +9,8 @@ describe('EventImporterJson', () => {
 
   });
 
-  it('should be able to decode json', () => {
-    expect(EventImporterJSON.getFromJSONString(JSON.stringify(json)) instanceof Event).toBe(true);
+  it('should be able to decode json', async () => {
+    const event = await EventImporterJSON.getFromJSONString(JSON.stringify(json));
+    expect(event instanceof Event).toBe(true);
   });
 });

@@ -13,23 +13,28 @@ describe('EventImporterGPX', () => {
   beforeEach(() => {
   });
 
-  it('should import from movescount GPX correctly', () => {
-    expect(EventImporterGPX.getFromString(movescountGPX.gpx) instanceof Event).toBe(true);
+  it('should import from movescount GPX correctly', async () => {
+    const event = await EventImporterGPX.getFromString(movescountGPX.gpx);
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should import from amazfit GPX correctly', () => {
-    expect(EventImporterGPX.getFromString(amazfitGPX.gpx) instanceof Event).toBe(true);
+  it('should import from amazfit GPX correctly',async () => {
+    const event = await EventImporterGPX.getFromString(amazfitGPX.gpx);
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should import from garmin GPX correctly', () => {
-    expect(EventImporterGPX.getFromString(garminGPX.gpx) instanceof Event).toBe(true);
+  it('should import from garmin GPX correctly', async () => {
+    const event = await EventImporterGPX.getFromString(garminGPX.gpx);
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should import from strava  GPX correctly', () => {
-    expect(EventImporterGPX.getFromString(stravaGPX.gpx) instanceof Event).toBe(true);
+  it('should import from strava  GPX correctly', async () => {
+    const event = await EventImporterGPX.getFromString(stravaGPX.gpx) ;
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should import from sports tracker  GPX correctly', () => {
-    expect(EventImporterGPX.getFromString(sportsTrackerGPX.gpx) instanceof Event).toBe(true);
+  it('should import from sports tracker  GPX correctly', async () => {
+    const event = await EventImporterGPX.getFromString(sportsTrackerGPX.gpx);
+    expect(event instanceof Event).toBe(true);
   });
 });

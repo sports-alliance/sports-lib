@@ -11,16 +11,19 @@ describe('EventImporterTCX', () => {
 
   });
 
-  it('should be able to decode tcx from Movescount', () => {
-    expect(EventImporterTCX.getFromXML((new DOMParser()).parseFromString(movescountTCXJSON.tcx, 'application/xml')) instanceof Event).toBe(true);
+  it('should be able to decode tcx from Movescount', async () => {
+    const event = await EventImporterTCX.getFromXML((new DOMParser()).parseFromString(movescountTCXJSON.tcx, 'application/xml'));
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should be able to decode tcx from Polar', () => {
-    expect(EventImporterTCX.getFromXML((new DOMParser()).parseFromString(polarTCXJSON.tcx, 'application/xml')) instanceof Event).toBe(true);
+  it('should be able to decode tcx from Polar', async () => {
+    const event = await EventImporterTCX.getFromXML((new DOMParser()).parseFromString(polarTCXJSON.tcx, 'application/xml'));
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should be able to decode tcx from Garmin', () => {
-    expect(EventImporterTCX.getFromXML((new DOMParser()).parseFromString(garminTCXJSON.tcx, 'application/xml')) instanceof Event).toBe(true);
+  it('should be able to decode tcx from Garmin', async () => {
+    const event = await  EventImporterTCX.getFromXML((new DOMParser()).parseFromString(garminTCXJSON.tcx, 'application/xml'));
+    expect(event instanceof Event).toBe(true);
   });
 
 });

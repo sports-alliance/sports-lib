@@ -8,21 +8,23 @@ const suuntoMultiSportJSON = require('../../../../../samples/suunto/multisport.j
 
 describe('EventImporterSuuntoJSON', () => {
 
-  it('should import correctly a suunto multisport json activity', () => {
-    expect(EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoMultiSportJSON)) instanceof Event).toBe(true);
+  it('should import correctly a suunto multisport json activity', async () => {
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoMultiSportJSON));
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should import correctly a suunto json activity', () => {
-    expect(EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON)) instanceof Event).toBe(true);
+  it('should import correctly a suunto json activity', async () => {
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
+    expect(event instanceof Event).toBe(true);
   });
 
-  it('should get the device name correctly', () => {
-    const event = EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
+  it('should get the device name correctly', async () => {
+    const event =  await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
     expect(event.getFirstActivity().creator.name).toBe(ImporterSuuntoDeviceNames.Amsterdam);
   });
 
-  it('should get the activity type correctly', () => {
-    const event = EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
+  it('should get the activity type correctly', async () => {
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
     expect(event.getFirstActivity().type).toBe(ActivityTypes['Trail Running']);
   });
 });

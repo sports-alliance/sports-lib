@@ -27,60 +27,63 @@ import {DataPace} from '../../../../data/data.pace';
 const GXParser = require('gxparser').GXParser;
 
 export class EventImporterGPX {
-  static getFromString(gpx: string, name = 'New Event'): EventInterface {
 
-    const parsedGPX = GXParser(gpx);
+  static getFromString(gpx: string, name = 'New Event'): Promise<EventInterface> {
 
-    // Create an event
-    const event = new Event(name);
+    return new Promise((resolve, reject) => {
+      const parsedGPX = GXParser(gpx);
 
-    // Create a creator
-    const creator = new Creator(parsedGPX.creator);
-    creator.swInfo = parsedGPX.version;
+      // Create an event
+      const event = new Event(name);
 
-    // Get the points
-    const points = this.getPointsFromGPX(parsedGPX);
+      // Create a creator
+      const creator = new Creator(parsedGPX.creator);
+      creator.swInfo = parsedGPX.version;
 
-    // Get the laps
-    const laps = this.getLaps(parsedGPX);
+      // Get the points
+      const points = this.getPointsFromGPX(parsedGPX);
 
-    // Find the activity type
-    let activityType: ActivityTypes;
-    if (parsedGPX.trk[0].type) {
-      activityType = ActivityTypes[<keyof typeof ActivityTypes>parsedGPX.trk[0].type[0]];
-    } else {
-      activityType = ActivityTypes.unknown;
-    }
+      // Get the laps
+      const laps = this.getLaps(parsedGPX);
 
-    // Create an activity
-    const activity = new Activity(
-      points[0].getDate(),
-      points[points.length - 1].getDate(),
-      activityType,
-      creator,
-    );
+      // Find the activity type
+      let activityType: ActivityTypes;
+      if (parsedGPX.trk[0].type) {
+        activityType = ActivityTypes[<keyof typeof ActivityTypes>parsedGPX.trk[0].type[0]];
+      } else {
+        activityType = ActivityTypes.unknown;
+      }
 
-    // Add the points to the activity
-    points.forEach(point => activity.addPoint(point));
+      // Create an activity
+      const activity = new Activity(
+        points[0].getDate(),
+        points[points.length - 1].getDate(),
+        activityType,
+        creator,
+      );
 
-    // Add the laps to the activity
-    laps.forEach(lap => activity.addLap(lap));
+      // Add the points to the activity
+      points.forEach(point => activity.addPoint(point));
 
-    // Add the activity to the event
-    event.addActivity(activity);
+      // Add the laps to the activity
+      laps.forEach(lap => activity.addLap(lap));
+
+      // Add the activity to the event
+      event.addActivity(activity);
 
 
-    activity.sortPointsByDate();
+      activity.sortPointsByDate();
 
-    // Generate missing stats
-    EventUtilities.generateStats(event);
+      // Generate missing stats
+      EventUtilities.generateStats(event);
 
-    // @todo move this elsewhere and refactor
-    event.setDuration(new DataDuration(activity.getDuration().getValue()));
-    event.setPause(new DataPause(activity.getPause().getValue()));
-    event.setDistance(new DataDistance(activity.getDistance().getValue()));
+      // @todo move this elsewhere and refactor
+      event.setDuration(new DataDuration(activity.getDuration().getValue()));
+      event.setPause(new DataPause(activity.getPause().getValue()));
+      event.setDistance(new DataDistance(activity.getDistance().getValue()));
 
-    return event;
+      resolve(event);
+    });
   }
 
   private static getPointsFromGPX(parsedGPX: any): PointInterface[] {

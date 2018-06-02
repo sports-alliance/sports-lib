@@ -74,176 +74,181 @@ import {DataFusedAltitude} from '../../../../data/data.fused-altitude';
 
 export class EventImporterSuuntoJSON {
 
-  static getFromJSONString(jsonString: string): EventInterface {
-    const eventJSONObject = JSON.parse(jsonString);
+  static getFromJSONString(jsonString: string): Promise<EventInterface> {
 
-    // Create an event
-    const event = new Event('');
+    return new Promise((resolve, reject) => {
 
-    // Populate the event stats from the Header Object
-    this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
-      event.addStat(stat)
-    });
+      const eventJSONObject = JSON.parse(jsonString);
 
-    // Create a creator and pass it to all activities (later)
-    const creator = new Creator(
-      ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
-      || eventJSONObject.DeviceLog.Device.Name, // If not fallback to typed
-    );
-    creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
-    creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
-    creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
+      // Create an event
+      const event = new Event('');
 
-    // Go over the samples and get the ones with activity start times
-    const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-      return sample.Events && sample.Events[0].Activity;
-    });
+      // Populate the event stats from the Header Object
+      this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
+        event.addStat(stat)
+      });
 
-    // Check if there is a Fused Altitude event
-    const fusedAltitudeEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-      return sample.Events && sample.Events[0].Altitude;
-    });
-
-    // Get the lap start events
-    const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-      return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop';
-    });
-
-    // Get the stop event
-    const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample: any) => {
-      return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
-    });
-
-    // Add the stop event to the laps since it's also a lap stop event
-    lapEventSamples.push(stopEventSample);
-
-    // Get the activity windows
-    const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
-      return windowObj.Window.Type === 'Activity';
-    }).map((activityWindow: any) => activityWindow.Window);
-
-    // Get the lap windows
-    const lapWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
-      return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
-    }).map((lapWindow: any) => lapWindow.Window);
-
-    // Create the activities
-    const activities = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
-      const activity = new Activity(
-        new Date(activityStartEventSample.TimeISO8601),
-        activityStartEventSamples.length - 1 === index ?
-          new Date(stopEventSample.TimeISO8601) :
-          new Date(activityStartEventSamples[index + 1].TimeISO8601),
-        ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
-        creator,
+      // Create a creator and pass it to all activities (later)
+      const creator = new Creator(
+        ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
+        || eventJSONObject.DeviceLog.Device.Name, // If not fallback to typed
       );
+      creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
+      creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
+      creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
 
-      // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
-      // Create the stats these are a 1:1 ref arrays
-      this.getStats(activityWindows[index]).forEach((stat) => {
-        activity.addStat(stat)
+      // Go over the samples and get the ones with activity start times
+      const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
+        return sample.Events && sample.Events[0].Activity;
       });
-      // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
-      activity.setPause(new DataPause((activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()));
-      // Set the zones for the activity @todo fix
-      this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header);
 
-      // Add the fused altitude event
-      if (fusedAltitudeEventSamples.length){
-        activity.addStat(new DataFusedAltitude(true))
-      }else {
-        activity.addStat(new DataFusedAltitude(false))
-      }
-
-      return activity;
-    });
-
-    // set the start dates of all lap types to the start of the first activity
-    const lapStartDatesByType = lapEventSamples.reduce((lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
-      // If its a stop event then set the start date to the previous
-      if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
-        lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(lapEventSamples[index - 1].TimeISO8601);
-        return lapStartDatesByTypeObject
-      }
-      lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
-      return lapStartDatesByTypeObject;
-    }, {});
-    const laps = lapEventSamples.reduce((lapArray: LapInterface[], lapEventSample: any, index: number): LapInterface[] => {
-      // if there is only one lap then skip it's the whole activity
-      if (lapEventSamples.length === 1) {
-        return lapArray;
-      }
-      // Set the end date
-      const lapEndDate = new Date(lapEventSample.TimeISO8601);
-      // Set the start date.
-      // Set it for the next run
-      // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
-      const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapWindows[index].Type]);
-      lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
-
-      this.getStats(lapWindows[index]).forEach((stat) => {
-        lap.addStat(stat);
+      // Check if there is a Fused Altitude event
+      const fusedAltitudeEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
+        return sample.Events && sample.Events[0].Altitude;
       });
-      // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
-      lap.setPause(new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue()));
-      lapArray.push(lap);
-      return lapArray;
-    }, []);
 
-    // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
-    // @todo move laps to event so we don't have cross border laps to acivities and decouple them
-    activities.forEach((activity: ActivityInterface) => {
-      laps.filter((lap: LapInterface) => {
-        // If the lap start belongs to the activity
-        if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
-          return true;
-        }
-        // if the lap end belongs also...
-        if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
-          return true
-        }
-        return false;
-      }).forEach((activityLap: LapInterface) => {
-        activity.addLap(activityLap);
+      // Get the lap start events
+      const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
+        return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop';
       });
-    });
 
-    // Add the samples that belong to the activity and the ibi data.
-    activities.forEach((activity: ActivityInterface) => {
-      activity.addStat(new DataFusedLocation(false));
-      eventJSONObject.DeviceLog.Samples.filter((sample: any) => !sample.Debug && !sample.Events).forEach((sample: any) => {
-        const point = this.getPointFromSample(sample);
-        if (point && (point.getDate() >= activity.startDate) && (point.getDate() <= activity.endDate)) {
-          // add the point
-          activity.addPoint(point);
-          if (this.hasFusedLocData(sample)) {
-            activity.addStat(new DataFusedLocation(true));
-          }
-        }
+      // Get the stop event
+      const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample: any) => {
+        return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
       });
-      activity.sortPointsByDate();
-    });
 
-    // Add the ibiData
-    if (eventJSONObject.DeviceLog['R-R'] && eventJSONObject.DeviceLog['R-R'].Data) {
-      // prepare the data array per activity removing the offset
-      activities.forEach((activity: ActivityInterface) => {
-        let timeSum = 0;
-        const ibiData = eventJSONObject.DeviceLog['R-R'].Data.filter((ibi: number) => {
-          timeSum += ibi;
-          const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
-          return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
+      // Add the stop event to the laps since it's also a lap stop event
+      lapEventSamples.push(stopEventSample);
+
+      // Get the activity windows
+      const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
+        return windowObj.Window.Type === 'Activity';
+      }).map((activityWindow: any) => activityWindow.Window);
+
+      // Get the lap windows
+      const lapWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
+        return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
+      }).map((lapWindow: any) => lapWindow.Window);
+
+      // Create the activities
+      const activities = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
+        const activity = new Activity(
+          new Date(activityStartEventSample.TimeISO8601),
+          activityStartEventSamples.length - 1 === index ?
+            new Date(stopEventSample.TimeISO8601) :
+            new Date(activityStartEventSamples[index + 1].TimeISO8601),
+          ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
+          creator,
+        );
+
+        // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
+        // Create the stats these are a 1:1 ref arrays
+        this.getStats(activityWindows[index]).forEach((stat) => {
+          activity.addStat(stat)
         });
-        this.setIBIData(activity, ibiData)
+        // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
+        activity.setPause(new DataPause((activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()));
+        // Set the zones for the activity @todo fix
+        this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header);
+
+        // Add the fused altitude event
+        if (fusedAltitudeEventSamples.length) {
+          activity.addStat(new DataFusedAltitude(true))
+        } else {
+          activity.addStat(new DataFusedAltitude(false))
+        }
+
+        return activity;
+
       });
-    }
 
-    // Add the activities to the event
-    activities.forEach((activity: ActivityInterface) => {
-      event.addActivity(activity);
+      // set the start dates of all lap types to the start of the first activity
+      const lapStartDatesByType = lapEventSamples.reduce((lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
+        // If its a stop event then set the start date to the previous
+        if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
+          lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(lapEventSamples[index - 1].TimeISO8601);
+          return lapStartDatesByTypeObject
+        }
+        lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
+        return lapStartDatesByTypeObject;
+      }, {});
+      const laps = lapEventSamples.reduce((lapArray: LapInterface[], lapEventSample: any, index: number): LapInterface[] => {
+        // if there is only one lap then skip it's the whole activity
+        if (lapEventSamples.length === 1) {
+          return lapArray;
+        }
+        // Set the end date
+        const lapEndDate = new Date(lapEventSample.TimeISO8601);
+        // Set the start date.
+        // Set it for the next run
+        // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
+        const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapWindows[index].Type]);
+        lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
+
+        this.getStats(lapWindows[index]).forEach((stat) => {
+          lap.addStat(stat);
+        });
+        // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
+        lap.setPause(new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue()));
+        lapArray.push(lap);
+        return lapArray;
+      }, []);
+
+      // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
+      // @todo move laps to event so we don't have cross border laps to acivities and decouple them
+      activities.forEach((activity: ActivityInterface) => {
+        laps.filter((lap: LapInterface) => {
+          // If the lap start belongs to the activity
+          if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
+            return true;
+          }
+          // if the lap end belongs also...
+          if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
+            return true
+          }
+          return false;
+        }).forEach((activityLap: LapInterface) => {
+          activity.addLap(activityLap);
+        });
+      });
+
+      // Add the samples that belong to the activity and the ibi data.
+      activities.forEach((activity: ActivityInterface) => {
+        activity.addStat(new DataFusedLocation(false));
+        eventJSONObject.DeviceLog.Samples.filter((sample: any) => !sample.Debug && !sample.Events).forEach((sample: any) => {
+          const point = this.getPointFromSample(sample);
+          if (point && (point.getDate() >= activity.startDate) && (point.getDate() <= activity.endDate)) {
+            // add the point
+            activity.addPoint(point);
+            if (this.hasFusedLocData(sample)) {
+              activity.addStat(new DataFusedLocation(true));
+            }
+          }
+        });
+        activity.sortPointsByDate();
+      });
+
+      // Add the ibiData
+      if (eventJSONObject.DeviceLog['R-R'] && eventJSONObject.DeviceLog['R-R'].Data) {
+        // prepare the data array per activity removing the offset
+        activities.forEach((activity: ActivityInterface) => {
+          let timeSum = 0;
+          const ibiData = eventJSONObject.DeviceLog['R-R'].Data.filter((ibi: number) => {
+            timeSum += ibi;
+            const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
+            return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
+          });
+          this.setIBIData(activity, ibiData)
+        });
+      }
+
+      // Add the activities to the event
+      activities.forEach((activity: ActivityInterface) => {
+        event.addActivity(activity);
+      });
+
+      resolve(event);
     });
-
-    return event;
   }
 
   private static hasFusedLocData(sample: any): boolean {

@@ -45,13 +45,12 @@ import {DataPaceAvg} from '../../data/data.pace-avg';
 
 export class EventUtilities {
 
-  public static getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      resolve(new Blob(
-        [(new EventExporterTCX).getAsString(event)],
-        {type: (new EventExporterTCX).getFileType()},
-      ));
-    });
+  public static async getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
+    const tcxString = await EventExporterTCX.getAsString(event);
+    return (new Blob(
+      [tcxString],
+      {type: EventExporterTCX.fileType},
+    ));
   }
 
   public static getDataTypeAvg(

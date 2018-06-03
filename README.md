@@ -23,3 +23,57 @@ Currently the support is limit to the main formats: GPX, TCX, FIT and JSON*
 
 *JSON is for specific services while GPX, TCX, FIT should be compatible with the move common services,
 such as Strava, Movescount, Garmin, Polar and any other service that supprots the above exports.
+
+Install
+-------
+
+- Install via npm 
+
+  `npm install quantified-self-lib --save`
+  
+Examples
+=======
+
+
+GPX
+---
+```typescript
+import {QuantifiedSelfLib} from 'quantified-self-lib';
+
+// For GPX you need a string 
+
+const gpxString = 'Some string from a file etc';
+QuantifiedSelfLib.importFromGPX(gpxString).then((event)=>{
+  // do Stuff with the file
+  const distance = event.getDistance();
+  const city = event.getFirstActivity().geoLocationInfo.city;
+});
+```
+
+TCX
+---
+```typescript
+import {QuantifiedSelfLib} from 'quantified-self-lib';
+
+// For TCX you need a string 
+const tcxString = 'Some string from a file etc';
+QuantifiedSelfLib.importFromTCX((new DOMParser()).parseFromString(tcxString, 'application/xml')).then((event)=>{
+  // do Stuff with the file
+  const distance = event.getDistance();
+  const city = event.getFirstActivity().geoLocationInfo.city;
+});
+```
+
+
+FIT
+---
+```typescript
+import {QuantifiedSelfLib} from 'quantified-self-lib';
+
+// For FIT you need an ArrayBuffer (binary) 
+QuantifiedSelfLib.importFromFit(arrayBuffer).then((event)=>{
+  // do Stuff with the file
+  const distance = event.getDistance();
+  const city = event.getFirstActivity().geoLocationInfo.city;
+});
+```

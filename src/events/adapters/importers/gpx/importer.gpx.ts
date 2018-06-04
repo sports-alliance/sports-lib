@@ -90,6 +90,10 @@ export class EventImporterGPX {
     return parsedGPX.trk.reduce((pointsArray: PointInterface[], track: any) => {
       track.trkseg.forEach((trackSegment: any) => {
         trackSegment.trkpt.forEach((trackPoint: any) => {
+          // If we have no time available it's not supported
+          if (trackPoint.time){
+            throw new Error('GPX track point does not contain a time field');
+          }
           // Create a point
           const point = new Point(new Date(trackPoint.time[0]));
           // Add lat long

@@ -41,12 +41,11 @@ GPX
 import {QuantifiedSelfLib} from 'quantified-self-lib';
 
 // For GPX you need a string 
-
 const gpxString = 'Some string from a file etc';
 QuantifiedSelfLib.importFromGPX(gpxString).then((event)=>{
   // do Stuff with the file
   const distance = event.getDistance();
-  const city = event.getFirstActivity().geoLocationInfo.city;
+  const duration = event.getDuration();
 });
 ```
 
@@ -60,7 +59,7 @@ const tcxString = 'Some string from a file etc';
 QuantifiedSelfLib.importFromTCX((new DOMParser()).parseFromString(tcxString, 'application/xml')).then((event)=>{
   // do Stuff with the file
   const distance = event.getDistance();
-  const city = event.getFirstActivity().geoLocationInfo.city;
+  const duration = event.getDuration();
 });
 ```
 
@@ -74,6 +73,6 @@ import {QuantifiedSelfLib} from 'quantified-self-lib';
 QuantifiedSelfLib.importFromFit(arrayBuffer).then((event)=>{
   // do Stuff with the file
   const distance = event.getDistance();
-  const city = event.getFirstActivity().geoLocationInfo.city;
+  const duration = event.getDuration();
 });
 ```

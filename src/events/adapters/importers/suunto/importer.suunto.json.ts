@@ -64,7 +64,7 @@ import {DataAltitudeAvg} from '../../../../data/data.altitude-avg';
 import {DataAltitudeMin} from '../../../../data/data.altitude-min';
 import {DataFusedLocation} from '../../../../data/data.fused-location';
 import {ActivityTypes} from '../../../../activities/activity.types';
-import {convertSpeedToPace, isNumberOrString} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
 import {LapTypes} from '../../../../laps/lap.types';
 import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
@@ -246,6 +246,9 @@ export class EventImporterSuuntoJSON {
       activities.forEach((activity: ActivityInterface) => {
         event.addActivity(activity);
       });
+
+      // Generate stats
+      EventUtilities.generateStats(event);
 
       resolve(event);
     });

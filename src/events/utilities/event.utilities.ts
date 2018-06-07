@@ -42,6 +42,8 @@ import {DataPaceMax} from '../../data/data.pace-max';
 import {DataPace} from '../../data/data.pace';
 import {DataPaceMin} from '../../data/data.pace-min';
 import {DataPaceAvg} from '../../data/data.pace-avg';
+import {Activity} from '../../activities/activity';
+import {DataNumberOfPoints} from '../../data/data.number-of-points';
 
 export class EventUtilities {
 
@@ -217,6 +219,10 @@ export class EventUtilities {
   }
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {
+    // Add the number of points this activity has
+    if (subject instanceof Activity){
+      subject.addStat(new DataNumberOfPoints(subject.getPoints().length))
+    }
 
     // If there is no duration define that from the start date and end date
     if (!subject.getStat(DataDuration.className)) {

@@ -22,7 +22,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   removePoint(point: PointInterface): void;
   removePoint(point: PointInterface): void;
   getPoints(startDate?: Date, endDate?: Date): PointInterface[];
-  getPointsInterpolated(startDate?: Date, endDate?: Date): PointInterface[];
+  getPointsInterpolated(startDate?: Date, endDate?: Date, step?: number): PointInterface[];
   getStartPoint(): PointInterface;
   getEndPoint(): PointInterface;
   getLaps(): LapInterface[];

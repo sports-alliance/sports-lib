@@ -19,9 +19,7 @@ export class Event extends StatsClassAbstract implements EventInterface {
   }
 
   removeActivity(activityToRemove: ActivityInterface) {
-    this.getActivities().splice(this.getActivities().findIndex((activity: ActivityInterface) => {
-      return activityToRemove.getID() === activity.getID();
-    }), 1);
+    this.activities = this.activities.filter((activity) => activityToRemove.getID() !== activity.getID());
   }
 
   getActivities(): ActivityInterface[] {

@@ -1,17 +1,34 @@
 import {GeoLibAdapterInterface} from './adapter.interface';
-import {DistanceVincenty} from './distance/distance.geolib.vincenty.adapter';
-import {DistanceAdapterInterface} from './distance/distance.adapter.interface';
 import {PointInterface} from '../../points/point.interface';
+import {getDistance, PositionAsDecimal} from 'geolib';
 
 export class GeoLibAdapter implements GeoLibAdapterInterface {
 
-  private distanceAdapter: DistanceAdapterInterface;
 
   constructor() {
-    this.distanceAdapter = new DistanceVincenty();
   }
 
   getDistance(points: PointInterface[]): number {
-    return this.distanceAdapter.getDistance(points);
+    let distance = 0;
+    const excludeFirstPointsArray = points.slice(1);
+    let pointA = points[0];
+    for (const pointB of excludeFirstPointsArray) {
+      const positionA = pointA.getPosition();
+      const positionB = pointB.getPosition();
+      if (!positionA || !positionB) {
+        continue;
+      }
+      const pointAPositionAsDecimal: PositionAsDecimal = {
+        longitude: positionA.longitudeDegrees,
+        latitude: positionA.latitudeDegrees,
+      };
+      const pointBPositionAsDecimal: PositionAsDecimal = {
+        longitude: positionB.longitudeDegrees,
+        latitude: positionB.latitudeDegrees,
+      };
+      distance += getDistance(pointAPositionAsDecimal, pointBPositionAsDecimal);
+      pointA = pointB;
+    }
+    return distance;
   }
 }

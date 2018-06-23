@@ -11,6 +11,8 @@ import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
 import {ActivityTypes} from './activity.types';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {CreatorInterface} from '../creators/creatorInterface';
+import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
+import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -82,6 +84,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         existingPoint.getData().forEach((data: DataInterface, dataType) => {
           if (!interpolatedDateTimePoint.getDataByType(dataType)) {
             interpolatedDateTimePoint.addData(data);
+          }else if (dataType === DataLatitudeDegrees.type){
+            throw Error('Skipped Latitude');
+          }else if (dataType === DataLongitudeDegrees.type){
+            throw Error('Skipped Longitude');
           }
         });
       }

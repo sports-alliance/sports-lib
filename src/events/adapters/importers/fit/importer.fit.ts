@@ -42,7 +42,6 @@ import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {DataHeartRateMin} from '../../../../data/data.heart-rate-min';
-import {DataCadenceMin} from '../../../../data/data.cadence-min';
 import {DataPowerMin} from '../../../../data/data.power-min';
 import {DataPaceMin} from '../../../../data/data.pace-min';
 
@@ -179,12 +178,13 @@ export class EventImporterFIT {
   private static getStatsFromObject(object: any): DataInterface[] {
     const stats = [];
     // Set the duration which is the moving time
-    stats.push(new DataDuration(object.total_timer_time));
+    const totalTimerTime = object.total_timer_time ? object.total_timer_time : (object.timestamp - object.start_time)/1000;
+    stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)
     // There is although an exception for Zwift devices that have these fields vise versa
-    const pause = object.total_elapsed_time > object.total_timer_time ?
-      object.total_elapsed_time - object.total_timer_time :
-      object.total_timer_time - object.total_elapsed_time;
+    const pause = object.total_elapsed_time > totalTimerTime ?
+      object.total_elapsed_time - totalTimerTime :
+      totalTimerTime - object.total_elapsed_time;
     stats.push(new DataPause(pause));
     // Set the distance @todo check on other importers for this logic
     if (isNumberOrString(object.total_distance)) {

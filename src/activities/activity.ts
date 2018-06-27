@@ -85,9 +85,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
           if (!interpolatedDateTimePoint.getDataByType(dataType)) {
             interpolatedDateTimePoint.addData(data);
           }else if (dataType === DataLatitudeDegrees.type){
-            throw Error('Skipped Latitude');
+            // @todo
           }else if (dataType === DataLongitudeDegrees.type){
-            throw Error('Skipped Longitude');
+            // @todo
           }
         });
       }

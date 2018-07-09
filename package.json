@@ -43,12 +43,12 @@
     "gxparser": "^1.0.0",
     "lowpassf": "^0.5.0",
     "moving-median": "^1.0.0",
-    "uuid": "^3.3.0"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^23.1.2",
-    "jest": "^23.2.0",
-    "ts-jest": "^22.4.6",
+    "@types/jest": "^23.1.4",
+    "jest": "^23.3.0",
+    "ts-jest": "^23.0.0",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2"
   },

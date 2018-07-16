@@ -38,7 +38,8 @@ deploy:
   provider: npm
   email: jimmykane9@gmail.com
   skip_cleanup: true
-    api_key:
+  api_key:
     secure: OPnrYDbaedYfAYxONp+c7tIrYovtq1Y5ZS0nlnTajFSnURRglh+v9EfqOuWNP5xF/yYE6rYPTUI6PKZdWT8HcLfhoYAtuepB2pX3KRHG1X17ahzMfwG9+Z5Gc0+7Gcm92HxAlkDAvRc5F2NfgqKx5cSEzEaiDPzY7BImwZoo5myVvp1iT1Z/ZLfrxPJpAqL663u9Rn36Vq5pcYPC/ulPUr+3YVRLC12PcFltOZIJaC4Y6vKvpzFUmOYowCqMb1P3lI+zHuDUw2oOIDFazBIkPgRsg/1wg5A2MOyYXp8LDyQjG5XGVHM+0ydrGQbzbuMf2iG2n1mqcwGI0mmL7SRi7vICaKpUPZEgGKeGoKsNZVeS6d4hG2jAWRTaxFDvl7HSQJlNqoxHX6eJniSo6nkjL73+JkjEuHJNn6lTA5n0O39u6EuIyJu9ddK+yKzYU4nsKLuetklBcBwaurPUrSx5+wl7eXPBz/mlvMSxa95gEZvELblu2LF9ZvefftKnzVyZaqmLnUWOnyTncmyW3tn9TmiBgR2Vb9XHFUC/BqpdLiWf6zvfnZSmxUVZJzzzD0gkMG1sta5FRnXV3lHYxEsfEUhQPkiO6dBYnTIJFqxbWTfa16GrL2NgHlyFDPudkUPFGTRgDacU5O/g3bZlAK9sUDcm9lNw/zntEtudHMD7Eg8=
   on:
     branch: master
+    repo: jimmykane/quantified-self-lib

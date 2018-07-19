@@ -87,52 +87,6 @@ export class EventImporterTCX {
       event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
       event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
 
-      // for (const activityElement of <any>xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity')) {
-      //   // TCX begins with laps, get them
-      //   const laps = this.getLaps(activityElement.getElementsByTagName('Lap'));
-      //   const activity = new Activity(
-      //     new Date(activityElement.getElementsByTagName('Lap')[0].getAttribute('StartTime')),
-      //     laps[laps.length - 1].endDate,
-      //     ActivityTypes[<keyof typeof ActivityTypes>activityElement.getAttribute('Sport')] || ActivityTypes['unknown'],
-      //     this.getCreator(activityElement.getElementsByTagName('Creator')[0]),
-      //   );
-      //   event.addActivity(activity);
-      //
-      //   // Go over the laps and start filling up the stats and creating the points
-      //   // @todo
-      //   activity.setDuration(new DataDuration(0));
-      //   activity.setDistance(new DataDistance(0));
-      //   activity.setPause(new DataPause(0));
-      //   activity.addStat(new DataEnergy(0));
-      //
-      //   // Get the laps and add the total distance to the activity
-      //   laps.forEach((lap: LapInterface) => {
-      //     if (lap.getDuration().getValue() === 0) {
-      //       return;
-      //     }
-      //     activity.addLap(lap);
-      //     // Increment wrapper stats
-      //     activity.getDistance().setValue(activity.getDistance().getValue() + lap.getDistance().getValue());
-      //     activity.getDuration().setValue(activity.getDuration().getValue() + lap.getDuration().getValue());
-      //     activity.getPause().setValue(activity.getPause().getValue() + lap.getPause().getValue());
-      //
-      //     activity.addStat(new DataEnergy((<DataEnergy>activity.getStat(DataEnergy.className)).getValue() + (<DataEnergy>lap.getStat(DataEnergy.className)).getValue()));
-      //     // Todo perhaps think about distance if 0 to add the lap as pause
-      //
-      //     // Same for event
-      //     event.getDistance().setValue(event.getDistance().getValue() + lap.getDistance().getValue());
-      //     event.setDuration(new DataDuration(event.getDuration().getValue() + lap.getDuration().getValue()));
-      //     event.getPause().setValue(event.getPause().getValue() + lap.getPause().getValue());
-      //   });
-      //
-      //   Array.from(activityElement.getElementsByTagName('Lap')).map((lapElement: any) => {
-      //     this.getPoints(<any>lapElement.getElementsByTagName('Trackpoint')).map((point) => {
-      //       activity.addPoint(point);
-      //     });
-      //   });
-      //   activity.sortPointsByDate();
-      // }
-
       EventUtilities.generateStats(event);
       resolve(event);
     });

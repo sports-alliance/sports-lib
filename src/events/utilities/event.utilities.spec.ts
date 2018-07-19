@@ -16,7 +16,7 @@ describe('EventUtilities', () => {
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event('New name');
+    event = new Event('New name', new Date(0), new Date(200));
     const activity = new Activity(
       new Date(0),
       new Date((new Date(0)).getTime() + 10),

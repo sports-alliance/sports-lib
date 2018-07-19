@@ -12,7 +12,7 @@ describe('Event', () => {
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event('Test');
+    event = new Event('Test', new Date(0), new Date(200));
   });
 
   it('should add an activity', () => {

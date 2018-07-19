@@ -7,7 +7,7 @@ import {Event} from '../../event';
 
 describe('EventExporterTCX', () => {
 
-  const event = new Event('Test');
+  const event = new Event('Test', new Date(0), new Date(200));
 
   beforeEach(() => {
   });

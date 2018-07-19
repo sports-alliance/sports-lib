@@ -80,14 +80,6 @@ export class EventImporterSuuntoJSON {
 
       const eventJSONObject = JSON.parse(jsonString);
 
-      // Create an event
-      const event = new Event('');
-
-      // Populate the event stats from the Header Object
-      this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
-        event.addStat(stat)
-      });
-
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
@@ -131,7 +123,7 @@ export class EventImporterSuuntoJSON {
       }).map((lapWindow: any) => lapWindow.Window);
 
       // Create the activities
-      const activities = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
+      const activities: ActivityInterface[] = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
         const activity = new Activity(
           new Date(activityStartEventSample.TimeISO8601),
           activityStartEventSamples.length - 1 === index ?
@@ -246,9 +238,15 @@ export class EventImporterSuuntoJSON {
       }
 
       // Add the activities to the event
-      activities.forEach((activity: ActivityInterface) => {
-        activity.sortPointsByDate();
-        event.addActivity(activity);
+      activities.forEach((activity: ActivityInterface) => activity.sortPointsByDate());
+
+      // Create an event
+      // @todo check if start and end date can derive from the json
+      const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate);
+      activities.forEach(activity => event.addActivity(activity));
+      // Populate the event stats from the Header Object
+      this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
+        event.addStat(stat)
       });
 
       // Generate stats

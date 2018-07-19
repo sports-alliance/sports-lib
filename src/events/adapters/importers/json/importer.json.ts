@@ -10,6 +10,7 @@ import {GeoLocationInfo} from '../../../../geo-location-info/geo-location-info';
 import {IntensityZones} from '../../../../intensity-zones/intensity-zone';
 import {IBIData} from '../../../../data/ibi/data.ibi';
 import {DynamicDataLoader} from '../../../../data/data.store';
+import {ActivityInterface} from '../../../../activities/activity.interface';
 
 export class EventImporterJSON {
 
@@ -19,16 +20,8 @@ export class EventImporterJSON {
 
       const eventJSONObject = JSON.parse(jsonString);
 
-      const event = new Event(eventJSONObject.name);
-      event.setID(eventJSONObject.id);
-
-      eventJSONObject.stats.forEach((stat: any) => {
-        event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
-      });
-
-      for (const activityObject of eventJSONObject.activities) {
-
-        const creator = new Creator(activityObject.creator.name);
+      const activities: ActivityInterface[] = eventJSONObject.activities.map((activityObject: any) => {
+            const creator = new Creator(activityObject.creator.name);
         creator.hwInfo = activityObject.creator.hwInfo;
         creator.swInfo = activityObject.creator.swInfo;
         creator.serialNumber = activityObject.creator.serialNumber;
@@ -55,9 +48,6 @@ export class EventImporterJSON {
           activity.addLap(lap);
         }
 
-        event.addActivity(activity);
-
-
         if (activityObject.intensityZones) {
           for (const key in activityObject.intensityZones) {
             const zones = new IntensityZones();
@@ -81,7 +71,16 @@ export class EventImporterJSON {
             point.addData(DynamicDataLoader.getDataInstance(dataObject.className, dataObject.value));
           }
         }
-      }
+        return activity;
+      });
+
+
+      const event = new Event(eventJSONObject.name, new Date(eventJSONObject.startDate), new Date(eventJSONObject.endDate));
+      event.setID(eventJSONObject.id);
+      activities.forEach(activity => event.addActivity(activity));
+      eventJSONObject.stats.forEach((stat: any) => {
+        event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
+      });
       resolve(event);
     })
   }

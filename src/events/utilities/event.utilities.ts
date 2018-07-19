@@ -98,20 +98,20 @@ export class EventUtilities {
       events.sort((eventA: EventInterface, eventB: EventInterface) => {
         return +eventA.getFirstActivity().startDate - +eventB.getFirstActivity().startDate;
       });
-      const mergeEvent = new Event(`Merged at ${(new Date()).toISOString()}`);
-      mergeEvent.setDistance(new DataDistance(0));
-      mergeEvent.setDuration(new DataDuration(0));
-      mergeEvent.setPause(new DataPause(0));
+      const activities: ActivityInterface[] = [];
       for (const event of events) {
         for (const activity of event.getActivities()) {
-          mergeEvent.addActivity(activity);
-          mergeEvent.getDistance().setValue(mergeEvent.getDistance().getValue() + activity.getDistance().getValue());
-          mergeEvent.getDuration().setValue(mergeEvent.getDuration().getValue() + activity.getDuration().getValue());
-          mergeEvent.getPause().setValue(mergeEvent.getPause().getValue() + activity.getPause().getValue());
-          // @todo merge the rest of the stats
+          activities.push(activity);
         }
       }
-      return resolve(mergeEvent);
+      const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
+      activities.forEach(activity => event.addActivity(activity));
+      // Set the totals for the event
+      event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
+      event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
+      event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
+      //@todo add generate
+      return resolve(event);
     });
   }
 
@@ -220,7 +220,7 @@ export class EventUtilities {
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {
     // Add the number of points this activity has
-    if (subject instanceof Activity){
+    if (subject instanceof Activity) {
       subject.addStat(new DataNumberOfPoints(subject.getPoints().length))
     }
 

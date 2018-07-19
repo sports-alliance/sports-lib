@@ -1,16 +1,16 @@
 import {EventInterface} from './event.interface';
 import {ActivityInterface} from '../activities/activity.interface';
 import {PointInterface} from '../points/point.interface';
-import {StatsClassAbstract} from '../stats/stats.class.abstract';
 import {DataInterface} from '../data/data.interface';
+import {DurationClassAbstract} from '../duration/duration.class.abstract';
 
-export class Event extends StatsClassAbstract implements EventInterface {
+export class Event extends DurationClassAbstract implements EventInterface {
 
   public name: string;
   private activities: ActivityInterface[] = [];
 
-  constructor(name: string) {
-    super();
+  constructor(name: string, startDate: Date, endDate: Date) {
+    super(startDate, endDate);
     this.name = name
   }
 

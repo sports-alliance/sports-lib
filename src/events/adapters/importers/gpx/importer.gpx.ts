@@ -33,9 +33,6 @@ export class EventImporterGPX {
     return new Promise((resolve, reject) => {
       const parsedGPX = GXParser(gpx);
 
-      // Create an event
-      const event = new Event(name);
-
       // Create a creator
       const creator = new Creator(parsedGPX.creator);
       creator.swInfo = parsedGPX.version;
@@ -68,10 +65,11 @@ export class EventImporterGPX {
       // Add the laps to the activity
       laps.forEach(lap => activity.addLap(lap));
 
+      // Create an event
+      const event = new Event(name, activity.startDate, activity.endDate);
+
       // Add the activity to the event
       event.addActivity(activity);
-
-
       activity.sortPointsByDate();
 
       // Generate missing stats

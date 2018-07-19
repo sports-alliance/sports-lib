@@ -12,14 +12,6 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     return <DataDistance>this.stats.get(DataDistance.className);
   }
 
-  getDuration(): DataDuration {
-    return <DataDuration>this.stats.get(DataDuration.className);
-  }
-
-  getPause(): DataPause {
-    return <DataPause>this.stats.get(DataPause.className);
-  }
-
   getStat(statType: string): DataInterface | void {
     return this.stats.get(statType);
   }
@@ -34,14 +26,6 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
 
   setDistance(distance: DataDistance) {
     this.stats.set(DataDistance.className, distance);
-  }
-
-  setDuration(duration: DataDuration) {
-    this.stats.set(DataDuration.className, duration);
-  }
-
-  setPause(pause: DataPause) {
-    this.stats.set(DataPause.className, pause);
   }
 
   addStat(stat: DataInterface) {

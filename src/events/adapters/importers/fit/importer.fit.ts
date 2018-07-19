@@ -62,10 +62,8 @@ export class EventImporterFIT {
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         debugger;
-        // Create an event
-        const event = new Event(name);
         // Iterate over the sessions and create their activities
-        fitDataObject.activity.sessions.forEach((sessionObject: any) => {
+        const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
@@ -81,8 +79,12 @@ export class EventImporterFIT {
             activity.addLap(lap);
           });
           activity.sortPointsByDate();
-          event.addActivity(activity);
+          return activity;
         });
+        // Create an event
+        // @todo check if the start and end date can derive from the file
+        const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
+        activities.forEach(activity => event.addActivity(activity));
         // Set the totals for the event
         event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
         event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));

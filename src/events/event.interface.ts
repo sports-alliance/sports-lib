@@ -2,8 +2,9 @@ import {PointInterface} from '../points/point.interface';
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {StatsClassInterface} from '../stats/stats.class.interface';
 import {ActivityInterface} from '../activities/activity.interface';
+import {DurationClassInterface} from '../duration/duration.class.interface';
 
-export interface EventInterface extends StatsClassInterface, SerializableClassInterface {
+export interface EventInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
 
   name: string;
 

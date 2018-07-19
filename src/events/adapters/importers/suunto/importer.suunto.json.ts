@@ -143,9 +143,11 @@ export class EventImporterSuuntoJSON {
 
         // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
         // Create the stats these are a 1:1 ref arrays
-        this.getStats(activityWindows[index]).forEach((stat) => {
-          activity.addStat(stat)
-        });
+        if (activityWindows[index]) {
+          this.getStats(activityWindows[index]).forEach((stat) => {
+            activity.addStat(stat)
+          });
+        }
         // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
         activity.setPause(new DataPause((activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()));
         // Set the zones for the activity @todo fix
@@ -185,9 +187,11 @@ export class EventImporterSuuntoJSON {
         const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapWindows[index].Type]);
         lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
-        this.getStats(lapWindows[index]).forEach((stat) => {
-          lap.addStat(stat);
-        });
+        if (lapWindows[index]) {
+          this.getStats(lapWindows[index]).forEach((stat) => {
+            lap.addStat(stat);
+          });
+        }
         // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
         lap.setPause(new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue()));
         lapArray.push(lap);

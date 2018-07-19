@@ -141,6 +141,9 @@ export class EventImporterSuuntoJSON {
           });
         }
         // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
+        if (!activity.getDuration()) {
+          activity.setDuration(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
+        }
         activity.setPause(new DataPause((activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()));
         // Set the zones for the activity @todo fix
         this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header);
@@ -176,7 +179,8 @@ export class EventImporterSuuntoJSON {
         // Set the start date.
         // Set it for the next run
         // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
-        const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapWindows[index].Type]);
+        debugger;
+        const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]);
         lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
         if (lapWindows[index]) {
@@ -185,6 +189,9 @@ export class EventImporterSuuntoJSON {
           });
         }
         // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
+        if (!lap.getDuration()) {
+          lap.setDuration(new DataDuration((lap.endDate.getTime() - lap.startDate.getTime()) / 1000));
+        }
         lap.setPause(new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue()));
         lapArray.push(lap);
         return lapArray;

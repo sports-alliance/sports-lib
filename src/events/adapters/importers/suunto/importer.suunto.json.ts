@@ -80,6 +80,8 @@ export class EventImporterSuuntoJSON {
 
       const eventJSONObject = JSON.parse(jsonString);
 
+      debugger;
+
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
@@ -110,7 +112,9 @@ export class EventImporterSuuntoJSON {
       });
 
       // Add the stop event to the laps since it's also a lap stop event
-      lapEventSamples.push(stopEventSample);
+      if (stopEventSample) {
+        lapEventSamples.push(stopEventSample);
+      }
 
       // Get the activity windows
       const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
@@ -127,7 +131,7 @@ export class EventImporterSuuntoJSON {
         const activity = new Activity(
           new Date(activityStartEventSample.TimeISO8601),
           activityStartEventSamples.length - 1 === index ?
-            new Date(stopEventSample.TimeISO8601) :
+            new Date(stopEventSample ? stopEventSample.TimeISO8601 : eventJSONObject.DeviceLog.Header.TimeISO8601) :
             new Date(activityStartEventSamples[index + 1].TimeISO8601),
           ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]],
           creator,

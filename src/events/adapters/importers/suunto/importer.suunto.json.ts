@@ -313,6 +313,9 @@ export class EventImporterSuuntoJSON {
     if (isNumberOrString(sample.HR)) {
       point.addData(new DataHeartRate(sample.HR * 60))
     }
+    if (isNumberOrString(sample.Distance)) {
+      point.addData(new DataDistance(sample.Distance))
+    }
     if (isNumberOrString(sample.GPSAltitude)) {
       point.addData(new DataGPSAltitude(sample.GPSAltitude))
     }

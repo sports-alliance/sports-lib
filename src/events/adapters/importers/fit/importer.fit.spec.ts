@@ -8,8 +8,8 @@ describe('EventImporterFIT', () => {
 
   });
 
-  it('should be able to get a correct creator', () => {
-  });
+  // it('should be able to get a correct creator', () => {
+  // });
 
 
 });

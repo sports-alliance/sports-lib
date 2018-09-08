@@ -12,10 +12,10 @@ describe('EventExporterTCX', () => {
   beforeEach(() => {
   });
 
-  it('should export to TCX without crashing on a simple event', async () => {
-    const activity = new Activity(new Date(0), new Date(100), ActivityTypes.Running, new Creator('Test'));
-    event.addActivity(activity);
-    const eventAsString = await EventExporterTCX.getAsString(event);
-    expect(eventAsString).toBeTruthy();
-  });
+  // it('should export to TCX without crashing on a simple event', async () => {
+  //   const activity = new Activity(new Date(0), new Date(100), ActivityTypes.Running, new Creator('Test'));
+  //   event.addActivity(activity);
+  //   const eventAsString = await EventExporterTCX.getAsString(event);
+  //   expect(eventAsString).toBeTruthy();
+  // });
 });

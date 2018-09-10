@@ -103,6 +103,10 @@ export class EventImporterTCX {
             point.addData(new DataLongitudeDegrees(Number(dataElement.getElementsByTagName('LongitudeDegrees')[0].textContent)));
             break;
           }
+          case 'DistanceMeters': {
+            point.addData(new DataDistance(Number(dataElement.textContent)));
+            break;
+          }
           case 'AltitudeMeters': {
             point.addData(new DataAltitude(Number(dataElement.textContent)));
             break;

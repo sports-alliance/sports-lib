@@ -379,6 +379,7 @@ export class EventUtilities {
   ): number {
     return (new GeoLibAdapter()).getDistance(event.getPointsWithPosition(startDate, endDate, activities));
   }
+
 }
 
 export function isNumberOrString(property: any) {

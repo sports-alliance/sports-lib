@@ -23,6 +23,7 @@ import {DataDuration} from '../../../../data/data.duration';
 import {DataPause} from '../../../../data/data.pause';
 import {convertSpeedToPace, EventUtilities} from '../../../utilities/event.utilities';
 import {DataPace} from '../../../../data/data.pace';
+import {GeoLibAdapter} from '../../../../geodesy/adapters/geolib.adapter';
 
 const GXParser = require('gxparser').GXParser;
 
@@ -71,6 +72,19 @@ export class EventImporterGPX {
       // Add the activity to the event
       event.addActivity(activity);
       activity.sortPointsByDate();
+
+      // Find and write the distance of the points
+      const geoLib = new GeoLibAdapter();
+      let distance = 0;
+      event.getPointsWithPosition().reduce((prev: PointInterface, current: PointInterface, index: number) => {
+        if (index === 0) {
+          prev.addData(new DataDistance(distance))
+        }
+        distance += geoLib.getDistance([prev, current]);
+        current.addData(new DataDistance(distance));
+        return current;
+      });
+
 
       // Generate missing stats
       EventUtilities.generateStats(event);

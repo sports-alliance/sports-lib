@@ -236,7 +236,7 @@ export class EventUtilities {
 
     // If there is no distance
     if (!subject.getStat(DataDistance.className)) {
-      subject.addStat(new DataDistance(this.getDistanceInMeters(event, subject.startDate, subject.endDate)));
+      subject.addStat(new DataDistance(this.getDistanceForEvent(event, subject.startDate, subject.endDate)));
     }
 
     // Ascent (altitude gain)
@@ -371,7 +371,7 @@ export class EventUtilities {
     }
   }
 
-  public static getDistanceInMeters(
+  public static getDistanceForEvent(
     event: EventInterface,
     startDate?: Date,
     endDate?: Date,

@@ -106,6 +106,10 @@ export class EventImporterFIT {
     if (isNumberOrString(sessionLapObjectRecord.position_long)) {
       point.addData(new DataLongitudeDegrees(sessionLapObjectRecord.position_long));
     }
+    // Add Distance
+    if (isNumberOrString(sessionLapObjectRecord.distance)) {
+      point.addData(new DataDistance(sessionLapObjectRecord.distance));
+    }
     // Add HR
     if (isNumberOrString(sessionLapObjectRecord.heart_rate)) {
       point.addData(new DataHeartRate(sessionLapObjectRecord.heart_rate));

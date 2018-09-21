@@ -212,10 +212,16 @@ export class EventUtilities {
       }
       return dataValues;
     }, []);
+
+    // This is needed due to calling the max stack size of args if using Math.max(...dataValuesArray); 
     if (max) {
-      return Math.max(...dataValuesArray);
+      return dataValuesArray.reduce(function(previousValue, currentValue){
+        return Math.max(previousValue,currentValue);
+      }, -Infinity);
     }
-    return Math.min(...dataValuesArray);
+    return dataValuesArray.reduce(function(previousValue, currentValue){
+        return Math.min(previousValue,currentValue);
+      }, -Infinity);
   }
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {

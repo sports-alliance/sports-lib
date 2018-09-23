@@ -9,6 +9,7 @@ export const ImporterSuuntoDeviceNames: { [index: string]: string } = {
   'London': 'Suunto 7',
   'Lisbon': 'Suunto 8',
   'Ibiza': 'Suunto 9',
+  'Lima': 'Suunto 9 Baroless',
   'Amsterdam': 'Suunto Spartan Ultra',
   'Brighton': 'Suunto Spartan Sport',
   'Cairo': 'Suunto Spartan WHR',

@@ -56,6 +56,9 @@ import {DataPaceAvg} from './data.pace-avg';
 import {DataPace} from './data.pace';
 import {DataFusedAltitude} from './data.fused-altitude';
 import {DataNumberOfPoints} from './data.number-of-points';
+import {DataBatteryCharge} from './data.battery-charge';
+import {DataBatteryCurrent} from './data.battery-current';
+import {DataBatteryVoltage} from './data.battery-voltage';
 
 /**
  * Only concrete classes no abstracts
@@ -118,6 +121,9 @@ export const DataStore: any = {
   DataPaceMax,
   DataPaceAvg,
   DataNumberOfPoints,
+  DataBatteryCharge,
+  DataBatteryCurrent,
+  DataBatteryVoltage,
 };
 
 export class DynamicDataLoader {

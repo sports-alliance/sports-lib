@@ -71,6 +71,9 @@ import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {DataPaceMin} from '../../../../data/data.pace-min';
 import {DataFusedAltitude} from '../../../../data/data.fused-altitude';
+import {DataBatteryCharge} from '../../../../data/data.battery-charge';
+import {DataBatteryCurrent} from '../../../../data/data.battery-current';
+import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 
 export class EventImporterSuuntoJSON {
 
@@ -361,6 +364,15 @@ export class EventImporterSuuntoJSON {
     }
     if (isNumberOrString(sample.Satellite5BestSNR)) {
       point.addData(new DataSatellite5BestSNR(sample.Satellite5BestSNR));
+    }
+    if (isNumberOrString(sample.BatteryCharge)) {
+      point.addData(new DataBatteryCharge(sample.BatteryCharge * 100));
+    }
+    if (isNumberOrString(sample.BatteryCurrent)) {
+      point.addData(new DataBatteryCurrent(sample.BatteryCurrent));
+    }
+    if (isNumberOrString(sample.BatteryVoltage)) {
+      point.addData(new DataBatteryVoltage(sample.BatteryVoltage));
     }
     return point;
   }

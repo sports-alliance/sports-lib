@@ -44,6 +44,8 @@ import {DataPaceMin} from '../../data/data.pace-min';
 import {DataPaceAvg} from '../../data/data.pace-avg';
 import {Activity} from '../../activities/activity';
 import {DataNumberOfPoints} from '../../data/data.number-of-points';
+import {DataBatteryCharge} from '../../data/data.battery-charge';
+import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 
 export class EventUtilities {
 
@@ -80,6 +82,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date,
     activities?: ActivityInterface[]): number {
+    debugger;
     return this.getDataTypeMinOrMax(true, event, dataType, startDate, endDate, activities);
   }
 
@@ -90,6 +93,16 @@ export class EventUtilities {
     endDate?: Date,
     activities?: ActivityInterface[]): number {
     return this.getDataTypeMinOrMax(false, event, dataType, startDate, endDate, activities);
+  }
+
+  public static getDataTypeDifference(
+    event: EventInterface,
+    dataType: string,
+    startDate?: Date,
+    endDate?: Date,
+    activities?: ActivityInterface[],
+  ): number {
+    return this.getDateTypeMax(event, dataType ,startDate, endDate, activities) - this.getDateTypeMin(event, dataType ,startDate, endDate, activities);
   }
 
   public static mergeEvents(events: EventInterface[]): Promise<EventInterface> {
@@ -374,6 +387,12 @@ export class EventUtilities {
     if (!subject.getStat(DataTemperatureAvg.className)
       && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
       subject.addStat(new DataTemperatureAvg(this.getDataTypeAvg(event, DataTemperature.type, subject.startDate, subject.endDate)));
+    }
+
+    // Battery Consumption Avg
+    if (!subject.getStat(DataBatteryConsumption.className)
+      && event.getPointsWithDataType(DataBatteryCharge.type, subject.startDate, subject.endDate).length) {
+      subject.addStat(new DataBatteryConsumption(this.getDataTypeDifference(event, DataBatteryCharge.type, subject.startDate, subject.endDate)));
     }
   }
 

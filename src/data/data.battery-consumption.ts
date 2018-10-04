@@ -1,8 +1,8 @@
 import {DataNumber} from './data.number';
 
-export class DataBatteryCharge extends DataNumber {
-  static className = 'DataBatteryCharge';
+export class DataBatteryConsumption extends DataNumber {
+  static className = 'DataBatteryConsumption';
 
-  static type = 'Battery Charge';
+  static type = 'Battery Consumption';
   static unit = '%';
 }

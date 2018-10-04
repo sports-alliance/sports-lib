@@ -186,7 +186,6 @@ export class EventImporterSuuntoJSON {
         // Set the start date.
         // Set it for the next run
         // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
-        debugger;
         const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]);
         lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 

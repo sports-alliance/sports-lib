@@ -221,7 +221,7 @@ export class EventUtilities {
     }
     return dataValuesArray.reduce(function (previousValue, currentValue) {
       return Math.min(previousValue, currentValue);
-    });
+    }, Infinity);
   }
 
   private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {

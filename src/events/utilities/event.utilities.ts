@@ -82,7 +82,6 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date,
     activities?: ActivityInterface[]): number {
-    debugger;
     return this.getDataTypeMinOrMax(true, event, dataType, startDate, endDate, activities);
   }
 

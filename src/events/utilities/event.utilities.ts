@@ -46,6 +46,7 @@ import {Activity} from '../../activities/activity';
 import {DataNumberOfPoints} from '../../data/data.number-of-points';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
+import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
 
 export class EventUtilities {
 
@@ -101,7 +102,7 @@ export class EventUtilities {
     endDate?: Date,
     activities?: ActivityInterface[],
   ): number {
-    return this.getDateTypeMax(event, dataType ,startDate, endDate, activities) - this.getDateTypeMin(event, dataType ,startDate, endDate, activities);
+    return this.getDateTypeMax(event, dataType, startDate, endDate, activities) - this.getDateTypeMin(event, dataType, startDate, endDate, activities);
   }
 
   public static mergeEvents(events: EventInterface[]): Promise<EventInterface> {
@@ -392,6 +393,14 @@ export class EventUtilities {
     if (!subject.getStat(DataBatteryConsumption.className)
       && event.getPointsWithDataType(DataBatteryCharge.type, subject.startDate, subject.endDate).length) {
       subject.addStat(new DataBatteryConsumption(this.getDataTypeDifference(event, DataBatteryCharge.type, subject.startDate, subject.endDate)));
+    }
+
+    // Battery Life Estimation based on Consumption
+    if (!subject.getStat(DataBatteryLifeEstimation.className)) {
+      const consumption = subject.getStat(DataBatteryConsumption.className);
+      if (consumption && consumption.getValue()) {
+        subject.addStat(new DataBatteryLifeEstimation(Number((+subject.endDate - +subject.startDate)/1000 * 100) / Number(consumption.getValue())));
+      }
     }
   }
 

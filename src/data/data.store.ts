@@ -60,6 +60,7 @@ import {DataBatteryCharge} from './data.battery-charge';
 import {DataBatteryCurrent} from './data.battery-current';
 import {DataBatteryVoltage} from './data.battery-voltage';
 import {DataBatteryConsumption} from './data.battery-consumption';
+import {DataBatteryLifeEstimation} from './data.battery-life-estimation';
 
 /**
  * Only concrete classes no abstracts
@@ -125,7 +126,8 @@ export const DataStore: any = {
   DataBatteryCharge,
   DataBatteryCurrent,
   DataBatteryVoltage,
-  DataBatteryConsumption
+  DataBatteryConsumption,
+  DataBatteryLifeEstimation
 };
 
 export class DynamicDataLoader {

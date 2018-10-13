@@ -4,8 +4,8 @@ import {DataPause} from '../data/data.pause';
 import {DataDuration} from '../data/data.duration';
 
 export abstract class DurationClassAbstract extends StatsClassAbstract implements DurationClassInterface {
-  readonly startDate: Date;
-  readonly endDate: Date;
+  startDate: Date;
+  endDate: Date;
 
   protected constructor(statDate: Date, endDate: Date) {
     if (!statDate || !endDate) {

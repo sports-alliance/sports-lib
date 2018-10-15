@@ -16,6 +16,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   1537: 'FR 910XT China',
   1600: 'FR 910XT Japan',
   1664: 'FR 910XT Korea',
+  1018: 'FR 310XT',
   2158: 'FR 735 XT',
   2431: 'FR 235',
 };

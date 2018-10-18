@@ -59,7 +59,7 @@ export class EventExporterTCX {
         activityElement.appendChild(idElement);
 
 
-        const activityLaps: LapInterface[] = activity.getLaps();
+        const activityLaps: LapInterface[] = activity.getLaps().filter((lap: LapInterface) => lap.type === LapTypes.AutoLap);
 
         // If there are no laps create one and clone it from the activity
         if (!activityLaps.length) {

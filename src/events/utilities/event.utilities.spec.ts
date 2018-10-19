@@ -331,4 +331,26 @@ describe('EventUtilities', () => {
     done();
   });
 
+  it('should get an event as json blob', (done) => {
+    const pointA = new Point(new Date(0));
+    const pointB = new Point(new Date(1));
+    const pointC = new Point(new Date(2));
+
+    pointA.addData(new DataHeartRate(0));
+    pointB.addData(new DataHeartRate(50));
+    pointC.addData(new DataHeartRate(100));
+
+    pointA.addData(new DataAltitude(200));
+    pointB.addData(new DataAltitude(300));
+    pointC.addData(new DataAltitude(400));
+
+    event.getFirstActivity().addPoint(pointA);
+    event.getFirstActivity().addPoint(pointB);
+    event.getFirstActivity().addPoint(pointC);
+    EventUtilities.getEventAsJSONBloB(event).then((blob) => {
+      expect(blob instanceof Blob).toBe(true);
+    });
+    done();
+  });
+
 });

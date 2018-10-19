@@ -47,6 +47,7 @@ import {DataNumberOfPoints} from '../../data/data.number-of-points';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
+import {EventExporterJSON} from '../adapters/exporters/exporter.json';
 
 export class EventUtilities {
 
@@ -58,6 +59,13 @@ export class EventUtilities {
     ));
   }
 
+  public static async getEventAsJSONBloB(event: EventInterface): Promise<Blob> {
+    const tcxString = await EventExporterJSON.getAsString(event);
+    return (new Blob(
+      [tcxString],
+      {type: EventExporterTCX.fileType},
+    ));
+  }
   public static getDataTypeAvg(
     event: EventInterface,
     dataType: string,

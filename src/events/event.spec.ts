@@ -105,7 +105,9 @@ describe('Event', () => {
   });
 
   it('should export correctly to JSON', () => {
-    const activity = new Activity(new Date(0), new Date((new Date(0)).getTime() + 10), ActivityTypes.Running, new Creator('Test'));
+    const d1 = new Date(0);
+    const d2 = new Date((new Date(0)).getTime() + 200);
+    const activity = new Activity(d1, d2, ActivityTypes.Running, new Creator('Test'));
     event.addActivity(activity);
     event.setID('123');
     spyOn(activity, 'toJSON').and.returnValue({});
@@ -114,6 +116,8 @@ describe('Event', () => {
       'name': 'Test',
       'activities': [{}],
       'stats': [],
+      'startDate': d1,
+      'endDate': d2,
     });
   });
 });

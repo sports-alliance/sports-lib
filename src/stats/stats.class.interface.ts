@@ -13,6 +13,8 @@ export interface StatsClassInterface extends IDClassInterface {
 
   removeStat(statType: string): void;
 
+  clearStats(): void;
+
   setDistance(distance: DataDistance): void;
 
   addStat(stat: DataInterface): void;

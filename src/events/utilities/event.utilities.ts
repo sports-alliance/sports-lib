@@ -185,7 +185,11 @@ export class EventUtilities {
     // Should  reset all stats
     activity.clearStats();
 
+    // Set the distance
     activity.setDistance(new DataDistance(endDistance));
+
+    activity.startDate = activity.getStartPoint().getDate();
+    activity.endDate = activity.getEndPoint().getDate();
   }
 
   public static generateStats(event: EventInterface) {

@@ -66,6 +66,7 @@ export class EventUtilities {
       {type: EventExporterTCX.fileType},
     ));
   }
+
   public static getDataTypeAvg(
     event: EventInterface,
     dataType: string,
@@ -134,6 +135,57 @@ export class EventUtilities {
       //@todo add generate
       return resolve(event);
     });
+  }
+
+  public static calculatePointDistance(activity: ActivityInterface) {
+    // const geoLib = new GeoLibAdapter();
+    // let distance = 0;
+    // activity.getPointsWithPosition().reduce((prev: PointInterface, current: PointInterface, index: number) => {
+    //   if (index === 0) {
+    //     prev.addData(new DataDistance(distance))
+    //   }
+    //   distance += geoLib.getDistance([prev, current]);
+    //   current.addData(new DataDistance(distance));
+    //   return current;
+    // });
+  }
+
+
+  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface) {
+    // Short to do the search just in case
+    activity.sortPointsByDate();
+    let startDistanceDate: Date;
+    let endDistanceDate: Date;
+    // Short to do the search just in case
+    activity.sortPointsByDate();
+    activity.getPoints().forEach((point: PointInterface) => {
+      // find start and end date
+      let pointDistance = point.getDataByType(DataDistance.type);
+      if (!startDistanceDate && pointDistance && pointDistance.getValue() >= startDistance) {
+        startDistanceDate = point.getDate();
+        return;
+      }
+      if (!endDistanceDate && pointDistance && pointDistance.getValue() >= endDistance) {
+        endDistanceDate = point.getDate();
+        return;
+      }
+    });
+    activity.getPoints().forEach((point: PointInterface) => {
+      // Remove depending on Date
+      if (startDistanceDate && point.getDate() < startDistanceDate) {
+        activity.removePoint(point)
+      }
+      if (startDistanceDate && point.getDate() > endDistanceDate) {
+        activity.removePoint(point)
+      }
+      // Clear up the distance data as it's accumulated
+      point.removeDataByType(DataDistance.type);
+    });
+
+    // Should  reset all stats
+    activity.clearStats();
+
+    activity.setDistance(new DataDistance(endDistance));
   }
 
   public static generateStats(event: EventInterface) {
@@ -407,7 +459,7 @@ export class EventUtilities {
     if (!subject.getStat(DataBatteryLifeEstimation.className)) {
       const consumption = subject.getStat(DataBatteryConsumption.className);
       if (consumption && consumption.getValue()) {
-        subject.addStat(new DataBatteryLifeEstimation(Number((+subject.endDate - +subject.startDate)/1000 * 100) / Number(consumption.getValue())));
+        subject.addStat(new DataBatteryLifeEstimation(Number((+subject.endDate - +subject.startDate) / 1000 * 100) / Number(consumption.getValue())));
       }
     }
   }

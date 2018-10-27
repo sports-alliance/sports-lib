@@ -57,7 +57,7 @@ export class EventImporterFIT {
         lengthUnit: 'm',
         temperatureUnit: 'celsius',
         elapsedRecordField: false,
-        mode: 'cascade',
+        mode: 'both',
       });
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
@@ -78,6 +78,13 @@ export class EventImporterFIT {
             // Add the lap to the activity
             activity.addLap(lap);
           });
+          // If we had no laps then just add the records
+          if (!activity.getLaps().length){
+            fitDataObject.records.forEach((sessionLapObjectRecord: any) => {
+              const point = this.getPointFromSessionLapObjectRecord(sessionLapObjectRecord);
+              activity.addPoint(point);
+            });
+          }
           activity.sortPointsByDate();
           return activity;
         });
@@ -188,9 +195,9 @@ export class EventImporterFIT {
     stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)
     // There is although an exception for Zwift devices that have these fields vise versa
-    const pause = object.total_elapsed_time > totalTimerTime ?
+    const pause = (object.total_elapsed_time > totalTimerTime ?
       object.total_elapsed_time - totalTimerTime :
-      totalTimerTime - object.total_elapsed_time;
+      totalTimerTime - object.total_elapsed_time ) || 0;
     stats.push(new DataPause(pause));
     // Set the distance @todo check on other importers for this logic
     if (isNumberOrString(object.total_distance)) {

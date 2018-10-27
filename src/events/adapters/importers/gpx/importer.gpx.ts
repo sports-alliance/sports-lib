@@ -45,11 +45,9 @@ export class EventImporterGPX {
       const laps = this.getLaps(parsedGPX);
 
       // Find the activity type
-      let activityType: ActivityTypes;
+      let activityType = ActivityTypes.unknown;
       if (parsedGPX.trk[0].type) {
         activityType = ActivityTypes[<keyof typeof ActivityTypes>parsedGPX.trk[0].type[0]];
-      } else {
-        activityType = ActivityTypes.unknown;
       }
 
       // Create an activity

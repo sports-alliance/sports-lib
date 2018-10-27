@@ -44,7 +44,7 @@ export class EventImporterTCX {
           const activity = new Activity(
             new Date(<any>activityElement.getElementsByTagName('Lap')[0].getAttribute('StartTime')),
             laps[laps.length - 1].endDate,
-            ActivityTypes[<keyof typeof ActivityTypes>activityElement.getAttribute('Sport')] || ActivityTypes['unknown'],
+            ActivityTypes[<keyof typeof ActivityTypes>activityElement.getAttribute('Sport') || 'unknown'],
             this.getCreator(<any>activityElement.getElementsByTagName('Creator')[0]),
           );
 

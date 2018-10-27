@@ -166,7 +166,7 @@ export class EventImporterFIT {
     // Create an activity
     const activity = new Activity(sessionObject.start_time,
       sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000),
-      this.getActivityTypeFromSessionObject(sessionObject) || ActivityTypes.unknown,
+      this.getActivityTypeFromSessionObject(sessionObject),
       this.getCreatorFromFitDataObject(fitDataObject),
     );
     // Set the activity stats
@@ -176,7 +176,7 @@ export class EventImporterFIT {
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport !== 'generic') {
-      return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport];
+      return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes.unknown;
     }
     return ActivityTypes[<keyof typeof ActivityTypes>session.sport];
   }

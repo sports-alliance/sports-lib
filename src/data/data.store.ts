@@ -61,6 +61,10 @@ import {DataBatteryCurrent} from './data.battery-current';
 import {DataBatteryVoltage} from './data.battery-voltage';
 import {DataBatteryConsumption} from './data.battery-consumption';
 import {DataBatteryLifeEstimation} from './data.battery-life-estimation';
+import {DataFormPower} from './data.form-power';
+import {DataLegStiffness} from './data.leg-stiffness';
+import {DataVerticalOscillation} from './data.vertical-oscillation';
+import {DataTotalTrainingEffect} from './data.total-training-effect';
 
 /**
  * Only concrete classes no abstracts
@@ -127,7 +131,11 @@ export const DataStore: any = {
   DataBatteryCurrent,
   DataBatteryVoltage,
   DataBatteryConsumption,
-  DataBatteryLifeEstimation
+  DataBatteryLifeEstimation,
+  DataFormPower,
+  DataLegStiffness,
+  DataVerticalOscillation,
+  DataTotalTrainingEffect,
 };
 
 export class DynamicDataLoader {

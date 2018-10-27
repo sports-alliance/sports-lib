@@ -5,8 +5,7 @@ export class DataPower extends DataNumber {
   static type = 'Power';
   static unit = 'watts';
 
-  // For Power it's always number
-  getValue(): number{
+  getDisplayValue(): number{
     return Math.round(this.value);
   }
 }

@@ -44,6 +44,10 @@ import {DataPaceMax} from '../../../../data/data.pace-max';
 import {DataHeartRateMin} from '../../../../data/data.heart-rate-min';
 import {DataPowerMin} from '../../../../data/data.power-min';
 import {DataPaceMin} from '../../../../data/data.pace-min';
+import {DataFormPower} from '../../../../data/data.form-power';
+import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
+import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
+import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
 
 const EasyFit = require('easy-fit').default;
 
@@ -151,6 +155,18 @@ export class EventImporterFIT {
     if (isNumberOrString(sessionLapObjectRecord.temperature)) {
       point.addData(new DataTemperature(sessionLapObjectRecord.temperature));
     }
+    // Add Form Power
+    if (isNumberOrString(sessionLapObjectRecord['Form Power'])) {
+      point.addData(new DataFormPower(sessionLapObjectRecord['Form Power']));
+    }
+    // Add Leg Stiffness
+    if (isNumberOrString(sessionLapObjectRecord['Leg Spring Stiffness'])) {
+      point.addData(new DataLegStiffness(sessionLapObjectRecord['Leg Spring Stiffness']));
+    }
+    // Add Vertical  Oscillation
+    if (isNumberOrString(sessionLapObjectRecord.vertical_oscillation)) {
+      point.addData(new DataVerticalOscillation(sessionLapObjectRecord.vertical_oscillation));
+    }
     return point;
   }
 
@@ -253,6 +269,9 @@ export class EventImporterFIT {
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
     }
+    if (isNumberOrString(object.total_training_effect)) {
+      stats.push(new DataTotalTrainingEffect(object.total_training_effect));
+    }
     return stats;
   }
 
@@ -274,7 +293,7 @@ export class EventImporterFIT {
       default: {
         creator = new Creator(
           (fitDataObject.file_id.manufacturer || 'Invalid Manufacturer')
-          + ' (' + (fitDataObject.file_id.product || 'no model') + ')',
+           + (fitDataObject.file_id.product || ''),
         )
       }
     }

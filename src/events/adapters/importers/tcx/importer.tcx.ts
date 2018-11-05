@@ -170,8 +170,12 @@ export class EventImporterTCX {
           +(new Date(<string>lapElement.getAttribute('StartTime'))) +
           1000 * Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent),
         ),
-        LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent],
+        LapTypes.AutoLap,
       );
+
+      if (lapElement.getElementsByTagName('TriggerMethod')[0]){
+        lap.type = LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent];
+      }
 
       // Create a stats (required TCX fields)
       lap.addStat(new DataEnergy(Number(lapElement.getElementsByTagName('Calories')[0].textContent)));

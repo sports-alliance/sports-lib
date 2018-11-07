@@ -47,7 +47,7 @@ export class EventImporterGPX {
       // Find the activity type
       let activityType = ActivityTypes.unknown;
       if (parsedGPX.trk[0].type) {
-        activityType = ActivityTypes[<keyof typeof ActivityTypes>parsedGPX.trk[0].type[0]];
+        activityType = ActivityTypes[<keyof typeof ActivityTypes>parsedGPX.trk[0].type[0]] || ActivityTypes.unknown;;
       }
 
       // Create an activity

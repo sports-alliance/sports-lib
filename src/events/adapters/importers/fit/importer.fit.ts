@@ -201,7 +201,7 @@ export class EventImporterFIT {
     if (session.sub_sport !== 'generic') {
       return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes.unknown;
     }
-    return ActivityTypes[<keyof typeof ActivityTypes>session.sport];
+    return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || ActivityTypes.unknown;
   }
 
   private static getStatsFromObject(object: any): DataInterface[] {

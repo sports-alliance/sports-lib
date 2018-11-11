@@ -20,4 +20,5 @@ export const ImporterSuuntoDeviceNames: { [index: string]: string } = {
   'Suunto Ambit3 Sport': 'Suunto Ambit3 Sport',
   'Suunto Ambit3 Peak': 'Suunto Ambit3 Peak',
   'Suunto Ambit3 Run': 'Suunto Ambit3 Run',
+  'Suunto Ambit3 Vertical': 'Suunto Ambit3 Vertical',
 };

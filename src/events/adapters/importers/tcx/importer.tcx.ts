@@ -147,13 +147,15 @@ export class EventImporterTCX {
 
   private static getCreator(creatorElement?: HTMLElement): CreatorInterface {
     let creator: CreatorInterface;
+    creator = new Creator('Unknown device');
     if (!creatorElement) {
-      creator = new Creator('Unknown device');
       return creator;
     }
     // Try to see if its a listed Suunto Device name
-    creator = new Creator(ImporterSuuntoDeviceNames[<string>creatorElement.getElementsByTagName('Name')[0].textContent]
-      || <string>creatorElement.getElementsByTagName('Name')[0].textContent);
+    if (creatorElement.getElementsByTagName('Name')[0]) {
+      creator.name = ImporterSuuntoDeviceNames[<string>creatorElement.getElementsByTagName('Name')[0].textContent]
+        || <string>creatorElement.getElementsByTagName('Name')[0].textContent || creator.name;
+    }
 
     if (creatorElement.getElementsByTagName('Version')[0]) {
       creator.swInfo = <string>creatorElement.getElementsByTagName('Version')[0].textContent;
@@ -173,7 +175,7 @@ export class EventImporterTCX {
         LapTypes.AutoLap,
       );
 
-      if (lapElement.getElementsByTagName('TriggerMethod')[0]){
+      if (lapElement.getElementsByTagName('TriggerMethod')[0]) {
         lap.type = LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent];
       }
 

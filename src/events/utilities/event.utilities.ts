@@ -151,13 +151,12 @@ export class EventUtilities {
   }
 
 
-  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface) {
+  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
     // Short to do the search just in case
     activity.sortPointsByDate();
-    let startDistanceDate: Date;
-    let endDistanceDate: Date;
-    // Short to do the search just in case
-    activity.sortPointsByDate();
+    let startDistanceDate: Date | undefined; // Does not sound right
+    let endDistanceDate: Date | undefined;
+
     activity.getPoints().forEach((point: PointInterface) => {
       // find start and end date
       let pointDistance = point.getDataByType(DataDistance.type);
@@ -170,17 +169,8 @@ export class EventUtilities {
         return;
       }
     });
-    activity.getPoints().forEach((point: PointInterface) => {
-      // Remove depending on Date
-      if (startDistanceDate && point.getDate() < startDistanceDate) {
-        activity.removePoint(point)
-      }
-      if (startDistanceDate && point.getDate() > endDistanceDate) {
-        activity.removePoint(point)
-      }
-      // Clear up the distance data as it's accumulated
-      point.removeDataByType(DataDistance.type);
-    });
+
+    activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
 
     // Should  reset all stats
     activity.clearStats();
@@ -188,8 +178,25 @@ export class EventUtilities {
     // Set the distance
     activity.setDistance(new DataDistance(endDistance));
 
-    activity.startDate = activity.getStartPoint().getDate();
-    activity.endDate = activity.getEndPoint().getDate();
+    return activity;
+  }
+
+  public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
+    activity.getPoints().forEach((point: PointInterface) => {
+      // Remove depending on Date
+      if (startDate && point.getDate() < startDate) {
+        activity.removePoint(point)
+      }
+      if (endDate && point.getDate() > endDate) {
+        activity.removePoint(point)
+      }
+      // Clear up the distance data as it's accumulated
+      point.removeDataByType(DataDistance.type);
+    });
+
+    activity.startDate = startDate || activity.endDate;
+    activity.endDate = endDate || activity.endDate;
+    return activity;
   }
 
   public static generateStats(event: EventInterface) {

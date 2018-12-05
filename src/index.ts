@@ -42,10 +42,10 @@ export class QuantifiedSelfLib {
 
   /**
    * Parses and returns an event using native format (QuantifiedSelfLib exported format)
-   * @param jsonString
+   * @param json
    */
-  public static importFromJSON(jsonString: string): Promise<EventInterface> {
-    return EventImporterJSON.getFromJSONString(jsonString);
+  public static importFromJSON(json: string): Promise<EventInterface> {
+    return EventImporterJSON.getFromJSON(json);
   }
 
   /**

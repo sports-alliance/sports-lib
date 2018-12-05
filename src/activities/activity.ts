@@ -133,8 +133,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     });
     return {
       id: this.getID(),
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: this.startDate.toJSON(),
+      endDate: this.endDate.toJSON(),
       type: this.type,
       creator: this.creator.toJSON(),
       points: Array.from(this.points.values()).reduce((jsonPointsArray: any[], point: PointInterface) => {

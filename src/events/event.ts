@@ -73,8 +73,8 @@ export class Event extends DurationClassAbstract implements EventInterface {
     return {
       id: this.getID(),
       name: this.name,
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: this.startDate.toJSON(),
+      endDate: this.endDate.toJSON(),
       stats: stats,
       activities: this.getActivities().reduce((jsonActivitiesArray: any[], activity: ActivityInterface) => {
         jsonActivitiesArray.push(activity.toJSON());

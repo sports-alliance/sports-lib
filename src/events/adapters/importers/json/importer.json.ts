@@ -15,9 +15,19 @@ import {ActivityInterface} from '../../../../activities/activity.interface';
 export class EventImporterJSON {
   static getFromJSON(json: any): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
-      // Should build a json interface
+      // @todo Should build a json interface
+      const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate));
+      event.setID(json.id);
+      json.stats.forEach((stat: any) => {
+        event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
+      });
+      if (!json.activities) {
+        resolve(event);
+        return
+      }
+
       const activities: ActivityInterface[] = json.activities.map((activityObject: any) => {
-            const creator = new Creator(activityObject.creator.name);
+        const creator = new Creator(activityObject.creator.name);
         creator.hwInfo = activityObject.creator.hwInfo;
         creator.swInfo = activityObject.creator.swInfo;
         creator.serialNumber = activityObject.creator.serialNumber;
@@ -75,13 +85,7 @@ export class EventImporterJSON {
         return activity;
       });
 
-
-      const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate));
-      event.setID(json.id);
       activities.forEach(activity => event.addActivity(activity));
-      json.stats.forEach((stat: any) => {
-        event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
-      });
       resolve(event);
     })
   }

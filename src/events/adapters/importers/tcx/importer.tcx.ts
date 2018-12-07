@@ -12,7 +12,7 @@ import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
 import {DataPower} from '../../../../data/data.power';
 import {PointInterface} from '../../../../points/point.interface';
-import {CreatorInterface} from '../../../../creators/creatorInterface';
+import {CreatorInterface} from '../../../../creators/creator.interface';
 import {LapInterface} from '../../../../laps/lap.interface';
 import {convertSpeedToPace, EventUtilities} from '../../../utilities/event.utilities';
 import {DataEnergy} from '../../../../data/data.energy';

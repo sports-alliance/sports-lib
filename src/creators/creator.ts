@@ -1,4 +1,4 @@
-import {CreatorInterface} from './creatorInterface';
+import {CreatorInterface} from './creator.interface';
 
 export class Creator implements CreatorInterface {
   public name: string;

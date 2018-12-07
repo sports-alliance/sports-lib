@@ -10,7 +10,7 @@ import {Weather} from '../weather/app.weather';
 import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
 import {ActivityTypes} from './activity.types';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
-import {CreatorInterface} from '../creators/creatorInterface';
+import {CreatorInterface} from '../creators/creator.interface';
 import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 

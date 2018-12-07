@@ -11,7 +11,7 @@ import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
 import {DataTemperature} from '../../../../data/data.temperature';
 import {Creator} from '../../../../creators/creator';
-import {CreatorInterface} from '../../../../creators/creatorInterface';
+import {CreatorInterface} from '../../../../creators/creator.interface';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataEnergy} from '../../../../data/data.energy';

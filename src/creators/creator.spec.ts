@@ -1,4 +1,4 @@
-import {CreatorInterface} from './creatorInterface';
+import {CreatorInterface} from './creator.interface';
 import {Creator} from './creator';
 import {Activity} from '../activities/activity';
 

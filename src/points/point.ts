@@ -3,13 +3,16 @@ import {DataInterface} from '../data/data.interface';
 import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataPositionInterface} from '../data/data.position.interface';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
+import {IDClass} from '../id/id.abstract.class';
+import {IDClassInterface} from '../id/id.class.interface';
 
-export class Point implements PointInterface {
+export class Point extends IDClass implements PointInterface {
 
   private date: Date;
   private data: Map<string, DataInterface> = new Map<string, DataInterface>();
 
   constructor(date: Date) {
+    super();
     this.date = date;
   }
 

@@ -1,4 +1,4 @@
-import {CreatorInterface} from '../creators/creatorInterface';
+import {CreatorInterface} from '../creators/creator.interface';
 import {PointInterface} from '../points/point.interface';
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {LapInterface} from '../laps/lap.interface';

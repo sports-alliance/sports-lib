@@ -31,44 +31,39 @@ describe('EventUtilities', () => {
 
   it('should get the correct minimum for a DataType', () => {
     const pointA = new Point(new Date(0));
-    const pointB = new Point(new Date(1));
-    const pointC = new Point(new Date(2));
+    event.getFirstActivity().streams.push(
+      new Stream(DataHeartRate.type, [0, 50, 100]),
+    );
+    event.getFirstActivity().streams.push(
+      new Stream(DataAltitude.type, [200, 300, 400]),
+    );
 
-    pointA.addData(new DataHeartRate(0));
-    pointB.addData(new DataHeartRate(50));
-    pointC.addData(new DataHeartRate(100));
-
-    pointA.addData(new DataAltitude(200));
-    pointB.addData(new DataAltitude(300));
-    pointC.addData(new DataAltitude(400));
-
-    event.getFirstActivity().addPoint(pointA);
-    event.getFirstActivity().addPoint(pointB);
-    event.getFirstActivity().addPoint(pointC);
-
-    expect(EventUtilities.getDateTypeMin(event, DataHeartRate.type)).toBe(0);
-    expect(EventUtilities.getDateTypeMin(event, DataAltitude.type)).toBe(200);
+    expect(EventUtilities.getDateTypeMin(event.getFirstActivity(), DataHeartRate.type)).toBe(0);
+    expect(EventUtilities.getDateTypeMin(event.getFirstActivity(), DataAltitude.type)).toBe(200);
   });
 
   it('should get the correct maximum for a DataType', () => {
-    const pointA = new Point(new Date(0));
-    const pointB = new Point(new Date(1));
-    const pointC = new Point(new Date(2));
+    event.getFirstActivity().streams.push(
+      new Stream(DataHeartRate.type, [0, 50, 100]),
+    );
+    event.getFirstActivity().streams.push(
+      new Stream(DataAltitude.type, [200, 300, 400]),
+    );
 
-    pointA.addData(new DataHeartRate(0));
-    pointB.addData(new DataHeartRate(50));
-    pointC.addData(new DataHeartRate(100));
+    expect(EventUtilities.getDateTypeMax(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
+    expect(EventUtilities.getDateTypeMax(event.getFirstActivity(), DataAltitude.type)).toBe(400);
+  });
 
-    pointA.addData(new DataAltitude(200));
-    pointB.addData(new DataAltitude(300));
-    pointC.addData(new DataAltitude(400));
+    it('should get the correct difference for a DataType', () => {
+    event.getFirstActivity().streams.push(
+      new Stream(DataHeartRate.type, [0, 50, 100]),
+    );
+    event.getFirstActivity().streams.push(
+      new Stream(DataAltitude.type, [200, 300, 400]),
+    );
 
-    event.getFirstActivity().addPoint(pointA);
-    event.getFirstActivity().addPoint(pointB);
-    event.getFirstActivity().addPoint(pointC);
-
-    expect(EventUtilities.getDateTypeMax(event, DataHeartRate.type)).toBe(100);
-    expect(EventUtilities.getDateTypeMax(event, DataAltitude.type)).toBe(400);
+    expect(EventUtilities.getDataTypeDifference(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
+    expect(EventUtilities.getDataTypeDifference(event.getFirstActivity(), DataAltitude.type)).toBe(200);
   });
 
   it('should get the correct average for a DataType', () => {

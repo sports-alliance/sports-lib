@@ -71,7 +71,7 @@ export class EventUtilities {
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date,): number {
+    endDate?: Date): number {
     const data = activity
       .getStreamData(streamType, startDate, endDate)
       .filter((value) => !isNaN(value));
@@ -83,31 +83,27 @@ export class EventUtilities {
   }
 
   public static getDateTypeMax(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     startDate?: Date,
-    endDate?: Date,
-    activities?: ActivityInterface[]): number {
-    return this.getDataTypeMinOrMax(true, event, dataType, startDate, endDate, activities);
+    endDate?: Date): number {
+    return this.getDataTypeMinOrMax(activity, streamType, true, startDate, endDate);
   }
 
   public static getDateTypeMin(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     startDate?: Date,
-    endDate?: Date,
-    activities?: ActivityInterface[]): number {
-    return this.getDataTypeMinOrMax(false, event, dataType, startDate, endDate, activities);
+    endDate?: Date): number {
+    return this.getDataTypeMinOrMax(activity, streamType, false, startDate, endDate);
   }
 
   public static getDataTypeDifference(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     startDate?: Date,
-    endDate?: Date,
-    activities?: ActivityInterface[],
-  ): number {
-    return this.getDateTypeMax(event, dataType, startDate, endDate, activities) - this.getDateTypeMin(event, dataType, startDate, endDate, activities);
+    endDate?: Date): number {
+    return this.getDateTypeMax(activity, streamType, startDate, endDate) - this.getDateTypeMin(activity, streamType, startDate, endDate);
   }
 
   public static mergeEvents(events: EventInterface[]): Promise<EventInterface> {
@@ -199,9 +195,9 @@ export class EventUtilities {
     // Todo should also work for event
     event.getActivities().map((activity: ActivityInterface) => {
       // Generate for activities
-      this.generateStatsForActivityOrLap(event, activity);
+      this.generateStatsForActivityOrLap(activity);
       activity.getLaps().map((lap: LapInterface) => {
-        this.generateStatsForActivityOrLap(event, lap);
+        this.generateStatsForActivityOrLap(lap);
       })
     })
   }
@@ -279,196 +275,190 @@ export class EventUtilities {
     return gainOrLoss;
   }
 
-  private static getDataTypeMinOrMax(max: boolean,
-                                     event: EventInterface,
-                                     dataType: string,
-                                     startDate?: Date,
-                                     endDate?: Date,
-                                     activities?: ActivityInterface[]): number {
-    const dataValuesArray = event.getPoints(startDate, endDate, activities).reduce((dataValues: number[], point: PointInterface) => {
-      const pointData = point.getDataByType(dataType);
-      if (pointData) {
-        dataValues.push(<number>pointData.getValue());
-      }
-      return dataValues;
-    }, []);
-
-    // This is needed due to calling the max stack size of args if using Math.max(...dataValuesArray);
+  private static getDataTypeMinOrMax(
+    activity: ActivityInterface,
+    streamType: string,
+    max: boolean,
+    startDate?: Date,
+    endDate?: Date): number {
+    const data = activity
+      .getStreamData(streamType, startDate, endDate)
+      .filter((value) => !isNaN(value));
     if (max) {
-      return dataValuesArray.reduce(function (previousValue, currentValue) {
+      return data.reduce(function (previousValue, currentValue) {
         return Math.max(previousValue, currentValue);
       }, -Infinity);
     }
-    return dataValuesArray.reduce(function (previousValue, currentValue) {
+    return data.reduce(function (previousValue, currentValue) {
       return Math.min(previousValue, currentValue);
     }, Infinity);
   }
 
-  private static generateStatsForActivityOrLap(event: EventInterface, subject: ActivityInterface | LapInterface) {
+  private static generateStatsForActivityOrLap(subject: ActivityInterface | LapInterface) {
     // Add the number of points this activity has
-    if (subject instanceof Activity) {
-      subject.addStat(new DataNumberOfPoints(subject.getPoints().length))
-    }
-
-    // If there is no duration define that from the start date and end date
-    if (!subject.getStat(DataDuration.className)) {
-      subject.addStat(new DataDuration((subject.endDate.getTime() - subject.startDate.getTime()) / 1000))
-    }
-
-    // If there is no pause define that from the start date and end date and duration
-    if (!subject.getStat(DataPause.className)) {
-      subject.addStat(new DataPause(((subject.endDate.getTime() - subject.startDate.getTime()) / 1000) - subject.getDuration().getValue()))
-    }
-
-    // If there is no distance
-    if (!subject.getStat(DataDistance.className)) {
-      subject.addStat(new DataDistance(this.getDistanceForEvent(event, subject.startDate, subject.endDate)));
-    }
-
-    // Ascent (altitude gain)
-    if (!subject.getStat(DataAscent.className)
-      && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataAscent(this.getEventDataTypeGain(event, DataAltitude.type, subject.startDate, subject.endDate)));
-    }
-    // Descent (altitude loss)
-    if (!subject.getStat(DataDescent.className)
-      && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataDescent(this.getEventDataTypeLoss(event, DataAltitude.type, subject.startDate, subject.endDate)));
-    }
-    // Altitude Max
-    if (!subject.getStat(DataAltitudeMax.className)
-      && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataAltitudeMax(this.getDateTypeMax(event, DataAltitude.type, subject.startDate, subject.endDate)));
-    }
-    // Altitude Min
-    if (!subject.getStat(DataAltitudeMin.className)
-      && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataAltitudeMin(this.getDateTypeMin(event, DataAltitude.type, subject.startDate, subject.endDate)));
-    }
-    // Altitude Avg
-    if (!subject.getStat(DataAltitudeAvg.className)
-      && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataAltitudeAvg(this.getDataTypeAvg(event, DataAltitude.type, subject.startDate, subject.endDate)));
-    }
-
-    // Heart Rate  Max
-    if (!subject.getStat(DataHeartRateMax.className)
-      && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataHeartRateMax(this.getDateTypeMax(event, DataHeartRate.type, subject.startDate, subject.endDate)));
-    }
-    // Heart Rate Min
-    if (!subject.getStat(DataHeartRateMin.className)
-      && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataHeartRateMin(this.getDateTypeMin(event, DataHeartRate.type, subject.startDate, subject.endDate)));
-    }
-    // Heart Rate Avg
-    if (!subject.getStat(DataHeartRateAvg.className)
-      && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataHeartRateAvg(this.getDataTypeAvg(event, DataHeartRate.type, subject.startDate, subject.endDate)));
-    }
-    // Cadence Max
-    if (!subject.getStat(DataCadenceMax.className)
-      && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataCadenceMax(this.getDateTypeMax(event, DataCadence.type, subject.startDate, subject.endDate)));
-    }
-    // Cadence Min
-    if (!subject.getStat(DataCadenceMin.className)
-      && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataCadenceMin(this.getDateTypeMin(event, DataCadence.type, subject.startDate, subject.endDate)));
-    }
-    // Cadence Avg
-    if (!subject.getStat(DataCadenceAvg.className)
-      && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataCadenceAvg(this.getDataTypeAvg(event, DataCadence.type, subject.startDate, subject.endDate)));
-    }
-    // Speed Max
-    if (!subject.getStat(DataSpeedMax.className)
-      && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataSpeedMax(this.getDateTypeMax(event, DataSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Speed Min
-    if (!subject.getStat(DataSpeedMin.className)
-      && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataSpeedMin(this.getDateTypeMin(event, DataSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Speed Avg
-    if (!subject.getStat(DataSpeedAvg.className)
-      && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataSpeedAvg(this.getDataTypeAvg(event, DataSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Pace Max
-    if (!subject.getStat(DataPaceMax.className)
-      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPaceMax(this.getDateTypeMin(event, DataPace.type, subject.startDate, subject.endDate))); // Intentionally min
-    }
-    // Pace Min
-    if (!subject.getStat(DataPaceMin.className)
-      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPaceMin(this.getDateTypeMax(event, DataPace.type, subject.startDate, subject.endDate))); // Intentionally max
-    }
-    // Pace Avg
-    if (!subject.getStat(DataPaceAvg.className)
-      && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPaceAvg(this.getDataTypeAvg(event, DataPace.type, subject.startDate, subject.endDate)));
-    }
-    // Vertical Speed Max
-    if (!subject.getStat(DataVerticalSpeedMax.className)
-      && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataVerticalSpeedMax(this.getDateTypeMax(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Vertical Speed Min
-    if (!subject.getStat(DataVerticalSpeedMin.className)
-      && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataVerticalSpeedMin(this.getDateTypeMin(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Vertical Speed Avg
-    if (!subject.getStat(DataVerticalSpeedAvg.className)
-      && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
-    }
-    // Power Max
-    if (!subject.getStat(DataPowerMax.className)
-      && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPowerMax(this.getDateTypeMax(event, DataPower.type, subject.startDate, subject.endDate)));
-    }
-    // Power Min
-    if (!subject.getStat(DataPowerMin.className)
-      && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPowerMin(this.getDateTypeMin(event, DataPower.type, subject.startDate, subject.endDate)));
-    }
-    if (!subject.getStat(DataPowerAvg.className)
-      && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataPowerAvg(this.getDataTypeAvg(event, DataPower.type, subject.startDate, subject.endDate)));
-    }
-    // Temperature Max
-    if (!subject.getStat(DataTemperatureMax.className)
-      && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataTemperatureMax(this.getDateTypeMax(event, DataTemperature.type, subject.startDate, subject.endDate)));
-    }
-    // Temperature Min
-    if (!subject.getStat(DataTemperatureMin.className)
-      && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataTemperatureMin(this.getDateTypeMin(event, DataTemperature.type, subject.startDate, subject.endDate)));
-    }
-    // Temperature Avg
-    if (!subject.getStat(DataTemperatureAvg.className)
-      && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataTemperatureAvg(this.getDataTypeAvg(event, DataTemperature.type, subject.startDate, subject.endDate)));
-    }
-
-    // Battery Consumption Avg
-    if (!subject.getStat(DataBatteryConsumption.className)
-      && event.getPointsWithDataType(DataBatteryCharge.type, subject.startDate, subject.endDate).length) {
-      subject.addStat(new DataBatteryConsumption(this.getDataTypeDifference(event, DataBatteryCharge.type, subject.startDate, subject.endDate)));
-    }
-
-    // Battery Life Estimation based on Consumption
-    if (!subject.getStat(DataBatteryLifeEstimation.className)) {
-      const consumption = subject.getStat(DataBatteryConsumption.className);
-      if (consumption && consumption.getValue()) {
-        subject.addStat(new DataBatteryLifeEstimation(Number((+subject.endDate - +subject.startDate) / 1000 * 100) / Number(consumption.getValue())));
-      }
-    }
+    // if (subject instanceof Activity) {
+    //   subject.addStat(new DataNumberOfPoints(subject.getPoints().length))
+    // }
+    //
+    // // If there is no duration define that from the start date and end date
+    // if (!subject.getStat(DataDuration.className)) {
+    //   subject.addStat(new DataDuration((subject.endDate.getTime() - subject.startDate.getTime()) / 1000))
+    // }
+    //
+    // // If there is no pause define that from the start date and end date and duration
+    // if (!subject.getStat(DataPause.className)) {
+    //   subject.addStat(new DataPause(((subject.endDate.getTime() - subject.startDate.getTime()) / 1000) - subject.getDuration().getValue()))
+    // }
+    //
+    // // If there is no distance
+    // if (!subject.getStat(DataDistance.className)) {
+    //   subject.addStat(new DataDistance(this.getDistanceForEvent(event, subject.startDate, subject.endDate)));
+    // }
+    //
+    // // Ascent (altitude gain)
+    // if (!subject.getStat(DataAscent.className)
+    //   && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataAscent(this.getEventDataTypeGain(event, DataAltitude.type, subject.startDate, subject.endDate)));
+    // }
+    // // Descent (altitude loss)
+    // if (!subject.getStat(DataDescent.className)
+    //   && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataDescent(this.getEventDataTypeLoss(event, DataAltitude.type, subject.startDate, subject.endDate)));
+    // }
+    // // Altitude Max
+    // if (!subject.getStat(DataAltitudeMax.className)
+    //   && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataAltitudeMax(this.getDateTypeMax(event, DataAltitude.type, subject.startDate, subject.endDate)));
+    // }
+    // // Altitude Min
+    // if (!subject.getStat(DataAltitudeMin.className)
+    //   && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataAltitudeMin(this.getDateTypeMin(event, DataAltitude.type, subject.startDate, subject.endDate)));
+    // }
+    // // Altitude Avg
+    // if (!subject.getStat(DataAltitudeAvg.className)
+    //   && event.getPointsWithDataType(DataAltitude.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataAltitudeAvg(this.getDataTypeAvg(event, DataAltitude.type, subject.startDate, subject.endDate)));
+    // }
+    //
+    // // Heart Rate  Max
+    // if (!subject.getStat(DataHeartRateMax.className)
+    //   && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataHeartRateMax(this.getDateTypeMax(event, DataHeartRate.type, subject.startDate, subject.endDate)));
+    // }
+    // // Heart Rate Min
+    // if (!subject.getStat(DataHeartRateMin.className)
+    //   && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataHeartRateMin(this.getDateTypeMin(event, DataHeartRate.type, subject.startDate, subject.endDate)));
+    // }
+    // // Heart Rate Avg
+    // if (!subject.getStat(DataHeartRateAvg.className)
+    //   && event.getPointsWithDataType(DataHeartRate.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataHeartRateAvg(this.getDataTypeAvg(event, DataHeartRate.type, subject.startDate, subject.endDate)));
+    // }
+    // // Cadence Max
+    // if (!subject.getStat(DataCadenceMax.className)
+    //   && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataCadenceMax(this.getDateTypeMax(event, DataCadence.type, subject.startDate, subject.endDate)));
+    // }
+    // // Cadence Min
+    // if (!subject.getStat(DataCadenceMin.className)
+    //   && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataCadenceMin(this.getDateTypeMin(event, DataCadence.type, subject.startDate, subject.endDate)));
+    // }
+    // // Cadence Avg
+    // if (!subject.getStat(DataCadenceAvg.className)
+    //   && event.getPointsWithDataType(DataCadence.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataCadenceAvg(this.getDataTypeAvg(event, DataCadence.type, subject.startDate, subject.endDate)));
+    // }
+    // // Speed Max
+    // if (!subject.getStat(DataSpeedMax.className)
+    //   && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataSpeedMax(this.getDateTypeMax(event, DataSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Speed Min
+    // if (!subject.getStat(DataSpeedMin.className)
+    //   && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataSpeedMin(this.getDateTypeMin(event, DataSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Speed Avg
+    // if (!subject.getStat(DataSpeedAvg.className)
+    //   && event.getPointsWithDataType(DataSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataSpeedAvg(this.getDataTypeAvg(event, DataSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Pace Max
+    // if (!subject.getStat(DataPaceMax.className)
+    //   && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPaceMax(this.getDateTypeMin(event, DataPace.type, subject.startDate, subject.endDate))); // Intentionally min
+    // }
+    // // Pace Min
+    // if (!subject.getStat(DataPaceMin.className)
+    //   && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPaceMin(this.getDateTypeMax(event, DataPace.type, subject.startDate, subject.endDate))); // Intentionally max
+    // }
+    // // Pace Avg
+    // if (!subject.getStat(DataPaceAvg.className)
+    //   && event.getPointsWithDataType(DataPace.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPaceAvg(this.getDataTypeAvg(event, DataPace.type, subject.startDate, subject.endDate)));
+    // }
+    // // Vertical Speed Max
+    // if (!subject.getStat(DataVerticalSpeedMax.className)
+    //   && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataVerticalSpeedMax(this.getDateTypeMax(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Vertical Speed Min
+    // if (!subject.getStat(DataVerticalSpeedMin.className)
+    //   && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataVerticalSpeedMin(this.getDateTypeMin(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Vertical Speed Avg
+    // if (!subject.getStat(DataVerticalSpeedAvg.className)
+    //   && event.getPointsWithDataType(DataVerticalSpeed.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(event, DataVerticalSpeed.type, subject.startDate, subject.endDate)));
+    // }
+    // // Power Max
+    // if (!subject.getStat(DataPowerMax.className)
+    //   && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPowerMax(this.getDateTypeMax(event, DataPower.type, subject.startDate, subject.endDate)));
+    // }
+    // // Power Min
+    // if (!subject.getStat(DataPowerMin.className)
+    //   && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPowerMin(this.getDateTypeMin(event, DataPower.type, subject.startDate, subject.endDate)));
+    // }
+    // if (!subject.getStat(DataPowerAvg.className)
+    //   && event.getPointsWithDataType(DataPower.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataPowerAvg(this.getDataTypeAvg(event, DataPower.type, subject.startDate, subject.endDate)));
+    // }
+    // // Temperature Max
+    // if (!subject.getStat(DataTemperatureMax.className)
+    //   && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataTemperatureMax(this.getDateTypeMax(event, DataTemperature.type, subject.startDate, subject.endDate)));
+    // }
+    // // Temperature Min
+    // if (!subject.getStat(DataTemperatureMin.className)
+    //   && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataTemperatureMin(this.getDateTypeMin(event, DataTemperature.type, subject.startDate, subject.endDate)));
+    // }
+    // // Temperature Avg
+    // if (!subject.getStat(DataTemperatureAvg.className)
+    //   && event.getPointsWithDataType(DataTemperature.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataTemperatureAvg(this.getDataTypeAvg(event, DataTemperature.type, subject.startDate, subject.endDate)));
+    // }
+    //
+    // // Battery Consumption Avg
+    // if (!subject.getStat(DataBatteryConsumption.className)
+    //   && event.getPointsWithDataType(DataBatteryCharge.type, subject.startDate, subject.endDate).length) {
+    //   subject.addStat(new DataBatteryConsumption(this.getDataTypeDifference(event, DataBatteryCharge.type, subject.startDate, subject.endDate)));
+    // }
+    //
+    // // Battery Life Estimation based on Consumption
+    // if (!subject.getStat(DataBatteryLifeEstimation.className)) {
+    //   const consumption = subject.getStat(DataBatteryConsumption.className);
+    //   if (consumption && consumption.getValue()) {
+    //     subject.addStat(new DataBatteryLifeEstimation(Number((+subject.endDate - +subject.startDate) / 1000 * 100) / Number(consumption.getValue())));
+    //   }
+    // }
   }
 
   public static getDistanceForEvent(

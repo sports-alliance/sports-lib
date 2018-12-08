@@ -13,12 +13,14 @@ import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {CreatorInterface} from '../creators/creator.interface';
 import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
+import {StreamInterface} from '../streams/stream.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
   public creator: CreatorInterface;
   public ibiData = new IBIData();
   public intensityZones: Map<string, IntensityZonesInterface> = new Map<string, IntensityZonesInterface>();
+  public streams: StreamInterface[] = [];
   public geoLocationInfo?: GeoLocationInfo;
   public weather?: Weather;
 

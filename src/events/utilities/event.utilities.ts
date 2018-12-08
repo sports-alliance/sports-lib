@@ -68,22 +68,18 @@ export class EventUtilities {
   }
 
   public static getDataTypeAvg(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     startDate?: Date,
-    endDate?: Date,
-    activities?: ActivityInterface[]): number {
-    let count = 0;
-    const averageForDataType = event.getPoints(startDate, endDate, activities).reduce((average: number, point: PointInterface) => {
-      const data = point.getDataByType(dataType);
-      if (!data) {
-        return average;
-      }
-      average += Number(data.getValue());
-      count++;
+    endDate?: Date,): number {
+    const data = activity
+      .getStreamData(streamType, startDate, endDate)
+      .filter((value) => !isNaN(value));
+    const average = data.reduce((average: number, value: number) => {
+      average += value;
       return average;
     }, 0);
-    return (averageForDataType / count);
+    return (average / data.length);
   }
 
   public static getDateTypeMax(

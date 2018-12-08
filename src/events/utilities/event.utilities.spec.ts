@@ -10,6 +10,7 @@ import {DataDuration} from '../../data/data.duration';
 import {EventInterface} from '../event.interface';
 import {Creator} from '../../creators/creator';
 import {ActivityTypes} from '../../activities/activity.types';
+import {Stream} from '../../streams/stream';
 
 describe('EventUtilities', () => {
 
@@ -21,7 +22,7 @@ describe('EventUtilities', () => {
       new Date(0),
       new Date((new Date(0)).getTime() + 10),
       ActivityTypes.Running,
-      new Creator('Test')
+      new Creator('Test'),
     );
     activity.setDuration(new DataDuration(10));
     activity.setDistance(new DataDistance(10));
@@ -71,24 +72,15 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct average for a DataType', () => {
-    const pointA = new Point(new Date(0));
-    const pointB = new Point(new Date(1));
-    const pointC = new Point(new Date(2));
+    event.getFirstActivity().streams.push(
+      new Stream(DataHeartRate.type, [0, 50, 100]),
+    );
+    event.getFirstActivity().streams.push(
+      new Stream(DataAltitude.type, [200, 300, 400]),
+    );
 
-    pointA.addData(new DataHeartRate(0));
-    pointB.addData(new DataHeartRate(50));
-    pointC.addData(new DataHeartRate(100));
-
-    pointA.addData(new DataAltitude(200));
-    pointB.addData(new DataAltitude(300));
-    pointC.addData(new DataAltitude(400));
-
-    event.getFirstActivity().addPoint(pointA);
-    event.getFirstActivity().addPoint(pointB);
-    event.getFirstActivity().addPoint(pointC);
-
-    expect(EventUtilities.getDataTypeAvg(event, DataHeartRate.type)).toBe(50);
-    expect(EventUtilities.getDataTypeAvg(event, DataAltitude.type)).toBe(300);
+    expect(EventUtilities.getDataTypeAvg(event.getFirstActivity(), DataHeartRate.type)).toBe(50);
+    expect(EventUtilities.getDataTypeAvg(event.getFirstActivity(), DataAltitude.type)).toBe(300);
   });
 
   it('should get the correct gain for a DataType', () => {

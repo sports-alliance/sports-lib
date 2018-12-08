@@ -33,6 +33,15 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.creator = creator;
   }
 
+  hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean {
+    try{
+      this.getStreamData(streamType, startDate, endDate);
+    }catch (e) {
+      return false
+    }
+    return true;
+  }
+
   getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[] {
     const stream = this.streams
       .find((stream) => stream.type === streamType);
@@ -46,18 +55,18 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
     if (startDate && endDate) {
       return stream.data
-        .filter((value, index) => (new Date(startDate.getTime() + index)) < startDate)
-        .filter((value, index) => (new Date(startDate.getTime() + index)) > endDate);
+        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) > startDate)
+        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) < endDate);
     }
 
     if (startDate){
       return stream.data
-        .filter((value, index) => (new Date(startDate.getTime() + index)) < startDate);
+        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) > startDate);
     }
 
     if (endDate){
        return stream.data
-        .filter((value, index) => (new Date(endDate.getTime() + index)) < endDate);
+        .filter((value, index) => (new Date(endDate.getTime() + index * 1000)) < endDate);
     }
 
     return [];

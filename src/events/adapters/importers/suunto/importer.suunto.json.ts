@@ -74,6 +74,7 @@ import {DataFusedAltitude} from '../../../../data/data.fused-altitude';
 import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
+import {Stream} from '../../../../streams/stream';
 
 export class EventImporterSuuntoJSON {
 
@@ -223,17 +224,24 @@ export class EventImporterSuuntoJSON {
 
       // Add the samples that belong to the activity and the ibi data.
       activities.forEach((activity: ActivityInterface) => {
+
+        // Get the samples that belong to this activity
+        const activitySamples = eventJSONObject
+          .DeviceLog
+          .Samples
+          .filter((sample: any) => ((new Date(sample.TimeISO8601) >= activity.startDate) && (new Date(sample.TimeISO8601) <= activity.endDate)))
+
+        // Check if there is fused Alti
         activity.addStat(new DataFusedLocation(false));
-        eventJSONObject.DeviceLog.Samples.filter((sample: any) => !sample.Debug && !sample.Events).forEach((sample: any) => {
-          const point = this.getPointFromSample(sample);
-          if (point && (point.getDate() >= activity.startDate) && (point.getDate() <= activity.endDate)) {
-            // add the point
-            activity.addPoint(point);
-            if (this.hasFusedLocData(sample)) {
-              activity.addStat(new DataFusedLocation(true));
-            }
-          }
-        });
+        activity.addStat(new DataFusedLocation(activitySamples.filter((sample: any) => this.hasFusedLocData(sample)).length > 0));
+
+        // Clean up the samples from other data etc
+        //   .filter((sample: any) => !sample.Debug && !sample.Events) // Filter real samples
+
+        // Should filter on type and create the samples
+        this.setStreamsForActivity(activity, activitySamples);
+
+        // Maybe should do dev test for lat,long stuff
       });
 
       // Add the ibiData
@@ -288,6 +296,7 @@ export class EventImporterSuuntoJSON {
     }
   }
 
+  // @todo fix this for multiple activities or attach the ibi data to the event
   private static setIBIData(activity: ActivityInterface, ibiData: number[]) {
     activity.ibiData = new IBIData(ibiData);
     // @todo optimize
@@ -310,70 +319,20 @@ export class EventImporterSuuntoJSON {
     });
   }
 
-  private static getPointFromSample(sample: any): PointInterface {
-    const point = new Point(new Date(sample.TimeISO8601));
-    if (isNumberOrString(sample.HR)) {
-      point.addData(new DataHeartRate(sample.HR * 60))
-    }
-    if (isNumberOrString(sample.Distance)) {
-      point.addData(new DataDistance(sample.Distance))
-    }
-    if (isNumberOrString(sample.GPSAltitude)) {
-      point.addData(new DataGPSAltitude(sample.GPSAltitude))
-    }
-    if (isNumberOrString(sample.Latitude)) {
-      point.addData(new DataLatitudeDegrees(sample.Latitude * (180 / Math.PI)))
-    }
-    if (isNumberOrString(sample.Longitude)) {
-      point.addData(new DataLongitudeDegrees(sample.Longitude * (180 / Math.PI)))
-    }
-    if (isNumberOrString(sample.AbsPressure)) {
-      point.addData(new DataAbsolutePressure(sample.AbsPressure / 100))
-    }
-    if (isNumberOrString(sample.SeaLevelPressure)) {
-      point.addData(new DataSeaLevelPressure(sample.SeaLevelPressure / 100))
-    }
-    if (isNumberOrString(sample.Altitude)) {
-      point.addData(new DataAltitude(sample.Altitude))
-    }
-    if (isNumberOrString(sample.Cadence)) {
-      point.addData(new DataCadence(sample.Cadence * 60))
-    }
-    if (isNumberOrString(sample.Power)) {
-      point.addData(new DataPower(sample.Power))
-    }
-    if (isNumberOrString(sample.Speed)) {
-      point.addData(new DataSpeed(sample.Speed));
-      point.addData(new DataPace(convertSpeedToPace(sample.Speed)));
-    }
-    if (isNumberOrString(sample.Temperature)) {
-      point.addData(new DataTemperature(sample.Temperature - 273.15))
-    }
-    if (isNumberOrString(sample.VerticalSpeed)) {
-      point.addData(new DataVerticalSpeed(sample.VerticalSpeed))
-    }
-    if (isNumberOrString(sample.EHPE)) {
-      point.addData(new DataEHPE(sample.EHPE));
-    }
-    if (isNumberOrString(sample.EVPE)) {
-      point.addData(new DataEVPE(sample.EVPE));
-    }
-    if (isNumberOrString(sample.NumberOfSatellites)) {
-      point.addData(new DataNumberOfSatellites(sample.NumberOfSatellites));
-    }
-    if (isNumberOrString(sample.Satellite5BestSNR)) {
-      point.addData(new DataSatellite5BestSNR(sample.Satellite5BestSNR));
-    }
-    if (isNumberOrString(sample.BatteryCharge)) {
-      point.addData(new DataBatteryCharge(sample.BatteryCharge * 100));
-    }
-    if (isNumberOrString(sample.BatteryCurrent)) {
-      point.addData(new DataBatteryCurrent(sample.BatteryCurrent));
-    }
-    if (isNumberOrString(sample.BatteryVoltage)) {
-      point.addData(new DataBatteryVoltage(sample.BatteryVoltage));
-    }
-    return point;
+  private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {
+    SuuntoSampleMapper.forEach((map) => {
+      const subjectSamples = samples.filter((sample) => isNumberOrString(sample[map.sampleField]));
+      if (subjectSamples.length) {
+        activity.streams.push(new Stream(
+          map.dataType,
+          subjectSamples.reduce((array, sample) => {
+            array[Math.ceil((+(new Date(sample.TimeISO8601)) - +activity.startDate) / 1000)] = map.convertSampleValue(sample[map.sampleField]);
+            return array;
+          }, Array(Math.ceil((+activity.endDate - +activity.startDate) / 1000))),
+        ))
+      }
+    });
+    return;
   }
 
   private static getZones(zonesObj: any): IntensityZones {
@@ -391,6 +350,8 @@ export class EventImporterSuuntoJSON {
     return zones;
   }
 
+
+  // @todo convert this to a mapping as well
   private static getStats(object: any): DataInterface[] {
     const stats = [];
     if (isNumberOrString(object.Distance)) {
@@ -545,3 +506,112 @@ export class EventImporterSuuntoJSON {
     return stats;
   }
 }
+
+export const SuuntoSampleMapper = [
+  {
+    dataType: DataLatitudeDegrees.type,
+    sampleField: 'Latitude',
+    convertSampleValue: (value: number) => Number(value * 60),
+  },
+  {
+    dataType: DataHeartRate.type,
+    sampleField: 'HR',
+    convertSampleValue: (value: number) => Number(value * (180 / Math.PI)),
+  },
+  {
+    dataType: DataLongitudeDegrees.type,
+    sampleField: 'Longitude',
+    convertSampleValue: (value: number) => Number(value * (180 / Math.PI)),
+  },
+
+  {
+    dataType: DataDistance.type,
+    sampleField: 'Distance',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataAbsolutePressure.type,
+    sampleField: 'AbsPressure',
+    convertSampleValue: (value: number) => Number(value / 100),
+  },
+  {
+    dataType: DataSeaLevelPressure.type,
+    sampleField: 'SeaLevelPressure',
+    convertSampleValue: (value: number) => Number(value / 100),
+  },
+  {
+    dataType: DataGPSAltitude.type,
+    sampleField: 'GPSAltitude',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataAltitude.type,
+    sampleField: 'Altitude',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataCadence.type,
+    sampleField: 'Cadence',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataPower.type,
+    sampleField: 'Power',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataSpeed.type,
+    sampleField: 'Speed',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataPace.type,
+    sampleField: 'Speed',
+    convertSampleValue: (value: number) => Number(convertSpeedToPace(value)),
+  },
+  {
+    dataType: DataTemperature.type,
+    sampleField: 'Temperature',
+    convertSampleValue: (value: number) => Number(value - 273.15),
+  },
+  {
+    dataType: DataVerticalSpeed.type,
+    sampleField: 'VerticalSpeed',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataEHPE.type,
+    sampleField: 'EHPE',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataEVPE.type,
+    sampleField: 'EVPE',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataNumberOfSatellites.type,
+    sampleField: 'NumberOfSatellites',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataSatellite5BestSNR.type,
+    sampleField: 'Satellite5BestSNR',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataBatteryCharge.type,
+    sampleField: 'BatteryCharge',
+    convertSampleValue: (value: number) => Number(value * 100),
+  },
+  {
+    dataType: DataBatteryCurrent.type,
+    sampleField: 'BatteryCurrent',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataBatteryVoltage.type,
+    sampleField: 'BatteryVoltage',
+    convertSampleValue: (value: number) => Number(value),
+  },
+];

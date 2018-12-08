@@ -38,8 +38,8 @@ describe('EventUtilities', () => {
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
-    expect(EventUtilities.getDateTypeMin(event.getFirstActivity(), DataHeartRate.type)).toBe(0);
-    expect(EventUtilities.getDateTypeMin(event.getFirstActivity(), DataAltitude.type)).toBe(200);
+    expect(EventUtilities.getDataTypeMin(event.getFirstActivity(), DataHeartRate.type)).toBe(0);
+    expect(EventUtilities.getDataTypeMin(event.getFirstActivity(), DataAltitude.type)).toBe(200);
   });
 
   it('should get the correct maximum for a DataType', () => {
@@ -50,8 +50,8 @@ describe('EventUtilities', () => {
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
-    expect(EventUtilities.getDateTypeMax(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
-    expect(EventUtilities.getDateTypeMax(event.getFirstActivity(), DataAltitude.type)).toBe(400);
+    expect(EventUtilities.getDataTypeMax(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
+    expect(EventUtilities.getDataTypeMax(event.getFirstActivity(), DataAltitude.type)).toBe(400);
   });
 
   it('should get the correct difference for a DataType', () => {

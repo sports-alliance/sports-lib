@@ -9,26 +9,21 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
   constructor() {
   }
 
-  getDistance(points: PointInterface[]): number {
+  getDistance(positionArray: DataPositionInterface[]): number {
     let distance = 0;
-    const excludeFirstPointsArray = points.slice(1);
-    let pointA = points[0];
-    for (const pointB of excludeFirstPointsArray) {
-      const positionA = pointA.getPosition();
-      const positionB = pointB.getPosition();
-      if (!positionA || !positionB) {
-        continue;
-      }
-      const pointAPositionAsDecimal: PositionAsDecimal = {
-        longitude: positionA.longitudeDegrees,
-        latitude: positionA.latitudeDegrees,
+    const excludeFirstPointsArray = positionArray.slice(1);
+    let firstPosition = positionArray[0];
+    for (const nextPosition of excludeFirstPointsArray) {
+      const firstPositionAsDecimal: PositionAsDecimal = {
+        longitude: firstPosition.longitudeDegrees,
+        latitude: firstPosition.latitudeDegrees,
       };
-      const pointBPositionAsDecimal: PositionAsDecimal = {
-        longitude: positionB.longitudeDegrees,
-        latitude: positionB.latitudeDegrees,
+      const nextPositionAsDecimal: PositionAsDecimal = {
+        longitude: nextPosition.longitudeDegrees,
+        latitude: nextPosition.latitudeDegrees,
       };
-      distance += getDistance(pointAPositionAsDecimal, pointBPositionAsDecimal);
-      pointA = pointB;
+      distance += getDistance(firstPositionAsDecimal, nextPositionAsDecimal);
+      firstPosition = nextPosition;
     }
     return distance;
   }

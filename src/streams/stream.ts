@@ -1,14 +1,12 @@
 import {StreamInterface} from './stream.interface';
+import {StreamDataInterface} from './stream.data.interface';
 
 export class Stream implements StreamInterface {
   public readonly type: string;
-  public data: number[] = [];
+  public data: StreamDataInterface[] = [];
 
-  constructor(type: string, data?: number[]) {
+  constructor(type: string) {
     this.type = type;
-    if (data) {
-      this.data = data;
-    }
   }
 
   toJSON(): any {

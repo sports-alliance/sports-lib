@@ -203,74 +203,59 @@ export class EventUtilities {
   }
 
   public static getEventDataTypeGain(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     starDate?: Date,
     endDate?: Date,
-    activities?: ActivityInterface[],
-    minDiff?: number,
-  ): number {
-    return this.getEventDataTypeGainOrLoss(true, event, dataType, starDate, endDate, activities, minDiff);
+    minDiff: number = 5): number {
+    return this.getEventDataTypeGainOrLoss(activity, streamType, true, starDate, endDate, minDiff);
   }
 
 
   public static getEventDataTypeLoss(
-    event: EventInterface,
-    dataType: string,
+    activity: ActivityInterface,
+    streamType: string,
     starDate?: Date,
     endDate?: Date,
-    activities?: ActivityInterface[],
-    minDiff?: number,
-  ): number {
-    return this.getEventDataTypeGainOrLoss(false, event, dataType, starDate, endDate, activities, minDiff);
+    minDiff: number = 5): number {
+    return this.getEventDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
   private static getEventDataTypeGainOrLoss(
+    activity: ActivityInterface,
+    streamType: string,
     gain: boolean,
-    event: EventInterface,
-    dataType: string,
-    starDate?: Date,
+    startDate?: Date,
     endDate?: Date,
-    activities?: ActivityInterface[],
-    minDiff = 5,
-  ): number {
+    minDiff: number = 5): number {
     let gainOrLoss = 0;
-    const points = event.getPoints(starDate, endDate, activities);
-    // Todo get by type
-    points.reduce((previous: PointInterface, next: PointInterface) => {
-      const previousDataType = previous.getDataByType(dataType);
-      const nextDataType = next.getDataByType(dataType);
-      if (!previousDataType) {
-        return next;
-      }
-      if (!nextDataType) {
-        return previous;
-      }
-
+    activity.getStreamData(streamType, startDate, endDate)
+      .filter((value) => !isNaN(value))
+      .reduce((previousValue: number, nextValue: number) => {
       // For gain
       if (gain) {
         // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
-        if ((<number>previousDataType.getValue() + minDiff) <= <number>nextDataType.getValue()) {
-          gainOrLoss += <number>nextDataType.getValue() - <number>previousDataType.getValue();
-          return next;
+        if ((previousValue + minDiff) <= nextValue) {
+          gainOrLoss += nextValue - previousValue;
+          return nextValue;
         }
         // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-        if (<number>previousDataType.getValue() < <number>nextDataType.getValue()) {
-          return previous;
+        if (previousValue < nextValue) {
+          return previousValue;
         }
-        return next
+        return nextValue
       }
 
       // For Loss
-      if ((<number>previousDataType.getValue() - minDiff) >= <number>nextDataType.getValue()) {
-        gainOrLoss += <number>previousDataType.getValue() - <number>nextDataType.getValue();
-        return next;
+      if ((previousValue - minDiff) >= nextValue) {
+        gainOrLoss += previousValue - nextValue;
+        return nextValue;
       }
       // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-      if (<number>previousDataType.getValue() > <number>nextDataType.getValue()) {
-        return previous;
+      if (previousValue > nextValue) {
+        return previousValue;
       }
-      return next;
+      return nextValue;
     });
     return gainOrLoss;
   }

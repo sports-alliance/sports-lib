@@ -330,7 +330,6 @@ export class EventUtilities {
     // Heart Rate  Max
     if (!activity.getStat(DataHeartRateMax.className)
       && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
-      debugger
       activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
     }
     // Heart Rate Min
@@ -436,7 +435,6 @@ export class EventUtilities {
     // Battery Consumption Avg
     if (!activity.getStat(DataBatteryConsumption.className)
       && activity.hasStreamData(DataBatteryCharge.type, activity.startDate, activity.endDate)) {
-      debugger;
       activity.addStat(new DataBatteryConsumption(this.getDataTypeDifference(activity, DataBatteryCharge.type, activity.startDate, activity.endDate)));
     }
 

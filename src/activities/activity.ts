@@ -31,6 +31,37 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.creator = creator;
   }
 
+  getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[] {
+    const stream = this.streams
+      .find((stream) => stream.type === streamType);
+    if (!stream) {
+      throw Error(`No stream found with type ${streamType}`);
+    }
+
+    if (!startDate && !endDate) {
+      return stream.data;
+    }
+
+    if (startDate && endDate) {
+      return stream.data
+        .filter((value, index) => (new Date(startDate.getTime() + index)) < startDate)
+        .filter((value, index) => (new Date(startDate.getTime() + index)) > endDate);
+    }
+
+    if (startDate){
+      return stream.data
+        .filter((value, index) => (new Date(startDate.getTime() + index)) < startDate);
+    }
+
+    if (endDate){
+       return stream.data
+        .filter((value, index) => (new Date(endDate.getTime() + index)) < endDate);
+    }
+
+    return [];
+  }
+
+
   addPoint(point: PointInterface, overrideAllDataOnCollision: boolean = false) {
     // @todo should do dateguard check
     const existingPoint = this.points.get(point.getDate().getTime());
@@ -84,9 +115,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         existingPoint.getData().forEach((data: DataInterface, dataType) => {
           if (!interpolatedDateTimePoint.getDataByType(dataType)) {
             interpolatedDateTimePoint.addData(data);
-          }else if (dataType === DataLatitudeDegrees.type){
+          } else if (dataType === DataLatitudeDegrees.type) {
             // @todo
-          }else if (dataType === DataLongitudeDegrees.type){
+          } else if (dataType === DataLongitudeDegrees.type) {
             // @todo
           }
         });

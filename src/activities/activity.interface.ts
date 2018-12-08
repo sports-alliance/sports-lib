@@ -18,6 +18,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   geoLocationInfo?: GeoLocationInfo;
   weather?: Weather;
 
+  getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
   addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
   removePoint(point: PointInterface): void;
   removePoint(point: PointInterface): void;

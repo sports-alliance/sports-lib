@@ -9,12 +9,14 @@ import {Weather} from '../weather/app.weather';
 import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
 import {DurationClassInterface} from '../duration/duration.class.interface';
 import {ActivityTypes} from './activity.types';
+import {StreamInterface} from '../streams/stream.interface';
 
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
   type: ActivityTypes;
   creator: CreatorInterface;
   ibiData: IBIData;
   intensityZones: Map<string, IntensityZonesInterface>;
+  streams: StreamInterface[];
   geoLocationInfo?: GeoLocationInfo;
   weather?: Weather;
 

@@ -74,14 +74,14 @@ export class EventImporterGPX {
       // Find and write the distance of the points
       const geoLib = new GeoLibAdapter();
       let distance = 0;
-      event.getPointsWithPosition().reduce((prev: PointInterface, current: PointInterface, index: number) => {
-        if (index === 0) {
-          prev.addData(new DataDistance(distance))
-        }
-        distance += geoLib.getDistance([prev, current]);
-        current.addData(new DataDistance(distance));
-        return current;
-      });
+      // event.getPointsWithPosition().reduce((prev: PointInterface, current: PointInterface, index: number) => {
+      //   if (index === 0) {
+      //     prev.addData(new DataDistance(distance))
+      //   }
+      //   distance += geoLib.getDistance([prev, current]);
+      //   current.addData(new DataDistance(distance));
+      //   return current;
+      // });
 
 
       // Generate missing stats

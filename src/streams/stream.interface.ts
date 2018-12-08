@@ -2,5 +2,5 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {StreamDataInterface} from './stream.data.interface';
 export interface StreamInterface extends SerializableClassInterface {
   type: string;
-  stream: StreamDataInterface[];
+  data: StreamDataInterface[];
 }

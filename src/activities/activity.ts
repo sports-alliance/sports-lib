@@ -179,11 +179,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       endDate: this.endDate.toJSON(),
       type: this.type,
       creator: this.creator.toJSON(),
-      points: Array.from(this.points.values()).reduce((jsonPointsArray: any[], point: PointInterface) => {
-        jsonPointsArray.push(point.toJSON());
-        return jsonPointsArray;
-      }, []),
-      ibiData: this.ibiData.toJSON(),
+      // ibiData: this.ibiData.toJSON(),
       intensityZones: intensityZones,
       stats: stats,
       geoLocationInfo: this.geoLocationInfo ? this.geoLocationInfo.toJSON() : null,

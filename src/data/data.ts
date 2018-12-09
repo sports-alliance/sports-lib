@@ -51,7 +51,7 @@ export abstract class Data implements DataInterface {
     return (<typeof Data>this.constructor).className;
   }
 
-  toJSON(): any {
+  toJSON(): {className: string, value: number | string | boolean} {
     return {
       className: this.getClassName(),
       value: this.getValue(),

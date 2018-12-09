@@ -16,6 +16,8 @@ export interface DataInterface extends SerializableClassInterface {
   getClassName(): string;
 
   getUnitSystem(): UnitSystem;
+
+  toJSON(): {className: string, value: number | string | boolean};
 }
 
 export enum UnitSystem {

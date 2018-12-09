@@ -11,8 +11,19 @@ import {IntensityZones} from '../../../../intensity-zones/intensity-zone';
 import {IBIData} from '../../../../data/ibi/data.ibi';
 import {DynamicDataLoader} from '../../../../data/data.store';
 import {ActivityInterface} from '../../../../activities/activity.interface';
+import {EventJSONInterface} from '../../../event.json.interface';
 
 export class EventImporterJSON {
+
+  static getEventFromJSON(json: EventJSONInterface): EventInterface {
+    const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate));
+    event.setID(json.id);
+    json.stats.forEach((stat: any) => {
+      event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
+    });
+    return event;
+  }
+
   static getFromJSON(json: any): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       // @todo Should build a json interface

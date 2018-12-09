@@ -1,4 +1,5 @@
 import {StreamInterface} from './stream.interface';
+import {StreamJSONInterface} from './stream.json.interface';
 
 export class Stream implements StreamInterface {
   public readonly type: string;
@@ -11,10 +12,10 @@ export class Stream implements StreamInterface {
     }
   }
 
-  toJSON(): any {
+  toJSON(): StreamJSONInterface {
     return {
       type: this.type,
-      data: this.data // @todo should perhaps iterate
+      data: this.data
     };
   }
 }

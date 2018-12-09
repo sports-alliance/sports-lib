@@ -1,4 +1,5 @@
 import {CreatorInterface} from './creator.interface';
+import {CreatorJSONInterface} from './creator.json.interface';
 
 export class Creator implements CreatorInterface {
   public name: string;
@@ -10,7 +11,7 @@ export class Creator implements CreatorInterface {
     this.name = name;
   }
 
-  toJSON(): any {
+  toJSON(): CreatorJSONInterface {
     return {
       name: this.name,
       serialNumber: this.serialNumber ? this.serialNumber : null,

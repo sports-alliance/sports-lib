@@ -7,11 +7,10 @@ describe('Creator', () => {
   let creator: CreatorInterface;
 
   beforeEach(() => {
-    creator = new Creator();
+    creator = new Creator('name');
   });
 
   it('should export correctly to JSON', () => {
-    creator.name = 'name';
     creator.hwInfo = 'HWInfo';
     creator.swInfo = 'SWInfo';
     creator.serialNumber = 'SerialNumber';

@@ -3,6 +3,7 @@ import {ActivityInterface} from '../activities/activity.interface';
 import {PointInterface} from '../points/point.interface';
 import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
+import {EventJSONInterface} from './event.json.interface';
 
 export class Event extends DurationClassAbstract implements EventInterface {
 
@@ -65,10 +66,10 @@ export class Event extends DurationClassAbstract implements EventInterface {
       }, []);
   }
 
-  toJSON(): any {
+  toJSON(): EventJSONInterface {
     const stats: any[] = [];
-    this.stats.forEach((value: DataInterface, key: string) => {
-      stats.push(value.toJSON());
+    this.stats.forEach((data: DataInterface, key: string) => {
+      stats.push(data.toJSON());
     });
     return {
       id: this.getID(),

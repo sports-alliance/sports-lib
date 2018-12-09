@@ -3,6 +3,7 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {StatsClassInterface} from '../stats/stats.class.interface';
 import {ActivityInterface} from '../activities/activity.interface';
 import {DurationClassInterface} from '../duration/duration.class.interface';
+import {EventJSONInterface} from './event.json.interface';
 
 export interface EventInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
 
@@ -23,4 +24,6 @@ export interface EventInterface extends StatsClassInterface, DurationClassInterf
   getPointsWithDataType(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
 
   getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[];
+
+  toJSON(): EventJSONInterface;
 }

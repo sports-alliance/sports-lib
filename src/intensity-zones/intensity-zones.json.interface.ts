@@ -1,4 +1,5 @@
 export interface IntensityZonesJSONInterface {
+  type: string
   zone1Duration: number;
   zone2Duration: number;
   zone2LowerLimit: number;

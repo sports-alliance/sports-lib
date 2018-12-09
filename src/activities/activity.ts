@@ -20,7 +20,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   public type: ActivityTypes;
   public creator: CreatorInterface;
   public ibiData = new IBIData();
-  public intensityZones: Map<string, IntensityZonesInterface> = new Map<string, IntensityZonesInterface>();
+  public intensityZones: IntensityZonesInterface[] = [];// maybe rename
   public streams: StreamInterface[] = [];
   public geoLocationInfo?: GeoLocationInfo;
   public weather?: Weather;
@@ -166,9 +166,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   toJSON(): ActivityJSONInterface {
-    const intensityZones: any = {};
-    this.intensityZones.forEach((value: IntensityZonesInterface, key: string, map) => {
-      intensityZones[key] = value.toJSON();
+    const intensityZones: any = [];
+    this.intensityZones.forEach((value: IntensityZonesInterface) => {
+      intensityZones.push(value.toJSON());
     });
     const stats: any[] = [];
     this.stats.forEach((value: DataInterface, key: string) => {

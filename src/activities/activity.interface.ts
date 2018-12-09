@@ -16,7 +16,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   type: ActivityTypes;
   creator: CreatorInterface;
   ibiData: IBIData;
-  intensityZones: Map<string, IntensityZonesInterface>;
+  intensityZones: IntensityZonesInterface[];
   streams: StreamInterface[];
   geoLocationInfo?: GeoLocationInfo;
   weather?: Weather;

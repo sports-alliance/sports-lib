@@ -282,18 +282,22 @@ export class EventImporterSuuntoJSON {
   }
 
   private static setIntensityZones(activity: ActivityInterface, object: any) {
-    // Create intensity zones from the header
-    if (object.HrZones) {
-      activity.intensityZones.set(DataHeartRate.type, this.getZones(object.HrZones));
-    }
-
-    if (object.PowerZones) {
-      activity.intensityZones.set(DataPower.type, this.getZones(object.PowerZones));
-    }
-
-    if (object.SpeedZones) {
-      activity.intensityZones.set(DataSpeed.type, this.getZones(object.SpeedZones));
-    }
+    SuuntoIntensityZonesMapper.forEach((intensityZonesMap) => {
+      if (!object[intensityZonesMap.sampleField]){
+        return;
+      }
+      const zones = new IntensityZones(intensityZonesMap.dataType);
+      zones.zone1Duration = object[intensityZonesMap.sampleField].Zone1Duration;
+      zones.zone2Duration = object[intensityZonesMap.sampleField].Zone2Duration;
+      zones.zone2LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone2LowerLimit);
+      zones.zone3Duration = object[intensityZonesMap.sampleField].Zone3Duration;
+      zones.zone3LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone3LowerLimit);
+      zones.zone4Duration = object[intensityZonesMap.sampleField].Zone4Duration;
+      zones.zone4LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone4LowerLimit);
+      zones.zone5Duration = object[intensityZonesMap.sampleField].Zone5Duration;
+      zones.zone5LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone5LowerLimit);
+      activity.intensityZones.push(zones)
+    });
   }
 
   // @todo fix this for multiple activities or attach the ibi data to the event
@@ -334,22 +338,6 @@ export class EventImporterSuuntoJSON {
     });
     return;
   }
-
-  private static getZones(zonesObj: any): IntensityZones {
-    // @todo fix for HR
-    const zones = new IntensityZones;
-    zones.zone1Duration = zonesObj.Zone1Duration;
-    zones.zone2Duration = zonesObj.Zone2Duration;
-    zones.zone2LowerLimit = zonesObj.Zone2LowerLimit;
-    zones.zone3Duration = zonesObj.Zone3Duration;
-    zones.zone3LowerLimit = zonesObj.Zone3LowerLimit;
-    zones.zone4Duration = zonesObj.Zone4Duration;
-    zones.zone4LowerLimit = zonesObj.Zone4LowerLimit;
-    zones.zone5Duration = zonesObj.Zone5Duration;
-    zones.zone5LowerLimit = zonesObj.Zone5LowerLimit;
-    return zones;
-  }
-
 
   // @todo convert this to a mapping as well
   private static getStats(object: any): DataInterface[] {
@@ -506,6 +494,24 @@ export class EventImporterSuuntoJSON {
     return stats;
   }
 }
+
+export const SuuntoIntensityZonesMapper = [
+  {
+    dataType: DataHeartRate.type,
+    sampleField: 'HrZones',
+    convertSampleValue: (value: number) => Number(value * 60),
+  },
+  {
+    dataType: DataPower.type,
+    sampleField: 'PowerZones',
+    convertSampleValue: (value: number) => Number(value),
+  },
+  {
+    dataType: DataSpeed.type,
+    sampleField: 'SpeedZones',
+    convertSampleValue: (value: number) => Number(value),
+  },
+];
 
 export const SuuntoSampleMapper = [
   {

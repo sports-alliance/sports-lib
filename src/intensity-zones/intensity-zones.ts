@@ -2,6 +2,7 @@ import {IntensityZonesInterface} from './intensity-zones.interface';
 import {IntensityZonesJSONInterface} from './intensity-zones.json.interface';
 
 export class IntensityZones implements IntensityZonesInterface {
+  type: string;
   zone1Duration!: number;
   zone2Duration!: number;
   zone2LowerLimit!: number;
@@ -12,8 +13,12 @@ export class IntensityZones implements IntensityZonesInterface {
   zone5Duration!: number;
   zone5LowerLimit!: number;
 
+  constructor(type: string){
+    this.type = type;
+  }
   toJSON(): IntensityZonesJSONInterface {
     return {
+      type: this.type,
       zone1Duration: this.zone1Duration,
       zone2Duration: this.zone2Duration,
       zone2LowerLimit: this.zone2LowerLimit,

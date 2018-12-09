@@ -5,7 +5,7 @@ describe('Zone', () => {
   let zones: IntensityZones;
 
   beforeEach(() => {
-    zones = new IntensityZones();
+    zones = new IntensityZones('test');
   });
 
   it('should export correctly to JSON', () => {

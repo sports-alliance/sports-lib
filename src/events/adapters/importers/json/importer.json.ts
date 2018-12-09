@@ -18,6 +18,7 @@ import {LapInterface} from '../../../../laps/lap.interface';
 import {LapTypes} from '../../../../laps/lap.types';
 import {ActivityJSONInterface} from '../../../../activities/activity.json.interface';
 import {ActivityTypes} from '../../../../activities/activity.types';
+import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity-zones.json.interface';
 
 export class EventImporterJSON {
 
@@ -54,6 +55,20 @@ export class EventImporterJSON {
   }
 
 
+  static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {
+   const zones = new IntensityZones(json.type);
+      zones.zone1Duration = json.zone1Duration;
+      zones.zone2Duration = json.zone2Duration;
+      zones.zone2LowerLimit = json.zone2LowerLimit;
+      zones.zone3Duration = json.zone3Duration;
+      zones.zone3LowerLimit = json.zone3LowerLimit;
+      zones.zone4Duration = json.zone4Duration;
+      zones.zone4LowerLimit = json.zone4LowerLimit;
+      zones.zone5Duration = json.zone5Duration;
+      zones.zone5LowerLimit = json.zone5LowerLimit;
+      return zones;
+  }
+
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),
@@ -61,8 +76,16 @@ export class EventImporterJSON {
       ActivityTypes[<keyof typeof ActivityTypes>json.type],
       EventImporterJSON.getCreatorFromJSON(json.creator));
     activity.setID(json.id);
+    json.stats.forEach((stat: any) => {
+      activity.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
+    });
     json.laps.forEach((lapJSON: LapJSONInterface) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));
+    });
+    activity.weather = json.weather;
+    activity.geoLocationInfo = json.geoLocationInfo;
+    json.intensityZones.forEach((intensityZonesJSON) => {
+      activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON))
     });
     return activity;
   }
@@ -113,21 +136,21 @@ export class EventImporterJSON {
           }
         }
 
-        if (activityObject.intensityZones) {
-          for (const key in activityObject.intensityZones) {
-            const zones = new IntensityZones();
-            zones.zone1Duration = activityObject.intensityZones[key].zone1Duration;
-            zones.zone2Duration = activityObject.intensityZones[key].zone2Duration;
-            zones.zone2LowerLimit = activityObject.intensityZones[key].zone2LowerLimit;
-            zones.zone3Duration = activityObject.intensityZones[key].zone3Duration;
-            zones.zone3LowerLimit = activityObject.intensityZones[key].zone3LowerLimit;
-            zones.zone4Duration = activityObject.intensityZones[key].zone4Duration;
-            zones.zone4LowerLimit = activityObject.intensityZones[key].zone4LowerLimit;
-            zones.zone5Duration = activityObject.intensityZones[key].zone5Duration;
-            zones.zone5LowerLimit = activityObject.intensityZones[key].zone5LowerLimit;
-            activity.intensityZones.set(key, zones);
-          }
-        }
+        // if (activityObject.intensityZones) {
+        //   for (const key in activityObject.intensityZones) {
+        //     const zones = new IntensityZones();
+        //     zones.zone1Duration = activityObject.intensityZones[key].zone1Duration;
+        //     zones.zone2Duration = activityObject.intensityZones[key].zone2Duration;
+        //     zones.zone2LowerLimit = activityObject.intensityZones[key].zone2LowerLimit;
+        //     zones.zone3Duration = activityObject.intensityZones[key].zone3Duration;
+        //     zones.zone3LowerLimit = activityObject.intensityZones[key].zone3LowerLimit;
+        //     zones.zone4Duration = activityObject.intensityZones[key].zone4Duration;
+        //     zones.zone4LowerLimit = activityObject.intensityZones[key].zone4LowerLimit;
+        //     zones.zone5Duration = activityObject.intensityZones[key].zone5Duration;
+        //     zones.zone5LowerLimit = activityObject.intensityZones[key].zone5LowerLimit;
+        //     activity.intensityZones.set(key, zones);
+        //   }
+        // }
 
         // for (const pointObject of activityObject.points) {
         //   const point = new Point(new Date(pointObject.date));

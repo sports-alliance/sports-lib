@@ -14,6 +14,8 @@ import {ActivityInterface} from '../../../../activities/activity.interface';
 import {EventJSONInterface} from '../../../event.json.interface';
 import {CreatorJSONInterface} from '../../../../creators/creator.json.interface';
 import {CreatorInterface} from '../../../../creators/creator.interface';
+import {LapJSONInterface} from '../../../../laps/lap.json.interface';
+import {LapInterface} from '../../../../laps/lap.interface';
 
 export class EventImporterJSON {
 
@@ -38,6 +40,15 @@ export class EventImporterJSON {
       creator.serialNumber = json.serialNumber;
     }
     return creator;
+  }
+
+  getLapFromJSON(json: LapJSONInterface): LapInterface {
+    const lap = new Lap(new Date(json.startDate), new Date(json.endDate), json.type);
+    lap.setID(json.id);
+    json.stats.forEach((stat: any) => {
+      lap.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
+    });
+    return lap;
   }
 
   static getFromJSON(json: any): Promise<EventInterface> {

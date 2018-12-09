@@ -16,6 +16,8 @@ import {CreatorInterface} from '../../../../creators/creator.interface';
 import {LapJSONInterface} from '../../../../laps/lap.json.interface';
 import {LapInterface} from '../../../../laps/lap.interface';
 import {LapTypes} from '../../../../laps/lap.types';
+import {ActivityJSONInterface} from '../../../../activities/activity.json.interface';
+import {ActivityTypes} from '../../../../activities/activity.types';
 
 export class EventImporterJSON {
 
@@ -42,13 +44,27 @@ export class EventImporterJSON {
     return creator;
   }
 
-  getLapFromJSON(json: LapJSONInterface): LapInterface {
+  static getLapFromJSON(json: LapJSONInterface): LapInterface {
     const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
     lap.setID(json.id);
     json.stats.forEach((stat: any) => {
       lap.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });
     return lap;
+  }
+
+
+  static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
+    const activity = new Activity(
+      new Date(json.startDate),
+      new Date(json.endDate),
+      ActivityTypes[<keyof typeof ActivityTypes>json.type],
+      EventImporterJSON.getCreatorFromJSON(json.creator));
+    activity.setID(json.id);
+    json.laps.forEach((lapJSON: LapJSONInterface) => {
+      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));
+    });
+    return activity;
   }
 
   static getFromJSON(json: any): Promise<EventInterface> {

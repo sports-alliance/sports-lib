@@ -12,6 +12,8 @@ import {IBIData} from '../../../../data/ibi/data.ibi';
 import {DynamicDataLoader} from '../../../../data/data.store';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {EventJSONInterface} from '../../../event.json.interface';
+import {CreatorJSONInterface} from '../../../../creators/creator.json.interface';
+import {CreatorInterface} from '../../../../creators/creator.interface';
 
 export class EventImporterJSON {
 
@@ -22,6 +24,20 @@ export class EventImporterJSON {
       event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });
     return event;
+  }
+
+  static getCreatorFromJSON(json: CreatorJSONInterface): CreatorInterface {
+    const creator = new Creator(json.name);
+    if (json.hwInfo) {
+      creator.hwInfo = json.hwInfo;
+    }
+    if (json.swInfo) {
+      creator.swInfo = json.swInfo;
+    }
+    if (json.serialNumber) {
+      creator.serialNumber = json.serialNumber;
+    }
+    return creator;
   }
 
   static getFromJSON(json: any): Promise<EventInterface> {

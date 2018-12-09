@@ -2,6 +2,7 @@ import {LapInterface} from './lap.interface';
 import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {LapTypes} from './lap.types';
+import {LapJSONInterface} from './lap.json.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
 
@@ -12,10 +13,10 @@ export class Lap extends DurationClassAbstract implements LapInterface {
     this.type = type;
   }
 
-  toJSON(): any {
+  toJSON(): LapJSONInterface {
     const stats: any[] = [];
-    this.stats.forEach((value: DataInterface, key: string) => {
-      stats.push(value.toJSON());
+    this.stats.forEach((data: DataInterface, key: string) => {
+      stats.push(data.toJSON());
     });
     return {
       id: this.getID(),

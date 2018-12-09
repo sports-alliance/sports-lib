@@ -20,7 +20,7 @@ import {DataEHPE} from '../../../../data/data.ehpe';
 import {DataEVPE} from '../../../../data/data.evpe';
 import {DataNumberOfSatellites} from '../../../../data/data.number-of-satellites';
 import {DataSatellite5BestSNR} from '../../../../data/data.satellite-5-best-snr';
-import {IntensityZones} from '../../../../intensity-zones/intensity-zone';
+import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
 import {IBIData} from '../../../../data/ibi/data.ibi';
 import {PointInterface} from '../../../../points/point.interface';
 import {ImporterSuuntoActivityIds} from './importer.suunto.activity.ids';

@@ -4,7 +4,7 @@ import {DataInterface} from '../data/data.interface';
 import {LapInterface} from '../laps/lap.interface';
 import {IBIData} from '../data/ibi/data.ibi';
 import {Point} from '../points/point';
-import {IntensityZonesInterface} from '../intensity-zones/intensity-zone.interface';
+import {IntensityZonesInterface} from '../intensity-zones/intensity-zones.interface';
 import {Creator} from '../creators/creator';
 import {Weather} from '../weather/app.weather';
 import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
@@ -14,6 +14,7 @@ import {CreatorInterface} from '../creators/creator.interface';
 import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 import {StreamInterface} from '../streams/stream.interface';
+import {ActivityJSONInterface} from './activity.json.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -164,7 +165,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     })
   }
 
-  toJSON(): any {
+  toJSON(): ActivityJSONInterface {
     const intensityZones: any = {};
     this.intensityZones.forEach((value: IntensityZonesInterface, key: string, map) => {
       intensityZones[key] = value.toJSON();

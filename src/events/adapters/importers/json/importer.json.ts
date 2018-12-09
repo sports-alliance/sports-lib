@@ -1,13 +1,12 @@
 import {Event} from '../../../event';
 import {Activity} from '../../../../activities/activity';
 import {Lap} from '../../../../laps/lap';
-import {Point} from '../../../../points/point';
 import {EventInterface} from '../../../event.interface';
 import {Creator} from '../../../../creators/creator';
 import {WeatherItem} from '../../../../weather/app.weather.item';
 import {Weather} from '../../../../weather/app.weather';
 import {GeoLocationInfo} from '../../../../geo-location-info/geo-location-info';
-import {IntensityZones} from '../../../../intensity-zones/intensity-zone';
+import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
 import {IBIData} from '../../../../data/ibi/data.ibi';
 import {DynamicDataLoader} from '../../../../data/data.store';
 import {ActivityInterface} from '../../../../activities/activity.interface';
@@ -16,6 +15,7 @@ import {CreatorJSONInterface} from '../../../../creators/creator.json.interface'
 import {CreatorInterface} from '../../../../creators/creator.interface';
 import {LapJSONInterface} from '../../../../laps/lap.json.interface';
 import {LapInterface} from '../../../../laps/lap.interface';
+import {LapTypes} from '../../../../laps/lap.types';
 
 export class EventImporterJSON {
 
@@ -43,7 +43,7 @@ export class EventImporterJSON {
   }
 
   getLapFromJSON(json: LapJSONInterface): LapInterface {
-    const lap = new Lap(new Date(json.startDate), new Date(json.endDate), json.type);
+    const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
     lap.setID(json.id);
     json.stats.forEach((stat: any) => {
       lap.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))

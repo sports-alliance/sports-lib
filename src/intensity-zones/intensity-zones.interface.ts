@@ -1,4 +1,5 @@
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
+import {IntensityZonesJSONInterface} from './intensity-zones.json.interface';
 
 export interface IntensityZonesInterface extends SerializableClassInterface {
   zone1Duration: number;
@@ -10,4 +11,6 @@ export interface IntensityZonesInterface extends SerializableClassInterface {
   zone4LowerLimit: number;
   zone5Duration: number;
   zone5LowerLimit: number;
+
+  toJSON(): IntensityZonesJSONInterface;
 }

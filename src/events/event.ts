@@ -19,6 +19,10 @@ export class Event extends DurationClassAbstract implements EventInterface {
     this.activities.push(activity);
   }
 
+  clearActivities(): void {
+    this.activities = [];
+  }
+
   removeActivity(activityToRemove: ActivityInterface) {
     this.activities = this.activities.filter((activity) => activityToRemove.getID() !== activity.getID());
   }

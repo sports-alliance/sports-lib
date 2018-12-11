@@ -37,6 +37,7 @@
   "author": "Dimitrios Kanellopoulos",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
+    "@types/node": "^10.12.12",
     "easy-fit": "github:jimmykane/easy-fit",
     "geolib": "^2.0.24",
     "gxparser": "^1.0.0",

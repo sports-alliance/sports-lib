@@ -1,8 +1,7 @@
 import {DataDistance} from '../data/data.distance';
 import {DataInterface} from '../data/data.interface';
-import {IDClassInterface} from '../id/id.class.interface';
 
-export interface StatsClassInterface extends IDClassInterface {
+export interface StatsClassInterface {
   getDistance(): DataDistance;
 
   getStat(statType: string): DataInterface | void;

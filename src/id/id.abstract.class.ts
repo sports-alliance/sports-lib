@@ -9,5 +9,6 @@ export abstract class IDClass implements IDClassInterface {
   }
   setID(id: string) {
     this.id = id;
+    return this;
   }
 }

@@ -11,8 +11,9 @@ import {DurationClassInterface} from '../duration/duration.class.interface';
 import {ActivityTypes} from './activity.types';
 import {StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
+import {IDClassInterface} from '../id/id.class.interface';
 
-export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
+export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   type: ActivityTypes;
   creator: CreatorInterface;
   ibiData: IBIData;

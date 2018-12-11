@@ -76,7 +76,6 @@ export class Event extends DurationClassAbstract implements EventInterface {
       stats.push(data.toJSON());
     });
     return {
-      id: this.getID(),
       name: this.name,
       startDate: this.startDate.toJSON(),
       endDate: this.endDate.toJSON(),

@@ -23,8 +23,8 @@ import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity
 export class EventImporterJSON {
 
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
+    // debugger;
     const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate));
-    event.setID(json.id);
     json.stats.forEach((stat: any) => {
       event.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });
@@ -47,7 +47,6 @@ export class EventImporterJSON {
 
   static getLapFromJSON(json: LapJSONInterface): LapInterface {
     const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
-    lap.setID(json.id);
     json.stats.forEach((stat: any) => {
       lap.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });
@@ -75,7 +74,6 @@ export class EventImporterJSON {
       new Date(json.endDate),
       ActivityTypes[<keyof typeof ActivityTypes>json.type],
       EventImporterJSON.getCreatorFromJSON(json.creator));
-    activity.setID(json.id);
     json.stats.forEach((stat: any) => {
       activity.addStat(DynamicDataLoader.getDataInstance(stat.className, stat.value))
     });

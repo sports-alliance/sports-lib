@@ -175,7 +175,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       stats.push(value.toJSON());
     });
     return {
-      id: this.getID(),
       startDate: this.startDate.toJSON(),
       endDate: this.endDate.toJSON(),
       type: this.type,

@@ -5,7 +5,6 @@ import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.js
 import {LapJSONInterface} from '../laps/lap.json.interface';
 
 export interface ActivityJSONInterface {
-  id: string;
   startDate: string;
   endDate: string;
   type: string;

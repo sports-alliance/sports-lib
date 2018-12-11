@@ -1,5 +1,4 @@
 export interface LapJSONInterface {
-  id: string,
   startDate: string,
   endDate: string,
   type: string,

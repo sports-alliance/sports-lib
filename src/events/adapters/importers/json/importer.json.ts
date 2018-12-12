@@ -19,6 +19,9 @@ import {LapTypes} from '../../../../laps/lap.types';
 import {ActivityJSONInterface} from '../../../../activities/activity.json.interface';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity-zones.json.interface';
+import {StreamJSONInterface} from '../../../../streams/stream.json.interface';
+import {StreamInterface} from '../../../../streams/stream.interface';
+import {Stream} from '../../../../streams/stream';
 
 export class EventImporterJSON {
 
@@ -54,6 +57,10 @@ export class EventImporterJSON {
   }
 
 
+  static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
+    return new Stream(json.type, json.data);
+  }
+
   static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {
    const zones = new IntensityZones(json.type);
       zones.zone1Duration = json.zone1Duration;
@@ -88,6 +95,7 @@ export class EventImporterJSON {
     return activity;
   }
 
+  // @todo add types
   private static getGeoLocationInfo(object: any): GeoLocationInfo {
     const geoLocationInfo = new GeoLocationInfo(
       object.geoLocationInfo.latitude,
@@ -99,6 +107,7 @@ export class EventImporterJSON {
     return geoLocationInfo;
   }
 
+  // @todo add types
   private static getWeather(object: any): Weather {
     const weatherItems = [];
     for (const weatherItemObject of object.weather.weatherItems) {

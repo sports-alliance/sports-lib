@@ -283,7 +283,7 @@ export class EventImporterSuuntoJSON {
 
   private static setIntensityZones(activity: ActivityInterface, object: any) {
     SuuntoIntensityZonesMapper.forEach((intensityZonesMap) => {
-      if (!object[intensityZonesMap.sampleField]){
+      if (!object[intensityZonesMap.sampleField]) {
         return;
       }
       const zones = new IntensityZones(intensityZonesMap.dataType);
@@ -517,11 +517,6 @@ export const SuuntoSampleMapper = [
   {
     dataType: DataLatitudeDegrees.type,
     sampleField: 'Latitude',
-    convertSampleValue: (value: number) => Number(value * 60),
-  },
-  {
-    dataType: DataHeartRate.type,
-    sampleField: 'HR',
     convertSampleValue: (value: number) => Number(value * (180 / Math.PI)),
   },
   {
@@ -529,7 +524,11 @@ export const SuuntoSampleMapper = [
     sampleField: 'Longitude',
     convertSampleValue: (value: number) => Number(value * (180 / Math.PI)),
   },
-
+  {
+    dataType: DataHeartRate.type,
+    sampleField: 'HR',
+    convertSampleValue: (value: number) => Number(value * 60),
+  },
   {
     dataType: DataDistance.type,
     sampleField: 'Distance',

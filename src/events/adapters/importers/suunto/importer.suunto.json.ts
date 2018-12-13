@@ -254,7 +254,9 @@ export class EventImporterSuuntoJSON {
             const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
             return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
           });
-          this.setIBIData(activity, ibiData)
+          // set the HR
+          this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
+          activity.streams.push(new Stream('IBI', ibiData)); // Append an IBI data stream
         });
       }
 
@@ -300,27 +302,33 @@ export class EventImporterSuuntoJSON {
     });
   }
 
-  // @todo fix this for multiple activities or attach the ibi data to the event
-  private static setIBIData(activity: ActivityInterface, ibiData: number[]) {
-    activity.ibiData = new IBIData(ibiData);
+  private static getHRSamplesFromIBIData(activity: ActivityInterface, ibiData: number[]) {
+    // activity.ibiData = new IBIData(ibiData);
     // @todo optimize
     // Create a second IBIData so we can have filtering on those with keeping the original
+    const samples: any[] = [];
     (new IBIData(ibiData))
       .lowLimitBPMFilter()
       .highLimitBPMFilter()
       .lowPassFilter()
       .movingMedianFilter()
       .getAsBPM().forEach((value, key, map) => {
-      const point = new Point(new Date(activity.startDate.getTime() + key));
-      point.addData(new DataHeartRate(value));
+      // const point = new Point(new Date(activity.startDate.getTime() + key));
+      // point.addData(new DataHeartRate(value));
+      samples.push({
+        TimeISO8601: (new Date(activity.startDate.getTime() + key)).toISOString(),
+        HR: value / 60
+      })
+      // @todo check the below
 
       // If it belongs to the activity add it
-      if (point.getDate() >= activity.startDate && point.getDate() <= activity.endDate) {
-        activity.addPoint(point);
-      } else {
-        debugger;
-      }
+      // if (point.getDate() >= activity.startDate && point.getDate() <= activity.endDate) {
+      //   activity.addPoint(point);
+      // } else {
+      //   debugger;
+      // }
     });
+    return samples;
   }
 
   private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {

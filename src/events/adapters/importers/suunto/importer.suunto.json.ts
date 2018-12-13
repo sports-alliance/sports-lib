@@ -310,8 +310,8 @@ export class EventImporterSuuntoJSON {
     (new IBIData(ibiData))
       .lowLimitBPMFilter()
       .highLimitBPMFilter()
-      .lowPassFilter()
       .movingMedianFilter()
+      .lowPassFilter()
       .getAsBPM().forEach((value, key, map) => {
       // const point = new Point(new Date(activity.startDate.getTime() + key));
       // point.addData(new DataHeartRate(value));

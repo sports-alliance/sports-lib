@@ -7,8 +7,17 @@ export class Creator implements CreatorInterface {
   public hwInfo?: string;
   public serialNumber?: string;
 
-  constructor(name: string) {
+  constructor(name: string, swInfo?: string, hwInfo? : string, serialNumber?: string) {
     this.name = name;
+    if (swInfo){
+      this.swInfo = swInfo;
+    }
+    if (hwInfo) {
+      this.hwInfo = hwInfo
+    }
+    if (serialNumber){
+      this.serialNumber = serialNumber;
+    }
   }
 
   toJSON(): CreatorJSONInterface {

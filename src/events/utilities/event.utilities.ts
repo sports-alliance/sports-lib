@@ -194,7 +194,7 @@ export class EventUtilities {
     return activity;
   }
 
-  public static generateStats(event: EventInterface) {
+  public static generateActivityStats(event: EventInterface) {
     // Todo should also work for event
     event.getActivities().map((activity: ActivityInterface) => {
       // Generate for activities

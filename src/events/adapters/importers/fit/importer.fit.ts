@@ -100,7 +100,7 @@ export class EventImporterFIT {
         event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
         event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
         event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
-        EventUtilities.generateStats(event);
+        EventUtilities.generateActivityStats(event);
         resolve(event);
       });
 

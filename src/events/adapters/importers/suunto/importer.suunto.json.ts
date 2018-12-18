@@ -266,7 +266,7 @@ export class EventImporterSuuntoJSON {
       });
 
       // Generate stats
-      EventUtilities.generateStats(event);
+      EventUtilities.generateActivityStats(event);
 
       resolve(event);
     });
@@ -514,7 +514,7 @@ export const SuuntoIntensityZonesMapper = [
   },
 ];
 
-export const SuuntoSampleMapper = [
+export const SuuntoSampleMapper: {dataType: string, sampleField: string, convertSampleValue(value: number): number}[] = [
   {
     dataType: DataLatitudeDegrees.type,
     sampleField: 'Latitude',

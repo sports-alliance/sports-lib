@@ -186,7 +186,6 @@ export class EventImporterSuuntoJSON {
         const lapEndDate = new Date(lapEventSample.TimeISO8601);
         // Set the start date.
         // Set it for the next run
-        // @todo here is the real info LapTypes[lapEventSample.Events[0].Lap.Type
         const lap = new Lap(lapStartDatesByType[lapEventSample.Events[0].Lap.Type], lapEndDate, LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]);
         lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
@@ -224,7 +223,6 @@ export class EventImporterSuuntoJSON {
 
       // Add the samples that belong to the activity and the ibi data.
       activities.forEach((activity: ActivityInterface) => {
-
         // Get the samples that belong to this activity
         const activitySamples = eventJSONObject
           .DeviceLog
@@ -235,13 +233,8 @@ export class EventImporterSuuntoJSON {
         activity.addStat(new DataFusedLocation(false));
         activity.addStat(new DataFusedLocation(activitySamples.filter((sample: any) => this.hasFusedLocData(sample)).length > 0));
 
-        // Clean up the samples from other data etc
-        //   .filter((sample: any) => !sample.Debug && !sample.Events) // Filter real samples
-
         // Should filter on type and create the samples
         this.setStreamsForActivity(activity, activitySamples);
-
-        // Maybe should do dev test for lat,long stuff
       });
 
       // Add the ibiData

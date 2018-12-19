@@ -2,6 +2,7 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {StreamJSONInterface} from './stream.json.interface';
 export interface StreamInterface extends SerializableClassInterface {
   type: string;
-  data: number[];
+  data: (number|null)[];
+  getNumericData(): (number)[];
   toJSON(): StreamJSONInterface;
 }

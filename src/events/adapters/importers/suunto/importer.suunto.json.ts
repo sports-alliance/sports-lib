@@ -75,6 +75,7 @@ import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 import {Stream} from '../../../../streams/stream';
+import {GPXSampleMapper} from '../gpx/importer.gpx.mapper';
 
 export class EventImporterSuuntoJSON {
 
@@ -249,7 +250,8 @@ export class EventImporterSuuntoJSON {
           });
           // set the HR
           this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
-          activity.streams.push(new Stream('IBI', ibiData)); // Append an IBI data stream
+          // @todo solve this with IBI that is not compatible with Stram interface and I am hacking it
+          activity.addStream(new Stream('IBI', ibiData)); // Append an IBI data stream
         });
       }
 
@@ -310,31 +312,20 @@ export class EventImporterSuuntoJSON {
       // point.addData(new DataHeartRate(value));
       samples.push({
         TimeISO8601: (new Date(activity.startDate.getTime() + key)).toISOString(),
-        HR: value / 60
+        HR: value / 60,
       })
-      // @todo check the below
-
-      // If it belongs to the activity add it
-      // if (point.getDate() >= activity.startDate && point.getDate() <= activity.endDate) {
-      //   activity.addPoint(point);
-      // } else {
-      //   debugger;
-      // }
     });
     return samples;
   }
 
   private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {
-    SuuntoSampleMapper.forEach((map) => {
-      const subjectSamples = samples.filter((sample) => isNumberOrString(sample[map.sampleField]));
+    SuuntoSampleMapper.forEach((sampleMapping) => {
+      const subjectSamples = <any[]>samples.filter((sample) => isNumberOrString(sample[sampleMapping.sampleField]));
       if (subjectSamples.length) {
-        activity.streams.push(new Stream(
-          map.dataType,
-          subjectSamples.reduce((array, sample) => {
-            array[Math.ceil((+(new Date(sample.TimeISO8601)) - +activity.startDate) / 1000)] = map.convertSampleValue(sample[map.sampleField]);
-            return array;
-          }, Array(Math.ceil((+activity.endDate - +activity.startDate) / 1000))),
-        ))
+        activity.addStream(activity.createStream(sampleMapping.dataType));
+        subjectSamples.forEach((subjectSample) => {
+          activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.TimeISO8601)), sampleMapping.convertSampleValue(subjectSample[sampleMapping.sampleField]));
+        });
       }
     });
     return;
@@ -514,7 +505,7 @@ export const SuuntoIntensityZonesMapper = [
   },
 ];
 
-export const SuuntoSampleMapper: {dataType: string, sampleField: string, convertSampleValue(value: number): number}[] = [
+export const SuuntoSampleMapper: { dataType: string, sampleField: string, convertSampleValue(value: number): number }[] = [
   {
     dataType: DataLatitudeDegrees.type,
     sampleField: 'Latitude',

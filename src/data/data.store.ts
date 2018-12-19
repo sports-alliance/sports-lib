@@ -55,7 +55,6 @@ import {DataPaceMax} from './data.pace-max';
 import {DataPaceAvg} from './data.pace-avg';
 import {DataPace} from './data.pace';
 import {DataFusedAltitude} from './data.fused-altitude';
-import {DataNumberOfPoints} from './data.number-of-points';
 import {DataBatteryCharge} from './data.battery-charge';
 import {DataBatteryCurrent} from './data.battery-current';
 import {DataBatteryVoltage} from './data.battery-voltage';
@@ -65,6 +64,7 @@ import {DataFormPower} from './data.form-power';
 import {DataLegStiffness} from './data.leg-stiffness';
 import {DataVerticalOscillation} from './data.vertical-oscillation';
 import {DataTotalTrainingEffect} from './data.total-training-effect';
+import {DataNumberOfSamples} from './data-number-of.samples';
 
 /**
  * Only concrete classes no abstracts
@@ -126,7 +126,7 @@ export const DataStore: any = {
   DataPaceMin,
   DataPaceMax,
   DataPaceAvg,
-  DataNumberOfPoints,
+  DataNumberOfSamples,
   DataBatteryCharge,
   DataBatteryCurrent,
   DataBatteryVoltage,

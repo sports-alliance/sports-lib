@@ -43,7 +43,6 @@ import {DataPace} from '../../data/data.pace';
 import {DataPaceMin} from '../../data/data.pace-min';
 import {DataPaceAvg} from '../../data/data.pace-avg';
 import {Activity} from '../../activities/activity';
-import {DataNumberOfPoints} from '../../data/data.number-of-points';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
@@ -51,8 +50,13 @@ import {EventExporterJSON} from '../adapters/exporters/exporter.json';
 import {DataPositionInterface} from '../../data/data.position.interface';
 import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
+import {Stream} from '../../streams/stream';
+import {DataNumberOfSamples} from '../../data/data-number-of.samples';
 
 export class EventUtilities {
+
+  private static geoLibAdapter = new GeoLibAdapter();
+
 
   public static async getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
     const tcxString = await EventExporterTCX.getAsString(event);
@@ -75,9 +79,8 @@ export class EventUtilities {
     streamType: string,
     startDate?: Date,
     endDate?: Date): number {
-    const data = activity
-      .getStreamData(streamType, startDate, endDate)
-      .filter((value) => !isNaN(value));
+    const data = <number[]>activity
+      .getSquashedStreamData(streamType, startDate, endDate);
     const average = data.reduce((average: number, value: number) => {
       average += value;
       return average;
@@ -199,6 +202,7 @@ export class EventUtilities {
     event.getActivities().forEach((activity: ActivityInterface) => {
       // Generate for activities
       this.generateStatsForActivity(activity);
+      this.generateStreamsForActivity(activity);
       activity.getLaps().map((lap: LapInterface) => {
         // this.generateStatsForActivity(lap);
       })
@@ -255,8 +259,7 @@ export class EventUtilities {
     endDate?: Date,
     minDiff: number = 5): number {
     let gainOrLoss = 0;
-    activity.getStreamData(streamType, startDate, endDate)
-      .filter((value) => !isNaN(value))
+    activity.getSquashedStreamData(streamType, startDate, endDate)
       .reduce((previousValue: number, nextValue: number) => {
         // For gain
         if (gain) {
@@ -293,8 +296,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = activity
-      .getStreamData(streamType, startDate, endDate)
-      .filter((value) => !isNaN(value));
+      .getSquashedStreamData(streamType, startDate, endDate)
     if (max) {
       return data.reduce(function (previousValue, currentValue) {
         return Math.max(previousValue, currentValue);
@@ -305,9 +307,14 @@ export class EventUtilities {
     }, Infinity);
   }
 
+
+  /**
+   * Generates the stats for an activity
+   * @param activity
+   */
   private static generateStatsForActivity(activity: ActivityInterface) {
     // Add the number of points this activity has
-    //   subject.addStat(new DataNumberOfPoints(subject.getPoints().length))
+    activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.data.length, 0)));
 
     // If there is no duration define that from the start date and end date
     if (!activity.getStat(DataDuration.className)) {
@@ -470,17 +477,46 @@ export class EventUtilities {
     }
   }
 
+  /**
+   * Generates missing streams for an activity such as distance etc if they are missing
+   * @param activity
+   */
+  private static generateStreamsForActivity(activity: ActivityInterface) {
+    if (activity.hasStreamData(DataLatitudeDegrees.type) && !activity.hasStreamData(DataDistance.type)) {
+      const distanceStream = activity.createStream(DataDistance.type);
+      let distance = 0;
+      activity.getLatLongArray().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
+        // debugger;
+        if (!position){
+          return prevPosition;
+        }
+
+        if (prevPosition && position){
+          distance += this.geoLibAdapter.getDistance([prevPosition, position]);
+        }
+
+        distanceStream.data[index] = distance;
+        return position;
+      });
+      debugger;
+      activity.addStream(distanceStream);
+    }
+  }
+
   public static getDistanceForActivity(
     activity: ActivityInterface,
     startDate?: Date,
     endDate?: Date): number {
-    return (new GeoLibAdapter()).getDistance(activity.getLatLonArray(startDate, endDate));
+    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getLatLongArray(startDate, endDate).filter((position) => position !== null));
   }
-
 }
 
 export function isNumberOrString(property: any) {
   return (typeof property === 'number' || typeof property === 'string');
+}
+
+export function isNumber(property: any) {
+  return (typeof property === 'number');
 }
 
 /**

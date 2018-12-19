@@ -16,23 +16,53 @@ import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 import {StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {DataPositionInterface} from '../data/data.position.interface';
+import {isNumeric} from 'tslint';
+import {isNumber} from '../events/utilities/event.utilities';
+import {Stream} from '../streams/stream';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
   public creator: CreatorInterface;
-  public ibiData = new IBIData();
   public intensityZones: IntensityZonesInterface[] = [];// maybe rename
-  public streams: StreamInterface[] = [];
   public geoLocationInfo?: GeoLocationInfo;
   public weather?: Weather;
 
   private points: Map<number, PointInterface> = new Map<number, PointInterface>();
   private laps: LapInterface[] = [];
+  private streams: StreamInterface[] = [];
 
   constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
     super(startDate, endDate);
     this.type = type;
     this.creator = creator;
+  }
+
+  createStream(type: string): StreamInterface {
+    return new Stream(type, Array(Math.ceil((+this.endDate - +this.startDate) / 1000)).fill(null));
+  }
+
+  addDataToStream(type: string, date: Date, value: number): void {
+    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
+  }
+
+  addStream(stream: StreamInterface): void {
+    this.streams.push(stream);
+  }
+
+  clearStreams(): void {
+    this.streams = [];
+  }
+
+  removeStream(stream: StreamInterface): void {
+    this.streams.filter((activityStream) => stream !== activityStream)
+  }
+
+  addStreams(streams: StreamInterface[]): void {
+    this.streams.push(...streams);
+  }
+
+  getAllStreams(): StreamInterface[] {
+    return this.streams;
   }
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean {
@@ -44,7 +74,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return true;
   }
 
-  getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[] {
+  getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[] {
     const stream = this.streams
       .find((stream) => stream.type === streamType);
     if (!stream) {
@@ -74,16 +104,25 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return [];
   }
 
-  getLatLonArray(startDate?: Date, endDate?: Date): DataPositionInterface[] {
-    const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
-    const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
-    if (latitudeStreamData.length !== longitudeStreamData.length){
-      throw Error(`Positional data mismatch for activity ${this.getID()}. Latitude array is ${latitudeStreamData.length} while longitude array is ${longitudeStreamData.length}`)
-    }
-    return latitudeStreamData.reduce((positionArray: DataPositionInterface[], value, index) => {
+  // @todo see how this fits with the filtering on the stream class
+  getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[] {
+    return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
+  }
+
+  getLatLongArray(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
+    const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
+    const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
+    return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {
+      // debugger;
+      const currentLatitude = latitudeStreamData[index];
+      const currentLongitude = longitudeStreamData[index];
+      if (!currentLatitude || !currentLongitude) {
+        positionArray.push(null);
+        return positionArray;
+      }
       positionArray.push({
-        latitudeDegrees: latitudeStreamData[index],
-        longitudeDegrees: longitudeStreamData[index],
+        latitudeDegrees: currentLatitude,
+        longitudeDegrees: currentLongitude,
       });
       return positionArray;
     }, []);

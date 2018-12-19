@@ -17,16 +17,22 @@ import {DataPositionInterface} from '../data/data.position.interface';
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   type: ActivityTypes;
   creator: CreatorInterface;
-  ibiData: IBIData;
   intensityZones: IntensityZonesInterface[];
-  streams: StreamInterface[];
   geoLocationInfo?: GeoLocationInfo;
   weather?: Weather;
 
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
-  getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
-  getLatLonArray(startDate?: Date, endDate?: Date): DataPositionInterface[];
+  getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[];
+  getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
+  createStream(type: string): StreamInterface;
+  addStream(stream: StreamInterface): void;
+  addStreams(streams: StreamInterface[]): void;
+  removeStream(stream: StreamInterface): void;
+  getAllStreams(): StreamInterface[];
+  clearStreams(): void;
+  addDataToStream(type: string, date: Date, data: number): void;
+  getLatLongArray(startDate?: Date, endDate?: Date): (DataPositionInterface|null)[];
   addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
   removePoint(point: PointInterface): void;
   removePoint(point: PointInterface): void;

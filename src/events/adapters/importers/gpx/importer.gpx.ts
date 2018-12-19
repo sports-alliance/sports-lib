@@ -38,20 +38,14 @@ export class EventImporterGPX {
           return trkptArray.concat(trkseg.trkpt)
         }, []);
 
-        GPXSampleMapper.reduce((streamArray: StreamInterface[], map) => {
-          const subjectSamples = samples.filter((sample: any) => isNumberOrString(map.getSampleValue(sample)));
+        GPXSampleMapper.forEach((sampleMapping) => {
+          const subjectSamples = <any[]>samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)));
           if (subjectSamples.length) {
-            streamArray.push(new Stream(
-              map.dataType,
-              subjectSamples.reduce((array: any, sample: any) => {
-                array[Math.ceil((+(new Date(sample.time[0])) - +activity.startDate) / 1000)] = map.getSampleValue(sample);
-                return array;
-              }, Array(Math.ceil((+activity.endDate - +activity.startDate) / 1000))),
-            ))
+            activity.addStream(activity.createStream(sampleMapping.dataType));
+            subjectSamples.forEach((subjectSample) => {
+              activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.time[0])), <number>sampleMapping.getSampleValue(subjectSample));
+            });
           }
-          return streamArray;
-        }, []).forEach((stream) => {
-          activity.streams.push(stream);
         });
         // debugger;
         activities.push(activity);
@@ -62,7 +56,7 @@ export class EventImporterGPX {
       activities.forEach((activity) => {
         event.addActivity(activity);
       });
-      // debugger;
+      debugger;
       // generate global stats
       EventUtilities.generateActivityStats(event);
 

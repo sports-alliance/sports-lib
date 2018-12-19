@@ -5,6 +5,7 @@ import {EventImporterFIT} from './events/adapters/importers/fit/importer.fit';
 import {EventImporterSuuntoJSON} from './events/adapters/importers/suunto/importer.suunto.json';
 import {EventImporterJSON} from './events/adapters/importers/json/importer.json';
 import {EventExporterTCX} from './events/adapters/exporters/exporter.tcx';
+import {EventJSONInterface} from './events/event.json.interface';
 
 export class QuantifiedSelfLib {
 
@@ -42,10 +43,10 @@ export class QuantifiedSelfLib {
 
   /**
    * Parses and returns an event using native format (QuantifiedSelfLib exported format)
-   * @param json
+   * @param json EventJSONInterface
    */
-  public static importFromJSON(json: string): Promise<EventInterface> {
-    return EventImporterJSON.getFromJSON(json);
+  public static importFromJSON(json: EventJSONInterface): EventInterface {
+    return EventImporterJSON.getEventFromJSON(json);
   }
 
   /**

@@ -15,6 +15,7 @@ import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 import {StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
+import {DataPositionInterface} from '../data/data.position.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -35,9 +36,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean {
-    try{
+    try {
       this.getStreamData(streamType, startDate, endDate);
-    }catch (e) {
+    } catch (e) {
       return false
     }
     return true;
@@ -60,19 +61,33 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) < endDate);
     }
 
-    if (startDate){
+    if (startDate) {
       return stream.data
         .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) > startDate);
     }
 
-    if (endDate){
-       return stream.data
+    if (endDate) {
+      return stream.data
         .filter((value, index) => (new Date(endDate.getTime() + index * 1000)) < endDate);
     }
 
     return [];
   }
 
+  getLatLonArray(startDate?: Date, endDate?: Date): DataPositionInterface[] {
+    const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
+    const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
+    if (latitudeStreamData.length !== longitudeStreamData.length){
+      throw Error(`Positional data mismatch for activity ${this.getID()}. Latitude array is ${latitudeStreamData.length} while longitude array is ${longitudeStreamData.length}`)
+    }
+    return latitudeStreamData.reduce((positionArray: DataPositionInterface[], value, index) => {
+      positionArray.push({
+        latitudeDegrees: latitudeStreamData[index],
+        longitudeDegrees: longitudeStreamData[index],
+      });
+      return positionArray;
+    }, []);
+  }
 
   addPoint(point: PointInterface, overrideAllDataOnCollision: boolean = false) {
     // @todo should do dateguard check

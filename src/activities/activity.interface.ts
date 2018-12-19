@@ -12,6 +12,7 @@ import {ActivityTypes} from './activity.types';
 import {StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {IDClassInterface} from '../id/id.class.interface';
+import {DataPositionInterface} from '../data/data.position.interface';
 
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   type: ActivityTypes;
@@ -25,6 +26,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
   getStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
+  getLatLonArray(startDate?: Date, endDate?: Date): DataPositionInterface[];
   addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
   removePoint(point: PointInterface): void;
   removePoint(point: PointInterface): void;

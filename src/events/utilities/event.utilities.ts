@@ -474,19 +474,7 @@ export class EventUtilities {
     activity: ActivityInterface,
     startDate?: Date,
     endDate?: Date): number {
-    const latitudeStreamData = activity.getStreamData(DataLatitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
-    const longitudeStreamData = activity.getStreamData(DataLongitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
-
-    // Lat long should be 1:1 @todo move this to setter
-    const positionData = latitudeStreamData.reduce((positionArray: DataPositionInterface[], value, index) => {
-      positionArray.push({
-        latitudeDegrees: latitudeStreamData[index],
-        longitudeDegrees: longitudeStreamData[index],
-      });
-      return positionArray;
-    }, []);
-
-    return (new GeoLibAdapter()).getDistance(positionData);
+    return (new GeoLibAdapter()).getDistance(activity.getLatLonArray(startDate, endDate));
   }
 
 }

@@ -61,21 +61,13 @@ export class EventImporterGPX {
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
       activities.forEach((activity) => {
         event.addActivity(activity);
-        event.setDuration(new DataDuration(0));
-        event.setPause(new DataPause(0));
-        event.setDistance(new DataDistance(0));
       });
       // debugger;
       // generate global stats
       EventUtilities.generateActivityStats(event);
 
-      debugger;
-      event.getActivities().forEach((activity) => {
-        event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
-        event.setPause(new DataPause(event.getPause().getValue() + activity.getPause().getValue()));
-        event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
-      })
 
+      // @todo should be moved elsewhere perhaps also in the generation
       // Find and write the distance of the points
       // const geoLib = new GeoLibAdapter();
       // let distance = 0;
@@ -88,7 +80,6 @@ export class EventImporterGPX {
       //   return current;
       // });
 
-      // Generate missing stats
 
       // @todo move this elsewhere and refactor
 

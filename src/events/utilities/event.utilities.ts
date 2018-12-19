@@ -196,13 +196,36 @@ export class EventUtilities {
 
   public static generateActivityStats(event: EventInterface) {
     // Todo should also work for event
-    event.getActivities().map((activity: ActivityInterface) => {
+    event.getActivities().forEach((activity: ActivityInterface) => {
       // Generate for activities
       this.generateStatsForActivity(activity);
       activity.getLaps().map((lap: LapInterface) => {
         // this.generateStatsForActivity(lap);
       })
-    })
+    });
+
+    // If the event does not have basic stats generate them
+    // @todo think about the default state of those
+    if (!event.getDuration()) {
+      event.setDuration(new DataDuration(0));
+      event.getActivities().forEach((activity) => {
+        event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
+      });
+    }
+
+    if (!event.getPause()) {
+      event.setPause(new DataPause(0));
+      event.getActivities().forEach((activity) => {
+        event.setPause(new DataPause(event.getPause().getValue() + activity.getPause().getValue()));
+      });
+    }
+
+    if (!event.getDistance()) {
+      event.setDistance(new DataDistance(0));
+      event.getActivities().forEach((activity) => {
+        event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
+      });
+    }
   }
 
   public static getEventDataTypeGain(
@@ -298,7 +321,7 @@ export class EventUtilities {
 
     // If there is no distance
     if (!activity.getStat(DataDistance.className)) {
-      activity.addStat(new DataDistance(this.getDistanceForActivity(activity,  activity.startDate, activity.endDate)));
+      activity.addStat(new DataDistance(this.getDistanceForActivity(activity, activity.startDate, activity.endDate)));
     }
 
     // Ascent (altitude gain)
@@ -455,7 +478,7 @@ export class EventUtilities {
     const longitudeStreamData = activity.getStreamData(DataLongitudeDegrees.type, startDate, endDate).filter((value) => !isNaN(value));
 
     // Lat long should be 1:1 @todo move this to setter
-    const positionData =  latitudeStreamData.reduce((positionArray: DataPositionInterface[], value, index) => {
+    const positionData = latitudeStreamData.reduce((positionArray: DataPositionInterface[], value, index) => {
       positionArray.push({
         latitudeDegrees: latitudeStreamData[index],
         longitudeDegrees: longitudeStreamData[index],
@@ -484,7 +507,7 @@ export function convertSpeedToPace(number: number): number {
 export function getSize(obj: any): string {
   var bytes = 0;
 
-  function sizeOf(obj:any) {
+  function sizeOf(obj: any) {
     if (obj !== null && obj !== undefined) {
       switch (typeof obj) {
         case 'number':
@@ -509,11 +532,13 @@ export function getSize(obj: any): string {
     }
     return bytes;
   }
+
   function formatByteSize(bytes: number): string {
     if (bytes < 1024) return bytes + " bytes";
     else if (bytes < 1048576) return (bytes / 1024).toFixed(3) + " KiB";
     else if (bytes < 1073741824) return (bytes / 1048576).toFixed(3) + " MiB";
     else return (bytes / 1073741824).toFixed(3) + " GiB";
   }
+
   return formatByteSize(sizeOf(obj));
 };

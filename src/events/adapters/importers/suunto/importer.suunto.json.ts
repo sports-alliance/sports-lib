@@ -2,7 +2,6 @@ import {Event} from '../../../event';
 import {Activity} from '../../../../activities/activity';
 import {Creator} from '../../../../creators/creator';
 import {Lap} from '../../../../laps/lap';
-import {Point} from '../../../../points/point';
 import {DataAltitude} from '../../../../data/data.altitude';
 import {DataCadence} from '../../../../data/data.cadence';
 import {DataHeartRate} from '../../../../data/data.heart-rate';
@@ -22,7 +21,6 @@ import {DataNumberOfSatellites} from '../../../../data/data.number-of-satellites
 import {DataSatellite5BestSNR} from '../../../../data/data.satellite-5-best-snr';
 import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
 import {IBIData} from '../../../../data/ibi/data.ibi';
-import {PointInterface} from '../../../../points/point.interface';
 import {ImporterSuuntoActivityIds} from './importer.suunto.activity.ids';
 import {ImporterSuuntoDeviceNames} from './importer.suunto.device.names';
 import {ActivityInterface} from '../../../../activities/activity.interface';
@@ -75,7 +73,6 @@ import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 import {Stream} from '../../../../streams/stream';
-import {GPXSampleMapper} from '../gpx/importer.gpx.mapper';
 
 export class EventImporterSuuntoJSON {
 
@@ -254,9 +251,6 @@ export class EventImporterSuuntoJSON {
           activity.addStream(new Stream('IBI', ibiData)); // Append an IBI data stream
         });
       }
-
-      // Add the activities to the event
-      activities.forEach((activity: ActivityInterface) => activity.sortPointsByDate());
 
       // Create an event
       // @todo check if start and end date can derive from the json

@@ -4,7 +4,7 @@ import {EventImporterTCX} from './events/adapters/importers/tcx/importer.tcx';
 import {EventImporterFIT} from './events/adapters/importers/fit/importer.fit';
 import {EventImporterSuuntoJSON} from './events/adapters/importers/suunto/importer.suunto.json';
 import {EventImporterJSON} from './events/adapters/importers/json/importer.json';
-import {EventExporterTCX} from './events/adapters/exporters/exporter.tcx';
+// import {EventExporterTCX} from './events/adapters/exporters/exporter.tcx';
 import {EventJSONInterface} from './events/event.json.interface';
 
 export class QuantifiedSelfLib {
@@ -49,11 +49,11 @@ export class QuantifiedSelfLib {
     return EventImporterJSON.getEventFromJSON(json);
   }
 
-  /**
-   * Exports an event as a TCX string
-   * @param event
-   */
-  public static exportToTCX(event: EventInterface): Promise<string> {
-    return EventExporterTCX.getAsString(event);
-  }
+  // /**
+  //  * Exports an event as a TCX string
+  //  * @param event
+  //  */
+  // public static exportToTCX(event: EventInterface): Promise<string> {
+  //   return EventExporterTCX.getAsString(event);
+  // }
 }

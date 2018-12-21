@@ -1,7 +1,6 @@
 import {EventInterface} from '../event.interface';
 import {ActivityInterface} from '../../activities/activity.interface';
-import {EventExporterTCX} from '../adapters/exporters/exporter.tcx';
-import {PointInterface} from '../../points/point.interface';
+// import {EventExporterTCX} from '../adapters/exporters/exporter.tcx';
 import {Event} from '../event';
 import {LapInterface} from '../../laps/lap.interface';
 import {DataHeartRate} from '../../data/data.heart-rate';
@@ -42,15 +41,12 @@ import {DataPaceMax} from '../../data/data.pace-max';
 import {DataPace} from '../../data/data.pace';
 import {DataPaceMin} from '../../data/data.pace-min';
 import {DataPaceAvg} from '../../data/data.pace-avg';
-import {Activity} from '../../activities/activity';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
 import {EventExporterJSON} from '../adapters/exporters/exporter.json';
 import {DataPositionInterface} from '../../data/data.position.interface';
 import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
-import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
-import {Stream} from '../../streams/stream';
 import {DataNumberOfSamples} from '../../data/data-number-of.samples';
 
 export class EventUtilities {
@@ -58,19 +54,19 @@ export class EventUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
 
 
-  public static async getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
-    const tcxString = await EventExporterTCX.getAsString(event);
-    return (new Blob(
-      [tcxString],
-      {type: EventExporterTCX.fileType},
-    ));
-  }
+  // public static async getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
+  //   const tcxString = await EventExporterTCX.getAsString(event);
+  //   return (new Blob(
+  //     [tcxString],
+  //     {type: EventExporterTCX.fileType},
+  //   ));
+  // }
 
   public static async getEventAsJSONBloB(event: EventInterface): Promise<Blob> {
     const tcxString = await EventExporterJSON.getAsString(event);
     return (new Blob(
       [tcxString],
-      {type: EventExporterTCX.fileType},
+      {type: EventExporterJSON.fileType},
     ));
   }
 
@@ -149,53 +145,52 @@ export class EventUtilities {
   }
 
 
-  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
-    // Short to do the search just in case
-    activity.sortPointsByDate();
-    let startDistanceDate: Date | undefined; // Does not sound right
-    let endDistanceDate: Date | undefined;
+  // public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
+  //   // Short to do the search just in case
+  //   let startDistanceDate: Date | undefined; // Does not sound right
+  //   let endDistanceDate: Date | undefined;
+  //
+  //   activity.getPoints().forEach((point: PointInterface) => {
+  //     // find start and end date
+  //     let pointDistance = point.getDataByType(DataDistance.type);
+  //     if (!startDistanceDate && pointDistance && pointDistance.getValue() >= startDistance) {
+  //       startDistanceDate = point.getDate();
+  //       return;
+  //     }
+  //     if (!endDistanceDate && pointDistance && pointDistance.getValue() >= endDistance) {
+  //       endDistanceDate = point.getDate();
+  //       return;
+  //     }
+  //   });
+  //
+  //   activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
+  //
+  //   // Should  reset all stats
+  //   activity.clearStats();
+  //
+  //   // Set the distance
+  //   activity.setDistance(new DataDistance(endDistance));
+  //
+  //   return activity;
+  // }
 
-    activity.getPoints().forEach((point: PointInterface) => {
-      // find start and end date
-      let pointDistance = point.getDataByType(DataDistance.type);
-      if (!startDistanceDate && pointDistance && pointDistance.getValue() >= startDistance) {
-        startDistanceDate = point.getDate();
-        return;
-      }
-      if (!endDistanceDate && pointDistance && pointDistance.getValue() >= endDistance) {
-        endDistanceDate = point.getDate();
-        return;
-      }
-    });
-
-    activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
-
-    // Should  reset all stats
-    activity.clearStats();
-
-    // Set the distance
-    activity.setDistance(new DataDistance(endDistance));
-
-    return activity;
-  }
-
-  public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
-    activity.getPoints().forEach((point: PointInterface) => {
-      // Remove depending on Date
-      if (startDate && point.getDate() < startDate) {
-        activity.removePoint(point)
-      }
-      if (endDate && point.getDate() > endDate) {
-        activity.removePoint(point)
-      }
-      // Clear up the distance data as it's accumulated
-      point.removeDataByType(DataDistance.type);
-    });
-
-    activity.startDate = startDate || activity.endDate;
-    activity.endDate = endDate || activity.endDate;
-    return activity;
-  }
+  // public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
+  //   activity.getPoints().forEach((point: PointInterface) => {
+  //     // Remove depending on Date
+  //     if (startDate && point.getDate() < startDate) {
+  //       activity.removePoint(point)
+  //     }
+  //     if (endDate && point.getDate() > endDate) {
+  //       activity.removePoint(point)
+  //     }
+  //     // Clear up the distance data as it's accumulated
+  //     point.removeDataByType(DataDistance.type);
+  //   });
+  //
+  //   activity.startDate = startDate || activity.endDate;
+  //   activity.endDate = endDate || activity.endDate;
+  //   return activity;
+  // }
 
   public static generateActivityStats(event: EventInterface) {
     // Todo should also work for event

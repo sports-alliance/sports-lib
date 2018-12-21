@@ -1,5 +1,4 @@
 import {CreatorInterface} from '../creators/creator.interface';
-import {PointInterface} from '../points/point.interface';
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {LapInterface} from '../laps/lap.interface';
 import {IBIData} from '../data/ibi/data.ibi';
@@ -33,15 +32,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   clearStreams(): void;
   addDataToStream(type: string, date: Date, data: number): void;
   getLatLongArray(startDate?: Date, endDate?: Date): (DataPositionInterface|null)[];
-  addPoint(point: PointInterface, overrideAllDataOnCollision?: boolean): void;
-  removePoint(point: PointInterface): void;
-  removePoint(point: PointInterface): void;
-  getPoints(startDate?: Date, endDate?: Date): PointInterface[];
-  getPointsInterpolated(startDate?: Date, endDate?: Date, step?: number): PointInterface[];
-  getStartPoint(): PointInterface;
-  getEndPoint(): PointInterface;
   getLaps(): LapInterface[];
   addLap(lap: LapInterface): void;
-  sortPointsByDate(): void; // Todo make return
   toJSON(): ActivityJSONInterface
 }

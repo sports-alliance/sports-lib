@@ -1,6 +1,5 @@
 import {EventInterface} from './event.interface';
 import {ActivityInterface} from '../activities/activity.interface';
-import {PointInterface} from '../points/point.interface';
 import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {EventJSONInterface} from './event.json.interface';
@@ -41,33 +40,6 @@ export class Event extends DurationClassAbstract implements EventInterface {
     return this.getActivities().reduce((activityA: ActivityInterface, activityB: ActivityInterface) => {
       return activityA.startDate < activityB.startDate ? activityB : activityA;
     });
-  }
-
-  getPoints(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
-    return (activities || this.getActivities()).reduce((pointsArray: PointInterface[], activity: ActivityInterface) => {
-      return pointsArray.concat(activity.getPoints(startDate, endDate));
-    }, []);
-  }
-
-  // @todo maybe merge with below
-  getPointsWithPosition(startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
-    return this.getPoints(startDate, endDate, activities)
-      .reduce((pointsWithPosition: PointInterface[], point: PointInterface) => {
-        if (point.getPosition()) {
-          pointsWithPosition.push(point);
-        }
-        return pointsWithPosition;
-      }, []);
-  }
-
-  getPointsWithDataType(dataType: string, startDate?: Date, endDate?: Date, activities?: ActivityInterface[]): PointInterface[] {
-    return this.getPoints(startDate, endDate, activities)
-      .reduce((pointsWithDataType: PointInterface[], point: PointInterface) => {
-        if (point.getDataByType(dataType)) {
-          pointsWithDataType.push(point);
-        }
-        return pointsWithDataType;
-      }, []);
   }
 
   toJSON(): EventJSONInterface {

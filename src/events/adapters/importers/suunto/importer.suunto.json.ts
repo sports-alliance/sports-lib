@@ -328,7 +328,6 @@ export class EventImporterSuuntoJSON {
         });
       }
     });
-    return;
   }
 
   // @todo convert this to a mapping as well

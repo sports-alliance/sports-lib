@@ -525,7 +525,7 @@ export function isNumber(property: any) {
  * @return {number}
  */
 export function convertSpeedToPace(number: number): number {
-  return number === 0 ? number : number * 0.0001
+  return number === 0 ? number : (1000 / number);
 }
 
 export function getSize(obj: any): string {

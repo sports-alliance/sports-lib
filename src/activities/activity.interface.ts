@@ -1,7 +1,6 @@
 import {CreatorInterface} from '../creators/creator.interface';
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {LapInterface} from '../laps/lap.interface';
-import {IBIData} from '../data/ibi/data.ibi';
 import {IntensityZonesInterface} from '../intensity-zones/intensity-zones.interface';
 import {StatsClassInterface} from '../stats/stats.class.interface';
 import {Weather} from '../weather/app.weather';
@@ -22,6 +21,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
 
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
+  hasPositionData(startDate?: Date, endDate?: Date): boolean;
   getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[];
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
   createStream(type: string): StreamInterface;
@@ -31,7 +31,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   getAllStreams(): StreamInterface[];
   clearStreams(): void;
   addDataToStream(type: string, date: Date, data: number): void;
-  getLatLongArray(startDate?: Date, endDate?: Date): (DataPositionInterface|null)[];
+  getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface|null)[];
   getLaps(): LapInterface[];
   addLap(lap: LapInterface): void;
   toJSON(): ActivityJSONInterface

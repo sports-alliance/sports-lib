@@ -480,7 +480,7 @@ export class EventUtilities {
     if (activity.hasStreamData(DataLatitudeDegrees.type) && !activity.hasStreamData(DataDistance.type)) {
       const distanceStream = activity.createStream(DataDistance.type);
       let distance = 0;
-      activity.getLatLongArray().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
+      activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
         // debugger;
         if (!position){
           return prevPosition;
@@ -502,7 +502,7 @@ export class EventUtilities {
     activity: ActivityInterface,
     startDate?: Date,
     endDate?: Date): number {
-    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getLatLongArray(startDate, endDate).filter((position) => position !== null));
+    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getPositionData(startDate, endDate).filter((position) => position !== null));
   }
 }
 

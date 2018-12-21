@@ -16,6 +16,7 @@ import {DataPositionInterface} from '../data/data.position.interface';
 import {isNumeric} from 'tslint';
 import {isNumber} from '../events/utilities/event.utilities';
 import {Stream} from '../streams/stream';
+import {DataAltitude} from '../data/data.altitude';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -70,6 +71,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return true;
   }
 
+  hasPositionData(startDate?: Date, endDate?: Date): boolean {
+    return this.hasStreamData(DataLatitudeDegrees.type, startDate, endDate) && this.hasStreamData(DataLongitudeDegrees.type, startDate, endDate);
+  }
+
   getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[] {
     const stream = this.streams
       .find((stream) => stream.type === streamType);
@@ -105,7 +110,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
   }
 
-  getLatLongArray(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
+  getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
     const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
     const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
     return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {

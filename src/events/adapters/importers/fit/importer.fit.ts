@@ -25,7 +25,7 @@ import {ImporterFitSuuntoDeviceNames} from './importer.fit.suunto.device.names';
 import {ImporterZwiftDeviceNames} from './importer.fit.swift.device.names';
 import {DataPause} from '../../../../data/data.pause';
 import {DataInterface} from '../../../../data/data.interface';
-import {convertSpeedToPace, EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities, isNumber, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataCadenceAvg} from '../../../../data/data.cadence-avg';
 import {DataPowerAvg} from '../../../../data/data.power-avg';
 import {DataSpeedAvg} from '../../../../data/data.speed-avg';
@@ -48,6 +48,8 @@ import {DataFormPower} from '../../../../data/data.form-power';
 import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
 import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
+import {SuuntoSampleMapper} from '../suunto/importer.suunto.json';
+import {FITSampleMapper} from './importer.fit.mapper';
 
 const EasyFit = require('easy-fit').default;
 
@@ -72,102 +74,41 @@ export class EventImporterFIT {
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any) => {
-            // Get and add the lap to the activity
-            const lap = this.getLapFromSessionLapObject(sessionLapObject);
-            // Go over the records and add the points to the activity
-            sessionLapObject.records.forEach((sessionLapObjectRecord: any) => {
-              const point = this.getPointFromSessionLapObjectRecord(sessionLapObjectRecord);
-              activity.addPoint(point);
-            });
-            // Add the lap to the activity
-            activity.addLap(lap);
+            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject));
           });
-          // If we had no laps then just add the records
-          if (!activity.getLaps().length){
-            fitDataObject.records.forEach((sessionLapObjectRecord: any) => {
-              const point = this.getPointFromSessionLapObjectRecord(sessionLapObjectRecord);
-              activity.addPoint(point);
-            });
-          }
-          activity.sortPointsByDate();
+
+          let samples = sessionObject.laps.reduce((lapSamplesArray: any[], sessionLapObject: any) => {
+            lapSamplesArray.push(...sessionLapObject.records);
+            return lapSamplesArray;
+          }, []);
+
+          samples = samples.length ? samples : fitDataObject.records;
+
+          FITSampleMapper.forEach((sampleMapping) => {
+            const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
+            if (subjectSamples.length) {
+              activity.addStream(activity.createStream(sampleMapping.dataType));
+              if (sampleMapping.dataType == DataPace.type){
+                debugger
+              }
+              subjectSamples.forEach((subjectSample) => {
+                activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
+              });
+            }
+          });
           return activity;
         });
         // Create an event
         // @todo check if the start and end date can derive from the file
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
         activities.forEach(activity => event.addActivity(activity));
-        // Set the totals for the event
-        event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
-        event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
-        event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
+        debugger;
+
         EventUtilities.generateActivityStats(event);
         resolve(event);
       });
 
     });
-  }
-
-  private static getPointFromSessionLapObjectRecord(sessionLapObjectRecord: any): PointInterface {
-    const point = new Point(sessionLapObjectRecord.timestamp);
-    // Add Lat
-    if (isNumberOrString(sessionLapObjectRecord.position_lat)) {
-      point.addData(new DataLatitudeDegrees(sessionLapObjectRecord.position_lat));
-    }
-    // Add long
-    if (isNumberOrString(sessionLapObjectRecord.position_long)) {
-      point.addData(new DataLongitudeDegrees(sessionLapObjectRecord.position_long));
-    }
-    // Add Distance
-    if (isNumberOrString(sessionLapObjectRecord.distance)) {
-      point.addData(new DataDistance(sessionLapObjectRecord.distance));
-    }
-    // Add HR
-    if (isNumberOrString(sessionLapObjectRecord.heart_rate)) {
-      point.addData(new DataHeartRate(sessionLapObjectRecord.heart_rate));
-    }
-    // Add Altitude
-    if (isNumberOrString(sessionLapObjectRecord.altitude)) {
-      point.addData(new DataAltitude(sessionLapObjectRecord.altitude));
-    }
-    // Add Cadence
-    if (isNumberOrString(sessionLapObjectRecord.cadence)) {
-      let cadenceValue = sessionLapObjectRecord.cadence;
-      // Add the fractional cadence if it's there
-      if (isNumberOrString(sessionLapObjectRecord.fractional_cadence)) {
-        cadenceValue += sessionLapObjectRecord.fractional_cadence;
-      }
-      point.addData(new DataCadence(cadenceValue));
-    }
-    // Add Speed
-    if (isNumberOrString(sessionLapObjectRecord.speed)) {
-      point.addData(new DataSpeed(sessionLapObjectRecord.speed));
-      point.addData(new DataPace(convertSpeedToPace(sessionLapObjectRecord.speed)));
-    }
-    // Add Vertical Speed
-    if (isNumberOrString(sessionLapObjectRecord.vertical_speed)) {
-      point.addData(new DataVerticalSpeed(sessionLapObjectRecord.vertical_speed));
-    }
-    // Add Power
-    if (isNumberOrString(sessionLapObjectRecord.power)) {
-      point.addData(new DataPower(sessionLapObjectRecord.power));
-    }
-    // Add Temperature
-    if (isNumberOrString(sessionLapObjectRecord.temperature)) {
-      point.addData(new DataTemperature(sessionLapObjectRecord.temperature));
-    }
-    // Add Form Power
-    if (isNumberOrString(sessionLapObjectRecord['Form Power'])) {
-      point.addData(new DataFormPower(sessionLapObjectRecord['Form Power']));
-    }
-    // Add Leg Stiffness
-    if (isNumberOrString(sessionLapObjectRecord['Leg Spring Stiffness'])) {
-      point.addData(new DataLegStiffness(sessionLapObjectRecord['Leg Spring Stiffness']));
-    }
-    // Add Vertical  Oscillation
-    if (isNumberOrString(sessionLapObjectRecord.vertical_oscillation)) {
-      point.addData(new DataVerticalOscillation(sessionLapObjectRecord.vertical_oscillation));
-    }
-    return point;
   }
 
   private static getLapFromSessionLapObject(sessionLapObject: any): LapInterface {
@@ -207,13 +148,13 @@ export class EventImporterFIT {
   private static getStatsFromObject(object: any): DataInterface[] {
     const stats = [];
     // Set the duration which is the moving time
-    const totalTimerTime = object.total_timer_time ? object.total_timer_time : (object.timestamp - object.start_time)/1000;
+    const totalTimerTime = object.total_timer_time ? object.total_timer_time : (object.timestamp - object.start_time) / 1000;
     stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)
     // There is although an exception for Zwift devices that have these fields vise versa
     const pause = (object.total_elapsed_time > totalTimerTime ?
       object.total_elapsed_time - totalTimerTime :
-      totalTimerTime - object.total_elapsed_time ) || 0;
+      totalTimerTime - object.total_elapsed_time) || 0;
     stats.push(new DataPause(pause));
     // Set the distance @todo check on other importers for this logic
     if (isNumberOrString(object.total_distance)) {
@@ -293,7 +234,7 @@ export class EventImporterFIT {
       default: {
         creator = new Creator(
           (fitDataObject.file_id.manufacturer || 'Invalid Manufacturer')
-           + (fitDataObject.file_id.product || ''),
+          + (fitDataObject.file_id.product || ''),
         )
       }
     }

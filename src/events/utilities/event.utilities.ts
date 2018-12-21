@@ -314,7 +314,7 @@ export class EventUtilities {
    */
   private static generateStatsForActivity(activity: ActivityInterface) {
     // Add the number of points this activity has
-    activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.data.length, 0)));
+    activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
 
     // If there is no duration define that from the start date and end date
     if (!activity.getStat(DataDuration.className)) {

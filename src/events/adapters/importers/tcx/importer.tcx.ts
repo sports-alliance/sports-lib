@@ -14,7 +14,7 @@ import {DataPower} from '../../../../data/data.power';
 import {PointInterface} from '../../../../points/point.interface';
 import {CreatorInterface} from '../../../../creators/creator.interface';
 import {LapInterface} from '../../../../laps/lap.interface';
-import {convertSpeedToPace, EventUtilities} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, EventUtilities, isNumber, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataEnergy} from '../../../../data/data.energy';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataDistance} from '../../../../data/data.distance';
@@ -30,6 +30,7 @@ import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {ActivityInterface} from '../../../../activities/activity.interface';
+import {TCXSampleMapper} from './importer.tcx.mapper';
 
 export class EventImporterTCX {
 
@@ -70,12 +71,25 @@ export class EventImporterTCX {
             // Todo perhaps think about distance if 0 to add the lap as pause
           });
 
-          Array.from(activityElement.getElementsByTagName('Lap')).map((lapElement: any) => {
-            this.getPoints(<any>lapElement.getElementsByTagName('Trackpoint')).map((point) => {
-              activity.addPoint(point);
+
+          // @todo reduce laps to trackpoints
+          const trackPointElements = Array.from(activityElement.getElementsByTagName('Lap')).reduce((trackPointElementArray: Element[], lapElement) => {
+            Array.from(lapElement.getElementsByTagName('Trackpoint')).forEach((trackPointElement) => {
+              trackPointElementArray.push(trackPointElement);
             });
+            return trackPointElementArray
+          }, []);
+
+          TCXSampleMapper.forEach((sampleMapping) => {
+            // Should check the children
+            const subjectTrackPointElements = trackPointElements.filter((element: any) => isNumber(sampleMapping.getSampleValue(element)));
+            if (subjectTrackPointElements.length) {
+              activity.addStream(activity.createStream(sampleMapping.dataType));
+              subjectTrackPointElements.forEach((subjectTrackPointElement: any) => {
+                activity.addDataToStream(sampleMapping.dataType, (new Date(subjectTrackPointElement.getElementsByTagName('Time')[0].textContent)), <number>sampleMapping.getSampleValue(subjectTrackPointElement));
+              });
+            }
           });
-          activity.sortPointsByDate();
           return activity;
         });
 
@@ -83,66 +97,10 @@ export class EventImporterTCX {
       // Init the event
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
       activities.forEach(activity => event.addActivity(activity));
-      event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
-      event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
-      event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
 
       EventUtilities.generateActivityStats(event);
       resolve(event);
     });
-  }
-
-  private static getPoints(trackPointsElements: HTMLElement[]): PointInterface[] {
-    return Array.from(trackPointsElements).reduce((pointsArray: PointInterface[], trackPointElement) => {
-      const point = new Point(new Date(<string>trackPointElement.getElementsByTagName('Time')[0].textContent));
-      pointsArray.push(point);
-      for (const dataElement of <any>trackPointElement.children) {
-        switch (dataElement.tagName) {
-          case 'Position': {
-            point.addData(new DataLatitudeDegrees(Number(dataElement.getElementsByTagName('LatitudeDegrees')[0].textContent)));
-            point.addData(new DataLongitudeDegrees(Number(dataElement.getElementsByTagName('LongitudeDegrees')[0].textContent)));
-            break;
-          }
-          case 'DistanceMeters': {
-            point.addData(new DataDistance(Number(dataElement.textContent)));
-            break;
-          }
-          case 'AltitudeMeters': {
-            point.addData(new DataAltitude(Number(dataElement.textContent)));
-            break;
-          }
-          case 'Cadence': {
-            point.addData(new DataCadence(Number(dataElement.textContent)));
-            break;
-          }
-          case 'HeartRateBpm': {
-            point.addData(new DataHeartRate(Number(dataElement.getElementsByTagName('Value')[0].textContent)));
-            break;
-          }
-          case 'Extensions': {
-            for (const dataExtensionElement of <any>dataElement.getElementsByTagNameNS('http://www.garmin.com/xmlschemas/ActivityExtension/v2', 'TPX')[0].children) {
-              switch (dataExtensionElement.nodeName.replace(dataExtensionElement.prefix + ':', '')) {
-                case 'Speed': {
-                  point.addData(new DataSpeed(Number(dataExtensionElement.textContent)));
-                  point.addData(new DataPace(convertSpeedToPace(Number(dataExtensionElement.textContent))));
-                  break;
-                }
-                case 'RunCadence': {
-                  point.addData(new DataCadence(Number(dataExtensionElement.textContent)));
-                  break;
-                }
-                case 'Watts': {
-                  point.addData(new DataPower(Number(dataExtensionElement.textContent)));
-                  break;
-                }
-              }
-            }
-            break;
-          }
-        }
-      }
-      return pointsArray;
-    }, []);
   }
 
   private static getCreator(creatorElement?: HTMLElement): CreatorInterface {

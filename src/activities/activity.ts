@@ -17,6 +17,8 @@ import {isNumeric} from 'tslint';
 import {isNumber} from '../events/utilities/event.utilities';
 import {Stream} from '../streams/stream';
 import {DataAltitude} from '../data/data.altitude';
+import {DataJSONInterface} from '../data/data.json.interface';
+import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -138,11 +140,11 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   toJSON(): ActivityJSONInterface {
-    const intensityZones: any = [];
+    const intensityZones: IntensityZonesJSONInterface[] = [];
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
       intensityZones.push(value.toJSON());
     });
-    const stats: any[] = [];
+    const stats: DataJSONInterface[] = [];
     this.stats.forEach((value: DataInterface, key: string) => {
       stats.push(value.toJSON());
     });

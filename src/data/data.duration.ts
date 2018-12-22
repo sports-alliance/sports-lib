@@ -1,7 +1,6 @@
 import {DataNumber} from './data.number';
 
 export class DataDuration extends DataNumber {
-  static className = 'DataDuration';
   static type = 'Duration';
   static unit = 's';
 

@@ -1,15 +1,13 @@
 import {StatsClassInterface} from './stats.class.interface';
 import {IDClass} from '../id/id.abstract.class';
-import {DataDuration} from '../data/data.duration';
 import {DataDistance} from '../data/data.distance';
 import {DataInterface} from '../data/data.interface';
-import {DataPause} from '../data/data.pause';
 
 export abstract class StatsClassAbstract extends IDClass implements StatsClassInterface {
   public stats = new Map<string, DataInterface>();
 
   getDistance(): DataDistance {
-    return <DataDistance>this.stats.get(DataDistance.className);
+    return <DataDistance>this.stats.get(DataDistance.type);
   }
 
   getStat(statType: string): DataInterface | void {
@@ -29,10 +27,10 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
   }
 
   setDistance(distance: DataDistance) {
-    this.stats.set(DataDistance.className, distance);
+    this.stats.set(DataDistance.type, distance);
   }
 
   addStat(stat: DataInterface) {
-    this.stats.set(stat.getClassName(), stat);
+    this.stats.set(stat.getType(), stat);
   }
 }

@@ -1,4 +1,5 @@
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
+import {DataJSONInterface} from './data.json.interface';
 
 export interface DataInterface extends SerializableClassInterface {
   setValue(value: number | string): void;
@@ -13,11 +14,9 @@ export interface DataInterface extends SerializableClassInterface {
 
   getDisplayUnit(): string;
 
-  getClassName(): string;
-
   getUnitSystem(): UnitSystem;
 
-  toJSON(): {className: string, value: number | string | boolean};
+  toJSON(): DataJSONInterface;
 }
 
 export enum UnitSystem {

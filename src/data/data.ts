@@ -1,8 +1,6 @@
 import {DataInterface, UnitSystem} from './data.interface';
 
 export abstract class Data implements DataInterface {
-
-  static className: string;
   static type: string;
   static unit: string;
   static unitSystem = UnitSystem.Metric;
@@ -47,13 +45,9 @@ export abstract class Data implements DataInterface {
     return (<typeof Data>this.constructor).unitSystem;
   }
 
-  getClassName(): string {
-    return (<typeof Data>this.constructor).className;
-  }
-
-  toJSON(): {className: string, value: number | string | boolean} {
+  toJSON(): {type: string, value: number | string | boolean} {
     return {
-      className: this.getClassName(),
+      type: this.getType(),
       value: this.getValue(),
     };
   }

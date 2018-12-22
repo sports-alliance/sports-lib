@@ -1,6 +1,5 @@
 import {DataInterface, UnitSystem} from './data.interface';
 import {DataTemperature} from './data.temperature';
-import {Point} from '../points/point';
 
 describe('Data', () => {
 
@@ -12,10 +11,6 @@ describe('Data', () => {
 
   it('should get the type correctly', () => {
     expect(data.getType()).toBe('Temperature');
-  });
-
-  it('should get the class name correctly', () => {
-    expect(data.getClassName()).toBe('DataTemperature');
   });
 
   it('should get the value correctly', () => {
@@ -34,7 +29,7 @@ describe('Data', () => {
 
   it('should export correctly to JSON', () => {
     expect(data.toJSON()).toEqual({
-      className: 'DataTemperature',
+      type: 'Temperature',
       value: 60,
     });
   });

@@ -102,7 +102,7 @@
 //           lapElement.appendChild(distanceInMetersElement);
 //
 //           const caloriesInKCALElement = document.createElementNS('http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2', 'Calories');
-//           const dataEnergy = lap.getStat(DataEnergy.className);
+//           const dataEnergy = lap.getStat(DataEnergy.type);
 //           if (dataEnergy) {
 //             caloriesInKCALElement.textContent = dataEnergy.getValue().toString();
 //           } else {

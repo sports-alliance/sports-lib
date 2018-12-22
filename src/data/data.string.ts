@@ -1,9 +1,6 @@
 import {DataBare} from './data.bare';
 
 export abstract class DataString extends DataBare {
-  static className = 'DataString';
-  static unit = '';
-
   protected value: string;
 
   constructor(value: string) {

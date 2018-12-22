@@ -17,18 +17,18 @@ export abstract class DurationClassAbstract extends StatsClassAbstract implement
   }
 
   getDuration(): DataDuration {
-    return <DataDuration>this.stats.get(DataDuration.className);
+    return <DataDuration>this.stats.get(DataDuration.type);
   }
 
   getPause(): DataPause {
-    return <DataPause>this.stats.get(DataPause.className);
+    return <DataPause>this.stats.get(DataPause.type);
   }
 
   setDuration(duration: DataDuration) {
-    this.stats.set(DataDuration.className, duration);
+    this.stats.set(DataDuration.type, duration);
   }
 
   setPause(pause: DataPause) {
-    this.stats.set(DataPause.className, pause);
+    this.stats.set(DataPause.type, pause);
   }
 }

@@ -312,160 +312,160 @@ export class EventUtilities {
     activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
 
     // If there is no duration define that from the start date and end date
-    if (!activity.getStat(DataDuration.className)) {
+    if (!activity.getStat(DataDuration.type)) {
       activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000))
     }
 
     // If there is no pause define that from the start date and end date and duration
-    if (!activity.getStat(DataPause.className)) {
+    if (!activity.getStat(DataPause.type)) {
       activity.addStat(new DataPause(((activity.endDate.getTime() - activity.startDate.getTime()) / 1000) - activity.getDuration().getValue()))
     }
 
     // If there is no distance
-    if (!activity.getStat(DataDistance.className)) {
+    if (!activity.getStat(DataDistance.type)) {
       activity.addStat(new DataDistance(this.getDistanceForActivity(activity, activity.startDate, activity.endDate)));
     }
 
     // Ascent (altitude gain)
-    if (!activity.getStat(DataAscent.className)
+    if (!activity.getStat(DataAscent.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataAscent(this.getEventDataTypeGain(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
     // Descent (altitude loss)
-    if (!activity.getStat(DataDescent.className)
+    if (!activity.getStat(DataDescent.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataDescent(this.getEventDataTypeLoss(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
     // Altitude Max
-    if (!activity.getStat(DataAltitudeMax.className)
+    if (!activity.getStat(DataAltitudeMax.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
     // Altitude Min
-    if (!activity.getStat(DataAltitudeMin.className)
+    if (!activity.getStat(DataAltitudeMin.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
     // Altitude Avg
-    if (!activity.getStat(DataAltitudeAvg.className)
+    if (!activity.getStat(DataAltitudeAvg.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
 
     // Heart Rate  Max
-    if (!activity.getStat(DataHeartRateMax.className)
+    if (!activity.getStat(DataHeartRateMax.type)
       && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
     }
     // Heart Rate Min
-    if (!activity.getStat(DataHeartRateMin.className)
+    if (!activity.getStat(DataHeartRateMin.type)
       && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataHeartRateMin(this.getDataTypeMin(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
     }
     // Heart Rate Avg
-    if (!activity.getStat(DataHeartRateAvg.className)
+    if (!activity.getStat(DataHeartRateAvg.type)
       && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataHeartRateAvg(this.getDataTypeAvg(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
     }
     // Cadence Max
-    if (!activity.getStat(DataCadenceMax.className)
+    if (!activity.getStat(DataCadenceMax.type)
       && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataCadenceMax(this.getDataTypeMax(activity, DataCadence.type, activity.startDate, activity.endDate)));
     }
     // Cadence Min
-    if (!activity.getStat(DataCadenceMin.className)
+    if (!activity.getStat(DataCadenceMin.type)
       && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type, activity.startDate, activity.endDate)));
     }
     // Cadence Avg
-    if (!activity.getStat(DataCadenceAvg.className)
+    if (!activity.getStat(DataCadenceAvg.type)
       && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type, activity.startDate, activity.endDate)));
     }
     // Speed Max
-    if (!activity.getStat(DataSpeedMax.className)
+    if (!activity.getStat(DataSpeedMax.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate)));
     }
     // Speed Min
-    if (!activity.getStat(DataSpeedMin.className)
+    if (!activity.getStat(DataSpeedMin.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate)));
     }
     // Speed Avg
-    if (!activity.getStat(DataSpeedAvg.className)
+    if (!activity.getStat(DataSpeedAvg.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate)));
     }
     // Pace Max
-    if (!activity.getStat(DataPaceMax.className)
+    if (!activity.getStat(DataPaceMax.type)
       && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPaceMax(this.getDataTypeMin(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally min
     }
     // Pace Min
-    if (!activity.getStat(DataPaceMin.className)
+    if (!activity.getStat(DataPaceMin.type)
       && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPaceMin(this.getDataTypeMax(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally max
     }
     // Pace Avg
-    if (!activity.getStat(DataPaceAvg.className)
+    if (!activity.getStat(DataPaceAvg.type)
       && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
     }
     // Vertical Speed Max
-    if (!activity.getStat(DataVerticalSpeedMax.className)
+    if (!activity.getStat(DataVerticalSpeedMax.type)
       && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataVerticalSpeedMax(this.getDataTypeMax(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
     }
     // Vertical Speed Min
-    if (!activity.getStat(DataVerticalSpeedMin.className)
+    if (!activity.getStat(DataVerticalSpeedMin.type)
       && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataVerticalSpeedMin(this.getDataTypeMin(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
     }
     // Vertical Speed Avg
-    if (!activity.getStat(DataVerticalSpeedAvg.className)
+    if (!activity.getStat(DataVerticalSpeedAvg.type)
       && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
     }
     // Power Max
-    if (!activity.getStat(DataPowerMax.className)
+    if (!activity.getStat(DataPowerMax.type)
       && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPowerMax(this.getDataTypeMax(activity, DataPower.type, activity.startDate, activity.endDate)));
     }
     // Power Min
-    if (!activity.getStat(DataPowerMin.className)
+    if (!activity.getStat(DataPowerMin.type)
       && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type, activity.startDate, activity.endDate)));
     }
-    if (!activity.getStat(DataPowerAvg.className)
+    if (!activity.getStat(DataPowerAvg.type)
       && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type, activity.startDate, activity.endDate)));
     }
     // Temperature Max
-    if (!activity.getStat(DataTemperatureMax.className)
+    if (!activity.getStat(DataTemperatureMax.type)
       && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataTemperatureMax(this.getDataTypeMax(activity, DataTemperature.type, activity.startDate, activity.endDate)));
     }
     // Temperature Min
-    if (!activity.getStat(DataTemperatureMin.className)
+    if (!activity.getStat(DataTemperatureMin.type)
       && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataTemperatureMin(this.getDataTypeMin(activity, DataTemperature.type, activity.startDate, activity.endDate)));
     }
     // Temperature Avg
-    if (!activity.getStat(DataTemperatureAvg.className)
+    if (!activity.getStat(DataTemperatureAvg.type)
       && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataTemperatureAvg(this.getDataTypeAvg(activity, DataTemperature.type, activity.startDate, activity.endDate)));
     }
 
     // Battery Consumption Avg
-    if (!activity.getStat(DataBatteryConsumption.className)
+    if (!activity.getStat(DataBatteryConsumption.type)
       && activity.hasStreamData(DataBatteryCharge.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataBatteryConsumption(this.getDataTypeDifference(activity, DataBatteryCharge.type, activity.startDate, activity.endDate)));
     }
 
     // Battery Life Estimation based on Consumption
-    if (!activity.getStat(DataBatteryLifeEstimation.className)) {
-      const consumption = activity.getStat(DataBatteryConsumption.className);
+    if (!activity.getStat(DataBatteryLifeEstimation.type)) {
+      const consumption = activity.getStat(DataBatteryConsumption.type);
       if (consumption && consumption.getValue()) {
         activity.addStat(new DataBatteryLifeEstimation(Number((+activity.endDate - +activity.startDate) / 1000 * 100) / Number(consumption.getValue())));
       }
@@ -493,7 +493,6 @@ export class EventUtilities {
         distanceStream.data[index] = distance;
         return position;
       });
-      debugger;
       activity.addStream(distanceStream);
     }
   }

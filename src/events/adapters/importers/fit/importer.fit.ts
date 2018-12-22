@@ -53,7 +53,7 @@ export class EventImporterFIT {
       });
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        debugger;
+        // debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
@@ -74,9 +74,6 @@ export class EventImporterFIT {
             const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
             if (subjectSamples.length) {
               activity.addStream(activity.createStream(sampleMapping.dataType));
-              if (sampleMapping.dataType == DataPace.type){
-                debugger
-              }
               subjectSamples.forEach((subjectSample) => {
                 activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
               });
@@ -88,8 +85,7 @@ export class EventImporterFIT {
         // @todo check if the start and end date can derive from the file
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
         activities.forEach(activity => event.addActivity(activity));
-        debugger;
-
+        // debugger;
         EventUtilities.generateActivityStats(event);
         resolve(event);
       });

@@ -81,6 +81,7 @@ export enum ActivityTypes {
   'Telemark skiing' = 'Telemark skiing',
   'Track and Field' = 'Track and Field',
   'Trail Running' = 'Trail Running',
+  'Trail running' = 'Trail Running',
   'trail' = 'Trail running',
   'Open water swimming' = 'Open water swimming',
   'Nordic walking' = 'Nordic walking',

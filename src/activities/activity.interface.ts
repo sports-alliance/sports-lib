@@ -3,8 +3,6 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {LapInterface} from '../laps/lap.interface';
 import {IntensityZonesInterface} from '../intensity-zones/intensity-zones.interface';
 import {StatsClassInterface} from '../stats/stats.class.interface';
-import {Weather} from '../weather/app.weather';
-import {GeoLocationInfo} from '../geo-location-info/geo-location-info';
 import {DurationClassInterface} from '../duration/duration.class.interface';
 import {ActivityTypes} from './activity.types';
 import {StreamInterface} from '../streams/stream.interface';
@@ -16,9 +14,6 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   type: ActivityTypes;
   creator: CreatorInterface;
   intensityZones: IntensityZonesInterface[];
-  geoLocationInfo?: GeoLocationInfo;
-  weather?: Weather;
-
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
   hasPositionData(startDate?: Date, endDate?: Date): boolean;

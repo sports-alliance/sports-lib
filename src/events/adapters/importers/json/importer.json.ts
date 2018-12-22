@@ -3,11 +3,7 @@ import {Activity} from '../../../../activities/activity';
 import {Lap} from '../../../../laps/lap';
 import {EventInterface} from '../../../event.interface';
 import {Creator} from '../../../../creators/creator';
-import {WeatherItem} from '../../../../weather/app.weather.item';
-import {Weather} from '../../../../weather/app.weather';
-import {GeoLocationInfo} from '../../../../geo-location-info/geo-location-info';
 import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
-import {IBIData} from '../../../../data/ibi/data.ibi';
 import {DynamicDataLoader} from '../../../../data/data.store';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {EventJSONInterface} from '../../../event.json.interface';
@@ -87,38 +83,9 @@ export class EventImporterJSON {
     json.laps.forEach((lapJSON: LapJSONInterface) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));
     });
-    activity.weather = json.weather;
-    activity.geoLocationInfo = json.geoLocationInfo;
     json.intensityZones.forEach((intensityZonesJSON) => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON))
     });
     return activity;
-  }
-
-  // @todo add types
-  private static getGeoLocationInfo(object: any): GeoLocationInfo {
-    const geoLocationInfo = new GeoLocationInfo(
-      object.geoLocationInfo.latitude,
-      object.geoLocationInfo.longitude,
-    );
-    geoLocationInfo.city = object.geoLocationInfo.city;
-    geoLocationInfo.country = object.geoLocationInfo.country;
-    geoLocationInfo.province = object.geoLocationInfo.province;
-    return geoLocationInfo;
-  }
-
-  // @todo add types
-  private static getWeather(object: any): Weather {
-    const weatherItems = [];
-    for (const weatherItemObject of object.weather.weatherItems) {
-      weatherItems.push(
-        new WeatherItem(
-          new Date(weatherItemObject.date),
-          weatherItemObject.conditions,
-          weatherItemObject.temperatureInCelsius,
-        ),
-      )
-    }
-    return new Weather(weatherItems);
   }
 }

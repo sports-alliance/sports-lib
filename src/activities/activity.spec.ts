@@ -268,7 +268,6 @@ describe('Activity', () => {
     activity.addLap(lap);
     spyOn(point, 'toJSON').and.returnValue({});
     spyOn(lap, 'toJSON').and.returnValue({});
-    spyOn(activity.ibiData, 'toJSON').and.returnValue([]);
     spyOn(activity.creator, 'toJSON').and.returnValue({});
     expect(activity.toJSON()).toEqual({
       'id': '123',
@@ -278,11 +277,8 @@ describe('Activity', () => {
       'type': ActivityTypes.Running,
       'points': [{}],
       'stats': [],
-      'ibiData': [],
       'laps': [{}],
       'intensityZones': {},
-      'geoLocationInfo': null,
-      'weather': null,
     });
     expect(point.toJSON).toHaveBeenCalled();
     expect(lap.toJSON).toHaveBeenCalled();

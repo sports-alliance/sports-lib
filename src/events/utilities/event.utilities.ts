@@ -62,14 +62,6 @@ export class EventUtilities {
   //   ));
   // }
 
-  public static async getEventAsJSONBloB(event: EventInterface): Promise<Blob> {
-    const tcxString = await EventExporterJSON.getAsString(event);
-    return (new Blob(
-      [tcxString],
-      {type: EventExporterJSON.fileType},
-    ));
-  }
-
   public static getDataTypeAvg(
     activity: ActivityInterface,
     streamType: string,

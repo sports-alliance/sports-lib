@@ -100,27 +100,18 @@ export class EventUtilities {
     return this.getDataTypeMax(activity, streamType, startDate, endDate) - this.getDataTypeMin(activity, streamType, startDate, endDate);
   }
 
-  public static mergeEvents(events: EventInterface[]): Promise<EventInterface> {
-    return new Promise((resolve, reject) => {
-      // First sort the events by first point date
-      events.sort((eventA: EventInterface, eventB: EventInterface) => {
-        return +eventA.getFirstActivity().startDate - +eventB.getFirstActivity().startDate;
-      });
-      const activities: ActivityInterface[] = [];
-      for (const event of events) {
-        for (const activity of event.getActivities()) {
-          activities.push(activity);
-        }
-      }
-      const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
-      activities.forEach(activity => event.addActivity(activity));
-      // Set the totals for the event
-      event.setDuration(new DataDuration(event.getActivities().reduce((duration, activity) => activity.getDuration().getValue(), 0)));
-      event.setDistance(new DataDistance(event.getActivities().reduce((duration, activity) => activity.getDistance() ? activity.getDistance().getValue() : 0, 0)));
-      event.setPause(new DataPause(event.getActivities().reduce((duration, activity) => activity.getPause().getValue(), 0)));
-      //@todo add generate
-      return resolve(event);
+  public static mergeEvents(events: EventInterface[]): EventInterface {
+    events.sort((eventA: EventInterface, eventB: EventInterface) => {
+      return +eventA.getFirstActivity().startDate - +eventB.getFirstActivity().startDate;
     });
+    const activities = events.reduce((activitiesArray: ActivityInterface[], event) => {
+      activitiesArray.push(...event.getActivities());
+      return activitiesArray;
+    }, []);
+    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
+    event.addActivities(activities);
+    this.generateActivityStats(event);
+    return event;
   }
 
   public static calculatePointDistance(activity: ActivityInterface) {
@@ -474,11 +465,11 @@ export class EventUtilities {
       let distance = 0;
       activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
         // debugger;
-        if (!position){
+        if (!position) {
           return prevPosition;
         }
 
-        if (prevPosition && position){
+        if (prevPosition && position) {
           distance += this.geoLibAdapter.getDistance([prevPosition, position]);
         }
 

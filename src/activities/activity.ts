@@ -84,18 +84,18 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
     if (startDate && endDate) {
       return stream.data
-        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) > startDate)
-        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) < endDate);
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) > startDate)
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) < endDate);
     }
 
     if (startDate) {
       return stream.data
-        .filter((value, index) => (new Date(startDate.getTime() + index * 1000)) > startDate);
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) > startDate);
     }
 
     if (endDate) {
       return stream.data
-        .filter((value, index) => (new Date(endDate.getTime() + index * 1000)) < endDate);
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) < endDate);
     }
 
     return [];

@@ -539,7 +539,7 @@ export const SuuntoSampleMapper: { dataType: string, sampleField: string, conver
   {
     dataType: DataCadence.type,
     sampleField: 'Cadence',
-    convertSampleValue: (value: number) => Number(value),
+    convertSampleValue: (value: number) => Number(value * 60),
   },
   {
     dataType: DataPower.type,

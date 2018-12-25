@@ -139,7 +139,7 @@ export const DataStore: any = {
 };
 
 export class DynamicDataLoader {
-  static getDataInstanceFromDataType(dataType: string, opts: any): any {
+  static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
     const className = Object.keys(DataStore).find((dataClass) => {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });

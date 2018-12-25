@@ -6,7 +6,7 @@ export interface DataInterface extends SerializableClassInterface {
 
   getValue(): number | string | boolean;
 
-  getDisplayValue(): number | string;
+  getDisplayValue(): number | string | boolean;
 
   getType(): string;
 

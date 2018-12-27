@@ -107,7 +107,9 @@ export class EventUtilities {
     const activities = events.reduce((activitiesArray: ActivityInterface[], event) => {
       activitiesArray.push(...event.getActivities());
       return activitiesArray;
-    }, []);
+    }, []).map((activity) => {
+      return activity.setID(null);
+    });
     const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
     event.addActivities(activities);
     this.generateActivityStats(event);

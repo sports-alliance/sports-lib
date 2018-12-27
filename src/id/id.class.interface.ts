@@ -1,4 +1,4 @@
 export interface IDClassInterface {
-  setID(id: string): this;
+  setID(id: string | null): this;
   getID(): string | null;
 }

@@ -26,10 +26,6 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
     getSampleValue: sample => sample.ele ? Number(sample.ele[0]) : null,
   },
   {
-    dataType: DataAltitude.type,
-    getSampleValue: sample => sample.ele ? Number(sample.ele[0]) : null,
-  },
-  {
     dataType: DataHeartRate.type,
     getSampleValue: (sample) => {
       // debugger;

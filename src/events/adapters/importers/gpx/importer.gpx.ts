@@ -27,7 +27,7 @@ export class EventImporterGPX {
         const activity = new Activity(
           new Date(trk.trkseg[0].trkpt[0].time[0]),
           new Date(trk.trkseg[trk.trkseg.length - 1].trkpt[trk.trkseg[trk.trkseg.length - 1].trkpt.length - 1].time[0]),
-          ActivityTypes[<keyof typeof ActivityTypes>trk.type || ActivityTypes.unknown],
+          trk.type ?  ActivityTypes[<keyof typeof ActivityTypes>trk.type] || ActivityTypes.unknown : ActivityTypes.unknown,
           new Creator(
             parsedGPX.creator,
             parsedGPX.version,

@@ -65,6 +65,7 @@ import {DataLegStiffness} from './data.leg-stiffness';
 import {DataVerticalOscillation} from './data.vertical-oscillation';
 import {DataTotalTrainingEffect} from './data.total-training-effect';
 import {DataNumberOfSamples} from './data-number-of.samples';
+import {Data} from './data';
 
 /**
  * Only concrete classes no abstracts

@@ -3,6 +3,8 @@
  */
 export enum ActivityTypes {
   'unknown' = 'Unknown sport',
+  'Unknown sport' = 'Unknown sport',
+  'undefined' = 'Unknown sport',
   'Not specified sport' = 'Unknown sport',
   'Other' = 'Unknown sport',
   'Multisport' = 'Multisport',

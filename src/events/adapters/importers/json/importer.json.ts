@@ -23,7 +23,7 @@ export class EventImporterJSON {
 
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     // debugger;
-    const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate));
+    const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate), json.privacy);
     json.stats.forEach((stat: any) => {
       event.addStat(DynamicDataLoader.getDataInstanceFromDataType(stat.type, stat.value))
     });

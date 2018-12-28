@@ -3,15 +3,20 @@ import {ActivityInterface} from '../activities/activity.interface';
 import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {EventJSONInterface} from './event.json.interface';
+import {Privacy} from '../privacy/privacy.class.interface';
 
 export class Event extends DurationClassAbstract implements EventInterface {
 
   public name: string;
+  public privacy: Privacy = Privacy.private;
   private activities: ActivityInterface[] = [];
 
-  constructor(name: string, startDate: Date, endDate: Date) {
+  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy) {
     super(startDate, endDate);
-    this.name = name
+    this.name = name;
+    if (privacy) {
+      this.privacy = privacy;
+    }
   }
 
   addActivity(activity: ActivityInterface) {
@@ -53,6 +58,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
     return {
       name: this.name,
+      privacy: this.privacy,
       startDate: this.startDate.toJSON(),
       endDate: this.endDate.toJSON(),
       stats: stats,

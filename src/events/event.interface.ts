@@ -4,8 +4,9 @@ import {ActivityInterface} from '../activities/activity.interface';
 import {DurationClassInterface} from '../duration/duration.class.interface';
 import {EventJSONInterface} from './event.json.interface';
 import {IDClassInterface} from '../id/id.class.interface';
+import {PrivacyClassInterface} from '../privacy/privacy.class.interface';
 
-export interface EventInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
+export interface EventInterface extends StatsClassInterface, DurationClassInterface, PrivacyClassInterface, SerializableClassInterface, IDClassInterface {
 
   name: string;
 

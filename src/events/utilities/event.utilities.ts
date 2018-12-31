@@ -44,10 +44,10 @@ import {DataPaceAvg} from '../../data/data.pace-avg';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
-import {EventExporterJSON} from '../adapters/exporters/exporter.json';
 import {DataPositionInterface} from '../../data/data.position.interface';
 import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
 import {DataNumberOfSamples} from '../../data/data-number-of.samples';
+import {Privacy} from '../../privacy/privacy.class.interface';
 
 export class EventUtilities {
 

@@ -23,4 +23,14 @@ export class User implements UserInterface {
       this.privacy = privacy;
     }
   }
+
+  toJSON() {
+    return {
+      uid: this.uid,
+      email: this.email,
+      privacy: this.privacy,
+      photoURL: this.photoURL,
+      displayName: this.displayName,
+    }
+  }
 }

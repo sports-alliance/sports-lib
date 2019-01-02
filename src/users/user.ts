@@ -4,7 +4,7 @@ import {UserInterface} from './user.interface';
 export class User implements UserInterface {
   uid: string;
   email?: string | null;
-  privacy: Privacy = Privacy.public;
+  privacy: Privacy = Privacy.private;
   photoURL?: string;
   displayName?: string;
 
@@ -27,10 +27,10 @@ export class User implements UserInterface {
   toJSON() {
     return {
       uid: this.uid,
-      email: this.email,
+      email: this.email || null,
       privacy: this.privacy,
-      photoURL: this.photoURL,
-      displayName: this.displayName,
+      photoURL: this.photoURL || null ,
+      displayName: this.displayName || null,
     }
   }
 }

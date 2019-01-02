@@ -6,4 +6,5 @@ export interface UserInterface extends PrivacyClassInterface, SerializableClassI
   email?: string | null;
   photoURL?: string;
   displayName?: string;
+  description?: string;
 }

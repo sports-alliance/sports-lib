@@ -3,17 +3,16 @@ import {UserInterface} from './user.interface';
 
 export class User implements UserInterface {
   uid: string;
-  email?: string | null;
   privacy: Privacy = Privacy.private;
+  acceptedDataPolicy = false;
+  acceptedPrivacyPolicy = false;
+
   photoURL?: string;
   displayName?: string;
   description?: string;
 
-  constructor(userID: string, email?: string, displayName?: string, photoURL?: string, privacy?: Privacy, description?: string) {
+  constructor(userID: string, displayName?: string, photoURL?: string, privacy?: Privacy, description?: string) {
     this.uid = userID;
-    if (email) {
-      this.email = email;
-    }
     if (photoURL) {
       this.photoURL = photoURL;
     }
@@ -31,8 +30,9 @@ export class User implements UserInterface {
   toJSON() {
     return {
       uid: this.uid,
-      email: this.email || null,
       privacy: this.privacy,
+      acceptedPrivacyPolicy: this.acceptedPrivacyPolicy,
+      acceptedDataPolicy: this.acceptedDataPolicy,
       photoURL: this.photoURL || null,
       displayName: this.displayName || null,
       description: this.description || null,

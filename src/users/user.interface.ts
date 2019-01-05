@@ -3,7 +3,8 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 
 export interface UserInterface extends PrivacyClassInterface, SerializableClassInterface{
   uid: string;
-  email?: string | null;
+  acceptedPrivacyPolicy: boolean;
+  acceptedDataPolicy: boolean;
   photoURL?: string;
   displayName?: string;
   description?: string;

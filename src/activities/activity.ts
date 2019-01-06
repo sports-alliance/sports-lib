@@ -138,9 +138,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
       intensityZones.push(value.toJSON());
     });
-    const stats: DataJSONInterface[] = [];
+    const stats = {};
     this.stats.forEach((value: DataInterface, key: string) => {
-      stats.push(value.toJSON());
+      Object.assign(stats, value.toJSON());
     });
     return {
       startDate: this.startDate.toJSON(),

@@ -6,5 +6,5 @@ export interface EventJSONInterface {
   privacy: Privacy,
   startDate: string,
   endDate: string,
-  stats: DataJSONInterface[],
+  stats: DataJSONInterface,
 }

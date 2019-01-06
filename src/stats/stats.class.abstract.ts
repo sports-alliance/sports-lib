@@ -4,7 +4,7 @@ import {DataDistance} from '../data/data.distance';
 import {DataInterface} from '../data/data.interface';
 
 export abstract class StatsClassAbstract extends IDClass implements StatsClassInterface {
-  public stats = new Map<string, DataInterface>();
+  public stats = new Map<string, DataInterface>(); // this could just be an array
 
   getDistance(): DataDistance {
     return <DataDistance>this.stats.get(DataDistance.type);

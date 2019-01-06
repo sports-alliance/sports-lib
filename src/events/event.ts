@@ -52,9 +52,9 @@ export class Event extends DurationClassAbstract implements EventInterface {
   }
 
   toJSON(): EventJSONInterface {
-    const stats: any[] = [];
-    this.stats.forEach((data: DataInterface, key: string) => {
-      stats.push(data.toJSON());
+    const stats = {};
+    this.stats.forEach((value: DataInterface, key: string) => {
+      Object.assign(stats, value.toJSON());
     });
     return {
       name: this.name,

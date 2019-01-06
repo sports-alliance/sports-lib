@@ -1,4 +1,5 @@
 import {DataInterface, UnitSystem} from './data.interface';
+import {DataJSONInterface} from "./data.json.interface";
 
 export abstract class Data implements DataInterface {
   static type: string;
@@ -45,10 +46,9 @@ export abstract class Data implements DataInterface {
     return (<typeof Data>this.constructor).unitSystem;
   }
 
-  toJSON(): {type: string, value: number | string | boolean} {
+  toJSON(): DataJSONInterface{
     return {
-      type: this.getType(),
-      value: this.getValue(),
+      [this.getType()]: this.getValue(),
     };
   }
 }

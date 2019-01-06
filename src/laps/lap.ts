@@ -15,9 +15,9 @@ export class Lap extends DurationClassAbstract implements LapInterface {
   }
 
   toJSON(): LapJSONInterface {
-    const stats: DataJSONInterface[] = [];
-    this.stats.forEach((data: DataInterface, key: string) => {
-      stats.push(data.toJSON());
+    const stats = {};
+    this.stats.forEach((value: DataInterface, key: string) => {
+      Object.assign(stats, value.toJSON());
     });
     return {
       startDate: this.startDate.toJSON(),

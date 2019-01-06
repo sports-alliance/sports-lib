@@ -7,7 +7,7 @@ export interface ActivityJSONInterface {
   startDate: string;
   endDate: string;
   type: string;
-  stats: DataJSONInterface[];
+  stats: DataJSONInterface;
   laps: LapJSONInterface[];
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];

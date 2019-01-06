@@ -24,8 +24,8 @@ export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     // debugger;
     const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate), json.privacy);
-    json.stats.forEach((stat: any) => {
-      event.addStat(DynamicDataLoader.getDataInstanceFromDataType(stat.type, stat.value))
+    Object.keys(json.stats).forEach((statName: any) => {
+      event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]))
     });
     return event;
   }
@@ -46,8 +46,8 @@ export class EventImporterJSON {
 
   static getLapFromJSON(json: LapJSONInterface): LapInterface {
     const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
-    json.stats.forEach((stat: any) => {
-      lap.addStat(DynamicDataLoader.getDataInstanceFromDataType(stat.type, stat.value))
+    Object.keys(json.stats).forEach((statName: any) => {
+      lap.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]))
     });
     return lap;
   }
@@ -77,8 +77,8 @@ export class EventImporterJSON {
       new Date(json.endDate),
       ActivityTypes[<keyof typeof ActivityTypes>json.type],
       EventImporterJSON.getCreatorFromJSON(json.creator));
-    json.stats.forEach((stat: any) => {
-      activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(stat.type, stat.value))
+    Object.keys(json.stats).forEach((statName: any) => {
+      activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]))
     });
     json.laps.forEach((lapJSON: LapJSONInterface) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));

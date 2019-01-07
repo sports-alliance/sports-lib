@@ -48,6 +48,7 @@ import {DataPositionInterface} from '../../data/data.position.interface';
 import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
 import {DataNumberOfSamples} from '../../data/data-number-of.samples';
 import {Privacy} from '../../privacy/privacy.class.interface';
+import {Stream} from "../../streams/stream";
 
 export class EventUtilities {
 
@@ -159,23 +160,18 @@ export class EventUtilities {
   //   return activity;
   // }
 
-  // public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
-  //   activity.getPoints().forEach((point: PointInterface) => {
-  //     // Remove depending on Date
-  //     if (startDate && point.getDate() < startDate) {
-  //       activity.removePoint(point)
-  //     }
-  //     if (endDate && point.getDate() > endDate) {
-  //       activity.removePoint(point)
-  //     }
-  //     // Clear up the distance data as it's accumulated
-  //     point.removeDataByType(DataDistance.type);
-  //   });
-  //
-  //   activity.startDate = startDate || activity.endDate;
-  //   activity.endDate = endDate || activity.endDate;
-  //   return activity;
-  // }
+  public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
+    activity.getAllStreams().forEach((stream) => {
+      // Get the data for the range specified
+      const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
+      activity.removeStream(stream);
+      activity.addStream(new Stream(stream.type, trimmedStreamData));
+    });
+
+    activity.startDate = startDate || activity.endDate;
+    activity.endDate = endDate || activity.endDate;
+    return activity;
+  }
 
   public static generateActivityStats(event: EventInterface) {
     // Todo should also work for event

@@ -6,12 +6,13 @@ import {ActivityTypes} from '../../../../activities/activity.types';
 import {DataDistance} from '../../../../data/data.distance';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataPause} from '../../../../data/data.pause';
-import {convertSpeedToPace, EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
 import {GeoLibAdapter} from '../../../../geodesy/adapters/geolib.adapter';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {Stream} from '../../../../streams/stream';
 import {GPXSampleMapper} from './importer.gpx.mapper';
 import {StreamInterface} from '../../../../streams/stream.interface';
+import {isNumberOrString} from "../../../utilities/helpers";
+import {EventUtilities} from "../../../utilities/event.utilities";
 
 const GXParser = require('gxparser').GXParser;
 

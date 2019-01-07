@@ -62,7 +62,6 @@ import {DataAltitudeAvg} from '../../../../data/data.altitude-avg';
 import {DataAltitudeMin} from '../../../../data/data.altitude-min';
 import {DataFusedLocation} from '../../../../data/data.fused-location';
 import {ActivityTypes} from '../../../../activities/activity.types';
-import {convertSpeedToPace, EventUtilities, isNumberOrString} from '../../../utilities/event.utilities';
 import {LapTypes} from '../../../../laps/lap.types';
 import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
@@ -73,6 +72,8 @@ import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 import {Stream} from '../../../../streams/stream';
+import {convertSpeedToPace, isNumberOrString} from "../../../utilities/helpers";
+import {EventUtilities} from "../../../utilities/event.utilities";
 
 export class EventImporterSuuntoJSON {
 

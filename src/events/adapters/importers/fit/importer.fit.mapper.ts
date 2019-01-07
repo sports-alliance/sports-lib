@@ -1,7 +1,6 @@
 import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
 import {DataAltitude} from '../../../../data/data.altitude';
 import {DataHeartRate} from '../../../../data/data.heart-rate';
-import {convertSpeedToPace, isNumber, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataCadence} from '../../../../data/data.cadence';
 import {DataTemperature} from '../../../../data/data.temperature';
 import {DataDistance} from '../../../../data/data.distance';
@@ -14,6 +13,7 @@ import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
 import {DataFormPower} from '../../../../data/data.form-power';
 import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
+import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {

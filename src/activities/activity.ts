@@ -11,10 +11,10 @@ import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
 import {StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {DataPositionInterface} from '../data/data.position.interface';
-import {isNumber} from '../events/utilities/event.utilities';
 import {Stream} from '../streams/stream';
 import {DataJSONInterface} from '../data/data.json.interface';
 import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
+import {isNumber} from "../events/utilities/helpers";
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;

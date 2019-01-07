@@ -5,7 +5,6 @@ import {Lap} from '../../../../laps/lap';
 import {EventInterface} from '../../../event.interface';
 import {CreatorInterface} from '../../../../creators/creator.interface';
 import {LapInterface} from '../../../../laps/lap.interface';
-import {convertSpeedToPace, EventUtilities, isNumber} from '../../../utilities/event.utilities';
 import {DataEnergy} from '../../../../data/data.energy';
 import {DataDuration} from '../../../../data/data.duration';
 import {DataDistance} from '../../../../data/data.distance';
@@ -21,6 +20,8 @@ import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {TCXSampleMapper} from './importer.tcx.mapper';
+import {EventUtilities} from "../../../utilities/event.utilities";
+import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
 
 export class EventImporterTCX {
 

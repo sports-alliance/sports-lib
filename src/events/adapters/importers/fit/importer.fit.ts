@@ -15,7 +15,6 @@ import {ImporterFitSuuntoDeviceNames} from './importer.fit.suunto.device.names';
 import {ImporterZwiftDeviceNames} from './importer.fit.swift.device.names';
 import {DataPause} from '../../../../data/data.pause';
 import {DataInterface} from '../../../../data/data.interface';
-import {convertSpeedToPace, EventUtilities, isNumber, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataCadenceAvg} from '../../../../data/data.cadence-avg';
 import {DataPowerAvg} from '../../../../data/data.power-avg';
 import {DataSpeedAvg} from '../../../../data/data.speed-avg';
@@ -36,6 +35,8 @@ import {DataPowerMin} from '../../../../data/data.power-min';
 import {DataPaceMin} from '../../../../data/data.pace-min';
 import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
 import {FITSampleMapper} from './importer.fit.mapper';
+import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
+import {EventUtilities} from "../../../utilities/event.utilities";
 
 const EasyFit = require('easy-fit').default;
 

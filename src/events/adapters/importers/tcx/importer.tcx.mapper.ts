@@ -1,16 +1,13 @@
 import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
 import {DataAltitude} from '../../../../data/data.altitude';
 import {DataHeartRate} from '../../../../data/data.heart-rate';
-import {convertSpeedToPace, isNumberOrString} from '../../../utilities/event.utilities';
 import {DataCadence} from '../../../../data/data.cadence';
-import {DataTemperature} from '../../../../data/data.temperature';
 import {DataDistance} from '../../../../data/data.distance';
-import {DataSeaLevelPressure} from '../../../../data/data.sea-level-pressure';
 import {DataSpeed} from '../../../../data/data.speed';
 import {DataPace} from '../../../../data/data.pace';
-import {DataVerticalSpeed} from '../../../../data/data.vertical-speed';
 import {DataPower} from '../../../../data/data.power';
 import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
+import {convertSpeedToPace} from "../../../utilities/helpers";
 
 export const TCXSampleMapper: { dataType: string, getSampleValue(trackPointsElement: Element): number | null }[] = [
   {

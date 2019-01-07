@@ -1,6 +1,6 @@
 import {StreamInterface} from './stream.interface';
 import {StreamJSONInterface} from './stream.json.interface';
-import {isNumber} from '../events/utilities/event.utilities';
+import {isNumber} from "../events/utilities/helpers";
 
 export class Stream implements StreamInterface {
   public readonly type: string;

@@ -66,6 +66,16 @@ import {DataVerticalOscillation} from './data.vertical-oscillation';
 import {DataTotalTrainingEffect} from './data.total-training-effect';
 import {DataNumberOfSamples} from './data-number-of.samples';
 import {Data} from './data';
+import {DataFootPodUsed} from "./data.foot-pod-used";
+import {DataAutoPauseUsed} from "./data.auto-pause-used";
+import {DataAutoLapDuration} from "./data.auto-lap-duration";
+import {DataAutoLapDistance} from "./data.auto-lap-distance";
+import {DataAutoLapUsed} from "./data.auto-lap-used";
+import {DataBikePodUsed} from "./data.bike-pod-used";
+import {DataEnabledNavigationSystems} from "./data.enabled-navigation-systems";
+import {DataHeartRateUsed} from "./data.heart-rate-used";
+import {DataPowerPodUsed} from "./data.power-pod-used";
+import {DataAltiBaroProfile} from "./data.alti-baro-profile";
 
 /**
  * Only concrete classes no abstracts
@@ -137,6 +147,16 @@ export const DataStore: any = {
   DataLegStiffness,
   DataVerticalOscillation,
   DataTotalTrainingEffect,
+  DataFootPodUsed,
+  DataAltiBaroProfile,
+  DataAutoPauseUsed,
+  DataAutoLapDuration,
+  DataAutoLapDistance,
+  DataAutoLapUsed,
+  DataBikePodUsed,
+  DataEnabledNavigationSystems,
+  DataHeartRateUsed,
+  DataPowerPodUsed,
 };
 
 export class DynamicDataLoader {
@@ -155,7 +175,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${className}\' is not in the store`);
+      throw new Error(`Class type of \'${dataType}\' is not in the store`);
     }
     return DataStore[className];
   }

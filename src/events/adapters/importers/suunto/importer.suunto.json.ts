@@ -74,6 +74,16 @@ import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 import {Stream} from '../../../../streams/stream';
 import {convertSpeedToPace, isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
+import {DataAltiBaroProfile} from "../../../../data/data.alti-baro-profile";
+import {DataAutoLapDistance} from "../../../../data/data.auto-lap-distance";
+import {DataAutoLapDuration} from "../../../../data/data.auto-lap-duration";
+import {DataAutoPauseUsed} from "../../../../data/data.auto-pause-used";
+import {DataBikePodUsed} from "../../../../data/data.bike-pod-used";
+import {DataEnabledNavigationSystems} from "../../../../data/data.enabled-navigation-systems";
+import {DataFootPodUsed} from "../../../../data/data.foot-pod-used";
+import {DataHeartRateUsed} from "../../../../data/data.heart-rate-used";
+import {DataPowerPodUsed} from "../../../../data/data.power-pod-used";
+import {DynamicDataLoader} from "../../../../data/data.store";
 
 export class EventImporterSuuntoJSON {
 
@@ -244,6 +254,13 @@ export class EventImporterSuuntoJSON {
             return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
           });
           // set the HR
+
+          // @todo perhaps create new 'types'
+          const existingHRStream = activity.getAllStreams().find(stream => stream.type === DataHeartRate.type);
+          if (existingHRStream) {
+            activity.removeStream(existingHRStream);
+          }
+
           this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
           // @todo solve this with IBI that is not compatible with Stram interface and I am hacking it
           activity.addStream(new Stream('IBI', ibiData)); // Append an IBI data stream
@@ -258,6 +275,13 @@ export class EventImporterSuuntoJSON {
       this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
         event.addStat(stat)
       });
+
+      // Get the settings
+      if (eventJSONObject.DeviceLog.Header.Settings) {
+        this.getSettings(eventJSONObject.DeviceLog.Header.Settings).forEach((stat) => {
+          event.getActivities().forEach(activity => activity.addStat(stat));
+        });
+      }
 
       // Generate stats
       EventUtilities.generateActivityStats(event);
@@ -320,6 +344,18 @@ export class EventImporterSuuntoJSON {
         });
       }
     });
+  }
+
+  private static getSettings(settings: any) {
+    const stats: DataInterface[] = [];
+    SuuntoSettingsMapper.forEach((settingsMapping) => {
+      debugger
+      if (settingsMapping.getValue(settings) !== null && settingsMapping.getValue(settings) !== undefined) {
+        debugger
+        stats.push(DynamicDataLoader.getDataInstanceFromDataType(settingsMapping.dataType, settingsMapping.getValue(settings)))
+      }
+    });
+    return stats
   }
 
   // @todo convert this to a mapping as well
@@ -477,6 +513,78 @@ export class EventImporterSuuntoJSON {
     return stats;
   }
 }
+
+export const SuuntoSettingsMapper = [
+  {
+    dataType: DataAltiBaroProfile.type,
+    getValue: (settings: any) => {
+      return settings['AltiBaroProfile']
+    },
+  },
+  {
+    dataType: DataAutoLapDistance.type,
+    getValue: (settings: any) => {
+      if (!settings['AutoLap']) {
+        return null;
+      }
+      return settings['AutoLap']['Distance'];
+    },
+  },
+  {
+    dataType: DataAutoLapDuration.type,
+    getValue: (settings: any) => {
+      if (!settings['AutoLap']) {
+        return null;
+      }
+      return settings['AutoLap']['Duration'];
+    },
+  },
+  {
+    dataType: DataAutoPauseUsed.type,
+    getValue: (settings: any) => {
+      if (!settings['AutoPause']) {
+        return null;
+      }
+      return settings['AutoPause']['Enabled'];
+    },
+  },
+  {
+    dataType: DataBikePodUsed.type,
+    getValue: (settings: any) => {
+      return settings['BikePodUsed'];
+    },
+  },
+  {
+    dataType: DataEnabledNavigationSystems.type,
+    getValue: (settings: any) => {
+      return settings['EnabledNavigationSystems'];
+    },
+  },
+  {
+    dataType: DataFootPodUsed.type,
+    getValue: (settings: any) => {
+      return settings['FootPodUsed'];
+    },
+  },
+  {
+    dataType: DataFusedAltitude.type,
+    getValue: (settings: any) => {
+      return settings['FusedAltiUsed'];
+    },
+  },
+  {
+    dataType: DataHeartRateUsed.type,
+    getValue: (settings: any) => {
+      return settings['HrUsed'];
+    },
+  },
+  {
+    dataType: DataPowerPodUsed.type,
+    getValue: (settings: any) => {
+      return settings['PowerPodUsed'];
+    },
+  },
+];
 
 export const SuuntoIntensityZonesMapper = [
   {

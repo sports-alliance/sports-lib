@@ -6,6 +6,8 @@ export class User implements UserInterface {
   privacy: Privacy = Privacy.private;
   acceptedDataPolicy = false;
   acceptedPrivacyPolicy = false;
+  acceptedTrackingPolicy = false;
+  acceptedDiagnosticsPolicy = false;
 
   photoURL?: string;
   displayName?: string;
@@ -33,6 +35,8 @@ export class User implements UserInterface {
       privacy: this.privacy,
       acceptedPrivacyPolicy: this.acceptedPrivacyPolicy,
       acceptedDataPolicy: this.acceptedDataPolicy,
+      acceptedTrackingPolicy: this.acceptedTrackingPolicy,
+      acceptedDiagnosticsPolicy: this.acceptedDiagnosticsPolicy,
       photoURL: this.photoURL || null,
       displayName: this.displayName || null,
       description: this.description || null,

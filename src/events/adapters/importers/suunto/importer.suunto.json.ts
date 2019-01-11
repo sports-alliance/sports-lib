@@ -349,9 +349,7 @@ export class EventImporterSuuntoJSON {
   private static getSettings(settings: any) {
     const stats: DataInterface[] = [];
     SuuntoSettingsMapper.forEach((settingsMapping) => {
-      debugger
       if (settingsMapping.getValue(settings) !== null && settingsMapping.getValue(settings) !== undefined) {
-        debugger
         stats.push(DynamicDataLoader.getDataInstanceFromDataType(settingsMapping.dataType, settingsMapping.getValue(settings)))
       }
     });

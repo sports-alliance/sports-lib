@@ -1,5 +1,6 @@
 import {PrivacyClassInterface} from '../privacy/privacy.class.interface';
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
+import {UserSettingsInterface} from "./user.settings.interface";
 
 export interface UserInterface extends PrivacyClassInterface, SerializableClassInterface{
   uid: string;
@@ -10,4 +11,5 @@ export interface UserInterface extends PrivacyClassInterface, SerializableClassI
   photoURL?: string;
   displayName?: string;
   description?: string;
+  settings?: UserSettingsInterface;
 }

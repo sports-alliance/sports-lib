@@ -1,5 +1,6 @@
 import {Privacy} from '../privacy/privacy.class.interface';
 import {UserInterface} from './user.interface';
+import {UserSettingsInterface} from "./user.settings.interface";
 
 export class User implements UserInterface {
   uid: string;
@@ -12,6 +13,7 @@ export class User implements UserInterface {
   photoURL?: string;
   displayName?: string;
   description?: string;
+  settings?: UserSettingsInterface;
 
   constructor(userID: string, displayName?: string, photoURL?: string, privacy?: Privacy, description?: string) {
     this.uid = userID;
@@ -40,6 +42,7 @@ export class User implements UserInterface {
       photoURL: this.photoURL || null,
       displayName: this.displayName || null,
       description: this.description || null,
+      settings: this.settings ? this.settings.toJSON() : null,
     }
   }
 }

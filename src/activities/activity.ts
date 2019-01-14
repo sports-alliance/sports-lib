@@ -47,7 +47,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   removeStream(stream: StreamInterface): void {
-    this.streams.filter((activityStream) => stream !== activityStream)
+    this.streams = this.streams.filter((activityStream) => stream !== activityStream)
   }
 
   addStreams(streams: StreamInterface[]): void {

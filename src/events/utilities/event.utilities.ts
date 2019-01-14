@@ -131,45 +131,58 @@ export class EventUtilities {
   }
 
 
-  // public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
-  //   // Short to do the search just in case
-  //   let startDistanceDate: Date | undefined; // Does not sound right
-  //   let endDistanceDate: Date | undefined;
-  //
-  //   activity.getPoints().forEach((point: PointInterface) => {
-  //     // find start and end date
-  //     let pointDistance = point.getDataByType(DataDistance.type);
-  //     if (!startDistanceDate && pointDistance && pointDistance.getValue() >= startDistance) {
-  //       startDistanceDate = point.getDate();
-  //       return;
-  //     }
-  //     if (!endDistanceDate && pointDistance && pointDistance.getValue() >= endDistance) {
-  //       endDistanceDate = point.getDate();
-  //       return;
-  //     }
-  //   });
-  //
-  //   activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
-  //
-  //   // Should  reset all stats
-  //   activity.clearStats();
-  //
-  //   // Set the distance
-  //   activity.setDistance(new DataDistance(endDistance));
-  //
-  //   return activity;
-  // }
+  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
+    // Short to do the search just in case
+    let startDistanceDate: Date | undefined; // Does not sound right
+    let endDistanceDate: Date | undefined;
+
+    // debugger;
+    activity.getStreamData(DataDistance.type).forEach((distanceFromData, index) => {
+      // Find the index with greater dinstnce and convert it to time
+      if (startDistance && !startDistanceDate && distanceFromData && distanceFromData >= startDistance) {
+        startDistanceDate = new Date(activity.startDate.getTime() + (index * 1000));
+        return
+      }
+      // Same for end
+      if (endDistance && !endDistanceDate && distanceFromData && distanceFromData >= endDistance) {
+        endDistanceDate = new Date(activity.startDate.getTime() + (index * 1000));
+        return
+      }
+    });
+
+    if (!startDistanceDate && !endDistanceDate) {
+      return activity;
+    }
+
+    // debugger;
+    activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
+
+    const distanceStream = activity.getAllStreams().find(stream => stream.type === DataDistance.type);
+    if (distanceStream){
+      activity.removeStream(distanceStream);
+    }
+
+    // Should  reset all stats
+    activity.clearStats();
+
+    // Set the distance
+    activity.setDistance(new DataDistance(endDistance - startDistance));
+
+    return activity;
+  }
 
   public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
     activity.getAllStreams().forEach((stream) => {
       // Get the data for the range specified
       const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
+      // debugger;
       activity.removeStream(stream);
       activity.addStream(new Stream(stream.type, trimmedStreamData));
     });
 
-    activity.startDate = startDate || activity.endDate;
+    activity.startDate = startDate || activity.startDate;
     activity.endDate = endDate || activity.endDate;
+    // debugger
     return activity;
   }
 
@@ -234,6 +247,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date,
     minDiff: number = 5): number {
+    // debugger;
     let gainOrLoss = 0;
     activity.getSquashedStreamData(streamType, startDate, endDate)
       .reduce((previousValue: number, nextValue: number) => {

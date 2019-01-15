@@ -203,25 +203,26 @@ export class EventImporterFIT {
     let creator: CreatorInterface;
     switch (fitDataObject.file_id.manufacturer) {
       case 'suunto': {
-        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product]);
+        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product]|| 'Suunto Unknown');
         break;
       }
       case 'garmin': {
-        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_id.product]);
+        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_id.product] || 'Garmin Unknown');
         break;
       }
       case 'zwift': {
-        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product]);
+        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product]|| 'Zwift Unknown');
         break;
       }
       default: {
         creator = new Creator(
-          (fitDataObject.file_id.manufacturer || 'Invalid Manufacturer')
+          (fitDataObject.file_id.manufacturer || 'Manufacturer Unknown')
           + (fitDataObject.file_id.product || ''),
         )
       }
     }
 
+    // debugger;
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {
       creator.hwInfo = String(fitDataObject.file_creator.hardware_version);
     }

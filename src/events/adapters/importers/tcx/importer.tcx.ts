@@ -89,7 +89,7 @@ export class EventImporterTCX {
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
       activities.forEach(activity => event.addActivity(activity));
 
-      EventUtilities.generateActivityStats(event);
+      EventUtilities.generateEventStatsForAllActivities(event);
       resolve(event);
     });
   }

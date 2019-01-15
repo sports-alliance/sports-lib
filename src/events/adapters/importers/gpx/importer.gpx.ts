@@ -59,7 +59,7 @@ export class EventImporterGPX {
       });
       debugger;
       // generate global stats
-      EventUtilities.generateActivityStats(event);
+      EventUtilities.generateEventStatsForAllActivities(event);
 
 
       // @todo should be moved elsewhere perhaps also in the generation

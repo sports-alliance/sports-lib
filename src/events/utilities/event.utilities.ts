@@ -113,7 +113,7 @@ export class EventUtilities {
     });
     const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
     event.addActivities(activities);
-    this.generateActivityStats(event);
+    this.generateEventStatsForAllActivities(event);
     return event;
   }
 
@@ -186,16 +186,14 @@ export class EventUtilities {
     return activity;
   }
 
-  public static generateActivityStats(event: EventInterface) {
-    // Todo should also work for event
+  public static generateEventStatsForAllActivities(event: EventInterface) {
+    // First generate that stats on the activity it self
     event.getActivities().forEach((activity: ActivityInterface) => {
-      // Generate for activities
-      this.generateStatsForActivity(activity);
-      this.generateStreamsForActivity(activity);
-      activity.getLaps().map((lap: LapInterface) => {
-        // this.generateStatsForActivity(lap);
-      })
+      this.generateEventStatsActivity(event, activity)
     });
+
+    // Clear all event stats
+    event.clearStats();
 
     // If the event does not have basic stats generate them
     // @todo think about the default state of those
@@ -219,6 +217,11 @@ export class EventUtilities {
         event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
       });
     }
+  }
+
+  public static generateEventStatsActivity(event: EventInterface, activity: ActivityInterface) {
+    this.generateMissingStatsForActivity(activity);
+    this.generateMissingStreamsForActivity(activity);
   }
 
   public static getEventDataTypeGain(
@@ -302,7 +305,7 @@ export class EventUtilities {
    * Generates the stats for an activity
    * @param activity
    */
-  private static generateStatsForActivity(activity: ActivityInterface) {
+  private static generateMissingStatsForActivity(activity: ActivityInterface) {
     // Add the number of points this activity has
     activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
 
@@ -471,7 +474,7 @@ export class EventUtilities {
    * Generates missing streams for an activity such as distance etc if they are missing
    * @param activity
    */
-  private static generateStreamsForActivity(activity: ActivityInterface) {
+  private static generateMissingStreamsForActivity(activity: ActivityInterface) {
     if (activity.hasStreamData(DataLatitudeDegrees.type) && !activity.hasStreamData(DataDistance.type)) {
       const distanceStream = activity.createStream(DataDistance.type);
       let distance = 0;

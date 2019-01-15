@@ -277,6 +277,7 @@ export class EventImporterSuuntoJSON {
       });
 
       // Get the settings
+      // @todo see how we can have those event stats persisted as the below generation wipes those off.
       if (eventJSONObject.DeviceLog.Header.Settings) {
         this.getSettings(eventJSONObject.DeviceLog.Header.Settings).forEach((stat) => {
           event.getActivities().forEach(activity => activity.addStat(stat));
@@ -284,7 +285,7 @@ export class EventImporterSuuntoJSON {
       }
 
       // Generate stats
-      EventUtilities.generateActivityStats(event);
+      EventUtilities.generateEventStatsForAllActivities(event);
 
       resolve(event);
     });

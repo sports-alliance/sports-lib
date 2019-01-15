@@ -154,11 +154,11 @@ export class EventUtilities {
       return activity;
     }
 
-    // debugger;
+    debugger;
     activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
 
     const distanceStream = activity.getAllStreams().find(stream => stream.type === DataDistance.type);
-    if (distanceStream){
+    if (distanceStream) {
       activity.removeStream(distanceStream);
     }
 
@@ -189,39 +189,37 @@ export class EventUtilities {
   public static generateEventStatsForAllActivities(event: EventInterface) {
     // First generate that stats on the activity it self
     event.getActivities().forEach((activity: ActivityInterface) => {
-      this.generateEventStatsActivity(event, activity)
+      this.generateMissingStreamsAndStatsForActivity(activity)
     });
 
     // Clear all event stats
     event.clearStats();
+    this.generateStatsForEvent(event);
 
-    // If the event does not have basic stats generate them
-    // @todo think about the default state of those
-    if (!event.getDuration()) {
-      event.setDuration(new DataDuration(0));
-      event.getActivities().forEach((activity) => {
-        event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
-      });
-    }
-
-    if (!event.getPause()) {
-      event.setPause(new DataPause(0));
-      event.getActivities().forEach((activity) => {
-        event.setPause(new DataPause(event.getPause().getValue() + activity.getPause().getValue()));
-      });
-    }
-
-    if (!event.getDistance()) {
-      event.setDistance(new DataDistance(0));
-      event.getActivities().forEach((activity) => {
-        event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
-      });
-    }
   }
 
-  public static generateEventStatsActivity(event: EventInterface, activity: ActivityInterface) {
+  public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
     this.generateMissingStatsForActivity(activity);
     this.generateMissingStreamsForActivity(activity);
+  }
+
+  public static generateStatsForEvent(event: EventInterface) {
+    event.startDate = event.getFirstActivity().startDate;
+    event.endDate = event.getLastActivity().endDate;
+    event.setDuration(new DataDuration(0));
+    event.getActivities().forEach((activity) => {
+      event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
+    });
+
+    event.setPause(new DataPause(0));
+    event.getActivities().forEach((activity) => {
+      event.setPause(new DataPause(event.getPause().getValue() + activity.getPause().getValue()));
+    });
+
+    event.setDistance(new DataDistance(0));
+    event.getActivities().forEach((activity) => {
+      event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
+    });
   }
 
   public static getEventDataTypeGain(

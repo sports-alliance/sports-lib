@@ -36,6 +36,8 @@ export class Event extends DurationClassAbstract implements EventInterface {
   }
 
   getActivities(): ActivityInterface[] {
+    this.sortActivities(); // PErhaps move on adding ? Lets check performance
+    // debugger
     return this.activities;
   }
 
@@ -50,6 +52,13 @@ export class Event extends DurationClassAbstract implements EventInterface {
       return activityA.startDate < activityB.startDate ? activityB : activityA;
     });
   }
+
+  private sortActivities(){
+    this.activities.sort((activityA: ActivityInterface, activityB: ActivityInterface) => {
+      return +activityA.startDate - +activityB.startDate;
+    });
+  }
+
 
   toJSON(): EventJSONInterface {
     const stats = {};

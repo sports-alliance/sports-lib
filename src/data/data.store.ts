@@ -160,6 +160,42 @@ export const DataStore: any = {
 };
 
 export class DynamicDataLoader {
+  static basicDataTypes =
+    [
+      DataHeartRate.type,
+      DataAltitude.type,
+      DataCadence.type,
+      DataPower.type,
+      DataPace.type,
+      DataSpeed.type
+    ];
+
+  static advancedDataTypes = [
+    DataTemperature.type,
+    DataSeaLevelPressure.type,
+    DataSatellite5BestSNR.type,
+    DataNumberOfSatellites.type,
+    DataEVPE.type,
+    DataEHPE.type,
+    DataDistance.type,
+    DataGPSAltitude.type,
+    DataAbsolutePressure.type,
+    DataPeakTrainingEffect.type,
+    DataEPOC.type,
+    DataEnergy.type,
+    DataNumberOfSamples.type,
+    DataBatteryCharge.type,
+    DataBatteryCurrent.type,
+    DataBatteryVoltage.type,
+    DataBatteryConsumption.type,
+    DataFormPower.type,
+    DataLegStiffness.type,
+    DataVerticalOscillation.type,
+    DataTotalTrainingEffect.type,
+  ];
+
+  static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);
+
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
     const className = Object.keys(DataStore).find((dataClass) => {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
@@ -179,4 +215,5 @@ export class DynamicDataLoader {
     }
     return DataStore[className];
   }
+
 }

@@ -54,7 +54,7 @@ export class EventImporterFIT {
       });
 
       easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        // debugger;
+        debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject

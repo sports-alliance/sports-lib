@@ -1,7 +1,21 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
+export interface UserChartSettingsInterface{
+  dataTypeSettings: DataTypeSettings
+  theme: ChartThemes
+  useAnimations: boolean
+}
 
-export interface UserChartSettingsInterface extends SerializableClassInterface{
-  dataTypeSettings: {
-    [type:string]: {enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string}
-  }
+export enum ChartThemes {
+  Charts = 'amcharts',
+  ChartsDark = 'amchartsdark',
+  DataViz = 'dataviz',
+  Frozen = 'frozen',
+  Dark = 'dark',
+  Kelly = 'kelly',
+  Material = 'material',
+  MoonriseKingdom = 'moonrisekingdom',
+  SpiritedAway = 'spiritedaway',
+}
+
+export interface DataTypeSettings{
+  [type:string]: {enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string}
 }

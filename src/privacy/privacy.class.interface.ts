@@ -4,6 +4,6 @@ export interface PrivacyClassInterface {
 
 
 export enum Privacy {
-  public = 'public',
-  private = 'private',
+  Public = 'public',
+  Private = 'private',
 }

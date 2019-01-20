@@ -1,6 +1,7 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {UserChartSettingsInterface} from "./user.chart.settings.interface";
+import {UserAppSettingsInterface} from "./user.app.settings.interface";
 
-export interface UserSettingsInterface extends SerializableClassInterface{
-  chartSettings?: UserChartSettingsInterface
+export interface UserSettingsInterface {
+  chartSettings?: UserChartSettingsInterface,
+  appSettings?: UserAppSettingsInterface,
 }

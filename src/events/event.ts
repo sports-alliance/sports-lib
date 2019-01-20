@@ -8,7 +8,7 @@ import {Privacy} from '../privacy/privacy.class.interface';
 export class Event extends DurationClassAbstract implements EventInterface {
 
   public name: string;
-  public privacy: Privacy = Privacy.private;
+  public privacy: Privacy = Privacy.Private;
   private activities: ActivityInterface[] = [];
 
   constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy) {

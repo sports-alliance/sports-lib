@@ -4,7 +4,7 @@ import {UserSettingsInterface} from "./user.settings.interface";
 
 export class User implements UserInterface {
   uid: string;
-  privacy: Privacy = Privacy.private;
+  privacy: Privacy = Privacy.Private;
   acceptedDataPolicy = false;
   acceptedPrivacyPolicy = false;
   acceptedTrackingPolicy = false;
@@ -42,7 +42,7 @@ export class User implements UserInterface {
       photoURL: this.photoURL || null,
       displayName: this.displayName || null,
       description: this.description || null,
-      settings: this.settings ? this.settings.toJSON() : null,
+      settings: this.settings ? this.settings : null,
     }
   }
 }

@@ -2,6 +2,7 @@
  * This enum works like a all matchers for normalized lap types between different naming across services
  */
 export enum LapTypes {
+  'unknown' = 'Unknown',
   'Start' = 'Start',
   'Stop' = 'Start',
   'Manual' = 'Manual',
@@ -13,6 +14,8 @@ export enum LapTypes {
   'distance' = 'Distance',
   'Location' = 'Location',
   'location' = 'Location',
+  'interval' = 'Interval',
+  'Interval' = 'Interval',
   'Time' = 'Time',
   'time' = 'Time',
   'HeartRate' = 'Heart Rate',
@@ -21,5 +24,5 @@ export enum LapTypes {
   'position_waypoint' = 'Position waypoint',
   'position_marked' = 'Position marked',
   'session_end' = 'Session end',
-  'fitness_equipment' = 'Fitness equipment',
+  'fitness_equipment' = 'Fitness equipment'
 }

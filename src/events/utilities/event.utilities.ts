@@ -491,6 +491,10 @@ export class EventUtilities {
       });
       activity.addStream(distanceStream);
     }
+
+    if (activity.hasStreamData(DataSpeed.type)  && !activity.hasStreamData(DataPace.type)){
+
+    }
   }
 
   public static getDistanceForActivity(

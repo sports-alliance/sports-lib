@@ -15,6 +15,8 @@ export interface DataInterface extends SerializableClassInterface {
 
   getDisplayUnit(): string;
 
+  getDisplayType(): string;
+
   getUnitSystem(): UnitSystem;
 
   toJSON(): DataJSONInterface;

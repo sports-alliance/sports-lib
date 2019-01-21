@@ -42,6 +42,10 @@ export abstract class Data implements DataInterface {
     return this.getUnit();
   }
 
+  getDisplayType(): string {
+    return (<typeof Data>this.constructor).type;
+  }
+
   getUnitSystem(): UnitSystem {
     return (<typeof Data>this.constructor).unitSystem;
   }

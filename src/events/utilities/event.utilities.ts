@@ -23,9 +23,24 @@ import {DataHeartRateAvg} from '../../data/data.heart-rate-avg';
 import {DataCadenceMax} from '../../data/data.cadence-max';
 import {DataCadenceMin} from '../../data/data.cadence-min';
 import {DataCadenceAvg} from '../../data/data.cadence-avg';
-import {DataSpeedMax} from '../../data/data.speed-max';
-import {DataSpeedMin} from '../../data/data.speed-min';
-import {DataSpeedAvg} from '../../data/data.speed-avg';
+import {
+  DataSpeedMax,
+  DataSpeedMaxFeetPerMinute, DataSpeedMaxFeetPerSecond,
+  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxMilesPerHour
+} from '../../data/data.speed-max';
+import {
+  DataSpeedMin,
+  DataSpeedMinFeetPerSecond,
+  DataSpeedMinKilometersPerHour,
+  DataSpeedMinMilesPerHour
+} from '../../data/data.speed-min';
+import {
+  DataSpeedAvg,
+  DataSpeedAvgFeetPerSecond,
+  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgMilesPerHour
+} from '../../data/data.speed-avg';
 import {DataVerticalSpeedMax} from '../../data/data.vertical-speed-max';
 import {DataVerticalSpeedMin} from '../../data/data.vertical-speed-min';
 import {DataVerticalSpeedAvg} from '../../data/data.vertical-speed-avg';
@@ -43,8 +58,8 @@ import {DataDescent} from '../../data/data.descent';
 import {GeoLibAdapter} from '../../geodesy/adapters/geolib.adapter';
 import {DataPaceMax, DataPaceMaxMinutesPerMile} from '../../data/data.pace-max';
 import {DataPace, DataPaceMinutesPerMile} from '../../data/data.pace';
-import {DataPaceMin} from '../../data/data.pace-min';
-import {DataPaceAvg} from '../../data/data.pace-avg';
+import {DataPaceMin, DataPaceMinMinutesPerMile} from '../../data/data.pace-min';
+import {DataPaceAvg, DataPaceAvgMinutesPerMile} from '../../data/data.pace-avg';
 import {DataBatteryCharge} from '../../data/data.battery-charge';
 import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
@@ -211,8 +226,9 @@ export class EventUtilities {
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
-    this.generateMissingStatsForActivity(activity);
     this.generateMissingStreamsForActivity(activity);
+    this.generateMissingStatsForActivity(activity);
+    this.generateMissingUnitStatsForActivity(activity);
   }
 
   public static generateStatsForEvent(event: EventInterface) {
@@ -317,7 +333,8 @@ export class EventUtilities {
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
     // Add the number of points this activity has
-    activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
+    // @todo this wont work since the stats are after the generated streams // Could be wrong and I could still vise versa
+    // activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
 
     // If there is no duration define that from the start date and end date
     if (!activity.getStat(DataDuration.type)) {
@@ -334,6 +351,7 @@ export class EventUtilities {
       activity.addStat(new DataDistance(this.getDistanceForActivity(activity, activity.startDate, activity.endDate)));
     }
 
+    // @todo remove the start date and end date parameters
     // Ascent (altitude gain)
     if (!activity.getStat(DataAscent.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
@@ -421,23 +439,6 @@ export class EventUtilities {
       activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
     }
 
-    // @todo example add support for those but in a different way eg populate units etc. I want to have sometimes the not generated ones
-    // // Pace Max in minutes per mile
-    // if (!activity.getStat(DataPaceMaxMinutesPerMile.type)
-    //   && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-    //   activity.addStat(new DataPaceMax(this.getDataTypeMin(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally min
-    // }
-    // // Pace Min in minutes per mile
-    // if (!activity.getStat(DataPaceMin.type)
-    //   && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-    //   activity.addStat(new DataPaceMin(this.getDataTypeMax(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally max
-    // }
-    // // Pace Avg in minutes per mile
-    // if (!activity.getStat(DataPaceAvg.type)
-    //   && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-    //   activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
-    // }
-
     // Vertical Speed Max
     if (!activity.getStat(DataVerticalSpeedMax.type)
       && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
@@ -498,6 +499,84 @@ export class EventUtilities {
     }
   }
 
+  private static generateMissingUnitStatsForActivity(activity: ActivityInterface) {
+    if (!activity.getStat(DataPaceMaxMinutesPerMile.type)) {
+      const paceMax = activity.getStat(DataPaceMax.type);
+      if (paceMax) {
+        activity.addStat(new DataPaceMaxMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataPaceMinMinutesPerMile.type)) {
+      const paceMin = activity.getStat(DataPaceMin.type);
+      if (paceMin) {
+        activity.addStat(new DataPaceMinMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceMin.getValue())));
+      }
+    }
+
+    if (!activity.getStat(DataPaceAvgMinutesPerMile.type)) {
+      const paceAvg = activity.getStat(DataPaceAvg.type);
+      if (paceAvg) {
+        activity.addStat(new DataPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMaxKilometersPerHour.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMaxMilesPerHour.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMaxFeetPerSecond.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
+      }
+    }
+
+    if (!activity.getStat(DataSpeedMinKilometersPerHour.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMinMilesPerHour.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMinFeetPerSecond.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
+      }
+    }
+
+    if (!activity.getStat(DataSpeedAvgKilometersPerHour.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedAvgMilesPerHour.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedAvgFeetPerSecond.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
+      }
+    }
+  }
+
   /**
    * Generates missing streams for an activity such as distance etc if they are missing
    * @param activity
@@ -522,27 +601,27 @@ export class EventUtilities {
       activity.addStream(distanceStream);
     }
 
-    if (activity.hasStreamData(DataSpeed.type)  && !activity.hasStreamData(DataPace.type)){
+    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataPace.type)) {
       activity.addStream(new Stream(DataPace.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)){
+        if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToPace(<number>dataValue);
       })));
     }
 
-    if (activity.hasStreamData(DataSpeed.type)  && !activity.hasStreamData(DataSpeedKilometersPerHour.type)){
+    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedKilometersPerHour.type)) {
       activity.addStream(new Stream(DataSpeedKilometersPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)){
+        if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
       })));
     }
 
-    if (activity.hasStreamData(DataSpeed.type)  && !activity.hasStreamData(DataSpeedMilesPerHour.type)){
+    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedMilesPerHour.type)) {
       activity.addStream(new Stream(DataSpeedMilesPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)){
+        if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
@@ -550,18 +629,18 @@ export class EventUtilities {
     }
 
 
-    if (activity.hasStreamData(DataSpeed.type)  && !activity.hasStreamData(DataSpeedFeetPerSecond.type)){
+    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedFeetPerSecond.type)) {
       activity.addStream(new Stream(DataSpeedFeetPerSecond.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)){
+        if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
       })));
     }
 
-    if (activity.hasStreamData(DataPace.type)  && !activity.hasStreamData(DataPaceMinutesPerMile.type)){
+    if (activity.hasStreamData(DataPace.type) && !activity.hasStreamData(DataPaceMinutesPerMile.type)) {
       activity.addStream(new Stream(DataPaceMinutesPerMile.type, activity.getStreamData(DataPace.type).map(dataValue => {
-        if (!isNumber(dataValue)){
+        if (!isNumber(dataValue)) {
           return null
         }
         return convertPaceToPaceInMinutesPerMile(<number>dataValue);

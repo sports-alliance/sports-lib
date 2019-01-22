@@ -2,7 +2,7 @@ import {DataDuration} from './data.duration';
 
 export class DataPace extends DataDuration {
   static type = 'Pace';
-  static unit = 'm/km';
+  static unit = 'min/km';
 
   getDisplayValue(): string{
     const d = this.getValue();
@@ -17,8 +17,11 @@ export class DataPace extends DataDuration {
       return ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2) + ':' + ('0' + s).slice(-2);
     }
   }
+}
 
-  getDisplayUnit(): string {
-    return 'min/km';
-  }
+export class DataPaceMinutesPerMile extends DataPace{
+  static type = 'Pace in minutes per mile';
+  static displayType = DataPace.type;
+  static unit = 'min/m';
+
 }

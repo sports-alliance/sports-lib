@@ -2,7 +2,6 @@ import {
   DataSpeed, DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
   DataSpeedKilometersPerHour, DataSpeedMetersPerMinute,
-  DataSpeedMetersPerSecond,
   DataSpeedMilesPerHour
 } from './data.speed';
 
@@ -12,6 +11,8 @@ export class DataSpeedMax extends DataSpeed {
 
 export class DataSpeedMaxKilometersPerHour extends DataSpeedKilometersPerHour {
   static type = 'Maximum speed in kilometers per hour';
+  static displayType = DataSpeedMax.type;
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -19,13 +20,8 @@ export class DataSpeedMaxKilometersPerHour extends DataSpeedKilometersPerHour {
 
 export class DataSpeedMaxMilesPerHour extends DataSpeedMilesPerHour {
   static type = 'Maximum speed in miles per hour';
-  getDisplayType(): string {
-    return super.getDisplayType();
-  }
-}
+  static displayType = DataSpeedMax.type;
 
-export class DataSpeedMaxSpeedMetersPerSecond extends DataSpeedMetersPerSecond {
-  static type = 'Maximum speed in meters per second';
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -33,6 +29,8 @@ export class DataSpeedMaxSpeedMetersPerSecond extends DataSpeedMetersPerSecond {
 
 export class DataSpeedMaxFeetPerSecond extends DataSpeedFeetPerSecond {
   static type = 'Maximum speed in feet per second';
+  static displayType = DataSpeedMax.type;
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -40,6 +38,8 @@ export class DataSpeedMaxFeetPerSecond extends DataSpeedFeetPerSecond {
 
 export class DataSpeedMaxMetersPerMinute extends DataSpeedMetersPerMinute {
   static type = 'Maximum speed in meters per minute';
+  static displayType = DataSpeedMax.type;
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -47,6 +47,8 @@ export class DataSpeedMaxMetersPerMinute extends DataSpeedMetersPerMinute {
 
 export class DataSpeedMaxFeetPerMinute extends DataSpeedFeetPerMinute {
   static type = 'Maximum speed in feet per minute';
+  static displayType = DataSpeedMax.type;
+
   getDisplayType(): string {
     return super.getDisplayType();
   }

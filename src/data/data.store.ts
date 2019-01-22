@@ -5,7 +5,7 @@ import {
   DataSpeedFeetPerSecond,
   DataSpeedKilometersPerHour,
   DataSpeedMetersPerMinute,
-  DataSpeedMetersPerSecond, DataSpeedMilesPerHour
+  DataSpeedMilesPerHour
 } from './data.speed';
 import {DataSeaLevelPressure} from './data.sea-level-pressure';
 import {DataSatellite5BestSNR} from './data.satellite-5-best-snr';
@@ -36,19 +36,19 @@ import {
   DataSpeedMin, DataSpeedMinFeetPerMinute, DataSpeedMinFeetPerSecond,
   DataSpeedMinKilometersPerHour, DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour,
-  DataSpeedMinSpeedMetersPerSecond
+
 } from './data.speed-min';
 import {
   DataSpeedMax, DataSpeedMaxFeetPerMinute, DataSpeedMaxFeetPerSecond,
   DataSpeedMaxKilometersPerHour, DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour,
-  DataSpeedMaxSpeedMetersPerSecond
+
 } from './data.speed-max';
 import {
   DataSpeedAvg, DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
   DataSpeedAvgKilometersPerHour, DataSpeedAvgMetersPerMinute,
-  DataSpeedAvgMilesPerHour, DataSpeedAvgSpeedMetersPerSecond
+  DataSpeedAvgMilesPerHour,
 } from './data.speed-avg';
 import {DataRecovery} from './data.recovery';
 import {DataPowerMin} from './data.power-min';
@@ -71,10 +71,10 @@ import {DataAscentTime} from './data.ascent-time';
 import {DataAscent} from './data.ascent';
 import {DataAltitudeAvg} from './data.altitude-avg';
 import {DataFusedLocation} from './data.fused-location';
-import {DataPaceMin} from './data.pace-min';
-import {DataPaceMax} from './data.pace-max';
-import {DataPaceAvg} from './data.pace-avg';
-import {DataPace} from './data.pace';
+import {DataPaceMin, DataPaceMinMinutesPerMile} from './data.pace-min';
+import {DataPaceMax, DataPaceMaxMinutesPerMile} from './data.pace-max';
+import {DataPaceAvg, DataPaceAvgMinutesPerMile} from './data.pace-avg';
+import {DataPace, DataPaceMinutesPerMile} from './data.pace';
 import {DataFusedAltitude} from './data.fused-altitude';
 import {DataBatteryCharge} from './data.battery-charge';
 import {DataBatteryCurrent} from './data.battery-current';
@@ -180,28 +180,28 @@ export const DataStore: any = {
   DataPowerPodUsed,
   DataSpeedKilometersPerHour,
   DataSpeedMilesPerHour,
-  DataSpeedMetersPerSecond,
   DataSpeedFeetPerSecond,
   DataSpeedMetersPerMinute,
   DataSpeedFeetPerMinute,
   DataSpeedAvgKilometersPerHour,
   DataSpeedAvgMilesPerHour,
-  DataSpeedAvgSpeedMetersPerSecond,
   DataSpeedAvgFeetPerSecond,
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgFeetPerMinute,
   DataSpeedMinKilometersPerHour,
   DataSpeedMinMilesPerHour,
-  DataSpeedMinSpeedMetersPerSecond,
   DataSpeedMinFeetPerSecond,
   DataSpeedMinMetersPerMinute,
   DataSpeedMinFeetPerMinute,
   DataSpeedMaxKilometersPerHour,
   DataSpeedMaxMilesPerHour,
-  DataSpeedMaxSpeedMetersPerSecond,
   DataSpeedMaxFeetPerSecond,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxFeetPerMinute,
+  DataPaceMinutesPerMile,
+  DataPaceAvgMinutesPerMile,
+  DataPaceMinMinutesPerMile,
+  DataPaceMaxMinutesPerMile,
 };
 
 export class DynamicDataLoader {
@@ -228,7 +228,6 @@ export class DynamicDataLoader {
     DataPeakTrainingEffect.type,
     DataEPOC.type,
     DataEnergy.type,
-    DataNumberOfSamples.type,
     DataBatteryCharge.type,
     DataBatteryCurrent.type,
     DataBatteryVoltage.type,
@@ -238,6 +237,17 @@ export class DynamicDataLoader {
     DataVerticalOscillation.type,
     DataTotalTrainingEffect.type,
   ];
+
+  static unitBasedDataTypes: DataTypeUnitGroups = {
+    [DataPace.type]: [
+      DataPaceMinutesPerMile.type,
+    ],
+    [DataSpeed.type]: [
+      DataSpeedKilometersPerHour.type,
+      DataSpeedMilesPerHour.type,
+      DataSpeedFeetPerSecond.type,
+    ]
+  };
 
   static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);
 
@@ -261,4 +271,9 @@ export class DynamicDataLoader {
     return DataStore[className];
   }
 
+}
+
+
+export interface DataTypeUnitGroups {
+  [type: string]: string[]
 }

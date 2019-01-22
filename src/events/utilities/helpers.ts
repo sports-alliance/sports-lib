@@ -15,6 +15,23 @@ export function convertSpeedToPace(number: number): number {
   return number === 0 ? number : (1000 / number);
 }
 
+
+export function convertSpeedToSpeedInKilometersPerHour(number: number): number {
+  return number * 3.6;
+}
+
+export function convertSpeedToSpeedInMilesPerHour(number: number): number {
+  return number * 2.237;
+}
+
+export function convertSpeedToSpeedInFeetPerSecond(number: number): number {
+  return number * 3.28084;
+}
+
+export function convertPaceToPaceInMinutesPerMile(number: number): number {
+  return number * 1.60934;
+}
+
 export function getSize(obj: any): string {
   var bytes = 0;
 

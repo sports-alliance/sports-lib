@@ -1,21 +1,21 @@
 
 export interface UserUnitSettingsInterface{
-  speedSettings: SpeedUnits[],
-  paceSettings: PaceUnits[],
+  speedUnits: SpeedUnits[],
+  paceUnits: PaceUnits[],
 }
 
 
 export enum SpeedUnits {
-  KilometersPerHour = 'Kilometers per hour',
-  MilesPerHour = 'Miles per hour',
-  MetersPerSecond = 'Meters per second',
-  FeetPerSecond = 'Feet per second',
-  MetersPerMinute = 'Meters per minute',
-  FeetPerMinute = 'Feet per minute',
+  KilometersPerHour = 'Speed in kilometers per hour',
+  MilesPerHour = 'Speed in miles per hour',
+  MetersPerSecond = 'Speed',
+  FeetPerSecond = 'Speed in feet per second',
+  // MetersPerMinute = 'Meters per minute',
+  // FeetPerMinute = 'Feet per minute',
 }
 
 
 export enum PaceUnits {
-  MinutesPerKilometer = 'Minutes per kilometer',
-  MinutesPerMile = 'Minutes per mile',
+  MinutesPerKilometer = 'Pace',
+  MinutesPerMile = 'Pace in minutes per mile',
 }

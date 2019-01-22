@@ -4,6 +4,7 @@ import {DataJSONInterface} from "./data.json.interface";
 export abstract class Data implements DataInterface {
   static type: string;
   static unit: string;
+  static displayType?: string;
   static unitSystem = UnitSystem.Metric;
   protected value: number | string | boolean;
 
@@ -43,7 +44,7 @@ export abstract class Data implements DataInterface {
   }
 
   getDisplayType(): string {
-    return (<typeof Data>this.constructor).type;
+    return (<typeof Data>this.constructor).displayType || (<typeof Data>this.constructor).type;
   }
 
   getUnitSystem(): UnitSystem {

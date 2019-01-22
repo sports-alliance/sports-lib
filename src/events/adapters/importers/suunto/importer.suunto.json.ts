@@ -660,11 +660,6 @@ export const SuuntoSampleMapper: { dataType: string, sampleField: string, conver
     convertSampleValue: (value: number) => Number(value),
   },
   {
-    dataType: DataPace.type,
-    sampleField: 'Speed',
-    convertSampleValue: (value: number) => Number(convertSpeedToPace(value)),
-  },
-  {
     dataType: DataTemperature.type,
     sampleField: 'Temperature',
     convertSampleValue: (value: number) => Number(value - 273.15),

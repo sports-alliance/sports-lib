@@ -1,7 +1,8 @@
 export interface UserChartSettingsInterface{
   dataTypeSettings: DataTypeSettings
   theme: ChartThemes
-  useAnimations: boolean
+  useAnimations: boolean,
+  xAxisType: XAxisTypes,
 }
 
 export enum ChartThemes {
@@ -18,4 +19,9 @@ export enum ChartThemes {
 
 export interface DataTypeSettings{
   [type:string]: {enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string}
+}
+
+export enum XAxisTypes {
+  Time = 'time',
+  Duration = 'duration',
 }

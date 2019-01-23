@@ -235,7 +235,7 @@ export class EventImporterSuuntoJSON {
           .Samples
           .filter((sample: any) => ((new Date(sample.TimeISO8601) >= activity.startDate) && (new Date(sample.TimeISO8601) <= activity.endDate)))
 
-        // Check if there is fused Alti
+        // Check if there is fused Location
         activity.addStat(new DataFusedLocation(false));
         activity.addStat(new DataFusedLocation(activitySamples.filter((sample: any) => this.hasFusedLocData(sample)).length > 0));
 
@@ -565,12 +565,12 @@ export const SuuntoSettingsMapper = [
       return settings['FootPodUsed'];
     },
   },
-  {
-    dataType: DataFusedAltitude.type,
-    getValue: (settings: any) => {
-      return settings['FusedAltiUsed'];
-    },
-  },
+  // {
+  //   dataType: DataFusedAltitude.type,
+  //   getValue: (settings: any) => {
+  //     return settings['FusedAltiUsed'];
+  //   },
+  // },
   {
     dataType: DataHeartRateUsed.type,
     getValue: (settings: any) => {

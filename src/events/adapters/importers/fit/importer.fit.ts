@@ -122,7 +122,7 @@ export class EventImporterFIT {
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
-    if (session.sub_sport !== 'generic') {
+    if (session.sub_sport && session.sub_sport !== 'generic') {
       return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes.unknown;
     }
     return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || ActivityTypes.unknown;
@@ -216,8 +216,8 @@ export class EventImporterFIT {
       }
       default: {
         creator = new Creator(
-          (fitDataObject.file_id.manufacturer || 'Manufacturer Unknown')
-          + (fitDataObject.file_id.product || ''),
+          (fitDataObject.file_id.manufacturer || '')
+          + (fitDataObject.file_id.product_name || fitDataObject.file_id.product || ''),
         )
       }
     }

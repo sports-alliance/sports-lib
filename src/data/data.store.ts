@@ -1,4 +1,8 @@
-import {DataVerticalSpeed} from './data.vertical-speed';
+import {
+  DataVerticalSpeed, DataVerticalSpeedFeetPerHour, DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond, DataVerticalSpeedKilometerPerHour, DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
+} from './data.vertical-speed';
 import {DataTemperature} from './data.temperature';
 import {
   DataSpeed, DataSpeedFeetPerMinute,
@@ -26,9 +30,21 @@ import {DataInterface} from './data.interface';
 import {DataAltitudeMin} from './data.altitude-min';
 import {DataAltitudeMax} from './data.altitude-max';
 import {DataVO2Max} from './data.vo2-max';
-import {DataVerticalSpeedMin} from './data.vertical-speed-min';
-import {DataVerticalSpeedMax} from './data.vertical-speed-max';
-import {DataVerticalSpeedAvg} from './data.vertical-speed-avg';
+import {
+  DataVerticalSpeedMin, DataVerticalSpeedMinFeetPerHour, DataVerticalSpeedMinFeetPerMinute,
+  DataVerticalSpeedMinFeetPerSecond, DataVerticalSpeedMinKilometerPerHour, DataVerticalSpeedMinMetersPerHour,
+  DataVerticalSpeedMinMetersPerMinute, DataVerticalSpeedMinMilesPerHour
+} from './data.vertical-speed-min';
+import {
+  DataVerticalSpeedMax, DataVerticalSpeedMaxFeetPerHour, DataVerticalSpeedMaxFeetPerMinute,
+  DataVerticalSpeedMaxFeetPerSecond, DataVerticalSpeedMaxKilometerPerHour, DataVerticalSpeedMaxMetersPerHour,
+  DataVerticalSpeedMaxMetersPerMinute, DataVerticalSpeedMaxMilesPerHour
+} from './data.vertical-speed-max';
+import {
+  DataVerticalSpeedAvg, DataVerticalSpeedAvgFeetPerHour, DataVerticalSpeedAvgFeetPerMinute,
+  DataVerticalSpeedAvgFeetPerSecond, DataVerticalSpeedAvgKilometerPerHour, DataVerticalSpeedAvgMetersPerHour,
+  DataVerticalSpeedAvgMetersPerMinute, DataVerticalSpeedAvgMilesPerHour
+} from './data.vertical-speed-avg';
 import {DataTemperatureMin} from './data.temperature-min';
 import {DataTemperatureMax} from './data.temperature-max';
 import {DataTemperatureAvg} from './data.temperature-avg';
@@ -202,6 +218,35 @@ export const DataStore: any = {
   DataPaceAvgMinutesPerMile,
   DataPaceMinMinutesPerMile,
   DataPaceMaxMinutesPerMile,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMilesPerHour,
+  DataVerticalSpeedAvgFeetPerSecond,
+  DataVerticalSpeedAvgMetersPerMinute,
+  DataVerticalSpeedAvgFeetPerMinute,
+  DataVerticalSpeedAvgMetersPerHour,
+  DataVerticalSpeedAvgFeetPerHour,
+  DataVerticalSpeedAvgKilometerPerHour,
+  DataVerticalSpeedAvgMilesPerHour,
+  DataVerticalSpeedMaxFeetPerSecond,
+  DataVerticalSpeedMaxMetersPerMinute,
+  DataVerticalSpeedMaxFeetPerMinute,
+  DataVerticalSpeedMaxMetersPerHour,
+  DataVerticalSpeedMaxFeetPerHour,
+  DataVerticalSpeedMaxKilometerPerHour,
+  DataVerticalSpeedMaxMilesPerHour,
+  DataVerticalSpeedMinFeetPerSecond,
+  DataVerticalSpeedMinMetersPerMinute,
+  DataVerticalSpeedMinFeetPerMinute,
+  DataVerticalSpeedMinMetersPerHour,
+  DataVerticalSpeedMinFeetPerHour,
+  DataVerticalSpeedMinKilometerPerHour,
+  DataVerticalSpeedMinMilesPerHour,
+
 };
 
 export class DynamicDataLoader {
@@ -216,6 +261,7 @@ export class DynamicDataLoader {
     ];
 
   static advancedDataTypes = [
+    DataVerticalSpeed.type,
     DataTemperature.type,
     DataSeaLevelPressure.type,
     DataSatellite5BestSNR.type,
@@ -246,6 +292,15 @@ export class DynamicDataLoader {
       DataSpeedKilometersPerHour.type,
       DataSpeedMilesPerHour.type,
       DataSpeedFeetPerSecond.type,
+    ],
+    [DataVerticalSpeed.type]: [
+      DataVerticalSpeedFeetPerSecond.type,
+      DataVerticalSpeedMetersPerMinute.type,
+      DataVerticalSpeedFeetPerMinute.type,
+      DataVerticalSpeedMetersPerHour.type,
+      DataVerticalSpeedFeetPerHour.type,
+      DataVerticalSpeedKilometerPerHour.type,
+      DataVerticalSpeedMilesPerHour.type,
     ]
   };
 

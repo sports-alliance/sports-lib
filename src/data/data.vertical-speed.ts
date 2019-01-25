@@ -1,4 +1,5 @@
 import {DataNumber} from './data.number';
+import {DataSpeed} from "./data.speed";
 
 export class DataVerticalSpeed extends DataNumber {
   static type = 'Vertical Speed';
@@ -8,3 +9,75 @@ export class DataVerticalSpeed extends DataNumber {
     return this.getValue().toFixed(3);
   }
 }
+
+export class DataVerticalSpeedFeetPerSecond extends DataVerticalSpeed {
+  static type = 'Vertical speed in feet per second';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'ft/s';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataVerticalSpeedMetersPerMinute extends DataVerticalSpeed {
+  static type = 'Vertical speed in meters per minute';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'm/min';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataVerticalSpeedFeetPerMinute extends DataVerticalSpeed {
+  static type = 'Vertical speed in feet per minute';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'ft/min';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataVerticalSpeedMetersPerHour extends DataVerticalSpeed {
+  static type = 'Vertical speed in meters per hour';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'm/h';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataVerticalSpeedFeetPerHour extends DataVerticalSpeed {
+  static type = 'Vertical speed in feet per hour';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'ft/h';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+
+export class DataVerticalSpeedKilometerPerHour extends DataVerticalSpeed {
+  static type = 'Vertical speed in kilometers per hour';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'km/h';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataVerticalSpeedMilesPerHour extends DataVerticalSpeed {
+  static type = 'Vertical speed in miles per hour';
+  static displayType = DataVerticalSpeed.type;
+
+  static unit = 'mph';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+

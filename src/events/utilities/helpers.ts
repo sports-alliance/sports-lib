@@ -28,6 +28,22 @@ export function convertSpeedToSpeedInFeetPerSecond(number: number): number {
   return number * 3.28084;
 }
 
+export function convertSpeedToSpeedInMetersPerMinute(number: number): number {
+  return number * 60;
+}
+
+export function convertSpeedToSpeedInFeetPerMinute(number: number): number {
+  return number * 196.85;
+}
+
+export function convertSpeedToSpeedInFeetPerHour(number: number): number {
+  return number * 11811.024;
+}
+
+export function convertSpeedToSpeedInMetersPerHour(number: number): number {
+  return number * 3600;
+}
+
 export function convertPaceToPaceInMinutesPerMile(number: number): number {
   return number * 1.60934;
 }

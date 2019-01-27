@@ -263,6 +263,7 @@ export class EventImporterSuuntoJSON {
           }
 
           this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
+          debugger;
           activity.addStream(new IBIStream(ibiData));
         });
       }

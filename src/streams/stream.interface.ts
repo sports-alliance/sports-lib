@@ -1,11 +1,11 @@
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
-import {StreamJSONInterface} from './stream.json.interface';
+import {StreamJSONInterface} from "./stream";
 export interface StreamInterface extends SerializableClassInterface {
   type: string;
   data: (number|null)[];
   getNumericData(): (number)[];
   getStreamDataByTime(startDate: Date): StreamDataItem[]
-  getStreamDataByDuration(): StreamDataItem[]
+  getStreamDataByDuration(offset?: number): StreamDataItem[]
   toJSON(): StreamJSONInterface;
 }
 

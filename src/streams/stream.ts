@@ -1,5 +1,4 @@
 import {StreamDataItem, StreamInterface} from './stream.interface';
-import {StreamJSONInterface} from './stream.json.interface';
 import {isNumber} from "../events/utilities/helpers";
 
 export class Stream implements StreamInterface {
@@ -43,4 +42,9 @@ export class Stream implements StreamInterface {
       data: this.data,
     };
   }
+}
+
+export interface StreamJSONInterface {
+  type: string;
+  data: (number|null)[];
 }

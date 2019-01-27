@@ -113,6 +113,7 @@ import {DataEnabledNavigationSystems} from "./data.enabled-navigation-systems";
 import {DataHeartRateUsed} from "./data.heart-rate-used";
 import {DataPowerPodUsed} from "./data.power-pod-used";
 import {DataAltiBaroProfile} from "./data.alti-baro-profile";
+import {DataIBI} from "./data.ibi";
 
 /**
  * Only concrete classes no abstracts
@@ -246,6 +247,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinFeetPerHour,
   DataVerticalSpeedMinKilometerPerHour,
   DataVerticalSpeedMinMilesPerHour,
+  DataIBI,
 
 };
 
@@ -282,6 +284,7 @@ export class DynamicDataLoader {
     DataLegStiffness.type,
     DataVerticalOscillation.type,
     DataTotalTrainingEffect.type,
+    DataIBI.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

@@ -15,9 +15,10 @@ import {LapTypes} from '../../../../laps/lap.types';
 import {ActivityJSONInterface} from '../../../../activities/activity.json.interface';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity-zones.json.interface';
-import {StreamJSONInterface} from '../../../../streams/stream.json.interface';
 import {StreamInterface} from '../../../../streams/stream.interface';
-import {Stream} from '../../../../streams/stream';
+import {Stream, StreamJSONInterface} from '../../../../streams/stream';
+import {DataIBI} from "../../../../data/data.ibi";
+import {IBIStream} from "../../../../streams/ibi-stream";
 
 export class EventImporterJSON {
 
@@ -54,6 +55,10 @@ export class EventImporterJSON {
 
 
   static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
+    if (json.type === DataIBI.type){
+      return new IBIStream(json.data);
+
+    }
     return new Stream(json.type, json.data);
   }
 

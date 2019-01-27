@@ -1,4 +1,4 @@
-import {StreamInterface} from './stream.interface';
+import {StreamDataItem, StreamInterface} from './stream.interface';
 import {StreamJSONInterface} from './stream.json.interface';
 import {isNumber} from "../events/utilities/helpers";
 
@@ -15,6 +15,26 @@ export class Stream implements StreamInterface {
 
   getNumericData(): number[] {
     return <number[]>this.data.filter(data => isNumber(data))
+  }
+
+  getStreamDataByTime(startDate: Date): StreamDataItem[]{
+    return this.data.reduce((accu, dataItem, index) => {
+      accu.push({
+        time: startDate.getTime() + index * 1000,
+        value: dataItem,
+      });
+      return accu;
+    }, <StreamDataItem[]>[])
+  }
+
+  getStreamDataByDuration(offset?:number): StreamDataItem[]{
+    return this.data.reduce((accu, dataItem, index) => {
+      accu.push({
+        time:  index * 1000 + (offset || 0),
+        value: dataItem,
+      });
+      return accu;
+    }, <StreamDataItem[]>[])
   }
 
   toJSON(): StreamJSONInterface {

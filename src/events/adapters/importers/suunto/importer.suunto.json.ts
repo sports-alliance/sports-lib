@@ -84,6 +84,7 @@ import {DataFootPodUsed} from "../../../../data/data.foot-pod-used";
 import {DataHeartRateUsed} from "../../../../data/data.heart-rate-used";
 import {DataPowerPodUsed} from "../../../../data/data.power-pod-used";
 import {DynamicDataLoader} from "../../../../data/data.store";
+import {IBIStream} from "../../../../streams/ibi-stream";
 
 export class EventImporterSuuntoJSON {
 
@@ -262,8 +263,7 @@ export class EventImporterSuuntoJSON {
           }
 
           this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
-          // @todo solve this with IBI that is not compatible with Stram interface and I am hacking it
-          activity.addStream(new Stream('IBI', ibiData)); // Append an IBI data stream
+          activity.addStream(new IBIStream(ibiData));
         });
       }
 

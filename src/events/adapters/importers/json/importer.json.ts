@@ -56,7 +56,7 @@ export class EventImporterJSON {
 
   static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
     if (json.type === DataIBI.type){
-      return new IBIStream(json.data);
+      return new IBIStream(<number[]>json.data);
 
     }
     return new Stream(json.type, json.data);

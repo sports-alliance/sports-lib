@@ -37,6 +37,8 @@ import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effe
 import {FITSampleMapper} from './importer.fit.mapper';
 import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
+import {DataHeartRate} from "../../../../data/data.heart-rate";
+import {IBIStream} from "../../../../streams/ibi-stream";
 
 const EasyFit = require('easy-fit').default;
 
@@ -82,6 +84,22 @@ export class EventImporterFIT {
           });
           return activity;
         });
+
+        // Get the HRV to IBI if exist
+        if (fitDataObject.hrv){
+          activities.forEach((activity: ActivityInterface) => {
+            let timeSum = 0;
+            const ibiData = fitDataObject.hrv.map((hrv: any) => hrv.time*1000).filter((ibi: number) => { // @todo change this with the fit encoder
+              timeSum += ibi;
+              const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
+              return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
+            });
+            // set the IBI
+            activity.addStream(new IBIStream(ibiData));
+          });
+        }
+
+
         // Create an event
         // @todo check if the start and end date can derive from the file
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);

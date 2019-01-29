@@ -25,9 +25,7 @@ import {DataDescent} from '../../../../data/data.descent';
 import {DataHeartRateAvg} from '../../../../data/data.heart-rate-avg';
 import {DataHeartRateMax} from '../../../../data/data.heart-rate-max';
 import {DataSpeedMax} from '../../../../data/data.speed-max';
-import {DataPower} from '../../../../data/data.power';
 import {LapTypes} from '../../../../laps/lap.types';
-import {DataPace} from '../../../../data/data.pace';
 import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {DataHeartRateMin} from '../../../../data/data.heart-rate-min';
@@ -37,7 +35,6 @@ import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effe
 import {FITSampleMapper} from './importer.fit.mapper';
 import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
-import {DataHeartRate} from "../../../../data/data.heart-rate";
 import {IBIStream} from "../../../../streams/ibi-stream";
 
 const EasyFit = require('easy-fit').default;
@@ -116,7 +113,7 @@ export class EventImporterFIT {
     const lap = new Lap(
       sessionLapObject.start_time,
       sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
-      LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger],
+      LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown,
     );
     // Set the calories
     if (sessionLapObject.total_calories) {

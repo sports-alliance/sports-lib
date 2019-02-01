@@ -239,6 +239,16 @@ export class EventUtilities {
   }
 
   public static generateStatsForEvent(event: EventInterface) {
+    event.clearStats();
+    event.startDate = event.getFirstActivity().startDate;
+    event.endDate = event.getLastActivity().endDate;
+    // If only one
+    if (event.getActivities().length ===1 ){
+      event.getFirstActivity().getStats().forEach(stat => {
+        event.addStat(stat);
+      });
+      return;
+    }
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
     event.setDuration(new DataDuration(0));

@@ -242,6 +242,8 @@ export class EventUtilities {
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
     event.setDuration(new DataDuration(0));
+    event.addStat(new DataAscent(0));
+    event.addStat(new DataDescent(0));
     event.getActivities().forEach((activity) => {
       event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
     });
@@ -255,6 +257,31 @@ export class EventUtilities {
     event.getActivities().forEach((activity) => {
       event.setDistance(new DataDistance(event.getDistance().getValue() + activity.getDistance().getValue()));
     });
+
+    event.getActivities().forEach((activity) => {
+      const activityAscent = activity.getStat(DataAscent.type);
+      if (activityAscent) {
+        let ascent = event.getStat(DataAscent.type);
+        if (!ascent) {
+          event.addStat(new DataAscent(<number>activityAscent.getValue()))
+        } else {
+          event.addStat(new DataAscent(<number>ascent.getValue() + <number>activityAscent.getValue()))
+        }
+      }
+    });
+
+    event.getActivities().forEach((activity) => {
+      const activityDescent = activity.getStat(DataDescent.type);
+      if (activityDescent) {
+        let Descent = event.getStat(DataDescent.type);
+        if (!Descent) {
+          event.addStat(new DataDescent(<number>activityDescent.getValue()))
+        } else {
+          event.addStat(new DataDescent(<number>Descent.getValue() + <number>activityDescent.getValue()))
+        }
+      }
+    });
+
   }
 
   public static getEventDataTypeGain(

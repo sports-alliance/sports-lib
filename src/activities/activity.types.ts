@@ -100,5 +100,7 @@ export enum ActivityTypes {
   'Indoor training' = 'Indoor training',
   'Hiking' = 'Hiking',
   'Fishing' = 'Fishing',
-  'Hunting' = 'Hunting'
+  'Hunting' = 'Hunting',
+  'route' = 'Route',
+  'Route' = 'Route'
 }

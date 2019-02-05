@@ -3,14 +3,8 @@ import {EventInterface} from '../../../event.interface';
 import {Creator} from '../../../../creators/creator';
 import {Event} from '../../../event';
 import {ActivityTypes} from '../../../../activities/activity.types';
-import {DataDistance} from '../../../../data/data.distance';
-import {DataDuration} from '../../../../data/data.duration';
-import {DataPause} from '../../../../data/data.pause';
-import {GeoLibAdapter} from '../../../../geodesy/adapters/geolib.adapter';
 import {ActivityInterface} from '../../../../activities/activity.interface';
-import {Stream} from '../../../../streams/stream';
 import {GPXSampleMapper} from './importer.gpx.mapper';
-import {StreamInterface} from '../../../../streams/stream.interface';
 import {isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
 
@@ -24,27 +18,39 @@ export class EventImporterGPX {
 
       const parsedGPX: any = GXParser(gpx);
       const activities: ActivityInterface[] = parsedGPX.trk.reduce((activities: ActivityInterface[], trk: any) => {
-        // Create an activity
+        // Get the samples
+        const samples = trk.trkseg.reduce((trkptArray: any[], trkseg: any) => {
+          return trkptArray.concat(trkseg.trkpt)
+        }, []);
+
+        // Determine if it's a route. The samples will most probably be missing the time
+        const isActivity = !!trk.trkseg[0].trkpt[0].time;
+
+        // Create an activity. Set the dates depending on route etc
+        const startDate = new Date(isActivity ? trk.trkseg[0].trkpt[0].time[0] : new Date());
+        const endDate = isActivity ?
+          new Date(trk.trkseg[trk.trkseg.length - 1].trkpt[trk.trkseg[trk.trkseg.length - 1].trkpt.length - 1].time[0]) :
+          new Date(startDate.getTime() + samples.length * 1000);
+        let activityType =  isActivity ? ActivityTypes.unknown : ActivityTypes.route;
+        if (trk.type && ActivityTypes[<keyof typeof ActivityTypes>trk.type]) {
+          activityType = ActivityTypes[<keyof typeof ActivityTypes>trk.type]
+        }
         const activity = new Activity(
-          new Date(trk.trkseg[0].trkpt[0].time[0]),
-          new Date(trk.trkseg[trk.trkseg.length - 1].trkpt[trk.trkseg[trk.trkseg.length - 1].trkpt.length - 1].time[0]),
-          trk.type ?  ActivityTypes[<keyof typeof ActivityTypes>trk.type] || ActivityTypes.unknown : ActivityTypes.unknown,
+          startDate,
+          endDate,
+          activityType,
           new Creator(
             parsedGPX.creator,
             parsedGPX.version,
           ),
         );
-
-        const samples = trk.trkseg.reduce((trkptArray: any[], trkseg: any) => {
-          return trkptArray.concat(trkseg.trkpt)
-        }, []);
-
+        // Match
         GPXSampleMapper.forEach((sampleMapping) => {
           const subjectSamples = <any[]>samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)));
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
-            subjectSamples.forEach((subjectSample) => {
-              activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.time[0])), <number>sampleMapping.getSampleValue(subjectSample));
+            subjectSamples.forEach((subjectSample, index) => {
+              activity.addDataToStream(sampleMapping.dataType, isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000), <number>sampleMapping.getSampleValue(subjectSample));
             });
           }
         });
@@ -57,27 +63,9 @@ export class EventImporterGPX {
       activities.forEach((activity) => {
         event.addActivity(activity);
       });
-      debugger;
+      // debugger;
       // generate global stats
       EventUtilities.generateEventStatsForAllActivities(event);
-
-
-      // @todo should be moved elsewhere perhaps also in the generation
-      // Find and write the distance of the points
-      // const geoLib = new GeoLibAdapter();
-      // let distance = 0;
-      // event.getPointsWithPosition().reduce((prev: PointInterface, current: PointInterface, index: number) => {
-      //   if (index === 0) {
-      //     prev.addData(new DataDistance(distance))
-      //   }
-      //   distance += geoLib.getDistance([prev, current]);
-      //   current.addData(new DataDistance(distance));
-      //   return current;
-      // });
-
-
-      // @todo move this elsewhere and refactor
-
       resolve(event);
     });
   }

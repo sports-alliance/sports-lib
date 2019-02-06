@@ -72,7 +72,7 @@ import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 import {Stream} from '../../../../streams/stream';
-import {convertSpeedToPace, isNumberOrString} from "../../../utilities/helpers";
+import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
 import {DataAltiBaroProfile} from "../../../../data/data.alti-baro-profile";
 import {DataAutoLapDistance} from "../../../../data/data.auto-lap-distance";
@@ -104,22 +104,22 @@ export class EventImporterSuuntoJSON {
 
       // Go over the samples and get the ones with activity start times
       const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return sample.Events && sample.Events[0].Activity;
+        return sample.Events && sample.Events[0] && sample.Events[0].Activity;
       });
 
       // Check if there is a Fused Altitude event
       const fusedAltitudeEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return sample.Events && sample.Events[0].Altitude;
+        return sample.Events && sample.Events[0] && sample.Events[0].Altitude;
       });
 
       // Get the lap start events
       const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop';
+        return sample.Events && sample.Events[0] && sample.Events[0].Lap && sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop';
       });
 
       // Get the stop event
       const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample: any) => {
-        return sample.Events && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
+        return sample.Events && sample.Events[0] && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
       });
 
       // Add the stop event to the laps since it's also a lap stop event
@@ -411,80 +411,81 @@ export class EventImporterSuuntoJSON {
 
     // double case
     if (Array.isArray(object.Altitude)) {
-      if (object.Altitude[0].Avg !== null) {
+      if (isNumber(object.Altitude[0].Avg)) {
         stats.push(new DataAltitudeAvg(object.Altitude[0].Avg));
       }
-      if (object.Altitude[0].Max !== null) {
+      if (isNumber(object.Altitude[0].Max)) {
         stats.push(new DataAltitudeMax(object.Altitude[0].Max));
       }
-      if (object.Altitude[0].Min !== null) {
+      if (isNumber(object.Altitude[0].Min)) {
         stats.push(new DataAltitudeMin(object.Altitude[0].Min));
       }
     } else if (object.Altitude) {
-      if (object.Altitude.Max !== null) {
+      if (isNumber(object.Altitude.Max)) {
         stats.push(new DataAltitudeMax(object.Altitude.Max));
       }
-      if (object.Altitude.Min !== null) {
+      if (isNumber(object.Altitude.Min )) {
         stats.push(new DataAltitudeMin(object.Altitude.Min));
       }
     }
 
     if (object.HR) {
-      if (object.HR[0].Avg !== null) {
+      if (isNumber(object.HR[0].Avg )) {
         stats.push(new DataHeartRateAvg(object.HR[0].Avg * 60));
       }
-      if (object.HR[0].Max !== null) {
+      if (isNumber(object.HR[0].Max )) {
         stats.push(new DataHeartRateMax(object.HR[0].Max * 60));
       }
-      if (object.HR[0].Min !== null) {
+      if (isNumber(object.HR[0].Min)) {
         stats.push(new DataHeartRateMin(object.HR[0].Min * 60));
       }
     }
 
     if (object.Cadence) {
-      if (object.Cadence[0].Avg !== null) {
+      if (isNumber(object.Cadence[0].Avg )) {
         stats.push(new DataCadenceAvg(object.Cadence[0].Avg * 60));
       }
-      if (object.Cadence[0].Max !== null) {
+      if (isNumber(object.Cadence[0].Max)) {
         stats.push(new DataCadenceMax(object.Cadence[0].Max * 60));
       }
-      if (object.Cadence[0].Min !== null) {
+      if (isNumber(object.Cadence[0].Min)) {
         stats.push(new DataCadenceMin(object.Cadence[0].Min * 60));
       }
     }
 
     if (object.Power) {
-      if (object.Power[0].Avg !== null) {
+      debugger;
+      if (isNumber(object.Power[0].Avg)) {
         stats.push(new DataPowerAvg(object.Power[0].Avg));
       }
-      if (object.Power[0].Max !== null) {
+      if (isNumber(object.Power[0].Max)) {
         stats.push(new DataPowerMax(object.Power[0].Max));
       }
-      if (object.Power[0].Min !== null) {
+      if (isNumber(object.Power[0].Min)) {
         stats.push(new DataPowerMin(object.Power[0].Min));
       }
     }
 
     if (object.Speed) {
-      if (object.Speed[0].Avg !== null) {
+      if (isNumber(object.Speed[0].Avg)) {
         stats.push(new DataSpeedAvg(object.Speed[0].Avg));
         stats.push(new DataPaceAvg(convertSpeedToPace(object.Speed[0].Avg)));
       }
-      if (object.Speed[0].Max !== null) {
+      if (isNumber(object.Speed[0].Max)) {
         stats.push(new DataSpeedMax(object.Speed[0].Max));
         stats.push(new DataPaceMax(convertSpeedToPace(object.Speed[0].Max)));
       }
-      if (object.Speed[0].Min !== null) {
+      if (isNumber(object.Speed[0].Min)) {
         stats.push(new DataSpeedMin(object.Speed[0].Min));
         stats.push(new DataPaceMin(convertSpeedToPace(object.Speed[0].Min)));
       }
     }
 
     if (object.Temperature) {
-      if (object.Temperature[0].Avg !== null) {
+      if (isNumber(object.Temperature[0].Avg )) {
         stats.push(new DataTemperatureAvg(object.Temperature[0].Avg - 273.15));
       }
-      if (object.Temperature[0].Max !== null) {
+      if (isNumber(object.Temperature[0].Max)) {
         stats.push(new DataTemperatureMax(object.Temperature[0].Max - 273.15));
       }
       if (object.Temperature[0].Min !== null) {
@@ -495,17 +496,17 @@ export class EventImporterSuuntoJSON {
     if (object.hasOwnProperty('VerticalSpeed')) {
       // Double action here
       if (Array.isArray(object.VerticalSpeed)) {
-        if (object.VerticalSpeed[0].Avg !== null) {
+        if (isNumber(object.VerticalSpeed[0].Avg)) {
           stats.push(new DataVerticalSpeedAvg(object.VerticalSpeed[0].Avg));
         }
-        if (object.VerticalSpeed[0].Max !== null) {
+        if (isNumber(object.VerticalSpeed[0].Max)) {
           stats.push(new DataVerticalSpeedMax(object.VerticalSpeed[0].Max));
         }
-        if (object.VerticalSpeed[0].Min !== null) {
+        if (isNumber(object.VerticalSpeed[0].Min )) {
           stats.push(new DataVerticalSpeedMin(object.VerticalSpeed[0].Min));
         }
       } else {
-        if (object.VerticalSpeed !== null) {
+        if (isNumber(object.VerticalSpeed)) {
           stats.push(new DataVerticalSpeedAvg(object.VerticalSpeed));
         }
       }

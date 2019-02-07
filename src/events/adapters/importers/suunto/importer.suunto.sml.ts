@@ -52,8 +52,44 @@ export class EventImporterSuuntoSML {
     json.DeviceLog.Header.Temperature = json.DeviceLog.Header.Temperature ? [json.DeviceLog.Header.Temperature] : null;
     json.DeviceLog.Windows = [];
 
-    debugger;
+    // debugger;
     return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(json));
+  }
+
+
+  static getFromJSONString(jsonString: string): Promise<EventInterface> {
+    const json = JSON.parse(jsonString);
+
+    const samples = json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml'].Sample).map((sample: any) => {
+      return Object.assign({TimeISO8601: sample.TimeISO8601}, JSON.parse(sample.Attributes)['suunto/sml'].Sample);
+    });
+
+    const rr = {
+      Data: json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml']['R-R']).map((sample: any) => {
+        return JSON.parse(sample.Attributes)['suunto/sml']['R-R'];
+      }).reduce((accu: [], rrSample: any) => {
+        return accu.concat(rrSample.Data.split(",").map((dataString: string) => Number(dataString)))
+      }, [])
+    };
+
+    const suuntoJSON = {
+      DeviceLog: {
+        Header: {},
+        Device: {
+          Name: 'Suunto unknown',
+          Info: {
+            HW: 0,
+            SW: 0,
+            SerialNumber: 0
+          }
+        },
+        Windows: [],
+        Samples: samples,
+        ['R-R']: rr,
+      }
+    };
+    debugger;
+    return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
   }
 }
 

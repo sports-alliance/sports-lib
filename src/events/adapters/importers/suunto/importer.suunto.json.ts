@@ -285,6 +285,7 @@ export class EventImporterSuuntoJSON {
         });
       }
 
+      // debugger;
       // Generate stats
       EventUtilities.generateEventStatsForAllActivities(event);
 

@@ -11,6 +11,9 @@ export class EventImporterSuuntoSML {
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
 
+    // Find the first UTC timestamped sample and use it later for start date
+    const startDate = new Date(json.DeviceLog.Samples.find((sample:any) => !!sample.UTC).UTC);
+
     // Filter out the old activity type
     json.DeviceLog.Samples = json.DeviceLog.Samples.filter((sample: any) => {
       return !(sample.Events && sample.Events.Activity);
@@ -28,11 +31,12 @@ export class EventImporterSuuntoSML {
           Activity: {ActivityType: json.DeviceLog.Header.ActivityType,}
         }
       ],
-      TimeISO8601: (new Date(json.DeviceLog.Header.DateTime)).toISOString()
+      TimeISO8601: startDate.toISOString()
     });
 
-    // Add the end time
-    json.DeviceLog.Header.TimeISO8601 = (new Date(((new Date(json.DeviceLog.Header.DateTime)).getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
+    // Add the end time and adjust the start time
+    json.DeviceLog.Header.Date = (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
+    json.DeviceLog.Header.TimeISO8601 = json.DeviceLog.Header.TimeISO8601 || (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
 
     // Add the time on the samples
     json.DeviceLog.Samples.filter((sample: any) => !!sample.UTC).forEach((sample: any) => {
@@ -88,7 +92,7 @@ export class EventImporterSuuntoSML {
         ['R-R']: rr,
       }
     };
-    debugger;
+    // debugger;
     return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
   }
 }

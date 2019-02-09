@@ -272,20 +272,19 @@ export class EventImporterSuuntoJSON {
       // @todo check if start and end date can derive from the json
       const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate);
       activities.forEach(activity => event.addActivity(activity));
-      // Populate the event stats from the Header Object
+      // Populate the event stats from the Header Object // @todo maybe remove
       this.getStats(eventJSONObject.DeviceLog.Header).forEach((stat) => {
         event.addStat(stat)
       });
 
-      // Get the settings
-      // @todo see how we can have those event stats persisted as the below generation wipes those off.
+      // Get the settings and add it to all activities as it's logical
       if (eventJSONObject.DeviceLog.Header.Settings) {
         this.getSettings(eventJSONObject.DeviceLog.Header.Settings).forEach((stat) => {
           event.getActivities().forEach(activity => activity.addStat(stat));
         });
       }
 
-      // debugger;
+      // @todo see how we can have those event stats persisted as the below generation wipes those off.
       // Generate stats
       EventUtilities.generateEventStatsForAllActivities(event);
 
@@ -362,7 +361,7 @@ export class EventImporterSuuntoJSON {
   // @todo convert this to a mapping as well
   private static getStats(object: any): DataInterface[] {
     const stats = [];
-    if (isNumberOrString(object.Distance)) {
+    if (isNumber(object.Distance)) {
       stats.push(new DataDistance(object.Distance));
     }
     if (isNumberOrString(object.AscentTime)) {

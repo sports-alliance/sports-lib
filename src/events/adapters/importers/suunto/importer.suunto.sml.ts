@@ -1,5 +1,6 @@
 import {EventInterface} from "../../../event.interface";
 import {EventImporterSuuntoJSON} from "./importer.suunto.json";
+import {isNumber} from "../../../utilities/helpers";
 
 const parser = require('fast-xml-parser');
 
@@ -39,8 +40,19 @@ export class EventImporterSuuntoSML {
     json.DeviceLog.Header.TimeISO8601 = json.DeviceLog.Header.TimeISO8601 || (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
 
     // Add the time on the samples
-    json.DeviceLog.Samples.filter((sample: any) => !!sample.UTC).forEach((sample: any) => {
-      sample.TimeISO8601 = (new Date(sample.UTC)).toISOString()
+    json.DeviceLog.Samples.forEach((sample: any) => {
+
+      if (sample.TimeISO8601){
+        return;
+      }
+      if (sample.UTC){
+        sample.TimeISO8601 = (new Date(sample.UTC)).toISOString()
+        return;
+      }
+      if (isNumber(sample.Time)){
+        sample.TimeISO8601 = (new Date(startDate.getTime() + (sample.Time * 1000))).toISOString()
+        return;
+      }
     });
 
     // Convert the RR

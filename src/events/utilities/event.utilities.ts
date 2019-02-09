@@ -97,6 +97,7 @@ import {
   convertSpeedToSpeedInMilesPerHour,
   isNumber
 } from "./helpers";
+import {DataLongitudeDegrees} from "../../data/data.longitude-degrees";
 
 export class EventUtilities {
 
@@ -392,7 +393,13 @@ export class EventUtilities {
 
     // If there is no distance
     if (!activity.getStat(DataDistance.type)) {
-      activity.addStat(new DataDistance(this.getDistanceForActivity(activity, activity.startDate, activity.endDate)));
+      let distance = 0;
+      if (activity.getStreamData(DataDistance.type)){
+        distance =  activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length -1];
+      }else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)){
+        distance = this.generateDistanceForActivity(activity, activity.startDate, activity.endDate);
+      }
+      activity.addStat(new DataDistance(distance));
     }
 
     // @todo remove the start date and end date parameters
@@ -902,7 +909,7 @@ export class EventUtilities {
     }
   }
 
-  public static getDistanceForActivity(
+  public static generateDistanceForActivity(
     activity: ActivityInterface,
     startDate?: Date,
     endDate?: Date): number {

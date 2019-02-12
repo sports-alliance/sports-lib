@@ -1,6 +1,7 @@
 import {ImporterSuuntoDeviceNames} from '../suunto/importer.suunto.device.names';
 
 export const ImporterFitSuuntoDeviceNames: { [index: number]: string } = {
+  28: ImporterSuuntoDeviceNames.Brighton,
   29: ImporterSuuntoDeviceNames.Amsterdam,
   34: ImporterSuuntoDeviceNames.Ibiza,
   35: ImporterSuuntoDeviceNames.Lima,

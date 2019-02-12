@@ -17,23 +17,32 @@ export class EventImporterGPX {
     return new Promise((resolve, reject) => {
 
       const parsedGPX: any = GXParser(gpx);
-      const activities: ActivityInterface[] = parsedGPX.trk.reduce((activities: ActivityInterface[], trk: any) => {
-        // Get the samples
-        const samples = trk.trkseg.reduce((trkptArray: any[], trkseg: any) => {
-          return trkptArray.concat(trkseg.trkpt)
-        }, []);
+      const track = parsedGPX.trk || parsedGPX.rte ;
 
-        // Determine if it's a route. The samples will most probably be missing the time
-        const isActivity = !!trk.trkseg[0].trkpt[0].time;
+      const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {
+        // Get the samples
+        let samples: any[] = [];
+        let isActivity = false;
+        if (trackOrRoute.trkseg ){
+          samples = trackOrRoute.trkseg.reduce((trkptArray: any[], trkseg: any) => {
+            return trkptArray.concat(trkseg.trkpt)
+          }, []);
+          // Determine if it's a route. The samples will most probably be missing the time
+          isActivity = !!samples[0].time;
+        }else if (trackOrRoute.rtept ) {
+          samples = trackOrRoute.rtept;
+        }
+
+        // debugger;
 
         // Create an activity. Set the dates depending on route etc
-        const startDate = new Date(isActivity ? trk.trkseg[0].trkpt[0].time[0] : new Date());
+        const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
         const endDate = isActivity ?
-          new Date(trk.trkseg[trk.trkseg.length - 1].trkpt[trk.trkseg[trk.trkseg.length - 1].trkpt.length - 1].time[0]) :
+          new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);
         let activityType =  isActivity ? ActivityTypes.unknown : ActivityTypes.route;
-        if (trk.type && ActivityTypes[<keyof typeof ActivityTypes>trk.type]) {
-          activityType = ActivityTypes[<keyof typeof ActivityTypes>trk.type]
+        if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
+          activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]
         }
         const activity = new Activity(
           startDate,

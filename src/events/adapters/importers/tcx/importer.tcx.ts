@@ -58,7 +58,9 @@ export class EventImporterTCX {
             activity.getDuration().setValue(activity.getDuration().getValue() + lap.getDuration().getValue());
             activity.getPause().setValue(activity.getPause().getValue() + lap.getPause().getValue());
 
-            activity.addStat(new DataEnergy((<DataEnergy>activity.getStat(DataEnergy.type)).getValue() + (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()));
+            if (lap.getStat(DataEnergy.type)) {
+              activity.addStat(new DataEnergy((<DataEnergy>activity.getStat(DataEnergy.type)).getValue() + (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()));
+            }
             // Todo perhaps think about distance if 0 to add the lap as pause
           });
 
@@ -128,8 +130,11 @@ export class EventImporterTCX {
         lap.type = LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent];
       }
 
+      if (lapElement.getElementsByTagName('Calories')[0]) {
+        lap.addStat(new DataEnergy(Number(lapElement.getElementsByTagName('Calories')[0].textContent)));
+      }
+
       // Create a stats (required TCX fields)
-      lap.addStat(new DataEnergy(Number(lapElement.getElementsByTagName('Calories')[0].textContent)));
       lap.addStat(new DataDuration(Number(lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)));
       lap.addStat(new DataDistance(Number(lapElement.getElementsByTagName('DistanceMeters')[0].textContent)));
       lap.setPause(new DataPause(0));

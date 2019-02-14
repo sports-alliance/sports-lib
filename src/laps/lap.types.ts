@@ -2,9 +2,12 @@
  * This enum works like a all matchers for normalized lap types between different naming across services
  */
 export enum LapTypes {
-  'unknown' = 'Unknown',
+  'unknown' = 'unknown',
+  'Unknown' = 'Unknown',
   'Start' = 'Start',
-  'Stop' = 'Start',
+  'start' = 'Start',
+  'Stop' = 'Stop',
+  'stop' = 'Stop',
   'Manual' = 'Manual',
   'manual' = 'Manual',
   'Autolap' = 'Auto lap',

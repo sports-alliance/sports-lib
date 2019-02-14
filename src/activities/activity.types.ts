@@ -33,6 +33,7 @@ export enum ActivityTypes {
   'Climbing' = 'Climbing',
   'Indoorcycling' = 'Indoor cycling',
   'indoor_cycling' = 'Indoor cycling',
+  'Indoor cycling' = 'Indoor cycling',
   'Circuit training' = 'Circuit training',
   'Triathlon' = 'Triathlon',
   'Alpine skiing' = 'Alpine skiing',

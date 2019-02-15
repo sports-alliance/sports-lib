@@ -92,7 +92,7 @@ export class EventImporterSuuntoJSON {
 
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
-      // debugger;
+      debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name

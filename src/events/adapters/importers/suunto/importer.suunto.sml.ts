@@ -9,6 +9,8 @@ export class EventImporterSuuntoSML {
   static getFromXML(contents: string, name = 'New Event'): Promise<EventInterface> {
     const json = parser.parse(contents).sml;
 
+    // debugger;
+
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
 
@@ -46,7 +48,7 @@ export class EventImporterSuuntoSML {
         return;
       }
       if (sample.UTC){
-        sample.TimeISO8601 = (new Date(sample.UTC)).toISOString()
+        sample.TimeISO8601 = (new Date(sample.UTC)).toISOString();
         return;
       }
       if (isNumber(sample.Time)){
@@ -66,7 +68,7 @@ export class EventImporterSuuntoSML {
     json.DeviceLog.Header.Speed = json.DeviceLog.Header.Speed ? [json.DeviceLog.Header.Speed] : null;
     json.DeviceLog.Header.Power = json.DeviceLog.Header.Power ? [json.DeviceLog.Header.Power] : null;
     json.DeviceLog.Header.Temperature = json.DeviceLog.Header.Temperature ? [json.DeviceLog.Header.Temperature] : null;
-    json.DeviceLog.Windows = [];
+    json.DeviceLog.Windows = [{Window: Object.assign({Type: 'Activity'}, json.DeviceLog.Header)}];
 
     // debugger;
     return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(json));

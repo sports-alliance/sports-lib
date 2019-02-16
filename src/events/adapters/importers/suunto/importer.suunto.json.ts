@@ -166,8 +166,6 @@ export class EventImporterSuuntoJSON {
         // Add the fused altitude event
         if (fusedAltitudeEventSamples.length) {
           activity.addStat(new DataFusedAltitude(true))
-        } else {
-          activity.addStat(new DataFusedAltitude(false))
         }
 
         return activity;

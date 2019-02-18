@@ -162,7 +162,7 @@ export class EventUtilities {
     });
     const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
     event.addActivities(activities);
-    this.generateEventStatsForAllActivities(event);
+    this.generateStatsForAll(event);
     return event;
   }
 
@@ -221,16 +221,12 @@ export class EventUtilities {
     return activity;
   }
 
-  public static generateEventStatsForAllActivities(event: EventInterface) {
+  public static generateStatsForAll(event: EventInterface) {
     // First generate that stats on the activity it self
     event.getActivities().forEach((activity: ActivityInterface) => {
       this.generateMissingStreamsAndStatsForActivity(activity)
     });
-
-    // Clear all event stats
-    event.clearStats();
-    this.generateStatsForEvent(event);
-
+    this.reGenerateStatsForEvent(event);
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
@@ -239,7 +235,7 @@ export class EventUtilities {
     this.generateMissingUnitStatsForActivity(activity);
   }
 
-  public static generateStatsForEvent(event: EventInterface) {
+  public static reGenerateStatsForEvent(event: EventInterface) {
     event.clearStats();
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;

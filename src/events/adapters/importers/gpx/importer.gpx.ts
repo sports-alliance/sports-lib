@@ -74,7 +74,7 @@ export class EventImporterGPX {
       });
       // debugger;
       // generate global stats
-      EventUtilities.generateEventStatsForAllActivities(event);
+      EventUtilities.generateStatsForAll(event);
       resolve(event);
     });
   }

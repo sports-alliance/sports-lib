@@ -102,7 +102,7 @@ export class EventImporterFIT {
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
         activities.forEach(activity => event.addActivity(activity));
         // debugger;
-        EventUtilities.generateEventStatsForAllActivities(event);
+        EventUtilities.generateStatsForAll(event);
         resolve(event);
       });
 

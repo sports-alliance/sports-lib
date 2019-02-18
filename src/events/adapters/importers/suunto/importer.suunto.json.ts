@@ -284,7 +284,7 @@ export class EventImporterSuuntoJSON {
 
       // @todo see how we can have those event stats persisted as the below generation wipes those off.
       // Generate stats
-      EventUtilities.generateEventStatsForAllActivities(event);
+      EventUtilities.generateStatsForAll(event);
 
       resolve(event);
     });

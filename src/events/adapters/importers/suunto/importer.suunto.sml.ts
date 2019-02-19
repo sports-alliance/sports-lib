@@ -9,13 +9,19 @@ export class EventImporterSuuntoSML {
   static getFromXML(contents: string, name = 'New Event'): Promise<EventInterface> {
     const json = parser.parse(contents).sml;
 
-    // debugger;
+    debugger;
 
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
 
+    const samplesWithUTC: any[]  =  json.DeviceLog.Samples.filter((sample:any) => !!sample.UTC);
+
     // Find the first UTC timestamped sample and use it later for start date
-    const startDate = new Date(json.DeviceLog.Samples.find((sample:any) => !!sample.UTC).UTC);
+    const startDate = samplesWithUTC.length ? new Date(samplesWithUTC[0].UTC) : new Date(json.DeviceLog.Header.DateTime);
+
+
+    // Determine the end date
+    const endDate = samplesWithUTC.length > 1 ? samplesWithUTC[samplesWithUTC.length - 1].UTC : (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000)));
 
     // Filter out the old activity type
     json.DeviceLog.Samples = json.DeviceLog.Samples.filter((sample: any) => {
@@ -38,8 +44,7 @@ export class EventImporterSuuntoSML {
     });
 
     // Add the end time and adjust the start time
-    json.DeviceLog.Header.Date = (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
-    json.DeviceLog.Header.TimeISO8601 = json.DeviceLog.Header.TimeISO8601 || (new Date((startDate.getTime() + json.DeviceLog.Header.Duration * 1000))).toISOString();
+    json.DeviceLog.Header.TimeISO8601 = json.DeviceLog.Header.TimeISO8601 || endDate;
 
     // Add the time on the samples
     json.DeviceLog.Samples.forEach((sample: any) => {

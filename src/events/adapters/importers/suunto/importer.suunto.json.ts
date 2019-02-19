@@ -234,6 +234,8 @@ export class EventImporterSuuntoJSON {
           .Samples
           .filter((sample: any) => ((new Date(sample.TimeISO8601) >= activity.startDate) && (new Date(sample.TimeISO8601) <= activity.endDate)))
 
+        // debugger;
+
         // Check if there is fused Location
         activity.addStat(new DataFusedLocation(false));
         activity.addStat(new DataFusedLocation(activitySamples.filter((sample: any) => this.hasFusedLocData(sample)).length > 0));

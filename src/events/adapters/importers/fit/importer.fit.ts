@@ -83,14 +83,21 @@ export class EventImporterFIT {
         });
 
         // Get the HRV to IBI if exist
-        if (fitDataObject.hrv){
+        if (fitDataObject.hrv) {
           activities.forEach((activity: ActivityInterface) => {
             let timeSum = 0;
-            const ibiData = fitDataObject.hrv.map((hrv: any) => hrv.time*1000).filter((ibi: number) => { // @todo change this with the fit encoder
-              timeSum += ibi;
-              const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
-              return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
-            });
+            const ibiData = fitDataObject.hrv
+              .reduce((ibiArray: any, hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
+              .map((ibi: any) => ibi * 1000)
+              .filter((ibi: number) => {
+                // Some Garmin devices return a record of 65.535 (65535) for some reason so exlcude those
+                if (ibi === 65.535){
+                  return  false;
+                }
+                timeSum += ibi;
+                const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
+                return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
+              });
             // set the IBI
             activity.addStream(new IBIStream(ibiData));
           });
@@ -218,7 +225,7 @@ export class EventImporterFIT {
     let creator: CreatorInterface;
     switch (fitDataObject.file_id.manufacturer) {
       case 'suunto': {
-        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product]|| 'Suunto Unknown');
+        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product] || 'Suunto Unknown');
         break;
       }
       case 'garmin': {
@@ -226,7 +233,7 @@ export class EventImporterFIT {
         break;
       }
       case 'zwift': {
-        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product]|| 'Zwift Unknown');
+        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product] || 'Zwift Unknown');
         break;
       }
       default: {

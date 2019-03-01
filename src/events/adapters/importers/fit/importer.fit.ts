@@ -90,8 +90,10 @@ export class EventImporterFIT {
               .reduce((ibiArray: any, hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
               .map((ibi: any) => ibi * 1000)
               .filter((ibi: number) => {
+                // debugger;
                 // Some Garmin devices return a record of 65.535 (65535) for some reason so exlcude those
-                if (ibi === 65.535){
+                if (ibi === 65535){
+                  // timeSum += ibi;
                   return  false;
                 }
                 timeSum += ibi;

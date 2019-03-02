@@ -37,7 +37,7 @@ import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities
 import {EventUtilities} from "../../../utilities/event.utilities";
 import {IBIStream} from "../../../../streams/ibi-stream";
 
-const FitParser = require('fit-parser').default;
+const FitParser = require('fit-file-parser').default;
 
 export class EventImporterFIT {
 

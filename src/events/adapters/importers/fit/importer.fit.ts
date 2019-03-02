@@ -37,13 +37,13 @@ import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities
 import {EventUtilities} from "../../../utilities/event.utilities";
 import {IBIStream} from "../../../../streams/ibi-stream";
 
-const EasyFit = require('easy-fit').default;
+const FitParser = require('fit-parser').default;
 
 export class EventImporterFIT {
 
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
-      const easyFitParser = new EasyFit({
+      const fitParser = new FitParser({
         force: false,
         speedUnit: 'm/s',
         lengthUnit: 'm',
@@ -52,7 +52,7 @@ export class EventImporterFIT {
         mode: 'both',
       });
 
-      easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
+      fitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {

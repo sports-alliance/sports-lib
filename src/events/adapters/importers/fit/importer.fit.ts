@@ -82,6 +82,27 @@ export class EventImporterFIT {
           return activity;
         });
 
+        // If there are no activities to parse ....
+        if (!activities.length){
+          const activity=
+          new Activity(
+            new Date(fitDataObject.records[0].timestamp),
+            new Date(fitDataObject.records[fitDataObject.records.length - 1].timestamp),
+            ActivityTypes.unknown,
+            this.getCreatorFromFitDataObject(fitDataObject)
+          );
+          FITSampleMapper.forEach((sampleMapping) => {
+            const subjectSamples = <any[]>fitDataObject.records.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
+            if (subjectSamples.length) {
+              activity.addStream(activity.createStream(sampleMapping.dataType));
+              subjectSamples.forEach((subjectSample) => {
+                activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
+              });
+            }
+          });
+          activities.push(activity);
+        }
+
         // Get the HRV to IBI if exist
         if (fitDataObject.hrv) {
           activities.forEach((activity: ActivityInterface) => {

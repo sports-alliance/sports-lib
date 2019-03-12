@@ -78,7 +78,6 @@ import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
 export class EventImporterSuuntoJSON {
 
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
-
     return new Promise((resolve, reject) => {
 
       const eventJSONObject = JSON.parse(jsonString);

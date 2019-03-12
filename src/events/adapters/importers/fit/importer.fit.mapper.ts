@@ -14,6 +14,7 @@ import {DataFormPower} from '../../../../data/data.form-power';
 import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
 import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
+import {DataElevation} from "../../../../data/data.elevation";
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -44,6 +45,12 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     dataType: DataAltitude.type,
     getSampleValue: (sample: any) => {
       return sample.altitude;
+    },
+  },
+  {
+    dataType: DataElevation.type,
+    getSampleValue: (sample: any) => {
+      return sample.Elevation;
     },
   },
   {
@@ -101,7 +108,13 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataVerticalOscillation.type,
     getSampleValue: (sample: any) => {
-      return sample.vertical_oscillation;
+      return sample.vertical_oscillation ;
+    },
+  },
+  {
+    dataType: DataFormPower.type,
+    getSampleValue: (sample: any) => {
+      return sample['Form Power'] ;
     },
   },
 ];

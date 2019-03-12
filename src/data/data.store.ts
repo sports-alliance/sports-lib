@@ -115,6 +115,7 @@ import {DataPowerPodUsed} from "./data.power-pod-used";
 import {DataAltiBaroProfile} from "./data.alti-baro-profile";
 import {DataIBI} from "./data.ibi";
 import {DataSteps} from "./data.steps";
+import {DataElevation} from "./data.elevation";
 
 /**
  * Only concrete classes no abstracts
@@ -250,6 +251,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
   DataSteps,
+  DataElevation,
 };
 
 export class DynamicDataLoader {
@@ -286,6 +288,7 @@ export class DynamicDataLoader {
     DataVerticalOscillation.type,
     DataTotalTrainingEffect.type,
     DataIBI.type,
+    DataElevation.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

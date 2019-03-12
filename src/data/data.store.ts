@@ -114,6 +114,7 @@ import {DataHeartRateUsed} from "./data.heart-rate-used";
 import {DataPowerPodUsed} from "./data.power-pod-used";
 import {DataAltiBaroProfile} from "./data.alti-baro-profile";
 import {DataIBI} from "./data.ibi";
+import {DataSteps} from "./data.steps";
 
 /**
  * Only concrete classes no abstracts
@@ -248,7 +249,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinKilometerPerHour,
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
-
+  DataSteps,
 };
 
 export class DynamicDataLoader {

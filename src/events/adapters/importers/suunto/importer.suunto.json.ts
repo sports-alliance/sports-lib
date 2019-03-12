@@ -85,6 +85,7 @@ import {DataHeartRateUsed} from "../../../../data/data.heart-rate-used";
 import {DataPowerPodUsed} from "../../../../data/data.power-pod-used";
 import {DynamicDataLoader} from "../../../../data/data.store";
 import {IBIStream} from "../../../../streams/ibi-stream";
+import {DataSteps} from "../../../../data/data.steps";
 
 export class EventImporterSuuntoJSON {
 
@@ -262,7 +263,6 @@ export class EventImporterSuuntoJSON {
           }
 
           this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
-          debugger;
           activity.addStream(new IBIStream(ibiData));
         });
       }
@@ -281,6 +281,11 @@ export class EventImporterSuuntoJSON {
         this.getSettings(eventJSONObject.DeviceLog.Header.Settings).forEach((stat) => {
           event.getActivities().forEach(activity => activity.addStat(stat));
         });
+      }
+
+      if (activities.length === 1){
+        const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(stat => stat instanceof DataSteps);
+        stats.forEach(stat => activities[0].addStat(stat));
       }
 
       // @todo see how we can have those event stats persisted as the below generation wipes those off.
@@ -379,6 +384,10 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataDescent(object.Descent));
     }
 
+    if (isNumberOrString(object.StepCount)) {
+      stats.push(new DataSteps(object.StepCount));
+    }
+
     if (isNumberOrString(object.EPOC)) {
       stats.push(new DataEPOC(object.EPOC));
     }
@@ -453,7 +462,6 @@ export class EventImporterSuuntoJSON {
     }
 
     if (object.Power) {
-      debugger;
       if (isNumber(object.Power[0].Avg)) {
         stats.push(new DataPowerAvg(object.Power[0].Avg));
       }

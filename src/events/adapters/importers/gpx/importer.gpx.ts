@@ -12,7 +12,7 @@ const GXParser = require('gxparser').GXParser;
 
 export class EventImporterGPX {
 
-  static getFromString(gpx: string, name = 'New Event'): Promise<EventInterface> {
+  static getFromString(gpx: string, domParser?: Function, name = 'New Event'): Promise<EventInterface> {
 
     return new Promise((resolve, reject) => {
 

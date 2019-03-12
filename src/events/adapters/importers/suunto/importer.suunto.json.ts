@@ -89,7 +89,6 @@ import {IBIStream} from "../../../../streams/ibi-stream";
 export class EventImporterSuuntoJSON {
 
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
-
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
       debugger;

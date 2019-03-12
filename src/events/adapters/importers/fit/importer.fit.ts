@@ -49,13 +49,13 @@ import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
 import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
 
-const EasyFit = require('easy-fit').default;
+const FitFileParser = require('fit-file-parser').default;
 
 export class EventImporterFIT {
 
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
-      const easyFitParser = new EasyFit({
+      const fitFileParser = new FitFileParser({
         force: false,
         speedUnit: 'm/s',
         lengthUnit: 'm',
@@ -64,7 +64,7 @@ export class EventImporterFIT {
         mode: 'both',
       });
 
-      easyFitParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
+      fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {

@@ -26,7 +26,6 @@ import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
 export class EventImporterTCX {
 
   static getFromXML(xml: Document, name = 'New Event'): Promise<EventInterface> {
-
     return new Promise((resolve, reject) => {
       // Activities
       const activities: ActivityInterface[] = Array.from(xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity'))
@@ -87,6 +86,7 @@ export class EventImporterTCX {
         });
 
 
+      debugger;
       // Init the event
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
       activities.forEach(activity => event.addActivity(activity));

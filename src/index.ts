@@ -11,9 +11,10 @@ export class QuantifiedSelfLib {
   /**
    * Parses and returns an event using GPX format
    * @param gpxString
+   * @param domParser custom DomParse (case of NodeJs usage)
    */
-  public static importFromGPX(gpxString: string): Promise<EventInterface> {
-    return EventImporterGPX.getFromString(gpxString);
+  public static importFromGPX(gpxString: string, domParser?: Function): Promise<EventInterface> {
+    return EventImporterGPX.getFromString(gpxString, domParser);
   };
 
   /**

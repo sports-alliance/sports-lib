@@ -86,6 +86,8 @@ import {DataPowerPodUsed} from "../../../../data/data.power-pod-used";
 import {DynamicDataLoader} from "../../../../data/data.store";
 import {IBIStream} from "../../../../streams/ibi-stream";
 import {DataSteps} from "../../../../data/data.steps";
+import {DataPoolLength} from "../../../../data/data.pool-length";
+import {DataDeviceLocation} from "../../../../data/data.device-location";
 
 export class EventImporterSuuntoJSON {
 
@@ -284,7 +286,7 @@ export class EventImporterSuuntoJSON {
       }
 
       if (activities.length === 1){
-        const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(stat => stat instanceof DataSteps);
+        const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(stat => stat instanceof DataSteps || stat instanceof DataVO2Max || stat instanceof DataDeviceLocation || stat instanceof DataPoolLength);
         stats.forEach(stat => activities[0].addStat(stat));
       }
 
@@ -386,6 +388,18 @@ export class EventImporterSuuntoJSON {
 
     if (isNumberOrString(object.StepCount)) {
       stats.push(new DataSteps(object.StepCount));
+    }
+
+    if (isNumberOrString(object.MAXVO2)) {
+      stats.push(new DataVO2Max(object.MAXVO2));
+    }
+
+    if (isNumberOrString(object.PoolLength)) {
+      stats.push(new DataPoolLength(object.PoolLength));
+    }
+
+    if (isNumberOrString(object.DeviceLocation)) {
+      stats.push(new DataDeviceLocation(object.DeviceLocation));
     }
 
     if (isNumberOrString(object.EPOC)) {

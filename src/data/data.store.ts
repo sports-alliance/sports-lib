@@ -116,6 +116,8 @@ import {DataAltiBaroProfile} from "./data.alti-baro-profile";
 import {DataIBI} from "./data.ibi";
 import {DataSteps} from "./data.steps";
 import {DataElevation} from "./data.elevation";
+import {DataPoolLength} from "./data.pool-length";
+import {DataDeviceLocation} from "./data.device-location";
 
 /**
  * Only concrete classes no abstracts
@@ -252,6 +254,8 @@ export const DataStore: any = {
   DataIBI,
   DataSteps,
   DataElevation,
+  DataPoolLength,
+  DataDeviceLocation,
 };
 
 export class DynamicDataLoader {

@@ -96,7 +96,7 @@ export class EventImporterTCX {
     return Array.from(trackPointsElements).reduce((pointsArray: PointInterface[], trackPointElement) => {
       const point = new Point(new Date(<string>trackPointElement.getElementsByTagName('Time')[0].textContent));
       pointsArray.push(point);
-      for (const dataElement of <any>trackPointElement.children) {
+      for (const dataElement of <any>trackPointElement.childNodes) {
         switch (dataElement.tagName) {
           case 'Position': {
             point.addData(new DataLatitudeDegrees(Number(dataElement.getElementsByTagName('LatitudeDegrees')[0].textContent)));
@@ -120,7 +120,7 @@ export class EventImporterTCX {
             break;
           }
           case 'Extensions': {
-            for (const dataExtensionElement of <any>dataElement.getElementsByTagNameNS('http://www.garmin.com/xmlschemas/ActivityExtension/v2', 'TPX')[0].children) {
+            for (const dataExtensionElement of <any>dataElement.getElementsByTagNameNS('http://www.garmin.com/xmlschemas/ActivityExtension/v2', 'TPX')[0].childNodes) {
               switch (dataExtensionElement.nodeName.replace(dataExtensionElement.prefix + ':', '')) {
                 case 'Speed': {
                   point.addData(new DataSpeed(Number(dataExtensionElement.textContent)));

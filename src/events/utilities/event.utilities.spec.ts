@@ -1,10 +1,8 @@
 import {Event} from '../event';
 import {Activity} from '../../activities/activity';
-import {Point} from '../../points/point';
 import {DataHeartRate} from '../../data/data.heart-rate';
 import {DataAltitude} from '../../data/data.altitude';
 import {EventUtilities} from './event.utilities';
-import {DataAbsolutePressure} from '../../data/data.absolute-pressure';
 import {DataDistance} from '../../data/data.distance';
 import {DataDuration} from '../../data/data.duration';
 import {EventInterface} from '../event.interface';
@@ -30,11 +28,10 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct minimum for a DataType', () => {
-    const pointA = new Point(new Date(0));
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataHeartRate.type, [0, 50, 100]),
     );
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
@@ -43,10 +40,10 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct maximum for a DataType', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataHeartRate.type, [0, 50, 100]),
     );
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
@@ -55,10 +52,10 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct difference for a DataType', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataHeartRate.type, [0, 50, 100]),
     );
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
@@ -67,10 +64,10 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct average for a DataType', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataHeartRate.type, [0, 50, 100]),
     );
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
@@ -79,7 +76,7 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct gain for a DataType', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
     expect(EventUtilities.getEventDataTypeGain(event.getFirstActivity(), DataAltitude.type)).toBe(200);
@@ -103,7 +100,7 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct gain for a DataType with a changed min difference', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
     // With a diff of 100,200 the gain should be included
@@ -129,7 +126,7 @@ describe('EventUtilities', () => {
 
 
   it('should get the correct gain for a DataType with a set of points of non data', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [100, 300, 200, 400]),
     );
 
@@ -137,7 +134,7 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct loss for a DataType', () => {
-    event.getFirstActivity().streams.push(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [400, 300, 200]),
     );
 
@@ -149,11 +146,6 @@ describe('EventUtilities', () => {
 
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(200);
 
-    // Add more for loss
-    const pointG = new Point(new Date(6));
-    const pointH = new Point(new Date(7));
-    const pointI = new Point(new Date(8));
-
     event.getFirstActivity().getStreamData(DataAltitude.type).push(200); // loss 200
     event.getFirstActivity().getStreamData(DataAltitude.type).push(300); // loss 0
     event.getFirstActivity().getStreamData(DataAltitude.type).push(200); // Gain 100 a total (see above of 500)
@@ -162,7 +154,7 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct loss for a DataType with a changed min difference', () => {
-   event.getFirstActivity().streams.push(
+   event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [400, 300, 200]),
     );
 
@@ -190,54 +182,10 @@ describe('EventUtilities', () => {
 
 
   it('should get the correct loss for a DataType with a set of points of non data', () => {
-     event.getFirstActivity().streams.push(
+     event.getFirstActivity().getAllStreams().push(
       new Stream(DataAltitude.type, [400, 200, 300, 100]), // loos 0, 200, 0, 400
     );
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(400);
-  });
-
-  it('should get an event as tcx blob', (done) => {
-    const pointA = new Point(new Date(0));
-    const pointB = new Point(new Date(1));
-    const pointC = new Point(new Date(2));
-
-    pointA.addData(new DataHeartRate(0));
-    pointB.addData(new DataHeartRate(50));
-    pointC.addData(new DataHeartRate(100));
-
-    pointA.addData(new DataAltitude(200));
-    pointB.addData(new DataAltitude(300));
-    pointC.addData(new DataAltitude(400));
-
-    event.getFirstActivity().addPoint(pointA);
-    event.getFirstActivity().addPoint(pointB);
-    event.getFirstActivity().addPoint(pointC);
-    EventUtilities.getEventAsTCXBloB(event).then((blob) => {
-      expect(blob instanceof Blob).toBe(true);
-    });
-    done();
-  });
-
-  it('should get an event as json blob', (done) => {
-    const pointA = new Point(new Date(0));
-    const pointB = new Point(new Date(1));
-    const pointC = new Point(new Date(2));
-
-    pointA.addData(new DataHeartRate(0));
-    pointB.addData(new DataHeartRate(50));
-    pointC.addData(new DataHeartRate(100));
-
-    pointA.addData(new DataAltitude(200));
-    pointB.addData(new DataAltitude(300));
-    pointC.addData(new DataAltitude(400));
-
-    event.getFirstActivity().addPoint(pointA);
-    event.getFirstActivity().addPoint(pointB);
-    event.getFirstActivity().addPoint(pointC);
-    EventUtilities.getEventAsJSONBloB(event).then((blob) => {
-      expect(blob instanceof Blob).toBe(true);
-    });
-    done();
   });
 
 });

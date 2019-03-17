@@ -5,7 +5,7 @@ import {IntensityZonesInterface} from '../intensity-zones/intensity-zones.interf
 import {StatsClassInterface} from '../stats/stats.class.interface';
 import {DurationClassInterface} from '../duration/duration.class.interface';
 import {ActivityTypes} from './activity.types';
-import {StreamInterface} from '../streams/stream.interface';
+import {StreamDataItem, StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {IDClassInterface} from '../id/id.class.interface';
 import {DataPositionInterface} from '../data/data.position.interface';
@@ -19,7 +19,11 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   hasPositionData(startDate?: Date, endDate?: Date): boolean;
   getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[];
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
+  getStreamDataByTime(streamType:string): StreamDataItem[]
+  getStreamDataBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } };
+  getDataLength(): number;
   createStream(type: string): StreamInterface;
+  getStream(type: string): StreamInterface;
   addStream(stream: StreamInterface): void;
   addStreams(streams: StreamInterface[]): void;
   removeStream(stream: StreamInterface): void;

@@ -19,6 +19,7 @@ describe('Zone', () => {
     zones.zone5LowerLimit = 7;
     zones.zone5Duration = 8;
     expect(zones.toJSON()).toEqual({
+      'type': 'test',
       'zone1Duration': 0,
       'zone2Duration': 2,
       'zone2LowerLimit': 1,

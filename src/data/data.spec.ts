@@ -29,8 +29,7 @@ describe('Data', () => {
 
   it('should export correctly to JSON', () => {
     expect(data.toJSON()).toEqual({
-      type: 'Temperature',
-      value: 60,
+      'Temperature': 60,
     });
   });
 

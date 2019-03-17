@@ -8,7 +8,7 @@ import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {CreatorInterface} from '../creators/creator.interface';
 import {DataLatitudeDegrees} from '../data/data.latitude-degrees';
 import {DataLongitudeDegrees} from '../data/data.longitude-degrees';
-import {StreamInterface} from '../streams/stream.interface';
+import {StreamDataItem, StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {DataPositionInterface} from '../data/data.position.interface';
 import {Stream} from '../streams/stream';
@@ -30,8 +30,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.creator = creator;
   }
 
+  getDataLength(): number {
+    return Math.ceil((+this.endDate - +this.startDate) / 1000);
+  }
+
   createStream(type: string): StreamInterface {
-    return new Stream(type, Array(Math.ceil((+this.endDate - +this.startDate) / 1000)).fill(null));
+    return new Stream(type, Array(this.getDataLength()).fill(null));
   }
 
   addDataToStream(type: string, date: Date, value: number): void {
@@ -71,13 +75,17 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.hasStreamData(DataLatitudeDegrees.type, startDate, endDate) && this.hasStreamData(DataLongitudeDegrees.type, startDate, endDate);
   }
 
-  getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number|null)[] {
+  getStream(streamType: string): StreamInterface {
     const stream = this.streams
       .find((stream) => stream.type === streamType);
     if (!stream) {
       throw Error(`No stream found with type ${streamType}`);
     }
+    return stream;
+  }
 
+  getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[] {
+    const stream = this.getStream(streamType);
     if (!startDate && !endDate) {
       return stream.data;
     }
@@ -123,6 +131,30 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       });
       return positionArray;
     }, []);
+  }
+
+  getStreamDataBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {
+    return this.getStreamDataByTime(streamTypeToBaseOn).reduce((accu, streamDataItem) => {
+      return accu
+    }, {})
+  }
+
+  getStreamDataBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } } {
+     const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
+     const c = this.getDataLength();
+     for (let i=0; i < this.getDataLength(); i++){
+       streamTypes.forEach((streamType: string) => {
+         if (isNumber(this.getStreamData(streamType)[i])){
+           streamDataBasedOnTime[this.startDate.getTime() + (i*1000)] = streamDataBasedOnTime[this.startDate.getTime() + (i*1000)] || {};
+           streamDataBasedOnTime[this.startDate.getTime() + (i*1000)][streamType] = this.getStreamData(streamType)[i];
+         }
+       })
+     }
+     return streamDataBasedOnTime;
+  }
+
+  getStreamDataByTime(streamType: string): StreamDataItem[] {
+    return this.getStream(streamType).getStreamDataByTime(this.startDate);
   }
 
   addLap(lap: LapInterface) {

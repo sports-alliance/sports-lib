@@ -26,7 +26,6 @@ describe('Activity', () => {
   it('should get streams based on time', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));
-    const a = activity.getStreamDataBasedOnTime([DataAltitude.type]);
     expect(activity.getStreamDataBasedOnTime([DataAltitude.type])).toEqual({
       "0": {
         "Altitude": 200
@@ -43,7 +42,28 @@ describe('Activity', () => {
       "6000": {
         "Altitude": 700
       }
-    })
+    });
+    expect(activity.getStreamDataBasedOnTime([DataDistance.type])).toEqual({
+      "0": {"Distance": 0},
+      "1000": {"Distance": 10},
+      "2000": {"Distance": 20},
+      "3000": {"Distance": 30},
+      "4000": {"Distance": 40},
+      "5000": {"Distance": 50},
+      "6000": {"Distance": 60}
+    });
+    expect(activity.getStreamDataBasedOnTime([DataAltitude.type, DataDistance.type])).toEqual({
+      "0": {
+        "Altitude": 200,
+        "Distance": 0
+      },
+      "1000": {"Altitude": 500, "Distance": 10},
+      "2000": {"Distance": 20},
+      "3000": {"Altitude": 502, "Distance": 30},
+      "4000": {"Distance": 40},
+      "5000": {"Altitude": 600, "Distance": 50},
+      "6000": {"Altitude": 700, "Distance": 60}
+    });
   });
 
 });

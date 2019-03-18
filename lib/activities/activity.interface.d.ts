@@ -23,6 +23,11 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
             [type: string]: number | null;
         };
     };
+    getStreamDataBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
+        [type: string]: {
+            [type: string]: number | null;
+        };
+    };
     getDataLength(): number;
     createStream(type: string): StreamInterface;
     getStream(type: string): StreamInterface;

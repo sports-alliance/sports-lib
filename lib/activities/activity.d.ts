@@ -15,7 +15,6 @@ export declare class Activity extends DurationClassAbstract implements ActivityI
     private laps;
     private streams;
     constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator);
-    getDataLength(): number;
     createStream(type: string): StreamInterface;
     addDataToStream(type: string, date: Date, value: number): void;
     addStream(stream: StreamInterface): void;
@@ -29,12 +28,12 @@ export declare class Activity extends DurationClassAbstract implements ActivityI
     getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[];
     getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
     getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];
-    getStreamDataBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
+    getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
         [type: string]: {
             [type: string]: number | null;
         };
     };
-    getStreamDataBasedOnTime(streamTypes: string[]): {
+    getStreamDataTypesBasedOnTime(streamTypes: string[]): {
         [type: number]: {
             [type: string]: number | null;
         };

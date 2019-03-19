@@ -15,6 +15,7 @@ import {Stream} from '../streams/stream';
 import {DataJSONInterface} from '../data/data.json.interface';
 import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
 import {isNumber, isNumberOrString} from "../events/utilities/helpers";
+import {EventUtilities} from "../events/utilities/event.utilities";
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -30,12 +31,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.creator = creator;
   }
 
-  getDataLength(): number {
-    return Math.ceil((+this.endDate - +this.startDate) / 1000);
-  }
-
   createStream(type: string): StreamInterface {
-    return new Stream(type, Array(this.getDataLength()).fill(null));
+    return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
   addDataToStream(type: string, date: Date, value: number): void {
@@ -133,35 +130,17 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }, []);
   }
 
-  getStreamDataBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {
-    return this.getStreamData(streamTypeToBaseOn).reduce((accu: { [type: string]: { [type: string]: number | null } }, streamDataItem, index) => {
-      if (!isNumber(streamDataItem)) {
-        return accu
-      }
+  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {
+    return EventUtilities.getStreamDataTypesBasedOnDataType(
+      this.getStream(streamTypeToBaseOn),
       this.getAllStreams()
         .filter(stream => stream.type !== streamTypeToBaseOn)
-        .filter(stream => streamTypes.indexOf(stream.type) !== -1)
-        .forEach((stream) => {
-          if (this.getStreamData(stream.type)[index]) {
-            accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
-            accu[<number>streamDataItem][stream.type] = this.getStreamData(stream.type)[index];
-          }
-        });
-      return accu
-    }, {})
+        .filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
 
-  getStreamDataBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } } {
-    const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
-    for (let i = 0; i < this.getDataLength(); i++) { // Perhaps this can be optimized with a search function
-      streamTypes.forEach((streamType: string) => {
-        if (isNumber(this.getStreamData(streamType)[i])) {
-          streamDataBasedOnTime[this.startDate.getTime() + (i * 1000)] = streamDataBasedOnTime[this.startDate.getTime() + (i * 1000)] || {};
-          streamDataBasedOnTime[this.startDate.getTime() + (i * 1000)][streamType] = this.getStreamData(streamType)[i];
-        }
-      })
-    }
-    return streamDataBasedOnTime;
+
+  getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } } {
+    return EventUtilities.getStreamDataTypesBasedOnTime(this.startDate, this.endDate, this.getAllStreams().filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
 
   getStreamDataByTime(streamType: string): StreamDataItem[] {

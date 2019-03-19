@@ -25,7 +25,7 @@ describe('Activity', () => {
   it('should get streams based on time', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));
-    expect(activity.getStreamDataBasedOnTime([DataAltitude.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnTime([DataAltitude.type])).toEqual({
       0: {
         "Altitude": 200
       },
@@ -42,7 +42,7 @@ describe('Activity', () => {
         "Altitude": 700
       }
     });
-    expect(activity.getStreamDataBasedOnTime([DataDistance.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnTime([DataDistance.type])).toEqual({
       0: {"Distance": 0},
       1000: {"Distance": 10},
       2000: {"Distance": 20},
@@ -51,7 +51,7 @@ describe('Activity', () => {
       5000: {"Distance": 50},
       6000: {"Distance": 60}
     });
-    expect(activity.getStreamDataBasedOnTime([DataAltitude.type, DataDistance.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnTime([DataAltitude.type, DataDistance.type])).toEqual({
       0: {
         "Altitude": 200,
         "Distance": 0
@@ -70,7 +70,7 @@ describe('Activity', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
     activity.addStream(new Stream(DataHeartRate.type, [60, 70, 80,   null,  null, null, 120]));
     activity.addStream(new Stream(DataDistance.type, [0,    10, 20,   30,   40,   50,   60]));
-    expect(activity.getStreamDataBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual({
       0: {
         "Altitude": 200
       },
@@ -87,7 +87,7 @@ describe('Activity', () => {
         "Altitude": 700
       }
     });
-    expect(activity.getStreamDataBasedOnDataType(DataDistance.type, [DataHeartRate.type, DataAltitude.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataHeartRate.type, DataAltitude.type])).toEqual({
       0: {
         "Altitude": 200,
         "Heart Rate": 60
@@ -110,7 +110,7 @@ describe('Activity', () => {
         "Heart Rate": 120
       }
     });
-    expect(activity.getStreamDataBasedOnDataType(DataAltitude.type, [DataDistance.type])).toEqual({
+    expect(activity.getStreamDataTypesBasedOnDataType(DataAltitude.type, [DataDistance.type])).toEqual({
       200: {
         "Distance": 0
       },

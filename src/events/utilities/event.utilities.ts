@@ -95,9 +95,10 @@ import {
   convertSpeedToSpeedInMetersPerHour,
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
-  isNumber
+  isNumber, isNumberOrString
 } from "./helpers";
 import {DataLongitudeDegrees} from "../../data/data.longitude-degrees";
+import {StreamInterface} from "../../streams/stream.interface";
 
 export class EventUtilities {
 
@@ -219,6 +220,40 @@ export class EventUtilities {
     activity.endDate = endDate || activity.endDate;
     // debugger
     return activity;
+  }
+
+
+  public static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): { [type: string]: { [type: string]: number | null } } {
+    return streamToBaseOn.data.reduce((accu: { [type: string]: { [type: string]: number | null } }, streamDataItem, index) => {
+      if (!isNumberOrString(streamDataItem)) {
+        return accu
+      }
+      streams.forEach((stream) => {
+          if (isNumberOrString(stream.data[index])) {
+            accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
+            accu[<number>streamDataItem][stream.type] = stream.data[index];
+          }
+        });
+      return accu
+    }, {})
+  }
+
+  public static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]):  { [type: number]: { [type: string]: number | null } } {
+    const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
+    for (let i = 0; i < this.getDataLength(startDate, endDate); i++) { // Perhaps this can be optimized with a search function
+      streams.forEach((stream: StreamInterface) => {
+        if (isNumber(stream.data[i])) {
+          streamDataBasedOnTime[startDate.getTime() + (i * 1000)] = streamDataBasedOnTime[startDate.getTime() + (i * 1000)] || {};
+          streamDataBasedOnTime[startDate.getTime() + (i * 1000)][stream.type] = stream.data[i];
+        }
+      })
+    }
+    return streamDataBasedOnTime;
+  }
+
+
+  public static getDataLength(startDate: Date, endDate: Date): number {
+    return Math.ceil((+endDate - +startDate) / 1000);
   }
 
   public static generateStatsForAll(event: EventInterface) {

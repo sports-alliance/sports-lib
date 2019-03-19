@@ -1,5 +1,6 @@
 import { EventInterface } from '../event.interface';
 import { ActivityInterface } from '../../activities/activity.interface';
+import { StreamInterface } from "../../streams/stream.interface";
 export declare class EventUtilities {
     private static geoLibAdapter;
     static getDataTypeAvg(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
@@ -9,6 +10,17 @@ export declare class EventUtilities {
     static mergeEvents(events: EventInterface[]): EventInterface;
     static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface;
     static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface;
+    static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): {
+        [type: string]: {
+            [type: string]: number | null;
+        };
+    };
+    static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]): {
+        [type: number]: {
+            [type: string]: number | null;
+        };
+    };
+    static getDataLength(startDate: Date, endDate: Date): number;
     static generateStatsForAll(event: EventInterface): void;
     static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void;
     static reGenerateStatsForEvent(event: EventInterface): void;

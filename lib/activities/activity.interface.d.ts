@@ -18,17 +18,16 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
     getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[];
     getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
     getStreamDataByTime(streamType: string): StreamDataItem[];
-    getStreamDataBasedOnTime(streamTypes: string[]): {
+    getStreamDataTypesBasedOnTime(streamTypes: string[]): {
         [type: number]: {
             [type: string]: number | null;
         };
     };
-    getStreamDataBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
+    getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
         [type: string]: {
             [type: string]: number | null;
         };
     };
-    getDataLength(): number;
     createStream(type: string): StreamInterface;
     getStream(type: string): StreamInterface;
     addStream(stream: StreamInterface): void;

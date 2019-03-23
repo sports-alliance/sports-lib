@@ -19,6 +19,8 @@ export enum LapTypes {
   'location' = 'Location',
   'interval' = 'Interval',
   'Interval' = 'Interval',
+  'Low Interval' = 'Low Interval',
+  'High Interval' = 'High Interval',
   'Time' = 'Time',
   'time' = 'Time',
   'HeartRate' = 'Heart Rate',

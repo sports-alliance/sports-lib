@@ -33,6 +33,10 @@ export class EventImporterGPX {
           samples = trackOrRoute.rtept;
         }
 
+        samples.sort((sampleA:any, sampleB: any) => {
+          return +(new Date(sampleA.time[0])) - +(new Date(sampleB.time[0]));
+        });
+
         // debugger;
 
         // Create an activity. Set the dates depending on route etc

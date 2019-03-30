@@ -3,7 +3,6 @@ export interface UserChartSettingsInterface{
   theme: ChartThemes
   useAnimations: boolean,
   xAxisType: XAxisTypes,
-  renderPerSeries: boolean,
 }
 
 export enum ChartThemes {

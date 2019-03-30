@@ -47,10 +47,12 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
+    "@types/xmldom": "^0.1.29",
     "jest": "^24.5.0",
     "ts-jest": "^24.0.0",
     "tslint": "^5.13.1",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.3.3333",
+    "xmldom": "^0.1.27"
   },
   "jest": {
     "transform": {

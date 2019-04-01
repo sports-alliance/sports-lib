@@ -33,9 +33,12 @@ export class EventImporterGPX {
           samples = trackOrRoute.rtept;
         }
 
-        samples.sort((sampleA:any, sampleB: any) => {
-          return +(new Date(sampleA.time[0])) - +(new Date(sampleB.time[0]));
-        });
+        // Sort the points if its only an activity
+        if (isActivity) {
+          samples.sort((sampleA: any, sampleB: any) => {
+            return +(new Date(sampleA.time[0])) - +(new Date(sampleB.time[0]));
+          });
+        }
 
         // debugger;
 

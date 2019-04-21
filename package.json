@@ -37,9 +37,9 @@
   "author": "Dimitrios Kanellopoulos",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "@types/node": "^11.13.5",
+    "@types/node": "^11.13.6",
     "fast-xml-parser": "^3.12.16",
-    "fit-file-parser": "^1.6.0",
+    "fit-file-parser": "^1.6.1",
     "geolib": "^2.0.24",
     "gxparser": "^1.0.0",
     "lowpassf": "^0.5.0",
@@ -51,7 +51,7 @@
     "jest": "^24.7.1",
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
-    "typescript": "^3.4.3",
+    "typescript": "^3.4.4",
     "xmldom": "^0.1.27"
   },
   "jest": {

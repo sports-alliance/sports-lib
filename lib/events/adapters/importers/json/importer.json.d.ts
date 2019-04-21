@@ -10,9 +10,12 @@ import { ActivityJSONInterface } from '../../../../activities/activity.json.inte
 import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
 import { StreamInterface } from '../../../../streams/stream.interface';
 import { StreamJSONInterface } from '../../../../streams/stream';
+import { DeviceJsonInterface } from "../../../../activities/devices/device.json.interface";
+import { DeviceInterface } from "../../../../activities/devices/device.interface";
 export declare class EventImporterJSON {
     static getEventFromJSON(json: EventJSONInterface): EventInterface;
     static getCreatorFromJSON(json: CreatorJSONInterface): CreatorInterface;
+    static getDeviceFromJSON(json: DeviceJsonInterface): DeviceInterface;
     static getLapFromJSON(json: LapJSONInterface): LapInterface;
     static getStreamFromJSON(json: StreamJSONInterface): StreamInterface;
     static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones;

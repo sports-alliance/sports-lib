@@ -36,6 +36,8 @@ import {FITSampleMapper} from './importer.fit.mapper';
 import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
 import {IBIStream} from "../../../../streams/ibi-stream";
+import {DeviceInterface} from "../../../../activities/devices/device.interface";
+import {Device} from "../../../../activities/devices/device";
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -127,6 +129,15 @@ export class EventImporterFIT {
         }
 
 
+        // Parse the device infos
+        if (fitDataObject.device_infos && fitDataObject.device_infos.length){
+          activities.forEach((activity) => {
+            activity.creator.devices = this.getDeviceInfos(fitDataObject.device_infos);
+          })
+        }
+
+        debugger;
+
         // Create an event
         // @todo check if the start and end date can derive from the file
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
@@ -137,6 +148,26 @@ export class EventImporterFIT {
       });
 
     });
+  }
+
+  private static getDeviceInfos(deviceInfos: any[]): DeviceInterface[]{
+    return deviceInfos.map((deviceInfo: any) => {
+      const device = new Device(deviceInfo.device_type);
+      device.index = deviceInfo.device_index;
+      device.batteryStatus = deviceInfo.battery_status;
+      device.batteryVoltage = deviceInfo.battery_voltage;
+      device.manufacturer = deviceInfo.manufacturer;
+      device.serialNumber = deviceInfo.serial_number;
+      device.product = deviceInfo.product;
+      device.swInfo = deviceInfo.software_version;
+      device.hwInfo = deviceInfo.hardware_version;
+      device.antDeviceNumber = deviceInfo.ant_device_number;
+      device.antTransmissionType = deviceInfo.ant_transmission_type;
+      device.antNetwork = deviceInfo.ant_network;
+      device.sourceType = deviceInfo.source_type;
+      device.cumOperatingTime = deviceInfo.cum_operating_time;
+      return device;
+    })
   }
 
   private static getLapFromSessionLapObject(sessionLapObject: any): LapInterface {

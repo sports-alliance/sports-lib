@@ -19,6 +19,9 @@ import {StreamInterface} from '../../../../streams/stream.interface';
 import {Stream, StreamJSONInterface} from '../../../../streams/stream';
 import {DataIBI} from "../../../../data/data.ibi";
 import {IBIStream} from "../../../../streams/ibi-stream";
+import {DeviceJsonInterface} from "../../../../activities/devices/device.json.interface";
+import {DeviceInterface} from "../../../../activities/devices/device.interface";
+import {Device} from "../../../../activities/devices/device";
 
 export class EventImporterJSON {
 
@@ -42,7 +45,67 @@ export class EventImporterJSON {
     if (json.serialNumber) {
       creator.serialNumber = json.serialNumber;
     }
+
+    if (json.devices && json.devices.length){
+      json.devices.forEach(jsonDevice => creator.devices.push(this.getDeviceFromJSON(jsonDevice)));
+    }
+
     return creator;
+  }
+
+
+  static getDeviceFromJSON(json: DeviceJsonInterface): DeviceInterface {
+    const device = new Device(json.type);
+    if (json.index) {
+      device.index = json.index;
+    }
+    if (json.batteryStatus) {
+      device.batteryStatus = json.batteryStatus;
+    }
+    if (json.batteryVoltage) {
+      device.batteryVoltage = json.batteryVoltage;
+    }
+    if (json.manufacturer) {
+      device.manufacturer = json.manufacturer;
+    }
+
+    if (json.serialNumber){
+      device.serialNumber = json.serialNumber;
+    }
+
+    if (json.product){
+      device.product = json.product;
+    }
+
+    if (json.swInfo){
+      device.swInfo = json.swInfo;
+    }
+
+    if (json.hwInfo){
+    device.hwInfo = json.hwInfo;
+    }
+
+    if (json.antDeviceNumber){
+    device.antDeviceNumber = json.antDeviceNumber;
+    }
+
+    if (json.antTransmissionType) {
+      device.antTransmissionType = json.antTransmissionType;
+    }
+
+    if (json.antNetwork){
+      device.antNetwork = json.antNetwork;
+    }
+
+    if (json.sourceType){
+      device.sourceType = json.sourceType;
+    }
+
+    if (json.cumOperatingTime){
+      device.cumOperatingTime = json.cumOperatingTime;
+    }
+
+    return device;
   }
 
   static getLapFromJSON(json: LapJSONInterface): LapInterface {
@@ -53,9 +116,8 @@ export class EventImporterJSON {
     return lap;
   }
 
-
   static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
-    if (json.type === DataIBI.type){
+    if (json.type === DataIBI.type) {
       return new IBIStream(<number[]>json.data);
 
     }
@@ -63,17 +125,17 @@ export class EventImporterJSON {
   }
 
   static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {
-   const zones = new IntensityZones(json.type);
-      zones.zone1Duration = json.zone1Duration;
-      zones.zone2Duration = json.zone2Duration;
-      zones.zone2LowerLimit = json.zone2LowerLimit;
-      zones.zone3Duration = json.zone3Duration;
-      zones.zone3LowerLimit = json.zone3LowerLimit;
-      zones.zone4Duration = json.zone4Duration;
-      zones.zone4LowerLimit = json.zone4LowerLimit;
-      zones.zone5Duration = json.zone5Duration;
-      zones.zone5LowerLimit = json.zone5LowerLimit;
-      return zones;
+    const zones = new IntensityZones(json.type);
+    zones.zone1Duration = json.zone1Duration;
+    zones.zone2Duration = json.zone2Duration;
+    zones.zone2LowerLimit = json.zone2LowerLimit;
+    zones.zone3Duration = json.zone3Duration;
+    zones.zone3LowerLimit = json.zone3LowerLimit;
+    zones.zone4Duration = json.zone4Duration;
+    zones.zone4LowerLimit = json.zone4LowerLimit;
+    zones.zone5Duration = json.zone5Duration;
+    zones.zone5LowerLimit = json.zone5LowerLimit;
+    return zones;
   }
 
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {

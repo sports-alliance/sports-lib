@@ -39,7 +39,7 @@
   "dependencies": {
     "@types/node": "^11.13.6",
     "fast-xml-parser": "^3.12.16",
-    "fit-file-parser": "^1.6.1",
+    "fit-file-parser": "^1.6.2",
     "geolib": "^2.0.24",
     "gxparser": "^1.0.0",
     "lowpassf": "^0.5.0",

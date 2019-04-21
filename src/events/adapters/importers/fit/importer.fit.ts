@@ -136,8 +136,6 @@ export class EventImporterFIT {
           })
         }
 
-        debugger;
-
         // Create an event
         // @todo check if the start and end date can derive from the file
         const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);

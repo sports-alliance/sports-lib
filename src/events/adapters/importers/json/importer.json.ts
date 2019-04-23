@@ -59,6 +59,9 @@ export class EventImporterJSON {
     if (json.index) {
       device.index = json.index;
     }
+    if (json.name) {
+      device.name = json.name;
+    }
     if (json.batteryStatus) {
       device.batteryStatus = json.batteryStatus;
     }

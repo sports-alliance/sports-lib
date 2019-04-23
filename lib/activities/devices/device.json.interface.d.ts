@@ -1,5 +1,6 @@
 export interface DeviceJsonInterface {
     type: string;
+    name: string | null;
     index: number | null;
     batteryStatus: string | null;
     batteryVoltage: number | null;

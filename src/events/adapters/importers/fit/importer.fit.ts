@@ -38,6 +38,7 @@ import {EventUtilities} from "../../../utilities/event.utilities";
 import {IBIStream} from "../../../../streams/ibi-stream";
 import {DeviceInterface} from "../../../../activities/devices/device.interface";
 import {Device} from "../../../../activities/devices/device";
+import {ImporterFitAntPlusDeviceNames} from "./importer.fit.ant-plus.device.names";
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -152,6 +153,7 @@ export class EventImporterFIT {
     return deviceInfos.map((deviceInfo: any) => {
       const device = new Device(deviceInfo.device_type);
       device.index = deviceInfo.device_index;
+      device.name = ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] || deviceInfo.ant_device_number;
       device.batteryStatus = deviceInfo.battery_status;
       device.batteryVoltage = deviceInfo.battery_voltage;
       device.manufacturer = deviceInfo.manufacturer;

@@ -2,6 +2,7 @@ import {SerializableClassInterface} from "../../serializable/serializable.class.
 
 export interface DeviceInterface extends SerializableClassInterface {
   type: string;
+  name?: string;
   index?: number;
   batteryStatus?: string;
   batteryVoltage?: number;

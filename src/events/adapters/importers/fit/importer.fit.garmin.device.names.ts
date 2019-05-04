@@ -19,4 +19,5 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   1018: 'FR 310XT',
   2158: 'FR 735 XT',
   2431: 'FR 235',
+  3126: 'Instinct',
 };

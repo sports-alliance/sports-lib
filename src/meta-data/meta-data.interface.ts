@@ -2,7 +2,8 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {MetaDataJsonInterface} from './meta-data.json.interface';
 
 export interface MetaDataInterface  extends SerializableClassInterface {
-  serviceNames: ServiceNames;
+  serviceName: ServiceNames;
+  serviceUser: string;
   id: string;
   date: Date;
   toJSON(): MetaDataJsonInterface;

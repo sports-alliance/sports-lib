@@ -4,18 +4,21 @@ import {MetaDataJsonInterface} from './meta-data.json.interface';
 export class MetaData implements MetaDataInterface {
   date: Date;
   id: string;
-  serviceNames: ServiceNames;
+  serviceName: ServiceNames;
+  serviceUser: string;
 
-  constructor(service: ServiceNames, id: string, date: Date) {
+  constructor(service: ServiceNames, id: string, serviceUser: string, date: Date) {
     this.id = id;
-    this.serviceNames = service;
+    this.serviceName = service;
     this.date = date;
+    this.serviceUser = serviceUser
   }
 
   toJSON(): MetaDataJsonInterface {
     return {
       id: this.id,
-      service: this.serviceNames,
+      serviceName: this.serviceName,
+      serviceUser: this.serviceUser,
       date: this.date.toJSON()
     }
   }

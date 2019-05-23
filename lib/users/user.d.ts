@@ -1,6 +1,6 @@
 import { Privacy } from '../privacy/privacy.class.interface';
 import { UserInterface } from './user.interface';
-import { UserSettingsInterface } from "./user.settings.interface";
+import { UserSettingsInterface } from './user.settings.interface';
 export declare class User implements UserInterface {
     uid: string;
     privacy: Privacy;

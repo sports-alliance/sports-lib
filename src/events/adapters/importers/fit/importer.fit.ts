@@ -107,7 +107,7 @@ export class EventImporterFIT {
         }
 
         // Get the HRV to IBI if exist
-        if (fitDataObject.hrv) {
+        if (fitDataObject.hrv && fitDataObject.hrv.length) {
           activities.forEach((activity: ActivityInterface) => {
             let timeSum = 0;
             const ibiData = fitDataObject.hrv

@@ -1,7 +1,6 @@
 import {CreatorInterface} from './creator.interface';
 import {CreatorJSONInterface} from './creator.json.interface';
-import {DeviceInterface} from "../activities/devices/device.interface";
-import {LapInterface} from "../laps/lap.interface";
+import {DeviceInterface} from '../activities/devices/device.interface';
 
 export class Creator implements CreatorInterface {
   public name: string;
@@ -10,15 +9,15 @@ export class Creator implements CreatorInterface {
   public serialNumber?: string;
   public devices: DeviceInterface[] = [];
 
-  constructor(name: string, swInfo?: string, hwInfo? : string, serialNumber?: string) {
+  constructor(name: string, swInfo?: string, hwInfo?: string, serialNumber?: string) {
     this.name = name;
-    if (swInfo){
+    if (swInfo) {
       this.swInfo = swInfo;
     }
     if (hwInfo) {
       this.hwInfo = hwInfo
     }
-    if (serialNumber){
+    if (serialNumber) {
       this.serialNumber = serialNumber;
     }
   }

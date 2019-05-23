@@ -4,11 +4,14 @@ import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {EventJSONInterface} from './event.json.interface';
 import {Privacy} from '../privacy/privacy.class.interface';
+import {MetaDataInterface} from '../meta-data/meta-data.interface';
 
 export class Event extends DurationClassAbstract implements EventInterface {
 
   public name: string;
   public privacy: Privacy = Privacy.Private;
+  public metaData?: MetaDataInterface;
+
   private activities: ActivityInterface[] = [];
 
   constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy) {
@@ -53,7 +56,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
   }
 
-  private sortActivities(){
+  private sortActivities() {
     this.activities.sort((activityA: ActivityInterface, activityB: ActivityInterface) => {
       return +activityA.startDate - +activityB.startDate;
     });
@@ -71,6 +74,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.toJSON(),
       endDate: this.endDate.toJSON(),
       stats: stats,
+      metaData: this.metaData ?  this.metaData.toJSON() : null,
     };
   }
 }

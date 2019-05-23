@@ -1,4 +1,4 @@
-export interface UserChartSettingsInterface{
+export interface UserChartSettingsInterface {
   dataTypeSettings: DataTypeSettings
   theme: ChartThemes
   useAnimations: boolean,
@@ -17,8 +17,8 @@ export enum ChartThemes {
   SpiritedAway = 'spiritedaway',
 }
 
-export interface DataTypeSettings{
-  [type:string]: {enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string}
+export interface DataTypeSettings {
+  [type: string]: { enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string }
 }
 
 export enum XAxisTypes {

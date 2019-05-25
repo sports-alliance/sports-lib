@@ -11,5 +11,5 @@ export interface MetaDataInterface  extends SerializableClassInterface {
 
 
 export enum ServiceNames {
-  SuuntoApp = 'suuntoApp',
+  SuuntoApp = 'Suunto app',
 }

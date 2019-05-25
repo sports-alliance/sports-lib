@@ -8,5 +8,5 @@ export interface MetaDataInterface extends SerializableClassInterface {
     toJSON(): MetaDataJsonInterface;
 }
 export declare enum ServiceNames {
-    SuuntoApp = "suuntoApp"
+    SuuntoApp = "Suunto app"
 }

@@ -24,5 +24,3 @@ export class MetaData implements MetaDataInterface {
   }
 
 }
-
-

@@ -6,6 +6,6 @@ export interface ServiceTokenInterface {
   scope: string;
   userName: string;
   dateRefreshed: number;
-  dateCreated: number;
+  dateCreated: string;
 }
 

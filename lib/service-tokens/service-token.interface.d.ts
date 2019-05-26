@@ -7,5 +7,5 @@ export interface ServiceTokenInterface {
     userName: string;
     dateRefreshed: number;
     dateCreated: string;
-    userReferences: any[];
+    userReference: any;
 }

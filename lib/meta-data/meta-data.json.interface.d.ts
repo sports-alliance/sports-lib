@@ -1,7 +1,7 @@
 import { ServiceNames } from './meta-data.interface';
 export interface MetaDataJsonInterface {
     serviceName: ServiceNames;
-    serviceUser: string;
+    serviceUserName: string;
     id: string;
     date: string;
 }

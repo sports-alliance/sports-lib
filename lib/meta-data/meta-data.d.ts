@@ -4,7 +4,7 @@ export declare class MetaData implements MetaDataInterface {
     date: Date;
     id: string;
     serviceName: ServiceNames;
-    serviceUser: string;
+    serviceUserName: string;
     constructor(service: ServiceNames, id: string, serviceUser: string, date: Date);
     toJSON(): MetaDataJsonInterface;
 }

@@ -5,20 +5,20 @@ export class MetaData implements MetaDataInterface {
   date: Date;
   id: string;
   serviceName: ServiceNames;
-  serviceUser: string;
+  serviceUserName: string;
 
   constructor(service: ServiceNames, id: string, serviceUser: string, date: Date) {
     this.id = id;
     this.serviceName = service;
     this.date = date;
-    this.serviceUser = serviceUser
+    this.serviceUserName = serviceUser
   }
 
   toJSON(): MetaDataJsonInterface {
     return {
       id: this.id,
       serviceName: this.serviceName,
-      serviceUser: this.serviceUser,
+      serviceUserName: this.serviceUserName,
       date: this.date.toJSON()
     }
   }

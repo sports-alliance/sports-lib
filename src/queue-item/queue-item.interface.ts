@@ -1,4 +1,4 @@
-export interface QueueItem {
+export interface QueueItemInterface {
   userName: string,
   workoutID: string,
   retryCount: number,

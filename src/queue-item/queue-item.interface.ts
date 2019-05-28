@@ -11,5 +11,5 @@ export interface QueueItemInterface {
 export interface QueueItemError {
   date: string,
   error: string,
-  atRetryCount: string
+  atRetryCount: number
 }

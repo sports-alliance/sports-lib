@@ -3,7 +3,6 @@ import {DataInterface} from '../data/data.interface';
 import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {LapTypes} from './lap.types';
 import {LapJSONInterface} from './lap.json.interface';
-import {DataJSONInterface} from '../data/data.json.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
 

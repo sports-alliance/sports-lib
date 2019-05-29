@@ -51,8 +51,8 @@ describe('Event', () => {
       'name': 'Test',
       "privacy": "private",
       'stats': {},
-      'startDate': d1.toISOString(),
-      'endDate': d2.toISOString(),
+      'startDate': d1.getTime(),
+      'endDate': d2.getTime(),
     });
   });
 });

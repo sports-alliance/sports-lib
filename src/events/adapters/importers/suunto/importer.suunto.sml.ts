@@ -37,7 +37,7 @@ export class EventImporterSuuntoSML {
     json.DeviceLog.Samples.unshift({
       Events: [
         {
-          Activity: {ActivityType: json.DeviceLog.Header.ActivityType,}
+          Activity: {ActivityType: json.DeviceLog.Header.ActivityType}
         }
       ],
       TimeISO8601: startDate.toISOString()

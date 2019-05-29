@@ -4,8 +4,8 @@ import {DataHeartRate} from '../data/data.heart-rate';
 import {DataAltitude} from '../data/data.altitude';
 import {ActivityTypes} from './activity.types';
 import {Creator} from '../creators/creator';
-import {Stream} from "../streams/stream";
-import {DataDistance} from "../data/data.distance";
+import {Stream} from '../streams/stream';
+import {DataDistance} from '../data/data.distance';
 
 describe('Activity', () => {
 
@@ -27,41 +27,41 @@ describe('Activity', () => {
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));
     expect(activity.getStreamDataTypesBasedOnTime([DataAltitude.type])).toEqual({
       0: {
-        "Altitude": 200
+        'Altitude': 200
       },
       1000: {
-        "Altitude": 500
+        'Altitude': 500
       },
       3000: {
-        "Altitude": 502
+        'Altitude': 502
       },
       5000: {
-        "Altitude": 600
+        'Altitude': 600
       },
       6000: {
-        "Altitude": 700
+        'Altitude': 700
       }
     });
     expect(activity.getStreamDataTypesBasedOnTime([DataDistance.type])).toEqual({
-      0: {"Distance": 0},
-      1000: {"Distance": 10},
-      2000: {"Distance": 20},
-      3000: {"Distance": 30},
-      4000: {"Distance": 40},
-      5000: {"Distance": 50},
-      6000: {"Distance": 60}
+      0: {'Distance': 0},
+      1000: {'Distance': 10},
+      2000: {'Distance': 20},
+      3000: {'Distance': 30},
+      4000: {'Distance': 40},
+      5000: {'Distance': 50},
+      6000: {'Distance': 60}
     });
     expect(activity.getStreamDataTypesBasedOnTime([DataAltitude.type, DataDistance.type])).toEqual({
       0: {
-        "Altitude": 200,
-        "Distance": 0
+        'Altitude': 200,
+        'Distance': 0
       },
-      1000: {"Altitude": 500, "Distance": 10},
-      2000: {"Distance": 20},
-      3000: {"Altitude": 502, "Distance": 30},
-      4000: {"Distance": 40},
-      5000: {"Altitude": 600, "Distance": 50},
-      6000: {"Altitude": 700, "Distance": 60}
+      1000: {'Altitude': 500, 'Distance': 10},
+      2000: {'Distance': 20},
+      3000: {'Altitude': 502, 'Distance': 30},
+      4000: {'Distance': 40},
+      5000: {'Altitude': 600, 'Distance': 50},
+      6000: {'Altitude': 700, 'Distance': 60}
     });
   });
 
@@ -72,59 +72,59 @@ describe('Activity', () => {
     activity.addStream(new Stream(DataDistance.type, [0,    10, 20,   30,   40,   50,   60]));
     expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual({
       0: {
-        "Altitude": 200
+        'Altitude': 200
       },
       10: {
-        "Altitude": 500
+        'Altitude': 500
       },
       30: {
-        "Altitude": 502
+        'Altitude': 502
       },
       50: {
-        "Altitude": 600
+        'Altitude': 600
       },
       60: {
-        "Altitude": 700
+        'Altitude': 700
       }
     });
     expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataHeartRate.type, DataAltitude.type])).toEqual({
       0: {
-        "Altitude": 200,
-        "Heart Rate": 60
+        'Altitude': 200,
+        'Heart Rate': 60
       },
       10: {
-        "Altitude": 500,
-        "Heart Rate": 70
+        'Altitude': 500,
+        'Heart Rate': 70
       },
       20: {
-        "Heart Rate": 80
+        'Heart Rate': 80
       },
       30: {
-        "Altitude": 502,
+        'Altitude': 502,
       },
       50: {
-        "Altitude": 600
+        'Altitude': 600
       },
       60: {
-        "Altitude": 700,
-        "Heart Rate": 120
+        'Altitude': 700,
+        'Heart Rate': 120
       }
     });
     expect(activity.getStreamDataTypesBasedOnDataType(DataAltitude.type, [DataDistance.type])).toEqual({
       200: {
-        "Distance": 0
+        'Distance': 0
       },
       500: {
-        "Distance": 10
+        'Distance': 10
       },
       502: {
-        "Distance": 30
+        'Distance': 30
       },
       600: {
-        "Distance": 50
+        'Distance': 50
       },
       700: {
-        "Distance": 60
+        'Distance': 60
       }
     });
   });

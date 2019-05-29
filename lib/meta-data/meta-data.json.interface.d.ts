@@ -3,5 +3,5 @@ export interface MetaDataJsonInterface {
     serviceName: ServiceNames;
     serviceUserName: string;
     id: string;
-    date: string;
+    date: number;
 }

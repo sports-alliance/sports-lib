@@ -165,8 +165,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       Object.assign(stats, value.toJSON());
     });
     return {
-      startDate: this.startDate.toJSON(),
-      endDate: this.endDate.toJSON(),
+      startDate: this.startDate.getTime(),
+      endDate: this.endDate.getTime(),
       type: this.type,
       creator: this.creator.toJSON(),
       intensityZones: intensityZones,

@@ -3,8 +3,8 @@ import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataJSONInterface } from '../data/data.json.interface';
 export interface ActivityJSONInterface {
-    startDate: string;
-    endDate: string;
+    startDate: number;
+    endDate: number;
     type: string;
     stats: DataJSONInterface;
     laps: LapJSONInterface[];

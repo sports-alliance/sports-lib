@@ -19,7 +19,7 @@ export class MetaData implements MetaDataInterface {
       id: this.id,
       serviceName: this.serviceName,
       serviceUserName: this.serviceUserName,
-      date: this.date.toJSON()
+      date: this.date.getTime()
     }
   }
 

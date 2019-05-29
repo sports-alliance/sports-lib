@@ -5,11 +5,11 @@ export interface QueueItemInterface {
   totalRetryCount: number,
   processed: false,
   errors: QueueItemError[],
-  processedAt: string
+  processedAt: number
 }
 
 export interface QueueItemError {
-  date: string,
+  date: number,
   error: string,
   atRetryCount: number
 }

@@ -4,8 +4,8 @@ import { MetaDataJsonInterface } from '../meta-data/meta-data.json.interface';
 export interface EventJSONInterface {
     name: string;
     privacy: Privacy;
-    startDate: string;
-    endDate: string;
+    startDate: number;
+    endDate: number;
     stats: DataJSONInterface;
     metaData: MetaDataJsonInterface | null;
 }

@@ -20,8 +20,8 @@ export class Lap extends DurationClassAbstract implements LapInterface {
       Object.assign(stats, value.toJSON());
     });
     return {
-      startDate: this.startDate.toJSON(),
-      endDate: this.endDate.toJSON(),
+      startDate: this.startDate.getTime(),
+      endDate: this.endDate.getTime(),
       type: this.type,
       stats: stats
     };

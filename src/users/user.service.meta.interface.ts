@@ -1,4 +1,4 @@
 export interface UserServiceMetaInterface {
-  didLastHistoryImport: number,
-  lastHistoryImportWorkoutBatchCount: number
+  didLastHistoryImport: number;
+  processedActivities: number;
 }

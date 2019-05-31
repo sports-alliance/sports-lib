@@ -1,5 +1,5 @@
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
-import { StreamJSONInterface } from "./stream";
+import { StreamJSONInterface } from './stream';
 export interface StreamInterface extends SerializableClassInterface {
     type: string;
     data: (number | null)[];

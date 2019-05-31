@@ -229,16 +229,16 @@ export class EventUtilities {
         return accu
       }
       streams.forEach((stream) => {
-          if (isNumberOrString(stream.data[index])) {
-            accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
-            accu[<number>streamDataItem][stream.type] = stream.data[index];
-          }
-        });
+        if (isNumberOrString(stream.data[index])) {
+          accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
+          accu[<number>streamDataItem][stream.type] = stream.data[index];
+        }
+      });
       return accu
     }, {})
   }
 
-  public static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]):  { [type: number]: { [type: string]: number | null } } {
+  public static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]): { [type: number]: { [type: string]: number | null } } {
     const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
     for (let i = 0; i < this.getDataLength(startDate, endDate); i++) { // Perhaps this can be optimized with a search function
       streams.forEach((stream: StreamInterface) => {
@@ -275,7 +275,7 @@ export class EventUtilities {
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
     // If only one
-    if (event.getActivities().length ===1 ){
+    if (event.getActivities().length === 1) {
       event.getFirstActivity().getStats().forEach(stat => {
         event.addStat(stat);
       });
@@ -354,37 +354,33 @@ export class EventUtilities {
     minDiff: number = 5): number {
     // debugger;
     let gainOrLoss = 0;
-    try {
-      activity.getSquashedStreamData(streamType, startDate, endDate)
-        .reduce((previousValue: number, nextValue: number) => {
-          // For gain
-          if (gain) {
-            // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
-            if ((previousValue + minDiff) <= nextValue) {
-              gainOrLoss += nextValue - previousValue;
-              return nextValue;
-            }
-            // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-            if (previousValue < nextValue) {
-              return previousValue;
-            }
-            return nextValue
-          }
-
-          // For Loss
-          if ((previousValue - minDiff) >= nextValue) {
-            gainOrLoss += previousValue - nextValue;
+    activity.getSquashedStreamData(streamType, startDate, endDate)
+      .reduce((previousValue: number, nextValue: number) => {
+        // For gain
+        if (gain) {
+          // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
+          if ((previousValue + minDiff) <= nextValue) {
+            gainOrLoss += nextValue - previousValue;
             return nextValue;
           }
           // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-          if (previousValue > nextValue) {
+          if (previousValue < nextValue) {
             return previousValue;
           }
+          return nextValue
+        }
+
+        // For Loss
+        if ((previousValue - minDiff) >= nextValue) {
+          gainOrLoss += previousValue - nextValue;
           return nextValue;
-        });
-    }catch (e) {
-      debugger;
-    }
+        }
+        // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
+        if (previousValue > nextValue) {
+          return previousValue;
+        }
+        return nextValue;
+      });
     return gainOrLoss;
   }
 
@@ -429,9 +425,9 @@ export class EventUtilities {
     // If there is no distance
     if (!activity.getStat(DataDistance.type)) {
       let distance = 0;
-      if (activity.hasStreamData(DataDistance.type)){
-        distance =  activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length -1];
-      } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)){
+      if (activity.hasStreamData(DataDistance.type)) {
+        distance = activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length - 1];
+      } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)) {
         distance = this.generateDistanceForActivity(activity, activity.startDate, activity.endDate);
       }
       activity.addStat(new DataDistance(distance));

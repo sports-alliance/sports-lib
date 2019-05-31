@@ -14,13 +14,13 @@ import {DataPositionInterface} from '../data/data.position.interface';
 import {Stream} from '../streams/stream';
 import {DataJSONInterface} from '../data/data.json.interface';
 import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
-import {isNumber, isNumberOrString} from "../events/utilities/helpers";
-import {EventUtilities} from "../events/utilities/event.utilities";
+import {isNumber, isNumberOrString} from '../events/utilities/helpers';
+import {EventUtilities} from '../events/utilities/event.utilities';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
   public creator: CreatorInterface;
-  public intensityZones: IntensityZonesInterface[] = [];// maybe rename
+  public intensityZones: IntensityZonesInterface[] = []; // maybe rename
 
   private laps: LapInterface[] = [];
   private streams: StreamInterface[] = [];
@@ -89,8 +89,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
     if (startDate && endDate) {
       return stream.data
-        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) > startDate)
-        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) < endDate);
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) >= startDate)
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) <= endDate);
     }
 
     if (startDate) {

@@ -3,6 +3,6 @@ import {ServiceNames} from './meta-data.interface';
 export interface MetaDataJsonInterface {
   serviceName: ServiceNames;
   serviceUserName: string;
-  id: string,
+  serviceWorkoutID: string,
   date: number,
 }

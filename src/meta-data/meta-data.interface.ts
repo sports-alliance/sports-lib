@@ -4,7 +4,7 @@ import {MetaDataJsonInterface} from './meta-data.json.interface';
 export interface MetaDataInterface  extends SerializableClassInterface {
   serviceName: ServiceNames;
   serviceUserName: string;
-  id: string;
+  serviceWorkoutID: string;
   date: Date;
   toJSON(): MetaDataJsonInterface;
 }

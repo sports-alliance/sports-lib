@@ -2,9 +2,9 @@ import { MetaDataInterface, ServiceNames } from './meta-data.interface';
 import { MetaDataJsonInterface } from './meta-data.json.interface';
 export declare class MetaData implements MetaDataInterface {
     date: Date;
-    id: string;
+    serviceWorkoutID: string;
     serviceName: ServiceNames;
     serviceUserName: string;
-    constructor(service: ServiceNames, id: string, serviceUser: string, date: Date);
+    constructor(service: ServiceNames, serviceWorkoutID: string, serviceUser: string, date: Date);
     toJSON(): MetaDataJsonInterface;
 }

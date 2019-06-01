@@ -1,5 +1,5 @@
 import { DataInterface, UnitSystem } from './data.interface';
-import { DataJSONInterface } from "./data.json.interface";
+import { DataJSONInterface } from './data.json.interface';
 export declare abstract class Data implements DataInterface {
     static type: string;
     static unit: string;

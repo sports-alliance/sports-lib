@@ -1,5 +1,4 @@
 import {DataNumber} from './data.number';
-import {DataSpeed} from "./data.speed";
 
 export class DataVerticalSpeed extends DataNumber {
   static type = 'Vertical Speed';

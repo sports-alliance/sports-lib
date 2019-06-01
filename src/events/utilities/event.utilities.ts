@@ -581,6 +581,7 @@ export class EventUtilities {
     }
   }
 
+  // @todo move to factory
   private static generateMissingUnitStatsForActivity(activity: ActivityInterface) {
     if (!activity.getStat(DataPaceMaxMinutesPerMile.type)) {
       const paceMax = activity.getStat(DataPaceMax.type);

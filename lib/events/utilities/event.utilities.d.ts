@@ -1,6 +1,6 @@
 import { EventInterface } from '../event.interface';
 import { ActivityInterface } from '../../activities/activity.interface';
-import { StreamInterface } from "../../streams/stream.interface";
+import { StreamInterface } from '../../streams/stream.interface';
 export declare class EventUtilities {
     private static geoLibAdapter;
     static getDataTypeAvg(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
@@ -38,6 +38,7 @@ export declare class EventUtilities {
      * Generates missing streams for an activity such as distance etc if they are missing
      * @param activity
      */
-    private static generateMissingStreamsForActivity;
+    static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface;
     static generateDistanceForActivity(activity: ActivityInterface, startDate?: Date, endDate?: Date): number;
+    static generateMissingUnitStreamsForActivity(activity: ActivityInterface): ActivityInterface;
 }

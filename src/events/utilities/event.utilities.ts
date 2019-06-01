@@ -1,8 +1,6 @@
 import {EventInterface} from '../event.interface';
 import {ActivityInterface} from '../../activities/activity.interface';
-// import {EventExporterTCX} from '../adapters/exporters/exporter.tcx';
 import {Event} from '../event';
-import {LapInterface} from '../../laps/lap.interface';
 import {DataHeartRate} from '../../data/data.heart-rate';
 import {DataCadence} from '../../data/data.cadence';
 import {
@@ -81,10 +79,7 @@ import {DataBatteryConsumption} from '../../data/data.battery-consumption';
 import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
 import {DataPositionInterface} from '../../data/data.position.interface';
 import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
-import {DataNumberOfSamples} from '../../data/data-number-of.samples';
-import {Privacy} from '../../privacy/privacy.class.interface';
-import {Stream} from "../../streams/stream";
-import {Data} from "../../data/data";
+import {Stream} from '../../streams/stream';
 import {
   convertPaceToPaceInMinutesPerMile,
   convertSpeedToPace,
@@ -96,9 +91,9 @@ import {
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
   isNumber, isNumberOrString
-} from "./helpers";
-import {DataLongitudeDegrees} from "../../data/data.longitude-degrees";
-import {StreamInterface} from "../../streams/stream.interface";
+} from './helpers';
+import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
+import {StreamInterface} from '../../streams/stream.interface';
 
 export class EventUtilities {
 
@@ -266,6 +261,7 @@ export class EventUtilities {
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
     this.generateMissingStreamsForActivity(activity);
+    this.generateMissingUnitStreamsForActivity(activity);
     this.generateMissingStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity);
   }
@@ -303,7 +299,7 @@ export class EventUtilities {
     event.getActivities().forEach((activity) => {
       const activityAscent = activity.getStat(DataAscent.type);
       if (activityAscent) {
-        let ascent = event.getStat(DataAscent.type);
+        const ascent = event.getStat(DataAscent.type);
         if (!ascent) {
           event.addStat(new DataAscent(<number>activityAscent.getValue()))
         } else {
@@ -315,7 +311,7 @@ export class EventUtilities {
     event.getActivities().forEach((activity) => {
       const activityDescent = activity.getStat(DataDescent.type);
       if (activityDescent) {
-        let Descent = event.getStat(DataDescent.type);
+        const Descent = event.getStat(DataDescent.type);
         if (!Descent) {
           event.addStat(new DataDescent(<number>activityDescent.getValue()))
         } else {
@@ -614,10 +610,18 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
       }
     }
+
     if (!activity.getStat(DataSpeedMaxFeetPerSecond.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
         activity.addStat(new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
+      }
+    }
+
+    if (!activity.getStat(DataSpeedMaxFeetPerMinute.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
       }
     }
 
@@ -812,7 +816,8 @@ export class EventUtilities {
    * Generates missing streams for an activity such as distance etc if they are missing
    * @param activity
    */
-  private static generateMissingStreamsForActivity(activity: ActivityInterface) {
+  public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+    // Generate distance
     if (activity.hasStreamData(DataLatitudeDegrees.type) && !activity.hasStreamData(DataDistance.type)) {
       const distanceStream = activity.createStream(DataDistance.type);
       let distance = 0;
@@ -832,6 +837,18 @@ export class EventUtilities {
       activity.addStream(distanceStream);
     }
 
+    return activity;
+  }
+
+  public static generateDistanceForActivity(
+    activity: ActivityInterface,
+    startDate?: Date,
+    endDate?: Date): number {
+    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getPositionData(startDate, endDate).filter((position) => position !== null));
+  }
+
+  public static generateMissingUnitStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+    // Generate pace from speed
     if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataPace.type)) {
       activity.addStream(new Stream(DataPace.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -841,6 +858,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate speed in Kilometers per hour
     if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedKilometersPerHour.type)) {
       activity.addStream(new Stream(DataSpeedKilometersPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -850,6 +868,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate speed in Miles per hour
     if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedMilesPerHour.type)) {
       activity.addStream(new Stream(DataSpeedMilesPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -859,6 +878,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate speed in feet per second
     if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedFeetPerSecond.type)) {
       activity.addStream(new Stream(DataSpeedFeetPerSecond.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -868,6 +888,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate pace in minutes per mile
     if (activity.hasStreamData(DataPace.type) && !activity.hasStreamData(DataPaceMinutesPerMile.type)) {
       activity.addStream(new Stream(DataPaceMinutesPerMile.type, activity.getStreamData(DataPace.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -877,6 +898,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in feet per second
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerSecond.type)) {
       activity.addStream(new Stream(DataVerticalSpeedFeetPerSecond.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -886,6 +908,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in meters per minute
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMetersPerMinute.type)) {
       activity.addStream(new Stream(DataVerticalSpeedMetersPerMinute.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -895,6 +918,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in feet per mintute
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerMinute.type)) {
       activity.addStream(new Stream(DataVerticalSpeedFeetPerMinute.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -904,6 +928,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in meters per hour
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMetersPerHour.type)) {
       activity.addStream(new Stream(DataVerticalSpeedMetersPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -913,6 +938,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in feet per hour
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerHour.type)) {
       activity.addStream(new Stream(DataVerticalSpeedFeetPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -922,6 +948,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in in kilometers per hour
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedKilometerPerHour.type)) {
       activity.addStream(new Stream(DataVerticalSpeedKilometerPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -931,6 +958,7 @@ export class EventUtilities {
       })));
     }
 
+    // Generate vertical speed in miles per hour
     if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMilesPerHour.type)) {
       activity.addStream(new Stream(DataVerticalSpeedMilesPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -939,13 +967,7 @@ export class EventUtilities {
         return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
       })));
     }
-  }
-
-  public static generateDistanceForActivity(
-    activity: ActivityInterface,
-    startDate?: Date,
-    endDate?: Date): number {
-    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getPositionData(startDate, endDate).filter((position) => position !== null));
+    return activity;
   }
 }
 

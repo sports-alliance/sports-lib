@@ -103,21 +103,21 @@ import {DataVerticalOscillation} from './data.vertical-oscillation';
 import {DataTotalTrainingEffect} from './data.total-training-effect';
 import {DataNumberOfSamples} from './data-number-of.samples';
 import {Data} from './data';
-import {DataFootPodUsed} from "./data.foot-pod-used";
-import {DataAutoPauseUsed} from "./data.auto-pause-used";
-import {DataAutoLapDuration} from "./data.auto-lap-duration";
-import {DataAutoLapDistance} from "./data.auto-lap-distance";
-import {DataAutoLapUsed} from "./data.auto-lap-used";
-import {DataBikePodUsed} from "./data.bike-pod-used";
-import {DataEnabledNavigationSystems} from "./data.enabled-navigation-systems";
-import {DataHeartRateUsed} from "./data.heart-rate-used";
-import {DataPowerPodUsed} from "./data.power-pod-used";
-import {DataAltiBaroProfile} from "./data.alti-baro-profile";
-import {DataIBI} from "./data.ibi";
-import {DataSteps} from "./data.steps";
-import {DataElevation} from "./data.elevation";
-import {DataPoolLength} from "./data.pool-length";
-import {DataDeviceLocation} from "./data.device-location";
+import {DataFootPodUsed} from './data.foot-pod-used';
+import {DataAutoPauseUsed} from './data.auto-pause-used';
+import {DataAutoLapDuration} from './data.auto-lap-duration';
+import {DataAutoLapDistance} from './data.auto-lap-distance';
+import {DataAutoLapUsed} from './data.auto-lap-used';
+import {DataBikePodUsed} from './data.bike-pod-used';
+import {DataEnabledNavigationSystems} from './data.enabled-navigation-systems';
+import {DataHeartRateUsed} from './data.heart-rate-used';
+import {DataPowerPodUsed} from './data.power-pod-used';
+import {DataAltiBaroProfile} from './data.alti-baro-profile';
+import {DataIBI} from './data.ibi';
+import {DataSteps} from './data.steps';
+import {DataElevation} from './data.elevation';
+import {DataPoolLength} from './data.pool-length';
+import {DataDeviceLocation} from './data.device-location';
 
 /**
  * Only concrete classes no abstracts

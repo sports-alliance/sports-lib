@@ -10,6 +10,7 @@ export declare class DynamicDataLoader {
     static allDataTypes: string[];
     static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface;
     static getDataClassFromDataType(dataType: string): any;
+    static isUnitDerivedDataType(dataType: string): boolean;
 }
 export interface DataTypeUnitGroups {
     [type: string]: string[];

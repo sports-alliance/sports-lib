@@ -22,6 +22,7 @@ export declare class Activity extends DurationClassAbstract implements ActivityI
     removeStream(stream: StreamInterface): void;
     addStreams(streams: StreamInterface[]): void;
     getAllStreams(): StreamInterface[];
+    getAllExportableStreams(): StreamInterface[];
     hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
     hasPositionData(startDate?: Date, endDate?: Date): boolean;
     getStream(streamType: string): StreamInterface;

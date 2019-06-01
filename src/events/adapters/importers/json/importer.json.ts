@@ -22,6 +22,7 @@ import {IBIStream} from "../../../../streams/ibi-stream";
 import {DeviceJsonInterface} from "../../../../activities/devices/device.json.interface";
 import {DeviceInterface} from "../../../../activities/devices/device.interface";
 import {Device} from "../../../../activities/devices/device";
+import {EventUtilities} from "../../../utilities/event.utilities";
 
 export class EventImporterJSON {
 

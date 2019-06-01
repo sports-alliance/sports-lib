@@ -6,6 +6,7 @@ export declare class Stream implements StreamInterface {
     getNumericData(): number[];
     getStreamDataByTime(startDate: Date): StreamDataItem[];
     getStreamDataByDuration(offset?: number): StreamDataItem[];
+    isUnitDerivedDataType(): boolean;
     toJSON(): StreamJSONInterface;
 }
 export interface StreamJSONInterface {

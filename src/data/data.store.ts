@@ -259,6 +259,8 @@ export const DataStore: any = {
 };
 
 export class DynamicDataLoader {
+
+  // Convert to enums please
   static basicDataTypes =
     [
       DataHeartRate.type,
@@ -337,6 +339,9 @@ export class DynamicDataLoader {
     return DataStore[className];
   }
 
+  static isUnitDerivedDataType(dataType: string): boolean {
+    return Object.values(this.unitBasedDataTypes).flat().indexOf(dataType) !== -1;
+  }
 }
 
 

@@ -12,9 +12,8 @@ import {StreamDataItem, StreamInterface} from '../streams/stream.interface';
 import {ActivityJSONInterface} from './activity.json.interface';
 import {DataPositionInterface} from '../data/data.position.interface';
 import {Stream} from '../streams/stream';
-import {DataJSONInterface} from '../data/data.json.interface';
 import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
-import {isNumber, isNumberOrString} from '../events/utilities/helpers';
+import {isNumber} from '../events/utilities/helpers';
 import {EventUtilities} from '../events/utilities/event.utilities';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
@@ -40,6 +39,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   addStream(stream: StreamInterface): void {
+    if (this.streams.find((activityStream) => activityStream.type === stream.type)) {
+      throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()}`);
+    }
     this.streams.push(stream);
   }
 
@@ -57,6 +59,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   getAllStreams(): StreamInterface[] {
     return this.streams;
+  }
+
+  getAllExportableStreams(): StreamInterface[] {
+    return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType());
   }
 
   hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean {

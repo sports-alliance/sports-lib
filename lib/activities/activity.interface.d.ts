@@ -34,6 +34,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
     addStreams(streams: StreamInterface[]): void;
     removeStream(stream: StreamInterface): void;
     getAllStreams(): StreamInterface[];
+    getAllExportableStreams(): StreamInterface[];
     clearStreams(): void;
     addDataToStream(type: string, date: Date, data: number): void;
     getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];

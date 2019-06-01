@@ -1,5 +1,6 @@
 import {StreamDataItem, StreamInterface} from './stream.interface';
 import {isNumber} from '../events/utilities/helpers';
+import {DynamicDataLoader} from "../data/data.store";
 
 export class Stream implements StreamInterface {
   public readonly type: string;
@@ -34,6 +35,10 @@ export class Stream implements StreamInterface {
       });
       return accu;
     }, <StreamDataItem[]>[])
+  }
+
+  isUnitDerivedDataType(): boolean {
+    return DynamicDataLoader.isUnitDerivedDataType(this.type);
   }
 
   toJSON(): StreamJSONInterface {

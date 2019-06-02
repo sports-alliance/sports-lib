@@ -860,7 +860,7 @@ export class EventUtilities {
     let paceStream = streams.find(stream => stream.type === DataPace.type);
 
     if (!speedStream) {
-      throw  new Error(`No supported units found`);
+      throw new Error(`No supported units found`);
     }
 
     if (!paceStream) {
@@ -906,7 +906,7 @@ export class EventUtilities {
 
 
     // If we have more vertical speed data
-    if (verticalSpeedStream){
+    if (verticalSpeedStream) {
       // Generate vertical speed in feet per second
       unitStreams.push(new Stream(DataVerticalSpeedFeetPerSecond.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {

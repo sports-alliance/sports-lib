@@ -71,7 +71,9 @@ export class EventImporterFIT {
             return lapSamplesArray;
           }, []);
 
-          samples = samples.length ? samples : fitDataObject.records;
+          samples = fitDataObject.records.filter((record:any)  => {
+            return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
+          });
 
           FITSampleMapper.forEach((sampleMapping) => {
             const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));

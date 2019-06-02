@@ -340,7 +340,7 @@ export class DynamicDataLoader {
   }
 
   static isUnitDerivedDataType(dataType: string): boolean {
-    return Object.values(this.unitBasedDataTypes).flat().indexOf(dataType) !== -1;
+    return Object.values(this.unitBasedDataTypes).reduce((accu, item) => accu.concat(item), []).indexOf(dataType) !== -1;
   }
 }
 

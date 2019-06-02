@@ -860,7 +860,7 @@ export class EventUtilities {
     let paceStream = streams.find(stream => stream.type === DataPace.type);
 
     if (!speedStream) {
-      throw new Error(`No supported units found`);
+      return unitStreams;
     }
 
     if (!paceStream) {

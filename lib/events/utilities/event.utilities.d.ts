@@ -40,5 +40,9 @@ export declare class EventUtilities {
      */
     static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface;
     static generateDistanceForActivity(activity: ActivityInterface, startDate?: Date, endDate?: Date): number;
-    static generateMissingUnitStreamsForActivity(activity: ActivityInterface): ActivityInterface;
+    /**
+     * @todo optimize with whitelist
+     * @param streams
+     */
+    static getUnitStreamsFromStreams(streams: StreamInterface[]): StreamInterface[];
 }

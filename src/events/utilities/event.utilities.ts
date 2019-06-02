@@ -261,9 +261,9 @@ export class EventUtilities {
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
     this.generateMissingStreamsForActivity(activity);
-    this.generateMissingUnitStreamsForActivity(activity);
+    activity.addStreams(this.getUnitStreamsFromStreams(activity.getAllStreams()));
     this.generateMissingStatsForActivity(activity);
-    this.generateMissingUnitStatsForActivity(activity);
+    this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
   }
 
   public static reGenerateStatsForEvent(event: EventInterface) {
@@ -847,127 +847,131 @@ export class EventUtilities {
     return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity.getPositionData(startDate, endDate).filter((position) => position !== null));
   }
 
-  public static generateMissingUnitStreamsForActivity(activity: ActivityInterface): ActivityInterface {
-    // Generate pace from speed
-    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataPace.type)) {
-      activity.addStream(new Stream(DataPace.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
+  /**
+   * @todo optimize with whitelist
+   * @param streams
+   */
+  public static getUnitStreamsFromStreams(streams: StreamInterface[]): StreamInterface[] {
+    const unitStreams: StreamInterface[] = [];
+
+    // Check if they contain the needed info
+    const speedStream = streams.find(stream => stream.type === DataSpeed.type);
+    const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
+    let paceStream = streams.find(stream => stream.type === DataPace.type);
+
+    if (!speedStream) {
+      throw  new Error(`No supported units found`);
+    }
+
+    if (!paceStream) {
+      paceStream = new Stream(DataPace.type, speedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToPace(<number>dataValue);
-      })));
+      }));
+      unitStreams.push(paceStream);
     }
 
     // Generate speed in Kilometers per hour
-    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedKilometersPerHour.type)) {
-      activity.addStream(new Stream(DataSpeedKilometersPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
-      })));
-    }
-
+    unitStreams.push(new Stream(DataSpeedKilometersPerHour.type, speedStream.data.map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
+    })));
     // Generate speed in Miles per hour
-    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedMilesPerHour.type)) {
-      activity.addStream(new Stream(DataSpeedMilesPerHour.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
-      })));
-    }
-
+    unitStreams.push(new Stream(DataSpeedMilesPerHour.type, speedStream.data.map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
+    })));
     // Generate speed in feet per second
-    if (activity.hasStreamData(DataSpeed.type) && !activity.hasStreamData(DataSpeedFeetPerSecond.type)) {
-      activity.addStream(new Stream(DataSpeedFeetPerSecond.type, activity.getStreamData(DataSpeed.type).map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
-      })));
-    }
+    unitStreams.push(new Stream(DataSpeedFeetPerSecond.type, speedStream.data.map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
+    })));
+
 
     // Generate pace in minutes per mile
-    if (activity.hasStreamData(DataPace.type) && !activity.hasStreamData(DataPaceMinutesPerMile.type)) {
-      activity.addStream(new Stream(DataPaceMinutesPerMile.type, activity.getStreamData(DataPace.type).map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertPaceToPaceInMinutesPerMile(<number>dataValue);
-      })));
-    }
+    unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.data.map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertPaceToPaceInMinutesPerMile(<number>dataValue);
+    })));
 
-    // Generate vertical speed in feet per second
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerSecond.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedFeetPerSecond.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+
+    // If we have more vertical speed data
+    if (verticalSpeedStream){
+      // Generate vertical speed in feet per second
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerSecond.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in meters per minute
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMetersPerMinute.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedMetersPerMinute.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      // Generate vertical speed in meters per minute
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in feet per mintute
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerMinute.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedFeetPerMinute.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.data.map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
+      })));
+
+      // Generate vertical speed in feet per mintute
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerMinute.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in meters per hour
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMetersPerHour.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedMetersPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      // Generate vertical speed in meters per hour
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerHour.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInMetersPerHour(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in feet per hour
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedFeetPerHour.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedFeetPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      // Generate vertical speed in feet per hour
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerHour.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInFeetPerHour(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in in kilometers per hour
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedKilometerPerHour.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedKilometerPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      // Generate vertical speed in in kilometers per hour
+      unitStreams.push(new Stream(DataVerticalSpeedKilometerPerHour.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
       })));
-    }
 
-    // Generate vertical speed in miles per hour
-    if (activity.hasStreamData(DataVerticalSpeed.type) && !activity.hasStreamData(DataVerticalSpeedMilesPerHour.type)) {
-      activity.addStream(new Stream(DataVerticalSpeedMilesPerHour.type, activity.getStreamData(DataVerticalSpeed.type).map(dataValue => {
+      // Generate vertical speed in miles per hour
+      unitStreams.push(new Stream(DataVerticalSpeedMilesPerHour.type, verticalSpeedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
       })));
     }
-    return activity;
+
+    return unitStreams;
   }
 }
 

@@ -103,5 +103,9 @@ export declare enum ActivityTypes {
     'Fishing' = "Fishing",
     'Hunting' = "Hunting",
     'route' = "Route",
-    'Route' = "Route"
+    'Route' = "Route",
+    'flexibility_training' = "Flexibility Training",
+    'Flexibility Training' = "Flexibility Training",
+    'training' = "Training",
+    'Training' = "Training"
 }

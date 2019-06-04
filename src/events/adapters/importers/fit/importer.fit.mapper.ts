@@ -15,6 +15,7 @@ import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
 import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
 import {DataElevation} from "../../../../data/data.elevation";
+import {DataRecovery} from "../../../../data/data.recovery";
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {

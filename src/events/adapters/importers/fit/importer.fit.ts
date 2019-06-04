@@ -39,6 +39,8 @@ import {IBIStream} from "../../../../streams/ibi-stream";
 import {DeviceInterface} from "../../../../activities/devices/device.interface";
 import {Device} from "../../../../activities/devices/device";
 import {ImporterFitAntPlusDeviceNames} from "./importer.fit.ant-plus.device.names";
+import {DataPeakTrainingEffect} from "../../../../data/data.peak-training-effect";
+import {DataRecovery} from "../../../../data/data.recovery";
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -71,7 +73,7 @@ export class EventImporterFIT {
             return lapSamplesArray;
           }, []);
 
-          samples = fitDataObject.records.filter((record:any)  => {
+          samples = fitDataObject.records.filter((record: any) => {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
 
@@ -88,14 +90,14 @@ export class EventImporterFIT {
         });
 
         // If there are no activities to parse ....
-        if (!activities.length){
-          const activity=
-          new Activity(
-            new Date(fitDataObject.records[0].timestamp),
-            new Date(fitDataObject.records[fitDataObject.records.length - 1].timestamp),
-            ActivityTypes.unknown,
-            this.getCreatorFromFitDataObject(fitDataObject)
-          );
+        if (!activities.length) {
+          const activity =
+            new Activity(
+              new Date(fitDataObject.records[0].timestamp),
+              new Date(fitDataObject.records[fitDataObject.records.length - 1].timestamp),
+              ActivityTypes.unknown,
+              this.getCreatorFromFitDataObject(fitDataObject)
+            );
           FITSampleMapper.forEach((sampleMapping) => {
             const subjectSamples = <any[]>fitDataObject.records.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
             if (subjectSamples.length) {
@@ -118,9 +120,9 @@ export class EventImporterFIT {
               .filter((ibi: number) => {
                 // debugger;
                 // Some Garmin devices return a record of 65.535 (65535) for some reason so exlcude those
-                if (ibi === 65535){
+                if (ibi === 65535) {
                   // timeSum += ibi;
-                  return  false;
+                  return false;
                 }
                 timeSum += ibi;
                 const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
@@ -133,7 +135,7 @@ export class EventImporterFIT {
 
 
         // Parse the device infos
-        if (fitDataObject.device_infos && fitDataObject.device_infos.length){
+        if (fitDataObject.device_infos && fitDataObject.device_infos.length) {
           activities.forEach((activity) => {
             activity.creator.devices = this.getDeviceInfos(fitDataObject.device_infos);
           })
@@ -151,7 +153,7 @@ export class EventImporterFIT {
     });
   }
 
-  private static getDeviceInfos(deviceInfos: any[]): DeviceInterface[]{
+  private static getDeviceInfos(deviceInfos: any[]): DeviceInterface[] {
     return deviceInfos.map((deviceInfo: any) => {
       const device = new Device(deviceInfo.device_type);
       device.index = deviceInfo.device_index;
@@ -201,9 +203,9 @@ export class EventImporterFIT {
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport && session.sub_sport !== 'generic') {
-      return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || ActivityTypes[<any>session.sport] || ActivityTypes.unknown;
+      return ActivityTypes[<keyof typeof ActivityTypes>session.sub_sport] || session.sub_sport || session.sport || ActivityTypes.unknown;
     }
-    return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || ActivityTypes.unknown;
+    return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || session.sport || ActivityTypes.unknown;
   }
 
   private static getStatsFromObject(object: any): DataInterface[] {
@@ -274,6 +276,9 @@ export class EventImporterFIT {
     if (isNumberOrString(object.total_training_effect)) {
       stats.push(new DataTotalTrainingEffect(object.total_training_effect));
     }
+    // if (isNumberOrString(object.peak_epoc)) {
+    //   stats.push(new DataRecovery(object.recovery_time));
+    // }
     return stats;
   }
 

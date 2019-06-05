@@ -109,13 +109,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataVerticalOscillation.type,
     getSampleValue: (sample: any) => {
-      return sample.vertical_oscillation ;
-    },
-  },
-  {
-    dataType: DataFormPower.type,
-    getSampleValue: (sample: any) => {
-      return sample['Form Power'] ;
+      return sample.vertical_oscillation;
     },
   },
 ];

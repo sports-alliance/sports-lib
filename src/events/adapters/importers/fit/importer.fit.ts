@@ -33,14 +33,16 @@ import {DataPowerMin} from '../../../../data/data.power-min';
 import {DataPaceMin} from '../../../../data/data.pace-min';
 import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
 import {FITSampleMapper} from './importer.fit.mapper';
-import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
-import {EventUtilities} from "../../../utilities/event.utilities";
-import {IBIStream} from "../../../../streams/ibi-stream";
-import {DeviceInterface} from "../../../../activities/devices/device.interface";
-import {Device} from "../../../../activities/devices/device";
-import {ImporterFitAntPlusDeviceNames} from "./importer.fit.ant-plus.device.names";
-import {DataPeakTrainingEffect} from "../../../../data/data.peak-training-effect";
-import {DataRecovery} from "../../../../data/data.recovery";
+import {convertSpeedToPace, isNumber, isNumberOrString} from '../../../utilities/helpers';
+import {EventUtilities} from '../../../utilities/event.utilities';
+import {IBIStream} from '../../../../streams/ibi-stream';
+import {DeviceInterface} from '../../../../activities/devices/device.interface';
+import {Device} from '../../../../activities/devices/device';
+import {ImporterFitAntPlusDeviceNames} from './importer.fit.ant-plus.device.names';
+import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect';
+import {DataRecovery} from '../../../../data/data.recovery';
+import {DataPeakEPOC} from '../../../../data/data.peak-epoc';
+import {DataFeeling} from '../../../../data/data.feeling';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -276,9 +278,18 @@ export class EventImporterFIT {
     if (isNumberOrString(object.total_training_effect)) {
       stats.push(new DataTotalTrainingEffect(object.total_training_effect));
     }
-    // if (isNumberOrString(object.peak_epoc)) {
-    //   stats.push(new DataRecovery(object.recovery_time));
-    // }
+    if (isNumberOrString(object.total_training_effect)) {
+      stats.push(new DataTotalTrainingEffect(object.total_training_effect));
+    }
+    if (isNumberOrString(object.peak_epoc)) {
+      stats.push(new DataPeakEPOC(object.peak_epoc));
+    }
+    if (isNumberOrString(object.recovery_time)) {
+      stats.push(new DataRecovery(object.recovery_time));
+    }
+    if (isNumberOrString(object.feeling)) {
+      stats.push(new DataFeeling(object.feeling));
+    }
     return stats;
   }
 
@@ -295,6 +306,10 @@ export class EventImporterFIT {
       }
       case 'zwift': {
         creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Zwift Unknown');
+        break;
+      }
+      case 'stryd': {
+        creator = new Creator('Stryd', fitDataObject.file_creator.software_version, fitDataObject.file_creator.hardware_version,  fitDataObject.file_id.serial_number);
         break;
       }
       default: {

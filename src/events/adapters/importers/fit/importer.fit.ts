@@ -43,6 +43,11 @@ import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect
 import {DataRecovery} from '../../../../data/data.recovery';
 import {DataPeakEPOC} from '../../../../data/data.peak-epoc';
 import {DataFeeling} from '../../../../data/data.feeling';
+import {DataTemperatureMax} from "../../../../data/data.temperature-max";
+import {DataTemperatureMin} from "../../../../data/data.temperature-min";
+import {DataTemperatureAvg} from "../../../../data/data.temperature-avg";
+import {DataSpeedMin} from "../../../../data/data.speed-min";
+import {DataCadenceMin} from "../../../../data/data.cadence-min";
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -227,6 +232,7 @@ export class EventImporterFIT {
     } else {
       stats.push(new DataDistance(0));
     }
+    // Heart Rate
     if (isNumberOrString(object.avg_heart_rate)) {
       stats.push(new DataHeartRateAvg(object.avg_heart_rate));
     }
@@ -236,15 +242,17 @@ export class EventImporterFIT {
     if (isNumberOrString(object.max_heart_rate)) {
       stats.push(new DataHeartRateMax(object.max_heart_rate));
     }
+    // Cadence
     if (isNumberOrString(object.avg_cadence)) {
       stats.push(new DataCadenceAvg(object.avg_cadence));
     }
     if (isNumberOrString(object.min_cadence)) {
-      stats.push(new DataCadenceAvg(object.avg_cadence));
+      stats.push(new DataCadenceMin(object.min_cadence));
     }
     if (isNumberOrString(object.max_cadence)) {
       stats.push(new DataCadenceMax(object.max_cadence));
     }
+    // Power
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));
     }
@@ -254,42 +262,58 @@ export class EventImporterFIT {
     if (isNumberOrString(object.max_power)) {
       stats.push(new DataPowerMax(object.max_power));
     }
+    // Speed
     if (isNumberOrString(object.avg_speed)) {
       stats.push(new DataSpeedAvg(object.avg_speed));
       stats.push(new DataPaceAvg(convertSpeedToPace(object.avg_speed)));
     }
     if (isNumberOrString(object.min_speed)) {
-      stats.push(new DataSpeedAvg(object.min_speed));
+      stats.push(new DataSpeedMin(object.min_speed));
       stats.push(new DataPaceMin(convertSpeedToPace(object.min_speed)));
     }
     if (isNumberOrString(object.max_speed)) {
       stats.push(new DataSpeedMax(object.max_speed));
       stats.push(new DataPaceMax(convertSpeedToPace(object.max_speed)));
     }
+    // Temperature
+    if (isNumberOrString(object.avg_temperature)) {
+      stats.push(new DataTemperatureAvg(object.avg_temperature));
+    }
+    if (isNumberOrString(object.min_temperature)) {
+      stats.push(new DataTemperatureMin(object.min_temperature));
+    }
+    if (isNumberOrString(object.max_temperature)) {
+      stats.push(new DataTemperatureMax(object.max_temperature));
+    }
+    // Ascent
     if (isNumberOrString(object.total_ascent)) {
       stats.push(new DataAscent(object.total_ascent));
     }
+    // Descent
     if (isNumberOrString(object.total_descent)) {
       stats.push(new DataDescent(object.total_descent));
     }
+    // Calories
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
     }
+    // Total training effect
     if (isNumberOrString(object.total_training_effect)) {
       stats.push(new DataTotalTrainingEffect(object.total_training_effect));
     }
-    if (isNumberOrString(object.total_training_effect)) {
-      stats.push(new DataTotalTrainingEffect(object.total_training_effect));
-    }
+    // Peak Epoc
     if (isNumberOrString(object.peak_epoc)) {
       stats.push(new DataPeakEPOC(object.peak_epoc));
     }
+    // Recovery time
     if (isNumberOrString(object.recovery_time)) {
       stats.push(new DataRecovery(object.recovery_time));
     }
+    // Feeling
     if (isNumberOrString(object.feeling)) {
       stats.push(new DataFeeling(object.feeling));
     }
+    // @todo add support for more data
     return stats;
   }
 

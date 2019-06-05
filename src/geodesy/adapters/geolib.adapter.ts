@@ -1,5 +1,5 @@
 import {GeoLibAdapterInterface} from './adapter.interface';
-import {getDistance, PositionAsDecimal, findNearest} from 'geolib';
+import {getDistance} from 'geolib';
 import {DataPositionInterface} from '../../data/data.position.interface';
 
 export class GeoLibAdapter implements GeoLibAdapterInterface {
@@ -13,11 +13,11 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
     const excludeFirstPointsArray = positionArray.slice(1);
     let firstPosition = positionArray[0];
     for (const nextPosition of excludeFirstPointsArray) {
-      const firstPositionAsDecimal: PositionAsDecimal = {
+      const firstPositionAsDecimal = {
         longitude: firstPosition.longitudeDegrees,
         latitude: firstPosition.latitudeDegrees,
       };
-      const nextPositionAsDecimal: PositionAsDecimal = {
+      const nextPositionAsDecimal = {
         longitude: nextPosition.longitudeDegrees,
         latitude: nextPosition.latitudeDegrees,
       };

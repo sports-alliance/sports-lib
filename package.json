@@ -37,21 +37,21 @@
   "author": "Dimitrios Kanellopoulos",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "@types/node": "^11.13.6",
+    "@types/node": "^12.0.4",
     "fast-xml-parser": "^3.12.16",
-    "fit-file-parser": "^1.6.2",
-    "geolib": "^2.0.24",
+    "fit-file-parser": "^1.6.4",
+    "geolib": "^3.0.3",
     "gxparser": "^1.0.0",
     "lowpassf": "^0.5.0",
     "moving-median": "^1.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.11",
+    "@types/jest": "^24.0.13",
     "@types/xmldom": "^0.1.29",
-    "jest": "^24.7.1",
+    "jest": "^24.8.0",
     "ts-jest": "^24.0.2",
-    "tslint": "^5.16.0",
-    "typescript": "^3.4.4",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.1",
     "xmldom": "^0.1.27"
   },
   "jest": {

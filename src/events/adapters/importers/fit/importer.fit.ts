@@ -43,11 +43,11 @@ import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect
 import {DataRecovery} from '../../../../data/data.recovery';
 import {DataPeakEPOC} from '../../../../data/data.peak-epoc';
 import {DataFeeling} from '../../../../data/data.feeling';
-import {DataTemperatureMax} from "../../../../data/data.temperature-max";
-import {DataTemperatureMin} from "../../../../data/data.temperature-min";
-import {DataTemperatureAvg} from "../../../../data/data.temperature-avg";
-import {DataSpeedMin} from "../../../../data/data.speed-min";
-import {DataCadenceMin} from "../../../../data/data.cadence-min";
+import {DataTemperatureMax} from '../../../../data/data.temperature-max';
+import {DataTemperatureMin} from '../../../../data/data.temperature-min';
+import {DataTemperatureAvg} from '../../../../data/data.temperature-avg';
+import {DataSpeedMin} from '../../../../data/data.speed-min';
+import {DataCadenceMin} from '../../../../data/data.cadence-min';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -56,7 +56,7 @@ export class EventImporterFIT {
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
-        force: false,
+        force: true,
         speedUnit: 'm/s',
         lengthUnit: 'm',
         temperatureUnit: 'celsius',

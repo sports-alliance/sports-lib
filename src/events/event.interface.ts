@@ -14,6 +14,7 @@ export interface EventInterface extends StatsClassInterface,
   IDClassInterface {
 
   name: string;
+  description?: string;
   metaData?: MetaDataInterface;
 
   addActivity(activity: ActivityInterface): void;

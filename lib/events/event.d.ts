@@ -6,6 +6,7 @@ import { Privacy } from '../privacy/privacy.class.interface';
 import { MetaDataInterface } from '../meta-data/meta-data.interface';
 export declare class Event extends DurationClassAbstract implements EventInterface {
     name: string;
+    description?: string;
     privacy: Privacy;
     metaData?: MetaDataInterface;
     private activities;

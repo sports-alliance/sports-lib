@@ -9,6 +9,7 @@ import {MetaDataInterface} from '../meta-data/meta-data.interface';
 export class Event extends DurationClassAbstract implements EventInterface {
 
   public name: string;
+  public description?: string;
   public privacy: Privacy = Privacy.Private;
   public metaData?: MetaDataInterface;
 
@@ -70,6 +71,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
     return {
       name: this.name,
+      description: this.description || null,
       privacy: this.privacy,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),

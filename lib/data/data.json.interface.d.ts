@@ -1,3 +1,3 @@
 export interface DataJSONInterface {
-    [type: string]: number | boolean | string;
+    [type: string]: number | boolean | string | string[];
 }

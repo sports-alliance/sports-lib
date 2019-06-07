@@ -5,11 +5,11 @@ export declare abstract class Data implements DataInterface {
     static unit: string;
     static displayType?: string;
     static unitSystem: UnitSystem;
-    protected value: number | string | boolean;
-    protected constructor(value: string | number | boolean);
+    protected value: number | string | boolean | string[];
+    protected constructor(value: string | number | boolean | string[]);
     setValue(value: string | number | boolean): void;
-    getValue(): string | number | boolean;
-    getDisplayValue(): number | string;
+    getValue(): string | number | boolean | string[];
+    getDisplayValue(): number | string | string[];
     getType(): string;
     getUnit(): string;
     getDisplayUnit(): string;

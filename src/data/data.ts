@@ -6,10 +6,10 @@ export abstract class Data implements DataInterface {
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;
-  protected value: number | string | boolean;
+  protected value: number | string | boolean | string[];
 
-  protected constructor(value: string | number | boolean) {
-    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean')) {
+  protected constructor(value: string | number | boolean | string[]) {
+    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value)) {
       throw new Error('Value is not boolean or number or string ');
     }
     this.value = value;
@@ -19,11 +19,11 @@ export abstract class Data implements DataInterface {
     this.value = value;
   }
 
-  getValue(): string | number | boolean {
+  getValue(): string | number | boolean | string[] {
     return this.value;
   }
 
-  getDisplayValue(): number | string {
+  getDisplayValue(): number | string | string[] {
     let value = this.getValue();
     if (typeof value === 'boolean') {
       value = String(value);
@@ -51,7 +51,7 @@ export abstract class Data implements DataInterface {
     return (<typeof Data>this.constructor).unitSystem;
   }
 
-  toJSON(): DataJSONInterface{
+  toJSON(): DataJSONInterface {
     return {
       [this.getType()]: this.getValue(),
     };

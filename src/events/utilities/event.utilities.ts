@@ -94,6 +94,8 @@ import {
 } from './helpers';
 import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
 import {StreamInterface} from '../../streams/stream.interface';
+import {DataActivityTypes} from "../../data/data.activity-types";
+import {DataDeviceNames} from "../../data/data.device-names";
 
 export class EventUtilities {
 
@@ -270,6 +272,11 @@ export class EventUtilities {
     event.clearStats();
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
+
+    debugger;
+    event.addStat(new DataActivityTypes(event.getActivities().map(activity => activity.type)));
+    event.addStat(new DataDeviceNames(event.getActivities().map(activity => activity.creator.name)));
+
     // If only one
     if (event.getActivities().length === 1) {
       event.getFirstActivity().getStats().forEach(stat => {

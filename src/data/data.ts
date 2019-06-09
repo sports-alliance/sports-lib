@@ -2,7 +2,7 @@ import {DataInterface, UnitSystem} from './data.interface';
 import {DataJSONInterface} from './data.json.interface';
 
 export abstract class Data implements DataInterface {
-  static type: string;
+  static type: string; // @todo perhas add generic type
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;
@@ -15,8 +15,9 @@ export abstract class Data implements DataInterface {
     this.value = value;
   }
 
-  setValue(value: string | number | boolean) {
+  setValue(value: string | number | boolean| string[]) {
     this.value = value;
+    return this;
   }
 
   getValue(): string | number | boolean | string[] {

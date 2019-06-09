@@ -28,7 +28,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   }
 
   addActivities(activities: ActivityInterface[]): void {
-    this.activities.push(...activities);
+    activities.forEach(activity => this.addActivity(activity));
   }
 
   clearActivities(): void {
@@ -76,7 +76,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
-      metaData: this.metaData ?  this.metaData.toJSON() : null,
+      metaData: this.metaData ? this.metaData.toJSON() : null,
     };
   }
 }

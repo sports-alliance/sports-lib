@@ -119,6 +119,8 @@ import {DataElevation} from './data.elevation';
 import {DataPoolLength} from './data.pool-length';
 import {DataDeviceLocation} from './data.device-location';
 import {DataPeakEPOC} from './data.peak-epoc';
+import {DataDeviceNames} from "./data.device-names";
+import {DataActivityTypes} from "./data.activity-types";
 
 /**
  * Only concrete classes no abstracts
@@ -258,6 +260,8 @@ export const DataStore: any = {
   DataPoolLength,
   DataDeviceLocation,
   DataPeakEPOC,
+  DataActivityTypes,
+  DataDeviceNames,
 };
 
 export class DynamicDataLoader {

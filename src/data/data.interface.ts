@@ -2,7 +2,7 @@ import {SerializableClassInterface} from '../serializable/serializable.class.int
 import {DataJSONInterface} from './data.json.interface';
 
 export interface DataInterface extends SerializableClassInterface {
-  setValue(value: number | string): void;
+  setValue(value: number | string | string[]): void;
 
   getValue(): number | string | boolean | string[];
 

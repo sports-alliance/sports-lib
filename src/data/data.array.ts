@@ -1,6 +1,6 @@
 import {DataBare} from './data.bare';
 
-export abstract class DataStringArray extends DataBare {
+export abstract class DataArray extends DataBare {
   protected value: string[];
 
   constructor(value: string[]) {
@@ -13,9 +13,5 @@ export abstract class DataStringArray extends DataBare {
 
   getValue(): string[] {
     return this.value;
-  }
-
-  getDisplayValue(): string {
-    return this.getValue().join(', ');
   }
 }

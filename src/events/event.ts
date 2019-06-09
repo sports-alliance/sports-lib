@@ -15,11 +15,14 @@ export class Event extends DurationClassAbstract implements EventInterface {
 
   private activities: ActivityInterface[] = [];
 
-  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy) {
+  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string) {
     super(startDate, endDate);
     this.name = name;
     if (privacy) {
       this.privacy = privacy;
+    }
+    if (description){
+      this.description = description;
     }
   }
 

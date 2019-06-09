@@ -17,18 +17,18 @@ import {ActivityTypes} from '../../../../activities/activity.types';
 import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity-zones.json.interface';
 import {StreamInterface} from '../../../../streams/stream.interface';
 import {Stream, StreamJSONInterface} from '../../../../streams/stream';
-import {DataIBI} from "../../../../data/data.ibi";
-import {IBIStream} from "../../../../streams/ibi-stream";
-import {DeviceJsonInterface} from "../../../../activities/devices/device.json.interface";
-import {DeviceInterface} from "../../../../activities/devices/device.interface";
-import {Device} from "../../../../activities/devices/device";
-import {EventUtilities} from "../../../utilities/event.utilities";
+import {DataIBI} from '../../../../data/data.ibi';
+import {IBIStream} from '../../../../streams/ibi-stream';
+import {DeviceJsonInterface} from '../../../../activities/devices/device.json.interface';
+import {DeviceInterface} from '../../../../activities/devices/device.interface';
+import {Device} from '../../../../activities/devices/device';
+import {EventUtilities} from '../../../utilities/event.utilities';
 
 export class EventImporterJSON {
 
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     // debugger;
-    const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate), json.privacy);
+    const event = new Event(json.name, new Date(json.startDate), new Date(json.endDate), json.privacy, json.description || undefined);
     Object.keys(json.stats).forEach((statName: any) => {
       event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]))
     });
@@ -47,7 +47,7 @@ export class EventImporterJSON {
       creator.serialNumber = json.serialNumber;
     }
 
-    if (json.devices && json.devices.length){
+    if (json.devices && json.devices.length) {
       json.devices.forEach(jsonDevice => creator.devices.push(this.getDeviceFromJSON(jsonDevice)));
     }
 
@@ -73,23 +73,23 @@ export class EventImporterJSON {
       device.manufacturer = json.manufacturer;
     }
 
-    if (json.serialNumber){
+    if (json.serialNumber) {
       device.serialNumber = json.serialNumber;
     }
 
-    if (json.product){
+    if (json.product) {
       device.product = json.product;
     }
 
-    if (json.swInfo){
+    if (json.swInfo) {
       device.swInfo = json.swInfo;
     }
 
-    if (json.hwInfo){
+    if (json.hwInfo) {
     device.hwInfo = json.hwInfo;
     }
 
-    if (json.antDeviceNumber){
+    if (json.antDeviceNumber) {
     device.antDeviceNumber = json.antDeviceNumber;
     }
 
@@ -97,15 +97,15 @@ export class EventImporterJSON {
       device.antTransmissionType = json.antTransmissionType;
     }
 
-    if (json.antNetwork){
+    if (json.antNetwork) {
       device.antNetwork = json.antNetwork;
     }
 
-    if (json.sourceType){
+    if (json.sourceType) {
       device.sourceType = json.sourceType;
     }
 
-    if (json.cumOperatingTime){
+    if (json.cumOperatingTime) {
       device.cumOperatingTime = json.cumOperatingTime;
     }
 

@@ -10,7 +10,7 @@ export declare class Event extends DurationClassAbstract implements EventInterfa
     privacy: Privacy;
     metaData?: MetaDataInterface;
     private activities;
-    constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy);
+    constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string);
     addActivity(activity: ActivityInterface): void;
     addActivities(activities: ActivityInterface[]): void;
     clearActivities(): void;

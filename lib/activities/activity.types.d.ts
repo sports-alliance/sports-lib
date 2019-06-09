@@ -23,6 +23,8 @@ export declare enum ActivityTypes {
     'Skating' = "Skating",
     'Aerobics' = "Aerobics",
     'YogaPilates' = "YogaPilates",
+    'yoga' = "Yoga",
+    'Yoga' = "Yoga",
     'Trekking' = "Trekking",
     'Walking' = "Walking",
     'walking' = "Walking",

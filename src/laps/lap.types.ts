@@ -13,6 +13,7 @@ export enum LapTypes {
   'Autolap' = 'Auto lap',
   'AutoLap' = 'Auto lap',
   'autolap' = 'Auto lap',
+  'Auto lap' = 'Auto lap',
   'Distance' = 'Distance',
   'distance' = 'Distance',
   'Location' = 'Location',
@@ -36,5 +37,7 @@ export enum LapTypes {
   'session_end' = 'Session end',
   'Session end' = 'Session end',
   'fitness_equipment' = 'Fitness equipment',
-  'itness equipment' = 'Fitness equipment'
+  'fitness equipment' = 'Fitness equipment',
+  'Fitness equipment' = 'Fitness equipment',
+
 }

@@ -273,7 +273,6 @@ export class EventUtilities {
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
 
-    debugger;
     event.addStat(new DataActivityTypes(event.getActivities().map(activity => activity.type)));
     event.addStat(new DataDeviceNames(event.getActivities().map(activity => activity.creator.name)));
 

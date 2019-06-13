@@ -428,7 +428,7 @@ export class EventUtilities {
     if (!activity.getStat(DataDistance.type)) {
       let distance = 0;
       if (activity.hasStreamData(DataDistance.type)) {
-        distance = activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length - 1];
+        distance = activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length - 1] || 0;
       } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)) {
         distance = this.generateDistanceForActivity(activity, activity.startDate, activity.endDate);
       }

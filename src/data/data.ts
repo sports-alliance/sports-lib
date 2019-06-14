@@ -15,7 +15,7 @@ export abstract class Data implements DataInterface {
     this.value = value;
   }
 
-  setValue(value: string | number | boolean| string[]) {
+  setValue(value: string | number | boolean| string[]): this {
     this.value = value;
     return this;
   }

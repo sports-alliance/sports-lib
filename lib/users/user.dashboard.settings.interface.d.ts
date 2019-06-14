@@ -1,5 +1,7 @@
 export interface UserDashboardSettingsInterface {
     dateRange: DateRanges;
+    startDate: number;
+    endDate: number;
 }
 export declare enum DateRanges {
     thisWeek = 0,

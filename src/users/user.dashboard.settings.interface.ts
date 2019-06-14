@@ -1,5 +1,7 @@
-export interface UserDashboardSettingsInterface{
-  dateRange: DateRanges
+export interface UserDashboardSettingsInterface {
+  dateRange: DateRanges,
+  startDate: number,
+  endDate: number,
 }
 
 export enum DateRanges {

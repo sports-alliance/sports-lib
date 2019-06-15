@@ -8,5 +8,6 @@ export enum DateRanges {
   thisWeek,
   thisMonth,
   lastWeek,
-  none,
+  custom,
+  all,
 }

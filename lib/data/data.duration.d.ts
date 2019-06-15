@@ -3,4 +3,5 @@ export declare class DataDuration extends DataNumber {
     static type: string;
     static unit: string;
     getDisplayValue(): string;
+    getDisplayUnit(): string;
 }

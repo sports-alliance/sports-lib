@@ -17,4 +17,8 @@ export class DataDuration extends DataNumber {
       return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
     }
   }
+
+  getDisplayUnit(): string {
+    return '';
+  }
 }

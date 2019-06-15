@@ -96,6 +96,7 @@ import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
 import {StreamInterface} from '../../streams/stream.interface';
 import {DataActivityTypes} from "../../data/data.activity-types";
 import {DataDeviceNames} from "../../data/data.device-names";
+import {DataEnergy} from "../../data/data.energy";
 
 export class EventUtilities {
 
@@ -187,7 +188,6 @@ export class EventUtilities {
       return activity;
     }
 
-    debugger;
     activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
 
     const distanceStream = activity.getAllStreams().find(stream => stream.type === DataDistance.type);
@@ -288,6 +288,7 @@ export class EventUtilities {
     event.setDuration(new DataDuration(0));
     event.addStat(new DataAscent(0));
     event.addStat(new DataDescent(0));
+    event.addStat(new DataEnergy(0));
     event.getActivities().forEach((activity) => {
       event.setDuration(new DataDuration(event.getDuration().getValue() + activity.getDuration().getValue()));
     });
@@ -322,6 +323,18 @@ export class EventUtilities {
           event.addStat(new DataDescent(<number>activityDescent.getValue()))
         } else {
           event.addStat(new DataDescent(<number>Descent.getValue() + <number>activityDescent.getValue()))
+        }
+      }
+    });
+
+    event.getActivities().forEach((activity) => {
+      const activityEnergy = activity.getStat(DataEnergy.type);
+      if (activityEnergy) {
+        const energy = event.getStat(DataDescent.type);
+        if (!energy) {
+          event.addStat(new DataEnergy(<number>activityEnergy.getValue()))
+        } else {
+          event.addStat(new DataEnergy(<number>energy.getValue() + <number>activityEnergy.getValue()))
         }
       }
     });

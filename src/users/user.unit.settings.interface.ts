@@ -1,8 +1,8 @@
-
-export interface UserUnitSettingsInterface{
+export interface UserUnitSettingsInterface {
   speedUnits: SpeedUnits[],
   verticalSpeedUnits: VerticalSpeedUnits[],
   paceUnits: PaceUnits[],
+  startOfTheWeek: DaysOfTheWeek,
 }
 
 
@@ -30,4 +30,14 @@ export enum VerticalSpeedUnits {
 export enum PaceUnits {
   MinutesPerKilometer = 'Pace',
   MinutesPerMile = 'Pace in minutes per mile',
+}
+
+export enum DaysOfTheWeek {
+  Sunday,
+  Monday,
+  Tuesday,
+  Wednesday,
+  Thursday,
+  Friday,
+  Saturday,
 }

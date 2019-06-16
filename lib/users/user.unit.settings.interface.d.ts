@@ -2,6 +2,7 @@ export interface UserUnitSettingsInterface {
     speedUnits: SpeedUnits[];
     verticalSpeedUnits: VerticalSpeedUnits[];
     paceUnits: PaceUnits[];
+    startOfTheWeek: DaysOfTheWeek;
 }
 export declare enum SpeedUnits {
     KilometersPerHour = "Speed in kilometers per hour",
@@ -22,4 +23,13 @@ export declare enum VerticalSpeedUnits {
 export declare enum PaceUnits {
     MinutesPerKilometer = "Pace",
     MinutesPerMile = "Pace in minutes per mile"
+}
+export declare enum DaysOfTheWeek {
+    Sunday = 0,
+    Monday = 1,
+    Tuesday = 2,
+    Wednesday = 3,
+    Thursday = 4,
+    Friday = 5,
+    Saturday = 6
 }

@@ -5,16 +5,21 @@ export class DataDuration extends DataNumber {
   static unit = 's';
 
   getDisplayValue() {
-    const d = this.getValue();
-    const h = Math.floor(d / 3600);
-    const m = Math.floor(d % 3600 / 60);
-    const s = Math.floor(d % 3600 % 60);
+    const seconds = this.getValue();
+    const h = Math.floor(seconds / 3600);
+    const d = Math.floor(h / 24);
+    const m = Math.floor(seconds % 3600 / 60);
+    const s = Math.floor(seconds % 3600 % 60);
     if (!m && !h) {
       return ('0' + s).slice(-2) + 's';
     } else if (!h) {
       return ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
     } else {
-      return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+      if (d){
+        return ('0' + h).slice(-3) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+      }else {
+        return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+      }
     }
   }
 

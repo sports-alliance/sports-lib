@@ -5,8 +5,13 @@ export interface UserDashboardSettingsInterface {
 }
 export declare enum DateRanges {
     thisWeek = 0,
-    thisMonth = 1,
-    lastWeek = 2,
-    custom = 3,
-    all = 4
+    lastWeek = 1,
+    lastSevenDays = 2,
+    thisMonth = 3,
+    lastMonth = 4,
+    lastThiryDays = 5,
+    thisYear = 6,
+    lastYear = 7,
+    custom = 8,
+    all = 9
 }

@@ -15,9 +15,9 @@ export class DataDuration extends DataNumber {
     } else if (!h) {
       return ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
     } else {
-      if (d){
+      if (d) {
         return ('0' + h).slice(-3) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
-      }else {
+      } else {
         return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
       }
     }

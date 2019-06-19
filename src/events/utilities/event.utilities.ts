@@ -339,6 +339,18 @@ export class EventUtilities {
       }
     });
 
+    event.getActivities().forEach((activity) => {
+      const activityAVGHeartRate = activity.getStat(DataHeartRateAvg.type);
+      if (activityAVGHeartRate) {
+        const avgHR = event.getStat(DataHeartRateAvg.type);
+        if (!avgHR) {
+          event.addStat(new DataHeartRateAvg(<number>activityAVGHeartRate.getValue()))
+        } else {
+          event.addStat(new DataHeartRateAvg((<number>avgHR.getValue() + <number>activityAVGHeartRate.getValue()) / 2));
+        }
+      }
+    });
+
   }
 
   public static getEventDataTypeGain(

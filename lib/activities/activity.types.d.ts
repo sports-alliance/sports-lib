@@ -167,6 +167,8 @@ export declare enum ActivityTypes {
     'Floor Climbing' = "Floor climbing",
     'Paragliding' = "Paragliding",
     'Treadmill' = "Treadmill",
+    'running_treadmill' = "Treadmill",
+    'Indoor running' = "Treadmill",
     'Frisbee' = "Frisbee",
     'Indoor training' = "Indoor training",
     'Hiking' = "Hiking",

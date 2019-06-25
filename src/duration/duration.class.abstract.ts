@@ -7,12 +7,15 @@ export abstract class DurationClassAbstract extends StatsClassAbstract implement
   startDate: Date;
   endDate: Date;
 
-  protected constructor(statDate: Date, endDate: Date) {
-    if (!statDate || !endDate) {
+  protected constructor(startDate: Date, endDate: Date) {
+    if (!startDate || !endDate) {
       throw new Error('Start and end dates are required');
     }
+    if (endDate < startDate) {
+      throw new Error('Activity end date is before the start date and that is not acceptable')
+    }
     super();
-    this.startDate = statDate;
+    this.startDate = startDate;
     this.endDate = endDate;
   }
 

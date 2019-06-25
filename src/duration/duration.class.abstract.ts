@@ -14,6 +14,9 @@ export abstract class DurationClassAbstract extends StatsClassAbstract implement
     if ((endDate - startDate) > 30*24*60*60*1000) {
       throw new Error('Activity duration is over 1 month and that is not supported');
     }
+    if (endDate < startDate) {
+      throw new Error('Activity end date is before the start date and that is not acceptable')
+    }
     super();
     this.startDate = startDate;
     this.endDate = endDate;

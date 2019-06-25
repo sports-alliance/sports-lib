@@ -11,10 +11,11 @@ export class Event extends DurationClassAbstract implements EventInterface {
   public name: string;
   public description?: string;
   public privacy: Privacy = Privacy.Private;
+  public isMerge: boolean;
 
   private activities: ActivityInterface[] = [];
 
-  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string) {
+  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string, isMerge = false) {
     super(startDate, endDate);
     this.name = name;
     if (privacy) {
@@ -23,6 +24,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     if (description){
       this.description = description;
     }
+    this.isMerge = isMerge;
   }
 
   addActivity(activity: ActivityInterface) {
@@ -78,6 +80,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
+      isMerge: this.isMerge
     };
   }
 }

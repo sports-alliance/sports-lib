@@ -7,8 +7,9 @@ export declare class Event extends DurationClassAbstract implements EventInterfa
     name: string;
     description?: string;
     privacy: Privacy;
+    isMerge: boolean;
     private activities;
-    constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string);
+    constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string, isMerge?: boolean);
     addActivity(activity: ActivityInterface): void;
     addActivities(activities: ActivityInterface[]): void;
     clearActivities(): void;

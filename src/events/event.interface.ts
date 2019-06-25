@@ -15,6 +15,7 @@ export interface EventInterface extends StatsClassInterface,
 
   name: string;
   description?: string;
+  isMerge: boolean;
 
   addActivity(activity: ActivityInterface): void;
 

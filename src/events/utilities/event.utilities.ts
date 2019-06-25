@@ -4,14 +4,20 @@ import {Event} from '../event';
 import {DataHeartRate} from '../../data/data.heart-rate';
 import {DataCadence} from '../../data/data.cadence';
 import {
-  DataSpeed, DataSpeedFeetPerSecond,
+  DataSpeed,
+  DataSpeedFeetPerSecond,
   DataSpeedKilometersPerHour,
   DataSpeedMilesPerHour
 } from '../../data/data.speed';
 import {
-  DataVerticalSpeed, DataVerticalSpeedFeetPerHour, DataVerticalSpeedFeetPerMinute,
-  DataVerticalSpeedFeetPerSecond, DataVerticalSpeedKilometerPerHour, DataVerticalSpeedMetersPerHour,
-  DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
+  DataVerticalSpeed,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedMilesPerHour
 } from '../../data/data.vertical-speed';
 import {DataTemperature} from '../../data/data.temperature';
 import {DataAltitude} from '../../data/data.altitude';
@@ -27,7 +33,8 @@ import {DataCadenceMin} from '../../data/data.cadence-min';
 import {DataCadenceAvg} from '../../data/data.cadence-avg';
 import {
   DataSpeedMax,
-  DataSpeedMaxFeetPerMinute, DataSpeedMaxFeetPerSecond,
+  DataSpeedMaxFeetPerMinute,
+  DataSpeedMaxFeetPerSecond,
   DataSpeedMaxKilometersPerHour,
   DataSpeedMaxMilesPerHour
 } from '../../data/data.speed-max';
@@ -44,19 +51,34 @@ import {
   DataSpeedAvgMilesPerHour
 } from '../../data/data.speed-avg';
 import {
-  DataVerticalSpeedMax, DataVerticalSpeedMaxFeetPerHour, DataVerticalSpeedMaxFeetPerMinute,
-  DataVerticalSpeedMaxFeetPerSecond, DataVerticalSpeedMaxKilometerPerHour, DataVerticalSpeedMaxMetersPerHour,
-  DataVerticalSpeedMaxMetersPerMinute, DataVerticalSpeedMaxMilesPerHour
+  DataVerticalSpeedMax,
+  DataVerticalSpeedMaxFeetPerHour,
+  DataVerticalSpeedMaxFeetPerMinute,
+  DataVerticalSpeedMaxFeetPerSecond,
+  DataVerticalSpeedMaxKilometerPerHour,
+  DataVerticalSpeedMaxMetersPerHour,
+  DataVerticalSpeedMaxMetersPerMinute,
+  DataVerticalSpeedMaxMilesPerHour
 } from '../../data/data.vertical-speed-max';
 import {
-  DataVerticalSpeedMin, DataVerticalSpeedMinFeetPerHour, DataVerticalSpeedMinFeetPerMinute,
-  DataVerticalSpeedMinFeetPerSecond, DataVerticalSpeedMinKilometerPerHour, DataVerticalSpeedMinMetersPerHour,
-  DataVerticalSpeedMinMetersPerMinute, DataVerticalSpeedMinMilesPerHour
+  DataVerticalSpeedMin,
+  DataVerticalSpeedMinFeetPerHour,
+  DataVerticalSpeedMinFeetPerMinute,
+  DataVerticalSpeedMinFeetPerSecond,
+  DataVerticalSpeedMinKilometerPerHour,
+  DataVerticalSpeedMinMetersPerHour,
+  DataVerticalSpeedMinMetersPerMinute,
+  DataVerticalSpeedMinMilesPerHour
 } from '../../data/data.vertical-speed-min';
 import {
-  DataVerticalSpeedAvg, DataVerticalSpeedAvgFeetPerHour, DataVerticalSpeedAvgFeetPerMinute,
-  DataVerticalSpeedAvgFeetPerSecond, DataVerticalSpeedAvgKilometerPerHour, DataVerticalSpeedAvgMetersPerHour,
-  DataVerticalSpeedAvgMetersPerMinute, DataVerticalSpeedAvgMilesPerHour
+  DataVerticalSpeedAvg,
+  DataVerticalSpeedAvgFeetPerHour,
+  DataVerticalSpeedAvgFeetPerMinute,
+  DataVerticalSpeedAvgFeetPerSecond,
+  DataVerticalSpeedAvgKilometerPerHour,
+  DataVerticalSpeedAvgMetersPerHour,
+  DataVerticalSpeedAvgMetersPerMinute,
+  DataVerticalSpeedAvgMilesPerHour
 } from '../../data/data.vertical-speed-avg';
 import {DataPowerMax} from '../../data/data.power-max';
 import {DataPowerMin} from '../../data/data.power-min';
@@ -90,13 +112,15 @@ import {
   convertSpeedToSpeedInMetersPerHour,
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
-  isNumber, isNumberOrString
+  isNumber,
+  isNumberOrString
 } from './helpers';
 import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
 import {StreamInterface} from '../../streams/stream.interface';
 import {DataActivityTypes} from "../../data/data.activity-types";
 import {DataDeviceNames} from "../../data/data.device-names";
 import {DataEnergy} from "../../data/data.energy";
+import {Privacy} from "../../privacy/privacy.class.interface";
 
 export class EventUtilities {
 
@@ -159,7 +183,7 @@ export class EventUtilities {
     }, []).map((activity) => {
       return activity.setID(null);
     });
-    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate);
+    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate, Privacy.Private, `Merged event`, true);
     event.addActivities(activities);
     this.generateStatsForAll(event);
     return event;

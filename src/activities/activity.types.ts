@@ -69,12 +69,15 @@ export enum ActivityTypes {
   'Triathlon' = 'Triathlon',
   'Alpine skiing' = 'Alpine skiing',
   'alpine_skiing' = 'Alpine skiing',
-  'backcountry' = 'Backcountry skiing',
+  'alpine_skiing_downhill' = 'Alpine skiing',
   'Backcountry skiing' = 'Backcountry skiing',
   'Snowboarding' = 'Snowboarding',
   'snowboarding' = 'Snowboarding',
   'Crosscountry skiing' = 'Crosscountry skiing',
   'cross_country_skiing' = 'Crosscountry skiing',
+  'cross_country_skiing_backcountry' = 'Crosscountry skiing',
+  'backcountry' = 'Crosscountry skiing',
+  'Downhill skiing' = 'Downhill skiing',
   'Weight training' = 'Weight training',
   'Basketball' = 'Basketball',
   'Soccer' = 'Soccer',
@@ -214,5 +217,7 @@ export enum ActivityTypes {
   'flexibility_training' = 'Flexibility Training',
   'Flexibility Training' = 'Flexibility Training',
   'training' = 'Training',
-  'Training' = 'Training'
+  'Training' = 'Training',
+  'fitness_equipment_elliptical' = 'Elliptical trainer',
+  'Elliptical trainer' = 'Elliptical trainer'
 }

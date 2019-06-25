@@ -11,7 +11,6 @@ export class Event extends DurationClassAbstract implements EventInterface {
   public name: string;
   public description?: string;
   public privacy: Privacy = Privacy.Private;
-  public metaData?: MetaDataInterface;
 
   private activities: ActivityInterface[] = [];
 
@@ -79,7 +78,6 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
-      metaData: this.metaData ? this.metaData.toJSON() : null,
     };
   }
 }

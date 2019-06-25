@@ -5,11 +5,9 @@ import { DurationClassInterface } from '../duration/duration.class.interface';
 import { EventJSONInterface } from './event.json.interface';
 import { IDClassInterface } from '../id/id.class.interface';
 import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
-import { MetaDataInterface } from '../meta-data/meta-data.interface';
 export interface EventInterface extends StatsClassInterface, DurationClassInterface, PrivacyClassInterface, SerializableClassInterface, IDClassInterface {
     name: string;
     description?: string;
-    metaData?: MetaDataInterface;
     addActivity(activity: ActivityInterface): void;
     addActivities(activities: ActivityInterface[]): void;
     removeActivity(activity: ActivityInterface): void;

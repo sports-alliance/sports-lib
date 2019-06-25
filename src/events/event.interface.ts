@@ -15,7 +15,6 @@ export interface EventInterface extends StatsClassInterface,
 
   name: string;
   description?: string;
-  metaData?: MetaDataInterface;
 
   addActivity(activity: ActivityInterface): void;
 

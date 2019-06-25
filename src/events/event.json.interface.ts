@@ -9,5 +9,4 @@ export interface EventJSONInterface {
   startDate: number,
   endDate: number,
   stats: DataJSONInterface,
-  metaData: MetaDataJsonInterface | null
 }

@@ -21,7 +21,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     if (privacy) {
       this.privacy = privacy;
     }
-    if (description){
+    if (description) {
       this.description = description;
     }
     this.isMerge = isMerge;

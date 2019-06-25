@@ -69,6 +69,8 @@ export declare enum ActivityTypes {
     'Triathlon' = "Triathlon",
     'Alpine skiing' = "Alpine skiing",
     'alpine_skiing' = "Alpine skiing",
+    'backcountry' = "Backcountry skiing",
+    'Backcountry skiing' = "Backcountry skiing",
     'Snowboarding' = "Snowboarding",
     'snowboarding' = "Snowboarding",
     'Crosscountry skiing' = "Crosscountry skiing",

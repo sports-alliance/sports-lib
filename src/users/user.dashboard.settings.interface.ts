@@ -1,7 +1,10 @@
+import {UserDashboardChartSettingsInterface} from './user.dashboard.chart.settings.interface';
+
 export interface UserDashboardSettingsInterface {
   dateRange: DateRanges,
   startDate: number,
   endDate: number,
+  chartsSettings: UserDashboardChartSettingsInterface[]
 }
 
 export enum DateRanges {
@@ -10,7 +13,7 @@ export enum DateRanges {
   lastSevenDays,
   thisMonth,
   lastMonth,
-  lastThiryDays,
+  lastThirtyDays,
   thisYear,
   lastYear,
   custom,

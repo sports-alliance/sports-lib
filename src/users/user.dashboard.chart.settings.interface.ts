@@ -6,7 +6,7 @@ export interface UserDashboardChartSettingsInterface {
 }
 
 export enum ChartTypes {
-  Pie,
-  ColumnHorizontal,
-  ColumnVertical,
+  Pie = 'Pie',
+  ColumnsHorizontal = 'Columns Horizontal',
+  PyramidsVertical = 'Pyramids Vertical',
 }

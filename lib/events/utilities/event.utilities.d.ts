@@ -7,6 +7,8 @@ export declare class EventUtilities {
     static getDataTypeMax(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeMin(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeDifference(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
+    static getDataTypeFirst(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
+    static getDataTypeLast(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static mergeEvents(events: EventInterface[]): EventInterface;
     static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface;
     static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface;

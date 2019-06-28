@@ -121,6 +121,8 @@ import {DataActivityTypes} from "../../data/data.activity-types";
 import {DataDeviceNames} from "../../data/data.device-names";
 import {DataEnergy} from "../../data/data.energy";
 import {Privacy} from "../../privacy/privacy.class.interface";
+import {DataStartAltitude} from "../../data/data.start-altitude";
+import {DataEndAltitude} from "../../data/data.end-altitude";
 
 export class EventUtilities {
 
@@ -171,6 +173,26 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     return this.getDataTypeMax(activity, streamType, startDate, endDate) - this.getDataTypeMin(activity, streamType, startDate, endDate);
+  }
+
+  public static getDataTypeFirst(
+    activity: ActivityInterface,
+    streamType: string,
+    startDate?: Date,
+    endDate?: Date): number {
+    const data = <number[]>activity
+      .getSquashedStreamData(streamType, startDate, endDate);
+    return data[0];
+  }
+
+  public static getDataTypeLast(
+    activity: ActivityInterface,
+    streamType: string,
+    startDate?: Date,
+    endDate?: Date): number {
+    const data = <number[]>activity
+      .getSquashedStreamData(streamType, startDate, endDate);
+    return data[data.length - 1];
   }
 
   public static mergeEvents(events: EventInterface[]): EventInterface {
@@ -509,6 +531,18 @@ export class EventUtilities {
     if (!activity.getStat(DataAltitudeAvg.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+    }
+
+    // Altitude start
+    if (!activity.getStat(DataStartAltitude.type)
+      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataStartAltitude(this.getDataTypeLast(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+    }
+
+    // Altitude end
+    if (!activity.getStat(DataEndAltitude.type)
+      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataEndAltitude(this.getDataTypeFirst(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
 
     // Heart Rate  Max

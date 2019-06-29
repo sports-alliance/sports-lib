@@ -3,7 +3,7 @@ export interface UserDashboardChartSettingsInterface {
   order: number,
   type: ChartTypes,
   dataType: string,
-  dataValueType: DataValueTypes
+  dataValueType: ChartDataValueTypes
 }
 
 export enum ChartTypes {
@@ -12,8 +12,8 @@ export enum ChartTypes {
   PyramidsVertical = 'Pyramids Vertical',
 }
 
-export enum DataValueTypes {
-  Sum = 'Sum',
+export enum ChartDataValueTypes {
+  Total = 'Total',
   Average = 'Average',
   Maximum = 'Maximum',
   Minimum = 'Minimum',

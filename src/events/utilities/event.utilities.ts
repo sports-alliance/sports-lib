@@ -144,11 +144,11 @@ export class EventUtilities {
     endDate?: Date): number {
     const data = <number[]>activity
       .getSquashedStreamData(streamType, startDate, endDate);
-    const average = data.reduce((average: number, value: number) => {
-      average += value;
-      return average;
+    const sum = data.reduce((sumbuff: number, value: number) => {
+      sumbuff += value;
+      return sumbuff;
     }, 0);
-    return (average / data.length);
+    return (sum / data.length);
   }
 
   public static getDataTypeMax(

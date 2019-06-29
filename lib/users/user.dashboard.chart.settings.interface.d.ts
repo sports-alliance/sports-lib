@@ -3,15 +3,15 @@ export interface UserDashboardChartSettingsInterface {
     order: number;
     type: ChartTypes;
     dataType: string;
-    dataValueType: DataValueTypes;
+    dataValueType: ChartDataValueTypes;
 }
 export declare enum ChartTypes {
     Pie = "Pie",
     ColumnsHorizontal = "Columns Horizontal",
     PyramidsVertical = "Pyramids Vertical"
 }
-export declare enum DataValueTypes {
-    Sum = "Sum",
+export declare enum ChartDataValueTypes {
+    Total = "Total",
     Average = "Average",
     Maximum = "Maximum",
     Minimum = "Minimum"

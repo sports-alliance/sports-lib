@@ -4,7 +4,9 @@ export interface UserDashboardSettingsInterface {
   dateRange: DateRanges,
   startDate: number,
   endDate: number,
-  chartsSettings: UserDashboardChartSettingsInterface[]
+  chartsSettings: UserDashboardChartSettingsInterface[],
+  showSummaries: boolean,
+  pinUploadSection: boolean,
 }
 
 export enum DateRanges {

@@ -4,6 +4,8 @@ export interface UserDashboardSettingsInterface {
     startDate: number;
     endDate: number;
     chartsSettings: UserDashboardChartSettingsInterface[];
+    showSummaries: boolean;
+    pinUploadSection: boolean;
 }
 export declare enum DateRanges {
     thisWeek = 0,

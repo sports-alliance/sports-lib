@@ -24,6 +24,7 @@ export interface DataTypeSettings {
     };
 }
 export declare enum XAxisTypes {
-    Time = "time",
-    Duration = "duration"
+    Time = "Time",
+    Duration = "Duration",
+    Distance = "Distance"
 }

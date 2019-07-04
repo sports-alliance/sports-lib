@@ -49,12 +49,4 @@ export class QuantifiedSelfLib {
   public static importFromJSON(json: EventJSONInterface): EventInterface {
     return EventImporterJSON.getEventFromJSON(json);
   }
-
-  // /**
-  //  * Exports an event as a TCX string
-  //  * @param event
-  //  */
-  // public static exportToTCX(event: EventInterface): Promise<string> {
-  //   return EventExporterTCX.getAsString(event);
-  // }
 }

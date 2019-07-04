@@ -1,6 +1,6 @@
-import {EventInterface} from "../../../event.interface";
-import {EventImporterSuuntoJSON} from "./importer.suunto.json";
-import {isNumber} from "../../../utilities/helpers";
+import {EventInterface} from '../../../event.interface';
+import {EventImporterSuuntoJSON} from './importer.suunto.json';
+import {isNumber} from '../../../utilities/helpers';
 
 const parser = require('fast-xml-parser');
 
@@ -14,7 +14,7 @@ export class EventImporterSuuntoSML {
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
 
-    const samplesWithUTC: any[]  =  json.DeviceLog.Samples.filter((sample:any) => !!sample.UTC);
+    const samplesWithUTC: any[]  =  json.DeviceLog.Samples.filter((sample: any) => !!sample.UTC);
 
     // Find the first UTC timestamped sample and use it later for start date
     const startDate = samplesWithUTC.length ? new Date(samplesWithUTC[0].UTC) : new Date(json.DeviceLog.Header.DateTime);
@@ -49,14 +49,14 @@ export class EventImporterSuuntoSML {
     // Add the time on the samples
     json.DeviceLog.Samples.forEach((sample: any) => {
 
-      if (sample.TimeISO8601){
+      if (sample.TimeISO8601) {
         return;
       }
-      if (sample.UTC){
+      if (sample.UTC) {
         sample.TimeISO8601 = (new Date(sample.UTC)).toISOString();
         return;
       }
-      if (isNumber(sample.Time)){
+      if (isNumber(sample.Time)) {
         sample.TimeISO8601 = (new Date(startDate.getTime() + (sample.Time * 1000))).toISOString()
         return;
       }
@@ -64,7 +64,7 @@ export class EventImporterSuuntoSML {
 
     // Convert the RR
     if (json.DeviceLog['R-R']) {
-      json.DeviceLog['R-R'].Data = json.DeviceLog['R-R'].Data.split(" ").map((dataString: string) => Number(dataString))
+      json.DeviceLog['R-R'].Data = json.DeviceLog['R-R'].Data.split(' ').map((dataString: string) => Number(dataString))
     }
 
     json.DeviceLog.Header.Altitude = json.DeviceLog.Header.Altitude ? [json.DeviceLog.Header.Altitude] : null;
@@ -83,18 +83,39 @@ export class EventImporterSuuntoSML {
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
     const json = JSON.parse(jsonString);
 
-    const samples = json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml'].Sample).map((sample: any) => {
-      return Object.assign({TimeISO8601: sample.TimeISO8601}, JSON.parse(sample.Attributes)['suunto/sml'].Sample);
-    });
+    let samples;
+    // Try to be a hero here
+    try {
 
-    const rr = {
-      Data: json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml']['R-R']).map((sample: any) => {
-        return JSON.parse(sample.Attributes)['suunto/sml']['R-R'];
-      }).reduce((accu: [], rrSample: any) => {
-        return accu.concat(rrSample.Data.split(",").map((dataString: string) => Number(dataString)))
-      }, [])
-    };
+      samples = json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml'].Sample).map((sample: any) => {
+        return Object.assign({TimeISO8601: sample.TimeISO8601}, JSON.parse(sample.Attributes)['suunto/sml'].Sample);
+      });
+    } catch (e) {
+      samples = json.Samples.filter((sample: any) => !!sample.Attributes['suunto/sml'].Sample).map((sample: any) => {
+        return Object.assign({TimeISO8601: sample.TimeISO8601}, sample.Attributes['suunto/sml'].Sample);
+      });
+    }
 
+    let rr;
+    try {
+      rr = {
+        Data: json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml']['R-R']).map((sample: any) => {
+          return JSON.parse(sample.Attributes)['suunto/sml']['R-R'];
+        }).reduce((accu: [], rrSample: any) => {
+          return accu.concat(rrSample.Data.split(',').map((dataString: string) => Number(dataString)))
+        }, [])
+      };
+    } catch (e) {
+      rr = {
+        Data: json.Samples.filter((sample: any) => !!sample.Attributes['suunto/sml']['R-R']).map((sample: any) => {
+          return sample.Attributes['suunto/sml']['R-R'];
+        }).reduce((accu: [], rrSample: any) => {
+          return accu.concat(rrSample.IBI);
+        }, [])
+      };
+    }
+
+    debugger;
     const suuntoJSON = {
       DeviceLog: {
         Header: {},

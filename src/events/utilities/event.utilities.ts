@@ -536,13 +536,13 @@ export class EventUtilities {
     // Altitude start
     if (!activity.getStat(DataStartAltitude.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataStartAltitude(this.getDataTypeLast(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
 
     // Altitude end
     if (!activity.getStat(DataEndAltitude.type)
       && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataEndAltitude(this.getDataTypeFirst(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type, activity.startDate, activity.endDate)));
     }
 
     // Heart Rate  Max

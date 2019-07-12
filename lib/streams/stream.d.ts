@@ -4,6 +4,10 @@ export declare class Stream implements StreamInterface {
     data: (number | null)[];
     constructor(type: string, data?: (number | null)[]);
     getNumericData(): number[];
+    /**
+     * Gets the data based on a startDate
+     * @param startDate
+     */
     getStreamDataByTime(startDate: Date): StreamDataItem[];
     getStreamDataByDuration(offset?: number): StreamDataItem[];
     isUnitDerivedDataType(): boolean;

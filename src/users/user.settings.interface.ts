@@ -4,6 +4,7 @@ import {UserUnitSettingsInterface} from './user.unit.settings.interface';
 import {UserDashboardSettingsInterface} from './user.dashboard.settings.interface';
 
 export interface UserSettingsInterface {
+  mapSettings?: MapSettingsInterface,
   chartSettings?: UserChartSettingsInterface,
   appSettings?: UserAppSettingsInterface,
   unitSettings?: UserUnitSettingsInterface,

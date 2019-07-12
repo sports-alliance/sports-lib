@@ -26,6 +26,15 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
     super(startDate, endDate);
+    if (!startDate || !endDate) {
+      throw new Error('Start and end dates are required');
+    }
+    if (endDate < startDate) {
+      throw new Error('Activity end date is before the start date and that is not acceptable')
+    }
+    if (+endDate - +startDate > 12 * 10 * 30 * 24 * 60 * 60 * 1000) {
+      throw new Error('Activity duration is over 10 years and that is not supported');
+    }
     this.type = type;
     this.creator = creator;
   }
@@ -34,27 +43,32 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
-  addDataToStream(type: string, date: Date, value: number): void {
+  addDataToStream(type: string, date: Date, value: number): this {
     this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
+    return this;
   }
 
-  addStream(stream: StreamInterface): void {
+  addStream(stream: StreamInterface): this {
     if (this.streams.find((activityStream) => activityStream.type === stream.type)) {
       throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()}`);
     }
     this.streams.push(stream);
+    return this;
   }
 
-  clearStreams(): void {
+  clearStreams(): this {
     this.streams = [];
+    return this;
   }
 
-  removeStream(stream: StreamInterface): void {
+  removeStream(stream: StreamInterface): this {
     this.streams = this.streams.filter((activityStream) => stream !== activityStream)
+    return this;
   }
 
-  addStreams(streams: StreamInterface[]): void {
+  addStreams(streams: StreamInterface[]): this {
     this.streams.push(...streams);
+    return this;
   }
 
   getAllStreams(): StreamInterface[] {
@@ -65,7 +79,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType());
   }
 
-  hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean {
+  hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean {
     try {
       this.getStreamData(streamType, startDate, endDate);
     } catch (e) {
@@ -79,24 +93,24 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   getStream(streamType: string): StreamInterface {
-    const stream = this.streams
+    const find = this.streams
       .find((stream) => stream.type === streamType);
-    if (!stream) {
+    if (!find) {
       throw Error(`No stream found with type ${streamType}`);
     }
-    return stream;
+    return find;
   }
 
-  getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[] {
-    const stream = this.getStream(streamType);
+  getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[] {
+    const stream = (streamType instanceof Stream) ? streamType : this.getStream(<string>streamType);
     if (!startDate && !endDate) {
       return stream.data;
     }
 
     if (startDate && endDate) {
       return stream.data
+        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) <= endDate)
         .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) >= startDate)
-        .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) <= endDate);
     }
 
     if (startDate) {
@@ -113,18 +127,31 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   // @todo see how this fits with the filtering on the stream class
+  /**
+   * Gets the data array of an activity stream excluding the non numeric ones
+   * @todo include strings and all data abstract types
+   * @param streamType
+   * @param startDate
+   * @param endDate
+   */
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[] {
     return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
   }
 
-  getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
-    const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
-    const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
+  /**
+   * Combines the lat - long streams to a DataPositionInterface
+   * @param startDate
+   * @param endDate
+   * @param latitudeStream
+   * @param longitudeStream
+   */
+  getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[] {
+    const latitudeStreamData = latitudeStream ? this.getStreamData(latitudeStream, startDate, endDate) : this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
+    const longitudeStreamData = longitudeStream ? this.getStreamData(longitudeStream, startDate, endDate) : this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
     return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {
-      // debugger;
       const currentLatitude = latitudeStreamData[index];
       const currentLongitude = longitudeStreamData[index];
-      if (!currentLatitude || !currentLongitude) {
+      if (!isNumber(currentLatitude) && !isNumber(currentLongitude)) {
         positionArray.push(null);
         return positionArray;
       }
@@ -134,6 +161,17 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       });
       return positionArray;
     }, []);
+  }
+
+  /**
+   * Combines the lat - long streams to a DataPositionInterface and excludes nulls
+   * @param startDate
+   * @param endDate
+   * @param latitudeStream
+   * @param longitudeStream
+   */
+  getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[] {
+    return <DataPositionInterface[]>this.getPositionData(startDate, endDate, latitudeStream, longitudeStream).filter(data => data !== null);
   }
 
   getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {

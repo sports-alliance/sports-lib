@@ -13,9 +13,9 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
     type: ActivityTypes;
     creator: CreatorInterface;
     intensityZones: IntensityZonesInterface[];
-    hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
+    hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean;
     hasPositionData(startDate?: Date, endDate?: Date): boolean;
-    getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[];
+    getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[];
     getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
     getStreamDataByTime(streamType: string): StreamDataItem[];
     getStreamDataTypesBasedOnTime(streamTypes: string[]): {
@@ -30,15 +30,16 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
     };
     createStream(type: string): StreamInterface;
     getStream(type: string): StreamInterface;
-    addStream(stream: StreamInterface): void;
-    addStreams(streams: StreamInterface[]): void;
-    removeStream(stream: StreamInterface): void;
+    addStream(stream: StreamInterface): this;
+    addStreams(streams: StreamInterface[]): this;
+    removeStream(stream: StreamInterface): this;
     getAllStreams(): StreamInterface[];
     getAllExportableStreams(): StreamInterface[];
-    clearStreams(): void;
-    addDataToStream(type: string, date: Date, data: number): void;
-    getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];
+    clearStreams(): this;
+    addDataToStream(type: string, date: Date, data: number): this;
+    getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
+    getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
     getLaps(): LapInterface[];
-    addLap(lap: LapInterface): void;
+    addLap(lap: LapInterface): this;
     toJSON(): ActivityJSONInterface;
 }

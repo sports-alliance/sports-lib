@@ -17,6 +17,10 @@ export class Stream implements StreamInterface {
     return <number[]>this.data.filter(data => isNumber(data))
   }
 
+  /**
+   * Gets the data based on a startDate
+   * @param startDate
+   */
   getStreamDataByTime(startDate: Date): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
       accu.push({

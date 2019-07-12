@@ -117,12 +117,12 @@ import {
 } from './helpers';
 import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
 import {StreamInterface} from '../../streams/stream.interface';
-import {DataActivityTypes} from "../../data/data.activity-types";
-import {DataDeviceNames} from "../../data/data.device-names";
-import {DataEnergy} from "../../data/data.energy";
-import {Privacy} from "../../privacy/privacy.class.interface";
-import {DataStartAltitude} from "../../data/data.start-altitude";
-import {DataEndAltitude} from "../../data/data.end-altitude";
+import {DataActivityTypes} from '../../data/data.activity-types';
+import {DataDeviceNames} from '../../data/data.device-names';
+import {DataEnergy} from '../../data/data.energy';
+import {Privacy} from '../../privacy/privacy.class.interface';
+import {DataStartAltitude} from '../../data/data.start-altitude';
+import {DataEndAltitude} from '../../data/data.end-altitude';
 
 export class EventUtilities {
 

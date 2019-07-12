@@ -16,19 +16,41 @@ export declare class Activity extends DurationClassAbstract implements ActivityI
     private streams;
     constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator);
     createStream(type: string): StreamInterface;
-    addDataToStream(type: string, date: Date, value: number): void;
-    addStream(stream: StreamInterface): void;
-    clearStreams(): void;
-    removeStream(stream: StreamInterface): void;
-    addStreams(streams: StreamInterface[]): void;
+    addDataToStream(type: string, date: Date, value: number): this;
+    addStream(stream: StreamInterface): this;
+    clearStreams(): this;
+    removeStream(stream: StreamInterface): this;
+    addStreams(streams: StreamInterface[]): this;
     getAllStreams(): StreamInterface[];
     getAllExportableStreams(): StreamInterface[];
-    hasStreamData(streamType: string, startDate?: Date, endDate?: Date): boolean;
+    hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean;
     hasPositionData(startDate?: Date, endDate?: Date): boolean;
     getStream(streamType: string): StreamInterface;
-    getStreamData(streamType: string, startDate?: Date, endDate?: Date): (number | null)[];
+    getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[];
+    /**
+     * Gets the data array of an activity stream excluding the non numeric ones
+     * @todo include strings and all data abstract types
+     * @param streamType
+     * @param startDate
+     * @param endDate
+     */
     getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
-    getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];
+    /**
+     * Combines the lat - long streams to a DataPositionInterface
+     * @param startDate
+     * @param endDate
+     * @param latitudeStream
+     * @param longitudeStream
+     */
+    getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
+    /**
+     * Combines the lat - long streams to a DataPositionInterface and excludes nulls
+     * @param startDate
+     * @param endDate
+     * @param latitudeStream
+     * @param longitudeStream
+     */
+    getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[];
     getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): {
         [type: string]: {
             [type: string]: number | null;

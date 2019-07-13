@@ -4,7 +4,7 @@ export class DataDuration extends DataNumber {
   static type = 'Duration';
   static unit = 's';
 
-  getDisplayValue() {
+  getDisplayValue(showDays = false) {
     const seconds = this.getValue();
     const h = Math.floor(seconds / 3600);
     const d = Math.floor(h / 24);
@@ -16,7 +16,10 @@ export class DataDuration extends DataNumber {
       return ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
     } else {
       if (d) {
-        return d + 'd ' + ('0' + (h - d * 24)).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+        if (showDays) {
+          return d + 'd ' + ('0' + (h - d * 24)).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+        }
+        return h + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's'
       } else {
         return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
       }

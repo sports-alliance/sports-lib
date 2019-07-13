@@ -3,6 +3,8 @@ export interface UserChartSettingsInterface {
     theme: ChartThemes;
     useAnimations: boolean;
     xAxisType: XAxisTypes;
+    showAllDate: boolean;
+    dataSmoothingLevel: number;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",

@@ -3,6 +3,6 @@ export interface UserAppSettingsInterface{
 }
 
 export enum AppThemes {
-  Normal = 'normal',
-  Dark = 'dark',
+  Normal= 'Normal',
+  Dark = 'Dark',
 }

@@ -10,10 +10,10 @@ export enum LapTypes {
   'stop' = 'Stop',
   'Manual' = 'Manual',
   'manual' = 'Manual',
-  'Autolap' = 'Auto lap',
-  'AutoLap' = 'Auto lap',
-  'autolap' = 'Auto lap',
-  'Auto lap' = 'Auto lap',
+  'Autolap' = 'Autolap',
+  'AutoLap' = 'Autolap',
+  'autolap' = 'Autolap',
+  'Auto lap' = 'Autolap',
   'Distance' = 'Distance',
   'distance' = 'Distance',
   'Location' = 'Location',
@@ -39,5 +39,6 @@ export enum LapTypes {
   'fitness_equipment' = 'Fitness equipment',
   'fitness equipment' = 'Fitness equipment',
   'Fitness equipment' = 'Fitness equipment',
+  'FitnessEquipment' = 'Fitness equipment',
 
 }

@@ -1,6 +1,7 @@
 import { LapTypes } from '../laps/lap.types';
 export interface UserMapSettingsInterface {
-    lapsToShow: LapTypes[];
+    showLaps: boolean;
+    lapTypes: LapTypes[];
     theme: MapThemes;
 }
 export declare enum MapThemes {

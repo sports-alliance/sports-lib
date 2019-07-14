@@ -20,8 +20,8 @@ import {DataPaceAvg} from '../../../../data/data.pace-avg';
 import {DataPaceMax} from '../../../../data/data.pace-max';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {TCXSampleMapper} from './importer.tcx.mapper';
-import {EventUtilities} from "../../../utilities/event.utilities";
-import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
+import {EventUtilities} from '../../../utilities/event.utilities';
+import {convertSpeedToPace, isNumber} from '../../../utilities/helpers';
 
 export class EventImporterTCX {
 

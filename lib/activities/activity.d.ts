@@ -62,7 +62,7 @@ export declare class Activity extends DurationClassAbstract implements ActivityI
         };
     };
     getStreamDataByTime(streamType: string): StreamDataItem[];
-    addLap(lap: LapInterface): void;
+    addLap(lap: LapInterface): this;
     getLaps(activity?: ActivityInterface): LapInterface[];
     toJSON(): ActivityJSONInterface;
 }

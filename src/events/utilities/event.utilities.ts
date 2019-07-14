@@ -111,7 +111,7 @@ import {
   convertSpeedToSpeedInKilometersPerHour,
   convertSpeedToSpeedInMetersPerHour,
   convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour,
+  convertSpeedToSpeedInMilesPerHour, convertSpeedToSwimPace, convertSwimPaceToSwimPacePer100Yard,
   isNumber,
   isNumberOrString
 } from './helpers';
@@ -123,6 +123,10 @@ import {DataEnergy} from '../../data/data.energy';
 import {Privacy} from '../../privacy/privacy.class.interface';
 import {DataStartAltitude} from '../../data/data.start-altitude';
 import {DataEndAltitude} from '../../data/data.end-altitude';
+import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from '../../data/data.swim-pace-max';
+import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from '../../data/data.swim-pace';
+import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from '../../data/data.swim-pace-min';
+import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from '../../data/data.swim-pace-avg';
 
 export class EventUtilities {
 
@@ -606,6 +610,22 @@ export class EventUtilities {
       activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
     }
 
+    // Swim Pace Max
+    if (!activity.getStat(DataSwimPaceMax.type)
+      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataSwimPaceMax(this.getDataTypeMin(activity, DataSwimPace.type, activity.startDate, activity.endDate))); // Intentionally min
+    }
+    // Swim Pace Min
+    if (!activity.getStat(DataSwimPaceMin.type)
+      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataSwimPaceMin(this.getDataTypeMax(activity, DataSwimPace.type, activity.startDate, activity.endDate))); // Intentionally max
+    }
+    // Swim Pace Avg
+    if (!activity.getStat(DataSwimPaceAvg.type)
+      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataSwimPaceAvg(this.getDataTypeAvg(activity, DataSwimPace.type, activity.startDate, activity.endDate)));
+    }
+
     // Vertical Speed Max
     if (!activity.getStat(DataVerticalSpeedMax.type)
       && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
@@ -668,6 +688,7 @@ export class EventUtilities {
 
   // @todo move to factory
   private static generateMissingUnitStatsForActivity(activity: ActivityInterface) {
+    // Pace
     if (!activity.getStat(DataPaceMaxMinutesPerMile.type)) {
       const paceMax = activity.getStat(DataPaceMax.type);
       if (paceMax) {
@@ -687,6 +708,27 @@ export class EventUtilities {
         activity.addStat(new DataPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceAvg.getValue())));
       }
     }
+    // Swim Pace
+    if (!activity.getStat(DataSwimPaceMaxMinutesPer100Yard.type)) {
+      const swimPaceMax = activity.getStat(DataSwimPaceMax.type);
+      if (swimPaceMax) {
+        activity.addStat(new DataSwimPaceMaxMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSwimPaceMinMinutesPer100Yard.type)) {
+      const swimPaceMin = activity.getStat(DataSwimPaceMin.type);
+      if (swimPaceMin) {
+        activity.addStat(new DataSwimPaceMinMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)) {
+      const swimPaceAvg = activity.getStat(DataPaceAvg.type);
+      if (swimPaceAvg) {
+        activity.addStat(new DataSwimPaceAvgMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceAvg.getValue())));
+      }
+    }
+
+    // Speed
     if (!activity.getStat(DataSpeedMaxKilometersPerHour.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
@@ -947,11 +989,13 @@ export class EventUtilities {
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
     const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
     let paceStream = streams.find(stream => stream.type === DataPace.type);
+    let swimPaceStream = streams.find(stream => stream.type === DataSwimPace.type);
 
     if (!speedStream) {
       return unitStreams;
     }
 
+    // Pace
     if (!paceStream) {
       paceStream = new Stream(DataPace.type, speedStream.data.map(dataValue => {
         if (!isNumber(dataValue)) {
@@ -960,6 +1004,17 @@ export class EventUtilities {
         return convertSpeedToPace(<number>dataValue);
       }));
       unitStreams.push(paceStream);
+    }
+
+    // Swim Pace
+    if (!swimPaceStream) {
+      swimPaceStream = new Stream(DataSwimPace.type, speedStream.data.map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSwimPace(<number>dataValue);
+      }));
+      unitStreams.push(swimPaceStream);
     }
 
     // Generate speed in Kilometers per hour
@@ -993,6 +1048,13 @@ export class EventUtilities {
       return convertPaceToPaceInMinutesPerMile(<number>dataValue);
     })));
 
+    // Generate swim pace in minutes per 100 yard
+    unitStreams.push(new Stream(DataSwimPaceMinutesPer100Yard.type, swimPaceStream.data.map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSwimPaceToSwimPacePer100Yard(<number>dataValue);
+    })));
 
     // If we have more vertical speed data
     if (verticalSpeedStream) {

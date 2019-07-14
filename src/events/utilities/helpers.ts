@@ -7,7 +7,7 @@ export function isNumber(property: any) {
 }
 
 /**
- * Converts speed from m/s to pace as of seconds
+ * Converts speed from m/s to pace as of seconds per km
  * @param {number} number
  * @return {number}
  */
@@ -15,6 +15,13 @@ export function convertSpeedToPace(number: number): number {
   return number === 0 ? number : (1000 / number);
 }
 
+/**
+ * Converts m/s to seconds per 100m
+ * @param number
+ */
+export function convertSpeedToSwimPace(number: number): number {
+  return number === 0 ? number : (100 / number);
+}
 
 export function convertSpeedToSpeedInKilometersPerHour(number: number): number {
   return number * 3.6;
@@ -46,6 +53,14 @@ export function convertSpeedToSpeedInMetersPerHour(number: number): number {
 
 export function convertPaceToPaceInMinutesPerMile(number: number): number {
   return number * 1.60934;
+}
+
+/**
+ * Converts m/s to seconds per 100m
+ * @param number
+ */
+export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
+  return number * 10.93613298
 }
 
 export function getSize(obj: any): string {

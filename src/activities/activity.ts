@@ -151,13 +151,13 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {
       const currentLatitude = latitudeStreamData[index];
       const currentLongitude = longitudeStreamData[index];
-      if (!isNumber(currentLatitude) && !isNumber(currentLongitude)) {
+      if (!isNumber(currentLatitude) || !isNumber(currentLongitude)) {
         positionArray.push(null);
         return positionArray;
       }
       positionArray.push({
-        latitudeDegrees: currentLatitude,
-        longitudeDegrees: currentLongitude,
+        latitudeDegrees: <number>currentLatitude,
+        longitudeDegrees: <number>currentLongitude,
       });
       return positionArray;
     }, []);
@@ -191,8 +191,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.getStream(streamType).getStreamDataByTime(this.startDate);
   }
 
-  addLap(lap: LapInterface) {
+  addLap(lap: LapInterface): this {
     this.laps.push(lap);
+    return this;
   }
 
   getLaps(activity?: ActivityInterface): LapInterface[] {

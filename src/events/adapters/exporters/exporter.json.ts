@@ -1,6 +1,6 @@
 import {EventInterface} from '../../event.interface';
 import {ActivityJSONInterface} from '../../../activities/activity.json.interface';
-import {StreamJSONInterface} from "../../../streams/stream";
+import {StreamJSONInterface} from '../../../streams/stream';
 
 export class EventExporterJSON {
   static fileType = 'application/json';
@@ -14,7 +14,7 @@ export class EventExporterJSON {
         jsonActivity.streams = activity.getAllStreams().reduce((streams: StreamJSONInterface[], stream) => {
           streams.push(stream.toJSON());
           return streams;
-        },[]);
+        }, []);
         activities.push(jsonActivity);
         return activities;
       }, []);

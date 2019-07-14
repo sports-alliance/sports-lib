@@ -123,6 +123,10 @@ import {DataDeviceNames} from './data.device-names';
 import {DataActivityTypes} from './data.activity-types';
 import {DataStartAltitude} from './data.start-altitude';
 import {DataEndAltitude} from './data.end-altitude';
+import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from './data.swim-pace';
+import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from './data.swim-pace-avg';
+import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from './data.swim-pace-max';
+import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from './data.swim-pace-min';
 
 /**
  * Only concrete classes no abstracts
@@ -184,6 +188,10 @@ export const DataStore: any = {
   DataPaceMin,
   DataPaceMax,
   DataPaceAvg,
+  DataSwimPace,
+  DataSwimPaceMin,
+  DataSwimPaceMax,
+  DataSwimPaceAvg,
   DataNumberOfSamples,
   DataBatteryCharge,
   DataBatteryCurrent,
@@ -228,6 +236,10 @@ export const DataStore: any = {
   DataPaceAvgMinutesPerMile,
   DataPaceMinMinutesPerMile,
   DataPaceMaxMinutesPerMile,
+  DataSwimPaceMinutesPer100Yard,
+  DataSwimPaceAvgMinutesPer100Yard,
+  DataSwimPaceMinMinutesPer100Yard,
+  DataSwimPaceMaxMinutesPer100Yard,
   DataVerticalSpeedFeetPerSecond,
   DataVerticalSpeedMetersPerMinute,
   DataVerticalSpeedFeetPerMinute,

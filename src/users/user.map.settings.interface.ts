@@ -2,6 +2,7 @@ import {LapTypes} from '../laps/lap.types';
 
 export interface UserMapSettingsInterface {
   showLaps: boolean,
+  showArrows: boolean,
   lapTypes: LapTypes[],
   theme: MapThemes,
 }

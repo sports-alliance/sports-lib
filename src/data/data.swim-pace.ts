@@ -23,5 +23,4 @@ export class DataSwimPaceMinutesPer100Yard extends DataSwimPace {
   static type = 'Swim Pace in minutes per 100 yard';
   static displayType = DataSwimPace.type;
   static unit = 'min/100yrd';
-
 }

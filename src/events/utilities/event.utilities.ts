@@ -1024,6 +1024,7 @@ export class EventUtilities {
       }
       return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
     })));
+
     // Generate speed in Miles per hour
     unitStreams.push(new Stream(DataSpeedMilesPerHour.type, speedStream.data.map(dataValue => {
       if (!isNumber(dataValue)) {
@@ -1031,6 +1032,7 @@ export class EventUtilities {
       }
       return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
     })));
+
     // Generate speed in feet per second
     unitStreams.push(new Stream(DataSpeedFeetPerSecond.type, speedStream.data.map(dataValue => {
       if (!isNumber(dataValue)) {
@@ -1038,7 +1040,6 @@ export class EventUtilities {
       }
       return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
     })));
-
 
     // Generate pace in minutes per mile
     unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.data.map(dataValue => {

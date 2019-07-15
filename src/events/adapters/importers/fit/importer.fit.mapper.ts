@@ -13,9 +13,8 @@ import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
 import {DataFormPower} from '../../../../data/data.form-power';
 import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
-import {convertSpeedToPace, isNumber} from "../../../utilities/helpers";
-import {DataElevation} from "../../../../data/data.elevation";
-import {DataRecovery} from "../../../../data/data.recovery";
+import {convertSpeedToPace, isNumber} from '../../../utilities/helpers';
+import {DataElevation} from '../../../../data/data.elevation';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {

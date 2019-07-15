@@ -48,6 +48,7 @@ import {DataTemperatureMin} from '../../../../data/data.temperature-min';
 import {DataTemperatureAvg} from '../../../../data/data.temperature-avg';
 import {DataSpeedMin} from '../../../../data/data.speed-min';
 import {DataCadenceMin} from '../../../../data/data.cadence-min';
+import {DataSWOLFAvg} from '../../../../data/data.swolf-avg';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -312,6 +313,10 @@ export class EventImporterFIT {
     // Feeling
     if (isNumberOrString(object.feeling)) {
       stats.push(new DataFeeling(object.feeling));
+    }
+    // Average SWOLF
+    if (isNumberOrString(object.avg_swolf)) {
+      stats.push(new DataSWOLFAvg(object.avg_swolf));
     }
     // @todo add support for more data
     return stats;

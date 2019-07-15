@@ -127,6 +127,7 @@ import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from './data.swim-pace';
 import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from './data.swim-pace-avg';
 import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from './data.swim-pace-max';
 import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from './data.swim-pace-min';
+import {DataSWOLFAvg} from './data.swolf-avg';
 
 /**
  * Only concrete classes no abstracts
@@ -278,6 +279,7 @@ export const DataStore: any = {
   DataDeviceNames,
   DataStartAltitude,
   DataEndAltitude,
+  DataSWOLFAvg,
 };
 
 export class DynamicDataLoader {
@@ -336,7 +338,10 @@ export class DynamicDataLoader {
       DataVerticalSpeedFeetPerHour.type,
       DataVerticalSpeedKilometerPerHour.type,
       DataVerticalSpeedMilesPerHour.type,
-    ]
+    ],
+    [DataSwimPace.type]: [
+      DataSwimPaceMaxMinutesPer100Yard.type,
+    ],
   };
 
   static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);

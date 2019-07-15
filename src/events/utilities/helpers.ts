@@ -60,7 +60,7 @@ export function convertPaceToPaceInMinutesPerMile(number: number): number {
  * @param number
  */
 export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
-  return number * 10.93613298
+  return number * 1.93613298
 }
 
 export function getSize(obj: any): string {

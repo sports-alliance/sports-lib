@@ -4,6 +4,7 @@ export interface UserMapSettingsInterface {
     showArrows: boolean;
     lapTypes: LapTypes[];
     theme: MapThemes;
+    mapType: MapTypes;
 }
 export declare enum MapThemes {
     Normal = "Normal",
@@ -13,4 +14,10 @@ export declare enum MapThemes {
     Desert = "Desert",
     Tron = "Tron",
     MidnightCommander = "Midnight Commander"
+}
+export declare enum MapTypes {
+    RoadMap = "roadmap",
+    Satellite = "satellite",
+    Hybrid = "hybrid",
+    Terrain = "terrain"
 }

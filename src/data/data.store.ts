@@ -322,13 +322,16 @@ export class DynamicDataLoader {
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {
-    [DataPace.type]: [
-      DataPaceMinutesPerMile.type,
-    ],
     [DataSpeed.type]: [
       DataSpeedKilometersPerHour.type,
       DataSpeedMilesPerHour.type,
       DataSpeedFeetPerSecond.type,
+      // Pace is also based on speed
+      DataPace.type,
+      DataPaceMinutesPerMile.type,
+      // Swim pace as well
+      DataSwimPace.type,
+      DataSwimPaceMaxMinutesPer100Yard.type,
     ],
     [DataVerticalSpeed.type]: [
       DataVerticalSpeedFeetPerSecond.type,
@@ -338,9 +341,6 @@ export class DynamicDataLoader {
       DataVerticalSpeedFeetPerHour.type,
       DataVerticalSpeedKilometerPerHour.type,
       DataVerticalSpeedMilesPerHour.type,
-    ],
-    [DataSwimPace.type]: [
-      DataSwimPaceMaxMinutesPer100Yard.type,
     ],
   };
 

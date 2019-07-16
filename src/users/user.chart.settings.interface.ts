@@ -3,7 +3,7 @@ export interface UserChartSettingsInterface {
   theme: ChartThemes
   useAnimations: boolean,
   xAxisType: XAxisTypes,
-  showAllDate: boolean,
+  showAllData: boolean,
   dataSmoothingLevel: number,
 }
 

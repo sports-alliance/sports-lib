@@ -16,7 +16,7 @@ export enum MapThemes {
   Night = 'Night',
   Desert = 'Desert',
   Tron = 'Tron',
-  MidnightCommander = 'Midnight Commander',
+  MidnightCommander = 'MidnightCommander',
 }
 
 export enum MapTypes {

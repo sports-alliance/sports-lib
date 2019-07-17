@@ -13,7 +13,7 @@ export declare enum MapThemes {
     Night = "Night",
     Desert = "Desert",
     Tron = "Tron",
-    MidnightCommander = "Midnight Commander"
+    MidnightCommander = "MidnightCommander"
 }
 export declare enum MapTypes {
     RoadMap = "roadmap",

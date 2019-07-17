@@ -326,12 +326,14 @@ export class DynamicDataLoader {
       DataSpeedKilometersPerHour.type,
       DataSpeedMilesPerHour.type,
       DataSpeedFeetPerSecond.type,
+      DataSpeedFeetPerMinute.type,
+      DataSpeedMetersPerMinute.type,
       // Pace is also based on speed
       DataPace.type,
       DataPaceMinutesPerMile.type,
       // Swim pace as well
       DataSwimPace.type,
-      DataSwimPaceMaxMinutesPer100Yard.type,
+      DataSwimPaceMinutesPer100Yard.type,
     ],
     [DataVerticalSpeed.type]: [
       DataVerticalSpeedFeetPerSecond.type,

@@ -21,7 +21,6 @@ export class DataSpeedMaxKilometersPerHour extends DataSpeedKilometersPerHour {
 export class DataSpeedMaxMilesPerHour extends DataSpeedMilesPerHour {
   static type = 'Maximum speed in miles per hour';
   static displayType = DataSpeedMax.type;
-
   getDisplayType(): string {
     return super.getDisplayType();
   }

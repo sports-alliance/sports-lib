@@ -26,7 +26,6 @@ export class DataSpeedAvgMilesPerHour extends DataSpeedMilesPerHour {
   }
 }
 
-
 export class DataSpeedAvgFeetPerSecond extends DataSpeedFeetPerSecond {
   static type = 'Average speed in feet per second';
   static displayType = DataSpeedAvg.type;

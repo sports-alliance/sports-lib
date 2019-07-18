@@ -20,13 +20,13 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataLatitudeDegrees.type,
     getSampleValue: (sample: any) => {
-      return sample.position_lat;
+      return sample.position_lat === 0 ? null : sample.position_lat;
     },
   },
   {
     dataType: DataLongitudeDegrees.type,
     getSampleValue: (sample: any) => {
-      return sample.position_long;
+      return sample.position_long === 0 ? null : sample.position_long;
     },
   },
   {

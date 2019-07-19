@@ -68,7 +68,7 @@ export class EventImporterFIT {
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         debugger;
         // Iterate over the sessions and create their activities
-        const activities: ActivityInterface[] = fitDataObject.activity.sessions.map((sessionObject: any) => {
+        const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
@@ -76,12 +76,7 @@ export class EventImporterFIT {
             activity.addLap(this.getLapFromSessionLapObject(sessionLapObject));
           });
 
-          let samples = sessionObject.laps.reduce((lapSamplesArray: any[], sessionLapObject: any) => {
-            lapSamplesArray.push(...sessionLapObject.records);
-            return lapSamplesArray;
-          }, []);
-
-          samples = fitDataObject.records.filter((record: any) => {
+          const samples = fitDataObject.records.filter((record: any) => {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
 

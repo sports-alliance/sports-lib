@@ -154,6 +154,8 @@ export enum ActivityTypes {
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
   'trail' = 'Trail running',
+  'swimming_open_water' = 'Open Water Swimming',
+  'swimming_lap_swimming' = 'Swimming',
   'Open water swimming' = 'Open Water Swimming',
   'open water swimming' = 'Open Water Swimming',
   'Open Water Swimming' = 'Open Water Swimming',

@@ -10,6 +10,7 @@ export interface StreamInterface extends SerializableClassInterface {
   toJSON(): StreamJSONInterface;
 }
 
+// Perhaps convert due to https://www.amcharts.com/docs/v4/concepts/performance/
 export interface StreamDataItem {
   time: number,
   value: number|null

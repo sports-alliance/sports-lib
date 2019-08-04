@@ -3,7 +3,8 @@ export interface UserDashboardChartSettingsInterface {
   order: number,
   type: ChartTypes,
   dataType: string,
-  dataValueType: ChartDataValueTypes
+  dataValueType: ChartDataValueTypes,
+  filterLowValues: boolean,
 }
 
 export enum ChartTypes {

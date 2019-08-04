@@ -4,6 +4,7 @@ export interface UserDashboardChartSettingsInterface {
     type: ChartTypes;
     dataType: string;
     dataValueType: ChartDataValueTypes;
+    filterLowValues: boolean;
 }
 export declare enum ChartTypes {
     Pie = "Pie",

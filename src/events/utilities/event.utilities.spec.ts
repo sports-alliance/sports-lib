@@ -59,8 +59,8 @@ describe('EventUtilities', () => {
       new Stream(DataAltitude.type, [200, 300, 400]),
     );
 
-    expect(EventUtilities.getDataTypeDifference(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
-    expect(EventUtilities.getDataTypeDifference(event.getFirstActivity(), DataAltitude.type)).toBe(200);
+    expect(EventUtilities.getDataTypeMinToMaxDifference(event.getFirstActivity(), DataHeartRate.type)).toBe(100);
+    expect(EventUtilities.getDataTypeMinToMaxDifference(event.getFirstActivity(), DataAltitude.type)).toBe(200);
   });
 
   it('should get the correct average for a DataType', () => {

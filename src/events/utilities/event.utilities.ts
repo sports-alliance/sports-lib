@@ -175,7 +175,7 @@ export class EventUtilities {
     return this.getDataTypeMinOrMax(activity, streamType, false, startDate, endDate);
   }
 
-  public static getDataTypeDifference(
+  public static getDataTypeMinToMaxDifference(
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
@@ -688,7 +688,7 @@ export class EventUtilities {
     // Battery Consumption Avg
     if (!activity.getStat(DataBatteryConsumption.type)
       && activity.hasStreamData(DataBatteryCharge.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataBatteryConsumption(this.getDataTypeDifference(activity, DataBatteryCharge.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataBatteryConsumption(this.getDataTypeMinToMaxDifference(activity, DataBatteryCharge.type, activity.startDate, activity.endDate)));
     }
 
     // Battery Life Estimation based on Consumption

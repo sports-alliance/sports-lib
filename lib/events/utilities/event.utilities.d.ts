@@ -7,7 +7,7 @@ export declare class EventUtilities {
     static getAverage(data: number[]): number;
     static getDataTypeMax(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeMin(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
-    static getDataTypeDifference(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
+    static getDataTypeMinToMaxDifference(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeFirst(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeLast(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static mergeEvents(events: EventInterface[]): EventInterface;

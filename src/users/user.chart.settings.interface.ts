@@ -5,6 +5,7 @@ export interface UserChartSettingsInterface {
   xAxisType: XAxisTypes,
   showAllData: boolean,
   dataSmoothingLevel: number,
+  chartCursorBehaviour: ChartCursorBehaviours,
 }
 
 export enum ChartThemes {
@@ -27,4 +28,9 @@ export enum XAxisTypes {
   Time = 'Time',
   Duration = 'Duration',
   Distance = 'Distance',
+}
+
+export enum ChartCursorBehaviours {
+  ZoomX = 'zoomX',
+  SelectX = 'selectX',
 }

@@ -5,6 +5,7 @@ export interface UserChartSettingsInterface {
     xAxisType: XAxisTypes;
     showAllData: boolean;
     dataSmoothingLevel: number;
+    chartCursorBehaviour: ChartCursorBehaviours;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",
@@ -29,4 +30,8 @@ export declare enum XAxisTypes {
     Time = "Time",
     Duration = "Duration",
     Distance = "Distance"
+}
+export declare enum ChartCursorBehaviours {
+    ZoomX = "zoomX",
+    SelectX = "selectX"
 }

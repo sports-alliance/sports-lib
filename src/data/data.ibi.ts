@@ -4,6 +4,6 @@ export class DataIBI extends DataDuration {
   static type = 'IBI';
   static unit = 'ms';
   getDisplayValue() {
-    return this.value.toString();
+    return this.value.toFixed(0);
   }
 }

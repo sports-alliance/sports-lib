@@ -148,6 +148,10 @@ export class EventUtilities {
     endDate?: Date): number {
     const data = <number[]>activity
       .getSquashedStreamData(streamType, startDate, endDate);
+    return this.getAverage(data);
+  }
+
+  public static getAverage(data: number[]): number{
     const sum = data.reduce((sumbuff: number, value: number) => {
       sumbuff += value;
       return sumbuff;
@@ -429,35 +433,37 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date,
     minDiff: number = 5): number {
-    // debugger;
-    let gainOrLoss = 0;
-    activity.getSquashedStreamData(streamType, startDate, endDate)
-      .reduce((previousValue: number, nextValue: number) => {
-        // For gain
-        if (gain) {
-          // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
-          if ((previousValue + minDiff) <= nextValue) {
-            gainOrLoss += nextValue - previousValue;
-            return nextValue;
-          }
-          // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-          if (previousValue < nextValue) {
-            return previousValue;
-          }
-          return nextValue
-        }
+    return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
+  }
 
-        // For Loss
-        if ((previousValue - minDiff) >= nextValue) {
-          gainOrLoss += previousValue - nextValue;
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 5){
+    let gainOrLoss = 0;
+    data.reduce((previousValue: number, nextValue: number) => {
+      // For gain
+      if (gain) {
+        // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
+        if ((previousValue + minDiff) <= nextValue) {
+          gainOrLoss += nextValue - previousValue;
           return nextValue;
         }
         // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
-        if (previousValue > nextValue) {
+        if (previousValue < nextValue) {
           return previousValue;
         }
+        return nextValue
+      }
+
+      // For Loss
+      if ((previousValue - minDiff) >= nextValue) {
+        gainOrLoss += previousValue - nextValue;
         return nextValue;
-      });
+      }
+      // if not eligible check if smaller without the diff and if yes do not register it and send it back as the last to check against
+      if (previousValue > nextValue) {
+        return previousValue;
+      }
+      return nextValue;
+    });
     return gainOrLoss;
   }
 
@@ -468,17 +474,25 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = activity
-      .getSquashedStreamData(streamType, startDate, endDate)
+      .getSquashedStreamData(streamType, startDate, endDate);
     if (max) {
-      return data.reduce(function (previousValue, currentValue) {
-        return Math.max(previousValue, currentValue);
-      }, -Infinity);
+      return this.getMax(data);
     }
+    return this.getMin(data);
+  }
+
+
+  public static getMax(data: number[]): number {
+    return data.reduce(function (previousValue, currentValue) {
+      return Math.max(previousValue, currentValue);
+    }, -Infinity);
+  }
+
+  public static getMin(data: number[]): number {
     return data.reduce(function (previousValue, currentValue) {
       return Math.min(previousValue, currentValue);
     }, Infinity);
   }
-
 
   /**
    * Generates the stats for an activity

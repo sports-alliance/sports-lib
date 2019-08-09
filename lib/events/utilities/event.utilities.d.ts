@@ -4,6 +4,7 @@ import { StreamInterface } from '../../streams/stream.interface';
 export declare class EventUtilities {
     private static geoLibAdapter;
     static getDataTypeAvg(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
+    static getAverage(data: number[]): number;
     static getDataTypeMax(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeMin(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static getDataTypeDifference(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
@@ -29,7 +30,10 @@ export declare class EventUtilities {
     static getEventDataTypeGain(activity: ActivityInterface, streamType: string, starDate?: Date, endDate?: Date, minDiff?: number): number;
     static getEventDataTypeLoss(activity: ActivityInterface, streamType: string, starDate?: Date, endDate?: Date, minDiff?: number): number;
     private static getEventDataTypeGainOrLoss;
+    static getGainOrLoss(data: number[], gain: boolean, minDiff?: number): number;
     private static getDataTypeMinOrMax;
+    static getMax(data: number[]): number;
+    static getMin(data: number[]): number;
     /**
      * Generates the stats for an activity
      * @param activity

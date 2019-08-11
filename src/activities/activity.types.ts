@@ -24,6 +24,7 @@ export enum ActivityTypes {
   'Cycling' = 'Cycling',
   'cycling' = 'Cycling',
   'cycling_track_cycling' = 'Cycling',
+  'cycling_gravel_cycling' = 'Cycling',
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'e_biking' = 'E Biking',

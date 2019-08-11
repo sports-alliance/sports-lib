@@ -115,7 +115,6 @@ import {DataPowerPodUsed} from './data.power-pod-used';
 import {DataAltiBaroProfile} from './data.alti-baro-profile';
 import {DataIBI} from './data.ibi';
 import {DataSteps} from './data.steps';
-import {DataElevation} from './data.elevation';
 import {DataPoolLength} from './data.pool-length';
 import {DataDeviceLocation} from './data.device-location';
 import {DataPeakEPOC} from './data.peak-epoc';
@@ -128,6 +127,10 @@ import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from './data.swim-pac
 import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from './data.swim-pace-max';
 import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from './data.swim-pace-min';
 import {DataSWOLFAvg} from './data.swolf-avg';
+import {DataAccumulatedPower} from './data.accumulated-power';
+import {DataStrydDistance} from './data.stryd-distance';
+import {DataStrydSpeed} from './data.stryd-speed';
+import {DataStrydAltitude} from './data.stryd-altitude';
 
 /**
  * Only concrete classes no abstracts
@@ -271,7 +274,9 @@ export const DataStore: any = {
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
   DataSteps,
-  DataElevation,
+  DataStrydAltitude,
+  DataStrydSpeed,
+  DataStrydDistance,
   DataPoolLength,
   DataDeviceLocation,
   DataPeakEPOC,
@@ -280,6 +285,7 @@ export const DataStore: any = {
   DataStartAltitude,
   DataEndAltitude,
   DataSWOLFAvg,
+  DataAccumulatedPower,
 };
 
 export class DynamicDataLoader {
@@ -318,7 +324,11 @@ export class DynamicDataLoader {
     DataVerticalOscillation.type,
     DataTotalTrainingEffect.type,
     DataIBI.type,
-    DataElevation.type,
+    DataStrydAltitude.type,
+    DataAccumulatedPower.type,
+    DataStrydAltitude.type,
+    DataStrydDistance.type,
+    DataStrydSpeed.type
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

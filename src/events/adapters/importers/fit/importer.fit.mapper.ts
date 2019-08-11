@@ -14,7 +14,10 @@ import {DataFormPower} from '../../../../data/data.form-power';
 import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
 import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
 import {convertSpeedToPace, isNumber} from '../../../utilities/helpers';
-import {DataElevation} from '../../../../data/data.elevation';
+import {DataAccumulatedPower} from '../../../../data/data.accumulated-power';
+import {DataStrydAltitude} from '../../../../data/data.stryd-altitude';
+import {DataStrydDistance} from '../../../../data/data.stryd-distance';
+import {DataStrydSpeed} from '../../../../data/data.stryd-speed';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -48,9 +51,21 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     },
   },
   {
-    dataType: DataElevation.type,
+    dataType: DataStrydAltitude.type,
     getSampleValue: (sample: any) => {
       return sample.Elevation;
+    },
+  },
+  {
+    dataType: DataStrydDistance.type,
+    getSampleValue: (sample: any) => {
+      return sample.Distance;
+    },
+  },
+  {
+    dataType: DataStrydSpeed.type,
+    getSampleValue: (sample: any) => {
+      return sample.Speed;
     },
   },
   {
@@ -85,6 +100,12 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     dataType: DataPower.type,
     getSampleValue: (sample: any) => {
       return sample.power;
+    },
+  },
+  {
+    dataType: DataAccumulatedPower.type,
+    getSampleValue: (sample: any) => {
+      return sample.accumulated_power;
     },
   },
   {

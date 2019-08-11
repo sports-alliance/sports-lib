@@ -1,7 +1,7 @@
 import {DataNumber} from './data.number';
 
-export class DataPower extends DataNumber {
-  static type = 'Power';
+export class DataAccumulatedPower extends DataNumber {
+  static type = 'Accumulated Power';
   static unit = 'watts';
 
   getDisplayValue(): number {

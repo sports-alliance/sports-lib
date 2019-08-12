@@ -148,6 +148,7 @@ export declare enum ActivityTypes {
     'Ski Touring' = "Ski Touring",
     'Stretching' = "Stretching",
     'training_strength_training' = "Strength Training",
+    'fitness_equipment_strength_training' = "Strength Training",
     'strength_training' = "Strength Training",
     'Strength training' = "Strength Training",
     'strength training' = "Strength Training",

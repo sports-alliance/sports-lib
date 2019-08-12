@@ -15,34 +15,40 @@ export declare class DataVerticalSpeedMetersPerMinute extends DataVerticalSpeed 
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedFeetPerMinute extends DataVerticalSpeed {
     static type: string;
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedMetersPerHour extends DataVerticalSpeed {
     static type: string;
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedFeetPerHour extends DataVerticalSpeed {
     static type: string;
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedKilometerPerHour extends DataVerticalSpeed {
     static type: string;
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedMilesPerHour extends DataVerticalSpeed {
     static type: string;
     static displayType: string;
     static unit: string;
     getDisplayType(): string;
+    getDisplayValue(): string;
 }

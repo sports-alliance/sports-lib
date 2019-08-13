@@ -1194,10 +1194,10 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-fit-file-parser@^1.6.9:
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/fit-file-parser/-/fit-file-parser-1.6.9.tgz#a437b900d2cfd7d4083fd4740989d1c2062705c5"
-  integrity sha512-cPXSyEynIFl+lNb+u1HTLW4m27OSAY155DmYi2WxFEKOrpbmL4W6mbYc5RRp+aHX1QaK1xnXUa8NMTv8PKNcVQ==
+fit-file-parser@^1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/fit-file-parser/-/fit-file-parser-1.6.10.tgz#ebe890da9acae8877e660b4efb238cf575ab9364"
+  integrity sha512-Ucx2PTyTpINqRNtn2r0HTYwtda5sH5p1TN6UslVnWinvlCc5R3M9eghHxzW5J1qmVK/cSMvxi/CJd/qoGvLXEw==
   dependencies:
     buffer "^5.1.0"
 

@@ -23,6 +23,7 @@ export declare enum ActivityTypes {
     'running' = "Running",
     'Cycling' = "Cycling",
     'cycling' = "Cycling",
+    'cycling_road' = "Cycling",
     'cycling_track_cycling' = "Cycling",
     'cycling_gravel_cycling' = "Cycling",
     'Biking' = "Cycling",

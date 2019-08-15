@@ -131,6 +131,8 @@ import {DataAccumulatedPower} from './data.accumulated-power';
 import {DataStrydDistance} from './data.stryd-distance';
 import {DataStrydSpeed} from './data.stryd-speed';
 import {DataStrydAltitude} from './data.stryd-altitude';
+import {DataLeftBalance} from './data.left-balance';
+import {DataRightBalance} from './data.right-balance';
 
 /**
  * Only concrete classes no abstracts
@@ -286,6 +288,8 @@ export const DataStore: any = {
   DataEndAltitude,
   DataSWOLFAvg,
   DataAccumulatedPower,
+  DataLeftBalance,
+  DataRightBalance
 };
 
 export class DynamicDataLoader {
@@ -328,7 +332,9 @@ export class DynamicDataLoader {
     DataAccumulatedPower.type,
     DataStrydAltitude.type,
     DataStrydDistance.type,
-    DataStrydSpeed.type
+    DataStrydSpeed.type,
+    DataLeftBalance.type,
+    DataRightBalance.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

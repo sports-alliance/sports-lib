@@ -18,6 +18,8 @@ import {DataAccumulatedPower} from '../../../../data/data.accumulated-power';
 import {DataStrydAltitude} from '../../../../data/data.stryd-altitude';
 import {DataStrydDistance} from '../../../../data/data.stryd-distance';
 import {DataStrydSpeed} from '../../../../data/data.stryd-speed';
+import {DataRightBalance} from '../../../../data/data.right-balance';
+import {DataLeftBalance} from '../../../../data/data.left-balance';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -130,6 +132,25 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     dataType: DataVerticalOscillation.type,
     getSampleValue: (sample: any) => {
       return sample.vertical_oscillation;
+    },
+  },
+  {
+    dataType: DataRightBalance.type,
+    getSampleValue: (sample: any) => {
+      if (!sample.left_right_balance) {
+        return null;
+      }
+
+      return sample.left_right_balance.right === true ? sample.left_right_balance.value : 100 - sample.left_right_balance.value;
+    },
+  },
+  {
+    dataType: DataLeftBalance.type,
+    getSampleValue: (sample: any) => {
+      if (!sample.left_right_balance) {
+        return null;
+      }
+      return sample.left_right_balance.right === false ? sample.left_right_balance.value : 100 - sample.left_right_balance.value;
     },
   },
 ];

@@ -367,9 +367,7 @@ export class EventUtilities {
           event.addStat(new DataAscent(<number>ascent.getValue() + <number>activityAscent.getValue()))
         }
       }
-    });
 
-    event.getActivities().forEach((activity) => {
       const activityDescent = activity.getStat(DataDescent.type);
       if (activityDescent) {
         const Descent = event.getStat(DataDescent.type);
@@ -379,9 +377,7 @@ export class EventUtilities {
           event.addStat(new DataDescent(<number>Descent.getValue() + <number>activityDescent.getValue()))
         }
       }
-    });
 
-    event.getActivities().forEach((activity) => {
       const activityEnergy = activity.getStat(DataEnergy.type);
       if (activityEnergy) {
         const energy = event.getStat(DataDescent.type);
@@ -391,9 +387,7 @@ export class EventUtilities {
           event.addStat(new DataEnergy(<number>energy.getValue() + <number>activityEnergy.getValue()))
         }
       }
-    });
 
-    event.getActivities().forEach((activity) => {
       const activityAVGHeartRate = activity.getStat(DataHeartRateAvg.type);
       if (activityAVGHeartRate) {
         const avgHR = event.getStat(DataHeartRateAvg.type);

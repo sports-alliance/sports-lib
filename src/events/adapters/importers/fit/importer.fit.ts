@@ -211,6 +211,7 @@ export class EventImporterFIT {
     return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || session.sport || ActivityTypes.unknown;
   }
 
+  // @todo move this to a mapper
   private static getStatsFromObject(object: any): DataInterface[] {
     const stats = [];
     // Set the duration which is the moving time

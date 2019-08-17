@@ -3,9 +3,9 @@ export declare class DataFeeling extends DataNumber {
     static type: string;
 }
 export declare enum Feelings {
-    Poor = 0,
-    Average = 1,
-    Good = 2,
-    'Very Good' = 3,
-    Excellent = 4
+    'Poor' = 1,
+    'Average' = 2,
+    'Good' = 3,
+    'Very Good' = 4,
+    'Excellent' = 5
 }

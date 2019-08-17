@@ -5,9 +5,9 @@ export class DataFeeling extends DataNumber {
 }
 
 export enum Feelings {
-  Poor,
-  Average,
-  Good,
-  'Very Good',
-  Excellent
+  'Poor' = 1,
+  'Average' = 2,
+  'Good' = 3,
+  'Very Good' = 4,
+  'Excellent' = 5,
 }

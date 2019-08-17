@@ -127,6 +127,7 @@ import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from '../../data/data
 import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from '../../data/data.swim-pace';
 import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from '../../data/data.swim-pace-min';
 import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from '../../data/data.swim-pace-avg';
+import {DataFeeling} from '../../data/data.feeling';
 
 export class EventUtilities {
 
@@ -395,6 +396,15 @@ export class EventUtilities {
           event.addStat(new DataHeartRateAvg(<number>activityAVGHeartRate.getValue()))
         } else {
           event.addStat(new DataHeartRateAvg((<number>avgHR.getValue() + <number>activityAVGHeartRate.getValue()) / 2));
+        }
+      }
+      const activityFeeling = activity.getStat(DataFeeling.type);
+      if (activityFeeling) {
+        const feeling = event.getStat(DataFeeling.type);
+        if (!feeling) {
+          event.addStat(new DataFeeling(<number>activityFeeling.getValue()))
+        } else {
+          event.addStat(new DataFeeling(Math.ceil((<number>feeling.getValue() + <number>activityFeeling.getValue()) / 2)));
         }
       }
     });

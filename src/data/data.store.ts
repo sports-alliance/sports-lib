@@ -134,6 +134,8 @@ import {DataStrydAltitude} from './data.stryd-altitude';
 import {DataLeftBalance} from './data.left-balance';
 import {DataRightBalance} from './data.right-balance';
 import {DataRPE} from './data.rpe';
+import {DataPowerRight} from './data.power-right';
+import {DataPowerLeft} from './data.power-left';
 
 /**
  * Only concrete classes no abstracts
@@ -291,6 +293,8 @@ export const DataStore: any = {
   DataAccumulatedPower,
   DataLeftBalance,
   DataRightBalance,
+  DataPowerLeft,
+  DataPowerRight,
   DataRPE
 };
 
@@ -337,6 +341,8 @@ export class DynamicDataLoader {
     DataStrydSpeed.type,
     DataLeftBalance.type,
     DataRightBalance.type,
+    DataPowerLeft.type,
+    DataPowerRight.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

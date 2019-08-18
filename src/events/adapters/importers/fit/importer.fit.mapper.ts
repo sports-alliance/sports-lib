@@ -144,6 +144,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
       return sample.left_right_balance.right === true ? sample.left_right_balance.value : 100 - sample.left_right_balance.value;
     },
   },
+  // @todo if conservation of data is needed this can be taken of and generated on the fly
   {
     dataType: DataLeftBalance.type,
     getSampleValue: (sample: any) => {

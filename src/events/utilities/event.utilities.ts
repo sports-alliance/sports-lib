@@ -128,6 +128,10 @@ import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from '../../data/data.swim-
 import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from '../../data/data.swim-pace-min';
 import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from '../../data/data.swim-pace-avg';
 import {DataFeeling} from '../../data/data.feeling';
+import {DataPowerLeft} from '../../data/data.power-left';
+import {DataRightBalance} from '../../data/data.right-balance';
+import {DataLeftBalance} from '../../data/data.left-balance';
+import {DataPowerRight} from '../../data/data.power-right';
 
 export class EventUtilities {
 
@@ -152,7 +156,7 @@ export class EventUtilities {
     return this.getAverage(data);
   }
 
-  public static getAverage(data: number[]): number{
+  public static getAverage(data: number[]): number {
     const sum = data.reduce((sumbuff: number, value: number) => {
       sumbuff += value;
       return sumbuff;
@@ -440,7 +444,7 @@ export class EventUtilities {
     return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 5){
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 5) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
@@ -984,6 +988,36 @@ export class EventUtilities {
         return position;
       });
       activity.addStream(distanceStream);
+    }
+
+    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type) {
+      const rightPowerStream = activity.createStream(DataPowerRight.type);
+      const powerStreamData = activity.getStreamData(DataPower.type);
+      const rightBalanceStreamData =  activity.getStreamData(DataRightBalance.type);
+      rightPowerStream.data = rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+        const powerStreamDataItem = powerStreamData[index];
+        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+          return accu
+        }
+        accu[index] = (streamData / 100) * powerStreamDataItem;
+        return accu
+      }, []);
+      activity.addStream(rightPowerStream);
+    }
+
+    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataLeftBalance.type) && !activity.hasStreamData(DataPowerLeft.type) {
+      const leftPowerStream = activity.createStream(DataPowerLeft.type);
+      const powerStreamData = activity.getStreamData(DataPower.type);
+      const leftBalanceStreamData =  activity.getStreamData(DataLeftBalance.type);
+      leftPowerStream.data = leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+        const powerStreamDataItem = powerStreamData[index];
+        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+          return accu
+        }
+        accu[index] = (streamData / 100) * powerStreamDataItem;
+        return accu
+      }, []);
+      activity.addStream(leftPowerStream);
     }
 
     return activity;

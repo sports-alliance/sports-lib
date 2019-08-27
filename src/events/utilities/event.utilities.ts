@@ -990,7 +990,7 @@ export class EventUtilities {
       activity.addStream(distanceStream);
     }
 
-    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type) {
+    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const rightBalanceStreamData =  activity.getStreamData(DataRightBalance.type);
@@ -1005,7 +1005,7 @@ export class EventUtilities {
       activity.addStream(rightPowerStream);
     }
 
-    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataLeftBalance.type) && !activity.hasStreamData(DataPowerLeft.type) {
+    if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataLeftBalance.type) && !activity.hasStreamData(DataPowerLeft.type)) {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const leftBalanceStreamData =  activity.getStreamData(DataLeftBalance.type);

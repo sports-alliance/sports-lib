@@ -6,6 +6,9 @@ export interface UserChartSettingsInterface {
     showAllData: boolean;
     dataSmoothingLevel: number;
     chartCursorBehaviour: ChartCursorBehaviours;
+    strokeWidth: number;
+    strokeOpacity: number;
+    fillOpacity: number;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",
@@ -22,8 +25,8 @@ export interface DataTypeSettings {
     [type: string]: {
         enabled: boolean;
         strokeColor?: string;
-        fillColor?: string;
-        fillOpacity?: string;
+        fillColor?: number;
+        fillOpacity?: number;
     };
 }
 export declare enum XAxisTypes {

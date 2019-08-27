@@ -6,6 +6,9 @@ export interface UserChartSettingsInterface {
   showAllData: boolean,
   dataSmoothingLevel: number,
   chartCursorBehaviour: ChartCursorBehaviours,
+  strokeWidth: number,
+  strokeOpacity: number,
+  fillOpacity: number,
 }
 
 export enum ChartThemes {
@@ -21,7 +24,7 @@ export enum ChartThemes {
 }
 
 export interface DataTypeSettings {
-  [type: string]: { enabled: boolean, strokeColor?: string, fillColor?: string, fillOpacity?: string }
+  [type: string]: { enabled: boolean, strokeColor?: string, fillColor?: number, fillOpacity?: number }
 }
 
 export enum XAxisTypes {

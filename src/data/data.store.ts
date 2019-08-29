@@ -136,6 +136,10 @@ import {DataRightBalance} from './data.right-balance';
 import {DataRPE} from './data.rpe';
 import {DataPowerRight} from './data.power-right';
 import {DataPowerLeft} from './data.power-left';
+import {DataStanceTime} from './data.stance-time';
+import {DataStanceTimeBalance} from './data.stance-time-balance';
+import {DataStepLength} from './data.step-length';
+import {DataVerticalRatio} from './data.vertical-ratio';
 
 /**
  * Only concrete classes no abstracts
@@ -295,7 +299,11 @@ export const DataStore: any = {
   DataRightBalance,
   DataPowerLeft,
   DataPowerRight,
-  DataRPE
+  DataRPE,
+  DataStanceTime,
+  DataStanceTimeBalance,
+  DataStepLength,
+  DataVerticalRatio,
 };
 
 export class DynamicDataLoader {
@@ -343,6 +351,10 @@ export class DynamicDataLoader {
     DataRightBalance.type,
     DataPowerLeft.type,
     DataPowerRight.type,
+    DataStanceTime.type,
+    DataStanceTimeBalance.type,
+    DataStepLength.type,
+    DataVerticalRatio.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

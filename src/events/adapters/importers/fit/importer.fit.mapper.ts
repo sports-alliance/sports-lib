@@ -20,6 +20,10 @@ import {DataStrydDistance} from '../../../../data/data.stryd-distance';
 import {DataStrydSpeed} from '../../../../data/data.stryd-speed';
 import {DataRightBalance} from '../../../../data/data.right-balance';
 import {DataLeftBalance} from '../../../../data/data.left-balance';
+import {DataStanceTime} from '../../../../data/data.stance-time';
+import {DataStanceTimeBalance} from '../../../../data/data.stance-time-balance';
+import {DataStepLength} from '../../../../data/data.step-length';
+import {DataVerticalRatio} from '../../../../data/data.vertical-ratio';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -152,6 +156,30 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return null;
       }
       return sample.left_right_balance.right === false ? sample.left_right_balance.value : 100 - sample.left_right_balance.value;
+    },
+  },
+  {
+    dataType: DataStanceTime.type,
+    getSampleValue: (sample: any) => {
+      return sample.stance_time;
+    },
+  },
+  {
+    dataType: DataStanceTimeBalance.type,
+    getSampleValue: (sample: any) => {
+      return sample.stance_time_balance;
+    },
+  },
+  {
+    dataType: DataStepLength.type,
+    getSampleValue: (sample: any) => {
+      return sample.step_length / 1000;
+    },
+  },
+  {
+    dataType: DataVerticalRatio.type,
+    getSampleValue: (sample: any) => {
+      return sample.vertical_ratio;
     },
   },
 ];

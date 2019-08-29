@@ -66,6 +66,7 @@ export declare enum ActivityTypes {
     'kayaking' = "Kayaking",
     'rafting' = "Rafting",
     'Rafting' = "Rafting",
+    'rowing' = "Rowing",
     'Rowing' = "Rowing",
     'Climbing' = "Climbing",
     'cycling_indoor_cycling' = "Indoor Cycling",

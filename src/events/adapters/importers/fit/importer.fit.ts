@@ -179,7 +179,7 @@ export class EventImporterFIT {
 
   private static getLapFromSessionLapObject(sessionLapObject: any): LapInterface {
     const lap = new Lap(
-      sessionLapObject.start_time,
+      sessionLapObject.start_time || sessionLapObject.records[0].timestamp || new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
       sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown,
     );
@@ -339,7 +339,7 @@ export class EventImporterFIT {
       }
       default: {
         creator = new Creator(
-          fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown',
+          fitDataObject.file_id.manufacturer ? fitDataObject.file_id.manufacturer + ' ' + (fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown') : fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown',
         )
       }
     }

@@ -3,7 +3,7 @@ export function isNumberOrString(property: any) {
 }
 
 export function isNumber(property: any) {
-  return (typeof property === 'number');
+  return (typeof property === 'number' && !isNaN(property));
 }
 
 /**

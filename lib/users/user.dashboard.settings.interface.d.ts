@@ -6,6 +6,12 @@ export interface UserDashboardSettingsInterface {
     chartsSettings: UserDashboardChartSettingsInterface[];
     showSummaries: boolean;
     pinUploadSection: boolean;
+    tableSettings: TableSettings;
+}
+export interface TableSettings {
+    eventsPerPage: number;
+    active: string;
+    direction: 'asc' | 'desc';
 }
 export declare enum DateRanges {
     thisWeek = 0,

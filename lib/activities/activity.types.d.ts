@@ -39,7 +39,7 @@ export declare enum ActivityTypes {
     'boating' = "Boating",
     'Boating' = "Boating",
     'driving' = "Driving",
-    'Driving' = "driving",
+    'Driving' = "Driving",
     'Swimming' = "Swimming",
     'swimming' = "Swimming",
     'Swim' = "Swimming",

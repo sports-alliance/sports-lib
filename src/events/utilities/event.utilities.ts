@@ -218,7 +218,7 @@ export class EventUtilities {
     }, []).map((activity) => {
       return activity.setID(null);
     });
-    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate, Privacy.Private, `Merge event `, true);
+    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate, Privacy.Private, `A merge of 2 or more activities `, true);
     event.addActivities(activities);
     this.generateStatsForAll(event);
     return event;

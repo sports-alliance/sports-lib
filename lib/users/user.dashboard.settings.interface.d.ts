@@ -22,6 +22,5 @@ export declare enum DateRanges {
     lastThirtyDays = 5,
     thisYear = 6,
     lastYear = 7,
-    custom = 8,
-    all = 9
+    custom = 8
 }

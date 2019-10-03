@@ -26,5 +26,5 @@ export enum DateRanges {
   thisYear,
   lastYear,
   custom,
-  all,
+  // all,
 }

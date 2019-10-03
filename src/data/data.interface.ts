@@ -4,7 +4,7 @@ import {DataJSONInterface} from './data.json.interface';
 export interface DataInterface extends SerializableClassInterface {
   setValue(value: number | string | string[]): this;
 
-  getValue(): number | string | boolean | string[];
+  getValue(formatForDataType?: string): number | string | boolean | string[];
 
   getDisplayValue(): number | string | boolean | string[];
 

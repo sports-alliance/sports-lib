@@ -17,6 +17,9 @@ export declare class Event extends DurationClassAbstract implements EventInterfa
     getActivities(): ActivityInterface[];
     getFirstActivity(): ActivityInterface;
     getLastActivity(): ActivityInterface;
+    getActivityTypesAsString(): string;
+    getDeviceNamesAsString(): string;
     private sortActivities;
+    private getUniqueStringWithMultiplier;
     toJSON(): EventJSONInterface;
 }

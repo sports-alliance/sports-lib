@@ -25,6 +25,9 @@ export interface EventInterface extends StatsClassInterface,
 
   getActivities(): ActivityInterface[];
 
+  getActivityTypesAsString(): string;
+  getDeviceNamesAsString(): string;
+
   clearActivities(): void;
 
   getFirstActivity(): ActivityInterface;

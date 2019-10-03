@@ -3,6 +3,7 @@ export declare class DataSpeed extends DataNumber {
     static type: string;
     static unit: string;
     getDisplayValue(): string;
+    getValue(formatForDataType?: string): number;
 }
 export declare class DataSpeedKilometersPerHour extends DataSpeed {
     static type: string;

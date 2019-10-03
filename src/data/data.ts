@@ -20,7 +20,7 @@ export abstract class Data implements DataInterface {
     return this;
   }
 
-  getValue(): string | number | boolean | string[] {
+  getValue(formatForDataType?: string): string | number | boolean | string[] {
     return this.value;
   }
 

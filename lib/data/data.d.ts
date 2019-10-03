@@ -8,7 +8,7 @@ export declare abstract class Data implements DataInterface {
     protected value: number | string | boolean | string[];
     protected constructor(value: string | number | boolean | string[]);
     setValue(value: string | number | boolean | string[]): this;
-    getValue(): string | number | boolean | string[];
+    getValue(formatForDataType?: string): string | number | boolean | string[];
     getDisplayValue(): number | string | string[];
     getType(): string;
     getUnit(): string;

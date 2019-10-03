@@ -5,6 +5,10 @@ import {DurationClassAbstract} from '../duration/duration.class.abstract';
 import {EventJSONInterface} from './event.json.interface';
 import {Privacy} from '../privacy/privacy.class.interface';
 import {MetaDataInterface} from '../meta-data/meta-data.interface';
+import {ActivityTypes} from '../activities/activity.types';
+import {DataActivityTypes} from '../data/data.activity-types';
+import {LapTypes} from '../laps/lap.types';
+import {DataDeviceNames} from '../data/data.device-names';
 
 export class Event extends DurationClassAbstract implements EventInterface {
 
@@ -61,12 +65,48 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
   }
 
+  getActivityTypesAsString(): string {
+    const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
+    if (!activityTypesStat) {
+      throw new Error(`Event has no activity types`)
+    }
+    return activityTypesStat.getValue().length > 1 ?
+      `${this.getUniqueStringWithMultiplier(activityTypesStat.getValue().map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType]))}`
+      :  ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()]
+  }
+
+  getDeviceNamesAsString(): string {
+    const deviceNamesStat = <DataDeviceNames>this.getStat(DataDeviceNames.type);
+    if (!deviceNamesStat) {
+      throw new Error(`Event has no device names`)
+    }
+    return `${this.getUniqueStringWithMultiplier(deviceNamesStat.getValue())}`;
+  }
+
   private sortActivities() {
     this.activities.sort((activityA: ActivityInterface, activityB: ActivityInterface) => {
       return +activityA.startDate - +activityB.startDate;
     });
   }
 
+  private getUniqueStringWithMultiplier(arrayOfStrings: string[]) {
+    const uniqueObject = arrayOfStrings.reduce((uniqueObj: any, type, index) => {
+      if (!uniqueObj[type]) {
+        uniqueObj[type] = 1;
+      } else {
+        uniqueObj[type] += 1;
+      }
+      return uniqueObj;
+    }, {});
+    return Object.keys(uniqueObject).reduce((uniqueArray: any[], key, index, object) => {
+      if (uniqueObject[key] === 1) {
+        uniqueArray.push(key);
+      } else {
+        uniqueArray.push(uniqueObject[key] + 'x ' + key);
+      }
+      return uniqueArray;
+    }, []).join(', ');
+  }
 
   toJSON(): EventJSONInterface {
     const stats = {};

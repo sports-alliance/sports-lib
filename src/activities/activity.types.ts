@@ -1,3 +1,15 @@
+import {Activity} from './activity';
+import {LapTypes} from '../laps/lap.types';
+
+export class ActivityTypesHelper {
+  static getActivityTypesAsUniqueArray(): string[] {
+    return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
+      array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
+      return array;
+    }, [])));
+  }
+}
+
 /**
  * This enum works like a all matchers for normalized sport types between different naming across services
  */

@@ -1,3 +1,6 @@
+export declare class ActivityTypesHelper {
+    static getActivityTypesAsUniqueArray(): string[];
+}
 /**
  * This enum works like a all matchers for normalized sport types between different naming across services
  */

@@ -4,6 +4,7 @@ export interface UserDashboardChartSettingsInterface {
   type: ChartTypes,
   dataType: string,
   dataValueType: ChartDataValueTypes,
+  dataCategoryType: ChartDataCategoryTypes,
   filterLowValues: boolean,
 }
 
@@ -18,4 +19,9 @@ export enum ChartDataValueTypes {
   Average = 'Average',
   Maximum = 'Maximum',
   Minimum = 'Minimum',
+}
+
+export enum ChartDataCategoryTypes {
+  ActivityType = 'Activity Type',
+  DateType = 'Date Type',
 }

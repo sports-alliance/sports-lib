@@ -12,6 +12,7 @@ export enum ChartTypes {
   Pie = 'Pie',
   ColumnsHorizontal = 'Columns Horizontal',
   PyramidsVertical = 'Pyramids Vertical',
+  Spiral = 'Spiral',
 }
 
 export enum ChartDataValueTypes {

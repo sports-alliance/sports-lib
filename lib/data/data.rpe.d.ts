@@ -1,6 +1,7 @@
 import { DataNumber } from './data.number';
 export declare class DataRPE extends DataNumber {
     static type: string;
+    getDisplayValue(): number | string | string[];
 }
 export declare enum RPEBorgCR10SCale {
     'No exertion at all' = 0,

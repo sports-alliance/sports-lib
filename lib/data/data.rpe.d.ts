@@ -5,7 +5,7 @@ export declare class DataRPE extends DataNumber {
 }
 export declare enum RPEBorgCR10SCale {
     'No exertion at all' = 0,
-    'Very, very slight (just noticeable)' = 1,
+    'Very, very slight' = 1,
     'Very slight' = 2,
     'Slight' = 3,
     'Moderate' = 4,

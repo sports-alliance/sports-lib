@@ -11,7 +11,7 @@ export class DataRPE extends DataNumber {
 
 export enum RPEBorgCR10SCale {
   'No exertion at all',
-  'Very, very slight (just noticeable)',
+  'Very, very slight',
   'Very slight',
   'Slight',
   'Moderate',

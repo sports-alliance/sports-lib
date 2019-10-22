@@ -68,7 +68,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   getActivityTypesAsString(): string {
     const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
     if (!activityTypesStat) {
-      throw new Error(`Event has no activity types`)
+      throw new Error(`Event with id ${this.getID()} has no activity types`)
     }
     return activityTypesStat.getValue().length > 1 ?
       `${this.getUniqueStringWithMultiplier(activityTypesStat.getValue().map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType]))}`
@@ -78,7 +78,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   getDeviceNamesAsString(): string {
     const deviceNamesStat = <DataDeviceNames>this.getStat(DataDeviceNames.type);
     if (!deviceNamesStat) {
-      throw new Error(`Event has no device names`)
+      throw new Error(`Event with id ${this.getID()} has no device names`)
     }
     return `${this.getUniqueStringWithMultiplier(deviceNamesStat.getValue())}`;
   }

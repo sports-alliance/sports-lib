@@ -5,7 +5,7 @@ export declare class Stream implements StreamInterface {
     constructor(type: string, data?: (number | null)[]);
     getNumericData(): number[];
     /**
-     * Gets the data based on a startDate
+     * Gets the data based / offset on a startDate
      * @param startDate
      */
     getStreamDataByTime(startDate: Date): StreamDataItem[];

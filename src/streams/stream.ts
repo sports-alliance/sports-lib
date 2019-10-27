@@ -18,7 +18,7 @@ export class Stream implements StreamInterface {
   }
 
   /**
-   * Gets the data based on a startDate
+   * Gets the data based / offset on a startDate
    * @param startDate
    */
   getStreamDataByTime(startDate: Date): StreamDataItem[] {

@@ -1,3 +1,6 @@
+export declare class LapTypesHelper {
+    static getLapTypesAsUniqueArray(): string[];
+}
 /**
  * This enum works like a all matchers for normalized lap types between different naming across services
  */

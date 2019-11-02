@@ -1,5 +1,3 @@
-import {ActivityTypes} from '../activities/activity.types';
-
 export class LapTypesHelper {
   static getLapTypesAsUniqueArray(): string[] {
     return Array.from(new Set(Object.keys(LapTypes).reduce((array: string[], key: string) => {

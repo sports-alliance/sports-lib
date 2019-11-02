@@ -4,7 +4,7 @@ export class DataFeeling extends DataNumber {
   static type = 'Feeling';
 
   getDisplayValue(): number | string | string[] {
-    return Feelings[Math.ceil(this.getValue())] ? Feelings[Math.ceil(this.getValue())] : `Other ${this.getValue()}`;
+    return Feelings[Math.ceil(this.getValue())] ? Feelings[Math.ceil(this.getValue())] : ``;
   }
 }
 

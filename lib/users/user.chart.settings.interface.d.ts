@@ -13,6 +13,7 @@ export interface UserChartSettingsInterface {
     lapTypes: LapTypes[];
     showLaps: boolean;
     showGrid: boolean;
+    stackYAxes: boolean;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",

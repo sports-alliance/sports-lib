@@ -19,7 +19,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   hasPositionData(startDate?: Date, endDate?: Date): boolean;
   getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number|null)[];
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
-  getStreamDataByTime(streamType: string): StreamDataItem[]
+  getStreamDataByTime(streamType: string, filterNull?: boolean): StreamDataItem[]
   getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } };
   getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } };
   createStream(type: string): StreamInterface;

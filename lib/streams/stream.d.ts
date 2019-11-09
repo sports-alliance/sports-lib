@@ -7,9 +7,10 @@ export declare class Stream implements StreamInterface {
     /**
      * Gets the data based / offset on a startDate
      * @param startDate
+     * @param filterNull
      */
-    getStreamDataByTime(startDate: Date): StreamDataItem[];
-    getStreamDataByDuration(offset?: number): StreamDataItem[];
+    getStreamDataByTime(startDate: Date, filterNull?: boolean): StreamDataItem[];
+    getStreamDataByDuration(offset?: number, filterNull?: boolean): StreamDataItem[];
     isUnitDerivedDataType(): boolean;
     toJSON(): StreamJSONInterface;
 }

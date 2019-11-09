@@ -4,9 +4,9 @@ import {DynamicDataLoader} from "../data/data.store";
 
 export class Stream implements StreamInterface {
   public readonly type: string;
-  public data: (number|null)[] = [];
+  public data: (number | null)[] = [];
 
-  constructor(type: string, data?: (number|null)[]) {
+  constructor(type: string, data?: (number | null)[]) {
     this.type = type;
     if (data) {
       this.data = data;
@@ -20,9 +20,13 @@ export class Stream implements StreamInterface {
   /**
    * Gets the data based / offset on a startDate
    * @param startDate
+   * @param filterNull
    */
-  getStreamDataByTime(startDate: Date): StreamDataItem[] {
+  getStreamDataByTime(startDate: Date, filterNull = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
+      if (filterNull && dataItem === null) {
+        return accu
+      }
       accu.push({
         time: startDate.getTime() + index * 1000,
         value: dataItem,
@@ -31,10 +35,13 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[])
   }
 
-  getStreamDataByDuration(offset?: number): StreamDataItem[] {
+  getStreamDataByDuration(offset: number = 0, filterNull = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
+      if (filterNull && dataItem === null) {
+        return accu
+      }
       accu.push({
-        time:  index * 1000 + (offset || 0),
+        time: index * 1000 + (offset || 0),
         value: dataItem,
       });
       return accu;
@@ -55,5 +62,5 @@ export class Stream implements StreamInterface {
 
 export interface StreamJSONInterface {
   type: string;
-  data: (number|null)[];
+  data: (number | null)[];
 }

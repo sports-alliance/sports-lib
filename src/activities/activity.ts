@@ -187,8 +187,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return EventUtilities.getStreamDataTypesBasedOnTime(this.startDate, this.endDate, this.getAllStreams().filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
 
-  getStreamDataByTime(streamType: string): StreamDataItem[] {
-    return this.getStream(streamType).getStreamDataByTime(this.startDate);
+  getStreamDataByTime(streamType: string, filterNull = false): StreamDataItem[] {
+    return this.getStream(streamType).getStreamDataByTime(this.startDate, filterNull);
   }
 
   addLap(lap: LapInterface): this {

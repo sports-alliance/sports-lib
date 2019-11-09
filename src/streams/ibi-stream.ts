@@ -10,10 +10,13 @@ export class IBIStream extends Stream {
     }
   }
 
-  getStreamDataByTime(startDate: Date): StreamDataItem[] {
+  getStreamDataByTime(startDate: Date, filterNull = false): StreamDataItem[] {
     let time = 0;
     return this.data.reduce((accu, dataItem, index) => {
       time += <number>dataItem;
+      if (filterNull && dataItem === null) {
+        return accu
+      }
       accu.push({
         time: startDate.getTime() + time,
         value: dataItem,
@@ -23,15 +26,18 @@ export class IBIStream extends Stream {
   }
 
   //
-  getStreamDataByDuration(offset?: number, filter = true): StreamDataItem[] {
+  getStreamDataByDuration(offset?: number, filterNull = false): StreamDataItem[] {
     // let data = (new IBIData(<number[]>this.data))
     //   .lowLimitBPMFilter()
     //   .lowPassFilter()
     //   .highLimitBPMFilter().getAsArray();
-    let data = this.data;
+    const data = this.data;
     let time = offset || 0;
     return data.reduce((accu, dataItem, index) => {
       time += <number>dataItem;
+      if (filterNull && dataItem === null) {
+        return accu
+      }
       accu.push({
         time: time,
         value: dataItem,

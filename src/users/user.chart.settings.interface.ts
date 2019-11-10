@@ -10,6 +10,7 @@ export interface UserChartSettingsInterface {
   chartCursorBehaviour: ChartCursorBehaviours,
   strokeWidth: number,
   strokeOpacity: number,
+  gainAndLossThreshold: number,
   fillOpacity: number,
   lapTypes: LapTypes[],
   showLaps: boolean,

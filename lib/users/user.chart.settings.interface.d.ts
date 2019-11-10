@@ -14,6 +14,7 @@ export interface UserChartSettingsInterface {
     showLaps: boolean;
     showGrid: boolean;
     stackYAxes: boolean;
+    disableGrouping: boolean;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",

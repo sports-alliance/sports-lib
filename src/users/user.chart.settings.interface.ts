@@ -6,7 +6,7 @@ export interface UserChartSettingsInterface {
   useAnimations: boolean,
   xAxisType: XAxisTypes,
   showAllData: boolean,
-  dataSmoothingLevel: number,
+  downSamplingLevel: number,
   chartCursorBehaviour: ChartCursorBehaviours,
   strokeWidth: number,
   strokeOpacity: number,

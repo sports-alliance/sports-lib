@@ -140,6 +140,7 @@ import {DataStanceTime} from './data.stance-time';
 import {DataStanceTimeBalance} from './data.stance-time-balance';
 import {DataStepLength} from './data.step-length';
 import {DataVerticalRatio} from './data.vertical-ratio';
+import {DataDescription} from './data.description';
 
 /**
  * Only concrete classes no abstracts
@@ -304,6 +305,7 @@ export const DataStore: any = {
   DataStanceTimeBalance,
   DataStepLength,
   DataVerticalRatio,
+  DataDescription,
 };
 
 export class DynamicDataLoader {

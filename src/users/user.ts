@@ -10,6 +10,8 @@ export class User implements UserInterface {
   acceptedTrackingPolicy = false;
   acceptedDiagnosticsPolicy = false;
 
+  lastLogin?: number;
+
   brandText?: string;
   photoURL?: string;
   displayName?: string;
@@ -42,6 +44,7 @@ export class User implements UserInterface {
       acceptedDiagnosticsPolicy: this.acceptedDiagnosticsPolicy,
       brandText: this.brandText || null,
       photoURL: this.photoURL || null,
+      lastLogin: this.lastLogin || null,
       displayName: this.displayName || null,
       description: this.description || null,
       settings: this.settings ? this.settings : null,

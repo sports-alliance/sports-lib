@@ -10,8 +10,6 @@ export class User implements UserInterface {
   acceptedTrackingPolicy = false;
   acceptedDiagnosticsPolicy = false;
 
-  lastLogin?: number;
-
   brandText?: string;
   photoURL?: string;
   displayName?: string;

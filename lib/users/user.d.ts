@@ -8,7 +8,6 @@ export declare class User implements UserInterface {
     acceptedPrivacyPolicy: boolean;
     acceptedTrackingPolicy: boolean;
     acceptedDiagnosticsPolicy: boolean;
-    lastLogin?: number;
     brandText?: string;
     photoURL?: string;
     displayName?: string;
@@ -24,7 +23,7 @@ export declare class User implements UserInterface {
         acceptedDiagnosticsPolicy: boolean;
         brandText: string | null;
         photoURL: string | null;
-        lastLogin: number | null;
+        lastLogin: any;
         displayName: string | null;
         description: string | null;
         settings: UserSettingsInterface | null;

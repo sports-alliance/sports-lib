@@ -23,7 +23,6 @@ export declare class User implements UserInterface {
         acceptedDiagnosticsPolicy: boolean;
         brandText: string | null;
         photoURL: string | null;
-        lastLogin: any;
         displayName: string | null;
         description: string | null;
         settings: UserSettingsInterface | null;

@@ -402,6 +402,17 @@ export class EventUtilities {
           event.addStat(new DataHeartRateAvg((<number>avgHR.getValue() + <number>activityAVGHeartRate.getValue()) / 2));
         }
       }
+
+      const activityAVGPower = activity.getStat(DataPowerAvg.type);
+      if (activityAVGPower) {
+        const avgPower = event.getStat(DataPowerAvg.type);
+        if (!avgPower) {
+          event.addStat(new DataPowerAvg(<number>activityAVGPower.getValue()))
+        } else {
+          event.addStat(new DataPowerAvg((<number>avgPower.getValue() + <number>activityAVGPower.getValue()) / 2));
+        }
+      }
+
       const activityFeeling = activity.getStat(DataFeeling.type);
       if (activityFeeling) {
         const feeling = event.getStat(DataFeeling.type);

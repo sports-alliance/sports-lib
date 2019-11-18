@@ -416,7 +416,7 @@ export class DynamicDataLoader {
    * @param dataTypes
    * @param userUnitSettings
    */
-  protected static getUnitBasedDataTypesFromDataTypes(dataTypes: string[], userUnitSettings?: UserUnitSettingsInterface): string[] {
+  static getUnitBasedDataTypesFromDataTypes(dataTypes: string[], userUnitSettings?: UserUnitSettingsInterface): string[] {
     let unitBasedDataTypes: any[] = [];
     if (!userUnitSettings) {
       return unitBasedDataTypes
@@ -437,7 +437,7 @@ export class DynamicDataLoader {
    * @param dataType
    * @param userUnitSettings
    */
-  protected static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
+  static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
     if (!userUnitSettings) {
       return [dataType]
     }

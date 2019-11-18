@@ -2,6 +2,7 @@ import { DataNumber } from './data.number';
 export declare class DataVerticalSpeed extends DataNumber {
     static type: string;
     static unit: string;
+    getValue(formatForDataType?: string): number;
     getDisplayValue(): string;
 }
 export declare class DataVerticalSpeedFeetPerSecond extends DataVerticalSpeed {

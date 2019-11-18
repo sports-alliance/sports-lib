@@ -39,7 +39,7 @@ export class DataPaceMinutesPerMile extends DataPace {
   static unit = 'min/m';
 
   getValue(formatForDataType?: string): number {
-    if (formatForDataType){
+    if (formatForDataType) {
       throw new Error(`Not implemented`);
     }
     return super.getValue(formatForDataType);

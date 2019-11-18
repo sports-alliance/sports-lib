@@ -1,11 +1,40 @@
 import {DataNumber} from './data.number';
+import {
+  convertSpeedToPace, convertSpeedToSpeedInFeetPerHour,
+  convertSpeedToSpeedInFeetPerMinute,
+  convertSpeedToSpeedInFeetPerSecond,
+  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMetersPerHour, convertSpeedToSpeedInMetersPerMinute,
+  convertSpeedToSpeedInMilesPerHour
+} from '../events/utilities/helpers';
 
 export class DataVerticalSpeed extends DataNumber {
   static type = 'Vertical Speed';
   static unit = 'm/s';
 
+  getValue(formatForDataType?: string) {
+    switch (formatForDataType) {
+      // Vertical speed cases conversions
+      case DataVerticalSpeedKilometerPerHour.type:
+        return convertSpeedToSpeedInKilometersPerHour(this.value);
+      case DataVerticalSpeedMilesPerHour.type:
+        return convertSpeedToSpeedInMilesPerHour(this.value);
+      case DataVerticalSpeedFeetPerSecond.type:
+        return convertSpeedToSpeedInFeetPerSecond(this.value);
+      case DataVerticalSpeedMetersPerMinute.type:
+        return convertSpeedToSpeedInMetersPerMinute(this.value);
+      case DataVerticalSpeedFeetPerMinute.type:
+        return convertSpeedToSpeedInFeetPerMinute(this.value);
+      case DataVerticalSpeedFeetPerHour.type:
+        return convertSpeedToSpeedInFeetPerHour(this.value);
+      case DataVerticalSpeedMetersPerHour.type:
+        return convertSpeedToSpeedInMetersPerHour(this.value);
+      default:
+        return super.getValue(formatForDataType);
+    }
+  }
+
   getDisplayValue() {
-    return this.getValue().toFixed(3);
+    return this.getValue().toFixed(2);
   }
 }
 

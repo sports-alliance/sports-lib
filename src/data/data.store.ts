@@ -141,6 +141,7 @@ import {DataStanceTimeBalance} from './data.stance-time-balance';
 import {DataStepLength} from './data.step-length';
 import {DataVerticalRatio} from './data.vertical-ratio';
 import {DataDescription} from './data.description';
+import {UserUnitSettingsInterface} from '../users/user.unit.settings.interface';
 
 /**
  * Only concrete classes no abstracts
@@ -409,6 +410,52 @@ export class DynamicDataLoader {
   static isUnitDerivedDataType(dataType: string): boolean {
     return Object.values(this.unitBasedDataTypes).reduce((accu, item) => accu.concat(item), []).indexOf(dataType) !== -1;
   }
+
+  /**
+   * This gets the base and extended unit datatypes from a datatype array depending on the user settings
+   * @param dataTypes
+   * @param userUnitSettings
+   */
+  protected static getUnitBasedDataTypesFromDataTypes(dataTypes: string[], userUnitSettings?: UserUnitSettingsInterface): string[] {
+    let unitBasedDataTypes: any[] = [];
+    if (!userUnitSettings) {
+      return unitBasedDataTypes
+    }
+    if (dataTypes.indexOf(DataSpeed.type) !== -1) {
+      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.speedUnits);
+      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.swimPaceUnits);
+      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.paceUnits);
+    }
+    if (dataTypes.indexOf(DataVerticalSpeed.type) !== -1) {
+      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.verticalSpeedUnits);
+    }
+    return unitBasedDataTypes;
+  }
+
+  /**
+   * Gets the unitbased types
+   * @param dataType
+   * @param userUnitSettings
+   */
+  protected static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
+    if (!userUnitSettings) {
+      return [dataType]
+    }
+    if (dataType === DataSpeed.type) {
+      return userUnitSettings.speedUnits;
+    }
+    if (dataType === DataPace.type) {
+      return userUnitSettings.paceUnits;
+    }
+    if (dataType === DataSwimPace.type) {
+      return userUnitSettings.swimPaceUnits;
+    }
+    if (dataType === DataVerticalSpeed.type) {
+      return userUnitSettings.verticalSpeedUnits;
+    }
+    return [dataType];
+  }
+
 }
 
 

@@ -456,6 +456,309 @@ export class DynamicDataLoader {
     return [dataType];
   }
 
+  // /**
+  //  * Gets the unitbased types
+  //  * @param dataType
+  //  * @param userUnitSettings
+  //  */
+  // static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
+  //   if (!userUnitSettings) {
+  //     return [dataType]
+  //   }
+  //   switch (dataType) {
+  //     // Speed
+  //     case DataSpeed.type:
+  //       return userUnitSettings.speedUnits;
+  //     case DataSpeedAvg.type:
+  //       return userUnitSettings.speedUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSpeed.type:
+  //             return [...accu, DataSpeedAvg.type];
+  //           case DataSpeedKilometersPerHour.type:
+  //             return [...accu, DataSpeedAvgKilometersPerHour.type];
+  //           case DataSpeedMilesPerHour.type:
+  //             return [...accu, DataSpeedAvgMilesPerHour.type];
+  //           case DataSpeedFeetPerSecond.type:
+  //             return [...accu, DataSpeedAvgFeetPerSecond.type];
+  //           case DataSpeedMetersPerMinute.type:
+  //             return [...accu, DataSpeedAvgMetersPerMinute.type];
+  //           case DataSpeedFeetPerMinute.type:
+  //             return [...accu, DataSpeedAvgFeetPerMinute.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataSpeedMax.type:
+  //       return userUnitSettings.speedUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSpeed.type:
+  //             return [...accu, DataSpeedMax.type];
+  //           case DataSpeedKilometersPerHour.type:
+  //             return [...accu, DataSpeedMaxKilometersPerHour.type];
+  //           case DataSpeedMilesPerHour.type:
+  //             return [...accu, DataSpeedMaxMilesPerHour.type];
+  //           case DataSpeedFeetPerSecond.type:
+  //             return [...accu, DataSpeedMaxFeetPerSecond.type];
+  //           case DataSpeedMetersPerMinute.type:
+  //             return [...accu, DataSpeedMaxMetersPerMinute.type];
+  //           case DataSpeedFeetPerMinute.type:
+  //             return [...accu, DataSpeedMaxFeetPerMinute.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataSpeedMin.type:
+  //       return userUnitSettings.speedUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSpeed.type:
+  //             return [...accu, DataSpeedMin.type];
+  //           case DataSpeedKilometersPerHour.type:
+  //             return [...accu, DataSpeedMinKilometersPerHour.type];
+  //           case DataSpeedMilesPerHour.type:
+  //             return [...accu, DataSpeedMinMilesPerHour.type];
+  //           case DataSpeedFeetPerSecond.type:
+  //             return [...accu, DataSpeedMinFeetPerSecond.type];
+  //           case DataSpeedMetersPerMinute.type:
+  //             return [...accu, DataSpeedMinMetersPerMinute.type];
+  //           case DataSpeedFeetPerMinute.type:
+  //             return [...accu, DataSpeedMinFeetPerMinute.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     // Pace
+  //     case DataPace.type:
+  //       return userUnitSettings.paceUnits;
+  //     case DataPaceAvg.type:
+  //       return userUnitSettings.paceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataPace.type:
+  //             return [...accu, DataPaceAvg.type];
+  //           case DataPaceMinutesPerMile.type:
+  //             return [...accu, DataPaceAvgMinutesPerMile.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataPaceMax.type:
+  //       return userUnitSettings.paceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataPace.type:
+  //             return [...accu, DataPaceMax.type];
+  //           case DataPaceMinutesPerMile.type:
+  //             return [...accu, DataPaceMaxMinutesPerMile.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataPaceMin.type:
+  //       return userUnitSettings.paceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataPace.type:
+  //             return [...accu, DataPaceMin.type];
+  //           case DataPaceMinutesPerMile.type:
+  //             return [...accu, DataPaceMinMinutesPerMile.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     // Swim pace
+  //     case DataSwimPace.type:
+  //       return userUnitSettings.swimPaceUnits;
+  //     case DataSwimPaceAvg.type:
+  //       return userUnitSettings.swimPaceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSwimPace.type:
+  //             return [...accu, DataSwimPaceAvg.type];
+  //           case DataSwimPaceMinutesPer100Yard.type:
+  //             return [...accu, DataSwimPaceAvgMinutesPer100Yard.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataSwimPaceMax.type:
+  //       return userUnitSettings.swimPaceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSwimPace.type:
+  //             return [...accu, DataSwimPaceMax.type];
+  //           case DataSwimPaceMinutesPer100Yard.type:
+  //             return [...accu, DataSwimPaceMaxMinutesPer100Yard.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     case DataSwimPaceMin.type:
+  //       return userUnitSettings.swimPaceUnits.reduce((accu: string[], unit) => {
+  //         switch (unit) {
+  //           case DataSwimPace.type:
+  //             return [...accu, DataSwimPaceMin.type];
+  //           case DataSwimPaceMinutesPer100Yard.type:
+  //             return [...accu, DataSwimPaceMinMinutesPer100Yard.type];
+  //         }
+  //         return accu;
+  //       }, []);
+  //     // Vertical speed @todo implement when needed
+  //     case DataVerticalSpeed.type:
+  //       return userUnitSettings.verticalSpeedUnits;
+  //     default:
+  //       return [dataType];
+  //   }
+  //
+  // }
+
+  /**
+   * Gets back an array of the unit based data for the data that was asked
+   * For example if the user has for speed selected m/s+km/h doing:
+   * getUnitBasedDataFromData(speedData) will return an array of [DataSpeed, DataSpeedInKilometersPerHour] instances
+   * @param data
+   * @param userUnitSettings
+   */
+  static getUnitBasedDataFromDataInstance(data: DataInterface, userUnitSettings?: UserUnitSettingsInterface): DataInterface[] {
+    if (!userUnitSettings) {
+      return [data]
+    }
+    switch (data.getType()) {
+      // Speed
+      case DataSpeed.type:
+        return userUnitSettings.speedUnits.reduce((accu: DataInterface[], unit) => {
+          return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      case DataSpeedAvg.type:
+        return userUnitSettings.speedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvg.type, data.getValue(unit))];
+            case DataSpeedKilometersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgKilometersPerHour.type, data.getValue(unit))];
+            case DataSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgMilesPerHour.type, data.getValue(unit))];
+            case DataSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgFeetPerSecond.type, data.getValue(unit))];
+            case DataSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgMetersPerMinute.type, data.getValue(unit))];
+            case DataSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgFeetPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+
+      case DataSpeedMax.type:
+        return userUnitSettings.speedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMax.type, data.getValue(unit))];
+            case DataSpeedKilometersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxKilometersPerHour.type, data.getValue(unit))];
+            case DataSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxMilesPerHour.type, data.getValue(unit))];
+            case DataSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxFeetPerSecond.type, data.getValue(unit))];
+            case DataSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxMetersPerMinute.type, data.getValue(unit))];
+            case DataSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxFeetPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataSpeedMin.type:
+        return userUnitSettings.speedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMin.type, data.getValue(unit))];
+            case DataSpeedKilometersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinKilometersPerHour.type, data.getValue(unit))];
+            case DataSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinMilesPerHour.type, data.getValue(unit))];
+            case DataSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinFeetPerSecond.type, data.getValue(unit))];
+            case DataSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinMetersPerMinute.type, data.getValue(unit))];
+            case DataSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinFeetPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      // Pace
+      case DataPace.type:
+        return userUnitSettings.paceUnits.reduce((accu: DataInterface[], unit) => {
+          return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      case DataPaceAvg.type:
+        return userUnitSettings.paceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceAvg.type, data.getValue(unit))];
+            case DataPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceAvgMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataPaceMax.type:
+        return userUnitSettings.paceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceMax.type, data.getValue(unit))];
+            case DataPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceMaxMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataPaceMin.type:
+        return userUnitSettings.paceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceMin.type, data.getValue(unit))];
+            case DataPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataPaceMinMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+
+
+      //Swim
+      case DataSwimPace.type:
+        return userUnitSettings.swimPaceUnits.reduce((accu: DataInterface[], unit) => {
+          return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      case DataSwimPaceAvg.type:
+        return userUnitSettings.swimPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSwimPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceAvg.type, data.getValue(unit))];
+            case DataSwimPaceMinutesPer100Yard.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceAvgMinutesPer100Yard.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataSwimPaceMax.type:
+        return userUnitSettings.swimPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSwimPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceMax.type, data.getValue(unit))];
+            case DataSwimPaceMinutesPer100Yard.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceMaxMinutesPer100Yard.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataSwimPaceMin.type:
+        return userUnitSettings.swimPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataSwimPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceMin.type, data.getValue(unit))];
+            case DataSwimPaceMinutesPer100Yard.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSwimPaceMinMinutesPer100Yard.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      // Vertical speed @todo implement when needed
+      case DataVerticalSpeed.type:
+        return userUnitSettings.verticalSpeedUnits.reduce((accu: DataInterface[], unit) => {
+          throw new Error(`Not tested`);
+          return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      default:
+        return [data];
+    }
+    // const a = this.getUnitBasedDataTypesFromDataType(data.getType(), userUnitSettings);
+    // debugger;
+    // return this.getUnitBasedDataTypesFromDataType(data.getType(), userUnitSettings)
+    //   .reduce((unitBasedData: DataInterface[], dataType) => {
+    //     debugger;
+    //     return [...unitBasedData, this.getDataInstanceFromDataType(dataType, data.getValue(dataType))];
+    //   }, [])
+  }
 }
 
 

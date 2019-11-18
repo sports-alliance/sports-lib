@@ -1,5 +1,5 @@
 import {DataDuration} from './data.duration';
-import {convertPaceToPaceInMinutesPerMile} from '../events/utilities/helpers';
+import {convertPaceToPaceInMinutesPerMile, isNumberOrString} from '../events/utilities/helpers';
 
 export class DataPace extends DataDuration {
   static type = 'Pace';
@@ -28,7 +28,7 @@ export class DataPace extends DataDuration {
       case DataPaceMinutesPerMile.type:
         return convertPaceToPaceInMinutesPerMile(this.value);
       default:
-        return super.getValue(formatForDataType);
+        return super.getValue(formatForDataType)
     }
   }
 }

@@ -24,6 +24,14 @@ export declare class DynamicDataLoader {
      * @param userUnitSettings
      */
     static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[];
+    /**
+     * Gets back an array of the unit based data for the data that was asked
+     * For example if the user has for speed selected m/s+km/h doing:
+     * getUnitBasedDataFromData(speedData) will return an array of [DataSpeed, DataSpeedInKilometersPerHour] instances
+     * @param data
+     * @param userUnitSettings
+     */
+    static getUnitBasedDataFromDataInstance(data: DataInterface, userUnitSettings?: UserUnitSettingsInterface): DataInterface[];
 }
 export interface DataTypeUnitGroups {
     [type: string]: string[];

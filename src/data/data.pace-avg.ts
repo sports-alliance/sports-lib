@@ -7,5 +7,4 @@ export class DataPaceAvg extends DataPace {
 export class DataPaceAvgMinutesPerMile extends DataPaceMinutesPerMile {
   static type = 'Average pace in minutes per mile';
   static displayType = DataPaceAvg.type;
-
 }

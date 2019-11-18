@@ -1,10 +1,10 @@
 import {DataNumber} from './data.number';
 import {
-  convertSpeedToPace, convertSpeedToSpeedInFeetPerHour,
+  convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
   convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMetersPerHour, convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour
+  convertSpeedToSpeedInMilesPerHour, isNumberOrString
 } from '../events/utilities/helpers';
 
 export class DataVerticalSpeed extends DataNumber {
@@ -12,8 +12,13 @@ export class DataVerticalSpeed extends DataNumber {
   static unit = 'm/s';
 
   getValue(formatForDataType?: string) {
+    if (!isNumberOrString(formatForDataType)) {
+      return super.getValue(formatForDataType);
+    }
     switch (formatForDataType) {
       // Vertical speed cases conversions
+      case this.getType():
+        return this.value;
       case DataVerticalSpeedKilometerPerHour.type:
         return convertSpeedToSpeedInKilometersPerHour(this.value);
       case DataVerticalSpeedMilesPerHour.type:
@@ -29,7 +34,7 @@ export class DataVerticalSpeed extends DataNumber {
       case DataVerticalSpeedMetersPerHour.type:
         return convertSpeedToSpeedInMetersPerHour(this.value);
       default:
-        return super.getValue(formatForDataType);
+        throw new Error(`Not implemented for ${formatForDataType}`)
     }
   }
 

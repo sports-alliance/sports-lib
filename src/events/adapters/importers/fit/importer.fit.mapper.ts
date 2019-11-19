@@ -4,7 +4,6 @@ import {DataHeartRate} from '../../../../data/data.heart-rate';
 import {DataCadence} from '../../../../data/data.cadence';
 import {DataTemperature} from '../../../../data/data.temperature';
 import {DataDistance} from '../../../../data/data.distance';
-import {DataSeaLevelPressure} from '../../../../data/data.sea-level-pressure';
 import {DataSpeed} from '../../../../data/data.speed';
 import {DataPace} from '../../../../data/data.pace';
 import {DataVerticalSpeed} from '../../../../data/data.vertical-speed';
@@ -24,6 +23,8 @@ import {DataStanceTime} from '../../../../data/data.stance-time';
 import {DataStanceTimeBalance} from '../../../../data/data.stance-time-balance';
 import {DataStepLength} from '../../../../data/data.step-length';
 import {DataVerticalRatio} from '../../../../data/data.vertical-ratio';
+import {DataGroundTime} from '../../../../data/data.ground-time';
+import {DataAirPower} from '../../../../data/data.air-power';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -105,7 +106,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataPower.type,
     getSampleValue: (sample: any) => {
-      return sample.power;
+      return sample.power || sample.Power;
     },
   },
   {
@@ -124,6 +125,18 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     dataType: DataFormPower.type,
     getSampleValue: (sample: any) => {
       return sample['Form Power'];
+    },
+  },
+  {
+    dataType: DataAirPower.type,
+    getSampleValue: (sample: any) => {
+      return sample['Air Power'];
+    },
+  },
+  {
+    dataType: DataGroundTime.type,
+    getSampleValue: (sample: any) => {
+      return sample['Ground Time'] / 1000;
     },
   },
   {

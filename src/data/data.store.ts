@@ -142,6 +142,11 @@ import {DataStepLength} from './data.step-length';
 import {DataVerticalRatio} from './data.vertical-ratio';
 import {DataDescription} from './data.description';
 import {UserUnitSettingsInterface} from '../users/user.unit.settings.interface';
+import {DataAirPower} from './data.air-power';
+import {DataGroundTime} from './data.ground-time';
+import {DataAirPowerMax} from './data.air-power-max';
+import {DataAirPowerMin} from './data.air-power-min';
+import {DataAirPowerAvg} from './data.-air-power-avg';
 
 /**
  * Only concrete classes no abstracts
@@ -307,6 +312,11 @@ export const DataStore: any = {
   DataStepLength,
   DataVerticalRatio,
   DataDescription,
+  DataGroundTime,
+  DataAirPower,
+  DataAirPowerAvg,
+  DataAirPowerMax,
+  DataAirPowerMin,
 };
 
 export class DynamicDataLoader {
@@ -358,6 +368,8 @@ export class DynamicDataLoader {
     DataStanceTimeBalance.type,
     DataStepLength.type,
     DataVerticalRatio.type,
+    DataGroundTime.type,
+    DataAirPower.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {
@@ -705,7 +717,6 @@ export class DynamicDataLoader {
           }
           return accu;
         }, []);
-
 
       //Swim
       case DataSwimPace.type:

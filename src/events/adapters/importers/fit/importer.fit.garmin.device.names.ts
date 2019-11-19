@@ -20,4 +20,5 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2158: 'FR 735 XT',
   2431: 'FR 235',
   3126: 'Instinct',
+  3290: 'Fenix 6 Pro',
 };

@@ -132,6 +132,10 @@ import {DataPowerLeft} from '../../data/data.power-left';
 import {DataRightBalance} from '../../data/data.right-balance';
 import {DataLeftBalance} from '../../data/data.left-balance';
 import {DataPowerRight} from '../../data/data.power-right';
+import {DataAirPowerMin} from '../../data/data.air-power-min';
+import {DataAirPower} from '../../data/data.air-power';
+import {DataAirPowerMax} from '../../data/data.air-power-max';
+import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
 
 export class EventUtilities {
 
@@ -684,10 +688,28 @@ export class EventUtilities {
       && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type, activity.startDate, activity.endDate)));
     }
+    // Power AVG
     if (!activity.getStat(DataPowerAvg.type)
       && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type, activity.startDate, activity.endDate)));
     }
+
+    // Air AirPower Max
+    if (!activity.getStat(DataAirPowerMax.type)
+      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataAirPowerMax(this.getDataTypeMax(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+    }
+    // Air AirPower Min
+    if (!activity.getStat(DataAirPowerMin.type)
+      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataAirPowerMin(this.getDataTypeMin(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+    }
+    // Air AirPower AVG
+    if (!activity.getStat(DataAirPowerAvg.type)
+      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+    }
+
     // Temperature Max
     if (!activity.getStat(DataTemperatureMax.type)
       && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {

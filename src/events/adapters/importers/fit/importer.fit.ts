@@ -273,6 +273,19 @@ export class EventImporterFIT {
       stats.push(new DataSpeedMax(object.max_speed));
       stats.push(new DataPaceMax(convertSpeedToPace(object.max_speed)));
     }
+    // Keep latest , encanched @todo this can create a bug
+    if (isNumberOrString(object.enhanced_avg_speed)) {
+      stats.push(new DataSpeedAvg(object.enhanced_avg_speed));
+      stats.push(new DataPaceAvg(convertSpeedToPace(object.enhanced_avg_speed)));
+    }
+    if (isNumberOrString(object.enhanced_min_speed)) {
+      stats.push(new DataSpeedMin(object.enhanced_min_speed));
+      stats.push(new DataPaceMin(convertSpeedToPace(object.enhanced_min_speed)));
+    }
+    if (isNumberOrString(object.enhanced_max_speed)) {
+      stats.push(new DataSpeedMax(object.enhanced_max_speed));
+      stats.push(new DataPaceMax(convertSpeedToPace(object.enhanced_max_speed)));
+    }
     // Temperature
     if (isNumberOrString(object.avg_temperature)) {
       stats.push(new DataTemperatureAvg(object.avg_temperature));

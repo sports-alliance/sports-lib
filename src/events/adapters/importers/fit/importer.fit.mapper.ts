@@ -54,7 +54,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataAltitude.type,
     getSampleValue: (sample: any) => {
-      return sample.altitude;
+      return sample.enhanced_altitude || sample.altitude;
     },
   },
   {
@@ -89,6 +89,12 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     dataType: DataSpeed.type,
     getSampleValue: (sample: any) => {
       return sample.speed;
+    },
+  },
+  {
+    dataType: DataSpeed.type,
+    getSampleValue: (sample: any) => {
+      return sample.enhanced_speed || sample.speed
     },
   },
   {

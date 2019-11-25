@@ -355,11 +355,6 @@ export class EventUtilities {
 
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
-
-
-    // stats.push(new DataActivityTypes(activities.map(activity => activity.type)));
-    // stats.push(new DataDeviceNames(activities.map(activity => activity.creator.name)));
-
     // If only one
     if (activities.length === 1) {
       return activities[0].getStatsAsArray();
@@ -373,6 +368,7 @@ export class EventUtilities {
     let pauseTime = 0;
     let averageHeartRate: number = 0;
     let averagePower: number = 0;
+    let averageCadence: number = 0;
     let averageSpeed: number = 0;
     let averagePace: number = 0;
     let averageSwimPace: number = 0;
@@ -460,6 +456,18 @@ export class EventUtilities {
     });
     if (averagePower) {
       stats.push(new DataPowerAvg(averagePower));
+    }
+
+    // Avg Avg Cadence
+    activities.forEach((activity) => {
+      const activityAvgCadence = activity.getStat(DataCadenceAvg.type);
+      if (activityAvgCadence) {
+        // The below will fallback for 0
+        averageCadence = averageCadence ? (averageCadence + <number>activityAvgCadence.getValue()) / 2 : <number>activityAvgCadence.getValue();
+      }
+    });
+    if (averageCadence) {
+      stats.push(new DataCadenceAvg(averageCadence));
     }
 
     // Avg Avg Speed

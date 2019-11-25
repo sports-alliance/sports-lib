@@ -1,9 +1,30 @@
+import {DataInterface} from '../data/data.interface';
+import {DataSpeedAvg} from '../data/data.speed-avg';
+import {DataPaceAvg} from '../data/data.pace-avg';
+import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
+
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
     return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
       array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
       return array;
     }, [])));
+  }
+  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+    switch (activityType) {
+      case ActivityTypes.Running:
+      case ActivityTypes['Trail Running']:
+      case ActivityTypes.Treadmill:
+      case ActivityTypes['Track and Field']:
+      case ActivityTypes['Elliptical trainer']:
+        return [DataPaceAvg.type];
+      case ActivityTypes.Swimming:
+      case ActivityTypes['Open Water Swimming']:
+      case ActivityTypes.swimming_lap_swimming:
+        return [DataSpeedAvg.type, DataSwimPaceAvg.type];
+      default:
+        return [DataSpeedAvg.type]
+    }
   }
 }
 
@@ -24,6 +45,7 @@ export enum ActivityTypes {
   'Other' = 'Unknown sport',
   'Multisport' = 'Multisport',
   'multisport' = 'Multisport',
+  'running_virtual_activity' = 'Running',
   'Run' = 'Running',
   'run' = 'Running',
   'running_track' = 'Running',

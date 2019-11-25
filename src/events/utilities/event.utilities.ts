@@ -136,6 +136,8 @@ import {DataAirPowerMin} from '../../data/data.air-power-min';
 import {DataAirPower} from '../../data/data.air-power';
 import {DataAirPowerMax} from '../../data/data.air-power-max';
 import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
+import {DataInterface} from '../../data/data.interface';
+import {DataRPE} from '../../data/data.rpe';
 
 export class EventUtilities {
 
@@ -427,7 +429,190 @@ export class EventUtilities {
         }
       }
     });
+  }
 
+  public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
+    const stats: DataInterface[] = [];
+
+
+    // stats.push(new DataActivityTypes(activities.map(activity => activity.type)));
+    // stats.push(new DataDeviceNames(activities.map(activity => activity.creator.name)));
+
+    // If only one
+    if (activities.length === 1) {
+      return activities[0].getStatsAsArray();
+    }
+
+    let duration = 0;
+    let ascent = 0;
+    let descent = 0;
+    let energy = 0;
+    let distance = 0;
+    let pauseTime = 0;
+    let averageHeartRate: number = 0;
+    let averagePower: number = 0;
+    let averageSpeed: number = 0;
+    let averagePace: number = 0;
+    let averageSwimPace: number = 0;
+    let averageTemperature: number = 0;
+    let averageFeeling: number = 0;
+    let averageRPE: number = 0;
+
+    // Sum Duration
+    activities.forEach((activity) => {
+      duration += activity.getDuration().getValue();
+    });
+    stats.push(new DataDuration(duration));
+
+    // Sum pause time
+    activities.forEach((activity) => {
+      pauseTime += activity.getPause().getValue();
+    });
+    stats.push(new DataPause(pauseTime));
+
+    // Sum Distance
+    activities.forEach((activity) => {
+      distance += activity.getDistance().getValue();
+    });
+    stats.push(new DataDistance(distance));
+
+    // Sum ascent
+    activities.forEach((activity) => {
+      const activityAscent = activity.getStat(DataAscent.type);
+      if (activityAscent) {
+        ascent += <number>activityAscent.getValue();
+      }
+    });
+    stats.push(new DataAscent(ascent));
+
+    // Sum descent
+    activities.forEach((activity) => {
+      const activityDescent = activity.getStat(DataDescent.type);
+      if (activityDescent) {
+        descent += <number>activityDescent.getValue();
+      }
+    });
+    stats.push(new DataDescent(descent));
+
+    // Sum energy
+    activities.forEach((activity) => {
+      const activityEnergy = activity.getStat(DataEnergy.type);
+      if (activityEnergy) {
+        energy += <number>activityEnergy.getValue();
+      }
+    });
+    stats.push(new DataEnergy(energy));
+
+    // Avg Avg HR
+    activities.forEach((activity) => {
+      const activityAvgHeartRate = activity.getStat(DataHeartRateAvg.type);
+      if (activityAvgHeartRate) {
+        // The below will fallback for 0
+        averageHeartRate = averageHeartRate ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2 : <number>activityAvgHeartRate.getValue();
+      }
+    });
+    if (averageHeartRate) {
+      stats.push(new DataHeartRateAvg(averageHeartRate));
+    }
+
+
+    // Avg Avg HR
+    activities.forEach((activity) => {
+      const activityAvgHeartRate = activity.getStat(DataHeartRateAvg.type);
+      if (activityAvgHeartRate) {
+        // The below will fallback for 0
+        averageHeartRate = averageHeartRate ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2 : <number>activityAvgHeartRate.getValue();
+      }
+    });
+    if (averageHeartRate) {
+      stats.push(new DataHeartRateAvg(averageHeartRate));
+    }
+
+    // Avg Avg Power
+    activities.forEach((activity) => {
+      const activityAvgPower = activity.getStat(DataPowerAvg.type);
+      if (activityAvgPower) {
+        // The below will fallback for 0
+        averagePower = averagePower ? (averagePower + <number>activityAvgPower.getValue()) / 2 : <number>activityAvgPower.getValue();
+      }
+    });
+    if (averagePower) {
+      stats.push(new DataPowerAvg(averagePower));
+    }
+
+    // Avg Avg Speed
+    activities.forEach((activity) => {
+      const activityAvgSpeed = activity.getStat(DataSpeedAvg.type);
+      if (activityAvgSpeed) {
+        // The below will fallback for 0
+        averageSpeed = averageSpeed ? (averageSpeed + <number>activityAvgSpeed.getValue()) / 2 : <number>activityAvgSpeed.getValue();
+      }
+    });
+    if (averageSpeed) {
+      stats.push(new DataSpeedAvg(averageSpeed));
+    }
+
+    // Avg Avg Pace
+    activities.forEach((activity) => {
+      const activityAvgPace = activity.getStat(DataPaceAvg.type);
+      if (activityAvgPace) {
+        // The below will fallback for 0
+        averagePace = averagePace ? (averagePace + <number>activityAvgPace.getValue()) / 2 : <number>activityAvgPace.getValue();
+      }
+    });
+    if (averagePace) {
+      stats.push(new DataPaceAvg(averagePace));
+    }
+
+    // Avg Avg SwimPace
+    activities.forEach((activity) => {
+      const activityAvgSwimPace = activity.getStat(DataSwimPaceAvg.type);
+      if (activityAvgSwimPace) {
+        // The below will fallback for 0
+        averageSwimPace = averageSwimPace ? (averageSwimPace + <number>activityAvgSwimPace.getValue()) / 2 : <number>activityAvgSwimPace.getValue();
+      }
+    });
+    if (averageSwimPace) {
+      stats.push(new DataSwimPaceAvg(averageSwimPace));
+    }
+
+    // Avg Avg Temperature
+    activities.forEach((activity) => {
+      const activityAvgTemperature = activity.getStat(DataTemperatureAvg.type);
+      if (activityAvgTemperature) {
+        // The below will fallback for 0
+        averageTemperature = averageTemperature ? (averageTemperature + <number>activityAvgTemperature.getValue()) / 2 : <number>activityAvgTemperature.getValue();
+      }
+    });
+    if (averageTemperature) {
+      stats.push(new DataTemperatureAvg(averageTemperature));
+    }
+
+    // Avg Feeling
+    activities.forEach((activity) => {
+      const activityAvgFeeling = activity.getStat(DataFeeling.type);
+      if (activityAvgFeeling) {
+        // The below will fallback for 0
+        averageFeeling = averageFeeling ? Math.ceil((averageFeeling + <number>activityAvgFeeling.getValue()) / 2) : <number>activityAvgFeeling.getValue();
+      }
+    });
+    if (averageFeeling) {
+      stats.push(new DataFeeling(averageFeeling));
+    }
+
+    // Avg RPE
+    activities.forEach((activity) => {
+      const activityAvgRPE = activity.getStat(DataFeeling.type);
+      if (activityAvgRPE) {
+        // The below will fallback for 0
+        averageRPE = averageRPE ? Math.ceil((averageRPE + <number>activityAvgRPE.getValue()) / 2) : <number>activityAvgRPE.getValue();
+      }
+    });
+    if (averageRPE) {
+      stats.push(new DataRPE(averageRPE));
+    }
+
+    return stats;
   }
 
   public static getEventDataTypeGain(
@@ -1026,7 +1211,7 @@ export class EventUtilities {
     if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData =  activity.getStreamData(DataRightBalance.type);
+      const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
       rightPowerStream.data = rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
         const powerStreamDataItem = powerStreamData[index];
         if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
@@ -1041,7 +1226,7 @@ export class EventUtilities {
     if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataLeftBalance.type) && !activity.hasStreamData(DataPowerLeft.type)) {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData =  activity.getStreamData(DataLeftBalance.type);
+      const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
       leftPowerStream.data = leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
         const powerStreamDataItem = powerStreamData[index];
         if (streamData === null || !powerStreamData || powerStreamDataItem === null) {

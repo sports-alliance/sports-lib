@@ -40,7 +40,7 @@ import {DeviceInterface} from '../../../../activities/devices/device.interface';
 import {Device} from '../../../../activities/devices/device';
 import {ImporterFitAntPlusDeviceNames} from './importer.fit.ant-plus.device.names';
 import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect';
-import {DataRecovery} from '../../../../data/data.recovery';
+import {DataRecoveryTime} from '../../../../data/dataRecoveryTime';
 import {DataPeakEPOC} from '../../../../data/data.peak-epoc';
 import {DataFeeling} from '../../../../data/data.feeling';
 import {DataTemperatureMax} from '../../../../data/data.temperature-max';
@@ -318,7 +318,7 @@ export class EventImporterFIT {
     }
     // Recovery time
     if (isNumberOrString(object.recovery_time)) {
-      stats.push(new DataRecovery(object.recovery_time));
+      stats.push(new DataRecoveryTime(object.recovery_time));
     }
     // Feeling
     if (isNumberOrString(object.feeling)) {

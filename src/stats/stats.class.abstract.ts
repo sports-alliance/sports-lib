@@ -18,6 +18,10 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     return this.stats;
   }
 
+  getStatsAsArray(): DataInterface[] {
+    return Array.from(this.stats.values());
+  }
+
   removeStat(statType: string) {
     this.stats.delete(statType);
   }

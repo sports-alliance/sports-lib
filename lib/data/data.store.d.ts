@@ -30,6 +30,7 @@ export declare class DynamicDataLoader {
      * getUnitBasedDataFromData(speedData) will return an array of [DataSpeed, DataSpeedInKilometersPerHour] instances
      * @param data
      * @param userUnitSettings
+     * @todo move to solo unit settings eg speed settings
      */
     static getUnitBasedDataFromDataInstance(data: DataInterface, userUnitSettings?: UserUnitSettingsInterface): DataInterface[];
 }

@@ -7,6 +7,7 @@ export interface StatsClassInterface {
   getStat(statType: string): DataInterface | void;
 
   getStats(): Map<string, DataInterface>;
+  getStatsAsArray(): DataInterface[];
 
   removeStat(statType: string): void;
 

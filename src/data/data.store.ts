@@ -66,7 +66,7 @@ import {
   DataSpeedAvgKilometersPerHour, DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour,
 } from './data.speed-avg';
-import {DataRecovery} from './data.recovery';
+import {DataRecoveryTime} from './dataRecoveryTime';
 import {DataPowerMin} from './data.power-min';
 import {DataPowerMax} from './data.power-max';
 import {DataPowerAvg} from './data.power-avg';
@@ -180,7 +180,7 @@ export const DataStore: any = {
   DataSpeedMin,
   DataSpeedMax,
   DataSpeedAvg,
-  DataRecovery,
+  DataRecovery: DataRecoveryTime,
   DataPowerMin,
   DataPowerMax,
   DataPowerAvg,
@@ -616,6 +616,7 @@ export class DynamicDataLoader {
    * getUnitBasedDataFromData(speedData) will return an array of [DataSpeed, DataSpeedInKilometersPerHour] instances
    * @param data
    * @param userUnitSettings
+   * @todo move to solo unit settings eg speed settings
    */
   static getUnitBasedDataFromDataInstance(data: DataInterface, userUnitSettings?: UserUnitSettingsInterface): DataInterface[] {
     if (!userUnitSettings) {

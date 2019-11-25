@@ -1,5 +1,5 @@
 import {DataDuration} from './data.duration';
 
-export class DataRecovery extends DataDuration {
+export class DataRecoveryTime extends DataDuration {
   static type = 'Recovery Time';
 }

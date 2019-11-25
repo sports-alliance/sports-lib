@@ -17,7 +17,7 @@ export class DataDuration extends DataNumber {
     const m = Math.floor(seconds % 3600 / 60);
     const s = Math.floor(seconds % 3600 % 60);
     if (!m && !h) {
-      return showSeconds ? ('0' + s).slice(-2) + 's' : ``;
+      return showSeconds ? ('0' + s).slice(-2) + 's' : s + `s`;
     } else if (!h) {
       return ('0' + m).slice(-2) + 'm ' +  (showSeconds ?  ('0' + s).slice(-2) + 's' : ``);
     } else {

@@ -37,7 +37,7 @@ import {DataEPOC} from '../../../../data/data.epoc';
 import {DataEnergy} from '../../../../data/data.energy';
 import {DataFeeling} from '../../../../data/data.feeling';
 import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect';
-import {DataRecovery} from '../../../../data/data.recovery';
+import {DataRecoveryTime} from '../../../../data/dataRecoveryTime';
 import {DataVO2Max} from '../../../../data/data.vo2-max';
 import {DataPause} from '../../../../data/data.pause';
 import {DataHeartRateAvg} from '../../../../data/data.heart-rate-avg';
@@ -418,7 +418,7 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataPeakTrainingEffect(object.PeakTrainingEffect));
     }
     if (isNumberOrString(object.RecoveryTime)) {
-      stats.push(new DataRecovery(object.RecoveryTime));
+      stats.push(new DataRecoveryTime(object.RecoveryTime));
     }
     if (isNumberOrString(object.MAXVO2)) {
       stats.push(new DataVO2Max(object.MAXVO2));

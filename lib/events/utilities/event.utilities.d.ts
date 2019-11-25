@@ -1,6 +1,7 @@
 import { EventInterface } from '../event.interface';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { StreamInterface } from '../../streams/stream.interface';
+import { DataInterface } from '../../data/data.interface';
 export declare class EventUtilities {
     private static geoLibAdapter;
     static getDataTypeAvg(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
@@ -27,6 +28,7 @@ export declare class EventUtilities {
     static generateStatsForAll(event: EventInterface): void;
     static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void;
     static reGenerateStatsForEvent(event: EventInterface): void;
+    static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[];
     static getEventDataTypeGain(activity: ActivityInterface, streamType: string, starDate?: Date, endDate?: Date, minDiff?: number): number;
     static getEventDataTypeLoss(activity: ActivityInterface, streamType: string, starDate?: Date, endDate?: Date, minDiff?: number): number;
     private static getEventDataTypeGainOrLoss;

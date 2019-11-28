@@ -50,6 +50,7 @@ import {DataSpeedMin} from '../../../../data/data.speed-min';
 import {DataCadenceMin} from '../../../../data/data.cadence-min';
 import {DataSWOLFAvg} from '../../../../data/data.swolf-avg';
 import {DataDescription} from '../../../../data/data.description';
+import {DataVO2Max} from '../../../../data/data.vo2-max';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -311,6 +312,10 @@ export class EventImporterFIT {
     // Total training effect
     if (isNumberOrString(object.total_training_effect)) {
       stats.push(new DataTotalTrainingEffect(object.total_training_effect));
+    }
+    // Vo2Max
+    if (isNumberOrString(object.estimated_vo2_max)) {
+      stats.push(new DataVO2Max(object.estimated_vo2_max));
     }
     // Peak Epoc
     if (isNumberOrString(object.peak_epoc)) {

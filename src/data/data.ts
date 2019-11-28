@@ -2,7 +2,7 @@ import {DataInterface, UnitSystem} from './data.interface';
 import {DataJSONInterface} from './data.json.interface';
 
 export abstract class Data implements DataInterface {
-  static type: string; // @todo perhas add generic type
+  static type: string; // @todo perhas add enum type
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;

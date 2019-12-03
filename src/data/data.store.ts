@@ -612,11 +612,76 @@ export class DynamicDataLoader {
           }
           return accu;
         }, []);
-      // Vertical speed @todo implement when needed
+      // Vertical speed
       case DataVerticalSpeed.type:
         return userUnitSettings.verticalSpeedUnits.reduce((accu: DataInterface[], unit) => {
-          throw new Error(`Not tested`);
           return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      case DataVerticalSpeedAvg.type:
+        return userUnitSettings.verticalSpeedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataVerticalSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvg.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgFeetPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgFeetPerMinute.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgFeetPerSecond.type, data.getValue(unit))];
+            case DataVerticalSpeedKilometerPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgKilometerPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgMilesPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgMetersPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedAvgMetersPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataVerticalSpeedMax.type:
+        return userUnitSettings.verticalSpeedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataVerticalSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMax.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxFeetPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxFeetPerMinute.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxFeetPerSecond.type, data.getValue(unit))];
+            case DataVerticalSpeedKilometerPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxKilometerPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxMilesPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxMetersPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMaxMetersPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataVerticalSpeedMin.type:
+        return userUnitSettings.verticalSpeedUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataVerticalSpeed.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMin.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinFeetPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinFeetPerMinute.type, data.getValue(unit))];
+            case DataVerticalSpeedFeetPerSecond.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinFeetPerSecond.type, data.getValue(unit))];
+            case DataVerticalSpeedKilometerPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinKilometerPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMilesPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinMilesPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerHour.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinMetersPerHour.type, data.getValue(unit))];
+            case DataVerticalSpeedMetersPerMinute.type:
+              return [...accu, this.getDataInstanceFromDataType(DataVerticalSpeedMinMetersPerMinute.type, data.getValue(unit))];
+          }
+          return accu;
         }, []);
       default:
         return [data];

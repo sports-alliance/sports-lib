@@ -5,6 +5,7 @@ import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
 import {DataPace} from '../data/data.pace';
 import {DataSpeed} from '../data/data.speed';
 import {DataSwimPace} from '../data/data.swim-pace';
+import {DataVerticalSpeedAvg} from '../data/data.vertical-speed-avg';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
@@ -17,6 +18,7 @@ export class ActivityTypesHelper {
     switch (activityType) {
       case ActivityTypes.Running:
       case ActivityTypes['Trail Running']:
+        return [DataSpeedAvg.type, DataPaceAvg.type, DataVerticalSpeedAvg.type];
       case ActivityTypes.Treadmill:
       case ActivityTypes['Track and Field']:
       case ActivityTypes['Elliptical trainer']:

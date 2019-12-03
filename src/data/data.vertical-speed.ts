@@ -12,13 +12,7 @@ export class DataVerticalSpeed extends DataNumber {
   static unit = 'm/s';
 
   getValue(formatForDataType?: string) {
-    if (!isNumberOrString(formatForDataType)) {
-      return super.getValue(formatForDataType);
-    }
     switch (formatForDataType) {
-      // Vertical speed cases conversions
-      case this.getType():
-        return this.value;
       case DataVerticalSpeedKilometerPerHour.type:
         return convertSpeedToSpeedInKilometersPerHour(this.value);
       case DataVerticalSpeedMilesPerHour.type:
@@ -34,7 +28,7 @@ export class DataVerticalSpeed extends DataNumber {
       case DataVerticalSpeedMetersPerHour.type:
         return convertSpeedToSpeedInMetersPerHour(this.value);
       default:
-        throw new Error(`Not implemented for ${formatForDataType}`)
+        return super.getValue(formatForDataType);
     }
   }
 

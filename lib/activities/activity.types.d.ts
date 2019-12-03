@@ -1,6 +1,7 @@
 export declare class ActivityTypesHelper {
     static getActivityTypesAsUniqueArray(): string[];
     static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[];
+    static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[];
 }
 /**
  * This enum works like a all matchers for normalized sport types between different naming across services

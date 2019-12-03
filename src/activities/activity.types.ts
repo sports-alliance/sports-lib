@@ -2,6 +2,9 @@ import {DataInterface} from '../data/data.interface';
 import {DataSpeedAvg} from '../data/data.speed-avg';
 import {DataPaceAvg} from '../data/data.pace-avg';
 import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
+import {DataPace} from '../data/data.pace';
+import {DataSpeed} from '../data/data.speed';
+import {DataSwimPace} from '../data/data.swim-pace';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
@@ -24,6 +27,22 @@ export class ActivityTypesHelper {
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
       default:
         return [DataSpeedAvg.type]
+    }
+  }
+  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+    switch (activityType) {
+      case ActivityTypes.Running:
+      case ActivityTypes['Trail Running']:
+      case ActivityTypes.Treadmill:
+      case ActivityTypes['Track and Field']:
+      case ActivityTypes['Elliptical trainer']:
+        return [DataPace.type];
+      case ActivityTypes.Swimming:
+      case ActivityTypes['Open Water Swimming']:
+      case ActivityTypes.swimming_lap_swimming:
+        return [DataSpeed.type, DataSwimPace.type];
+      default:
+        return [DataSpeed.type]
     }
   }
 }

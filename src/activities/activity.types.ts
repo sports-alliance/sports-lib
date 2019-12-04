@@ -18,7 +18,7 @@ export class ActivityTypesHelper {
     switch (activityType) {
       case ActivityTypes.Running:
       case ActivityTypes['Trail Running']:
-        return [DataSpeedAvg.type, DataPaceAvg.type, DataVerticalSpeedAvg.type];
+        return [DataPaceAvg.type, DataVerticalSpeedAvg.type];
       case ActivityTypes.Treadmill:
       case ActivityTypes['Track and Field']:
       case ActivityTypes['Elliptical trainer']:

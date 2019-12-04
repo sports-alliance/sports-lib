@@ -36,7 +36,6 @@ import {DataAscent} from '../../../../data/data.ascent';
 import {DataEPOC} from '../../../../data/data.epoc';
 import {DataEnergy} from '../../../../data/data.energy';
 import {DataFeeling} from '../../../../data/data.feeling';
-import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect';
 import {DataRecoveryTime} from '../../../../data/dataRecoveryTime';
 import {DataVO2Max} from '../../../../data/data.vo2-max';
 import {DataPause} from '../../../../data/data.pause';
@@ -71,23 +70,23 @@ import {DataFusedAltitude} from '../../../../data/data.fused-altitude';
 import {DataBatteryCharge} from '../../../../data/data.battery-charge';
 import {DataBatteryCurrent} from '../../../../data/data.battery-current';
 import {DataBatteryVoltage} from '../../../../data/data.battery-voltage';
-import {Stream} from '../../../../streams/stream';
-import {convertSpeedToPace, isNumber, isNumberOrString} from "../../../utilities/helpers";
-import {EventUtilities} from "../../../utilities/event.utilities";
-import {DataAltiBaroProfile} from "../../../../data/data.alti-baro-profile";
-import {DataAutoLapDistance} from "../../../../data/data.auto-lap-distance";
-import {DataAutoLapDuration} from "../../../../data/data.auto-lap-duration";
-import {DataAutoPauseUsed} from "../../../../data/data.auto-pause-used";
-import {DataBikePodUsed} from "../../../../data/data.bike-pod-used";
-import {DataEnabledNavigationSystems} from "../../../../data/data.enabled-navigation-systems";
-import {DataFootPodUsed} from "../../../../data/data.foot-pod-used";
-import {DataHeartRateUsed} from "../../../../data/data.heart-rate-used";
-import {DataPowerPodUsed} from "../../../../data/data.power-pod-used";
-import {DynamicDataLoader} from "../../../../data/data.store";
-import {IBIStream} from "../../../../streams/ibi-stream";
-import {DataSteps} from "../../../../data/data.steps";
-import {DataPoolLength} from "../../../../data/data.pool-length";
-import {DataDeviceLocation} from "../../../../data/data.device-location";
+import {convertSpeedToPace, isNumber, isNumberOrString} from '../../../utilities/helpers';
+import {EventUtilities} from '../../../utilities/event.utilities';
+import {DataAltiBaroProfile} from '../../../../data/data.alti-baro-profile';
+import {DataAutoLapDistance} from '../../../../data/data.auto-lap-distance';
+import {DataAutoLapDuration} from '../../../../data/data.auto-lap-duration';
+import {DataAutoPauseUsed} from '../../../../data/data.auto-pause-used';
+import {DataBikePodUsed} from '../../../../data/data.bike-pod-used';
+import {DataEnabledNavigationSystems} from '../../../../data/data.enabled-navigation-systems';
+import {DataFootPodUsed} from '../../../../data/data.foot-pod-used';
+import {DataHeartRateUsed} from '../../../../data/data.heart-rate-used';
+import {DataPowerPodUsed} from '../../../../data/data.power-pod-used';
+import {DynamicDataLoader} from '../../../../data/data.store';
+import {IBIStream} from '../../../../streams/ibi-stream';
+import {DataSteps} from '../../../../data/data.steps';
+import {DataPoolLength} from '../../../../data/data.pool-length';
+import {DataDeviceLocation} from '../../../../data/data.device-location';
+import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
 
 export class EventImporterSuuntoJSON {
 
@@ -285,7 +284,7 @@ export class EventImporterSuuntoJSON {
         });
       }
 
-      if (activities.length === 1){
+      if (activities.length === 1) {
         const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(stat => stat instanceof DataSteps || stat instanceof DataVO2Max || stat instanceof DataDeviceLocation || stat instanceof DataPoolLength);
         stats.forEach(stat => activities[0].addStat(stat));
       }
@@ -415,7 +414,7 @@ export class EventImporterSuuntoJSON {
     }
 
     if (isNumberOrString(object.PeakTrainingEffect)) {
-      stats.push(new DataPeakTrainingEffect(object.PeakTrainingEffect));
+      stats.push(new DataTotalTrainingEffect(object.PeakTrainingEffect));
     }
     if (isNumberOrString(object.RecoveryTime)) {
       stats.push(new DataRecoveryTime(object.RecoveryTime));

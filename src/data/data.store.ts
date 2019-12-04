@@ -70,7 +70,6 @@ import {DataRecoveryTime} from './dataRecoveryTime';
 import {DataPowerMin} from './data.power-min';
 import {DataPowerMax} from './data.power-max';
 import {DataPowerAvg} from './data.power-avg';
-import {DataPeakTrainingEffect} from './data.peak-training-effect';
 import {DataPause} from './data.pause';
 import {DataHeartRateMin} from './data.heart-rate-min';
 import {DataHeartRateMax} from './data.heart-rate-max';
@@ -184,7 +183,6 @@ export const DataStore: any = {
   DataPowerMin,
   DataPowerMax,
   DataPowerAvg,
-  DataPeakTrainingEffect,
   DataPause,
   DataHeartRateMin,
   DataHeartRateMax,
@@ -343,7 +341,6 @@ export class DynamicDataLoader {
     DataDistance.type,
     DataGPSAltitude.type,
     DataAbsolutePressure.type,
-    DataPeakTrainingEffect.type,
     DataEPOC.type,
     DataEnergy.type,
     DataBatteryCharge.type,

@@ -39,7 +39,6 @@ import {IBIStream} from '../../../../streams/ibi-stream';
 import {DeviceInterface} from '../../../../activities/devices/device.interface';
 import {Device} from '../../../../activities/devices/device';
 import {ImporterFitAntPlusDeviceNames} from './importer.fit.ant-plus.device.names';
-import {DataPeakTrainingEffect} from '../../../../data/data.peak-training-effect';
 import {DataRecoveryTime} from '../../../../data/dataRecoveryTime';
 import {DataPeakEPOC} from '../../../../data/data.peak-epoc';
 import {DataFeeling} from '../../../../data/data.feeling';

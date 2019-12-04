@@ -41,7 +41,6 @@
     "fast-xml-parser": "^3.12.19",
     "fit-file-parser": "^1.6.15",
     "geolib": "^3.0.4",
-    "gxparser": "^1.0.0",
     "lowpassf": "^0.5.0",
     "moving-median": "^1.0.0"
   },

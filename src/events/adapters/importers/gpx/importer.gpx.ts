@@ -7,8 +7,7 @@ import {ActivityInterface} from '../../../../activities/activity.interface';
 import {GPXSampleMapper} from './importer.gpx.mapper';
 import {isNumberOrString} from "../../../utilities/helpers";
 import {EventUtilities} from "../../../utilities/event.utilities";
-
-const GXParser = require('gxparser').GXParser;
+import {GXParser} from './gx-parser';
 
 export class EventImporterGPX {
 
@@ -16,7 +15,7 @@ export class EventImporterGPX {
 
     return new Promise((resolve, reject) => {
 
-      const parsedGPX: any = GXParser(gpx);
+      const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte ;
 
       const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {

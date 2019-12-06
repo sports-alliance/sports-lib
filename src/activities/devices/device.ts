@@ -24,7 +24,6 @@ export class Device implements DeviceInterface {
   }
 
   toJSON(): DeviceJsonInterface {
-    debugger;
     return {
       type: this.type,
       index: isNumber(this.index) ? this.index || null : null,

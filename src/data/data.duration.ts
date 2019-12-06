@@ -10,7 +10,7 @@ export class DataDuration extends DataNumber {
    * @param showDays
    * @param showSeconds
    */
-  getDisplayValue(showDays = false, showSeconds = false) {
+  getDisplayValue(showDays = false, showSeconds = true) {
     const seconds = this.getValue();
     const h = Math.floor(seconds / 3600);
     const d = Math.floor(h / 24);
@@ -19,7 +19,7 @@ export class DataDuration extends DataNumber {
     if (!m && !h) {
       return showSeconds ? ('0' + s).slice(-2) + 's' : s + `s`;
     } else if (!h) {
-      return ('0' + m).slice(-2) + 'm' +  (showSeconds ?  (' 0' + s).slice(-2) + 's' : ``);
+      return ('0' + m).slice(-2) + 'm' +  (showSeconds ?  ' ' + ('0' + s).slice(-2) + 's' : ``);
     } else {
       if (d) {
         if (showDays) {

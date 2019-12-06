@@ -10,12 +10,14 @@ export interface UserChartSettingsInterface {
     strokeWidth: number;
     strokeOpacity: number;
     gainAndLossThreshold: number;
+    extraMaxForPower: number;
     fillOpacity: number;
     lapTypes: LapTypes[];
     showLaps: boolean;
     showGrid: boolean;
     stackYAxes: boolean;
     disableGrouping: boolean;
+    hideAllSeriesOnInit: boolean;
 }
 export declare enum ChartThemes {
     Charts = "amcharts",

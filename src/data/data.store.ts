@@ -179,7 +179,7 @@ export const DataStore: any = {
   DataSpeedMin,
   DataSpeedMax,
   DataSpeedAvg,
-  DataRecovery: DataRecoveryTime,
+  DataRecoveryTime,
   DataPowerMin,
   DataPowerMax,
   DataPowerAvg,

@@ -360,6 +360,10 @@ export class EventImporterFIT {
         creator = new Creator('Stryd', fitDataObject.file_creator.software_version, fitDataObject.file_creator.hardware_version,  fitDataObject.file_id.serial_number);
         break;
       }
+      case 'development': {
+        creator = new Creator(fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown');
+        break;
+      }
       default: {
         creator = new Creator(
           fitDataObject.file_id.manufacturer ? fitDataObject.file_id.manufacturer + ' ' + (fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown') : fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown',

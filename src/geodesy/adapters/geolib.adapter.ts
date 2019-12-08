@@ -1,9 +1,8 @@
 import {GeoLibAdapterInterface} from './adapter.interface';
-import {getDistance} from 'geolib';
+import getDistance from 'geolib/es/getDistance';
 import {DataPositionInterface} from '../../data/data.position.interface';
 
 export class GeoLibAdapter implements GeoLibAdapterInterface {
-
 
   constructor() {
   }

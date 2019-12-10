@@ -141,7 +141,7 @@ export enum ActivityTypes {
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'Crosscountry Skiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
-  'backcountry' = 'Crosscountry skiing',
+  'backcountry' = 'Crosscountry Skiing',
   'downhill' = 'Downhill skiing',
   'Downhill skiing' = 'Downhill skiing',
   'Weight training' = 'Weight training',

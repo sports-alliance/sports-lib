@@ -1,8 +1,10 @@
 import {GeoLibAdapterInterface} from './adapter.interface';
 import getDistance from 'geolib/es/getDistance';
+import findNearest from 'geolib/es/findNearest';
 import {DataPositionInterface} from '../../data/data.position.interface';
 
 export class GeoLibAdapter implements GeoLibAdapterInterface {
+  findNearest = findNearest;
 
   constructor() {
   }
@@ -25,19 +27,4 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
     }
     return distance;
   }
-
-  // getNearestPointToPosition(postition: DataPositionInterface, points: PointInterface[]): PointInterface | void {
-  //   const coordinates = points.map((point) => {
-  //     const position = point.getPosition();
-  //     if (!position) {
-  //       throw Error('Point with no position found');
-  //     }
-  //     return {latitude: position.latitudeDegrees, longitude: position.longitudeDegrees}
-  //   });
-  //   const nearest: any = findNearest(
-  //     {latitude: postition.latitudeDegrees, longitude: postition.longitudeDegrees},
-  //     coordinates
-  //   );
-  //   return points[nearest.key];
-  // }
 }

@@ -17,6 +17,7 @@ export class ActivityTypesHelper {
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
     switch (activityType) {
       case ActivityTypes.Running:
+        return [DataPaceAvg.type];
       case ActivityTypes['Trail Running']:
         return [DataPaceAvg.type, DataVerticalSpeedAvg.type];
       case ActivityTypes.Treadmill:

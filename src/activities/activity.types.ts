@@ -86,6 +86,7 @@ export enum ActivityTypes {
   'cycling_mountain' = 'Mountain biking',
   'MountainBiking' = 'Mountain biking',
   'Mountain Biking' = 'Mountain biking',
+  'cycling_cyclocross' = 'Mountain biking',
   'mountain' = 'Mountain biking',
   'Mountain biking' = 'Mountain biking',
   'motorcycling' = 'Motorcycling',

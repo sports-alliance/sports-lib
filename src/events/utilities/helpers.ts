@@ -12,7 +12,7 @@ export function isNumber(property: any) {
  * @return {number}
  */
 export function convertSpeedToPace(number: number): number {
-  return number === 0 ? number : (1000 / number);
+  return number === 0 ? Infinity : (1000 / number);
 }
 
 /**
@@ -20,7 +20,7 @@ export function convertSpeedToPace(number: number): number {
  * @param number
  */
 export function convertSpeedToSwimPace(number: number): number {
-  return number === 0 ? number : (100 / number);
+  return number === 0 ? Infinity : (100 / number);
 }
 
 export function convertSpeedToSpeedInKilometersPerHour(number: number): number {

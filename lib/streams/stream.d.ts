@@ -8,9 +8,16 @@ export declare class Stream implements StreamInterface {
      * Gets the data based / offset on a startDate
      * @param startDate
      * @param filterNull
+     * @param filterInfinity
      */
-    getStreamDataByTime(startDate: Date, filterNull?: boolean): StreamDataItem[];
-    getStreamDataByDuration(offset?: number, filterNull?: boolean): StreamDataItem[];
+    getStreamDataByTime(startDate: Date, filterNull?: boolean, filterInfinity?: boolean): StreamDataItem[];
+    /**
+     * Gets the data offset on a time
+     * @param offset
+     * @param filterNull
+     * @param filterInfinity
+     */
+    getStreamDataByDuration(offset?: number, filterNull?: boolean, filterInfinity?: boolean): StreamDataItem[];
     isUnitDerivedDataType(): boolean;
     toJSON(): StreamJSONInterface;
 }

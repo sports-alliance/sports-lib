@@ -21,10 +21,11 @@ export class Stream implements StreamInterface {
    * Gets the data based / offset on a startDate
    * @param startDate
    * @param filterNull
+   * @param filterInfinity
    */
-  getStreamDataByTime(startDate: Date, filterNull = false): StreamDataItem[] {
+  getStreamDataByTime(startDate: Date, filterNull = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if (filterNull && dataItem === null) {
+      if ((filterNull && dataItem === null) || (filterInfinity && dataItem === Infinity)) {
         return accu
       }
       accu.push({
@@ -35,9 +36,15 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[])
   }
 
-  getStreamDataByDuration(offset: number = 0, filterNull = false): StreamDataItem[] {
+  /**
+   * Gets the data offset on a time
+   * @param offset
+   * @param filterNull
+   * @param filterInfinity
+   */
+  getStreamDataByDuration(offset: number = 0, filterNull = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if (filterNull && dataItem === null) {
+      if ((filterNull && dataItem === null) || (filterInfinity && dataItem === Infinity)) {
         return accu
       }
       accu.push({

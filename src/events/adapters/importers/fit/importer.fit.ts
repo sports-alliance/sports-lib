@@ -348,6 +348,10 @@ export class EventImporterFIT {
         creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Suunto Unknown');
         break;
       }
+      case 'coros': {
+        creator = new Creator(fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown');
+        break;
+      }
       case 'garmin': {
         creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Garmin Unknown');
         break;

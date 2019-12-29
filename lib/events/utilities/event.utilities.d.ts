@@ -13,6 +13,13 @@ export declare class EventUtilities {
     static getDataTypeLast(activity: ActivityInterface, streamType: string, startDate?: Date, endDate?: Date): number;
     static mergeEvents(events: EventInterface[]): EventInterface;
     static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface;
+    /**
+     * Crops left,right on time.
+     * Start and end date need to be relative to the activity start / end time
+     * @param activity
+     * @param startDate
+     * @param endDate
+     */
     static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface;
     static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): {
         [type: string]: {

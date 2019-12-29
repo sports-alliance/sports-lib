@@ -9,7 +9,7 @@ export class EventImporterSuuntoSML {
   static getFromXML(contents: string, name = 'New Event'): Promise<EventInterface> {
     const json = parser.parse(contents).sml;
 
-    debugger;
+    // debugger;
 
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
@@ -115,7 +115,7 @@ export class EventImporterSuuntoSML {
       };
     }
 
-    debugger;
+    // debugger;
     const suuntoJSON = {
       DeviceLog: {
         Header: {},

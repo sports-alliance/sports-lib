@@ -269,11 +269,17 @@ export class EventUtilities {
     return activity;
   }
 
+  /**
+   * Crops left,right on time.
+   * Start and end date need to be relative to the activity start / end time
+   * @param activity
+   * @param startDate
+   * @param endDate
+   */
   public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
     activity.getAllStreams().forEach((stream) => {
       // Get the data for the range specified
       const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
-      // debugger;
       activity.removeStream(stream);
       activity.addStream(new Stream(stream.type, trimmedStreamData));
     });

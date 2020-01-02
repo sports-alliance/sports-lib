@@ -255,18 +255,6 @@ export class EventUtilities {
     }
 
     activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
-
-    const distanceStream = activity.getAllStreams().find(stream => stream.type === DataDistance.type);
-    if (distanceStream) {
-      activity.removeStream(distanceStream);
-    }
-
-    // Should  reset all stats
-    activity.clearStats();
-
-    // Set the distance
-    activity.setDistance(new DataDistance(endDistance - startDistance));
-
     return activity;
   }
 

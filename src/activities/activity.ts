@@ -15,6 +15,7 @@ import {Stream} from '../streams/stream';
 import {IntensityZonesJSONInterface} from '../intensity-zones/intensity-zones.json.interface';
 import {isNumber} from '../events/utilities/helpers';
 import {EventUtilities} from '../events/utilities/event.utilities';
+import {DataGNSSDistance} from '../data/data.gnss-distance';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   public type: ActivityTypes;
@@ -76,7 +77,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   getAllExportableStreams(): StreamInterface[] {
-    return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType());
+    return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType() || stream.type === DataGNSSDistance.type);
   }
 
   hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean {

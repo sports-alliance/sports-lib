@@ -255,6 +255,16 @@ export class EventUtilities {
     }
 
     activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
+
+    // Remove because it is invalid, you cannot just offset the distance as a stream I think
+    const distanceStream = activity.getAllStreams().find((s => DataDistance.type === s.type));
+    if (distanceStream) {
+      activity.removeStream(distanceStream);
+    }
+    const gnssDistanceStream = activity.getAllStreams().find((s => DataGNSSDistance.type === s.type));
+    if (distanceStream) {
+      activity.removeStream(distanceStream);
+    }
     return activity;
   }
 

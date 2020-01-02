@@ -138,6 +138,7 @@ import {DataAirPowerMax} from '../../data/data.air-power-max';
 import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
 import {DataInterface} from '../../data/data.interface';
 import {DataRPE} from '../../data/data.rpe';
+import {DataGNSSDistance} from '../../data/data.gnss-distance';
 
 export class EventUtilities {
 
@@ -372,15 +373,15 @@ export class EventUtilities {
     let energy = 0;
     let distance = 0;
     let pauseTime = 0;
-    let averageHeartRate: number = 0;
-    let averagePower: number = 0;
-    let averageCadence: number = 0;
-    let averageSpeed: number = 0;
-    let averagePace: number = 0;
-    let averageSwimPace: number = 0;
-    let averageTemperature: number = 0;
-    let averageFeeling: number = 0;
-    let averageRPE: number = 0;
+    let averageHeartRate = 0;
+    let averagePower = 0;
+    let averageCadence = 0;
+    let averageSpeed = 0;
+    let averagePace = 0;
+    let averageSwimPace = 0;
+    let averageTemperature = 0;
+    let averageFeeling = 0;
+    let averageRPE = 0;
 
     // Sum Duration
     activities.forEach((activity) => {
@@ -663,9 +664,13 @@ export class EventUtilities {
       if (activity.hasStreamData(DataDistance.type)) {
         distance = activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length - 1] || 0;
       } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)) {
-        distance = this.generateDistanceForActivity(activity, activity.startDate, activity.endDate);
+        distance = this.calculateTotalDistanceForActivity(activity, activity.startDate, activity.endDate);
       }
       activity.addStat(new DataDistance(distance));
+    }
+
+    if (!activity.getStat(DataGNSSDistance.type) && activity.hasStreamData(DataGNSSDistance.type)) {
+      activity.addStat(new DataGNSSDistance(activity.getSquashedStreamData(DataGNSSDistance.type)[activity.getSquashedStreamData(DataGNSSDistance.type).length - 1]));
     }
 
     // @todo remove the start date and end date parameters
@@ -1121,27 +1126,32 @@ export class EventUtilities {
 
   /**
    * Generates missing streams for an activity such as distance etc if they are missing
+   * This will always create a steam even if the distance is 0
    * @param activity
    */
   public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
-    // Generate distance
-    if (activity.hasStreamData(DataLatitudeDegrees.type) && !activity.hasStreamData(DataDistance.type)) {
-      const distanceStream = activity.createStream(DataDistance.type);
+    if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
+      && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
+      const streamData = activity.createStream(DataDistance.type).data; // Creating does not add it to activity just presets the resolution to 1s
       let distance = 0;
       activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
-        // debugger;
         if (!position) {
           return prevPosition;
         }
-
         if (prevPosition && position) {
           distance += this.geoLibAdapter.getDistance([prevPosition, position]);
         }
-
-        distanceStream.data[index] = distance;
+        streamData[index] = distance;
         return position;
       });
-      activity.addStream(distanceStream);
+
+      if (!activity.hasStreamData(DataDistance.type)) {
+        activity.addStream(new Stream(DataDistance.type, streamData));
+
+      }
+      if (!activity.hasStreamData(DataGNSSDistance.type)) {
+        activity.addStream(new Stream(DataGNSSDistance.type, streamData));
+      }
     }
 
     if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type)) {
@@ -1177,7 +1187,7 @@ export class EventUtilities {
     return activity;
   }
 
-  public static generateDistanceForActivity(
+  public static calculateTotalDistanceForActivity(
     activity: ActivityInterface,
     startDate?: Date,
     endDate?: Date): number {

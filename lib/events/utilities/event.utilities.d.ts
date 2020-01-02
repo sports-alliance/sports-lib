@@ -51,10 +51,11 @@ export declare class EventUtilities {
     private static generateMissingUnitStatsForActivity;
     /**
      * Generates missing streams for an activity such as distance etc if they are missing
+     * This will always create a steam even if the distance is 0
      * @param activity
      */
     static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface;
-    static generateDistanceForActivity(activity: ActivityInterface, startDate?: Date, endDate?: Date): number;
+    static calculateTotalDistanceForActivity(activity: ActivityInterface, startDate?: Date, endDate?: Date): number;
     /**
      * @todo optimize with whitelist
      * @param streams

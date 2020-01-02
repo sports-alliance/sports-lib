@@ -147,6 +147,7 @@ import {DataGroundTime} from './data.ground-time';
 import {DataAirPowerMax} from './data.air-power-max';
 import {DataAirPowerMin} from './data.air-power-min';
 import {DataAirPowerAvg} from './data.-air-power-avg';
+import {DataGNSSDistance} from './data.gnss-distance';
 
 /**
  * Only concrete classes no abstracts
@@ -317,6 +318,7 @@ export const DataStore: any = {
   DataAirPowerAvg,
   DataAirPowerMax,
   DataAirPowerMin,
+  DataGNSSDistance,
 };
 
 export class DynamicDataLoader {
@@ -370,6 +372,7 @@ export class DynamicDataLoader {
     DataVerticalRatio.type,
     DataGroundTime.type,
     DataAirPower.type,
+    DataGNSSDistance.type,
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

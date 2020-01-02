@@ -1,5 +1,5 @@
 import {GeoLibAdapterInterface} from './adapter.interface';
-import getDistance from 'geolib/es/getDistance';
+import getPreciseDistance from 'geolib/es/getPreciseDistance';
 import findNearest from 'geolib/es/findNearest';
 import {DataPositionInterface} from '../../data/data.position.interface';
 
@@ -22,7 +22,7 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
         longitude: nextPosition.longitudeDegrees,
         latitude: nextPosition.latitudeDegrees,
       };
-      distance += getDistance(firstPositionAsDecimal, nextPositionAsDecimal);
+      distance += getPreciseDistance(firstPositionAsDecimal, nextPositionAsDecimal);
       firstPosition = nextPosition;
     }
     return distance;

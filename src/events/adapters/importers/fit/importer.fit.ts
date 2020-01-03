@@ -50,6 +50,10 @@ import {DataCadenceMin} from '../../../../data/data.cadence-min';
 import {DataSWOLFAvg} from '../../../../data/data.swolf-avg';
 import {DataDescription} from '../../../../data/data.description';
 import {DataVO2Max} from '../../../../data/data.vo2-max';
+import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
+import {DataHeartRate} from '../../../../data/data.heart-rate';
+import {DataPower} from '../../../../data/data.power';
+import {DataSpeed} from '../../../../data/data.speed';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -76,6 +80,39 @@ export class EventImporterFIT {
           sessionObject.laps.forEach((sessionLapObject: any) => {
             activity.addLap(this.getLapFromSessionLapObject(sessionLapObject));
           });
+
+          // Go over the hr zone info
+          if (sessionObject.time_in_hr_zone && sessionObject.time_in_hr_zone.length){
+            const hrIntensityZones = new IntensityZones(DataHeartRate.type);
+            hrIntensityZones.zone1Duration = sessionObject.time_in_hr_zone[0];
+            hrIntensityZones.zone2Duration = sessionObject.time_in_hr_zone[1];
+            hrIntensityZones.zone3Duration = sessionObject.time_in_hr_zone[2];
+            hrIntensityZones.zone4Duration = sessionObject.time_in_hr_zone[3];
+            hrIntensityZones.zone5Duration = sessionObject.time_in_hr_zone[4];
+            activity.intensityZones.push(hrIntensityZones);
+          }
+
+          // Go over the power zone info
+          if (sessionObject.time_in_power_zone && sessionObject.time_in_power_zone.length){
+            const powerIntensityZones = new IntensityZones(DataPower.type);
+            powerIntensityZones.zone1Duration = sessionObject.time_in_power_zone[0];
+            powerIntensityZones.zone2Duration = sessionObject.time_in_power_zone[1];
+            powerIntensityZones.zone3Duration = sessionObject.time_in_power_zone[2];
+            powerIntensityZones.zone4Duration = sessionObject.time_in_power_zone[3];
+            powerIntensityZones.zone5Duration = sessionObject.time_in_power_zone[4];
+            activity.intensityZones.push(powerIntensityZones);
+          }
+
+          // Go over the speed zone info
+          if (sessionObject.time_in_speed_zone && sessionObject.time_in_speed_zone.length){
+            const speedIntensityZones = new IntensityZones(DataSpeed.type);
+            speedIntensityZones.zone1Duration = sessionObject.time_in_speed_zone[0];
+            speedIntensityZones.zone2Duration = sessionObject.time_in_speed_zone[1];
+            speedIntensityZones.zone3Duration = sessionObject.time_in_speed_zone[2];
+            speedIntensityZones.zone4Duration = sessionObject.time_in_speed_zone[3];
+            speedIntensityZones.zone5Duration = sessionObject.time_in_speed_zone[4];
+            activity.intensityZones.push(speedIntensityZones);
+          }
 
           const samples = fitDataObject.records.filter((record: any) => {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
@@ -136,6 +173,7 @@ export class EventImporterFIT {
             activity.addStream(new IBIStream(ibiData));
           });
         }
+
 
 
         // Parse the device infos

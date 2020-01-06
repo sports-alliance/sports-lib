@@ -87,6 +87,21 @@ import {DataSteps} from '../../../../data/data.steps';
 import {DataPoolLength} from '../../../../data/data.pool-length';
 import {DataDeviceLocation} from '../../../../data/data.device-location';
 import {DataTotalTrainingEffect} from '../../../../data/data.total-training-effect';
+import {DataHeartRateZoneOneDuration} from '../../../../data/data.heart-rate-zone-one-duration';
+import {DataHeartRateZoneTwoDuration} from '../../../../data/data.heart-rate-zone-two-duration';
+import {DataHeartRateZoneThreeDuration} from '../../../../data/data.heart-rate-zone-three-duration';
+import {DataHeartRateZoneFourDuration} from '../../../../data/data.heart-rate-zone-four-duration';
+import {DataHeartRateZoneFiveDuration} from '../../../../data/data.heart-rate-zone-five-duration';
+import {DataPowerZoneOneDuration} from '../../../../data/data.power-zone-one-duration';
+import {DataPowerZoneTwoDuration} from '../../../../data/data.power-zone-two-duration';
+import {DataPowerZoneThreeDuration} from '../../../../data/data.power-zone-three-duration';
+import {DataPowerZoneFourDuration} from '../../../../data/data.power-zone-four-duration';
+import {DataPowerZoneFiveDuration} from '../../../../data/data.power-zone-five-duration';
+import {DataSpeedZoneOneDuration} from '../../../../data/data.speed-zone-one-duration';
+import {DataSpeedZoneTwoDuration} from '../../../../data/data.speed-zone-two-duration';
+import {DataSpeedZoneThreeDuration} from '../../../../data/data.speed-zone-three-duration';
+import {DataSpeedZoneFourDuration} from '../../../../data/data.speed-zone-four-duration';
+import {DataSpeedZoneFiveDuration} from '../../../../data/data.speed-zone-five-duration';
 
 export class EventImporterSuuntoJSON {
 
@@ -316,7 +331,31 @@ export class EventImporterSuuntoJSON {
       zones.zone4LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone4LowerLimit);
       zones.zone5Duration = object[intensityZonesMap.sampleField].Zone5Duration;
       zones.zone5LowerLimit = intensityZonesMap.convertSampleValue(object[intensityZonesMap.sampleField].Zone5LowerLimit);
-      activity.intensityZones.push(zones)
+      activity.intensityZones.push(zones);
+
+      switch (intensityZonesMap.dataType) {
+        case DataHeartRate.type:
+          activity.addStat(new DataHeartRateZoneOneDuration(zones.zone1Duration));
+          activity.addStat(new DataHeartRateZoneTwoDuration(zones.zone2Duration));
+          activity.addStat(new DataHeartRateZoneThreeDuration(zones.zone3Duration));
+          activity.addStat(new DataHeartRateZoneFourDuration(zones.zone4Duration));
+          activity.addStat(new DataHeartRateZoneFiveDuration(zones.zone5Duration));
+          break;
+        case DataPower.type:
+          activity.addStat(new DataPowerZoneOneDuration(zones.zone1Duration));
+          activity.addStat(new DataPowerZoneTwoDuration(zones.zone2Duration));
+          activity.addStat(new DataPowerZoneThreeDuration(zones.zone3Duration));
+          activity.addStat(new DataPowerZoneFourDuration(zones.zone4Duration));
+          activity.addStat(new DataPowerZoneFiveDuration(zones.zone5Duration));
+          break;
+        case DataSpeed.type:
+          activity.addStat(new DataSpeedZoneOneDuration(zones.zone1Duration));
+          activity.addStat(new DataSpeedZoneTwoDuration(zones.zone2Duration));
+          activity.addStat(new DataSpeedZoneThreeDuration(zones.zone3Duration));
+          activity.addStat(new DataSpeedZoneFourDuration(zones.zone4Duration));
+          activity.addStat(new DataSpeedZoneFiveDuration(zones.zone5Duration));
+          break;
+      }
     });
   }
 
@@ -445,16 +484,16 @@ export class EventImporterSuuntoJSON {
       if (isNumber(object.Altitude.Max)) {
         stats.push(new DataAltitudeMax(object.Altitude.Max));
       }
-      if (isNumber(object.Altitude.Min )) {
+      if (isNumber(object.Altitude.Min)) {
         stats.push(new DataAltitudeMin(object.Altitude.Min));
       }
     }
 
     if (object.HR) {
-      if (isNumber(object.HR[0].Avg )) {
+      if (isNumber(object.HR[0].Avg)) {
         stats.push(new DataHeartRateAvg(object.HR[0].Avg * 60));
       }
-      if (isNumber(object.HR[0].Max )) {
+      if (isNumber(object.HR[0].Max)) {
         stats.push(new DataHeartRateMax(object.HR[0].Max * 60));
       }
       if (isNumber(object.HR[0].Min)) {
@@ -463,7 +502,7 @@ export class EventImporterSuuntoJSON {
     }
 
     if (object.Cadence) {
-      if (isNumber(object.Cadence[0].Avg )) {
+      if (isNumber(object.Cadence[0].Avg)) {
         stats.push(new DataCadenceAvg(object.Cadence[0].Avg * 60));
       }
       if (isNumber(object.Cadence[0].Max)) {
@@ -502,7 +541,7 @@ export class EventImporterSuuntoJSON {
     }
 
     if (object.Temperature) {
-      if (isNumber(object.Temperature[0].Avg )) {
+      if (isNumber(object.Temperature[0].Avg)) {
         stats.push(new DataTemperatureAvg(object.Temperature[0].Avg - 273.15));
       }
       if (isNumber(object.Temperature[0].Max)) {
@@ -522,7 +561,7 @@ export class EventImporterSuuntoJSON {
         if (isNumber(object.VerticalSpeed[0].Max)) {
           stats.push(new DataVerticalSpeedMax(object.VerticalSpeed[0].Max));
         }
-        if (isNumber(object.VerticalSpeed[0].Min )) {
+        if (isNumber(object.VerticalSpeed[0].Min)) {
           stats.push(new DataVerticalSpeedMin(object.VerticalSpeed[0].Min));
         }
       } else {

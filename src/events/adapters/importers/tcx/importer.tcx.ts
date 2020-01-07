@@ -79,7 +79,9 @@ export class EventImporterTCX {
 
           TCXSampleMapper.forEach((sampleMapping) => {
             // Should check the children
-            const subjectTrackPointElements = trackPointElements.filter((element: any) => isNumber(sampleMapping.getSampleValue(element)));
+            const subjectTrackPointElements = trackPointElements.filter((element: any) => {
+              return isNumber(sampleMapping.getSampleValue(element));
+            });
             if (subjectTrackPointElements.length) {
               activity.addStream(activity.createStream(sampleMapping.dataType));
               subjectTrackPointElements.forEach((subjectTrackPointElement: any) => {

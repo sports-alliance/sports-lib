@@ -139,6 +139,7 @@ import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
 import {DataInterface} from '../../data/data.interface';
 import {DataRPE} from '../../data/data.rpe';
 import {DataGNSSDistance} from '../../data/data.gnss-distance';
+import {DataHeartRateZoneOneDuration} from '../../data/data.heart-rate-zone-one-duration';
 
 export class EventUtilities {
 
@@ -546,6 +547,8 @@ export class EventUtilities {
     if (averageRPE) {
       stats.push(new DataRPE(averageRPE));
     }
+
+    // Zones @todo
 
     return stats;
   }

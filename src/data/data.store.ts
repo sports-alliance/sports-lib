@@ -148,6 +148,21 @@ import {DataAirPowerMax} from './data.air-power-max';
 import {DataAirPowerMin} from './data.air-power-min';
 import {DataAirPowerAvg} from './data.-air-power-avg';
 import {DataGNSSDistance} from './data.gnss-distance';
+import {DataHeartRateZoneOneDuration} from './data.heart-rate-zone-one-duration';
+import {DataHeartRateZoneTwoDuration} from './data.heart-rate-zone-two-duration';
+import {DataHeartRateZoneThreeDuration} from './data.heart-rate-zone-three-duration';
+import {DataHeartRateZoneFourDuration} from './data.heart-rate-zone-four-duration';
+import {DataHeartRateZoneFiveDuration} from './data.heart-rate-zone-five-duration';
+import {DataSpeedZoneOneDuration} from './data.speed-zone-one-duration';
+import {DataSpeedZoneTwoDuration} from './data.speed-zone-two-duration';
+import {DataSpeedZoneThreeDuration} from './data.speed-zone-three-duration';
+import {DataSpeedZoneFourDuration} from './data.speed-zone-four-duration';
+import {DataSpeedZoneFiveDuration} from './data.speed-zone-five-duration';
+import {DataPowerZoneOneDuration} from './data.power-zone-one-duration';
+import {DataPowerZoneTwoDuration} from './data.power-zone-two-duration';
+import {DataPowerZoneThreeDuration} from './data.power-zone-three-duration';
+import {DataPowerZoneFiveDuration} from './data.power-zone-five-duration';
+import {DataPowerZoneFourDuration} from './data.power-zone-four-duration';
 
 /**
  * Only concrete classes no abstracts
@@ -319,6 +334,21 @@ export const DataStore: any = {
   DataAirPowerMax,
   DataAirPowerMin,
   DataGNSSDistance,
+  DataHeartRateZoneOneDuration,
+  DataHeartRateZoneTwoDuration,
+  DataHeartRateZoneThreeDuration,
+  DataHeartRateZoneFourDuration,
+  DataHeartRateZoneFiveDuration,
+  DataPowerZoneOneDuration,
+  DataPowerZoneTwoDuration,
+  DataPowerZoneThreeDuration,
+  DataPowerZoneFourDuration,
+  DataPowerZoneFiveDuration,
+  DataSpeedZoneOneDuration,
+  DataSpeedZoneTwoDuration,
+  DataSpeedZoneThreeDuration,
+  DataSpeedZoneFourDuration,
+  DataSpeedZoneFiveDuration,
 };
 
 export class DynamicDataLoader {
@@ -407,7 +437,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${className}\' is not in the store`);
+      throw new Error(`Class type of \'${dataType}\' is not in the store`);
     }
     return new DataStore[className](opts);
   }

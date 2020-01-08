@@ -1,12 +1,12 @@
 import {EventImporterSuuntoJSON} from './importers/suunto/importer.suunto.json';
 import {EventImporterJSON} from './importers/json/importer.json';
-import {EventImporterTCX} from "./importers/tcx/importer.tcx";
-import {Event} from "../event";
+import {EventImporterTCX} from './importers/tcx/importer.tcx';
+import {Event} from '../event';
 
 const suuntoJSON = require('../../../samples/suunto/suunto.json');
 
 import * as fs from 'fs';
-var DOMParserCustom = require('xmldom').DOMParser;
+let DOMParserCustom = require('xmldom').DOMParser;
 
 const tcxString = fs.readFileSync(__dirname + '/../../../samples/tcx/garmin.tcx', 'utf8');
 describe('EventAdapters', () => {
@@ -26,7 +26,7 @@ describe('EventAdapters', () => {
 
   it('should import and export correctly some tcx', () => {
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(tcxString,"text/xml");
+    const xmlDoc = parser.parseFromString(tcxString, 'text/xml');
     expect.assertions(1);
     return expect(EventImporterTCX.getFromXML(xmlDoc)).resolves.toBeInstanceOf(Event);
     // console.log(event)

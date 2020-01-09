@@ -123,8 +123,6 @@ export declare enum ActivityTypes {
     'Free diving' = "Free Diving",
     'diving' = "Diving",
     'Diving' = "Diving",
-    'all' = "All",
-    'All' = "All",
     'Snorkeling' = "Snorkeling",
     'Swimrun' = "Swimrun",
     'Duathlon' = "Duathlon",

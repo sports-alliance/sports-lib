@@ -12,7 +12,15 @@ export class ActivityTypesHelper {
     return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
       array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
       return array;
-    }, [])));
+    }, []))).sort((left, right) => {
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
+      return 0;
+    });
   }
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
     switch (activityType) {
@@ -170,8 +178,6 @@ export enum ActivityTypes {
   'Free diving' = 'Free Diving',
   'diving' = 'Diving',
   'Diving' = 'Diving',
-  'all' = 'All',
-  'All' = 'All',
   'Snorkeling' = 'Snorkeling',
   'Swimrun' = 'Swimrun',
   'Duathlon' = 'Duathlon',

@@ -1,4 +1,5 @@
 import {UserDashboardChartSettingsInterface} from './user.dashboard.chart.settings.interface';
+import {ActivityTypes} from '../activities/activity.types';
 
 export interface UserDashboardSettingsInterface {
   dateRange: DateRanges,
@@ -8,6 +9,7 @@ export interface UserDashboardSettingsInterface {
   showSummaries: boolean,
   pinUploadSection: boolean,
   tableSettings: TableSettings
+  activityTypes?: ActivityTypes[],
 }
 
 export interface TableSettings {

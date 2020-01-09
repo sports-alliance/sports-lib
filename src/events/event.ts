@@ -65,6 +65,14 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
   }
 
+  getActivityTypesAsArray(): string[] {
+    const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
+    if (!activityTypesStat) {
+      throw new Error(`Event with id ${this.getID()} has no activity types`)
+    }
+    return activityTypesStat.getValue();
+  }
+
   getActivityTypesAsString(): string {
     const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
     if (!activityTypesStat) {

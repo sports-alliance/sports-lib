@@ -6,7 +6,7 @@ export const ImporterSuuntoDeviceNames: { [index: string]: string } = {
   'Rome': 'Suunto 4',
   'Monza': 'Suunto 5',
   'Moscow': 'Suunto 6',
-  'London': 'Suunto 7',
+  'Kyoto': 'Suunto 7',
   'Lisbon': 'Suunto 8',
   'Ibiza': 'Suunto 9',
   'IbizaC': 'Suunto 9',

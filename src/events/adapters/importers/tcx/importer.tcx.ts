@@ -73,7 +73,7 @@ export class EventImporterTCX {
           }, []);
 
           // If the distance from laps is 0 and there is a last trackpoint with distance use that
-          if (activity.getDistance().getValue() === 0) {
+          if (activity.getDistance().getValue() === 0 && trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0]) {
             activity.setDistance(new DataDistance(Number(trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0].textContent)));
           }
 

@@ -10,6 +10,7 @@ describe('Event', () => {
 
   beforeEach(() => {
     event = new Event('Test', new Date(0), new Date(200));
+    event.description = 'Test';
   });
 
   it('should add an activity', () => {
@@ -49,7 +50,9 @@ describe('Event', () => {
     spyOn(activity, 'toJSON').and.returnValue({});
     expect(event.toJSON()).toEqual({
       'name': 'Test',
-      "privacy": "private",
+      'description': 'Test',
+      'isMerge': false,
+      'privacy': 'private',
       'stats': {},
       'startDate': d1.getTime(),
       'endDate': d2.getTime(),

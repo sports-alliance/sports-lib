@@ -12,7 +12,15 @@ export class ActivityTypesHelper {
     return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
       array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
       return array;
-    }, [])));
+    }, []))).sort((left, right) => {
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
+      return 0;
+    });
   }
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
     switch (activityType) {
@@ -101,8 +109,9 @@ export enum ActivityTypes {
   'swim' = 'Swimming',
   'basketball' = 'Basketball',
   'soccer' = 'Soccer',
-  'american_football' = 'American footBall',
-  'American footBall' = 'American footBall',
+  'american_football' = 'American Football',
+  'American footBall' = 'American Football',
+  'American Football' = 'American Football',
   'Skating' = 'Skating',
   'Aerobics' = 'Aerobics',
   'YogaPilates' = 'YogaPilates',
@@ -140,6 +149,7 @@ export enum ActivityTypes {
   'Snowboarding' = 'Snowboarding',
   'snowboarding' = 'Snowboarding',
   'running_street' = 'Running',
+  'running_road' = 'Running',
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'Crosscountry Skiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
@@ -170,8 +180,7 @@ export enum ActivityTypes {
   'Free diving' = 'Free Diving',
   'diving' = 'Diving',
   'Diving' = 'Diving',
-  'all' = 'All',
-  'All' = 'All',
+  'diving_apnea_hunting' = 'Diving',
   'Snorkeling' = 'Snorkeling',
   'Swimrun' = 'Swimrun',
   'Duathlon' = 'Duathlon',
@@ -216,7 +225,7 @@ export enum ActivityTypes {
   'Trail Running' = 'Trail Running',
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
-  'trail' = 'Trail running',
+  'trail' = 'Trail Running',
   'swimming_open_water' = 'Open Water Swimming',
   'swimming_lap_swimming' = 'Swimming',
   'Open water swimming' = 'Open Water Swimming',
@@ -251,7 +260,10 @@ export enum ActivityTypes {
   'running_treadmill' = 'Treadmill',
   'Treadmill' = 'Treadmill',
   'treadmill' = 'Treadmill',
-  'Indoor running' = 'Treadmill',
+  'Indoor running' = 'Indoor Running',
+  'Indoor Running' = 'Indoor Running',
+  'running_indoor' = 'Indoor Running',
+  'running_indoor_running' = 'Indoor Running',
   'Frisbee' = 'Frisbee',
   'Indoor training' = 'Indoor training',
   'Hiking' = 'Hiking',

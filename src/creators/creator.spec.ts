@@ -19,6 +19,7 @@ describe('Creator', () => {
       serialNumber: 'SerialNumber',
       swInfo: 'SWInfo',
       hwInfo: 'HWInfo',
+      devices: [],
     });
 
   });

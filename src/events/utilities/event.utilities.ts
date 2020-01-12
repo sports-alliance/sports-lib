@@ -139,6 +139,22 @@ import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
 import {DataInterface} from '../../data/data.interface';
 import {DataRPE} from '../../data/data.rpe';
 import {DataGNSSDistance} from '../../data/data.gnss-distance';
+import {DataHeartRateZoneOneDuration} from '../../data/data.heart-rate-zone-one-duration';
+import {DataHeartRateZoneTwoDuration} from '../../data/data.heart-rate-zone-two-duration';
+import {DataHeartRateZoneThreeDuration} from '../../data/data.heart-rate-zone-three-duration';
+import {DataHeartRateZoneFourDuration} from '../../data/data.heart-rate-zone-four-duration';
+import {DataHeartRateZoneFiveDuration} from '../../data/data.heart-rate-zone-five-duration';
+import {DataPowerZoneOneDuration} from '../../data/data.power-zone-one-duration';
+import {DataPowerZoneTwoDuration} from '../../data/data.power-zone-two-duration';
+import {DataPowerZoneThreeDuration} from '../../data/data.power-zone-three-duration';
+import {DataPowerZoneFourDuration} from '../../data/data.power-zone-four-duration';
+import {DataPowerZoneFiveDuration} from '../../data/data.power-zone-five-duration';
+import {DataSpeedZoneOneDuration} from '../../data/data.speed-zone-one-duration';
+import {DataSpeedZoneTwoDuration} from '../../data/data.speed-zone-two-duration';
+import {DataSpeedZoneThreeDuration} from '../../data/data.speed-zone-three-duration';
+import {DataSpeedZoneFourDuration} from '../../data/data.speed-zone-four-duration';
+import {DataSpeedZoneFiveDuration} from '../../data/data.speed-zone-five-duration';
+import {DynamicDataLoader} from '../../data/data.store';
 
 export class EventUtilities {
 
@@ -546,6 +562,41 @@ export class EventUtilities {
     if (averageRPE) {
       stats.push(new DataRPE(averageRPE));
     }
+
+    // Zones
+    [
+      DataHeartRateZoneOneDuration.type,
+      DataHeartRateZoneTwoDuration.type,
+      DataHeartRateZoneThreeDuration.type,
+      DataHeartRateZoneFourDuration.type,
+      DataHeartRateZoneFiveDuration.type,
+      DataPowerZoneOneDuration.type,
+      DataPowerZoneTwoDuration.type,
+      DataPowerZoneThreeDuration.type,
+      DataPowerZoneFourDuration.type,
+      DataPowerZoneFiveDuration.type,
+      DataSpeedZoneOneDuration.type,
+      DataSpeedZoneTwoDuration.type,
+      DataSpeedZoneThreeDuration.type,
+      DataSpeedZoneFourDuration.type,
+      DataSpeedZoneFiveDuration.type,
+    ].forEach(zone => {
+      const zoneDuration = activities.reduce((duration: number | null, activity) => {
+        const durationStat = <DataDuration>activity.getStat(zone);
+        if (durationStat) {
+          duration = duration || 0;
+          duration += durationStat.getValue()
+        }
+        return duration;
+      }, null);
+
+      if (isNumber(zoneDuration)){
+        stats.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
+      }
+    });
+
+    debugger;
+
 
     return stats;
   }

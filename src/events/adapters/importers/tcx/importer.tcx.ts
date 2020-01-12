@@ -73,13 +73,15 @@ export class EventImporterTCX {
           }, []);
 
           // If the distance from laps is 0 and there is a last trackpoint with distance use that
-          if (activity.getDistance().getValue() === 0) {
+          if (activity.getDistance().getValue() === 0 && trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0]) {
             activity.setDistance(new DataDistance(Number(trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0].textContent)));
           }
 
           TCXSampleMapper.forEach((sampleMapping) => {
             // Should check the children
-            const subjectTrackPointElements = trackPointElements.filter((element: any) => isNumber(sampleMapping.getSampleValue(element)));
+            const subjectTrackPointElements = trackPointElements.filter((element: any) => {
+              return isNumber(sampleMapping.getSampleValue(element));
+            });
             if (subjectTrackPointElements.length) {
               activity.addStream(activity.createStream(sampleMapping.dataType));
               subjectTrackPointElements.forEach((subjectTrackPointElement: any) => {

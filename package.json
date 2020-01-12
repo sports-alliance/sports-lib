@@ -1,6 +1,6 @@
 {
   "name": "quantified-self-lib",
-  "version": "3.4.25",
+  "version": "3.5.9",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
     "gpx",
@@ -38,9 +38,9 @@
   "author": "Dimitrios Kanellopoulos",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "@types/node": "^13.1.2",
+    "@types/node": "^13.1.4",
     "fast-xml-parser": "^3.15.1",
-    "fit-file-parser": "^1.6.16",
+    "fit-file-parser": "^1.6.17",
     "geolib": "^3.2.1",
     "lowpassf": "^0.5.0",
     "moving-median": "^1.0.0"
@@ -49,7 +49,7 @@
     "@types/jest": "^24.0.25",
     "@types/xmldom": "^0.1.29",
     "jest": "^24.9.0",
-    "ts-jest": "^24.2.0",
+    "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "typescript": "^3.7.4",
     "xmldom": "^0.2.1",
@@ -70,7 +70,7 @@
     ],
     "globals": {
       "ts-jest": {
-        "skipBabel": true
+        "babelConfig": true
       }
     }
   }

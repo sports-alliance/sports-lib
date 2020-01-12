@@ -13,6 +13,7 @@ export interface EventInterface extends StatsClassInterface, DurationClassInterf
     addActivities(activities: ActivityInterface[]): void;
     removeActivity(activity: ActivityInterface): void;
     getActivities(): ActivityInterface[];
+    getActivityTypesAsArray(): string[];
     getActivityTypesAsString(): string;
     getDeviceNamesAsString(): string;
     clearActivities(): void;

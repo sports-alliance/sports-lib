@@ -23,6 +23,7 @@
   "scripts": {
     "watch": "tsc --watch",
     "build": "tsc",
+    "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
@@ -51,7 +52,8 @@
     "ts-jest": "^24.3.0",
     "tslint": "^5.20.1",
     "typescript": "^3.7.4",
-    "xmldom": "^0.2.1"
+    "xmldom": "^0.2.1",
+    "typedoc": "^0.15.6"
   },
   "jest": {
     "transform": {

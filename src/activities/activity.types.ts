@@ -149,6 +149,7 @@ export enum ActivityTypes {
   'Snowboarding' = 'Snowboarding',
   'snowboarding' = 'Snowboarding',
   'running_street' = 'Running',
+  'running_road' = 'Running',
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'Crosscountry Skiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',

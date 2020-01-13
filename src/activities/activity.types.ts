@@ -22,7 +22,7 @@ export class ActivityTypesHelper {
       return 0;
     });
   }
-  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
         return [DataPaceAvg.type];
@@ -40,7 +40,7 @@ export class ActivityTypesHelper {
         return [DataSpeedAvg.type]
     }
   }
-  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
       case ActivityTypes['Trail Running']:
@@ -85,6 +85,7 @@ export enum ActivityTypes {
   'Cycling' = 'Cycling',
   'cycling' = 'Cycling',
   'cycling_road' = 'Cycling',
+  'road_biking' = 'Cycling',
   'cycling_track_cycling' = 'Cycling',
   'cycling_gravel_cycling' = 'Cycling',
   'Biking' = 'Cycling',

@@ -1,13 +1,13 @@
-import {Activity} from '../../../../activities/activity';
-import {EventInterface} from '../../../event.interface';
-import {Creator} from '../../../../creators/creator';
-import {Event} from '../../../event';
-import {ActivityTypes} from '../../../../activities/activity.types';
-import {ActivityInterface} from '../../../../activities/activity.interface';
-import {GPXSampleMapper} from './importer.gpx.mapper';
-import {isNumberOrString} from '../../../utilities/helpers';
-import {EventUtilities} from '../../../utilities/event.utilities';
-import {GXParser} from './gx-parser';
+import { Activity } from '../../../../activities/activity';
+import { EventInterface } from '../../../event.interface';
+import { Creator } from '../../../../creators/creator';
+import { Event } from '../../../event';
+import { ActivityTypes } from '../../../../activities/activity.types';
+import { ActivityInterface } from '../../../../activities/activity.interface';
+import { GPXSampleMapper } from './importer.gpx.mapper';
+import { isNumberOrString } from '../../../utilities/helpers';
+import { EventUtilities } from '../../../utilities/event.utilities';
+import { GXParser } from './gx-parser';
 
 export class EventImporterGPX {
 
@@ -16,19 +16,19 @@ export class EventImporterGPX {
     return new Promise((resolve, reject) => {
 
       const parsedGPX: any = new GXParser(gpx, domParser);
-      const track = parsedGPX.trk || parsedGPX.rte ;
+      const track = parsedGPX.trk || parsedGPX.rte;
 
       const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {
         // Get the samples
         let samples: any[] = [];
         let isActivity = false;
-        if (trackOrRoute.trkseg ) {
+        if (trackOrRoute.trkseg) {
           samples = trackOrRoute.trkseg.reduce((trkptArray: any[], trkseg: any) => {
             return trkptArray.concat(trkseg.trkpt)
           }, []);
           // Determine if it's a route. The samples will most probably be missing the time
           isActivity = !!samples[0].time;
-        } else if (trackOrRoute.rtept ) {
+        } else if (trackOrRoute.rtept) {
           samples = trackOrRoute.rtept;
         }
 

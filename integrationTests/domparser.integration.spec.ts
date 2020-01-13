@@ -28,8 +28,8 @@ describe('Integration tests with native & custom dom parser', () => {
       it('should parse a TCX file (ride)', done => {
 
         // Given
-        const tcxPath = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx';
-        const doc = domParser.parseFromString(fs.readFileSync(tcxPath).toString(), 'application/xml');
+        const path = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
         const expectedSamplesLength = 3179;
 
         // When
@@ -199,6 +199,75 @@ describe('Integration tests with native & custom dom parser', () => {
       });
 
     });
+
+    describe('From Strava', () => {
+
+      it('should parse a TCX file (run)', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/runs/strava_export/20160911_run_708752345.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+        const expectedSamplesLength = 1495;
+
+        // When
+        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+
+          const missingStreamCall = () => {
+            event.getFirstActivity().getSquashedStreamData(DataPower.type);
+          };
+          expect(missingStreamCall).toThrow();
+
+          done();
+        });
+
+      });
+
+      it('should parse a GPX file (run)', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx';
+        const gpxString = fs.readFileSync(path).toString();
+        const expectedSamplesLength = 1495;
+
+        // When
+        const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+
+          const missingStreamCall = () => {
+            event.getFirstActivity().getSquashedStreamData(DataPower.type);
+          };
+          expect(missingStreamCall).toThrow();
+
+          done();
+        });
+
+      });
+
+    });
+
   });
 
   describe('Custom DOMParser', () => {
@@ -214,8 +283,8 @@ describe('Integration tests with native & custom dom parser', () => {
       it('should parse a TCX file (ride)', done => {
 
         // Given
-        const tcxPath = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx';
-        const doc = domParser.parseFromString(fs.readFileSync(tcxPath).toString(), 'application/xml');
+        const path = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
         const expectedSamplesLength = 3179;
 
         // When
@@ -303,7 +372,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
-            //expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Speed array will be available on GPX parsing
+            // expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Speed array will be available on GPX parsing
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             // expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Pace array will be available on GPX parsing
@@ -335,7 +404,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
-            //expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Speed array will be available on GPX parsing
+            // expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Speed array will be available on GPX parsing
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             // expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength); // TODO Re-enable when Pace array will be available on GPX parsing
@@ -365,6 +434,74 @@ describe('Integration tests with native & custom dom parser', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+
+          const missingStreamCall = () => {
+            event.getFirstActivity().getSquashedStreamData(DataPower.type);
+          };
+          expect(missingStreamCall).toThrow();
+
+          done();
+        });
+
+      });
+
+    });
+
+    describe('From Strava', () => {
+
+      it('should parse a TCX file (run)', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/runs/strava_export/20160911_run_708752345.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+        const expectedSamplesLength = 1495;
+
+        // When
+        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+
+          const missingStreamCall = () => {
+            event.getFirstActivity().getSquashedStreamData(DataPower.type);
+          };
+          expect(missingStreamCall).toThrow();
+
+          done();
+        });
+
+      });
+
+      it('should parse a GPX file (run)', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx';
+        const gpxString = fs.readFileSync(path).toString();
+        const expectedSamplesLength = 1495;
+
+        // When
+        const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
           expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);

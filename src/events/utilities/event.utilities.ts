@@ -1,8 +1,8 @@
-import {EventInterface} from '../event.interface';
-import {ActivityInterface} from '../../activities/activity.interface';
-import {Event} from '../event';
-import {DataHeartRate} from '../../data/data.heart-rate';
-import {DataCadence} from '../../data/data.cadence';
+import { EventInterface } from '../event.interface';
+import { ActivityInterface } from '../../activities/activity.interface';
+import { Event } from '../event';
+import { DataHeartRate } from '../../data/data.heart-rate';
+import { DataCadence } from '../../data/data.cadence';
 import {
   DataSpeed,
   DataSpeedFeetPerSecond,
@@ -19,18 +19,18 @@ import {
   DataVerticalSpeedMetersPerMinute,
   DataVerticalSpeedMilesPerHour
 } from '../../data/data.vertical-speed';
-import {DataTemperature} from '../../data/data.temperature';
-import {DataAltitude} from '../../data/data.altitude';
-import {DataPower} from '../../data/data.power';
-import {DataAltitudeMax} from '../../data/data.altitude-max';
-import {DataAltitudeMin} from '../../data/data.altitude-min';
-import {DataAltitudeAvg} from '../../data/data.altitude-avg';
-import {DataHeartRateMax} from '../../data/data.heart-rate-max';
-import {DataHeartRateMin} from '../../data/data.heart-rate-min';
-import {DataHeartRateAvg} from '../../data/data.heart-rate-avg';
-import {DataCadenceMax} from '../../data/data.cadence-max';
-import {DataCadenceMin} from '../../data/data.cadence-min';
-import {DataCadenceAvg} from '../../data/data.cadence-avg';
+import { DataTemperature } from '../../data/data.temperature';
+import { DataAltitude } from '../../data/data.altitude';
+import { DataPower } from '../../data/data.power';
+import { DataAltitudeMax } from '../../data/data.altitude-max';
+import { DataAltitudeMin } from '../../data/data.altitude-min';
+import { DataAltitudeAvg } from '../../data/data.altitude-avg';
+import { DataHeartRateMax } from '../../data/data.heart-rate-max';
+import { DataHeartRateMin } from '../../data/data.heart-rate-min';
+import { DataHeartRateAvg } from '../../data/data.heart-rate-avg';
+import { DataCadenceMax } from '../../data/data.cadence-max';
+import { DataCadenceMin } from '../../data/data.cadence-min';
+import { DataCadenceAvg } from '../../data/data.cadence-avg';
 import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
@@ -80,28 +80,28 @@ import {
   DataVerticalSpeedAvgMetersPerMinute,
   DataVerticalSpeedAvgMilesPerHour
 } from '../../data/data.vertical-speed-avg';
-import {DataPowerMax} from '../../data/data.power-max';
-import {DataPowerMin} from '../../data/data.power-min';
-import {DataPowerAvg} from '../../data/data.power-avg';
-import {DataTemperatureMax} from '../../data/data.temperature-max';
-import {DataTemperatureMin} from '../../data/data.temperature-min';
-import {DataTemperatureAvg} from '../../data/data.temperature-avg';
-import {DataDistance} from '../../data/data.distance';
-import {DataDuration} from '../../data/data.duration';
-import {DataPause} from '../../data/data.pause';
-import {DataAscent} from '../../data/data.ascent';
-import {DataDescent} from '../../data/data.descent';
-import {GeoLibAdapter} from '../../geodesy/adapters/geolib.adapter';
-import {DataPaceMax, DataPaceMaxMinutesPerMile} from '../../data/data.pace-max';
-import {DataPace, DataPaceMinutesPerMile} from '../../data/data.pace';
-import {DataPaceMin, DataPaceMinMinutesPerMile} from '../../data/data.pace-min';
-import {DataPaceAvg, DataPaceAvgMinutesPerMile} from '../../data/data.pace-avg';
-import {DataBatteryCharge} from '../../data/data.battery-charge';
-import {DataBatteryConsumption} from '../../data/data.battery-consumption';
-import {DataBatteryLifeEstimation} from '../../data/data.battery-life-estimation';
-import {DataPositionInterface} from '../../data/data.position.interface';
-import {DataLatitudeDegrees} from '../../data/data.latitude-degrees';
-import {Stream} from '../../streams/stream';
+import { DataPowerMax } from '../../data/data.power-max';
+import { DataPowerMin } from '../../data/data.power-min';
+import { DataPowerAvg } from '../../data/data.power-avg';
+import { DataTemperatureMax } from '../../data/data.temperature-max';
+import { DataTemperatureMin } from '../../data/data.temperature-min';
+import { DataTemperatureAvg } from '../../data/data.temperature-avg';
+import { DataDistance } from '../../data/data.distance';
+import { DataDuration } from '../../data/data.duration';
+import { DataPause } from '../../data/data.pause';
+import { DataAscent } from '../../data/data.ascent';
+import { DataDescent } from '../../data/data.descent';
+import { GeoLibAdapter } from '../../geodesy/adapters/geolib.adapter';
+import { DataPaceMax, DataPaceMaxMinutesPerMile } from '../../data/data.pace-max';
+import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
+import { DataPaceMin, DataPaceMinMinutesPerMile } from '../../data/data.pace-min';
+import { DataPaceAvg, DataPaceAvgMinutesPerMile } from '../../data/data.pace-avg';
+import { DataBatteryCharge } from '../../data/data.battery-charge';
+import { DataBatteryConsumption } from '../../data/data.battery-consumption';
+import { DataBatteryLifeEstimation } from '../../data/data.battery-life-estimation';
+import { DataPositionInterface } from '../../data/data.position.interface';
+import { DataLatitudeDegrees } from '../../data/data.latitude-degrees';
+import { Stream } from '../../streams/stream';
 import {
   convertPaceToPaceInMinutesPerMile,
   convertSpeedToPace,
@@ -115,46 +115,46 @@ import {
   isNumber,
   isNumberOrString
 } from './helpers';
-import {DataLongitudeDegrees} from '../../data/data.longitude-degrees';
-import {StreamInterface} from '../../streams/stream.interface';
-import {DataActivityTypes} from '../../data/data.activity-types';
-import {DataDeviceNames} from '../../data/data.device-names';
-import {DataEnergy} from '../../data/data.energy';
-import {Privacy} from '../../privacy/privacy.class.interface';
-import {DataStartAltitude} from '../../data/data.start-altitude';
-import {DataEndAltitude} from '../../data/data.end-altitude';
-import {DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard} from '../../data/data.swim-pace-max';
-import {DataSwimPace, DataSwimPaceMinutesPer100Yard} from '../../data/data.swim-pace';
-import {DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard} from '../../data/data.swim-pace-min';
-import {DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard} from '../../data/data.swim-pace-avg';
-import {DataFeeling} from '../../data/data.feeling';
-import {DataPowerLeft} from '../../data/data.power-left';
-import {DataRightBalance} from '../../data/data.right-balance';
-import {DataLeftBalance} from '../../data/data.left-balance';
-import {DataPowerRight} from '../../data/data.power-right';
-import {DataAirPowerMin} from '../../data/data.air-power-min';
-import {DataAirPower} from '../../data/data.air-power';
-import {DataAirPowerMax} from '../../data/data.air-power-max';
-import {DataAirPowerAvg} from '../../data/data.-air-power-avg';
-import {DataInterface} from '../../data/data.interface';
-import {DataRPE} from '../../data/data.rpe';
-import {DataGNSSDistance} from '../../data/data.gnss-distance';
-import {DataHeartRateZoneOneDuration} from '../../data/data.heart-rate-zone-one-duration';
-import {DataHeartRateZoneTwoDuration} from '../../data/data.heart-rate-zone-two-duration';
-import {DataHeartRateZoneThreeDuration} from '../../data/data.heart-rate-zone-three-duration';
-import {DataHeartRateZoneFourDuration} from '../../data/data.heart-rate-zone-four-duration';
-import {DataHeartRateZoneFiveDuration} from '../../data/data.heart-rate-zone-five-duration';
-import {DataPowerZoneOneDuration} from '../../data/data.power-zone-one-duration';
-import {DataPowerZoneTwoDuration} from '../../data/data.power-zone-two-duration';
-import {DataPowerZoneThreeDuration} from '../../data/data.power-zone-three-duration';
-import {DataPowerZoneFourDuration} from '../../data/data.power-zone-four-duration';
-import {DataPowerZoneFiveDuration} from '../../data/data.power-zone-five-duration';
-import {DataSpeedZoneOneDuration} from '../../data/data.speed-zone-one-duration';
-import {DataSpeedZoneTwoDuration} from '../../data/data.speed-zone-two-duration';
-import {DataSpeedZoneThreeDuration} from '../../data/data.speed-zone-three-duration';
-import {DataSpeedZoneFourDuration} from '../../data/data.speed-zone-four-duration';
-import {DataSpeedZoneFiveDuration} from '../../data/data.speed-zone-five-duration';
-import {DynamicDataLoader} from '../../data/data.store';
+import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
+import { StreamInterface } from '../../streams/stream.interface';
+import { DataActivityTypes } from '../../data/data.activity-types';
+import { DataDeviceNames } from '../../data/data.device-names';
+import { DataEnergy } from '../../data/data.energy';
+import { Privacy } from '../../privacy/privacy.class.interface';
+import { DataStartAltitude } from '../../data/data.start-altitude';
+import { DataEndAltitude } from '../../data/data.end-altitude';
+import { DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard } from '../../data/data.swim-pace-max';
+import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from '../../data/data.swim-pace';
+import { DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard } from '../../data/data.swim-pace-min';
+import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from '../../data/data.swim-pace-avg';
+import { DataFeeling } from '../../data/data.feeling';
+import { DataPowerLeft } from '../../data/data.power-left';
+import { DataRightBalance } from '../../data/data.right-balance';
+import { DataLeftBalance } from '../../data/data.left-balance';
+import { DataPowerRight } from '../../data/data.power-right';
+import { DataAirPowerMin } from '../../data/data.air-power-min';
+import { DataAirPower } from '../../data/data.air-power';
+import { DataAirPowerMax } from '../../data/data.air-power-max';
+import { DataAirPowerAvg } from '../../data/data.-air-power-avg';
+import { DataInterface } from '../../data/data.interface';
+import { DataRPE } from '../../data/data.rpe';
+import { DataGNSSDistance } from '../../data/data.gnss-distance';
+import { DataHeartRateZoneOneDuration } from '../../data/data.heart-rate-zone-one-duration';
+import { DataHeartRateZoneTwoDuration } from '../../data/data.heart-rate-zone-two-duration';
+import { DataHeartRateZoneThreeDuration } from '../../data/data.heart-rate-zone-three-duration';
+import { DataHeartRateZoneFourDuration } from '../../data/data.heart-rate-zone-four-duration';
+import { DataHeartRateZoneFiveDuration } from '../../data/data.heart-rate-zone-five-duration';
+import { DataPowerZoneOneDuration } from '../../data/data.power-zone-one-duration';
+import { DataPowerZoneTwoDuration } from '../../data/data.power-zone-two-duration';
+import { DataPowerZoneThreeDuration } from '../../data/data.power-zone-three-duration';
+import { DataPowerZoneFourDuration } from '../../data/data.power-zone-four-duration';
+import { DataPowerZoneFiveDuration } from '../../data/data.power-zone-five-duration';
+import { DataSpeedZoneOneDuration } from '../../data/data.speed-zone-one-duration';
+import { DataSpeedZoneTwoDuration } from '../../data/data.speed-zone-two-duration';
+import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-duration';
+import { DataSpeedZoneFourDuration } from '../../data/data.speed-zone-four-duration';
+import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-duration';
+import { DynamicDataLoader } from '../../data/data.store';
 
 export class EventUtilities {
 
@@ -590,7 +590,7 @@ export class EventUtilities {
         return duration;
       }, null);
 
-      if (isNumber(zoneDuration)){
+      if (isNumber(zoneDuration)) {
         stats.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
       }
     });
@@ -1182,7 +1182,9 @@ export class EventUtilities {
     if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
       && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
       const streamData = activity.createStream(DataDistance.type).data; // Creating does not add it to activity just presets the resolution to 1s
+
       let distance = 0;
+      streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
       activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
         if (!position) {
           return prevPosition;

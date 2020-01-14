@@ -246,7 +246,18 @@ describe('Integration tests with native & custom dom parser', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
+
+          /*
+          TODO
+          How to fix the below assertion error:
+          Strava provide type as "<type>{number}</type>" in GPX
+          So if number, we find have to find the type from a mapping (to be defined)
+          1 = Ride
+          9 = Run
+          ... TO BE DONE ...
+           */
           expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
+
           expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);

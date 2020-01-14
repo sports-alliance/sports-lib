@@ -1,21 +1,21 @@
-import * as fs from 'fs';
-import { QuantifiedSelfLib } from '../src';
-import { EventInterface } from '../src/events/event.interface';
-import { DataHeartRate } from '../src/data/data.heart-rate';
-import { DataLongitudeDegrees } from '../src/data/data.longitude-degrees';
-import { DataLatitudeDegrees } from '../src/data/data.latitude-degrees';
-import { DataDistance } from '../src/data/data.distance';
-import { DataSpeed } from '../src/data/data.speed';
-import { DataCadence } from '../src/data/data.cadence';
-import { DataPower } from '../src/data/data.power';
-import { DataAltitude } from '../src/data/data.altitude';
-import { DataPace } from '../lib/data/data.pace';
-import * as xmldom from 'xmldom';
-import { ActivityTypes } from '../src/activities/activity.types';
+import * as fs from "fs";
+import { QuantifiedSelfLib } from "../src";
+import { EventInterface } from "../src/events/event.interface";
+import { DataHeartRate } from "../src/data/data.heart-rate";
+import { DataLongitudeDegrees } from "../src/data/data.longitude-degrees";
+import { DataLatitudeDegrees } from "../src/data/data.latitude-degrees";
+import { DataDistance } from "../src/data/data.distance";
+import { DataSpeed } from "../src/data/data.speed";
+import { DataCadence } from "../src/data/data.cadence";
+import { DataPower } from "../src/data/data.power";
+import { DataAltitude } from "../src/data/data.altitude";
+import * as xmldom from "xmldom";
+import { ActivityTypes } from "../src/activities/activity.types";
+import { DataPace } from "../src/data/data.pace";
 
-describe('Integration tests with native & custom dom parser', () => {
+describe("Integration tests with native & custom dom parser", () => {
 
-  describe('Native DOMParser', () => {
+  describe("Native DOMParser", () => {
 
     let domParser: DOMParser;
 

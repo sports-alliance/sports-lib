@@ -192,6 +192,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.getStream(streamType).getStreamDataByTime(this.startDate, filterNull, filterInfinity);
   }
 
+  getStreamDataByDuration(streamType: string, filterNull = false, filterInfinity = false): StreamDataItem[] {
+    return this.getStream(streamType).getStreamDataByDuration(0, filterNull, filterInfinity);
+  }
+
   addLap(lap: LapInterface): this {
     this.laps.push(lap);
     return this;

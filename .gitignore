@@ -42,7 +42,7 @@ testem.log
 Thumbs.db
 
 # build
-# lib
+lib
 
 # Api doc
 docs

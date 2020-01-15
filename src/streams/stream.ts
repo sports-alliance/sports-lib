@@ -17,15 +17,9 @@ export class Stream implements StreamInterface {
     return <number[]>this.data.filter(data => isNumber(data))
   }
 
-  /**
-   * Gets the data based / offset on a startDate
-   * @param startDate
-   * @param filterNull
-   * @param filterInfinity
-   */
-  getStreamDataByTime(startDate: Date, filterNull = false, filterInfinity = false): StreamDataItem[] {
+  getStreamDataByTime(startDate: Date, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if ((filterNull && dataItem === null) || (filterInfinity && dataItem === Infinity)) {
+      if ((onlyNumeric && !isNumber(dataItem)) || (filterInfinity && (dataItem === Infinity || dataItem === -Infinity))) {
         return accu
       }
       accu.push({
@@ -36,15 +30,9 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[])
   }
 
-  /**
-   * Gets the data offset on a time
-   * @param offset
-   * @param filterNull
-   * @param filterInfinity
-   */
-  getStreamDataByDuration(offset: number = 0, filterNull = false, filterInfinity = false): StreamDataItem[] {
+  getStreamDataByDuration(offset: number = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if ((filterNull && dataItem === null) || (filterInfinity && dataItem === Infinity)) {
+      if ((onlyNumeric && !isNumber(dataItem)) || (filterInfinity && (dataItem === Infinity || dataItem === -Infinity))) {
         return accu
       }
       accu.push({

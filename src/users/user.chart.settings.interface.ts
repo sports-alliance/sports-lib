@@ -12,6 +12,7 @@ export interface UserChartSettingsInterface {
   strokeOpacity: number,
   gainAndLossThreshold: number,
   extraMaxForPower: number,
+  extraMaxForPace: number,
   fillOpacity: number,
   lapTypes: LapTypes[],
   showLaps: boolean,

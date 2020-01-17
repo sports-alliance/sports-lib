@@ -175,7 +175,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
     return this.getAverage(data);
   }
 
@@ -668,7 +668,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
     if (max) {
       return this.getMax(data);
     }
@@ -819,6 +819,8 @@ export class EventUtilities {
     // Pace Avg
     if (!activity.getStat(DataPaceAvg.type)
       && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
+      const a = this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)
+      debugger;
       activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
     }
 

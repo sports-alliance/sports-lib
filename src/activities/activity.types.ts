@@ -211,6 +211,7 @@ export enum ActivityTypes {
   'Mountaineering' = 'Mountaineering',
   'mountaineering' = 'Mountaineering',
   'Orienteering' = 'Orienteering',
+  'running_navigate' = 'Orienteering',
   'Rugby' = 'Rugby',
   'Ski Touring' = 'Ski Touring',
   'Stretching' = 'Stretching',

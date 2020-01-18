@@ -240,7 +240,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Given
           const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx';
           const gpxString = fs.readFileSync(path).toString();
-          const expectedSamplesLength = 1495;
+          const expectedSamplesLength = 1038;
 
           // When
           const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
@@ -273,7 +273,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Given
           const path = __dirname + '/fixtures/virtual_rides/strava_export/20160422_virtualride_553573871.gpx';
           const gpxString = fs.readFileSync(path).toString();
-          const expectedSamplesLength = 1817;
+          const expectedSamplesLength = 3790;
 
           // When
           const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
@@ -530,7 +530,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Given
           const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx';
           const gpxString = fs.readFileSync(path).toString();
-          const expectedSamplesLength = 1495;
+          const expectedSamplesLength = 1038;
 
           // When
           const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
@@ -562,7 +562,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Given
           const path = __dirname + '/fixtures/virtual_rides/strava_export/20160422_virtualride_553573871.gpx';
           const gpxString = fs.readFileSync(path).toString();
-          const expectedSamplesLength = 1817;
+          const expectedSamplesLength = 3790;
 
           // When
           const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);

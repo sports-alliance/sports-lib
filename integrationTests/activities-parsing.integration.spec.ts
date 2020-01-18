@@ -1,21 +1,21 @@
-import * as fs from "fs";
-import { QuantifiedSelfLib } from "../src";
-import { EventInterface } from "../src/events/event.interface";
-import { DataHeartRate } from "../src/data/data.heart-rate";
-import { DataLongitudeDegrees } from "../src/data/data.longitude-degrees";
-import { DataLatitudeDegrees } from "../src/data/data.latitude-degrees";
-import { DataDistance } from "../src/data/data.distance";
-import { DataSpeed } from "../src/data/data.speed";
-import { DataCadence } from "../src/data/data.cadence";
-import { DataPower } from "../src/data/data.power";
-import { DataAltitude } from "../src/data/data.altitude";
-import * as xmldom from "xmldom";
-import { ActivityTypes } from "../src/activities/activity.types";
-import { DataPace } from "../src/data/data.pace";
+import * as fs from 'fs';
+import { QuantifiedSelfLib } from '../src';
+import { EventInterface } from '../src/events/event.interface';
+import { DataHeartRate } from '../src/data/data.heart-rate';
+import { DataLongitudeDegrees } from '../src/data/data.longitude-degrees';
+import { DataLatitudeDegrees } from '../src/data/data.latitude-degrees';
+import { DataDistance } from '../src/data/data.distance';
+import { DataSpeed } from '../src/data/data.speed';
+import { DataCadence } from '../src/data/data.cadence';
+import { DataPower } from '../src/data/data.power';
+import { DataAltitude } from '../src/data/data.altitude';
+import * as xmldom from 'xmldom';
+import { ActivityTypes } from '../src/activities/activity.types';
+import { DataPace } from '../src/data/data.pace';
 
-describe("Integration tests with native & custom dom parser", () => {
+describe('Integration tests with native & custom dom parser', () => {
 
-  describe("Native DOMParser", () => {
+  describe('Native DOMParser', () => {
 
     let domParser: DOMParser;
 
@@ -248,17 +248,7 @@ describe("Integration tests with native & custom dom parser", () => {
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
 
-            /*
-            TODO
-            How to fix the below assertion error:
-            Strava provide type as "<type>{number}</type>" in GPX
-            So if number, we find have to find the type from a mapping (to be defined)
-            1 = Ride
-            9 = Run
-            ... TO BE DONE ...
-             */
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
-
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);

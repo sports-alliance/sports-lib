@@ -1,16 +1,15 @@
-import {DataInterface} from '../data/data.interface';
-import {DataSpeedAvg} from '../data/data.speed-avg';
-import {DataPaceAvg} from '../data/data.pace-avg';
-import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
-import {DataPace} from '../data/data.pace';
-import {DataSpeed} from '../data/data.speed';
-import {DataSwimPace} from '../data/data.swim-pace';
-import {DataVerticalSpeedAvg} from '../data/data.vertical-speed-avg';
+import { DataSpeedAvg } from '../data/data.speed-avg';
+import { DataPaceAvg } from '../data/data.pace-avg';
+import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
+import { DataPace } from '../data/data.pace';
+import { DataSpeed } from '../data/data.speed';
+import { DataSwimPace } from '../data/data.swim-pace';
+import { DataVerticalSpeedAvg } from '../data/data.vertical-speed-avg';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
     return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
-      array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
+      array.push(ActivityTypes[<keyof typeof ActivityTypes> key]); // Important get the key via the enum else it will be chaos
       return array;
     }, []))).sort((left, right) => {
       if (left < right) {
@@ -22,6 +21,7 @@ export class ActivityTypesHelper {
       return 0;
     });
   }
+
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
@@ -37,9 +37,10 @@ export class ActivityTypesHelper {
       case ActivityTypes.swimming_lap_swimming:
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
       default:
-        return [DataSpeedAvg.type]
+        return [DataSpeedAvg.type];
     }
   }
+
   static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
@@ -53,7 +54,7 @@ export class ActivityTypesHelper {
       case ActivityTypes.swimming_lap_swimming:
         return [DataSpeed.type, DataSwimPace.type];
       default:
-        return [DataSpeed.type]
+        return [DataSpeed.type];
     }
   }
 }
@@ -76,6 +77,7 @@ export enum ActivityTypes {
   'Multisport' = 'Multisport',
   'multisport' = 'Multisport',
   'running_virtual_activity' = 'Virtual Running',
+  'VirtualRun' = 'Virtual Running',
   'Run' = 'Running',
   'run' = 'Running',
   'running_track' = 'Running',
@@ -92,6 +94,8 @@ export enum ActivityTypes {
   'biking' = 'Cycling',
   'e_biking' = 'E Biking',
   'E Biking' = 'E Biking',
+  'EBikeRide' = 'E Biking',
+  'Ride' = 'Cycling',
   'cycling_mountain' = 'Mountain biking',
   'MountainBiking' = 'Mountain biking',
   'Mountain Biking' = 'Mountain biking',
@@ -139,25 +143,31 @@ export enum ActivityTypes {
   'Indoor cycling' = 'Indoor Cycling',
   'Indoor Cycling' = 'Indoor Cycling',
   'cycling_virtual_activity' = 'Virtual Cycling',
+  'VirtualRide' = 'Virtual Cycling',
   'Circuit training' = 'Circuit training',
   'Triathlon' = 'Triathlon',
   'Alpine skiing' = 'Alpine skiing',
   'alpine_skiing' = 'Alpine skiing',
   'alpine_skiing_downhill' = 'Alpine skiing',
+  'AlpineSKi' = 'Alpine skiing',
   'Backcountry skiing' = 'Backcountry Skiing',
   'Backcountry Skiing' = 'Backcountry Skiing',
+  'BackcountrySki' = 'Backcountry Skiing',
   'cross_country_skiing_backcountry' = 'Backcountry Skiing',
   'Snowboarding' = 'Snowboarding',
   'snowboarding' = 'Snowboarding',
+  'Snowboard' = 'Snowboarding',
   'running_street' = 'Running',
   'running_road' = 'Running',
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'Crosscountry Skiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
+  'NordicSki' = 'Crosscountry Skiing',
   'backcountry' = 'Crosscountry Skiing',
   'downhill' = 'Downhill skiing',
   'Downhill skiing' = 'Downhill skiing',
   'Weight training' = 'Weight training',
+  'WeightTraining' = 'Weight training',
   'Basketball' = 'Basketball',
   'Soccer' = 'Soccer',
   'Ice Hockey' = 'Ice Hockey',
@@ -238,8 +248,10 @@ export enum ActivityTypes {
   'Windsurfing/Surfing' = 'Windsurfing',
   'windsurfing' = 'Windsurfing',
   'Windsurfing' = 'Windsurfing',
+  'Windsurf' = 'Windsurfing',
   'Kettlebell' = 'Kettlebell',
   'Roller skiing' = 'Roller skiing',
+  'RollerSki' = 'Roller skiing',
   'paddling' = 'Paddling',
   'Paddling' = 'Paddling',
   'flying' = 'Flying',
@@ -249,6 +261,7 @@ export enum ActivityTypes {
   'Kitesurfing/Kiting' = 'Kitesurfing',
   'kitesurfing' = 'Kitesurfing',
   'Kitesurfing' = 'Kitesurfing',
+  'Kitesurf' = 'Kitesurfing',
   'tactical' = 'Tactical',
   'Tactical' = 'Tactical',
   'jumpmaster' = 'Jumpmaster',
@@ -281,15 +294,18 @@ export enum ActivityTypes {
   'inline_skating' = 'Inline Skating',
   'Inline Skating' = 'Inline Skating',
   'Inline skating' = 'Inline Skating',
+  'InlineSkate' = 'Inline Skating',
   'rock_climbing' = 'Rock Climbing',
   'Rock Climbing' = 'Rock Climbing',
   'Rock climbing' = 'Rock Climbing',
+  'RockClimbing' = 'Rock Climbing',
   'sky_diving' = 'Sky Diving',
   'Sky Diving' = 'Sky Diving',
   'Sky diving' = 'Sky Diving',
   'sky diving' = 'Sky Diving',
   'snowshoeing' = 'Snowshoeing',
   'Snowshoeing' = 'Snowshoeing',
+  'Snowshoe' = 'Snowshoeing',
   'snowmobiling' = 'Snowmobiling',
   'Snowmobiling' = 'Snowmobiling',
   'stand_up_paddleboarding' = 'Stand up paddling',
@@ -298,6 +314,7 @@ export enum ActivityTypes {
   'stand up paddling' = 'Stand up paddling',
   'Stand Up Paddling' = 'Stand up paddling',
   'Stand up Paddling' = 'Stand up paddling',
+  'StandUpPaddling' = 'Stand up paddling',
   'surfing' = 'Surfing',
   'Surfing' = 'Surfing',
   'wakeboarding' = 'Wakeboarding',
@@ -314,5 +331,53 @@ export enum ActivityTypes {
   'training_cardio_training' = 'Cardio Training',
   'Cardio Training' = 'Cardio Training',
   'fitness_equipment_elliptical' = 'Elliptical trainer',
-  'Elliptical trainer' = 'Elliptical trainer'
+  'Elliptical trainer' = 'Elliptical trainer',
+  'Elliptical' = 'Elliptical trainer',
+  'Crossfit' = 'Crossfit',
+  'Handcycle' = 'Hand cycle',
+  'IceSkate' = 'Ice Skate',
+  'StairStepper' = 'Stair Stepper',
+  'Velomobile' = 'Velomobile',
+  'Wheelchair' = 'Wheel chair',
+  'Workout' = 'Workout',
+}
+
+
+export class StravaGPXTypeMapping {
+
+  public static readonly map: Array<{ id: number, type: string }> = [
+    {id: 1, type: 'Ride'},
+    {id: 2, type: 'AlpineSKi'},
+    {id: 3, type: 'BackcountrySki'},
+    {id: 4, type: 'Hike'},
+    {id: 5, type: 'IceSkate'},
+    {id: 6, type: 'InlineSkate'},
+    {id: 7, type: 'NordicSki'},
+    {id: 8, type: 'RollerSki'},
+    {id: 9, type: 'Run'},
+    {id: 10, type: 'Walk'},
+    {id: 11, type: 'Workout'},
+    {id: 12, type: 'Snowboard'},
+    {id: 13, type: 'Snowshoe'},
+    {id: 14, type: 'Kitesurf'},
+    {id: 15, type: 'Windsurf'},
+    {id: 16, type: 'Swim'},
+    {id: 17, type: 'VirtualRide'},
+    {id: 18, type: 'EBikeRide'},
+    {id: 19, type: 'Velomobile'},
+    {id: 21, type: 'Canoeing'},
+    {id: 22, type: 'Kayaking'},
+    {id: 23, type: 'Rowing'},
+    {id: 24, type: 'StandUpPaddling'},
+    {id: 25, type: 'Surfing'},
+    {id: 26, type: 'Crossfit'},
+    {id: 27, type: 'Elliptical'},
+    {id: 28, type: 'RockClimbing'},
+    {id: 29, type: 'StairStepper'},
+    {id: 30, type: 'WeightTraining'},
+    {id: 31, type: 'Yoga'},
+    {id: 51, type: 'Handcycle'},
+    {id: 52, type: 'Wheelchair'},
+    {id: 53, type: 'VirtualRun'}
+  ];
 }

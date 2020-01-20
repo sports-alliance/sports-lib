@@ -597,9 +597,19 @@ export class EventUtilities {
       }
     });
 
-    debugger;
-
-
+    // Add start and end position
+    // This expects the to be sorted
+    const activitiesWithStartPosition = activities.filter(activity => activity.getStat(DataStartPosition.type));
+    const activitiesWithEndPosition = activities.filter(activity => activity.getStat(DataEndPosition.type));
+    if (activitiesWithStartPosition && activitiesWithStartPosition.length) {
+      const startPositionStat = <DataStartPosition>activitiesWithStartPosition[0].getStat(DataStartPosition.type);
+      stats.push(new DataStartPosition(startPositionStat.getValue()));
+    }
+    if (activitiesWithEndPosition && activitiesWithEndPosition.length) {
+      const endPositionStat = <DataEndPosition>activitiesWithEndPosition[activitiesWithEndPosition.length - 1].getStat(DataEndPosition.type);
+      stats.push(new DataEndPosition(endPositionStat.getValue()));
+    }
+    // debugger;
     return stats;
   }
 

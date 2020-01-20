@@ -2,7 +2,7 @@ import {DataBare} from './data.bare';
 import {DataPositionInterface} from './data.position.interface';
 import {isNumber} from '../events/utilities/helpers';
 
-export abstract class DataPosition extends DataBare {
+export class DataPosition extends DataBare {
   static type = 'Position';
   protected value: DataPositionInterface;
 

@@ -1,6 +1,7 @@
 import {DataInterface, UnitSystem} from './data.interface';
 import {DataJSONInterface} from './data.json.interface';
 import {DataPositionInterface} from './data.position.interface';
+import {isNumber} from '../events/utilities/helpers';
 
 export abstract class Data implements DataInterface {
   static type: string; // @todo perhas add enum type
@@ -13,8 +14,8 @@ export abstract class Data implements DataInterface {
     if (!this.getType()) {
       throw new Error('Type not set');
     }
-    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value)) {
-      throw new Error('Value is not boolean or number or string');
+    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value) && !isNumber(value.latitudeDegrees) && !isNumber(value.longitudeDegrees)) {
+      throw new Error('Value is not boolean or number or string or position');
     }
     this.value = value;
   }

@@ -7,7 +7,7 @@ export class DataPosition extends DataBare {
   protected value: DataPositionInterface;
 
   constructor(value: DataPositionInterface) {
-    if (!isNumber(value.longitudeDegrees) || !isNumber(value.longitudeDegrees)) {
+    if (!isNumber(value.longitudeDegrees) || !isNumber(value.latitudeDegrees)) {
       throw new Error('Only valid positional data are allowed');
     }
     super(value);
@@ -16,5 +16,9 @@ export class DataPosition extends DataBare {
 
   getValue(): DataPositionInterface {
     return this.value;
+  }
+
+  getDisplayValue(): string {
+    return `${this.getValue().latitudeDegrees.toString()}, ${this.getValue().longitudeDegrees.toString()}`
   }
 }

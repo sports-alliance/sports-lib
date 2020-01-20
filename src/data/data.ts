@@ -1,35 +1,39 @@
 import {DataInterface, UnitSystem} from './data.interface';
 import {DataJSONInterface} from './data.json.interface';
+import {DataPositionInterface} from './data.position.interface';
 
 export abstract class Data implements DataInterface {
   static type: string; // @todo perhas add enum type
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;
-  protected value: number | string | boolean | string[];
+  protected value: number | string | boolean | string[] | DataPositionInterface;
 
-  protected constructor(value: string | number | boolean | string[]) {
+  protected constructor(value: string | number | boolean | string[] | DataPositionInterface) {
     if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value)) {
       throw new Error('Value is not boolean or number or string ');
     }
     this.value = value;
   }
 
-  setValue(value: string | number | boolean| string[]): this {
+  setValue(value: string | number | boolean| string[]| DataPositionInterface): this {
     this.value = value;
     return this;
   }
 
-  getValue(formatForDataType?: string): string | number | boolean | string[] {
+  getValue(formatForDataType?: string): string | number | boolean | string[]| DataPositionInterface {
     return this.value;
   }
 
   getDisplayValue(): number | string | string[] {
-    let value = this.getValue();
-    if (typeof value === 'boolean') {
-      value = String(value);
+    const value = this.getValue();
+    switch (typeof value) {
+      case 'string':
+      case 'number':
+        return value;
+      default:
+        return String(value);
     }
-    return value;
   }
 
   getType(): string {

@@ -3,6 +3,7 @@ import {DataPositionInterface} from './data.position.interface';
 import {isNumber} from '../events/utilities/helpers';
 
 export abstract class DataPosition extends DataBare {
+  static type = 'Position';
   protected value: DataPositionInterface;
 
   constructor(value: DataPositionInterface) {

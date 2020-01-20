@@ -10,8 +10,11 @@ export abstract class Data implements DataInterface {
   protected value: number | string | boolean | string[] | DataPositionInterface;
 
   protected constructor(value: string | number | boolean | string[] | DataPositionInterface) {
+    if (!this.getType()) {
+      throw new Error('Type not set');
+    }
     if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value)) {
-      throw new Error('Value is not boolean or number or string ');
+      throw new Error('Value is not boolean or number or string');
     }
     this.value = value;
   }

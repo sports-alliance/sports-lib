@@ -155,6 +155,8 @@ import {DataSpeedZoneThreeDuration} from '../../data/data.speed-zone-three-durat
 import {DataSpeedZoneFourDuration} from '../../data/data.speed-zone-four-duration';
 import {DataSpeedZoneFiveDuration} from '../../data/data.speed-zone-five-duration';
 import {DynamicDataLoader} from '../../data/data.store';
+import {DataStartPosition} from '../../data/data.start-position';
+import {DataEndPosition} from '../../data/data.end-position';
 
 export class EventUtilities {
 
@@ -590,7 +592,7 @@ export class EventUtilities {
         return duration;
       }, null);
 
-      if (isNumber(zoneDuration)){
+      if (isNumber(zoneDuration)) {
         stats.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
       }
     });
@@ -914,6 +916,22 @@ export class EventUtilities {
         activity.addStat(new DataBatteryLifeEstimation(Number((+activity.endDate - +activity.startDate) / 1000 * 100) / Number(consumption.getValue())));
       }
     }
+
+    // Start and end position
+    if ((!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type))
+      && activity.hasStreamData(DataLatitudeDegrees.type, activity.startDate, activity.endDate) && activity.hasStreamData(DataLongitudeDegrees.type, activity.startDate, activity.endDate)) {
+      const activityPositionData = activity
+        .getPositionData(activity.startDate, activity.endDate, activity.getStream(DataLatitudeDegrees.type), activity.getStream(DataLongitudeDegrees.type))
+        .filter(data => data !== null);
+      const startPosition = activityPositionData[0];
+      const endPosition = activityPositionData[activityPositionData.length - 1];
+      if (startPosition && !activity.getStat(DataStartPosition.type)) {
+        activity.addStat(new DataStartPosition(startPosition));
+      }
+      if (endPosition && !activity.getStat(DataEndPosition.type)) {
+        activity.addStat(new DataEndPosition(endPosition));
+      }
+    }
   }
 
   // @todo move to factory
@@ -1232,7 +1250,6 @@ export class EventUtilities {
       }, []);
       activity.addStream(leftPowerStream);
     }
-
     return activity;
   }
 

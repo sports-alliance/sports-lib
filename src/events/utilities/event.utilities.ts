@@ -819,8 +819,6 @@ export class EventUtilities {
     // Pace Avg
     if (!activity.getStat(DataPaceAvg.type)
       && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-      const a = this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)
-      debugger;
       activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
     }
 

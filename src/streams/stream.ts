@@ -4,7 +4,7 @@ import {DynamicDataLoader} from '../data/data.store';
 
 export class Stream implements StreamInterface {
   public readonly type: string;
-  public data: (number | null)[] = [];
+  protected data: (number | null)[] = [];
 
   constructor(type: string, data?: (number | null)[]) {
     this.type = type;
@@ -13,13 +13,21 @@ export class Stream implements StreamInterface {
     }
   }
 
-  getNumericData(): number[] {
-    return <number[]>this.data.filter(data => isNumber(data))
+  getData(onlyNumeric = false, filterInfinity = false): (number | null)[] {
+    if (!onlyNumeric && !filterInfinity) {
+      return this.data;
+    }
+    return <number[]>this.data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity))
+  }
+
+  setData(data: (number | null)[]): this {
+    this.data = data;
+    return this;
   }
 
   getStreamDataByTime(startDate: Date, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if ((onlyNumeric && !isNumber(dataItem)) || (filterInfinity && (dataItem === Infinity || dataItem === -Infinity))) {
+      if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
         return accu
       }
       accu.push({
@@ -32,7 +40,7 @@ export class Stream implements StreamInterface {
 
   getStreamDataByDuration(offset: number = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.data.reduce((accu, dataItem, index) => {
-      if ((onlyNumeric && !isNumber(dataItem)) || (filterInfinity && (dataItem === Infinity || dataItem === -Infinity))) {
+      if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
         return accu
       }
       accu.push({
@@ -52,6 +60,10 @@ export class Stream implements StreamInterface {
       type: this.type,
       data: this.data,
     };
+  }
+
+  private shouldDataBeFiltered(data: any, onlyNumeric: boolean, filterInfinity: boolean): boolean {
+    return (onlyNumeric && !isNumber(data)) || (filterInfinity && (data === Infinity || data === -Infinity))
   }
 }
 

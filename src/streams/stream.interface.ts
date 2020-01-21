@@ -1,6 +1,15 @@
 import {SerializableClassInterface} from '../serializable/serializable.class.interface';
 import {StreamJSONInterface} from './stream';
 
+/**
+ * A stream consists of an array of data like this for example
+ * AltitudeStream: [100, 110, null, 112, 200, null, 300]
+ * The sampling rate of streams is fixed to 1s
+ * That means that on the above example the duration is seconds would be:
+ * [1,2,3,4,5,6,6]
+ *
+ * null means no value and that means missing data.
+ */
 export interface StreamInterface extends SerializableClassInterface {
 
   /**
@@ -10,14 +19,17 @@ export interface StreamInterface extends SerializableClassInterface {
   type: string;
 
   /**
-   * An array of values that represents a slug that should be 1s of duration or 1000ms
+   * Get's back the streams data as an array
+   * @param onlyNumeric
+   * @param filterInfinity
    */
-  data: (number | null)[];
+  getData(onlyNumeric?: boolean, filterInfinity?: boolean): (number | null)[];
 
   /**
-   * Gets back the data but wipes out all non numeric values
+   * Sets the data for this stream
+   * @param data
    */
-  getNumericData(): (number)[];
+  setData(data: (number | null)[]): this;
 
   /**
    * Gets the data based / offset on a startDate

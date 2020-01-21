@@ -9,7 +9,9 @@ describe('Stream', () => {
 
   it('should get numeric data', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
-    expect(stream.getNumericData()).toEqual([200, 502, Infinity, -Infinity, 0]);
+    expect(stream.getData(true)).toEqual([200, 502, Infinity, -Infinity, 0]);
+    expect(stream.getData(false, true)).toEqual([200, null, 502, NaN, 0]);
+    expect(stream.getData(true, true)).toEqual([200, 502, 0]);
   });
 
 

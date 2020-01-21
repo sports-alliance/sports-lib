@@ -105,22 +105,22 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[] {
     const stream = (streamType instanceof Stream) ? streamType : this.getStream(<string>streamType);
     if (!startDate && !endDate) {
-      return stream.data;
+      return stream.getData();
     }
 
     if (startDate && endDate) {
-      return stream.data
+      return stream.getData()
         .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) <= endDate)
         .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) >= startDate)
     }
 
     if (startDate) {
-      return stream.data
+      return stream.getData()
         .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) > startDate);
     }
 
     if (endDate) {
-      return stream.data
+      return stream.getData()
         .filter((value, index) => (new Date(this.startDate.getTime() + index * 1000)) < endDate);
     }
 
@@ -182,7 +182,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         .filter(stream => stream.type !== streamTypeToBaseOn)
         .filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
-
 
   getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } } {
     return EventUtilities.getStreamDataTypesBasedOnTime(this.startDate, this.endDate, this.getAllStreams().filter(stream => streamTypes.indexOf(stream.type) !== -1))

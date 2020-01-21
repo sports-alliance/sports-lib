@@ -10,7 +10,7 @@ import {DataSpeed} from '../../../src/data/data.speed';
 import {DataCadence} from '../../../src/data/data.cadence';
 import {DataPower} from '../../../src/data/data.power';
 import {DataAltitude} from '../../../src/data/data.altitude';
-import {DataPace} from '../../../lib/data/data.pace';
+import {DataPace} from '../../../src/data/data.pace';
 
 describe('Integration tests of TCX files parsing', () => {
 

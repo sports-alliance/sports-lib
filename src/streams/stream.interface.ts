@@ -32,6 +32,13 @@ export interface StreamInterface extends SerializableClassInterface {
   setData(data: (number | null)[]): this;
 
   /**
+   * Returns an array of time as of duration in seconds for the current data
+   * @param onlyNumeric
+   * @param filterInfinity
+   */
+  getDurationOfData(onlyNumeric?: boolean, filterInfinity?: boolean): (number | null)[]
+
+  /**
    * Gets the data based / offset on a startDate
    * @param startDate
    * @param onlyNumeric

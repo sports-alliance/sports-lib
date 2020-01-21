@@ -9,11 +9,19 @@ describe('Stream', () => {
 
   it('should get numeric data', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
+    expect(stream.getData()).toEqual([200, null, 502, Infinity, -Infinity, NaN, 0]);
     expect(stream.getData(true)).toEqual([200, 502, Infinity, -Infinity, 0]);
     expect(stream.getData(false, true)).toEqual([200, null, 502, NaN, 0]);
     expect(stream.getData(true, true)).toEqual([200, 502, 0]);
   });
 
+  it('should get the duration of data', () => {
+    const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
+    expect(stream.getDurationOfData()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(stream.getDurationOfData(true)).toEqual([0, 2, 3, 4, 6]);
+    expect(stream.getDurationOfData(false, true)).toEqual([0, 1, 2, 5, 6]);
+    expect(stream.getDurationOfData(true, true)).toEqual([0, 2, 6]);
+  });
 
   it('should get stream data by time', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
@@ -76,15 +84,15 @@ describe('Stream', () => {
         value: null
       },
       {
-        time:  2000,
+        time: 2000,
         value: 502
       },
       {
-        time:  3000,
+        time: 3000,
         value: Infinity
       },
       {
-        time:  4000,
+        time: 4000,
         value: -Infinity
       },
       {

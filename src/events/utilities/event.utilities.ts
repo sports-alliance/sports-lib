@@ -3,12 +3,7 @@ import { ActivityInterface } from '../../activities/activity.interface';
 import { Event } from '../event';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
-import {
-  DataSpeed,
-  DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour,
-  DataSpeedMilesPerHour
-} from '../../data/data.speed';
+import { DataSpeed, DataSpeedFeetPerSecond, DataSpeedKilometersPerHour, DataSpeedMilesPerHour } from '../../data/data.speed';
 import {
   DataVerticalSpeed,
   DataVerticalSpeedFeetPerHour,
@@ -111,12 +106,14 @@ import {
   convertSpeedToSpeedInKilometersPerHour,
   convertSpeedToSpeedInMetersPerHour,
   convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour, convertSpeedToSwimPace, convertSwimPaceToSwimPacePer100Yard,
+  convertSpeedToSpeedInMilesPerHour,
+  convertSpeedToSwimPace,
+  convertSwimPaceToSwimPacePer100Yard,
   isNumber,
   isNumberOrString
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
-import { StreamInterface } from '../../streams/stream.interface';
+import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
 import { DataActivityTypes } from '../../data/data.activity-types';
 import { DataDeviceNames } from '../../data/data.device-names';
 import { DataEnergy } from '../../data/data.energy';
@@ -155,8 +152,8 @@ import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-dur
 import { DataSpeedZoneFourDuration } from '../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-duration';
 import { DynamicDataLoader } from '../../data/data.store';
-import {DataStartPosition} from '../../data/data.start-position';
-import {DataEndPosition} from '../../data/data.end-position';
+import { DataStartPosition } from '../../data/data.start-position';
+import { DataEndPosition } from '../../data/data.end-position';
 
 export class EventUtilities {
 
@@ -177,7 +174,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== -Infinity);
     return this.getAverage(data);
   }
 
@@ -680,7 +677,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = activity
-      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== -Infinity);
     if (max) {
       return this.getMax(data);
     }
@@ -1229,6 +1226,27 @@ export class EventUtilities {
       }
       if (!activity.hasStreamData(DataGNSSDistance.type)) {
         activity.addStream(new Stream(DataGNSSDistance.type, streamData));
+      }
+
+      if (!activity.hasStreamData(DataSpeed.type)) {
+
+        const speedStreamData = activity.createStream(DataSpeed.type).getData();
+        activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
+
+          if (distanceData.value === 0) {
+            speedStreamData[index] = 0;
+            return;
+          }
+
+          if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
+            speedStreamData[index] = distanceData.value / (distanceData.time / 1000);
+            return;
+          }
+
+          speedStreamData[index] = null;
+
+        });
+        activity.addStream(new Stream(DataSpeed.type, speedStreamData));
       }
     }
 

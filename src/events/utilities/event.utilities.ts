@@ -155,6 +155,8 @@ import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-dur
 import { DataSpeedZoneFourDuration } from '../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-duration';
 import { DynamicDataLoader } from '../../data/data.store';
+import {DataStartPosition} from '../../data/data.start-position';
+import {DataEndPosition} from '../../data/data.end-position';
 
 export class EventUtilities {
 
@@ -175,7 +177,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
     return this.getAverage(data);
   }
 
@@ -307,14 +309,14 @@ export class EventUtilities {
 
 
   public static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): { [type: string]: { [type: string]: number | null } } {
-    return streamToBaseOn.data.reduce((accu: { [type: string]: { [type: string]: number | null } }, streamDataItem, index) => {
+    return streamToBaseOn.getData().reduce((accu: { [type: string]: { [type: string]: number | null } }, streamDataItem, index) => {
       if (!isNumberOrString(streamDataItem)) {
         return accu
       }
       streams.forEach((stream) => {
-        if (isNumberOrString(stream.data[index])) {
+        if (isNumberOrString(stream.getData()[index])) {
           accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
-          accu[<number>streamDataItem][stream.type] = stream.data[index];
+          accu[<number>streamDataItem][stream.type] = stream.getData()[index];
         }
       });
       return accu
@@ -325,9 +327,9 @@ export class EventUtilities {
     const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
     for (let i = 0; i < this.getDataLength(startDate, endDate); i++) { // Perhaps this can be optimized with a search function
       streams.forEach((stream: StreamInterface) => {
-        if (isNumber(stream.data[i])) {
+        if (isNumber(stream.getData()[i])) {
           streamDataBasedOnTime[startDate.getTime() + (i * 1000)] = streamDataBasedOnTime[startDate.getTime() + (i * 1000)] || {};
-          streamDataBasedOnTime[startDate.getTime() + (i * 1000)][stream.type] = stream.data[i];
+          streamDataBasedOnTime[startDate.getTime() + (i * 1000)][stream.type] = stream.getData()[i];
         }
       })
     }
@@ -595,9 +597,19 @@ export class EventUtilities {
       }
     });
 
-    debugger;
-
-
+    // Add start and end position
+    // This expects the to be sorted
+    const activitiesWithStartPosition = activities.filter(activity => activity.getStat(DataStartPosition.type));
+    const activitiesWithEndPosition = activities.filter(activity => activity.getStat(DataEndPosition.type));
+    if (activitiesWithStartPosition && activitiesWithStartPosition.length) {
+      const startPositionStat = <DataStartPosition>activitiesWithStartPosition[0].getStat(DataStartPosition.type);
+      stats.push(new DataStartPosition(startPositionStat.getValue()));
+    }
+    if (activitiesWithEndPosition && activitiesWithEndPosition.length) {
+      const endPositionStat = <DataEndPosition>activitiesWithEndPosition[activitiesWithEndPosition.length - 1].getStat(DataEndPosition.type);
+      stats.push(new DataEndPosition(endPositionStat.getValue()));
+    }
+    // debugger;
     return stats;
   }
 
@@ -668,7 +680,7 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     const data = activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== - Infinity);
     if (max) {
       return this.getMax(data);
     }
@@ -912,6 +924,22 @@ export class EventUtilities {
       const consumption = activity.getStat(DataBatteryConsumption.type);
       if (consumption && consumption.getValue()) {
         activity.addStat(new DataBatteryLifeEstimation(Number((+activity.endDate - +activity.startDate) / 1000 * 100) / Number(consumption.getValue())));
+      }
+    }
+
+    // Start and end position
+    if ((!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type))
+      && activity.hasStreamData(DataLatitudeDegrees.type, activity.startDate, activity.endDate) && activity.hasStreamData(DataLongitudeDegrees.type, activity.startDate, activity.endDate)) {
+      const activityPositionData = activity
+        .getPositionData(activity.startDate, activity.endDate, activity.getStream(DataLatitudeDegrees.type), activity.getStream(DataLongitudeDegrees.type))
+        .filter(data => data !== null);
+      const startPosition = activityPositionData[0];
+      const endPosition = activityPositionData[activityPositionData.length - 1];
+      if (startPosition && !activity.getStat(DataStartPosition.type)) {
+        activity.addStat(new DataStartPosition(startPosition));
+      }
+      if (endPosition && !activity.getStat(DataEndPosition.type)) {
+        activity.addStat(new DataEndPosition(endPosition));
       }
     }
   }
@@ -1181,8 +1209,7 @@ export class EventUtilities {
   public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
     if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
       && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
-      const streamData = activity.createStream(DataDistance.type).data; // Creating does not add it to activity just presets the resolution to 1s
-
+      const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
       let distance = 0;
       streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
       activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
@@ -1209,14 +1236,14 @@ export class EventUtilities {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
-      rightPowerStream.data = rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+      rightPowerStream.setData(rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
         const powerStreamDataItem = powerStreamData[index];
         if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
           return accu
         }
         accu[index] = (streamData / 100) * powerStreamDataItem;
         return accu
-      }, []);
+      }, []));
       activity.addStream(rightPowerStream);
     }
 
@@ -1224,17 +1251,16 @@ export class EventUtilities {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
-      leftPowerStream.data = leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+      leftPowerStream.setData(leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
         const powerStreamDataItem = powerStreamData[index];
         if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
           return accu
         }
         accu[index] = (streamData / 100) * powerStreamDataItem;
         return accu
-      }, []);
+      }, []));
       activity.addStream(leftPowerStream);
     }
-
     return activity;
   }
 
@@ -1264,7 +1290,7 @@ export class EventUtilities {
 
     // Pace
     if (!paceStream) {
-      paceStream = new Stream(DataPace.type, speedStream.data.map(dataValue => {
+      paceStream = new Stream(DataPace.type, speedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1275,7 +1301,7 @@ export class EventUtilities {
 
     // Swim Pace
     if (!swimPaceStream) {
-      swimPaceStream = new Stream(DataSwimPace.type, speedStream.data.map(dataValue => {
+      swimPaceStream = new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1285,7 +1311,7 @@ export class EventUtilities {
     }
 
     // Generate speed in Kilometers per hour
-    unitStreams.push(new Stream(DataSpeedKilometersPerHour.type, speedStream.data.map(dataValue => {
+    unitStreams.push(new Stream(DataSpeedKilometersPerHour.type, speedStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
         return null
       }
@@ -1293,7 +1319,7 @@ export class EventUtilities {
     })));
 
     // Generate speed in Miles per hour
-    unitStreams.push(new Stream(DataSpeedMilesPerHour.type, speedStream.data.map(dataValue => {
+    unitStreams.push(new Stream(DataSpeedMilesPerHour.type, speedStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
         return null
       }
@@ -1301,7 +1327,7 @@ export class EventUtilities {
     })));
 
     // Generate speed in feet per second
-    unitStreams.push(new Stream(DataSpeedFeetPerSecond.type, speedStream.data.map(dataValue => {
+    unitStreams.push(new Stream(DataSpeedFeetPerSecond.type, speedStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
         return null
       }
@@ -1309,7 +1335,7 @@ export class EventUtilities {
     })));
 
     // Generate pace in minutes per mile
-    unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.data.map(dataValue => {
+    unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
         return null
       }
@@ -1317,7 +1343,7 @@ export class EventUtilities {
     })));
 
     // Generate swim pace in minutes per 100 yard
-    unitStreams.push(new Stream(DataSwimPaceMinutesPer100Yard.type, swimPaceStream.data.map(dataValue => {
+    unitStreams.push(new Stream(DataSwimPaceMinutesPer100Yard.type, swimPaceStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
         return null
       }
@@ -1327,7 +1353,7 @@ export class EventUtilities {
     // If we have more vertical speed data
     if (verticalSpeedStream) {
       // Generate vertical speed in feet per second
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerSecond.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerSecond.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1335,14 +1361,14 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in meters per minute
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
         return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
       })));
 
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1350,7 +1376,7 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in feet per mintute
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerMinute.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1358,7 +1384,7 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in meters per hour
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerHour.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedMetersPerHour.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1366,7 +1392,7 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in feet per hour
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerHour.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedFeetPerHour.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1374,7 +1400,7 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in in kilometers per hour
-      unitStreams.push(new Stream(DataVerticalSpeedKilometerPerHour.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedKilometerPerHour.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }
@@ -1382,7 +1408,7 @@ export class EventUtilities {
       })));
 
       // Generate vertical speed in miles per hour
-      unitStreams.push(new Stream(DataVerticalSpeedMilesPerHour.type, verticalSpeedStream.data.map(dataValue => {
+      unitStreams.push(new Stream(DataVerticalSpeedMilesPerHour.type, verticalSpeedStream.getData().map(dataValue => {
         if (!isNumber(dataValue)) {
           return null
         }

@@ -1208,7 +1208,6 @@ export class EventUtilities {
       && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
       const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
       let distance = 0;
-      streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
       activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
         if (!position) {
           return prevPosition;
@@ -1232,11 +1231,6 @@ export class EventUtilities {
 
         const speedStreamData = activity.createStream(DataSpeed.type).getData();
         activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
-
-          if (distanceData.value === 0) {
-            speedStreamData[index] = 0;
-            return;
-          }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
             speedStreamData[index] = distanceData.value / (distanceData.time / 1000);

@@ -140,9 +140,9 @@ describe('EventUtilities', () => {
 
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(200);
     // Add more altitude data but this time ascenting so it would not affect the Loss
-    event.getFirstActivity().getStreamData(DataAltitude.type).push(200);// Loss 0
-    event.getFirstActivity().getStreamData(DataAltitude.type).push(300);// Loss 0
-    event.getFirstActivity().getStreamData(DataAltitude.type).push(400);// Loss 0
+    event.getFirstActivity().getStreamData(DataAltitude.type).push(200); // Loss 0
+    event.getFirstActivity().getStreamData(DataAltitude.type).push(300); // Loss 0
+    event.getFirstActivity().getStreamData(DataAltitude.type).push(400); // Loss 0
 
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(200);
 
@@ -154,7 +154,7 @@ describe('EventUtilities', () => {
   });
 
   it('should get the correct loss for a DataType with a changed min difference', () => {
-   event.getFirstActivity().addStream(
+    event.getFirstActivity().addStream(
       new Stream(DataAltitude.type, [400, 300, 200]),
     );
 
@@ -166,7 +166,7 @@ describe('EventUtilities', () => {
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type, void 0, void 0, 201)).toBe(0);
 
     // Add more
-        event.getFirstActivity().getStreamData(DataAltitude.type).push(500);
+    event.getFirstActivity().getStreamData(DataAltitude.type).push(500);
     event.getFirstActivity().getStreamData(DataAltitude.type).push(499);
     event.getFirstActivity().getStreamData(DataAltitude.type).push(498);
 
@@ -182,7 +182,7 @@ describe('EventUtilities', () => {
 
 
   it('should get the correct loss for a DataType with a set of points of non data', () => {
-     event.getFirstActivity().getAllStreams().push(
+    event.getFirstActivity().getAllStreams().push(
       new Stream(DataAltitude.type, [400, 200, 300, 100]), // loos 0, 200, 0, 400
     );
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(400);

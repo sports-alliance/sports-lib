@@ -1,8 +1,8 @@
-export interface UserAppSettingsInterface{
+export interface UserAppSettingsInterface {
   theme: AppThemes;
 }
 
 export enum AppThemes {
-  Normal= 'Normal',
+  Normal = 'Normal',
   Dark = 'Dark',
 }

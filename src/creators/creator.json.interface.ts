@@ -1,4 +1,4 @@
-import {DeviceJsonInterface} from "../activities/devices/device.json.interface";
+import {DeviceJsonInterface} from '../activities/devices/device.json.interface';
 
 export interface CreatorJSONInterface {
   name: string;

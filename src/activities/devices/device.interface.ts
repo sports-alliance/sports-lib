@@ -1,4 +1,4 @@
-import {SerializableClassInterface} from "../../serializable/serializable.class.interface";
+import {SerializableClassInterface} from '../../serializable/serializable.class.interface';
 
 export interface DeviceInterface extends SerializableClassInterface {
   type: string;

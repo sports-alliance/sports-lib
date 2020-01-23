@@ -10,7 +10,7 @@ import {DataPace} from '../../../../data/data.pace';
 import {DataVerticalSpeed} from '../../../../data/data.vertical-speed';
 import {DataPower} from '../../../../data/data.power';
 import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
-import {convertSpeedToPace, isNumberOrString} from "../../../utilities/helpers";
+import {convertSpeedToPace, isNumberOrString} from '../../../utilities/helpers';
 
 export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {

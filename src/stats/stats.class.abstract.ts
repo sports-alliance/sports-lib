@@ -26,7 +26,7 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     this.stats.delete(statType);
   }
 
-  clearStats(){
+  clearStats() {
     this.stats.clear();
   }
 

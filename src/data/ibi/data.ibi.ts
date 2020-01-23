@@ -1,9 +1,8 @@
 import {SerializableClassInterface} from '../../serializable/serializable.class.interface';
 import {IBIFilters} from './data.ibi.filters';
-import {Data} from "../data";
 
 export class IBIData implements SerializableClassInterface {
-  static  type = 'IBI'; // @todo hcakc fix
+  static type = 'IBI'; // @todo hcakc fix
   /**
    * Key is time time since start of the array
    * value is the ibi
@@ -62,7 +61,7 @@ export class IBIData implements SerializableClassInterface {
   }
 
   getAsArray(): number[] {
-    const ibi:number[] = [];
+    const ibi: number[] = [];
     this.ibiDataMap.forEach((value, key, map) => {
       ibi.push(value);
     });

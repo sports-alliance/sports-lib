@@ -5,8 +5,8 @@ import {Event} from '../../../event';
 import {ActivityTypes} from '../../../../activities/activity.types';
 import {ActivityInterface} from '../../../../activities/activity.interface';
 import {GPXSampleMapper} from './importer.gpx.mapper';
-import {isNumberOrString} from "../../../utilities/helpers";
-import {EventUtilities} from "../../../utilities/event.utilities";
+import {isNumberOrString} from '../../../utilities/helpers';
+import {EventUtilities} from '../../../utilities/event.utilities';
 import {GXParser} from './gx-parser';
 
 export class EventImporterGPX {
@@ -16,19 +16,19 @@ export class EventImporterGPX {
     return new Promise((resolve, reject) => {
 
       const parsedGPX: any = new GXParser(gpx, domParser);
-      const track = parsedGPX.trk || parsedGPX.rte ;
+      const track = parsedGPX.trk || parsedGPX.rte;
 
       const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {
         // Get the samples
         let samples: any[] = [];
         let isActivity = false;
-        if (trackOrRoute.trkseg ){
+        if (trackOrRoute.trkseg) {
           samples = trackOrRoute.trkseg.reduce((trkptArray: any[], trkseg: any) => {
             return trkptArray.concat(trkseg.trkpt)
           }, []);
           // Determine if it's a route. The samples will most probably be missing the time
           isActivity = !!samples[0].time;
-        }else if (trackOrRoute.rtept ) {
+        } else if (trackOrRoute.rtept) {
           samples = trackOrRoute.rtept;
         }
 
@@ -46,7 +46,7 @@ export class EventImporterGPX {
         const endDate = isActivity ?
           new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);
-        let activityType =  isActivity ? ActivityTypes.unknown : ActivityTypes.route;
+        let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
           activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]
         }

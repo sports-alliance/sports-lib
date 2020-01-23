@@ -24,6 +24,7 @@
     "watch": "tsc --watch",
     "build": "tsc",
     "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "lint:fix": "node ./node_modules/tslint/bin/tslint -c ./tslint.json ./**/*.ts --fix",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },

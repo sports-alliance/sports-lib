@@ -1,4 +1,3 @@
-import {DataInterface} from '../data/data.interface';
 import {DataSpeedAvg} from '../data/data.speed-avg';
 import {DataPaceAvg} from '../data/data.pace-avg';
 import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
@@ -22,7 +21,8 @@ export class ActivityTypesHelper {
       return 0;
     });
   }
-  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+
+  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
         return [DataPaceAvg.type];
@@ -40,7 +40,8 @@ export class ActivityTypesHelper {
         return [DataSpeedAvg.type]
     }
   }
-  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[]{
+
+  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
       case ActivityTypes['Trail Running']:

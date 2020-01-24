@@ -1,6 +1,6 @@
-import {EventInterface} from '../../../event.interface';
-import {EventImporterSuuntoJSON} from './importer.suunto.json';
-import {isNumber} from '../../../utilities/helpers';
+import { EventInterface } from '../../../event.interface';
+import { EventImporterSuuntoJSON } from './importer.suunto.json';
+import { isNumber } from '../../../utilities/helpers';
 
 const parser = require('fast-xml-parser');
 
@@ -14,7 +14,7 @@ export class EventImporterSuuntoSML {
     //  A few mods here to convert it to compatible json suunto string
     json.DeviceLog.Samples = json.DeviceLog.Samples.Sample;
 
-    const samplesWithUTC: any[]  =  json.DeviceLog.Samples.filter((sample: any) => !!sample.UTC);
+    const samplesWithUTC: any[] = json.DeviceLog.Samples.filter((sample: any) => !!sample.UTC);
 
     // Find the first UTC timestamped sample and use it later for start date
     const startDate = samplesWithUTC.length ? new Date(samplesWithUTC[0].UTC) : new Date(json.DeviceLog.Header.DateTime);

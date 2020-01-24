@@ -1,5 +1,4 @@
-import {DataNumber} from './data.number';
-import {Feelings} from './data.feeling';
+import { DataNumber } from './data.number';
 
 export class DataRPE extends DataNumber {
   static type = 'Rated Perceived Exertion';

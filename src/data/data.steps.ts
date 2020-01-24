@@ -1,4 +1,4 @@
-import {DataNumber} from './data.number';
+import { DataNumber } from './data.number';
 
 export class DataSteps extends DataNumber {
   static type = ' Steps';

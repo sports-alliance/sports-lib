@@ -1,5 +1,5 @@
-import {DataInterface, UnitSystem} from './data.interface';
-import {DataTemperature} from './data.temperature';
+import { DataInterface, UnitSystem } from './data.interface';
+import { DataTemperature } from './data.temperature';
 
 describe('Data', () => {
 

@@ -1,4 +1,4 @@
-import {DataBoolean} from './data.boolean';
+import { DataBoolean } from './data.boolean';
 
 export class DataBikePodUsed extends DataBoolean {
   static type = 'Bike Pod';

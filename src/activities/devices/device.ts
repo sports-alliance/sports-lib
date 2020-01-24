@@ -1,6 +1,6 @@
-import {DeviceInterface} from './device.interface';
-import {DeviceJsonInterface} from './device.json.interface';
-import {isNumber} from '../../events/utilities/helpers';
+import { DeviceInterface } from './device.interface';
+import { DeviceJsonInterface } from './device.json.interface';
+import { isNumber } from '../../events/utilities/helpers';
 
 export class Device implements DeviceInterface {
   type: string;

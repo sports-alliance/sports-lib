@@ -1,4 +1,4 @@
-import {IDClass} from './id.abstract.class';
+import { IDClass } from './id.abstract.class';
 
 describe('IDClass', () => {
 

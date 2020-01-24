@@ -1,5 +1,5 @@
-import {DataDistance} from '../data/data.distance';
-import {DataInterface} from '../data/data.interface';
+import { DataDistance } from '../data/data.distance';
+import { DataInterface } from '../data/data.interface';
 
 export interface StatsClassInterface {
   getDistance(): DataDistance;
@@ -7,6 +7,7 @@ export interface StatsClassInterface {
   getStat(statType: string): DataInterface | void;
 
   getStats(): Map<string, DataInterface>;
+
   getStatsAsArray(): DataInterface[];
 
   removeStat(statType: string): void;

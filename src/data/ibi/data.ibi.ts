@@ -1,5 +1,5 @@
-import {SerializableClassInterface} from '../../serializable/serializable.class.interface';
-import {IBIFilters} from './data.ibi.filters';
+import { SerializableClassInterface } from '../../serializable/serializable.class.interface';
+import { IBIFilters } from './data.ibi.filters';
 
 export class IBIData implements SerializableClassInterface {
   static type = 'IBI'; // @todo hcakc fix

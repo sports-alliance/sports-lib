@@ -1,5 +1,5 @@
 {
-  "name": "quantified-self-lib",
+  "name": "sports-lib",
   "version": "3.7.0",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
@@ -30,12 +30,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/jimmykane/quantified-self-lib.git"
+    "url": "git://github.com/jimmykane/sports-lib.git"
   },
   "bugs": {
-    "url": "https://github.com/jimmykane/quantified-self-lib/issues"
+    "url": "https://github.com/jimmykane/sports-lib/issues"
   },
-  "homepage": "https://github.com/jimmykane/quantified-self-lib",
+  "homepage": "https://github.com/jimmykane/sports-lib",
   "author": "Dimitrios Kanellopoulos",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {

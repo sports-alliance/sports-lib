@@ -1,28 +1,27 @@
-import {Event} from '../../../event';
-import {Activity} from '../../../../activities/activity';
-import {Lap} from '../../../../laps/lap';
-import {EventInterface} from '../../../event.interface';
-import {Creator} from '../../../../creators/creator';
-import {IntensityZones} from '../../../../intensity-zones/intensity-zones';
-import {DynamicDataLoader} from '../../../../data/data.store';
-import {ActivityInterface} from '../../../../activities/activity.interface';
-import {EventJSONInterface} from '../../../event.json.interface';
-import {CreatorJSONInterface} from '../../../../creators/creator.json.interface';
-import {CreatorInterface} from '../../../../creators/creator.interface';
-import {LapJSONInterface} from '../../../../laps/lap.json.interface';
-import {LapInterface} from '../../../../laps/lap.interface';
-import {LapTypes} from '../../../../laps/lap.types';
-import {ActivityJSONInterface} from '../../../../activities/activity.json.interface';
-import {ActivityTypes} from '../../../../activities/activity.types';
-import {IntensityZonesJSONInterface} from '../../../../intensity-zones/intensity-zones.json.interface';
-import {StreamInterface} from '../../../../streams/stream.interface';
-import {Stream, StreamJSONInterface} from '../../../../streams/stream';
-import {DataIBI} from '../../../../data/data.ibi';
-import {IBIStream} from '../../../../streams/ibi-stream';
-import {DeviceJsonInterface} from '../../../../activities/devices/device.json.interface';
-import {DeviceInterface} from '../../../../activities/devices/device.interface';
-import {Device} from '../../../../activities/devices/device';
-import {EventUtilities} from '../../../utilities/event.utilities';
+import { Event } from '../../../event';
+import { Activity } from '../../../../activities/activity';
+import { Lap } from '../../../../laps/lap';
+import { EventInterface } from '../../../event.interface';
+import { Creator } from '../../../../creators/creator';
+import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
+import { DynamicDataLoader } from '../../../../data/data.store';
+import { ActivityInterface } from '../../../../activities/activity.interface';
+import { EventJSONInterface } from '../../../event.json.interface';
+import { CreatorJSONInterface } from '../../../../creators/creator.json.interface';
+import { CreatorInterface } from '../../../../creators/creator.interface';
+import { LapJSONInterface } from '../../../../laps/lap.json.interface';
+import { LapInterface } from '../../../../laps/lap.interface';
+import { LapTypes } from '../../../../laps/lap.types';
+import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
+import { ActivityTypes } from '../../../../activities/activity.types';
+import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
+import { StreamInterface } from '../../../../streams/stream.interface';
+import { Stream, StreamJSONInterface } from '../../../../streams/stream';
+import { DataIBI } from '../../../../data/data.ibi';
+import { IBIStream } from '../../../../streams/ibi-stream';
+import { DeviceJsonInterface } from '../../../../activities/devices/device.json.interface';
+import { DeviceInterface } from '../../../../activities/devices/device.interface';
+import { Device } from '../../../../activities/devices/device';
 
 export class EventImporterJSON {
 
@@ -86,11 +85,11 @@ export class EventImporterJSON {
     }
 
     if (json.hwInfo) {
-    device.hwInfo = json.hwInfo;
+      device.hwInfo = json.hwInfo;
     }
 
     if (json.antDeviceNumber) {
-    device.antDeviceNumber = json.antDeviceNumber;
+      device.antDeviceNumber = json.antDeviceNumber;
     }
 
     if (json.antTransmissionType) {

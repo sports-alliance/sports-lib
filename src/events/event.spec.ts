@@ -1,8 +1,8 @@
-import {EventInterface} from './event.interface';
-import {Event} from './event';
-import {Activity} from '../activities/activity';
-import {Creator} from '../creators/creator';
-import {ActivityTypes} from '../activities/activity.types';
+import { EventInterface } from './event.interface';
+import { Event } from './event';
+import { Activity } from '../activities/activity';
+import { Creator } from '../creators/creator';
+import { ActivityTypes } from '../activities/activity.types';
 
 describe('Event', () => {
 

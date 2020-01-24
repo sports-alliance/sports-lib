@@ -1,5 +1,5 @@
-import {Stream} from './stream';
-import {StreamDataItem} from './stream.interface';
+import { Stream } from './stream';
+import { StreamDataItem } from './stream.interface';
 
 export class IBIStream extends Stream {
   constructor(data?: number[]) {

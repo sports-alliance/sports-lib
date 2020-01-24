@@ -1,10 +1,12 @@
-import {DataNumber} from './data.number';
+import { DataNumber } from './data.number';
 import {
   convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
-  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMetersPerHour, convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour, isNumberOrString
+  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInMetersPerHour,
+  convertSpeedToSpeedInMetersPerMinute,
+  convertSpeedToSpeedInMilesPerHour
 } from '../events/utilities/helpers';
 
 export class DataVerticalSpeed extends DataNumber {
@@ -42,6 +44,7 @@ export class DataVerticalSpeedFeetPerSecond extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'ft/s';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -52,9 +55,11 @@ export class DataVerticalSpeedMetersPerMinute extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'm/min';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(1);
   }
@@ -65,9 +70,11 @@ export class DataVerticalSpeedFeetPerMinute extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'ft/min';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(1);
   }
@@ -78,9 +85,11 @@ export class DataVerticalSpeedMetersPerHour extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'm/h';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(0);
   }
@@ -91,9 +100,11 @@ export class DataVerticalSpeedFeetPerHour extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'ft/h';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(0);
   }
@@ -105,9 +116,11 @@ export class DataVerticalSpeedKilometerPerHour extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'km/h';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(2);
   }
@@ -118,9 +131,11 @@ export class DataVerticalSpeedMilesPerHour extends DataVerticalSpeed {
   static displayType = DataVerticalSpeed.type;
 
   static unit = 'mph';
+
   getDisplayType(): string {
     return super.getDisplayType();
   }
+
   getDisplayValue() {
     return this.getValue().toFixed(2);
   }

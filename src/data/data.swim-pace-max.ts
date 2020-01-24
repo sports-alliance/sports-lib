@@ -1,4 +1,4 @@
-import {DataSwimPaceMinutesPer100Yard, DataSwimPace} from './data.swim-pace';
+import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 
 export class DataSwimPaceMax extends DataSwimPace {
   static type = 'Maximum Swim Pace';

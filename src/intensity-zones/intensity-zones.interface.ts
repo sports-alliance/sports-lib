@@ -1,5 +1,5 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
-import {IntensityZonesJSONInterface} from './intensity-zones.json.interface';
+import { SerializableClassInterface } from '../serializable/serializable.class.interface';
+import { IntensityZonesJSONInterface } from './intensity-zones.json.interface';
 
 export interface IntensityZonesInterface extends SerializableClassInterface {
   type: string

@@ -1,4 +1,4 @@
-import {IBIData} from './data.ibi';
+import { IBIData } from './data.ibi';
 
 describe('Data IBI', function () {
 

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { QuantifiedSelfLib } from '../src';
+import { SportsLib } from '../src';
 import { EventInterface } from '../src/events/event.interface';
 import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataLongitudeDegrees } from '../src/data/data.longitude-degrees';
@@ -33,7 +33,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 3179;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -110,7 +110,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 2;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -144,7 +144,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1817;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -179,7 +179,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 2547;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromFit(buffer);
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -217,7 +217,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 1495;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -253,7 +253,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1038;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -288,7 +288,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 3790;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -333,7 +333,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 3179;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -410,7 +410,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 2;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString, xmldom.DOMParser);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString, xmldom.DOMParser);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -444,7 +444,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1817;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString, xmldom.DOMParser);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString, xmldom.DOMParser);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -480,7 +480,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 2547;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromFit(buffer);
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -518,7 +518,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 1495;
 
         // When
-        const eventInterfacePromise = QuantifiedSelfLib.importFromTCX(doc);
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
@@ -553,7 +553,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1038;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
@@ -587,7 +587,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 3790;
 
           // When
-          const eventInterfacePromise = QuantifiedSelfLib.importFromGPX(gpxString);
+          const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {

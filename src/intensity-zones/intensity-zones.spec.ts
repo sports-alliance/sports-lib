@@ -1,4 +1,4 @@
-import {IntensityZones} from './intensity-zones';
+import { IntensityZones } from './intensity-zones';
 
 describe('Zone', () => {
 

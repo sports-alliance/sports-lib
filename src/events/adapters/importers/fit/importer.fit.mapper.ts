@@ -1,30 +1,30 @@
-import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
-import {DataAltitude} from '../../../../data/data.altitude';
-import {DataHeartRate} from '../../../../data/data.heart-rate';
-import {DataCadence} from '../../../../data/data.cadence';
-import {DataTemperature} from '../../../../data/data.temperature';
-import {DataDistance} from '../../../../data/data.distance';
-import {DataSpeed} from '../../../../data/data.speed';
-import {DataPace} from '../../../../data/data.pace';
-import {DataVerticalSpeed} from '../../../../data/data.vertical-speed';
-import {DataPower} from '../../../../data/data.power';
-import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
-import {DataFormPower} from '../../../../data/data.form-power';
-import {DataLegStiffness} from '../../../../data/data.leg-stiffness';
-import {DataVerticalOscillation} from '../../../../data/data.vertical-oscillation';
-import {convertSpeedToPace, isNumber} from '../../../utilities/helpers';
-import {DataAccumulatedPower} from '../../../../data/data.accumulated-power';
-import {DataStrydAltitude} from '../../../../data/data.stryd-altitude';
-import {DataStrydDistance} from '../../../../data/data.stryd-distance';
-import {DataStrydSpeed} from '../../../../data/data.stryd-speed';
-import {DataRightBalance} from '../../../../data/data.right-balance';
-import {DataLeftBalance} from '../../../../data/data.left-balance';
-import {DataStanceTime} from '../../../../data/data.stance-time';
-import {DataStanceTimeBalance} from '../../../../data/data.stance-time-balance';
-import {DataStepLength} from '../../../../data/data.step-length';
-import {DataVerticalRatio} from '../../../../data/data.vertical-ratio';
-import {DataGroundTime} from '../../../../data/data.ground-time';
-import {DataAirPower} from '../../../../data/data.air-power';
+import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
+import { DataAltitude } from '../../../../data/data.altitude';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { DataCadence } from '../../../../data/data.cadence';
+import { DataTemperature } from '../../../../data/data.temperature';
+import { DataDistance } from '../../../../data/data.distance';
+import { DataSpeed } from '../../../../data/data.speed';
+import { DataPace } from '../../../../data/data.pace';
+import { DataVerticalSpeed } from '../../../../data/data.vertical-speed';
+import { DataPower } from '../../../../data/data.power';
+import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
+import { DataFormPower } from '../../../../data/data.form-power';
+import { DataLegStiffness } from '../../../../data/data.leg-stiffness';
+import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
+import { convertSpeedToPace, isNumber } from '../../../utilities/helpers';
+import { DataAccumulatedPower } from '../../../../data/data.accumulated-power';
+import { DataStrydAltitude } from '../../../../data/data.stryd-altitude';
+import { DataStrydDistance } from '../../../../data/data.stryd-distance';
+import { DataStrydSpeed } from '../../../../data/data.stryd-speed';
+import { DataRightBalance } from '../../../../data/data.right-balance';
+import { DataLeftBalance } from '../../../../data/data.left-balance';
+import { DataStanceTime } from '../../../../data/data.stance-time';
+import { DataStanceTimeBalance } from '../../../../data/data.stance-time-balance';
+import { DataStepLength } from '../../../../data/data.step-length';
+import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
+import { DataGroundTime } from '../../../../data/data.ground-time';
+import { DataAirPower } from '../../../../data/data.air-power';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -94,7 +94,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataPace.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.enhanced_speed) ||  isNumber(sample.speed) ? convertSpeedToPace(sample.enhanced_speed || sample.speed) : null;
+      return isNumber(sample.enhanced_speed) || isNumber(sample.speed) ? convertSpeedToPace(sample.enhanced_speed || sample.speed) : null;
     },
   },
   {

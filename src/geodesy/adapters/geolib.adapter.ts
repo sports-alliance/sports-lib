@@ -1,7 +1,7 @@
-import {GeoLibAdapterInterface} from './adapter.interface';
+import { GeoLibAdapterInterface } from './adapter.interface';
 import getPreciseDistance from 'geolib/es/getPreciseDistance';
 import findNearest from 'geolib/es/findNearest';
-import {DataPositionInterface} from '../../data/data.position.interface';
+import { DataPositionInterface } from '../../data/data.position.interface';
 
 export class GeoLibAdapter implements GeoLibAdapterInterface {
   findNearest = findNearest;

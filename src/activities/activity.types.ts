@@ -245,7 +245,7 @@ export enum ActivityTypes {
   'Open Water Swimming' = 'Open Water Swimming',
   'open_water' = 'Open Water Swimming',
   'Nordic walking' = 'Nordic walking',
-  'Snow shoeing' = 'Snow shoeing',
+  'Snow shoeing' = 'Snowshoeing',
   'Windsurfing/Surfing' = 'Windsurfing',
   'windsurfing' = 'Windsurfing',
   'Windsurfing' = 'Windsurfing',

@@ -745,6 +745,18 @@ export enum ActivityTypes {
   'Workout' = 'Workout',
 }
 
+export enum ActivityTypeGroups {
+  'Running' = 'Running',
+  'Cycling' = 'Cycling',
+  'Performance' = 'Performance',
+  'Indoor Sports' = 'Indoor Sports',
+  'Outdoor Adventures' = 'Outdoor Adventures',
+  'Winter Sports' = 'Winter Sports',
+  'Water Sports' = 'Water Sports',
+  'Diving' = 'Diving',
+  'Team racket' = 'Team Racket',
+  'Unspecified' = 'Unspecified',
+}
 
 export class StravaGPXTypeMapping {
 

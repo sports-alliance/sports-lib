@@ -362,7 +362,7 @@ export class StravaGPXTypeMapping {
 
   public static readonly map: Array<{ id: number, type: string }> = [
     {id: 1, type: ActivityTypes.Cycling},
-    {id: 2, type: ActivityTypes.AlpineSKi},
+    {id: 2, type: ActivityTypes.AlpineSki},
     {id: 3, type: ActivityTypes.BackCountrySki},
     {id: 4, type: ActivityTypes.Hiking},
     {id: 5, type: ActivityTypes.IceSkate},

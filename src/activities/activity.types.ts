@@ -149,7 +149,7 @@ export enum ActivityTypes {
   'Alpine skiing' = 'Alpine skiing',
   'alpine_skiing' = 'Alpine skiing',
   'alpine_skiing_downhill' = 'Alpine skiing',
-  'AlpineSKi' = 'Alpine skiing',
+  'AlpineSki' = 'Alpine skiing',
   'Backcountry skiing' = 'Backcountry Skiing',
   'Backcountry Skiing' = 'Backcountry Skiing',
   'BackcountrySki' = 'Backcountry Skiing',
@@ -348,7 +348,7 @@ export class StravaGPXTypeMapping {
 
   public static readonly map: Array<{ id: number, type: string }> = [
     {id: 1, type: 'Ride'},
-    {id: 2, type: 'AlpineSKi'},
+    {id: 2, type: 'AlpineSki'},
     {id: 3, type: 'BackcountrySki'},
     {id: 4, type: 'Hike'},
     {id: 5, type: 'IceSkate'},

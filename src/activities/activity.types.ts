@@ -61,9 +61,9 @@ export class ActivityTypesHelper {
  * This enum works like a all matchers for normalized sport types between different naming across services
  *
  * It helps as you can call request an activity type with different namin eg .BackCountrySki or .BackCountrySkiing and get a uniform value
- * Also helps in case you have peristed data that do not match or have been peristed wrongly
+ * Also helps in case you have persited data that do not match or have been peristed wrongly
  *
- * Important: don't forget to decalare the original string value aka: 'Running' = 'Running'
+ * Important: don't forget to declare the original string value aka: 'Running' = 'Running'
  *
  * @todo how do we write activity names? Is it Alpine skiing? or Alpine Skiing? For now I used uppercase each word
  */

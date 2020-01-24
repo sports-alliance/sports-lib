@@ -76,7 +76,7 @@ export class ActivityTypesHelper {
    * @param activityType
    */
   static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroups {
-    return ActivityTypeGroups[<keyof typeof ActivityTypeGroups>ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray().find(activityTypeGroupString => {
+    return ActivityTypeGroups[<keyof typeof ActivityTypeGroups>ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray().find(activityTypeGroupString => { // Could also iterate over the map
       return ActivityTypesGroupMapping.map[<keyof typeof ActivityTypeGroups>activityTypeGroupString].find(groupItem => groupItem === activityType)
     }) || ActivityTypeGroups.Unspecified];
   }

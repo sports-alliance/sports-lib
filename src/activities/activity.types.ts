@@ -334,7 +334,7 @@ export enum ActivityTypes {
   'fitness_equipment_elliptical' = 'Elliptical trainer',
   'Elliptical trainer' = 'Elliptical trainer',
   'Elliptical' = 'Elliptical trainer',
-  'Crossfit' = 'Crossfit',
+  'Crossfit' = 'Cross fit',
   'Handcycle' = 'Hand cycle',
   'IceSkate' = 'Ice Skate',
   'StairStepper' = 'Stair Stepper',

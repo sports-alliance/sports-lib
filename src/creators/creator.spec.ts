@@ -1,6 +1,5 @@
-import {CreatorInterface} from './creator.interface';
-import {Creator} from './creator';
-import {Activity} from '../activities/activity';
+import { CreatorInterface } from './creator.interface';
+import { Creator } from './creator';
 
 describe('Creator', () => {
 

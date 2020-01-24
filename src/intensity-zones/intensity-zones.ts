@@ -1,6 +1,6 @@
-import {IntensityZonesInterface} from './intensity-zones.interface';
-import {IntensityZonesJSONInterface} from './intensity-zones.json.interface';
-import {isNumber} from '../events/utilities/helpers';
+import { IntensityZonesInterface } from './intensity-zones.interface';
+import { IntensityZonesJSONInterface } from './intensity-zones.json.interface';
+import { isNumber } from '../events/utilities/helpers';
 
 export class IntensityZones implements IntensityZonesInterface {
   type: string;

@@ -1,4 +1,4 @@
-import {DataBare} from './data.bare';
+import { DataBare } from './data.bare';
 
 export abstract class DataString extends DataBare {
   protected value: string;

@@ -1,14 +1,14 @@
-import {Event} from '../event';
-import {Activity} from '../../activities/activity';
-import {DataHeartRate} from '../../data/data.heart-rate';
-import {DataAltitude} from '../../data/data.altitude';
-import {EventUtilities} from './event.utilities';
-import {DataDistance} from '../../data/data.distance';
-import {DataDuration} from '../../data/data.duration';
-import {EventInterface} from '../event.interface';
-import {Creator} from '../../creators/creator';
-import {ActivityTypes} from '../../activities/activity.types';
-import {Stream} from '../../streams/stream';
+import { Event } from '../event';
+import { Activity } from '../../activities/activity';
+import { DataHeartRate } from '../../data/data.heart-rate';
+import { DataAltitude } from '../../data/data.altitude';
+import { EventUtilities } from './event.utilities';
+import { DataDistance } from '../../data/data.distance';
+import { DataDuration } from '../../data/data.duration';
+import { EventInterface } from '../event.interface';
+import { Creator } from '../../creators/creator';
+import { ActivityTypes } from '../../activities/activity.types';
+import { Stream } from '../../streams/stream';
 
 describe('EventUtilities', () => {
 

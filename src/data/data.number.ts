@@ -1,4 +1,4 @@
-import {DataBare} from './data.bare';
+import { DataBare } from './data.bare';
 
 export abstract class DataNumber extends DataBare {
   protected value: number;
@@ -8,7 +8,7 @@ export abstract class DataNumber extends DataBare {
     this.value = value;
   }
 
-  getValue(formatForDataType?: string ): number {
+  getValue(formatForDataType?: string): number {
     return this.value;
   }
 }

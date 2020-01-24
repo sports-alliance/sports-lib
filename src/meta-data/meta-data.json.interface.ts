@@ -1,4 +1,4 @@
-import {ServiceNames} from './meta-data.interface';
+import { ServiceNames } from './meta-data.interface';
 
 export interface MetaDataJsonInterface {
   serviceName: ServiceNames;

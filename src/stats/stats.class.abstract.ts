@@ -1,7 +1,7 @@
-import {StatsClassInterface} from './stats.class.interface';
-import {IDClass} from '../id/id.abstract.class';
-import {DataDistance} from '../data/data.distance';
-import {DataInterface} from '../data/data.interface';
+import { StatsClassInterface } from './stats.class.interface';
+import { IDClass } from '../id/id.abstract.class';
+import { DataDistance } from '../data/data.distance';
+import { DataInterface } from '../data/data.interface';
 
 export abstract class StatsClassAbstract extends IDClass implements StatsClassInterface {
   public stats = new Map<string, DataInterface>(); // this could just be an array

@@ -1,6 +1,6 @@
-import {EventInterface} from '../../event.interface';
-import {ActivityJSONInterface} from '../../../activities/activity.json.interface';
-import {StreamJSONInterface} from '../../../streams/stream';
+import { EventInterface } from '../../event.interface';
+import { ActivityJSONInterface } from '../../../activities/activity.json.interface';
+import { StreamJSONInterface } from '../../../streams/stream';
 
 export class EventExporterJSON {
   static fileType = 'application/json';

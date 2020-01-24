@@ -1,9 +1,5 @@
-import {DataPace} from './data.pace';
-import {
-  convertSwimPaceToSwimPacePer100Yard,
-  isNumberOrString
-} from '../events/utilities/helpers';
-import {DataDuration} from './data.duration';
+import { convertSwimPaceToSwimPacePer100Yard } from '../events/utilities/helpers';
+import { DataDuration } from './data.duration';
 
 export class DataSwimPace extends DataDuration {
   static type = 'Swim Pace';

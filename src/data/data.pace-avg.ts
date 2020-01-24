@@ -1,4 +1,4 @@
-import {DataPace, DataPaceMinutesPerMile} from './data.pace';
+import { DataPace, DataPaceMinutesPerMile } from './data.pace';
 
 export class DataPaceAvg extends DataPace {
   static type = 'Average Pace';

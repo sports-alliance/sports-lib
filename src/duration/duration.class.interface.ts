@@ -1,5 +1,5 @@
-import {DataPause} from '../data/data.pause';
-import {DataDuration} from '../data/data.duration';
+import { DataPause } from '../data/data.pause';
+import { DataDuration } from '../data/data.duration';
 
 export interface DurationClassInterface {
   startDate: Date;

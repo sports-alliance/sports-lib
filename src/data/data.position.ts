@@ -1,6 +1,6 @@
-import {DataBare} from './data.bare';
-import {DataPositionInterface} from './data.position.interface';
-import {isNumber} from '../events/utilities/helpers';
+import { DataBare } from './data.bare';
+import { DataPositionInterface } from './data.position.interface';
+import { isNumber } from '../events/utilities/helpers';
 
 export class DataPosition extends DataBare {
   static type = 'Position';

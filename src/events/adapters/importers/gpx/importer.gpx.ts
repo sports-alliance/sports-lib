@@ -47,13 +47,13 @@ export class EventImporterGPX {
           new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
-        if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes> trackOrRoute.type]) {
-          activityType = ActivityTypes[<keyof typeof ActivityTypes> trackOrRoute.type];
+        if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
+          activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];
         } else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
           const stravaGpxTypeId = parseInt(trackOrRoute.type[0], 10);
           const entryFound: { id: number, type: string } | undefined = StravaGPXTypeMapping.map.find(entry => entry.id === stravaGpxTypeId);
           if (entryFound) {
-            activityType = ActivityTypes[<keyof typeof ActivityTypes> entryFound.type];
+            activityType = ActivityTypes[<keyof typeof ActivityTypes>entryFound.type];
           }
         }
         const activity = new Activity(
@@ -67,11 +67,11 @@ export class EventImporterGPX {
         );
         // Match
         GPXSampleMapper.forEach((sampleMapping) => {
-          const subjectSamples = <any[]> samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)));
+          const subjectSamples = <any[]>samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)));
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
             subjectSamples.forEach((subjectSample, index) => {
-              activity.addDataToStream(sampleMapping.dataType, isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000), <number> sampleMapping.getSampleValue(subjectSample));
+              activity.addDataToStream(sampleMapping.dataType, isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000), <number>sampleMapping.getSampleValue(subjectSample));
             });
           }
         });

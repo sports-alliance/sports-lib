@@ -1,4 +1,4 @@
-import {DataJSONInterface} from '../data/data.json.interface';
+import { DataJSONInterface } from '../data/data.json.interface';
 
 export interface LapJSONInterface {
   startDate: number,

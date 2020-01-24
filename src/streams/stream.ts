@@ -1,6 +1,6 @@
-import {StreamDataItem, StreamInterface} from './stream.interface';
-import {isNumber} from '../events/utilities/helpers';
-import {DynamicDataLoader} from '../data/data.store';
+import { StreamDataItem, StreamInterface } from './stream.interface';
+import { isNumber } from '../events/utilities/helpers';
+import { DynamicDataLoader } from '../data/data.store';
 
 export class Stream implements StreamInterface {
   public readonly type: string;

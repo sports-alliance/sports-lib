@@ -1,6 +1,6 @@
-import {CreatorInterface} from './creator.interface';
-import {CreatorJSONInterface} from './creator.json.interface';
-import {DeviceInterface} from '../activities/devices/device.interface';
+import { CreatorInterface } from './creator.interface';
+import { CreatorJSONInterface } from './creator.json.interface';
+import { DeviceInterface } from '../activities/devices/device.interface';
 
 export class Creator implements CreatorInterface {
   public name: string;

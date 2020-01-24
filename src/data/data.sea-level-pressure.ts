@@ -1,4 +1,4 @@
-import {DataNumber} from './data.number';
+import { DataNumber } from './data.number';
 
 export class DataSeaLevelPressure extends DataNumber {
   static type = 'Sea Level Pressure';

@@ -1,5 +1,5 @@
-import {MetaDataInterface, ServiceNames} from './meta-data.interface';
-import {MetaDataJsonInterface} from './meta-data.json.interface';
+import { MetaDataInterface, ServiceNames } from './meta-data.interface';
+import { MetaDataJsonInterface } from './meta-data.json.interface';
 
 export class MetaData implements MetaDataInterface {
   date: Date;

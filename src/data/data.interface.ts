@@ -1,6 +1,6 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
-import {DataJSONInterface} from './data.json.interface';
-import {DataPositionInterface} from './data.position.interface';
+import { SerializableClassInterface } from '../serializable/serializable.class.interface';
+import { DataJSONInterface } from './data.json.interface';
+import { DataPositionInterface } from './data.position.interface';
 
 export interface DataInterface extends SerializableClassInterface {
   setValue(value: number | string | string[] | DataPositionInterface): this;

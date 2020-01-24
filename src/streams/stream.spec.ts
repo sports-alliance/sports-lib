@@ -1,5 +1,5 @@
-import {DataAltitude} from '../data/data.altitude';
-import {Stream} from './stream';
+import { DataAltitude } from '../data/data.altitude';
+import { Stream } from './stream';
 
 describe('Stream', () => {
 

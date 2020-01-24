@@ -1,5 +1,5 @@
-import {DataJSONInterface} from '../data/data.json.interface';
-import {Privacy} from '../privacy/privacy.class.interface';
+import { DataJSONInterface } from '../data/data.json.interface';
+import { Privacy } from '../privacy/privacy.class.interface';
 
 export interface EventJSONInterface {
   name: string,

@@ -1,5 +1,5 @@
-import {UserDashboardChartSettingsInterface} from './user.dashboard.chart.settings.interface';
-import {ActivityTypes} from '../activities/activity.types';
+import { UserDashboardChartSettingsInterface } from './user.dashboard.chart.settings.interface';
+import { ActivityTypes } from '../activities/activity.types';
 
 export interface UserDashboardSettingsInterface {
   dateRange: DateRanges,

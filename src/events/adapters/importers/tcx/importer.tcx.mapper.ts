@@ -1,13 +1,13 @@
-import {DataLatitudeDegrees} from '../../../../data/data.latitude-degrees';
-import {DataAltitude} from '../../../../data/data.altitude';
-import {DataHeartRate} from '../../../../data/data.heart-rate';
-import {DataCadence} from '../../../../data/data.cadence';
-import {DataDistance} from '../../../../data/data.distance';
-import {DataSpeed} from '../../../../data/data.speed';
-import {DataPace} from '../../../../data/data.pace';
-import {DataPower} from '../../../../data/data.power';
-import {DataLongitudeDegrees} from '../../../../data/data.longitude-degrees';
-import {convertSpeedToPace} from '../../../utilities/helpers';
+import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
+import { DataAltitude } from '../../../../data/data.altitude';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { DataCadence } from '../../../../data/data.cadence';
+import { DataDistance } from '../../../../data/data.distance';
+import { DataSpeed } from '../../../../data/data.speed';
+import { DataPace } from '../../../../data/data.pace';
+import { DataPower } from '../../../../data/data.power';
+import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
+import { convertSpeedToPace } from '../../../utilities/helpers';
 
 const findChildNode = (fromNodeList: NodeListOf<ChildNode>, childNodeName: string | RegExp): ChildNode | null => {
   const childNodeFound = Array.from(fromNodeList).find((childNode: ChildNode) => {

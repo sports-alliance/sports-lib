@@ -1,4 +1,4 @@
-import {LapTypes} from '../laps/lap.types';
+import { LapTypes } from '../laps/lap.types';
 
 export interface UserMapSettingsInterface {
   showLaps: boolean,
@@ -11,7 +11,7 @@ export interface UserMapSettingsInterface {
 
 
 export enum MapThemes {
-  Normal= 'Normal',
+  Normal = 'Normal',
   Dark = 'Dark',
   Black = 'Black',
   Night = 'Night',
@@ -21,8 +21,8 @@ export enum MapThemes {
 }
 
 export enum MapTypes {
-  RoadMap= 'roadmap',
-  Satellite= 'satellite',
+  RoadMap = 'roadmap',
+  Satellite = 'satellite',
   Hybrid = 'hybrid',
   Terrain = 'terrain',
 }

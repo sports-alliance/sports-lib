@@ -1,5 +1,6 @@
-import {IBIData} from './data.ibi';
-const CreateMedianFilter  = require('moving-median');
+import { IBIData } from './data.ibi';
+
+const CreateMedianFilter = require('moving-median');
 const LowPassFilter = require('lowpassf');
 
 

@@ -1,11 +1,10 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
-import {StatsClassInterface} from '../stats/stats.class.interface';
-import {ActivityInterface} from '../activities/activity.interface';
-import {DurationClassInterface} from '../duration/duration.class.interface';
-import {EventJSONInterface} from './event.json.interface';
-import {IDClassInterface} from '../id/id.class.interface';
-import {PrivacyClassInterface} from '../privacy/privacy.class.interface';
-import {MetaDataInterface} from '../meta-data/meta-data.interface';
+import { SerializableClassInterface } from '../serializable/serializable.class.interface';
+import { StatsClassInterface } from '../stats/stats.class.interface';
+import { ActivityInterface } from '../activities/activity.interface';
+import { DurationClassInterface } from '../duration/duration.class.interface';
+import { EventJSONInterface } from './event.json.interface';
+import { IDClassInterface } from '../id/id.class.interface';
+import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
 
 export interface EventInterface extends StatsClassInterface,
   DurationClassInterface,
@@ -26,7 +25,9 @@ export interface EventInterface extends StatsClassInterface,
   getActivities(): ActivityInterface[];
 
   getActivityTypesAsArray(): string[];
+
   getActivityTypesAsString(): string;
+
   getDeviceNamesAsString(): string;
 
   clearActivities(): void;

@@ -1,4 +1,4 @@
-import {DataBoolean} from './data.boolean';
+import { DataBoolean } from './data.boolean';
 
 export class DataHeartRateUsed extends DataBoolean {
   static type = 'Heart Rate Used';

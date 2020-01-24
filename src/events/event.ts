@@ -1,14 +1,12 @@
-import {EventInterface} from './event.interface';
-import {ActivityInterface} from '../activities/activity.interface';
-import {DataInterface} from '../data/data.interface';
-import {DurationClassAbstract} from '../duration/duration.class.abstract';
-import {EventJSONInterface} from './event.json.interface';
-import {Privacy} from '../privacy/privacy.class.interface';
-import {MetaDataInterface} from '../meta-data/meta-data.interface';
-import {ActivityTypes} from '../activities/activity.types';
-import {DataActivityTypes} from '../data/data.activity-types';
-import {LapTypes} from '../laps/lap.types';
-import {DataDeviceNames} from '../data/data.device-names';
+import { EventInterface } from './event.interface';
+import { ActivityInterface } from '../activities/activity.interface';
+import { DataInterface } from '../data/data.interface';
+import { DurationClassAbstract } from '../duration/duration.class.abstract';
+import { EventJSONInterface } from './event.json.interface';
+import { Privacy } from '../privacy/privacy.class.interface';
+import { ActivityTypes } from '../activities/activity.types';
+import { DataActivityTypes } from '../data/data.activity-types';
+import { DataDeviceNames } from '../data/data.device-names';
 
 export class Event extends DurationClassAbstract implements EventInterface {
 
@@ -80,7 +78,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
     }
     return activityTypesStat.getValue().length > 1 ?
       `${this.getUniqueStringWithMultiplier(activityTypesStat.getValue().map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType]))}`
-      :  ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()]
+      : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()]
   }
 
   getDeviceNamesAsString(): string {

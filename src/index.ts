@@ -1,13 +1,12 @@
-import {EventImporterGPX} from './events/adapters/importers/gpx/importer.gpx';
-import {EventInterface} from './events/event.interface';
-import {EventImporterTCX} from './events/adapters/importers/tcx/importer.tcx';
-import {EventImporterFIT} from './events/adapters/importers/fit/importer.fit';
-import {EventImporterSuuntoJSON} from './events/adapters/importers/suunto/importer.suunto.json';
-import {EventImporterJSON} from './events/adapters/importers/json/importer.json';
-// import {EventExporterTCX} from './events/adapters/exporters/exporter.tcx';
-import {EventJSONInterface} from './events/event.json.interface';
+import { EventImporterGPX } from './events/adapters/importers/gpx/importer.gpx';
+import { EventInterface } from './events/event.interface';
+import { EventImporterTCX } from './events/adapters/importers/tcx/importer.tcx';
+import { EventImporterFIT } from './events/adapters/importers/fit/importer.fit';
+import { EventImporterSuuntoJSON } from './events/adapters/importers/suunto/importer.suunto.json';
+import { EventImporterJSON } from './events/adapters/importers/json/importer.json';
+import { EventJSONInterface } from './events/event.json.interface';
 
-export class QuantifiedSelfLib {
+export class SportsLib {
 
   /**
    * Parses and returns an event using GPX format
@@ -43,7 +42,7 @@ export class QuantifiedSelfLib {
   }
 
   /**
-   * Parses and returns an event using native format (QuantifiedSelfLib exported format)
+   * Parses and returns an event using native format (SportsLib exported format)
    * @param json EventJSONInterface
    */
   public static importFromJSON(json: EventJSONInterface): EventInterface {

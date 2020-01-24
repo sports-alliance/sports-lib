@@ -1,4 +1,4 @@
-import {DataNumber} from './data.number';
+import { DataNumber } from './data.number';
 
 export class DataDuration extends DataNumber {
   static type = 'Duration';
@@ -19,15 +19,15 @@ export class DataDuration extends DataNumber {
     if (!m && !h) {
       return showSeconds ? ('0' + s).slice(-2) + 's' : s + `s`;
     } else if (!h) {
-      return ('0' + m).slice(-2) + 'm' +  (showSeconds ?  ' ' + ('0' + s).slice(-2) + 's' : ``);
+      return ('0' + m).slice(-2) + 'm' + (showSeconds ? ' ' + ('0' + s).slice(-2) + 's' : ``);
     } else {
       if (d) {
         if (showDays) {
-          return d + 'd ' + ('0' + (h - d * 24)).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' +  (showSeconds ? ('0' + s).slice(-2) + 's' : ``);
+          return d + 'd ' + ('0' + (h - d * 24)).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + (showSeconds ? ('0' + s).slice(-2) + 's' : ``);
         }
         return h + 'h ' + ('0' + m).slice(-2) + 'm ' + (showSeconds ? ('0' + s).slice(-2) + 's' : ``);
       } else {
-        return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' +  (showSeconds ?  ('0' + s).slice(-2) + 's' : ``);
+        return ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + (showSeconds ? ('0' + s).slice(-2) + 's' : ``);
       }
     }
   }

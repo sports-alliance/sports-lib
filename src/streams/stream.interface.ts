@@ -1,5 +1,5 @@
-import {SerializableClassInterface} from '../serializable/serializable.class.interface';
-import {StreamJSONInterface} from './stream';
+import { SerializableClassInterface } from '../serializable/serializable.class.interface';
+import { StreamJSONInterface } from './stream';
 
 /**
  * A stream consists of an array of data like this for example

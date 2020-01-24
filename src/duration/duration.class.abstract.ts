@@ -1,7 +1,7 @@
-import {DurationClassInterface} from './duration.class.interface';
-import {StatsClassAbstract} from '../stats/stats.class.abstract';
-import {DataPause} from '../data/data.pause';
-import {DataDuration} from '../data/data.duration';
+import { DurationClassInterface } from './duration.class.interface';
+import { StatsClassAbstract } from '../stats/stats.class.abstract';
+import { DataPause } from '../data/data.pause';
+import { DataDuration } from '../data/data.duration';
 
 export abstract class DurationClassAbstract extends StatsClassAbstract implements DurationClassInterface {
   startDate: Date;

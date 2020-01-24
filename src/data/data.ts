@@ -1,7 +1,7 @@
-import {DataInterface, UnitSystem} from './data.interface';
-import {DataJSONInterface} from './data.json.interface';
-import {DataPositionInterface} from './data.position.interface';
-import {isNumber} from '../events/utilities/helpers';
+import { DataInterface, UnitSystem } from './data.interface';
+import { DataJSONInterface } from './data.json.interface';
+import { DataPositionInterface } from './data.position.interface';
+import { isNumber } from '../events/utilities/helpers';
 
 export abstract class Data implements DataInterface {
   static type: string; // @todo perhas add enum type
@@ -20,12 +20,12 @@ export abstract class Data implements DataInterface {
     this.value = value;
   }
 
-  setValue(value: string | number | boolean| string[]| DataPositionInterface): this {
+  setValue(value: string | number | boolean | string[] | DataPositionInterface): this {
     this.value = value;
     return this;
   }
 
-  getValue(formatForDataType?: string): string | number | boolean | string[]| DataPositionInterface {
+  getValue(formatForDataType?: string): string | number | boolean | string[] | DataPositionInterface {
     return this.value;
   }
 

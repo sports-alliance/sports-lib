@@ -1,5 +1,5 @@
-import {DataDuration} from './data.duration';
-import {convertPaceToPaceInMinutesPerMile, isNumberOrString} from '../events/utilities/helpers';
+import { DataDuration } from './data.duration';
+import { convertPaceToPaceInMinutesPerMile } from '../events/utilities/helpers';
 
 export class DataPace extends DataDuration {
   static type = 'Pace';

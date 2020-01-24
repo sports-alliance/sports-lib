@@ -1,11 +1,11 @@
-import {Activity} from './activity';
-import {ActivityInterface} from './activity.interface';
-import {DataHeartRate} from '../data/data.heart-rate';
-import {DataAltitude} from '../data/data.altitude';
-import {ActivityTypes} from './activity.types';
-import {Creator} from '../creators/creator';
-import {Stream} from '../streams/stream';
-import {DataDistance} from '../data/data.distance';
+import { Activity } from './activity';
+import { ActivityInterface } from './activity.interface';
+import { DataHeartRate } from '../data/data.heart-rate';
+import { DataAltitude } from '../data/data.altitude';
+import { ActivityTypes } from './activity.types';
+import { Creator } from '../creators/creator';
+import { Stream } from '../streams/stream';
+import { DataDistance } from '../data/data.distance';
 
 describe('Activity', () => {
 
@@ -68,8 +68,8 @@ describe('Activity', () => {
 
   it('should get streams based on another stream', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
-    activity.addStream(new Stream(DataHeartRate.type, [60, 70, 80,   null,  null, null, 120]));
-    activity.addStream(new Stream(DataDistance.type, [0,    10, 20,   30,   40,   50,   60]));
+    activity.addStream(new Stream(DataHeartRate.type, [60, 70, 80, null, null, null, 120]));
+    activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));
     expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual({
       0: {
         'Altitude': 200

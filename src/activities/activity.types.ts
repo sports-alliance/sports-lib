@@ -878,6 +878,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.RacquetBall,
       ActivityTypes.TableTennis,
       ActivityTypes.Tennis,
+      // @todo add more
     ]
   };
 

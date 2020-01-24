@@ -5,12 +5,26 @@ import {DataPace} from '../data/data.pace';
 import {DataSpeed} from '../data/data.speed';
 import {DataSwimPace} from '../data/data.swim-pace';
 import {DataVerticalSpeedAvg} from '../data/data.vertical-speed-avg';
-import {type} from 'os';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
     return Array.from(new Set(Object.keys(ActivityTypes).reduce((array: string[], key: string) => {
       array.push(ActivityTypes[<keyof typeof ActivityTypes>key]); // Important get the key via the enum else it will be chaos
+      return array;
+    }, []))).sort((left, right) => {
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  static getActivityTypeGroupsAsUniqueArray(): string[] {
+    return Array.from(new Set(Object.keys(ActivityTypeGroups).reduce((array: string[], key: string) => {
+      array.push(ActivityTypeGroups[<keyof typeof ActivityTypeGroups>key]); // Important get the key via the enum else it will be chaos
       return array;
     }, []))).sort((left, right) => {
       if (left < right) {
@@ -56,6 +70,17 @@ export class ActivityTypesHelper {
         return [DataSpeed.type];
     }
   }
+
+  /**
+   * Get's back the activity group an activity belongs to or returns unspecified activity group
+   * @param activityType
+   */
+  static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroups {
+    return ActivityTypeGroups[<keyof typeof ActivityTypeGroups>ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray().find(activityTypeGroupString => {
+      return ActivityTypesGroupMapping.map[<keyof typeof ActivityTypeGroups>activityTypeGroupString].find(groupItem => groupItem === activityType)
+    }) || ActivityTypeGroups.Unspecified];
+  }
+
 }
 
 /**
@@ -788,7 +813,7 @@ export enum ActivityTypeGroups {
   'Water Sports' = 'Water Sports',
   'WaterSports' = 'Water Sports',
   'Diving' = 'Diving',
-  'Team racket' = 'Team Racket',
+  'Team Racket' = 'Team Racket',
   'TeamRacket' = 'Team Racket',
   'Unspecified' = 'Unspecified',
 }
@@ -855,6 +880,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.OpenWaterSwimming,
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
+      ActivityTypes.Wakeboarding,
       // @todo add more
     ],
     [ActivityTypeGroups.Diving]: [
@@ -864,8 +890,9 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.TeamRacket]: [
       ActivityTypes.Golf,
-      ActivityTypes.Soccer,
+      // ActivityTypes.Soccer,
       ActivityTypes.AmericanFootball,
+      ActivityTypes.Football,
       ActivityTypes.Badminton,
       ActivityTypes.Baseball,
       ActivityTypes.Basketball,
@@ -879,9 +906,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.TableTennis,
       ActivityTypes.Tennis,
       // @todo add more
+    ],
+    [ActivityTypeGroups.Unspecified]: [
     ]
   };
-
 }
 
 export class StravaGPXTypeMapping {

@@ -1,10 +1,10 @@
-import { DataSpeedAvg } from '../data/data.speed-avg';
-import { DataPaceAvg } from '../data/data.pace-avg';
-import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
-import { DataPace } from '../data/data.pace';
-import { DataSpeed } from '../data/data.speed';
-import { DataSwimPace } from '../data/data.swim-pace';
-import { DataVerticalSpeedAvg } from '../data/data.vertical-speed-avg';
+import {DataSpeedAvg} from '../data/data.speed-avg';
+import {DataPaceAvg} from '../data/data.pace-avg';
+import {DataSwimPaceAvg} from '../data/data.swim-pace-avg';
+import {DataPace} from '../data/data.pace';
+import {DataSpeed} from '../data/data.speed';
+import {DataSwimPace} from '../data/data.swim-pace';
+import {DataVerticalSpeedAvg} from '../data/data.vertical-speed-avg';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
@@ -61,6 +61,10 @@ export class ActivityTypesHelper {
 
 /**
  * This enum works like a all matchers for normalized sport types between different naming across services
+ *
+ * It helps as you can call request an activity type with different namin eg .BackCountrySki or .BackCountrySkiing and get a uniform value
+ * Also helps in case you have peristed data that do not match or have been peristed wrongly
+ *
  */
 export enum ActivityTypes {
   'unknown' = 'Unknown sport',
@@ -78,6 +82,7 @@ export enum ActivityTypes {
   'multisport' = 'Multisport',
   'running_virtual_activity' = 'Virtual Running',
   'VirtualRun' = 'Virtual Running',
+  'Virtual Running' = 'Virtual Running',
   'Run' = 'Running',
   'run' = 'Running',
   'running_track' = 'Running',
@@ -92,9 +97,11 @@ export enum ActivityTypes {
   'cycling_gravel_cycling' = 'Cycling',
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
-  'e_biking' = 'E Biking',
-  'E Biking' = 'E Biking',
-  'EBikeRide' = 'E Biking',
+  'e_biking' = 'E-Biking',
+  'E Biking' = 'E-Biking',
+  'E biking' = 'E-Biking',
+  'EBikeRide' = 'E-Biking',
+  'E-Biking' = 'E-Biking',
   'Ride' = 'Cycling',
   'cycling_mountain' = 'Mountain biking',
   'MountainBiking' = 'Mountain biking',
@@ -144,6 +151,7 @@ export enum ActivityTypes {
   'Indoor Cycling' = 'Indoor Cycling',
   'cycling_virtual_activity' = 'Virtual Cycling',
   'VirtualRide' = 'Virtual Cycling',
+  'Virtual Cycling' = 'Virtual Cycling',
   'Circuit training' = 'Circuit training',
   'Triathlon' = 'Triathlon',
   'Alpine skiing' = 'Alpine skiing',
@@ -162,8 +170,10 @@ export enum ActivityTypes {
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'Crosscountry Skiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
-  'NordicSki' = 'Crosscountry Skiing',
+  'NordicSki' = 'Nordic Skiing',
+  'Nordic Skiing' = 'Nordic Skiing',
   'backcountry' = 'Crosscountry Skiing',
+  'BackCountrySki' = 'Crosscountry Skiing',
   'downhill' = 'Downhill skiing',
   'Downhill skiing' = 'Downhill skiing',
   'Weight training' = 'Weight training',
@@ -214,6 +224,8 @@ export enum ActivityTypes {
   'ice_skating' = 'Ice Skating',
   'ice skating' = 'Ice Skating',
   'Ice skating' = 'Ice Skating',
+  'IceSkate' = 'Ice Skating',
+  'Ice Skate' = 'Ice Skating',
   'fitness_equipment_indoor_rowing' = 'Indoor Rowing',
   'Indoor Rowing' = 'Indoor Rowing',
   'indoor_rowing' = 'Indoor Rowing',
@@ -293,6 +305,7 @@ export enum ActivityTypes {
   'route' = 'Route',
   'Route' = 'Route',
   'inline_skating' = 'Inline Skating',
+  'InlineSkating' = 'Inline Skating',
   'Inline Skating' = 'Inline Skating',
   'Inline skating' = 'Inline Skating',
   'InlineSkate' = 'Inline Skating',
@@ -336,10 +349,11 @@ export enum ActivityTypes {
   'Elliptical' = 'Elliptical trainer',
   'Crossfit' = 'Cross fit',
   'Handcycle' = 'Hand cycle',
-  'IceSkate' = 'Ice Skate',
   'StairStepper' = 'Stair Stepper',
+  'Stair Stepper' = 'Stair Stepper',
   'Velomobile' = 'Velomobile',
   'Wheelchair' = 'Wheel chair',
+  'Wheel chair' = 'Wheel chair',
   'Workout' = 'Workout',
 }
 
@@ -347,38 +361,38 @@ export enum ActivityTypes {
 export class StravaGPXTypeMapping {
 
   public static readonly map: Array<{ id: number, type: string }> = [
-    {id: 1, type: 'Ride'},
-    {id: 2, type: 'AlpineSki'},
-    {id: 3, type: 'BackcountrySki'},
-    {id: 4, type: 'Hike'},
-    {id: 5, type: 'IceSkate'},
-    {id: 6, type: 'InlineSkate'},
-    {id: 7, type: 'NordicSki'},
-    {id: 8, type: 'RollerSki'},
-    {id: 9, type: 'Run'},
-    {id: 10, type: 'Walk'},
-    {id: 11, type: 'Workout'},
-    {id: 12, type: 'Snowboard'},
-    {id: 13, type: 'Snowshoe'},
-    {id: 14, type: 'Kitesurf'},
-    {id: 15, type: 'Windsurf'},
-    {id: 16, type: 'Swim'},
-    {id: 17, type: 'VirtualRide'},
-    {id: 18, type: 'EBikeRide'},
-    {id: 19, type: 'Velomobile'},
-    {id: 21, type: 'Canoeing'},
-    {id: 22, type: 'Kayaking'},
-    {id: 23, type: 'Rowing'},
-    {id: 24, type: 'StandUpPaddling'},
-    {id: 25, type: 'Surfing'},
-    {id: 26, type: 'Crossfit'},
-    {id: 27, type: 'Elliptical'},
-    {id: 28, type: 'RockClimbing'},
-    {id: 29, type: 'StairStepper'},
-    {id: 30, type: 'WeightTraining'},
-    {id: 31, type: 'Yoga'},
-    {id: 51, type: 'Handcycle'},
-    {id: 52, type: 'Wheelchair'},
-    {id: 53, type: 'VirtualRun'}
+    {id: 1, type: ActivityTypes.Cycling},
+    {id: 2, type: ActivityTypes.AlpineSKi},
+    {id: 3, type: ActivityTypes.BackCountrySki},
+    {id: 4, type: ActivityTypes.Hiking},
+    {id: 5, type: ActivityTypes.IceSkate},
+    {id: 6, type: ActivityTypes.InlineSkate},
+    {id: 7, type: ActivityTypes.NordicSki},
+    {id: 8, type: ActivityTypes.RollerSki},
+    {id: 9, type: ActivityTypes.Running},
+    {id: 10, type: ActivityTypes.Walking},
+    {id: 11, type: ActivityTypes.Workout},
+    {id: 12, type: ActivityTypes.Snowboard},
+    {id: 13, type: ActivityTypes.Snowshoeing},
+    {id: 14, type: ActivityTypes.Kitesurfing},
+    {id: 15, type: ActivityTypes.Windsurfing},
+    {id: 16, type: ActivityTypes.Swimming},
+    {id: 17, type: ActivityTypes.VirtualRide},
+    {id: 18, type: ActivityTypes.EBikeRide},
+    {id: 19, type: ActivityTypes.Velomobile},
+    {id: 21, type: ActivityTypes.Canoeing},
+    {id: 22, type: ActivityTypes.Kayaking},
+    {id: 23, type: ActivityTypes.Rowing},
+    {id: 24, type: ActivityTypes.StandUpPaddling},
+    {id: 25, type: ActivityTypes.Surfing},
+    {id: 26, type: ActivityTypes.Crossfit},
+    {id: 27, type: ActivityTypes.Elliptical},
+    {id: 28, type: ActivityTypes.RockClimbing},
+    {id: 29, type: ActivityTypes.StairStepper},
+    {id: 30, type: ActivityTypes.WeightTraining},
+    {id: 31, type: ActivityTypes.Yoga},
+    {id: 51, type: ActivityTypes.Handcycle},
+    {id: 52, type: ActivityTypes.Wheelchair},
+    {id: 53, type: ActivityTypes.VirtualRun}
   ];
 }

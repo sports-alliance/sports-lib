@@ -819,7 +819,7 @@ export enum ActivityTypeGroups {
 }
 
 export class ActivityTypesGroupMapping {
-  public static readonly map: { [type: string]: ActivityTypes[] } = {
+  public static readonly map: { [key in ActivityTypeGroups]: ActivityTypes[] } = {
     [ActivityTypeGroups.Running]: [
       ActivityTypes.Running,
       ActivityTypes.TrailRunning,

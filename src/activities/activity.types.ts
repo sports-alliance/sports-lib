@@ -74,10 +74,11 @@ export class ActivityTypesHelper {
   /**
    * Get's back the activity group an activity belongs to or returns unspecified activity group
    * @param activityType
+   * This function can also be called: Fighting with a non functional language
    */
   static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroups {
     return ActivityTypeGroups[<keyof typeof ActivityTypeGroups>ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray().find(activityTypeGroupString => { // Could also iterate over the map
-      return ActivityTypesGroupMapping.map[<keyof typeof ActivityTypeGroups>activityTypeGroupString].find(groupItem => groupItem === activityType)
+      return ActivityTypesGroupMapping.map[ActivityTypeGroups[<keyof typeof ActivityTypeGroups>activityTypeGroupString]].find((groupItem: ActivityTypes) => groupItem === activityType)
     }) || ActivityTypeGroups.Unspecified];
   }
 
@@ -102,7 +103,10 @@ export enum ActivityTypes {
   'Unknown Sport' = 'Unknown Sport',
   'undefined' = 'Unknown Sport',
   'Not specified sport' = 'Unknown Sport',
-  'Other' = 'Unknown Sport', // @todo is this correct?
+  /**
+   * Other
+   */
+  'Other' = 'Other',
   /**
    * Generic
    */
@@ -580,6 +584,7 @@ export enum ActivityTypes {
   'Strength training' = 'Strength Training',
   'strength training' = 'Strength Training',
   'Strength Training' = 'Strength Training',
+  'StrengthTraining' = 'Strength Training',
   /**
    * Track and Field
    */
@@ -757,6 +762,7 @@ export enum ActivityTypes {
   'training_flexibility_training' = 'Flexibility Training',
   'flexibility_training' = 'Flexibility Training',
   'Flexibility Training' = 'Flexibility Training',
+  'FlexibilityTraining' = 'Flexibility Training',
   /**
    * Training
    */
@@ -842,6 +848,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Orienteering,
       ActivityTypes.RollerSki,
       ActivityTypes.TrackAndField,
+      ActivityTypes.Triathlon,
+      ActivityTypes.Multisport,
       // @todo add more
     ],
     [ActivityTypeGroups.IndoorSports]: [
@@ -853,6 +861,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Floorball,
       ActivityTypes.Dancing,
       ActivityTypes.Crosstrainer,
+      ActivityTypes.WeightTraining,
+      ActivityTypes.StrengthTraining,
+      ActivityTypes.Training,
+      ActivityTypes.FlexibilityTraining,
       // @todo add more
     ],
     [ActivityTypeGroups.OutdoorAdventures]: [
@@ -861,6 +873,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.NordicWalking,
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
+      ActivityTypes.RockClimbing,
       // @todo add more
     ],
     [ActivityTypeGroups.WinterSports]: [
@@ -881,6 +894,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
       ActivityTypes.Wakeboarding,
+      ActivityTypes.Sailing,
       // @todo add more
     ],
     [ActivityTypeGroups.Diving]: [

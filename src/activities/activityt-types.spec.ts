@@ -1,5 +1,4 @@
-import {ActivityInterface} from './activity.interface';
-import {ActivityTypeGroups, ActivityTypes, ActivityTypesHelper} from './activity.types';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 describe('ActivityTypes', () => {
 

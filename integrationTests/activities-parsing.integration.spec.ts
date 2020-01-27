@@ -28,9 +28,11 @@ describe('Integration tests with native & custom dom parser', () => {
       it('should parse a TCX file (ride)', done => {
 
         // Given
-        const path = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx';
+        const path = __dirname + '/fixtures/rides/garmin_export/20190815_ride_3953195468.tcx'; // @ https://connect.garmin.com/modern/activity/3953195468
         const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
         const expectedSamplesLength = 3179;
+        const expectedElapsedTime = 10514; // 2:55:15 or 10514s
+        const expectedMovingTime = 9874; // 2:44:34 or 9874s
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -48,6 +50,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+          expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -108,6 +112,8 @@ describe('Integration tests with native & custom dom parser', () => {
                       </gpx> `;
 
           const expectedSamplesLength = 2;
+          const expectedElapsedTime = 1;
+          const expectedMovingTime = 1;
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -125,6 +131,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+            expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -139,9 +147,11 @@ describe('Integration tests with native & custom dom parser', () => {
         it('should parse a GPX file (ride)', done => {
 
           // Given
-          const path = __dirname + '/fixtures/rides/garmin_export/20190929_ride_4108490848.gpx';
+          const path = __dirname + '/fixtures/rides/garmin_export/20190929_ride_4108490848.gpx';  // @ https://connect.garmin.com/modern/activity/4108490848
           const gpxString = fs.readFileSync(path).toString();
           const expectedSamplesLength = 1817;
+          const expectedElapsedTime = 6595; // 1:49:55 or 6595s
+          const expectedMovingTime = 6433; // 1:47:13 or 6433s
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -159,6 +169,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+            expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -174,9 +186,11 @@ describe('Integration tests with native & custom dom parser', () => {
       it('should parse a FIT file (ride)', done => {
 
         // Given
-        const path = __dirname + '/fixtures/rides/garmin_export/20190811_ride_3939576645.fit';
+        const path = __dirname + '/fixtures/rides/garmin_export/20190811_ride_3939576645.fit'; // @ https://connect.garmin.com/modern/activity/3939576645
         const buffer = fs.readFileSync(path);
         const expectedSamplesLength = 2547;
+        const expectedElapsedTime = 7476; // 2:04:36 or 7476s
+        const expectedMovingTime = 7242; // 2:00:42 or 7242s
 
         // When
         const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -194,6 +208,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+          expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -212,9 +228,12 @@ describe('Integration tests with native & custom dom parser', () => {
       it('should parse a TCX file (run)', done => {
 
         // Given
-        const path = __dirname + '/fixtures/runs/strava_export/20160911_run_708752345.tcx';
+        const path = __dirname + '/fixtures/runs/strava_export/20160911_run_708752345.tcx'; // @ https://www.strava.com/activities/708752345
         const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
         const expectedSamplesLength = 1495;
+
+        const expectedElapsedTime = 4070; // 1:07:50 or 4070s
+        const expectedMovingTime = 3369; // 00:56:09 or 3369s
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -232,6 +251,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+          expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -248,9 +269,11 @@ describe('Integration tests with native & custom dom parser', () => {
         it('should parse a GPX file (run)', done => {
 
           // Given
-          const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx';
+          const path = __dirname + '/fixtures/runs/strava_export/20170319_run_906581465.gpx'; // @ https://www.strava.com/activities/906581465
           const gpxString = fs.readFileSync(path).toString();
           const expectedSamplesLength = 1038;
+          const expectedElapsedTime = 1958; // 00:32:38 or 1958s
+          const expectedMovingTime = 1887; // 00:31:27 or 1887s
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -269,6 +292,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+            expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -283,9 +308,11 @@ describe('Integration tests with native & custom dom parser', () => {
         it('should parse a GPX file (virtualride)', done => {
 
           // Given
-          const path = __dirname + '/fixtures/virtual_rides/strava_export/20160422_virtualride_553573871.gpx';
+          const path = __dirname + '/fixtures/virtual_rides/strava_export/20160422_virtualride_553573871.gpx'; // @ https://www.strava.com/activities/553573871
           const gpxString = fs.readFileSync(path).toString();
           const expectedSamplesLength = 3790;
+          const expectedElapsedTime = 3789; // 1:03:09 or 3789s
+          const expectedMovingTime = 3789; // 1:03:09 or 3789s
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -304,6 +331,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+            expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
 
             done();
           });

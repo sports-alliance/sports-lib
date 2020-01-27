@@ -156,7 +156,6 @@ export enum ActivityTypes {
   'Trail Running' = 'Trail Running',
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
-  'trail' = 'Trail Running', // @todo hack?
   /**
    * Indoor Running
    */

@@ -12,8 +12,16 @@ import { DataAltitude } from '../src/data/data.altitude';
 import * as xmldom from 'xmldom';
 import { ActivityTypes } from '../src/activities/activity.types';
 import { DataPace } from '../src/data/data.pace';
+import { DataAscent } from '../src/data/data.ascent';
+
+const expectTolerance = (actual: number, expected: number, tolerance: number) => {
+  expect(actual).toBeGreaterThanOrEqual(expected - tolerance);
+  expect(actual).toBeLessThan(expected + tolerance);
+};
 
 describe('Integration tests with native & custom dom parser', () => {
+
+  const ASCENT_ELEVATION_TOLERANCE = 5;
 
   describe('Native DOMParser', () => {
 
@@ -33,6 +41,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 3179;
         const expectedElapsedTime = 10514; // 2:55:15 or 10514s
         const expectedMovingTime = 9874; // 2:44:34 or 9874s
+        const expectedElevationGain = 690;
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -52,6 +61,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+          expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -86,7 +96,7 @@ describe('Integration tests with native & custom dom parser', () => {
                           <type>road_biking</type>
                           <trkseg>
                             <trkpt lat="45.199617706239223480224609375" lon="5.77009744942188262939453125">
-                              <ele>109.1999969482421875</ele>
+                              <ele>109</ele>
                               <time>2019-09-29T13:58:25.000Z</time>
                               <extensions>
                                 <ns3:TrackPointExtension>
@@ -97,7 +107,7 @@ describe('Integration tests with native & custom dom parser', () => {
                               </extensions>
                             </trkpt>
                             <trkpt lat="45.19955039955675601959228515625" lon="5.77004539780318737030029296875">
-                              <ele>109</ele>
+                              <ele>129</ele>
                               <time>2019-09-29T13:58:26.000Z</time>
                               <extensions>
                                 <ns3:TrackPointExtension>
@@ -114,6 +124,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 2;
           const expectedElapsedTime = 1;
           const expectedMovingTime = 1;
+          const expectedElevationGain = 20;
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -133,6 +144,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+            expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -152,6 +164,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1817;
           const expectedElapsedTime = 6595; // 1:49:55 or 6595s
           const expectedMovingTime = 6433; // 1:47:13 or 6433s
+          const expectedElevationGain = 310;
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -171,6 +184,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+            expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -191,6 +205,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 2547;
         const expectedElapsedTime = 7476; // 2:04:36 or 7476s
         const expectedMovingTime = 7242; // 2:00:42 or 7242s
+        const expectedElevationGain = 668;
 
         // When
         const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -210,6 +225,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+          expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -234,6 +250,7 @@ describe('Integration tests with native & custom dom parser', () => {
 
         const expectedElapsedTime = 4070; // 1:07:50 or 4070s
         const expectedMovingTime = 3369; // 00:56:09 or 3369s
+        const expectedElevationGain = 343;
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -253,6 +270,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+          expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -274,6 +292,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 1038;
           const expectedElapsedTime = 1958; // 00:32:38 or 1958s
           const expectedMovingTime = 1887; // 00:31:27 or 1887s
+          const expectedElevationGain = 16;
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -294,6 +313,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+            expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -313,6 +333,7 @@ describe('Integration tests with native & custom dom parser', () => {
           const expectedSamplesLength = 3790;
           const expectedElapsedTime = 3789; // 1:03:09 or 3789s
           const expectedMovingTime = 3789; // 1:03:09 or 3789s
+          const expectedElevationGain = 262;
 
           // When
           const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -333,6 +354,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
+            expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             done();
           });

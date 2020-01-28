@@ -229,7 +229,7 @@ export enum ActivityTypes {
   /**
    * Circuit training
    */
-  'Circuit training' = 'Circuit training',
+  'Circuit training' = 'Circuit Training',
   /**
    * Swimming
    */
@@ -396,8 +396,8 @@ export enum ActivityTypes {
   /**
    * Weight training
    */
-  'Weight training' = 'Weight training',
-  'WeightTraining' = 'Weight training',
+  'Weight training' = 'Weight Training',
+  'WeightTraining' = 'Weight Training',
   /**
    * Basketball
    */
@@ -525,8 +525,8 @@ export enum ActivityTypes {
   /**
    * Hand Gliding
    */
-  'hang_gliding' = 'Hang gliding',
-  'Hang gliding' = 'Hang gliding',
+  'hang_gliding' = 'Hang Gliding',
+  'Hang gliding' = 'Hang Gliding',
   /**
    * Horseback Ridding
    */

@@ -615,7 +615,7 @@ export class EventUtilities {
     streamType: string,
     starDate?: Date,
     endDate?: Date,
-    minDiff: number = 5): number {
+    minDiff?: number): number {
     return this.getEventDataTypeGainOrLoss(activity, streamType, true, starDate, endDate, minDiff);
   }
 
@@ -625,11 +625,11 @@ export class EventUtilities {
     streamType: string,
     starDate?: Date,
     endDate?: Date,
-    minDiff: number = 5): number {
+    minDiff?: number): number {
     return this.getEventDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 5) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 4) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
@@ -917,7 +917,7 @@ export class EventUtilities {
     gain: boolean,
     startDate?: Date,
     endDate?: Date,
-    minDiff: number = 5): number {
+    minDiff?: number): number {
     return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
   }
 

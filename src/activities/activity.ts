@@ -16,8 +16,13 @@ import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.
 import { isNumber } from '../events/utilities/helpers';
 import { EventUtilities } from '../events/utilities/event.utilities';
 import { DataGNSSDistance } from '../data/data.gnss-distance';
+import { DataPower } from '../data/data.power';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
+
+  private static readonly TRAINER_TYPES: ActivityTypes[] = [ActivityTypes.VirtualRun, ActivityTypes.VirtualCycling, ActivityTypes.Treadmill,
+    ActivityTypes.IndoorCycling, ActivityTypes.IndoorRunning, ActivityTypes.IndoorRowing, ActivityTypes.Crosstrainer, ActivityTypes.EllipticalTrainer, ActivityTypes.FitnessEquipment, ActivityTypes.StairStepper,];
+
   public type: ActivityTypes;
   public creator: CreatorInterface;
   public intensityZones: IntensityZonesInterface[] = []; // maybe rename
@@ -63,7 +68,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   removeStream(stream: StreamInterface): this {
-    this.streams = this.streams.filter((activityStream) => stream !== activityStream)
+    this.streams = this.streams.filter((activityStream) => stream !== activityStream);
     return this;
   }
 
@@ -91,7 +96,16 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   hasPositionData(startDate?: Date, endDate?: Date): boolean {
-    return this.hasStreamData(DataLatitudeDegrees.type, startDate, endDate) && this.hasStreamData(DataLongitudeDegrees.type, startDate, endDate);
+    return this.hasStreamData(DataLatitudeDegrees.type, startDate, endDate)
+      && this.hasStreamData(DataLongitudeDegrees.type, startDate, endDate);
+  }
+
+  isTrainer(): boolean {
+    return Activity.TRAINER_TYPES.indexOf(this.type) !== -1;
+  }
+
+  hasPowerMeter(): boolean {
+    return this.hasStreamData(DataPower.type);
   }
 
   getStream(streamType: string): StreamInterface {

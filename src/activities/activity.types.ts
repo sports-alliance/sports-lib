@@ -399,6 +399,7 @@ export enum ActivityTypes {
   /**
    * Weight training
    */
+  'Weight Training' = 'Weight Training',
   'Weight training' = 'Weight Training',
   'WeightTraining' = 'Weight Training',
   /**

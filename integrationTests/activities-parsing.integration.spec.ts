@@ -38,6 +38,8 @@ describe('Integration tests with native & custom dom parser', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
+          expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+          expect(event.getFirstActivity().isTrainer()).toEqual(false);
           expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
             .toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
@@ -115,6 +117,8 @@ describe('Integration tests with native & custom dom parser', () => {
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
+            expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+            expect(event.getFirstActivity().isTrainer()).toEqual(false);
             expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
               .toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
@@ -151,6 +155,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
             expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
               .toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+            expect(event.getFirstActivity().isTrainer()).toEqual(false);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -186,6 +192,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
           expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
             .toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+          expect(event.getFirstActivity().isTrainer()).toEqual(false);
           expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -224,6 +232,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
           expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
             .toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+          expect(event.getFirstActivity().isTrainer()).toEqual(false);
           expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -261,6 +271,8 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.run);
             expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
               .toEqual(expectedSamplesLength);
+            expect(event.getFirstActivity().hasPowerMeter()).toEqual(false);
+            expect(event.getFirstActivity().isTrainer()).toEqual(false);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -292,7 +304,9 @@ describe('Integration tests with native & custom dom parser', () => {
 
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
-            expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling_virtual_activity);
+            expect(event.getFirstActivity().type).toEqual(ActivityTypes.VirtualRide);
+            expect(event.getFirstActivity().hasPowerMeter()).toEqual(true);
+            expect(event.getFirstActivity().isTrainer()).toEqual(true);
             expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
               .toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
@@ -592,6 +606,8 @@ describe('Integration tests with native & custom dom parser', () => {
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling_virtual_activity);
+            expect(event.getFirstActivity().hasPowerMeter()).toEqual(true);
+            expect(event.getFirstActivity().isTrainer()).toEqual(true);
             expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData(true, true).length)
               .toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);

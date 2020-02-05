@@ -232,6 +232,7 @@ export enum ActivityTypes {
    * Circuit training
    */
   'Circuit training' = 'Circuit Training',
+  'Circuit Training' = 'Circuit Training',
   /**
    * Swimming
    */

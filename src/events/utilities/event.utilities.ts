@@ -154,6 +154,7 @@ import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-durat
 import { DynamicDataLoader } from '../../data/data.store';
 import { DataStartPosition } from '../../data/data.start-position';
 import { DataEndPosition } from '../../data/data.end-position';
+import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
 
 export class EventUtilities {
 
@@ -696,8 +697,8 @@ export class EventUtilities {
 
       if (!activity.hasStreamData(DataDistance.type)) {
         activity.addStream(new Stream(DataDistance.type, streamData));
-
       }
+
       if (!activity.hasStreamData(DataGNSSDistance.type)) {
         activity.addStream(new Stream(DataGNSSDistance.type, streamData));
       }
@@ -943,16 +944,6 @@ export class EventUtilities {
     // Add the number of points this activity has
     // @todo this wont work since the stats are after the generated streams // Could be wrong and I could still vise versa
     // activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
-
-    // If there is no duration define that from the start date and end date
-    if (!activity.getStat(DataDuration.type)) {
-      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000))
-    }
-
-    // If there is no pause define that from the start date and end date and duration
-    if (!activity.getStat(DataPause.type)) {
-      activity.addStat(new DataPause(((activity.endDate.getTime() - activity.startDate.getTime()) / 1000) - activity.getDuration().getValue()))
-    }
 
     // If there is no distance
     if (!activity.getStat(DataDistance.type)) {
@@ -1432,6 +1423,50 @@ export class EventUtilities {
       if (verticalSpeedMin) {
         activity.addStat(new DataVerticalSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMin.getValue())));
       }
+    }
+
+    if (!activity.getStat(DataDuration.type)) {
+      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000))
+    }
+
+    if (activity.hasStreamData(DataSpeed.type)) {
+
+      const speedStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);
+
+      let speedThreshold: number;
+
+      if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
+        speedThreshold = 1.9;
+      } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
+        speedThreshold = 1.2;
+      } else {
+        speedThreshold = 0;
+      }
+
+      let movingTime = 0;
+      speedStream.forEach((speedEntry, index) => {
+
+        if (index === 0) {
+          return;
+        }
+
+        const deltaTime = speedStream[index].time - speedStream[index - 1].time;
+
+        if (<number>speedEntry.value >= speedThreshold) {
+          movingTime += deltaTime;
+        }
+
+      });
+
+      movingTime = movingTime / 1000;
+
+      const duration = <number>(<DataInterface>activity.getStat(DataDuration.type)).getValue();
+      activity.setPause(new DataPause(duration - movingTime));
+    }
+
+    // If there is no pause define that from the start date and end date and duration
+    if (!activity.getStat(DataPause.type)) {
+      activity.addStat(new DataPause(((activity.endDate.getTime() - activity.startDate.getTime()) / 1000) - activity.getDuration().getValue()))
     }
 
   }

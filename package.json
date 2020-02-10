@@ -30,13 +30,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/jimmykane/sports-lib.git"
+    "url": "git://github.com/sports-alliance/sports-lib.git"
   },
   "bugs": {
-    "url": "https://github.com/jimmykane/sports-lib/issues"
+    "url": "https://github.com/sports-alliance/sports-lib/issues"
   },
-  "homepage": "https://github.com/jimmykane/sports-lib",
-  "author": "Dimitrios Kanellopoulos",
+  "homepage": "https://github.com/sports-alliance/sports-lib/",
+  "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "@types/node": "^13.1.4",

@@ -1,5 +1,5 @@
 {
-  "name": "sports-lib",
+  "name": "@sports-alliance/sports-lib",
   "version": "4.0.0",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
@@ -18,6 +18,9 @@
     "utility",
     "parser"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {

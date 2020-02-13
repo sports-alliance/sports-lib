@@ -1,12 +1,23 @@
-export interface UserDashboardChartSettingsInterface {
+export interface TileSettingsInterface {
   name: string,
   order: number,
-  type: ChartTypes,
+  type: TileTypes,
+}
+
+export interface TileChartSettingsInterface extends TileSettingsInterface {
   dataType: string,
   dataValueType: ChartDataValueTypes,
   dataCategoryType: ChartDataCategoryTypes,
   filterLowValues: boolean,
 }
+
+
+export enum TileTypes {
+  Chart = 'Chart',
+  Map = 'Map',
+}
+
+
 
 export enum ChartTypes {
   Pie = 'Pie',

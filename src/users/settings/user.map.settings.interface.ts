@@ -1,4 +1,4 @@
-import { LapTypes } from '../laps/lap.types';
+import { LapTypes } from '../../laps/lap.types';
 
 export interface UserMapSettingsInterface {
   showLaps: boolean,

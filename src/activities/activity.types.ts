@@ -533,6 +533,8 @@ export enum ActivityTypes {
     'hang_gliding' = 'Hang Gliding',
   'Hang gliding' = 'Hang Gliding',
   'HangGliding' = 'Hang Gliding',
+  'Hang Gliding' = 'Hang Gliding',
+
   /**
    * Horseback Ridding
    */

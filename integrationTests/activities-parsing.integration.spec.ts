@@ -12,6 +12,7 @@ import { DataAltitude } from '../src/data/data.altitude';
 import * as xmldom from 'xmldom';
 import { ActivityTypes } from '../src/activities/activity.types';
 import { DataPace } from '../src/data/data.pace';
+import { EmptyEventLibError } from '../src/errors/empty-event-sports-libs.error';
 
 describe('Integration tests with native & custom dom parser', () => {
 
@@ -628,4 +629,31 @@ describe('Integration tests with native & custom dom parser', () => {
       });
     });
   });
+
+  describe('Other', () => {
+
+    it('should reject parsing of broken fit file (empty)', done => {
+
+      // Given
+      const path = __dirname + '/fixtures/others/broken.fit';
+      const buffer = fs.readFileSync(path);
+      const expectedErrorMessage = 'Empty fit file';
+      const expectedErrorClassName = 'EmptyEventLibError';
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then(() => {
+        throw new Error('Should not be resolved...');
+      }, err => {
+        expect(err.constructor.name).toEqual(expectedErrorClassName);
+        expect(err.message).toEqual(expectedErrorMessage);
+        expect(err.event).toBeNull();
+        done();
+      });
+    });
+
+  });
+
 });

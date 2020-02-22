@@ -1,12 +1,32 @@
-export interface UserDashboardChartSettingsInterface {
+import { MapThemes, MapTypes } from '../users/settings/user.map.settings.interface';
+
+export interface TileSettingsInterface {
   name: string,
   order: number,
-  type: ChartTypes,
+  type: TileTypes,
+  size: { columns: number, rows: number }
+}
+
+export interface TileChartSettingsInterface extends TileSettingsInterface {
+  chartType: ChartTypes,
   dataType: string,
   dataValueType: ChartDataValueTypes,
   dataCategoryType: ChartDataCategoryTypes,
   filterLowValues: boolean,
 }
+
+export interface TileMapSettingsInterface extends TileSettingsInterface {
+  mapType: MapTypes;
+  mapTheme: MapThemes;
+  showHeatMap: boolean;
+  clusterMarkers: boolean;
+}
+
+export enum TileTypes {
+  Chart = 'Chart',
+  Map = 'Map',
+}
+
 
 export enum ChartTypes {
   Pie = 'Pie',

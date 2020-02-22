@@ -1,10 +1,10 @@
-import { MapThemes, MapTypes } from "../users/settings/user.map.settings.interface";
+import { MapThemes, MapTypes } from '../users/settings/user.map.settings.interface';
 
 export interface TileSettingsInterface {
   name: string,
   order: number,
   type: TileTypes,
-  size: number,
+  size: { columns: number, rows: number }
 }
 
 export interface TileChartSettingsInterface extends TileSettingsInterface {

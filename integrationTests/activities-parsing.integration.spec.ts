@@ -334,7 +334,7 @@ describe('Integration tests with native & custom dom parser', () => {
         // Given
         const path = __dirname + '/fixtures/rides/others_export/2020-01-09_virtualride.fit';
         const buffer = fs.readFileSync(path);
-        const expectedSamplesLength = 1746;
+        const expectedSamplesLength = 1745;
         const expectedStartDate = '2020-01-09T17:49:07.000Z';
         const expectedEndDate = '2020-01-09T18:18:12.000Z';
 

@@ -265,12 +265,22 @@ export class EventImporterFIT {
   }
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
+
+    const firstRecord = fitDataObject.records[0];
+    const startDate = (firstRecord && firstRecord.timestamp)
+      ? firstRecord && firstRecord.timestamp : sessionObject.start_time;
+
+    let endDate;
+    const lastRecord = fitDataObject.records[fitDataObject.records.length - 1];
+    if (lastRecord && lastRecord.timestamp) {
+      endDate = lastRecord.timestamp
+    } else {
+      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000);
+    }
+
     // Create an activity
-    const activity = new Activity(sessionObject.start_time,
-      sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000),
-      this.getActivityTypeFromSessionObject(sessionObject),
-      this.getCreatorFromFitDataObject(fitDataObject),
-    );
+    const activity = new Activity(startDate, endDate, this.getActivityTypeFromSessionObject(sessionObject),
+      this.getCreatorFromFitDataObject(fitDataObject));
     // Set the activity stats
     this.getStatsFromObject(sessionObject).forEach(stat => activity.addStat(stat));
     return activity;

@@ -327,6 +327,47 @@ describe('Integration tests with native & custom dom parser', () => {
       });
     });
 
+    describe('From others sources', () => {
+
+      it('should parse a FIT file (ride)', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/rides/others_export/2020-01-09_virtualride.fit';
+        const buffer = fs.readFileSync(path);
+        const expectedSamplesLength = 1746;
+        const expectedStartDate = '2020-01-09T17:49:07.000Z';
+        const expectedEndDate = '2020-01-09T18:18:12.000Z';
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+
+          expect(event.startDate.toISOString()).toEqual(expectedStartDate);
+          expect(event.endDate.toISOString()).toEqual(expectedEndDate);
+          expect(event.getFirstActivity().type).toEqual(ActivityTypes.VirtualCycling);
+          expect(event.getFirstActivity().getStream(DataDistance.type).getDurationOfData().length)
+            .toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().hasPowerMeter()).toEqual(true);
+          expect(event.getFirstActivity().isTrainer()).toEqual(true);
+          expect(event.getFirstActivity().getStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+          done();
+        });
+
+      });
+
+
+    });
+
   });
 
   describe('Custom DOMParser', () => {

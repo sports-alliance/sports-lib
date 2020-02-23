@@ -58,7 +58,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
    */
   addDataToStream(type: string, date: Date, value: number): this {
     // @todo ceil vs floor (still debatable)
-    this.getStreamData(type)[Math.floor((+date - +this.startDate) / 1000)] = value;
+    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
     return this;
   }
 

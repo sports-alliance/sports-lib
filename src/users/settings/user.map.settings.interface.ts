@@ -16,8 +16,13 @@ export enum MapThemes {
   Black = 'Black',
   Night = 'Night',
   Desert = 'Desert',
-  Tron = 'Tron',
   MidnightCommander = 'MidnightCommander',
+  Retro = 'Retro',
+  'Black&White' = 'Black&White',
+  'Bright&Bubbly' = 'Bright&Bubbly',
+  Hopper = 'Hopper',
+  DarkElectric = 'DarkElectric',
+  Mondrian = 'Mondrian',
 }
 
 export enum MapTypes {

@@ -49,8 +49,16 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
+  /**
+   * Adds a value to the streams data
+   * Floor is used so a date with > end date does not create and extra slug in the array
+   * @param type
+   * @param date
+   * @param value
+   */
   addDataToStream(type: string, date: Date, value: number): this {
-    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value; // @todo ceil vs floor
+    // @todo ceil vs floor (still debatable)
+    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
     return this;
   }
 

@@ -1,11 +1,11 @@
-import { UserDashboardChartSettingsInterface } from './user.dashboard.chart.settings.interface';
-import { ActivityTypes } from '../activities/activity.types';
+import { ActivityTypes } from '../../../activities/activity.types';
+import { TileSettingsInterface } from '../../../tiles/tile.settings.interface';
 
 export interface UserDashboardSettingsInterface {
   dateRange: DateRanges,
   startDate: number,
   endDate: number,
-  chartsSettings: UserDashboardChartSettingsInterface[],
+  tiles: TileSettingsInterface[],
   showSummaries: boolean,
   pinUploadSection: boolean,
   tableSettings: TableSettings

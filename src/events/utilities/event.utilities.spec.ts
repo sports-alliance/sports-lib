@@ -18,7 +18,7 @@ describe('EventUtilities', () => {
     event = new Event('New name', new Date(0), new Date(200));
     const activity = new Activity(
       new Date(0),
-      new Date((new Date(0)).getTime() + 10),
+      new Date((new Date(0)).getTime() + 10000),
       ActivityTypes.Running,
       new Creator('Test'),
     );
@@ -93,7 +93,7 @@ describe('EventUtilities', () => {
 
     event.getFirstActivity().getStreamData(DataAltitude.type).push(400); // Gain 400 (from prev)
     event.getFirstActivity().getStreamData(DataAltitude.type).push(300);
-    ; // Gain 400
+     // Gain 400
     event.getFirstActivity().getStreamData(DataAltitude.type).push(400); // Gain 500
 
     expect(EventUtilities.getEventDataTypeGain(event.getFirstActivity(), DataAltitude.type)).toBe(500);
@@ -188,4 +188,19 @@ describe('EventUtilities', () => {
     expect(EventUtilities.getEventDataTypeLoss(event.getFirstActivity(), DataAltitude.type)).toBe(400);
   });
 
+  it('should get the correct data length', () => {
+    const activity = event.getFirstActivity(); // 10s
+    // 10 seconds = 10 slugs;
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(10);
+    // Change start / end date to <1s
+    activity.startDate = new Date(0);
+    activity.endDate = new Date(50);// 50ms
+    // More than 0 = 1 slug
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(1);
+    // Change start / end date to >9999ms and <100000s
+    activity.startDate = new Date(0);
+    activity.endDate = new Date(9999);// 9.9 seconds
+    // more than 9 is 10 slugs
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(10);
+  });
 });

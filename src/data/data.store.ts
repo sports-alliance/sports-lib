@@ -167,7 +167,7 @@ import { DataStanceTimeBalance } from './data.stance-time-balance';
 import { DataStepLength } from './data.step-length';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataDescription } from './data.description';
-import { UserUnitSettingsInterface } from '../users/user.unit.settings.interface';
+import { UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
 import { DataAirPowerMax } from './data.air-power-max';

@@ -19,6 +19,10 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
 
   hasPositionData(startDate?: Date, endDate?: Date): boolean;
 
+  isTrainer(): boolean;
+
+  hasPowerMeter(): boolean;
+
   getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[];
 
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];

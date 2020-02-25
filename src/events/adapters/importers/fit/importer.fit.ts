@@ -69,6 +69,7 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
+import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -166,23 +167,8 @@ export class EventImporterFIT {
 
         // If there are no activities to parse ....
         if (!activities.length) {
-          const activity =
-            new Activity(
-              new Date(fitDataObject.records[0].timestamp),
-              new Date(fitDataObject.records[fitDataObject.records.length - 1].timestamp),
-              ActivityTypes.unknown,
-              this.getCreatorFromFitDataObject(fitDataObject)
-            );
-          FITSampleMapper.forEach((sampleMapping) => {
-            const subjectSamples = <any[]>fitDataObject.records.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
-            if (subjectSamples.length) {
-              activity.addStream(activity.createStream(sampleMapping.dataType));
-              subjectSamples.forEach((subjectSample) => {
-                activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
-              });
-            }
-          });
-          activities.push(activity);
+          reject(new EmptyEventLibError('Empty fit file'));
+          return;
         }
 
         // Get the HRV to IBI if exist
@@ -265,12 +251,22 @@ export class EventImporterFIT {
   }
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
+
+    const firstRecord = fitDataObject.records[0];
+    const startDate = (firstRecord && firstRecord.timestamp)
+      ? firstRecord && firstRecord.timestamp : sessionObject.start_time;
+
+    let endDate;
+    const lastRecord = fitDataObject.records[fitDataObject.records.length - 1];
+    if (lastRecord && lastRecord.timestamp) {
+      endDate = lastRecord.timestamp
+    } else {
+      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000);
+    }
+
     // Create an activity
-    const activity = new Activity(sessionObject.start_time,
-      sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000),
-      this.getActivityTypeFromSessionObject(sessionObject),
-      this.getCreatorFromFitDataObject(fitDataObject),
-    );
+    const activity = new Activity(startDate, endDate, this.getActivityTypeFromSessionObject(sessionObject),
+      this.getCreatorFromFitDataObject(fitDataObject));
     // Set the activity stats
     this.getStatsFromObject(sessionObject).forEach(stat => activity.addStat(stat));
     return activity;

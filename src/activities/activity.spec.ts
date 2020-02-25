@@ -129,4 +129,146 @@ describe('Activity', () => {
     });
   });
 
+  describe('Trainer flagging', () => {
+
+    it('should flag activities to be performed on a trainer', () => {
+
+      // Given
+      const types = [
+        ActivityTypes.VirtualRun,
+        ActivityTypes.VirtualCycling,
+        ActivityTypes.Treadmill,
+        ActivityTypes.IndoorCycling,
+        ActivityTypes.IndoorRunning,
+        ActivityTypes.IndoorRowing,
+        ActivityTypes.Crosstrainer,
+        ActivityTypes.EllipticalTrainer,
+        ActivityTypes.FitnessEquipment,
+        ActivityTypes.StairStepper,
+      ];
+
+      // When, Then
+      types.forEach(type => {
+        const fakeActivity = new Activity(new Date(), new Date(), type, new Creator('John doo'));
+        expect(fakeActivity.isTrainer()).toBeTruthy();
+      })
+
+    });
+
+    it('should NOT flag activities to be performed on a trainer', () => {
+
+      // Given
+      const types = [
+        ActivityTypes.Aerobics,
+        ActivityTypes.AlpineSkiing,
+        ActivityTypes.AmericanFootball,
+        ActivityTypes.Aquathlon,
+        ActivityTypes.BackcountrySkiing,
+        ActivityTypes.Badminton,
+        ActivityTypes.Baseball,
+        ActivityTypes.Basketball,
+        ActivityTypes.Boxing,
+        ActivityTypes.Canoeing,
+        ActivityTypes.CardioTraining,
+        ActivityTypes.Climbing,
+        ActivityTypes.Combat,
+        ActivityTypes.Cricket,
+        ActivityTypes.Crossfit,
+        ActivityTypes.CrosscountrySkiing,
+        ActivityTypes.Cycling,
+        ActivityTypes.Dancing,
+        ActivityTypes.Diving,
+        ActivityTypes.DownhillSkiing,
+        ActivityTypes.Driving,
+        ActivityTypes.Duathlon,
+        ActivityTypes.EBikeRide,
+        ActivityTypes.Fishing,
+        ActivityTypes.FlexibilityTraining,
+        ActivityTypes.FloorClimbing,
+        ActivityTypes.Floorball,
+        ActivityTypes.Flying,
+        ActivityTypes.Football,
+        ActivityTypes.FreeDiving,
+        ActivityTypes.Frisbee,
+        ActivityTypes.Generic,
+        ActivityTypes.Golf,
+        ActivityTypes.Gymnastics,
+        ActivityTypes.Handcycle,
+        ActivityTypes.Handball,
+        ActivityTypes.HangGliding,
+        ActivityTypes.Hiking,
+        ActivityTypes.HorsebackRiding,
+        ActivityTypes.IceHockey,
+        ActivityTypes.IceSkating,
+        ActivityTypes.IndoorTraining,
+        ActivityTypes.InlineSkating,
+        ActivityTypes.Kayaking,
+        ActivityTypes.Kettlebell,
+        ActivityTypes.Kitesurfing,
+        ActivityTypes.Motorcycling,
+        ActivityTypes.Motorsports,
+        ActivityTypes.MountainBiking,
+        ActivityTypes.Mountaineering,
+        ActivityTypes.NordicWalking,
+        ActivityTypes.OpenWaterSwimming,
+        ActivityTypes.Orienteering,
+        ActivityTypes.Paddling,
+        ActivityTypes.Paragliding,
+        ActivityTypes.Rafting,
+        ActivityTypes.RockClimbing,
+        ActivityTypes.RollerSki,
+        ActivityTypes.Rowing,
+        ActivityTypes.Rugby,
+        ActivityTypes.Running,
+        ActivityTypes.Sailing,
+        ActivityTypes.ScubaDiving,
+        ActivityTypes.Skating,
+        ActivityTypes.SkiTouring,
+        ActivityTypes.SkyDiving,
+        ActivityTypes.Snorkeling,
+        ActivityTypes.Snowboarding,
+        ActivityTypes.Snowmobiling,
+        ActivityTypes.Snowshoeing,
+        ActivityTypes.Soccer,
+        ActivityTypes.Softball,
+        ActivityTypes.Squash,
+        ActivityTypes.StandUpPaddling,
+        ActivityTypes.StrengthTraining,
+        ActivityTypes.Stretching,
+        ActivityTypes.Surfing,
+        ActivityTypes.Swimming,
+        ActivityTypes.Swimrun,
+        ActivityTypes.TableTennis,
+        ActivityTypes.Tactical,
+        ActivityTypes.TelemarkSkiing,
+        ActivityTypes.Tennis,
+        ActivityTypes.TrackAndField,
+        ActivityTypes.TrailRunning,
+        ActivityTypes.Training,
+        ActivityTypes.Trekking,
+        ActivityTypes.Triathlon,
+        ActivityTypes.UnknownSport,
+        ActivityTypes.Velomobile,
+        ActivityTypes.Volleyball,
+        ActivityTypes.Wakeboarding,
+        ActivityTypes.Walking,
+        ActivityTypes.WaterSkiing,
+        ActivityTypes.WeightTraining,
+        ActivityTypes.Wheelchair,
+        ActivityTypes.Windsurfing,
+        ActivityTypes.Workout,
+        ActivityTypes.Yoga,
+        ActivityTypes.YogaPilates,
+      ];
+
+      // When, Then
+      types.forEach(type => {
+        const fakeActivity = new Activity(new Date(), new Date(), type, new Creator('John doo'));
+        expect(fakeActivity.isTrainer()).toBeFalsy();
+      })
+
+    });
+
+  });
+
 });

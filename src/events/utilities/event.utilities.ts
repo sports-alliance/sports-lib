@@ -278,8 +278,8 @@ export class EventUtilities {
       activity.removeStream(distanceStream);
     }
     const gnssDistanceStream = activity.getAllStreams().find((s => DataGNSSDistance.type === s.type));
-    if (distanceStream) {
-      activity.removeStream(distanceStream);
+    if (gnssDistanceStream) {
+      activity.removeStream(gnssDistanceStream);
     }
     return activity;
   }

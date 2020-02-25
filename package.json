@@ -1,6 +1,6 @@
 {
-  "name": "sports-lib",
-  "version": "3.7.0",
+  "name": "@sports-alliance/sports-lib",
+  "version": "4.0.2",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
     "gpx",
@@ -18,6 +18,9 @@
     "utility",
     "parser"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
@@ -30,13 +33,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/jimmykane/sports-lib.git"
+    "url": "git://github.com/sports-alliance/sports-lib.git"
   },
   "bugs": {
-    "url": "https://github.com/jimmykane/sports-lib/issues"
+    "url": "https://github.com/sports-alliance/sports-lib/issues"
   },
-  "homepage": "https://github.com/jimmykane/sports-lib",
-  "author": "Dimitrios Kanellopoulos",
+  "homepage": "https://github.com/sports-alliance/sports-lib/",
+  "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "@types/node": "^13.1.4",

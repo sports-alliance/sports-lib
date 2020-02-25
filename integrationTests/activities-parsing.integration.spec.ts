@@ -395,6 +395,9 @@ describe('Integration tests with native & custom dom parser', () => {
         const expectedSamplesLength = 1746;
         const expectedStartDate = '2020-01-09T17:49:07.000Z';
         const expectedEndDate = '2020-01-09T18:18:12.000Z';
+        const expectedElapsedTime = 1745; // 29:05
+        const expectedMovingTime = expectedElapsedTime; // Same
+        const expectedPauseTime = expectedElapsedTime - expectedMovingTime; // No pause, should be 0s
 
         // When
         const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -418,6 +421,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+          expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+          expectTolerance(event.getFirstActivity().getPause().getValue(), expectedPauseTime, expectedPauseTime * 0.15);
           done();
         });
 

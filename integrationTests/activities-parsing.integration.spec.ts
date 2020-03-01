@@ -366,6 +366,55 @@ describe('Integration tests with native & custom dom parser', () => {
 
       });
 
+      it('should parse a .FIT Triathlon IronMan w/ 3 activities (swim + ride + run) ', done => {
+
+        // Given
+        const path = __dirname + '/fixtures/others/20181013_kona_ironman.fit';
+        const buffer = fs.readFileSync(path);
+        const activitiesCount = 5;
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+
+          expect(event.getActivities().length).toEqual(activitiesCount);
+
+          const swimActivity = event.getActivities()[0];
+          expect(swimActivity.type).toEqual(ActivityTypes.OpenWaterSwimming);
+          expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3689);
+          expect(swimActivity.getDuration().getValue()).toEqual(3688.603);
+          expect(swimActivity.getDistance().getValue()).toEqual(3933.3);
+          expect(swimActivity.startDate.toISOString()).toEqual('2018-10-13T17:05:01.000Z');
+          expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.000Z');
+
+          let transition = event.getActivities()[1];
+          expect(transition.type).toEqual(ActivityTypes.Transition);
+
+          const cyclingActivity = event.getActivities()[2];
+          expect(cyclingActivity.type).toEqual(ActivityTypes.Cycling);
+          expect(cyclingActivity.getStreamData(DataSpeed.type).length).toEqual(17250);
+          expect(cyclingActivity.getDuration().getValue()).toEqual(17248.55);
+          expect(cyclingActivity.getDistance().getValue()).toEqual(180301.58);
+          expect(cyclingActivity.startDate.toISOString()).toEqual('2018-10-13T18:10:15.000Z');
+          expect(cyclingActivity.endDate.toISOString()).toEqual('2018-10-13T22:57:44.000Z');
+
+          transition = event.getActivities()[3];
+          expect(transition.type).toEqual(ActivityTypes.Transition);
+
+          const runningActivity = event.getActivities()[4];
+          expect(runningActivity.type).toEqual(ActivityTypes.Running);
+          expect(runningActivity.getStreamData(DataSpeed.type).length).toEqual(13478);
+          expect(runningActivity.getDuration().getValue()).toEqual(13092.969);
+          expect(runningActivity.getDistance().getValue()).toEqual(42563.91);
+          expect(runningActivity.startDate.toISOString()).toEqual('2018-10-13T22:57:45.000Z');
+          expect(runningActivity.endDate.toISOString()).toEqual('2018-10-14T02:42:23.000Z');
+
+          done();
+        });
+
+      });
 
     });
 

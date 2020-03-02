@@ -753,13 +753,6 @@ export class DynamicDataLoader {
       default:
         return [data];
     }
-    // const a = this.getUnitBasedDataTypesFromDataType(data.getType(), userUnitSettings);
-    // debugger;
-    // return this.getUnitBasedDataTypesFromDataType(data.getType(), userUnitSettings)
-    //   .reduce((unitBasedData: DataInterface[], dataType) => {
-    //     debugger;
-    //     return [...unitBasedData, this.getDataInstanceFromDataType(dataType, data.getValue(dataType))];
-    //   }, [])
   }
 }
 

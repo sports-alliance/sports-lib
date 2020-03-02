@@ -1,11 +1,20 @@
 export interface UserUnitSettingsInterface {
   speedUnits: SpeedUnits[],
+  gradeAdjustedSpeedUnits: GradeAdjustedSpeedUnits[],
   verticalSpeedUnits: VerticalSpeedUnits[],
   paceUnits: PaceUnits[],
   swimPaceUnits: SwimPaceUnits[],
   startOfTheWeek: DaysOfTheWeek,
 }
 
+export enum GradeAdjustedSpeedUnits {
+  KilometersPerHour = 'Grade Adjusted Speed in kilometers per hour',
+  MilesPerHour = 'Grade Adjusted Speed in miles per hour',
+  MetersPerSecond = 'Grade Adjusted Speed',
+  FeetPerSecond = 'Grade Adjusted Speed in feet per second',
+  // MetersPerMinute = 'Meters per minute',
+  // FeetPerMinute = 'Feet per minute',
+}
 
 export enum SpeedUnits {
   KilometersPerHour = 'Speed in kilometers per hour',

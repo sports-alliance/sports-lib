@@ -192,6 +192,7 @@ import { DataPowerZoneFourDuration } from './data.power-zone-four-duration';
 import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
+import { DataGrade } from './data-grade';
 
 /**
  * Only concrete classes no abstracts
@@ -381,6 +382,7 @@ export const DataStore: any = {
   DataPosition,
   DataStartPosition,
   DataEndPosition,
+  DataGrade,
 };
 
 export class DynamicDataLoader {

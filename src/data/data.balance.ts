@@ -1,8 +1,6 @@
-import { DataNumber } from './data.number';
+import { DataPercent } from './data.percent';
 
-export abstract class DataBalance extends DataNumber {
-  static unit = '%';
-
+export abstract class DataBalance extends DataPercent {
   getDisplayValue(): number {
     return Math.round(this.value);
   }

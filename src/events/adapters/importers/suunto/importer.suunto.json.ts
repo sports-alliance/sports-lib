@@ -107,7 +107,7 @@ export class EventImporterSuuntoJSON {
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
-      // debugger;
+      debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
@@ -143,14 +143,14 @@ export class EventImporterSuuntoJSON {
       }
 
       // Get the activity windows
-      const activityWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
+      const activityWindows = eventJSONObject.DeviceLog.Windows ? eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
         return windowObj.Window.Type === 'Activity';
-      }).map((activityWindow: any) => activityWindow.Window);
+      }).map((activityWindow: any) => activityWindow.Window) : [];
 
       // Get the lap windows
-      const lapWindows = eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
+      const lapWindows = eventJSONObject.DeviceLog.Windows ? eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
         return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
-      }).map((lapWindow: any) => lapWindow.Window);
+      }).map((lapWindow: any) => lapWindow.Window) : [];
 
       // Create the activities
       const activities: ActivityInterface[] = activityStartEventSamples.map((activityStartEventSample: any, index: number): ActivityInterface => {
@@ -186,6 +186,16 @@ export class EventImporterSuuntoJSON {
         return activity;
 
       });
+
+      // If nothing found
+      if (!activities.length){
+        activities.push(new Activity(
+          new Date(eventJSONObject.DeviceLog.Header.DateTime),
+          new Date(new Date(eventJSONObject.DeviceLog.Header.DateTime).getTime() + eventJSONObject.DeviceLog.Header.Duration*1000),
+          ActivityTypes.unknown,
+          creator
+        ))
+      }
 
       // set the start dates of all lap types to the start of the first activity
       const lapStartDatesByType = lapEventSamples.reduce((lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {

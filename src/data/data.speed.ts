@@ -53,7 +53,6 @@ export class DataSpeed extends DataNumber {
 export class DataSpeedKilometersPerHour extends DataSpeed {
   static type = 'Speed in kilometers per hour';
   static displayType = DataSpeed.type;
-
   static unit = 'km/h';
 
   getDisplayType(): string {

@@ -194,19 +194,28 @@ import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 import { DataGrade } from './data-grade';
 import {
-  DataGradeAdjustedSpeed, DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeed,
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from './data.grade-adjusted-pace';
 import {
-  DataGradeAdjustedSpeedMax, DataGradeAdjustedSpeedMaxFeetPerMinute, DataGradeAdjustedSpeedMaxFeetPerSecond,
-  DataGradeAdjustedSpeedMaxKilometersPerHour, DataGradeAdjustedSpeedMaxMetersPerMinute,
+  DataGradeAdjustedSpeedMax,
+  DataGradeAdjustedSpeedMaxFeetPerMinute,
+  DataGradeAdjustedSpeedMaxFeetPerSecond,
+  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxMetersPerMinute,
   DataGradeAdjustedSpeedMaxMilesPerHour
 } from './data.grade-adjusted-speed-max';
 import {
-  DataGradeAdjustedSpeedMin, DataGradeAdjustedSpeedMinFeetPerMinute, DataGradeAdjustedSpeedMinFeetPerSecond,
-  DataGradeAdjustedSpeedMinKilometersPerHour, DataGradeAdjustedSpeedMinMetersPerMinute,
+  DataGradeAdjustedSpeedMin,
+  DataGradeAdjustedSpeedMinFeetPerMinute,
+  DataGradeAdjustedSpeedMinFeetPerSecond,
+  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from './data.grade-adjusted-speed-min';
 import {
@@ -217,6 +226,9 @@ import {
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from './data.grade-adjusted-speed-avg';
+import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from './data.grade-adjusted-pace-avg';
+import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from './data.grade-adjusted-pace-max';
+import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from './data.grade-adjusted-pace-min';
 
 /**
  * Only concrete classes no abstracts
@@ -225,6 +237,7 @@ export const DataStore: any = {
   DataVerticalSpeed,
   DataTemperature,
   DataSpeed,
+  DataGradeAdjustedSpeed,
   DataSeaLevelPressure,
   DataSatellite5BestSNR,
   DataPower,
@@ -250,6 +263,9 @@ export const DataStore: any = {
   DataSpeedMin,
   DataSpeedMax,
   DataSpeedAvg,
+  DataGradeAdjustedSpeedMin,
+  DataGradeAdjustedSpeedMax,
+  DataGradeAdjustedSpeedAvg,
   DataRecoveryTime,
   DataPowerMin,
   DataPowerMax,
@@ -278,6 +294,10 @@ export const DataStore: any = {
   DataPaceMin,
   DataPaceMax,
   DataPaceAvg,
+  DataGradeAdjustedPace,
+  DataGradeAdjustedPaceMin,
+  DataGradeAdjustedPaceMax,
+  DataGradeAdjustedPaceAvg,
   DataSwimPace,
   DataSwimPaceMin,
   DataSwimPaceMax,
@@ -322,10 +342,34 @@ export const DataStore: any = {
   DataSpeedMaxFeetPerSecond,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxFeetPerMinute,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedMilesPerHour,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedAvgKilometersPerHour,
+  DataGradeAdjustedSpeedAvgMilesPerHour,
+  DataGradeAdjustedSpeedAvgFeetPerSecond,
+  DataGradeAdjustedSpeedAvgMetersPerMinute,
+  DataGradeAdjustedSpeedAvgFeetPerMinute,
+  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinMilesPerHour,
+  DataGradeAdjustedSpeedMinFeetPerSecond,
+  DataGradeAdjustedSpeedMinMetersPerMinute,
+  DataGradeAdjustedSpeedMinFeetPerMinute,
+  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxMilesPerHour,
+  DataGradeAdjustedSpeedMaxFeetPerSecond,
+  DataGradeAdjustedSpeedMaxMetersPerMinute,
+  DataGradeAdjustedSpeedMaxFeetPerMinute,
   DataPaceMinutesPerMile,
   DataPaceAvgMinutesPerMile,
   DataPaceMinMinutesPerMile,
   DataPaceMaxMinutesPerMile,
+  DataGradeAdjustedPaceMinutesPerMile,
+  DataGradeAdjustedPaceAvgMinutesPerMile,
+  DataGradeAdjustedPaceMinMinutesPerMile,
+  DataGradeAdjustedPaceMaxMinutesPerMile,
   DataSwimPaceMinutesPer100Yard,
   DataSwimPaceAvgMinutesPer100Yard,
   DataSwimPaceMinMinutesPer100Yard,
@@ -419,6 +463,7 @@ export class DynamicDataLoader {
       DataCadence.type,
       DataPower.type,
       DataPace.type,
+      DataGradeAdjustedPace.type,
       DataSpeed.type,
       DataGradeAdjustedSpeed.type
     ];
@@ -542,7 +587,7 @@ export class DynamicDataLoader {
     }
     if (dataTypes.indexOf(DataGradeAdjustedSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.gradeAdjustedSpeedUnits);
-      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.paceUnits);
+      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.gradeAdjustedPaceUnits);
     }
     if (dataTypes.indexOf(DataVerticalSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.verticalSpeedUnits);
@@ -567,6 +612,9 @@ export class DynamicDataLoader {
     }
     if (dataType === DataPace.type) {
       return userUnitSettings.paceUnits;
+    }
+    if (dataType === DataGradeAdjustedPace.type) {
+      return userUnitSettings.gradeAdjustedPaceUnits;
     }
     if (dataType === DataSwimPace.type) {
       return userUnitSettings.swimPaceUnits;
@@ -742,6 +790,42 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataPaceMin.type, data.getValue(unit))];
             case DataPaceMinutesPerMile.type:
               return [...accu, this.getDataInstanceFromDataType(DataPaceMinMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+
+      // GAP Pace
+      case DataGradeAdjustedPace.type:
+        return userUnitSettings.gradeAdjustedPaceUnits.reduce((accu: DataInterface[], unit) => {
+          return [...accu, this.getDataInstanceFromDataType(unit, data.getValue(unit))]
+        }, []);
+      case DataGradeAdjustedPaceAvg.type:
+        return userUnitSettings.gradeAdjustedPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataGradeAdjustedPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceAvg.type, data.getValue(unit))];
+            case DataGradeAdjustedPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceAvgMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataGradeAdjustedPaceMax.type:
+        return userUnitSettings.gradeAdjustedPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataGradeAdjustedPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceMax.type, data.getValue(unit))];
+            case DataGradeAdjustedPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceMaxMinutesPerMile.type, data.getValue(unit))];
+          }
+          return accu;
+        }, []);
+      case DataGradeAdjustedPaceMin.type:
+        return userUnitSettings.gradeAdjustedPaceUnits.reduce((accu: DataInterface[], unit) => {
+          switch (unit) {
+            case DataGradeAdjustedPace.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceMin.type, data.getValue(unit))];
+            case DataGradeAdjustedPaceMinutesPerMile.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedPaceMinMinutesPerMile.type, data.getValue(unit))];
           }
           return accu;
         }, []);

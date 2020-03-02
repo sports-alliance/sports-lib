@@ -3,6 +3,7 @@ export interface UserUnitSettingsInterface {
   gradeAdjustedSpeedUnits: GradeAdjustedSpeedUnits[],
   verticalSpeedUnits: VerticalSpeedUnits[],
   paceUnits: PaceUnits[],
+  gradeAdjustedPaceUnits: PaceUnits[],
   swimPaceUnits: SwimPaceUnits[],
   startOfTheWeek: DaysOfTheWeek,
 }
@@ -40,6 +41,11 @@ export enum VerticalSpeedUnits {
 export enum PaceUnits {
   MinutesPerKilometer = 'Pace',
   MinutesPerMile = 'Pace in minutes per mile',
+}
+
+export enum GradeAdjustedPaceUnits {
+  MinutesPerKilometer = 'Grade Adjusted Pace',
+  MinutesPerMile = 'Grade Adjusted Pace in minutes per mile',
 }
 
 export enum SwimPaceUnits {

@@ -339,7 +339,7 @@ export enum ActivityTypes {
     'Aquathlon' = 'Aquathlon',
   /**
    * Alpine Skiing
-   * https://www.google.com/search?q=alpine+skiing+vs+downhill&oq=alpine+skiing+vs+downhill&aqs=chrome..69i57.5719j0j1&sourceid=chrome&ie=UTF-8
+   * https://en.wikipedia.org/wiki/Alpine_skiing
    */
     'Alpine skiing' = 'Alpine Skiing',
   'Alpine Skiing' = 'Alpine Skiing',

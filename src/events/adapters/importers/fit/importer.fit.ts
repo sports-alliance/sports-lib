@@ -252,16 +252,27 @@ export class EventImporterFIT {
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
 
-    const firstRecord = fitDataObject.records[0];
-    const startDate = (firstRecord && firstRecord.timestamp)
-      ? firstRecord && firstRecord.timestamp : sessionObject.start_time;
+    let startDate, endDate = null;
+    const isSessionTimingCompliant = sessionObject && sessionObject.timestamp
+      && (sessionObject.total_elapsed_time || sessionObject.total_timer_time);
 
-    let endDate;
-    const lastRecord = fitDataObject.records[fitDataObject.records.length - 1];
-    if (lastRecord && lastRecord.timestamp) {
-      endDate = lastRecord.timestamp
-    } else {
-      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + sessionObject.total_elapsed_time * 1000);
+    if (isSessionTimingCompliant) { // Session object is legit. We can use it.
+      startDate = sessionObject.start_time;
+      const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time;
+      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+    }
+
+    if (!startDate && !endDate) {
+
+      const firstRecord = fitDataObject.records[0];
+      if (firstRecord && firstRecord.timestamp) {
+        startDate = firstRecord.timestamp;
+      }
+
+      const lastRecord = fitDataObject.records[fitDataObject.records.length - 1];
+      if (lastRecord && lastRecord.timestamp) {
+        endDate = lastRecord.timestamp
+      }
     }
 
     // Create an activity

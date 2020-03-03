@@ -192,6 +192,7 @@ import { DataPowerZoneFourDuration } from './data.power-zone-four-duration';
 import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
+import { DataStepsOld } from './data.steps-old';
 
 /**
  * Only concrete classes no abstracts
@@ -335,6 +336,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
   DataSteps,
+  DataStepsOld, // @todo find way to make this easy to migrate for projects that persist data based on types
   DataStrydAltitude,
   DataStrydSpeed,
   DataStrydDistance,

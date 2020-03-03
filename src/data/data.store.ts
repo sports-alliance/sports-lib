@@ -336,7 +336,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
   DataSteps,
-  DataStepsOld,
+  DataStepsOld, // @todo find way to make this easy to migrate for projects that persist data based on types
   DataStrydAltitude,
   DataStrydSpeed,
   DataStrydDistance,

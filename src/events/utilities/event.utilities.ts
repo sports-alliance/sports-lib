@@ -826,6 +826,22 @@ export class EventUtilities {
       return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
     })));
 
+    // Generate speed in meters per minute
+    unitStreams.push(new Stream(DataSpeedMetersPerMinute.type, speedStream.getData().map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
+    })));
+
+    // Generate speed in feet per minute
+    unitStreams.push(new Stream(DataSpeedFeetPerMinute.type, speedStream.getData().map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
+    })));
+
     // Generate pace in minutes per mile
     unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
@@ -1234,21 +1250,24 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
       }
     }
-
     if (!activity.getStat(DataSpeedMaxFeetPerSecond.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
         activity.addStat(new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
       }
     }
-
     if (!activity.getStat(DataSpeedMaxFeetPerMinute.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
         activity.addStat(new DataSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
       }
     }
-
+    if (!activity.getStat(DataSpeedMaxMetersPerMinute.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
@@ -1267,7 +1286,18 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
       }
     }
-
+    if (!activity.getStat(DataSpeedMinFeetPerMinute.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMinMetersPerMinute.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
@@ -1286,7 +1316,20 @@ export class EventUtilities {
         activity.addStat(new DataSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
       }
     }
+    if (!activity.getStat(DataSpeedAvgFeetPerMinute.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedAvgMetersPerMinute.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+      }
+    }
 
+    // Vertical speed
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerSecond.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {

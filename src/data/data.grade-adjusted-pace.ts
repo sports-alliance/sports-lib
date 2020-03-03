@@ -1,5 +1,5 @@
 import { convertPaceToPaceInMinutesPerMile } from '../events/utilities/helpers';
-import { DataPace, DataPaceMinutesPerMile } from './data.pace';
+import { DataPace } from './data.pace';
 
 export class DataGradeAdjustedPace extends DataPace {
   static type = 'Grade Adjusted Pace';

@@ -229,6 +229,7 @@ import {
 import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from './data.grade-adjusted-pace-avg';
 import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from './data.grade-adjusted-pace-max';
 import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from './data.grade-adjusted-pace-min';
+import { DataStepsOld } from './data.steps-old';
 
 /**
  * Only concrete classes no abstracts
@@ -404,6 +405,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
   DataSteps,
+  DataStepsOld, // @todo find way to make this easy to migrate for projects that persist data based on types
   DataStrydAltitude,
   DataStrydSpeed,
   DataStrydDistance,

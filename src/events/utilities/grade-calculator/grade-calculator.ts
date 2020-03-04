@@ -28,7 +28,7 @@ export class GradeCalculator {
         continue;
       }
       previousAltitude = <number>previousAltitude;
-      const currentAltitude = altitudeStream[i] || previousAltitude;
+      const currentAltitude = isNumber(altitudeStream[i]) || previousAltitude;
 
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
       gradeStream.push(currentGrade);

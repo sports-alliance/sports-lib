@@ -3,7 +3,7 @@ export interface UserUnitSettingsInterface {
   gradeAdjustedSpeedUnits: GradeAdjustedSpeedUnits[],
   verticalSpeedUnits: VerticalSpeedUnits[],
   paceUnits: PaceUnits[],
-  gradeAdjustedPaceUnits: PaceUnits[],
+  gradeAdjustedPaceUnits: GradeAdjustedPaceUnits[],
   swimPaceUnits: SwimPaceUnits[],
   startOfTheWeek: DaysOfTheWeek,
 }
@@ -35,7 +35,6 @@ export enum VerticalSpeedUnits {
   FeetPerHour = 'Vertical speed in feet per hour',
   KilometersPerHour = 'Vertical speed in kilometers per hour',
   MilesPerHour = 'Vertical speed in miles per hour',
-
 }
 
 export enum PaceUnits {

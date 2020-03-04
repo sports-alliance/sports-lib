@@ -14,7 +14,7 @@ export class GradeCalculator {
     return Math.round(percentage * 10) / 10;
   }
 
-  public static computeGradeStream(distanceStream: (number|null)[], altitudeStream: (number|null)[]): number[] {
+  public static computeGradeStream(distanceStream: (number | null)[], altitudeStream: (number | null)[]): number[] {
 
     let gradeStream = [];
 
@@ -28,7 +28,7 @@ export class GradeCalculator {
         continue;
       }
       previousAltitude = <number>previousAltitude;
-      const currentAltitude = isNumber(altitudeStream[i]) ? altitudeStream[i] : previousAltitude;
+      const currentAltitude = isNumber(altitudeStream[i]) ? <number>altitudeStream[i] : previousAltitude;
 
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
       gradeStream.push(currentGrade);

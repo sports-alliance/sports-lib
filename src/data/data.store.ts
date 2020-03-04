@@ -471,6 +471,7 @@ export class DynamicDataLoader {
     ];
 
   static advancedDataTypes = [
+    DataGrade.type,
     DataVerticalSpeed.type,
     DataTemperature.type,
     DataSeaLevelPressure.type,

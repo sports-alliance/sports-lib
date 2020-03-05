@@ -407,9 +407,9 @@ export class EventUtilities {
   }
 
   public static repairMissingValuesToActivityStreams(activity: ActivityInterface) {
-    const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type];
+    const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type, DataCadence.type];
     activity.getAllStreams().forEach(stream => {
-      if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1){
+      if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
         return;
       }
       // Find the first sample value

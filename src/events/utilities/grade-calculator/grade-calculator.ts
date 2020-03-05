@@ -1,4 +1,5 @@
 import { LowPassFilter } from './low-pass-filter';
+import { isNumber } from '../helpers';
 
 export class GradeCalculator {
 
@@ -19,9 +20,9 @@ export class GradeCalculator {
 
     for (let i = 0; i < distanceStream.length; i++) {
 
-      const previousDistance = (distanceStream[i - 1]) ? distanceStream[i - 1] : 0;
+      const previousDistance = (distanceStream[i - 1]) || 0;
       const currentDistance = distanceStream[i];
-      const previousAltitude = (altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
+      const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
       const currentAltitude = altitudeStream[i];
 
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);

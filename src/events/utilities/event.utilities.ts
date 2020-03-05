@@ -389,9 +389,26 @@ export class EventUtilities {
   public static generateStatsForAll(event: EventInterface) {
     // First generate that stats on the activity it self
     event.getActivities().forEach((activity: ActivityInterface) => {
-      this.generateMissingStreamsAndStatsForActivity(activity)
+      this.repairMissingValuesToActivityStreams(activity);
+      this.generateMissingStreamsAndStatsForActivity(activity);
+      // @todo should it re-repair here?
     });
     this.reGenerateStatsForEvent(event);
+  }
+
+  public static repairMissingValuesToActivityStreams(activity: ActivityInterface) {
+    // For Altitude we back/forth fill with the last known value
+    if (activity.hasStreamData(DataAltitude.type)) {
+      const altitudeStream = activity.getStream(DataAltitude.type);
+      // Find the first sample value
+      let currentValue = <number>altitudeStream.getData(true, true)[0];
+      // @todo should it check for this value ?
+      altitudeStream.setData(altitudeStream.getData().reduce((data: number[], value) => {
+        currentValue = value === null ? currentValue : value;
+        data.push(currentValue);
+        return data;
+      }, []))
+    }
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {

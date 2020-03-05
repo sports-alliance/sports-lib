@@ -4,9 +4,11 @@ import { Event } from '../event';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
 import {
-  DataSpeed, DataSpeedFeetPerMinute,
+  DataSpeed,
+  DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour, DataSpeedMetersPerMinute,
+  DataSpeedKilometersPerHour,
+  DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from '../../data/data.speed';
 import {
@@ -35,19 +37,24 @@ import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
   DataSpeedMaxFeetPerSecond,
-  DataSpeedMaxKilometersPerHour, DataSpeedMaxMetersPerMinute,
+  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour
 } from '../../data/data.speed-max';
 import {
-  DataSpeedMin, DataSpeedMinFeetPerMinute,
+  DataSpeedMin,
+  DataSpeedMinFeetPerMinute,
   DataSpeedMinFeetPerSecond,
-  DataSpeedMinKilometersPerHour, DataSpeedMinMetersPerMinute,
+  DataSpeedMinKilometersPerHour,
+  DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour
 } from '../../data/data.speed-min';
 import {
-  DataSpeedAvg, DataSpeedAvgFeetPerMinute,
+  DataSpeedAvg,
+  DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
-  DataSpeedAvgKilometersPerHour, DataSpeedAvgMetersPerMinute,
+  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour
 } from '../../data/data.speed-avg';
 import {
@@ -172,8 +179,11 @@ import {
   DataGradeAdjustedPaceAvgMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-avg';
 import {
-  DataGradeAdjustedSpeed, DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeed,
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from '../../data/data.grade-adjusted-speed';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from '../../data/data.grade-adjusted-pace';

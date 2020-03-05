@@ -211,6 +211,8 @@ import {
   DataGradeAdjustedPaceMin,
   DataGradeAdjustedPaceMinMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-min';
+import { DataGrade } from '../../data/data-grade';
+import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
 
 export class EventUtilities {
@@ -840,9 +842,19 @@ export class EventUtilities {
       }
     }
 
-    if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
-      /// @todo also for pace I suppose
+    // @todo this is temp work just to be able to test / parse those Fit,GPX etc files
+    if (!activity.hasStreamData(DataGrade.type) && activity.hasStreamData(DataDistance.type) && activity.hasStreamData(DataAltitude.type)) {
+      // @todo perhaps linear interpolate the first samples
+      const distanceData = <number[]>activity.getStreamData(DataDistance.type);
+      const altitudeData = <number[]>activity.getStreamData(DataAltitude.type).map(altitude => altitude === null ? null :  Math.round(altitude * 10) / 10);
+      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
+      const speedStreamData = activity.getStreamData(DataSpeed.type);
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
+      // debugger;
+      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
+      activity.addStream(new Stream(DataGrade.type, gradeStreamData));
     }
+
 
     if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);

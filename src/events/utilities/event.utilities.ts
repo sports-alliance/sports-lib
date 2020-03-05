@@ -397,18 +397,19 @@ export class EventUtilities {
   }
 
   public static repairMissingValuesToActivityStreams(activity: ActivityInterface) {
-    // For Altitude we back/forth fill with the last known value
-    if (activity.hasStreamData(DataAltitude.type)) {
-      const altitudeStream = activity.getStream(DataAltitude.type);
+    const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type];
+    activity.getAllStreams().forEach(stream => {
+      if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1){
+        return;
+      }
       // Find the first sample value
-      let currentValue = <number>altitudeStream.getData(true, true)[0];
-      // @todo should it check for this value ?
-      altitudeStream.setData(altitudeStream.getData().reduce((data: number[], value) => {
+      let currentValue = <number>stream.getData(true, true)[0];
+      stream.setData(stream.getData().reduce((data: number[], value) => {
         currentValue = value === null ? currentValue : value;
         data.push(currentValue);
         return data;
       }, []))
-    }
+    })
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {

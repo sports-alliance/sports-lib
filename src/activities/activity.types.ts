@@ -5,6 +5,9 @@ import { DataPace } from '../data/data.pace';
 import { DataSpeed } from '../data/data.speed';
 import { DataSwimPace } from '../data/data.swim-pace';
 import { DataVerticalSpeedAvg } from '../data/data.vertical-speed-avg';
+import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
+import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
+import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
@@ -40,9 +43,12 @@ export class ActivityTypesHelper {
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (activityType) {
       case ActivityTypes.Running:
-        return [DataPaceAvg.type];
+        return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
       case ActivityTypes.TrailRunning:
-        return [DataPaceAvg.type, DataVerticalSpeedAvg.type];
+        return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataVerticalSpeedAvg.type];
+      case ActivityTypes.Cycling:
+      case ActivityTypes.MountainBiking:
+        return [DataSpeedAvg.type, DataGradeAdjustedSpeed.type];
       case ActivityTypes.Treadmill:
       case ActivityTypes.TrackAndField:
       case ActivityTypes.EllipticalTrainer:
@@ -63,6 +69,9 @@ export class ActivityTypesHelper {
       case ActivityTypes.TrackAndField:
       case ActivityTypes.EllipticalTrainer:
         return [DataPace.type];
+      case ActivityTypes.Cycling:
+      case ActivityTypes.MountainBiking:
+        return [DataSpeedAvg.type, DataGradeAdjustedSpeed.type];
       case ActivityTypes.Swimming:
       case ActivityTypes.OpenWaterSwimming:
         return [DataSpeed.type, DataSwimPace.type];

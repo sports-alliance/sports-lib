@@ -3,7 +3,12 @@ import { ActivityInterface } from '../../activities/activity.interface';
 import { Event } from '../event';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
-import { DataSpeed, DataSpeedFeetPerSecond, DataSpeedKilometersPerHour, DataSpeedMilesPerHour } from '../../data/data.speed';
+import {
+  DataSpeed, DataSpeedFeetPerMinute,
+  DataSpeedFeetPerSecond,
+  DataSpeedKilometersPerHour, DataSpeedMetersPerMinute,
+  DataSpeedMilesPerHour
+} from '../../data/data.speed';
 import {
   DataVerticalSpeed,
   DataVerticalSpeedFeetPerHour,
@@ -30,19 +35,19 @@ import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
   DataSpeedMaxFeetPerSecond,
-  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxKilometersPerHour, DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour
 } from '../../data/data.speed-max';
 import {
-  DataSpeedMin,
+  DataSpeedMin, DataSpeedMinFeetPerMinute,
   DataSpeedMinFeetPerSecond,
-  DataSpeedMinKilometersPerHour,
+  DataSpeedMinKilometersPerHour, DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour
 } from '../../data/data.speed-min';
 import {
-  DataSpeedAvg,
+  DataSpeedAvg, DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
-  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgKilometersPerHour, DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour
 } from '../../data/data.speed-avg';
 import {
@@ -154,6 +159,48 @@ import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-durat
 import { DynamicDataLoader } from '../../data/data.store';
 import { DataStartPosition } from '../../data/data.start-position';
 import { DataEndPosition } from '../../data/data.end-position';
+import {
+  DataGradeAdjustedSpeedAvg,
+  DataGradeAdjustedSpeedAvgFeetPerMinute,
+  DataGradeAdjustedSpeedAvgFeetPerSecond,
+  DataGradeAdjustedSpeedAvgKilometersPerHour,
+  DataGradeAdjustedSpeedAvgMetersPerMinute,
+  DataGradeAdjustedSpeedAvgMilesPerHour
+} from '../../data/data.grade-adjusted-speed-avg';
+import {
+  DataGradeAdjustedPaceAvg,
+  DataGradeAdjustedPaceAvgMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-avg';
+import {
+  DataGradeAdjustedSpeed, DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedMilesPerHour
+} from '../../data/data.grade-adjusted-speed';
+import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from '../../data/data.grade-adjusted-pace';
+import {
+  DataGradeAdjustedSpeedMax,
+  DataGradeAdjustedSpeedMaxFeetPerMinute,
+  DataGradeAdjustedSpeedMaxFeetPerSecond,
+  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxMetersPerMinute,
+  DataGradeAdjustedSpeedMaxMilesPerHour
+} from '../../data/data.grade-adjusted-speed-max';
+import {
+  DataGradeAdjustedSpeedMin,
+  DataGradeAdjustedSpeedMinFeetPerMinute,
+  DataGradeAdjustedSpeedMinFeetPerSecond,
+  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinMetersPerMinute,
+  DataGradeAdjustedSpeedMinMilesPerHour
+} from '../../data/data.grade-adjusted-speed-min';
+import {
+  DataGradeAdjustedPaceMax,
+  DataGradeAdjustedPaceMaxMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-max';
+import {
+  DataGradeAdjustedPaceMin,
+  DataGradeAdjustedPaceMinMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-min';
 import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
 
 export class EventUtilities {
@@ -391,7 +438,9 @@ export class EventUtilities {
     let averagePower = 0;
     let averageCadence = 0;
     let averageSpeed = 0;
+    let averageGradeAdjustedSpeed = 0;
     let averagePace = 0;
+    let averageGradeAdjustedPace = 0;
     let averageSwimPace = 0;
     let averageTemperature = 0;
     let averageFeeling = 0;
@@ -454,7 +503,6 @@ export class EventUtilities {
       stats.push(new DataHeartRateAvg(averageHeartRate));
     }
 
-
     // Avg Avg HR
     activities.forEach((activity) => {
       const activityAvgHeartRate = activity.getStat(DataHeartRateAvg.type);
@@ -503,6 +551,21 @@ export class EventUtilities {
       stats.push(new DataSpeedAvg(averageSpeed));
     }
 
+    // Avg Avg Gap Speed
+    activities.forEach((activity) => {
+      const activityAvgGradeAdjustedSpeed = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (activityAvgGradeAdjustedSpeed) {
+        // The below will fallback for 0
+        averageGradeAdjustedSpeed =
+          averageGradeAdjustedSpeed ?
+            (averageGradeAdjustedSpeed + <number>activityAvgGradeAdjustedSpeed.getValue()) / 2 :
+            <number>activityAvgGradeAdjustedSpeed.getValue();
+      }
+    });
+    if (averageGradeAdjustedSpeed) {
+      stats.push(new DataGradeAdjustedSpeedAvg(averageGradeAdjustedSpeed));
+    }
+
     // Avg Avg Pace
     activities.forEach((activity) => {
       const activityAvgPace = activity.getStat(DataPaceAvg.type);
@@ -514,6 +577,22 @@ export class EventUtilities {
     if (averagePace) {
       stats.push(new DataPaceAvg(averagePace));
     }
+
+    // Avg Avg GAP Pace
+    activities.forEach((activity) => {
+      const activityAvgGradeAdjustedPace = activity.getStat(DataGradeAdjustedPaceAvg.type);
+      if (activityAvgGradeAdjustedPace) {
+        // The below will fallback for 0
+        averageGradeAdjustedPace =
+          averageGradeAdjustedPace ?
+            (averageGradeAdjustedPace + <number>activityAvgGradeAdjustedPace.getValue()) / 2 :
+            <number>activityAvgGradeAdjustedPace.getValue();
+      }
+    });
+    if (averageGradeAdjustedPace) {
+      stats.push(new DataGradeAdjustedPaceAvg(averageGradeAdjustedPace));
+    }
+
 
     // Avg Avg SwimPace
     activities.forEach((activity) => {
@@ -725,6 +804,10 @@ export class EventUtilities {
       }
     }
 
+    if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+      /// @todo also for pace I suppose
+    }
+
     if (activity.hasStreamData(DataPower.type) && activity.hasStreamData(DataRightBalance.type) && !activity.hasStreamData(DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
@@ -773,10 +856,15 @@ export class EventUtilities {
 
     // Check if they contain the needed info
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
+    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
+
     const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
     let paceStream = streams.find(stream => stream.type === DataPace.type);
+    let gradeAdjustedPaceStream = streams.find(stream => stream.type === DataGradeAdjustedPace.type);
     let swimPaceStream = streams.find(stream => stream.type === DataSwimPace.type);
 
+    // If there is no speed then no unit streams to return
+    // Not sure if this is the best solution, but since the speed stream is the base for all....
     if (!speedStream) {
       return unitStreams;
     }
@@ -790,6 +878,17 @@ export class EventUtilities {
         return convertSpeedToPace(<number>dataValue);
       }));
       unitStreams.push(paceStream);
+    }
+
+    // Grade Adjusted Pace
+    if (gradeAdjustedSpeedStream && !gradeAdjustedPaceStream) {
+      gradeAdjustedPaceStream = new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToPace(<number>dataValue);
+      }));
+      unitStreams.push(gradeAdjustedPaceStream);
     }
 
     // Swim Pace
@@ -827,6 +926,64 @@ export class EventUtilities {
       return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
     })));
 
+    // Generate speed in meters per minute
+    unitStreams.push(new Stream(DataSpeedMetersPerMinute.type, speedStream.getData().map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
+    })));
+
+    // Generate speed in feet per minute
+    unitStreams.push(new Stream(DataSpeedFeetPerMinute.type, speedStream.getData().map(dataValue => {
+      if (!isNumber(dataValue)) {
+        return null
+      }
+      return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
+    })));
+
+    if (gradeAdjustedSpeedStream) {
+      // Generate grade adjusted speed in Kilometers per hour
+      unitStreams.push(new Stream(DataGradeAdjustedSpeedKilometersPerHour.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
+      })));
+
+      // Generate grade adjusted speed in Miles per hour
+      unitStreams.push(new Stream(DataGradeAdjustedSpeedMilesPerHour.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
+      })));
+
+      // Generate grade adjusted speed in feet per second
+      unitStreams.push(new Stream(DataGradeAdjustedSpeedFeetPerSecond.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
+      })));
+
+      // Generate grade adjusted speed in meters per minute
+      unitStreams.push(new Stream(DataGradeAdjustedSpeedMetersPerMinute.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
+      })));
+
+      // Generate grade adjusted speed in feet per minute
+      unitStreams.push(new Stream(DataGradeAdjustedSpeedFeetPerMinute.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
+      })));
+    }
+
     // Generate pace in minutes per mile
     unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.getData().map(dataValue => {
       if (!isNumber(dataValue)) {
@@ -834,6 +991,16 @@ export class EventUtilities {
       }
       return convertPaceToPaceInMinutesPerMile(<number>dataValue);
     })));
+
+    if (gradeAdjustedPaceStream) {
+      // Generate grade adjusted pace in minutes per mile
+      unitStreams.push(new Stream(DataGradeAdjustedPaceMinutesPerMile.type, gradeAdjustedPaceStream.getData().map(dataValue => {
+        if (!isNumber(dataValue)) {
+          return null
+        }
+        return convertPaceToPaceInMinutesPerMile(<number>dataValue);
+      })));
+    }
 
     // Generate swim pace in minutes per 100 yard
     unitStreams.push(new Stream(DataSwimPaceMinutesPer100Yard.type, swimPaceStream.getData().map(dataValue => {
@@ -942,7 +1109,7 @@ export class EventUtilities {
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
     // Add the number of points this activity has
-    // @todo this wont work since the stats are after the generated streams // Could be wrong and I could still vise versa
+    // @todo the below wont work since the stats are after the generated streams // Could be wrong and I could still vise versa
     // activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
 
     // If there is no distance
@@ -1029,51 +1196,51 @@ export class EventUtilities {
       && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type, activity.startDate, activity.endDate)));
     }
+
     // Speed Max
     if (!activity.getStat(DataSpeedMax.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataPaceMax(convertSpeedToPace(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate))));
     }
     // Speed Min
     if (!activity.getStat(DataSpeedMin.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataPaceMin(convertSpeedToPace(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      activity.addStat(new DataSwimPaceMin(convertSpeedToSwimPace(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate))));
     }
     // Speed Avg
     if (!activity.getStat(DataSpeedAvg.type)
       && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
       activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate)));
-    }
-    // Pace Max
-    if (!activity.getStat(DataPaceMax.type)
-      && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPaceMax(this.getDataTypeMin(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally min
-    }
-    // Pace Min
-    if (!activity.getStat(DataPaceMin.type)
-      && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPaceMin(this.getDataTypeMax(activity, DataPace.type, activity.startDate, activity.endDate))); // Intentionally max
-    }
-    // Pace Avg
-    if (!activity.getStat(DataPaceAvg.type)
-      && activity.hasStreamData(DataPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPaceAvg(this.getDataTypeAvg(activity, DataPace.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataPaceAvg(convertSpeedToPace(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      activity.addStat(new DataSwimPaceAvg(convertSpeedToSwimPace(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate))));
     }
 
-    // Swim Pace Max
-    if (!activity.getStat(DataSwimPaceMax.type)
-      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSwimPaceMax(this.getDataTypeMin(activity, DataSwimPace.type, activity.startDate, activity.endDate))); // Intentionally min
+    // Grade Adjusted Speed Max
+    if (!activity.getStat(DataGradeAdjustedSpeedMax.type)
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
     }
-    // Swim Pace Min
-    if (!activity.getStat(DataSwimPaceMin.type)
-      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSwimPaceMin(this.getDataTypeMax(activity, DataSwimPace.type, activity.startDate, activity.endDate))); // Intentionally max
+    // Grade Adjusted Speed Min
+    if (!activity.getStat(DataGradeAdjustedSpeedMin.type)
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataGradeAdjustedSpeedMin(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
     }
+    // Grade Adjusted Speed Avg
+    if (!activity.getStat(DataGradeAdjustedSpeedAvg.type)
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
+      activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
+      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
+    }
+
     // Swim Pace Avg
     if (!activity.getStat(DataSwimPaceAvg.type)
       && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSwimPaceAvg(this.getDataTypeAvg(activity, DataSwimPace.type, activity.startDate, activity.endDate)));
     }
 
     // Vertical Speed Max
@@ -1185,11 +1352,29 @@ export class EventUtilities {
         activity.addStat(new DataPaceMinMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceMin.getValue())));
       }
     }
-
     if (!activity.getStat(DataPaceAvgMinutesPerMile.type)) {
       const paceAvg = activity.getStat(DataPaceAvg.type);
       if (paceAvg) {
         activity.addStat(new DataPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceAvg.getValue())));
+      }
+    }
+    // Grade Adjusted Pace
+    if (!activity.getStat(DataGradeAdjustedPaceMaxMinutesPerMile.type)) {
+      const gradeAdjustedPaceMax = activity.getStat(DataGradeAdjustedPaceMax.type);
+      if (gradeAdjustedPaceMax) {
+        activity.addStat(new DataGradeAdjustedPaceMaxMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedPaceMinMinutesPerMile.type)) {
+      const gradeAdjustedPaceMin = activity.getStat(DataGradeAdjustedPaceMin.type);
+      if (gradeAdjustedPaceMin) {
+        activity.addStat(new DataGradeAdjustedPaceMinMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedPaceAvgMinutesPerMile.type)) {
+      const gradeAdjustedPaceAvg = activity.getStat(DataGradeAdjustedPaceAvg.type);
+      if (gradeAdjustedPaceAvg) {
+        activity.addStat(new DataGradeAdjustedPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceAvg.getValue())));
       }
     }
     // Swim Pace
@@ -1225,21 +1410,24 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
       }
     }
-
     if (!activity.getStat(DataSpeedMaxFeetPerSecond.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
         activity.addStat(new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
       }
     }
-
     if (!activity.getStat(DataSpeedMaxFeetPerMinute.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
         activity.addStat(new DataSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
       }
     }
-
+    if (!activity.getStat(DataSpeedMaxMetersPerMinute.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
@@ -1258,7 +1446,18 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
       }
     }
-
+    if (!activity.getStat(DataSpeedMinFeetPerMinute.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedMinMetersPerMinute.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
@@ -1277,7 +1476,112 @@ export class EventUtilities {
         activity.addStat(new DataSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
       }
     }
+    if (!activity.getStat(DataSpeedAvgFeetPerMinute.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedAvgMetersPerMinute.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+      }
+    }
 
+    // Grade Adjusted Speed
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxKilometersPerHour.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxMilesPerHour.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxFeetPerSecond.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxFeetPerMinute.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxMetersPerMinute.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinKilometersPerHour.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinMilesPerHour.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinFeetPerSecond.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinFeetPerMinute.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinMetersPerMinute.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgKilometersPerHour.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgMilesPerHour.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgFeetPerSecond.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgFeetPerMinute.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgMetersPerMinute.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+
+    // Vertical speed
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerSecond.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {

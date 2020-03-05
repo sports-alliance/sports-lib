@@ -120,7 +120,7 @@ import {
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
   convertSpeedToSwimPace,
-  convertSwimPaceToSwimPacePer100Yard,
+  convertSwimPaceToSwimPacePer100Yard, fillMissingValuesLinear,
   isNumber,
   isNumberOrString
 } from './helpers';
@@ -419,6 +419,14 @@ export class EventUtilities {
         data.push(currentValue);
         return data;
       }, []))
+    })
+    const streamTypesToLinearFill = [DataDistance.type];
+    activity.getAllStreams().forEach(stream => {
+      if (streamTypesToLinearFill.indexOf(stream.type) === -1) {
+        return;
+      }
+      stream.setData(fillMissingValuesLinear(stream.getData()));
+      // debugger;
     })
   }
 

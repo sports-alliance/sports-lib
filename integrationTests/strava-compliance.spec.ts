@@ -7,6 +7,7 @@ import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataCadence } from '../src/data/data.cadence';
 import { DataTemperature } from '../src/data/data.temperature';
 import { DataPower } from '../src/data/data.power';
+import { DataDistance } from '../src/data/data.distance';
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -106,6 +107,30 @@ describe('Strava data compliance', () => {
     eventInterfacePromise.then((event: EventInterface) => {
       expect(powerStream.length).toEqual(event.getFirstActivity().getStreamData(DataPower.type).length);
       expect(powerStream).toEqual(event.getFirstActivity().getStreamData(DataPower.type).map(value => value === null ? null :  Math.round(value * 10) / 10));
+      done();
+    });
+  });
+
+  it('should match distance', done => {
+
+    // Given
+    const path = __dirname + '/fixtures/strava_compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
+    const buffer = fs.readFileSync(path);
+    const tolerance = 0.20; // percent
+
+    const distanceStream = clone(strava_3156040843.distance);
+
+    // When
+    const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+    // Then
+    eventInterfacePromise.then((event: EventInterface) => {
+      expect(distanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
+      const importDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null :  Math.round(value * 10) / 10)
+      const commonCount = distanceStream
+        .filter((value: (number|null)) => importDistanceStreamData.indexOf(value) !== -1).length;
+      // We find the common then add the 1% tolerance and we check if its more than equal to the "strava" stream
+      expect(commonCount + Math.ceil((distanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(distanceStream.length);
       done();
     });
   });

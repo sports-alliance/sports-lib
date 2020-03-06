@@ -66,11 +66,15 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
 
   getAllEvents(): DataEvent[];
 
+  addEvent(event: DataEvent): this;
+
   setAllEvents(events: DataEvent[]): this;
 
   getStartEvents(): DataStartEvent[];
 
   getStopEvents(): DataStopEvent[];
+
+  getDateIndex(date: Date): number;
 
   toJSON(): ActivityJSONInterface
 }

@@ -63,8 +63,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
    * @param value
    */
   addDataToStream(type: string, date: Date, value: number): this {
-    // @todo ceil vs floor (still debatable)
-    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
+    this.getStreamData(type)[this.getDateIndex(date)] = value;
     return this;
   }
 
@@ -245,9 +244,19 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.events.filter(event => event instanceof DataStopEvent)
   }
 
+  addEvent(event: DataEvent): this {
+    this.events.push(event);
+    return this;
+  }
+
   setAllEvents(events: DataEvent[]): this {
     this.events = events;
     return this;
+  }
+
+  getDateIndex(date: Date): number {
+    // @todo ceil vs floor (still debatable)
+    return Math.ceil((+date - +this.startDate) / 1000);
   }
 
   toJSON(): ActivityJSONInterface {

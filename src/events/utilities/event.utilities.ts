@@ -422,14 +422,14 @@ export class EventUtilities {
         return data;
       }, []))
     })
-    const streamTypesToLinearFill = [DataDistance.type];
-    activity.getAllStreams().forEach(stream => {
-      if (streamTypesToLinearFill.indexOf(stream.type) === -1) {
-        return;
-      }
-      stream.setData(fillMissingValuesLinear(stream.getData()));
-      // debugger;
-    })
+    // const streamTypesToLinearFill = [DataDistance.type];
+    // activity.getAllStreams().forEach(stream => {
+    //   if (streamTypesToLinearFill.indexOf(stream.type) === -1) {
+    //     return;
+    //   }
+    //   stream.setData(fillMissingValuesLinear(stream.getData()));
+    //   // debugger;
+    // })
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {

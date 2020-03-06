@@ -112,12 +112,12 @@ describe('Strava data compliance', () => {
     });
   });
 
-  it('should match distance with 0.20% error max', done => {
+  it('should match distance with x% error max', done => {
 
     // Given
     const path = __dirname + '/fixtures/strava_compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
     const buffer = fs.readFileSync(path);
-    const tolerance = 0.20; // percent
+    const tolerance = 0.60; // percent
 
     const stravaDistanceStream = clone(strava_3156040843.distance);
 

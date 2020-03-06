@@ -230,6 +230,8 @@ import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from
 import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from './data.grade-adjusted-pace-max';
 import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from './data.grade-adjusted-pace-min';
 import { DataStepsOld } from './data.steps-old';
+import { DataPauseEvent } from './data.pause-event';
+import { DataStartEvent } from './data.start-event';
 
 /**
  * Only concrete classes no abstracts
@@ -453,6 +455,8 @@ export const DataStore: any = {
   DataStartPosition,
   DataEndPosition,
   DataGrade,
+  DataStartEvent,
+  DataPauseEvent
 };
 
 export class DynamicDataLoader {

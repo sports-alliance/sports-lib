@@ -130,7 +130,7 @@ describe('Strava data compliance', () => {
       const suuntoDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null :  Math.round(value * 10) / 10)
       const commonCount = stravaDistanceStream
         .filter((value: (number|null)) => suuntoDistanceStreamData.indexOf(value) !== -1).length;
-      // We find the common then add the 1% tolerance and we check if its more than equal to the "strava" stream
+      // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
       expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
       done();
     });
@@ -154,7 +154,7 @@ describe('Strava data compliance', () => {
       const suuntoGradeStreamData = event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null :  Math.round(value * 10) / 10)
       const commonCount = stravaGradeStream
         .filter((value: (number|null)) => suuntoGradeStreamData.indexOf(value) !== -1).length;
-      // We find the common then add the 1% tolerance and we check if its more than equal to the "strava" stream
+      // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
       expect(commonCount + Math.ceil((stravaGradeStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaGradeStream.length);
       done();
     });

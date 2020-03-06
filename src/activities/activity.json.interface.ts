@@ -11,4 +11,5 @@ export interface ActivityJSONInterface {
   laps: LapJSONInterface[];
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];
+  events: DataJSONInterface[]
 }

@@ -17,6 +17,10 @@ import { isNumber } from '../events/utilities/helpers';
 import { EventUtilities } from '../events/utilities/event.utilities';
 import { DataGNSSDistance } from '../data/data.gnss-distance';
 import { DataPower } from '../data/data.power';
+import { DataEvent } from '../data/data.event';
+import { DataStartEvent } from '../data/data.start-event';
+import { DataStopEvent } from '../data/data.stop-event';
+import { DataJSONInterface } from '../data/data.json.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -29,6 +33,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private laps: LapInterface[] = [];
   private streams: StreamInterface[] = [];
+
+  private events: DataEvent[] = [];
 
   constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
     super(startDate, endDate);
@@ -227,6 +233,23 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.laps;
   }
 
+  getAllEvents(): DataEvent[] {
+    return this.events;
+  }
+
+  getStartEvents(): DataStartEvent[] {
+    return this.events.filter(event => event instanceof DataStartEvent)
+  }
+
+  getStopEvents(): DataStopEvent[] {
+    return this.events.filter(event => event instanceof DataStopEvent)
+  }
+
+  setAllEvents(events: DataEvent[]): this {
+    this.events = events;
+    return this;
+  }
+
   toJSON(): ActivityJSONInterface {
     const intensityZones: IntensityZonesJSONInterface[] = [];
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
@@ -243,6 +266,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       creator: this.creator.toJSON(),
       intensityZones: intensityZones,
       stats: stats,
+      events: this.getAllEvents().reduce((eventsArray: DataJSONInterface[], event) => {
+        eventsArray.push(event.toJSON());
+        return eventsArray;
+      }, []),
       laps: this.getLaps().reduce((jsonLapsArray: any[], lap: LapInterface) => {
         jsonLapsArray.push(lap.toJSON());
         return jsonLapsArray;

@@ -1,5 +1,5 @@
 import { DataEvent } from './data.event';
 
-export class DataPauseEvent extends DataEvent {
+export class DataStopEvent extends DataEvent {
   static type = 'Pause Event';
 }

@@ -9,6 +9,9 @@ import { StreamDataItem, StreamInterface } from '../streams/stream.interface';
 import { ActivityJSONInterface } from './activity.json.interface';
 import { IDClassInterface } from '../id/id.class.interface';
 import { DataPositionInterface } from '../data/data.position.interface';
+import { DataEvent } from '../data/data.event';
+import { DataStartEvent } from '../data/data.start-event';
+import { DataStopEvent } from '../data/data.stop-event';
 
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   type: ActivityTypes;
@@ -60,6 +63,14 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   getLaps(): LapInterface[];
 
   addLap(lap: LapInterface): this;
+
+  getAllEvents(): DataEvent[];
+
+  setAllEvents(events: DataEvent[]): this;
+
+  getStartEvents(): DataStartEvent[];
+
+  getStopEvents(): DataStopEvent[];
 
   toJSON(): ActivityJSONInterface
 }

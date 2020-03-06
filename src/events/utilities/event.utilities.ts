@@ -144,7 +144,7 @@ import { DataPowerRight } from '../../data/data.power-right';
 import { DataAirPowerMin } from '../../data/data.air-power-min';
 import { DataAirPower } from '../../data/data.air-power';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
-import { DataAirPowerAvg } from '../../data/data.-air-power-avg';
+import { DataAirPowerAvg } from '../../data/data.air-power-avg';
 import { DataInterface } from '../../data/data.interface';
 import { DataRPE } from '../../data/data.rpe';
 import { DataGNSSDistance } from '../../data/data.gnss-distance';
@@ -211,7 +211,7 @@ import {
   DataGradeAdjustedPaceMin,
   DataGradeAdjustedPaceMinMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-min';
-import { DataGrade } from '../../data/data-grade';
+import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
 

@@ -8,7 +8,7 @@ import { DataCadence } from '../src/data/data.cadence';
 import { DataTemperature } from '../src/data/data.temperature';
 import { DataPower } from '../src/data/data.power';
 import { DataDistance } from '../src/data/data.distance';
-import { DataGrade } from '../src/data/data-grade';
+import { DataGrade } from '../src/data/data.grade';
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));

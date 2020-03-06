@@ -93,7 +93,7 @@ import {
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour,
 } from './data.speed-avg';
-import { DataRecoveryTime } from './dataRecoveryTime';
+import { DataRecoveryTime } from './data.recovery-time';
 import { DataPowerMin } from './data.power-min';
 import { DataPowerMax } from './data.power-max';
 import { DataPowerAvg } from './data.power-avg';
@@ -128,7 +128,7 @@ import { DataFormPower } from './data.form-power';
 import { DataLegStiffness } from './data.leg-stiffness';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
 import { DataTotalTrainingEffect } from './data.total-training-effect';
-import { DataNumberOfSamples } from './data-number-of.samples';
+import { DataNumberOfSamples } from './data.number-of.samples';
 import { DataFootPodUsed } from './data.foot-pod-used';
 import { DataAutoPauseUsed } from './data.auto-pause-used';
 import { DataAutoLapDuration } from './data.auto-lap-duration';
@@ -172,7 +172,7 @@ import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
 import { DataAirPowerMax } from './data.air-power-max';
 import { DataAirPowerMin } from './data.air-power-min';
-import { DataAirPowerAvg } from './data.-air-power-avg';
+import { DataAirPowerAvg } from './data.air-power-avg';
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataHeartRateZoneOneDuration } from './data.heart-rate-zone-one-duration';
 import { DataHeartRateZoneTwoDuration } from './data.heart-rate-zone-two-duration';
@@ -192,7 +192,7 @@ import { DataPowerZoneFourDuration } from './data.power-zone-four-duration';
 import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
-import { DataGrade } from './data-grade';
+import { DataGrade } from './data.grade';
 import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,

@@ -36,7 +36,7 @@ import { DataAscent } from '../../../../data/data.ascent';
 import { DataEPOC } from '../../../../data/data.epoc';
 import { DataEnergy } from '../../../../data/data.energy';
 import { DataFeeling } from '../../../../data/data.feeling';
-import { DataRecoveryTime } from '../../../../data/dataRecoveryTime';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataPause } from '../../../../data/data.pause';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';

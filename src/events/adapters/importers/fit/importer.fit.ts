@@ -70,6 +70,8 @@ import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-thr
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import { DataStartEvent } from '../../../../data/data.start-event';
+import { DataStopEvent } from '../../../../data/data.stop-event';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -149,6 +151,23 @@ export class EventImporterFIT {
             activity.intensityZones.push(speedIntensityZones);
           }
 
+          // Add the events
+          fitDataObject.events.filter((activityEvent: FITFileActivityEvent) => {
+            return activityEvent.timestamp >= activity.startDate && activityEvent.timestamp <= activity.endDate
+          }).forEach((activityEvent: FITFileActivityEvent ) => {
+            switch (activityEvent.event_type) {
+              case 'start':
+                activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              case 'stop':
+                activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              default:
+                break;
+            }
+          });
+
+          // Get the samples
           const samples = fitDataObject.records.filter((record: any) => {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
@@ -469,4 +488,8 @@ export class EventImporterFIT {
     }
     return creator;
   }
+}
+
+export interface FITFileActivityEvent {
+  event: string, timestamp: Date, event_type: 'start' | 'stop', data: number
 }

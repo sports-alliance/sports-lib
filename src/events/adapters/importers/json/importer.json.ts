@@ -22,6 +22,8 @@ import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceJsonInterface } from '../../../../activities/devices/device.json.interface';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
 import { Device } from '../../../../activities/devices/device';
+import { DataJSONInterface } from '../../../../data/data.json.interface';
+import { DataEvent } from '../../../../data/data.event';
 
 export class EventImporterJSON {
 
@@ -141,6 +143,10 @@ export class EventImporterJSON {
     return zones;
   }
 
+  static getActivityEventFromJSON(json: DataJSONInterface): DataEvent {
+    return <DataEvent>DynamicDataLoader.getDataInstanceFromDataType(<string>Object.keys(json)[0], <number>Object.values(json)[0]);
+  }
+
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),
@@ -156,6 +162,9 @@ export class EventImporterJSON {
     json.intensityZones.forEach((intensityZonesJSON) => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON))
     });
+    json.events.forEach(activityEvent => {
+      activity.addEvent(this.getActivityEventFromJSON(activityEvent))
+    })
     return activity;
   }
 }

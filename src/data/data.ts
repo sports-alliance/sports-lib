@@ -14,13 +14,16 @@ export abstract class Data implements DataInterface {
     if (!this.getType()) {
       throw new Error('Type not set');
     }
-    if ((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value) && !isNumber(value.latitudeDegrees) && !isNumber(value.longitudeDegrees)) {
-      throw new Error('Value is not boolean or number or string or position');
+    if (!this.isValueTypeValid(value)) {
+      throw new Error('Value is not boolean or number or string or Date or position');
     }
     this.value = value;
   }
 
   setValue(value: string | number | boolean | string[] | DataPositionInterface): this {
+    if (!this.isValueTypeValid(value)) {
+      throw new Error('Value is not boolean or number or string or Date or position');
+    }
     this.value = value;
     return this;
   }
@@ -58,6 +61,10 @@ export abstract class Data implements DataInterface {
 
   getUnitSystem(): UnitSystem {
     return (<typeof Data>this.constructor).unitSystem;
+  }
+
+  isValueTypeValid(value: any): boolean {
+    return !((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value) && !isNumber(value.latitudeDegrees) && !isNumber(value.longitudeDegrees))
   }
 
   toJSON(): DataJSONInterface {

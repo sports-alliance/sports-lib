@@ -330,6 +330,8 @@ export enum ActivityTypes {
   'IndoorRowing' = 'Indoor Rowing',
   'Indoor Rowing' = 'Indoor Rowing',
   'indoor_rowing' = 'Indoor Rowing',
+  'rowing_indoor' = 'Indoor Rowing',
+  'rowing_indoor_rowing' = 'Indoor Rowing',
   /**
    * Climbing
    */

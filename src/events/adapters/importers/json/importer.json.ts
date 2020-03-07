@@ -162,9 +162,11 @@ export class EventImporterJSON {
     json.intensityZones.forEach((intensityZonesJSON) => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON))
     });
-    json.events.forEach(activityEvent => {
-      activity.addEvent(this.getActivityEventFromJSON(activityEvent))
-    })
+    if (json.events) {
+      json.events.forEach(activityEvent => {
+        activity.addEvent(this.getActivityEventFromJSON(activityEvent))
+      })
+    }
     return activity;
   }
 }

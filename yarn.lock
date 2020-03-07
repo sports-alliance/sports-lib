@@ -2117,6 +2117,11 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
+kalmanjs@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/kalmanjs/-/kalmanjs-1.1.0.tgz#9554566a0a7ca72722d35a23ab05915c0ddba99e"
+  integrity sha512-Gkm2DAKIX8geuDcEJ92e80EmQ6TyIzWBJk6AFk+aDLofQ4G/KoDe1RCY9WMuXFe0NQxsTi7HYh9BVQneOtlvkg==
+
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"

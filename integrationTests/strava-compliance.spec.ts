@@ -16,6 +16,14 @@ function clone(obj: any) {
 
 describe('Strava data compliance', () => {
 
+  const averageDeltaBetweenStreams = (actualStream: number[], expectedStream: number[]) => {
+    let deltaSum = 0;
+    actualStream.forEach((value, index) => {
+      deltaSum += Math.abs(value - expectedStream[index]);
+    });
+    return deltaSum / actualStream.length;
+  };
+
   it('should match altitude', done => {
 
     // Given
@@ -151,11 +159,9 @@ describe('Strava data compliance', () => {
     // Then
     eventInterfacePromise.then((event: EventInterface) => {
       expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-      const suuntoGradeStreamData = event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null :  Math.round(value * 10) / 10)
-      const commonCount = stravaGradeStream
-        .filter((value: (number|null)) => suuntoGradeStreamData.indexOf(value) !== -1).length;
-      // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
-      expect(commonCount + Math.ceil((stravaGradeStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaGradeStream.length);
+      const suuntoGradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null :  Math.round(value * 10) / 10)
+      const deltaBetweenStreams = averageDeltaBetweenStreams(suuntoGradeStreamData, stravaGradeStream);
+      expect(deltaBetweenStreams).toBeLessThan(1.5);
       done();
     });
   });

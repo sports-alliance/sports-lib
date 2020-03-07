@@ -43,6 +43,7 @@ export class EventImporterGPX {
 
         // Create an activity. Set the dates depending on route etc
         const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
+        // @todo for routes add a seperate parser
         const endDate = isActivity ?
           new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);

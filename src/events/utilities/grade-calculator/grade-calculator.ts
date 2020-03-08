@@ -1,4 +1,5 @@
 import { isNumber } from '../helpers';
+
 const KalmanFilter = require('kalmanjs');
 
 export class GradeCalculator {
@@ -16,8 +17,7 @@ export class GradeCalculator {
 
   public static computeGradeStream(distanceStream: number[], altitudeStream: number[]): number[] {
     // First filter the altitude to remove any noise
-    let kf: any;
-    kf = new KalmanFilter();
+    const kf = new KalmanFilter();
     altitudeStream = altitudeStream.map(v => kf.filter(v));
 
     const gradeStream = [];

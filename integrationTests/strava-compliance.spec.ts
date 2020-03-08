@@ -168,7 +168,7 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getStreamData(DataAltitude.type).length);
+        expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length);
         expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
@@ -184,7 +184,7 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getStreamData(DataHeartRate.type).length);
+        expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length);
         expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
@@ -200,7 +200,7 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getStreamData(DataCadence.type).length);
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length);
         expect(stravaCadenceStream).toEqual(event.getFirstActivity().getStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
@@ -249,7 +249,7 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
+        expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
         const suuntoDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
         const commonCount = stravaDistanceStream
           .filter((value: (number | null)) => suuntoDistanceStreamData.indexOf(value) !== -1).length;

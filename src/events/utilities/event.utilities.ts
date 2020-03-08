@@ -409,27 +409,27 @@ export class EventUtilities {
   }
 
   public static repairMissingValuesToActivityStreams(activity: ActivityInterface) {
-    const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type, DataCadence.type];
-    activity.getAllStreams().forEach(stream => {
-      if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
-        return;
-      }
-      // Find the first sample value
-      let currentValue = <number>stream.getData(true, true)[0];
-      stream.setData(stream.getData().reduce((data: number[], value) => {
-        currentValue = value === null ? currentValue : value;
-        data.push(currentValue);
-        return data;
-      }, []))
-    })
-    const streamTypesToLinearFill = [DataDistance.type];
-    activity.getAllStreams().forEach(stream => {
-      if (streamTypesToLinearFill.indexOf(stream.type) === -1) {
-        return;
-      }
-      stream.setData(fillMissingValuesLinear(stream.getData()));
-      // debugger;
-    })
+    // const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type, DataCadence.type];
+    // activity.getAllStreams().forEach(stream => {
+    //   if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
+    //     return;
+    //   }
+    //   // Find the first sample value
+    //   let currentValue = <number>stream.getData(true, true)[0];
+    //   stream.setData(stream.getData().reduce((data: number[], value) => {
+    //     currentValue = value === null ? currentValue : value;
+    //     data.push(currentValue);
+    //     return data;
+    //   }, []))
+    // })
+    // const streamTypesToLinearFill = [DataDistance.type];
+    // activity.getAllStreams().forEach(stream => {
+    //   if (streamTypesToLinearFill.indexOf(stream.type) === -1) {
+    //     return;
+    //   }
+    //   stream.setData(fillMissingValuesLinear(stream.getData()));
+    //   // debugger;
+    // })
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {

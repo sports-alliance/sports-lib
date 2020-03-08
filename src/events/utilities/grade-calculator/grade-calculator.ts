@@ -1,5 +1,7 @@
 import { LowPassFilter } from './low-pass-filter';
 import { isNumber } from '../helpers';
+const KalmanFilter = require('kalmanjs');
+
 
 export class GradeCalculator {
 
@@ -15,7 +17,9 @@ export class GradeCalculator {
   }
 
   public static computeGradeStream(distanceStream: number[], altitudeStream: number[]): number[] {
-
+    let kf: any;
+    kf = new KalmanFilter({R: 0.01, Q: 0.05, A: 1});
+    altitudeStream = altitudeStream.map(v => kf.filter(v));
     let gradeStream = [];
 
     for (let i = 0; i < distanceStream.length; i++) {

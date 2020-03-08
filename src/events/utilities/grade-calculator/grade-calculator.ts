@@ -1,7 +1,4 @@
-import { LowPassFilter } from './low-pass-filter';
 import { isNumber } from '../helpers';
-const KalmanFilter = require('kalmanjs');
-
 
 export class GradeCalculator {
 
@@ -17,30 +14,25 @@ export class GradeCalculator {
   }
 
   public static computeGradeStream(distanceStream: number[], altitudeStream: number[]): number[] {
-    let kf: any;
-    kf = new KalmanFilter();
-    altitudeStream = altitudeStream.map(v => kf.filter(v));
+
+    altitudeStream = altitudeStream.map(v => Math.round(v * 10) / 10)
+
     let gradeStream = [];
 
     for (let i = 0; i < distanceStream.length; i++) {
 
       const previousDistance = (distanceStream[i - 1]) || 0;
-      const currentDistance = distanceStream[i];
+      // Find the next i for distance = prev distance + 50m
+      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
+      const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
-      const currentAltitude = altitudeStream[i];
+      const currentAltitude = altitudeStream[nextIndex + i];
 
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
       gradeStream.push(currentGrade);
     }
 
-    const lowPassFilter = new LowPassFilter(0.55);
-    gradeStream = lowPassFilter.smoothArray(gradeStream);
-    gradeStream = lowPassFilter.smoothArray(gradeStream);
-    gradeStream.push((gradeStream[gradeStream.length - 1] + gradeStream[gradeStream.length - 2]) / 2); // "Predict last sample before shift"
-    gradeStream.push((gradeStream[gradeStream.length - 1] + gradeStream[gradeStream.length - 2]) / 2); // "Predict last sample before shift"
-    gradeStream.shift();
-    gradeStream.shift();
-    return gradeStream;
+    return gradeStream.map(v => Math.round(v * 10) / 10);
   }
 
   /**

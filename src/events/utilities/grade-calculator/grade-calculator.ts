@@ -26,7 +26,7 @@ export class GradeCalculator {
 
       const previousDistance = (distanceStream[i - 1]) || 0;
       // Find the next i for distance = prev distance + 5m
-      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 7));
+      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
       const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
       const currentAltitude = altitudeStream[nextIndex + i];

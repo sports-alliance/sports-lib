@@ -18,7 +18,7 @@ export class GradeCalculator {
 
   public static computeGradeStream(distanceStream: number[], altitudeStream: number[]): number[] {
     let kf: any;
-    kf = new KalmanFilter({R: 0.01, Q: 0.05, A: 1});
+    kf = new KalmanFilter();
     altitudeStream = altitudeStream.map(v => kf.filter(v));
     let gradeStream = [];
 

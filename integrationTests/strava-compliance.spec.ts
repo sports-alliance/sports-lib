@@ -2,7 +2,6 @@ import fs from 'fs';
 import { SportsLib } from '../src';
 import { EventInterface } from '../src/events/event.interface';
 import * as strava_3156040843 from './fixtures/strava_compliance/suunto_export/strava_3156040843.json';
-import * as strava_1701610856 from './fixtures/strava_compliance/suunto_export/strava_1701610856.json';
 import { DataAltitude } from '../src/data/data.altitude';
 import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataCadence } from '../src/data/data.cadence';

@@ -20,13 +20,13 @@ export class GradeCalculator {
     kf = new KalmanFilter();
     altitudeStream = altitudeStream.map(v => kf.filter(v));
 
-    let gradeStream = [];
+    const gradeStream = [];
 
     for (let i = 0; i < distanceStream.length; i++) {
 
       const previousDistance = (distanceStream[i - 1]) || 0;
-      // Find the next i for distance = prev distance + 50m
-      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
+      // Find the next i for distance = prev distance + 5m
+      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 7));
       const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
       const currentAltitude = altitudeStream[nextIndex + i];
@@ -35,7 +35,10 @@ export class GradeCalculator {
       gradeStream.push(currentGrade);
     }
 
-    return gradeStream.map(v => Math.round(v * 10) / 10);
+    kf = new KalmanFilter();
+    return gradeStream
+      // .map(v => kf.filter(v))
+      .map(v => Math.round(v * 10) / 10);
   }
 
   /**

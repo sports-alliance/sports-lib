@@ -72,6 +72,7 @@ import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
+import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -161,6 +162,9 @@ export class EventImporterFIT {
                 break;
               case 'stop':
                 activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              case 'stop_all':
+                activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
                 break;
               default:
                 break;
@@ -491,5 +495,5 @@ export class EventImporterFIT {
 }
 
 export interface FITFileActivityEvent {
-  event: string, timestamp: Date, event_type: 'start' | 'stop', data: number
+  event: string, timestamp: Date, event_type: 'start' | 'stop' | 'stop_all', data: number
 }

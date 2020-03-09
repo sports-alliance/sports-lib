@@ -232,6 +232,7 @@ import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from
 import { DataStepsOld } from './data.steps-old';
 import { DataStopEvent } from './data.stop-event';
 import { DataStartEvent } from './data.start-event';
+import { DataStopAllEvent } from './data.stop-all-event';
 
 /**
  * Only concrete classes no abstracts
@@ -456,7 +457,8 @@ export const DataStore: any = {
   DataEndPosition,
   DataGrade,
   DataStartEvent,
-  DataPauseEvent: DataStopEvent
+  DataStopEvent,
+  DataStopAllEvent,
 };
 
 export class DynamicDataLoader {

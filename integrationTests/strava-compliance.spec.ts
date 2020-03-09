@@ -131,7 +131,7 @@ describe('Strava data compliance', () => {
     it('should match distance with x% error max', done => {
 
       // Given
-      const tolerance = 0.60; // percent
+      const tolerance = 0.6; // percent
 
       const stravaDistanceStream = clone(strava_3156040843.distance);
 
@@ -146,6 +146,7 @@ describe('Strava data compliance', () => {
           .filter((value: (number | null)) => suuntoDistanceStreamData.indexOf(value) !== -1).length;
         // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
         expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
+        // expect(stravaDistanceStream).toEqual(suuntoDistanceStreamData);
         done();
       });
     });
@@ -285,11 +286,12 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-        const suuntoDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-        const commonCount = stravaDistanceStream
-          .filter((value: (number | null)) => suuntoDistanceStreamData.indexOf(value) !== -1).length;
-        // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
-        expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
+        const garminDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        // const commonCount = stravaDistanceStream
+        //   .filter((value: (number | null)) => garminDistanceStreamData.indexOf(value) !== -1).length;
+        // // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
+        // expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
+        expect(stravaDistanceStream).toEqual(garminDistanceStreamData)
         done();
       });
     });

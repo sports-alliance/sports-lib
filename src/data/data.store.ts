@@ -514,6 +514,7 @@ export class DynamicDataLoader {
     DataGroundTime.type,
     DataAirPower.type,
     DataGNSSDistance.type,
+    DataGrade.type
   ];
 
   static unitBasedDataTypes: DataTypeUnitGroups = {

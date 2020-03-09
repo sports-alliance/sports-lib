@@ -1756,7 +1756,7 @@ export class EventUtilities {
 
     if (activity.hasStreamData(DataSpeed.type)) {
 
-      const speedStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);
+      const gradeAdjustedSpeedStream = activity.getStreamDataByDuration(DataGradeAdjustedSpeed.type, true, true);
 
       let speedThreshold: number;
 
@@ -1769,13 +1769,13 @@ export class EventUtilities {
       }
 
       let movingTime = 0;
-      speedStream.forEach((speedEntry, index) => {
+      gradeAdjustedSpeedStream.forEach((speedEntry, index) => {
 
         if (index === 0) {
           return;
         }
 
-        const deltaTime = speedStream[index].time - speedStream[index - 1].time;
+        const deltaTime = gradeAdjustedSpeedStream[index].time - gradeAdjustedSpeedStream[index - 1].time;
 
         if (<number>speedEntry.value >= speedThreshold) {
           movingTime += deltaTime;

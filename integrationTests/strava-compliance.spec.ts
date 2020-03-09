@@ -275,7 +275,7 @@ describe('Strava data compliance', () => {
     it('should match distance with x% error max', done => {
 
       // Given
-      const tolerance = 0.60; // percent
+      const tolerance = 0.00; // percent
 
       const stravaDistanceStream = clone(strava_343080886.distance);
 

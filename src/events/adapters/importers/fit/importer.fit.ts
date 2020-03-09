@@ -74,6 +74,8 @@ import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
 import { DataTime } from '../../../../data/data.time';
+import { DataAltitude } from '../../../../data/data.altitude';
+import { DataCadence } from '../../../../data/data.cadence';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -196,19 +198,54 @@ export class EventImporterFIT {
               });
             }
           });
+
+          /**
+           * We do a second pass here and we add missing data on crossing time indexes
+           * for example:
+           * Time[0,1,2,3,4,5,7]
+           * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
+           * Altitude[100, 101, null, 103, null, null, 106]
+           * Should be
+           * Altitude[100,101,101,103,103,103,106]
+           */
+          const streamTypesToBackAndForthFill = [
+            DataAltitude.type,
+            DataHeartRate.type,
+            DataCadence.type
+          ];
+          activity.getAllStreams().forEach(stream => {
+            if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
+              return;
+            }
+            // Find the first sample value
+            let currentValue = <number>stream.getData(true, true)[0];
+            // The time stream will always have more length
+            const timeStreamData = <number[]>timeStream.getData(true, true)
+            stream.setData(timeStreamData.reduce((data: number[], time) => {
+              currentValue = isNumber(stream.getData()[time]) ? <number>stream.getData()[time] : currentValue;
+              data.push(currentValue);
+              return data;
+            }, []))
+          })
+
+          timeStream.getData(true, true).forEach(time => {
+            // const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type, DataCadence.type];
+            // activity.getAllStreams().forEach(stream => {
+            //   if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
+            //     return;
+            //   }
+            //   // Find the first sample value
+            //   let currentValue = <number>stream.getData(true, true)[0];
+            //   stream.setData(stream.getData().reduce((data: number[], value) => {
+            //     currentValue = value === null ? currentValue : value;
+            //     data.push(currentValue);
+            //     return data;
+            //   }, []))
+            // })
+          })
+
           return activity;
         });
-
-        /**
-         * We do a second pass here and we add missing data on crossing time indexes
-         * for example:
-         * Time[0,1,2,3,4,5,7]
-         * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
-         * Altitude[100, 101, null, 103, null, null, 106]
-         * Should be
-         * Altitude[100,101,101,103,103,103,106]
-         */
-
 
         // If there are no activities to parse ....
         if (!activities.length) {

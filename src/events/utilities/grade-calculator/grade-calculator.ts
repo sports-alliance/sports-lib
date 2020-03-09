@@ -26,6 +26,7 @@ export class GradeCalculator {
 
       const previousDistance = (distanceStream[i - 1]) || 0;
       // Find the next i for distance = prev distance + 5m
+      // @todo perhaps this threshold should be per avg speed / activity type
       const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
       const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];

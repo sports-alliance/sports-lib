@@ -158,7 +158,7 @@ export class EventImporterFIT {
           // Add the events
           fitDataObject.events.filter((activityEvent: FITFileActivityEvent) => {
             return activityEvent.timestamp >= activity.startDate && activityEvent.timestamp <= activity.endDate
-          }).forEach((activityEvent: FITFileActivityEvent ) => {
+          }).forEach((activityEvent: FITFileActivityEvent) => {
             switch (activityEvent.event_type) {
               case 'start':
                 activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
@@ -220,31 +220,15 @@ export class EventImporterFIT {
             }
             // Find the first sample value
             let currentValue = <number>stream.getData(true, true)[0];
-            // The time stream will always have more length
+            // The time stream will always have more length than each stream when not back/forthfilled
             const timeStreamData = <number[]>timeStream.getData(true, true)
             stream.setData(timeStreamData.reduce((data: number[], time) => {
-              if (isNumber(stream.getData()[time])){
+              if (isNumber(stream.getData()[time])) {
                 currentValue = <number>stream.getData()[time];
               }
               data.push(currentValue);
               return data;
             }, []))
-          })
-
-          timeStream.getData(true, true).forEach(time => {
-            // const streamTypesToBackAndForthFill = [DataAltitude.type, DataHeartRate.type, DataCadence.type];
-            // activity.getAllStreams().forEach(stream => {
-            //   if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
-            //     return;
-            //   }
-            //   // Find the first sample value
-            //   let currentValue = <number>stream.getData(true, true)[0];
-            //   stream.setData(stream.getData().reduce((data: number[], value) => {
-            //     currentValue = value === null ? currentValue : value;
-            //     data.push(currentValue);
-            //     return data;
-            //   }, []))
-            // })
           })
 
           return activity;
@@ -558,5 +542,8 @@ export class EventImporterFIT {
 }
 
 export interface FITFileActivityEvent {
-  event: string, timestamp: Date, event_type: 'start' | 'stop' | 'stop_all', data: number
+  event: string,
+  timestamp: Date,
+  event_type: 'start' | 'stop' | 'stop_all',
+  data: number
 }

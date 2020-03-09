@@ -73,6 +73,7 @@ import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.e
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
+import { DataTime } from '../../../../data/data.time';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -176,9 +177,19 @@ export class EventImporterFIT {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
 
+          // Create a time stream
+          const timeStream = activity.createStream(DataTime.type);
+          activity.addStream(timeStream);
+          samples.forEach((sample: any) => {
+            activity.addDataToStream(DataTime.type, (new Date(sample.timestamp)), activity.getDateIndex((new Date(sample.timestamp))));
+          })
+
           FITSampleMapper.forEach((sampleMapping) => {
+            // @todo not sure if we need to check for number only ...
             const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
             if (subjectSamples.length) {
+              // When we create a stream here it has the length of the activity elapsed time (end-start) filled with nulls.
+              // We keep nulls in order to preserve the array length.
               activity.addStream(activity.createStream(sampleMapping.dataType));
               subjectSamples.forEach((subjectSample) => {
                 activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
@@ -187,6 +198,17 @@ export class EventImporterFIT {
           });
           return activity;
         });
+
+        /**
+         * We do a second pass here and we add missing data on crossing time indexes
+         * for example:
+         * Time[0,1,2,3,4,5,7]
+         * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
+         * Altitude[100, 101, null, 103, null, null, 106]
+         * Should be
+         * Altitude[100,101,101,103,103,103,106]
+         */
+
 
         // If there are no activities to parse ....
         if (!activities.length) {

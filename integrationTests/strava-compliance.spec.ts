@@ -10,6 +10,7 @@ import { DataTemperature } from '../src/data/data.temperature';
 import { DataPower } from '../src/data/data.power';
 import { DataDistance } from '../src/data/data.distance';
 import { DataGrade } from '../src/data/data.grade';
+import { DataTime } from '../src/data/data.time';
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -29,6 +30,23 @@ describe('Strava data compliance', () => {
 
     const path = __dirname + '/fixtures/strava_compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
     const buffer = fs.readFileSync(path);
+
+    it('should match time', done => {
+
+      // Given
+      const stravaCadenceStream = clone(strava_3156040843.time);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        // const a = event.getFirstActivity().getSquashedStreamData(DataTime.type);
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+        done();
+      });
+    });
 
     it('should match altitude', done => {
 
@@ -157,6 +175,23 @@ describe('Strava data compliance', () => {
   describe('Compliance with garmin export (hilly activity: https://connect.garmin.com/modern/activity/828989227 / https://www.strava.com/activities/343080886)', () => {
     const path = __dirname + '/fixtures/strava_compliance/garmin_export/garmin_828989227.fit';
     const buffer = fs.readFileSync(path);
+
+    it('should match time', done => {
+
+      // Given
+      const stravaCadenceStream = clone(strava_343080886.time);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        // const a = event.getFirstActivity().getSquashedStreamData(DataTime.type);
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+        done();
+      });
+    });
 
     it('should match altitude', done => {
 

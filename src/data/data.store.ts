@@ -233,6 +233,7 @@ import { DataStepsOld } from './data.steps-old';
 import { DataStopEvent } from './data.stop-event';
 import { DataStartEvent } from './data.start-event';
 import { DataStopAllEvent } from './data.stop-all-event';
+import { DataTime } from './data.time';
 
 /**
  * Only concrete classes no abstracts
@@ -459,6 +460,7 @@ export const DataStore: any = {
   DataStartEvent,
   DataStopEvent,
   DataStopAllEvent,
+  DataTime,
 };
 
 export class DynamicDataLoader {

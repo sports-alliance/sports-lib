@@ -1786,7 +1786,7 @@ export class EventUtilities {
       movingTime = movingTime / 1000;
 
       const duration = <number>(<DataInterface>activity.getStat(DataDuration.type)).getValue();
-      activity.setPause(new DataPause(duration - movingTime));
+      activity.setPause(new DataPause(Math.round(duration - movingTime)));
     }
 
     // If there is no pause define that from the start date and end date and duration

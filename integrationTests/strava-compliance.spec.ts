@@ -169,7 +169,7 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length);
-        expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
     });
@@ -185,7 +185,7 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length);
-        expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
     });
@@ -201,7 +201,7 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length);
-        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
     });

@@ -211,7 +211,8 @@ export class EventImporterFIT {
           const streamTypesToBackAndForthFill = [
             DataAltitude.type,
             DataHeartRate.type,
-            DataCadence.type
+            DataCadence.type,
+            DataDistance.type
           ];
           activity.getAllStreams().forEach(stream => {
             if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
@@ -222,7 +223,9 @@ export class EventImporterFIT {
             // The time stream will always have more length
             const timeStreamData = <number[]>timeStream.getData(true, true)
             stream.setData(timeStreamData.reduce((data: number[], time) => {
-              currentValue = isNumber(stream.getData()[time]) ? <number>stream.getData()[time] : currentValue;
+              if (isNumber(stream.getData()[time])){
+                currentValue = <number>stream.getData()[time];
+              }
               data.push(currentValue);
               return data;
             }, []))

@@ -21,6 +21,7 @@ import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataJSONInterface } from '../data/data.json.interface';
+import { DataStopAllEvent } from '../data/data.stop-all-event';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -242,6 +243,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   getStopEvents(): DataStopEvent[] {
     return this.events.filter(event => event instanceof DataStopEvent)
+  }
+
+  getStopAllEvents(): DataStopEvent[] {
+    return this.events.filter(event => event instanceof DataStopAllEvent)
   }
 
   addEvent(event: DataEvent): this {

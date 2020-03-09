@@ -6,6 +6,9 @@ import { ActivityTypes } from './activity.types';
 import { Creator } from '../creators/creator';
 import { Stream } from '../streams/stream';
 import { DataDistance } from '../data/data.distance';
+import { DataStopEvent } from '../data/data.stop-event';
+import { DataStartEvent } from '../data/data.start-event';
+import { DataStopAllEvent } from '../data/data.stop-all-event';
 
 describe('Activity', () => {
 
@@ -271,4 +274,30 @@ describe('Activity', () => {
 
   });
 
+
+  it('should get events correctly', () => {
+    activity.addEvent(new DataStopEvent(1));
+    activity.addEvent(new DataStopEvent(1));
+    activity.addEvent(new DataStartEvent(1));
+    activity.addEvent(new DataStartEvent(1));
+    activity.addEvent(new DataStopAllEvent(1));
+    expect(activity.getAllEvents().length).toBe(5);
+    expect(activity.getStartEvents().length).toBe(2);
+    expect(activity.getStopEvents().length).toBe(2);
+    expect(activity.getStopAllEvents().length).toBe(1);
+  });
+
+  it('should set all events', () => {
+    activity.setAllEvents([
+      new DataStopEvent(1),
+      new DataStopEvent(1),
+      new DataStartEvent(1),
+      new DataStartEvent(1),
+      new DataStopAllEvent(1),
+    ])
+    expect(activity.getAllEvents().length).toBe(5);
+    expect(activity.getStartEvents().length).toBe(2);
+    expect(activity.getStopEvents().length).toBe(2);
+    expect(activity.getStopAllEvents().length).toBe(1);
+  });
 });

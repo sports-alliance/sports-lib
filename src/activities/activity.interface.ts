@@ -12,6 +12,7 @@ import { DataPositionInterface } from '../data/data.position.interface';
 import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
+import { DataStopAllEvent } from '../data/data.stop-all-event';
 
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   type: ActivityTypes;
@@ -73,6 +74,8 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   getStartEvents(): DataStartEvent[];
 
   getStopEvents(): DataStopEvent[];
+
+  getStopAllEvents(): DataStopAllEvent[];
 
   getDateIndex(date: Date): number;
 

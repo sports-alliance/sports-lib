@@ -279,6 +279,7 @@ export class EventImporterFIT {
     const isSessionTimingCompliant = sessionObject && sessionObject.timestamp
       && (sessionObject.total_elapsed_time || sessionObject.total_timer_time);
 
+    // @todo apparently we should not base on the timstamp for conistency.
     if (isSessionTimingCompliant) { // Session object is legit. We can use it.
       startDate = sessionObject.start_time;
       const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time;

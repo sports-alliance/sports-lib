@@ -174,10 +174,7 @@ import {
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from '../../data/data.grade-adjusted-speed-avg';
-import {
-  DataGradeAdjustedPaceAvg,
-  DataGradeAdjustedPaceAvgMinutesPerMile
-} from '../../data/data.grade-adjusted-pace-avg';
+import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from '../../data/data.grade-adjusted-pace-avg';
 import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,
@@ -203,14 +200,8 @@ import {
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from '../../data/data.grade-adjusted-speed-min';
-import {
-  DataGradeAdjustedPaceMax,
-  DataGradeAdjustedPaceMaxMinutesPerMile
-} from '../../data/data.grade-adjusted-pace-max';
-import {
-  DataGradeAdjustedPaceMin,
-  DataGradeAdjustedPaceMinMinutesPerMile
-} from '../../data/data.grade-adjusted-pace-min';
+import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from '../../data/data.grade-adjusted-pace-max';
+import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
@@ -832,7 +823,7 @@ export class EventUtilities {
     // Get a grade adjusted speed
     if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)
       && activity.hasStreamData(DataGrade.type)
-      && activity.hasStreamData(DataSpeed.type)){
+      && activity.hasStreamData(DataSpeed.type)) {
       const speedStreamData = <number[]>activity.getSquashedStreamData(DataSpeed.type);
       const gradeStreamData = <number[]>activity.getSquashedStreamData(DataGrade.type);
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
@@ -927,8 +918,8 @@ export class EventUtilities {
       // Find the first sample value
       let currentValue = <number>stream.getData(true, true)[0];
       // The time stream will always have more length than each stream when not back/forthfilled
-      const timeStreamData = <number[]>timeStream.getData( )
-      stream.setData(timeStreamData.reduce((data: (number|null)[], time, timeIndex) => {
+      const timeStreamData = <number[]>timeStream.getData()
+      stream.setData(timeStreamData.reduce((data: (number | null)[], time, timeIndex) => {
         // If there is no timeslot put whatever was
         if (!isNumber(time)) {
           data.push(stream.getData()[timeIndex]);
@@ -953,8 +944,8 @@ export class EventUtilities {
     startDate?: Date,
     endDate?: Date): number {
     return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity
-        .getPositionData(startDate, endDate)
-        .filter((position) => position !== null));
+      .getPositionData(startDate, endDate)
+      .filter((position) => position !== null));
   }
 
   /**
@@ -1845,26 +1836,30 @@ export class EventUtilities {
 
     if (activity.hasStreamData(DataSpeed.type)) {
 
-      const gradeAdjustedSpeedStream = activity.getStreamDataByDuration(DataGradeAdjustedSpeed.type, true, true);
+      const hasGradeAdjustedSpeedStream = activity.hasStreamData(DataGradeAdjustedSpeed.type);
+
+      const finalSpeedStream = hasGradeAdjustedSpeedStream
+        ? activity.getStreamDataByDuration(DataGradeAdjustedSpeed.type, true, true)
+        : activity.getStreamDataByDuration(DataSpeed.type, true, true);
 
       let speedThreshold: number;
 
       if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
-        speedThreshold = 1.9;
+        speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 1.9; // @todo final static + tweak => For @thomaschampagne
       } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
-        speedThreshold = 1.2;
+        speedThreshold = hasGradeAdjustedSpeedStream ? 1.6 : 1.2; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;
       }
 
       let movingTime = 0;
-      gradeAdjustedSpeedStream.forEach((speedEntry, index) => {
+      finalSpeedStream.forEach((speedEntry, index) => {
 
         if (index === 0) {
           return;
         }
 
-        const deltaTime = gradeAdjustedSpeedStream[index].time - gradeAdjustedSpeedStream[index - 1].time;
+        const deltaTime = finalSpeedStream[index].time - finalSpeedStream[index - 1].time;
 
         if (<number>speedEntry.value >= speedThreshold) {
           movingTime += deltaTime;

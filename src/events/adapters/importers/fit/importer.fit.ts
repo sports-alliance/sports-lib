@@ -179,13 +179,6 @@ export class EventImporterFIT {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
 
-          // Create a time stream
-          const timeStream = activity.createStream(DataTime.type);
-          activity.addStream(timeStream);
-          samples.forEach((sample: any) => {
-            activity.addDataToStream(DataTime.type, (new Date(sample.timestamp)), activity.getDateIndex((new Date(sample.timestamp))));
-          })
-
           FITSampleMapper.forEach((sampleMapping) => {
             // @todo not sure if we need to check for number only ...
             const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
@@ -198,38 +191,6 @@ export class EventImporterFIT {
               });
             }
           });
-
-          /**
-           * We do a second pass here and we add missing data on crossing time indexes
-           * for example:
-           * Time[0,1,2,3,4,5,7]
-           * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
-           * Altitude[100, 101, null, 103, null, null, 106]
-           * Should be
-           * Altitude[100,101,101,103,103,103,106]
-           */
-          const streamTypesToBackAndForthFill = [
-            DataAltitude.type,
-            DataHeartRate.type,
-            DataCadence.type,
-            DataDistance.type
-          ];
-          activity.getAllStreams().forEach(stream => {
-            if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
-              return;
-            }
-            // Find the first sample value
-            let currentValue = <number>stream.getData(true, true)[0];
-            // The time stream will always have more length than each stream when not back/forthfilled
-            const timeStreamData = <number[]>timeStream.getData(true, true)
-            stream.setData(timeStreamData.reduce((data: number[], time) => {
-              if (isNumber(stream.getData()[time])) {
-                currentValue = <number>stream.getData()[time];
-              }
-              data.push(currentValue);
-              return data;
-            }, []))
-          })
 
           return activity;
         });

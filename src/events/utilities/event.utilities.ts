@@ -816,16 +816,24 @@ export class EventUtilities {
       }
     }
 
-    // @todo this is temp work just to be able to test / parse those Fit,GPX etc files
-    if (!activity.hasStreamData(DataGrade.type) && activity.hasStreamData(DataDistance.type) && activity.hasStreamData(DataAltitude.type)) {
+    // Check if we can get a grade stream
+    if (!activity.hasStreamData(DataGrade.type)
+      && activity.hasStreamData(DataDistance.type)
+      && activity.hasStreamData(DataAltitude.type)) {
       const distanceData = <number[]>activity.getStreamData(DataDistance.type);
       const altitudeData = <number[]>activity.getStreamData(DataAltitude.type).map(altitude => altitude === null ? null :  Math.round(altitude * 10) / 10);
       const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
-      const speedStreamData = activity.getStreamData(DataSpeed.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
-      // debugger;
-      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
+    }
+
+    // Get a grade adjusted speed
+    if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)
+      && activity.hasStreamData(DataGrade.type)
+      && activity.hasStreamData(DataSpeed.type)){
+      const speedStreamData = <number[]>activity.getStreamData(DataSpeed.type);
+      const gradeStreamData = <number[]>activity.getStreamData(DataGrade.type);
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
+      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 
 

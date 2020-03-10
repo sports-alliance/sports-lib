@@ -927,11 +927,21 @@ export class EventUtilities {
       // Find the first sample value
       let currentValue = <number>stream.getData(true, true)[0];
       // The time stream will always have more length than each stream when not back/forthfilled
-      const timeStreamData = <number[]>timeStream.getData(true, true)
-      stream.setData(timeStreamData.reduce((data: number[], time) => {
+      const timeStreamData = <number[]>timeStream.getData( )
+      stream.setData(timeStreamData.reduce((data: (number|null)[], time, timeIndex) => {
+        // If there is no timeslot put whatever was
+        if (!isNumber(time)) {
+          data.push(stream.getData()[timeIndex]);
+          return data;
+        }
+
+        // We have a time slot here on ...  (for the first run, old is the very first next)
+
+        // If it's a number set the current , else leave it to old to forth fill
         if (isNumber(stream.getData()[time])) {
           currentValue = <number>stream.getData()[time];
         }
+        // Fill the current or old...
         data.push(currentValue);
         return data;
       }, []))

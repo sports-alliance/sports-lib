@@ -259,7 +259,7 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const distanceStreamData = event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaDistanceStream).toEqual(distanceStreamData)
           done();
         });

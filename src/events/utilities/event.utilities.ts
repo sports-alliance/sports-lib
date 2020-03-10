@@ -820,8 +820,9 @@ export class EventUtilities {
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
     }
 
-    // Get a grade adjusted speed
-    if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)
+    // Get a grade adjusted speed (the model applies to running only)
+    if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running
+      && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
       && activity.hasStreamData(DataGrade.type)
       && activity.hasStreamData(DataSpeed.type)) {
       const speedStreamData = <number[]>activity.getSquashedStreamData(DataSpeed.type);

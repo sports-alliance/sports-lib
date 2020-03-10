@@ -10,7 +10,7 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
   constructor() {
   }
 
-  getDistance(positionArray: DataPositionInterface[], precise= false): number {
+  getDistance(positionArray: DataPositionInterface[], precise= false, accuracy = 0.1): number {
     let distance = 0;
     const excludeFirstPointsArray = positionArray.slice(1);
     let firstPosition = positionArray[0];
@@ -24,8 +24,8 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
         latitude: nextPosition.latitudeDegrees,
       };
       distance += precise ?
-        getPreciseDistance(firstPositionAsDecimal, nextPositionAsDecimal)
-        : getDistance(firstPositionAsDecimal, nextPositionAsDecimal);
+        getPreciseDistance(firstPositionAsDecimal, nextPositionAsDecimal, accuracy)
+        : getDistance(firstPositionAsDecimal, nextPositionAsDecimal, accuracy);
       firstPosition = nextPosition;
     }
     return distance;

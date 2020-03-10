@@ -475,10 +475,11 @@ describe('Strava data compliance', () => {
       //   });
       // });
 
+      
       it('should match distance with x% error max', done => {
 
         // Given
-        const tolerance = 0.00; // percent
+        const deltaTolerance = 15; // percent
 
         const stravaDistanceStream = clone(strava_3171438371_gpx.distance);
 
@@ -488,8 +489,9 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          expect(stravaDistanceStream).toEqual(distanceStreamData)
+          const distanceStreamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(distanceStreamData, stravaDistanceStream);
+          expect(deltaBetweenStreams).toBeLessThan(deltaTolerance);
           done();
         });
       });

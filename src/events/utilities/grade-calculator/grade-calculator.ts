@@ -27,7 +27,8 @@ export class GradeCalculator {
       const previousDistance = (distanceStream[i - 1]) || 0;
       // Find the next i for distance = prev distance + 5m
       // @todo perhaps this threshold should be per avg speed / activity type
-      // Or just perhaps the speed? 
+      // Or just perhaps the speed?
+      // Perhaps round 
       const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
       const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
@@ -39,8 +40,9 @@ export class GradeCalculator {
 
     kf = new KalmanFilter();
     return gradeStream
+      // .map(v => Math.round(v * 10) / 10)
       .map(v => kf.filter(v))
-      .map(v => Math.round(v * 10) / 10);
+      .map(v => Math.round(v * 10) / 10)
   }
 
   /**

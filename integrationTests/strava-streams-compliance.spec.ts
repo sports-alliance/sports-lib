@@ -274,7 +274,7 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
@@ -391,7 +391,7 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
@@ -508,7 +508,7 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);

@@ -820,6 +820,7 @@ export class EventUtilities {
     if (!activity.hasStreamData(DataGrade.type)
       && activity.hasStreamData(DataDistance.type)
       && activity.hasStreamData(DataAltitude.type)) {
+      // @todo get squashed data
       const distanceData = <number[]>activity.getStreamData(DataDistance.type);
       const altitudeData = <number[]>activity.getStreamData(DataAltitude.type).map(altitude => altitude === null ? null :  Math.round(altitude * 10) / 10);
       const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
@@ -830,6 +831,7 @@ export class EventUtilities {
     if (!activity.hasStreamData(DataGradeAdjustedSpeed.type)
       && activity.hasStreamData(DataGrade.type)
       && activity.hasStreamData(DataSpeed.type)){
+      // @todo get squashed data 
       const speedStreamData = <number[]>activity.getStreamData(DataSpeed.type);
       const gradeStreamData = <number[]>activity.getStreamData(DataGrade.type);
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))

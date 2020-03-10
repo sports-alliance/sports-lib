@@ -1,8 +1,8 @@
 import fs from 'fs';
 import { SportsLib } from '../src';
 import { EventInterface } from '../src/events/event.interface';
-import * as strava_3156040843 from './fixtures/strava_compliance/suunto_export/strava_3156040843.json';
-import * as strava_343080886 from './fixtures/strava_compliance/garmin_export/strava_343080886.json';
+import * as strava_3156040843 from './fixtures/strava-streams-compliance/suunto_export/strava_3156040843.json';
+import * as strava_343080886 from './fixtures/strava-streams-compliance/garmin_export/strava_343080886.json';
 import { DataAltitude } from '../src/data/data.altitude';
 import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataCadence } from '../src/data/data.cadence';
@@ -28,7 +28,7 @@ describe('Strava data compliance', () => {
 
   describe('Compliance with suunto export (flat activity)', () => {
 
-    const path = __dirname + '/fixtures/strava_compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
+    const path = __dirname + '/fixtures/strava-streams-compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
     const buffer = fs.readFileSync(path);
 
     it('should match time', done => {
@@ -176,7 +176,7 @@ describe('Strava data compliance', () => {
   describe('Compliance with garmin export (hilly activity: https://connect.garmin.com/modern/activity/828989227 / https://www.strava.com/activities/343080886)', () => {
 
     describe('Fit file version', () => {
-      const path = __dirname + '/fixtures/strava_compliance/garmin_export/garmin_828989227.fit';
+      const path = __dirname + '/fixtures/strava-streams-compliance/garmin_export/garmin_828989227.fit';
       const buffer = fs.readFileSync(path);
 
       it('should match time', done => {
@@ -286,7 +286,7 @@ describe('Strava data compliance', () => {
 
     describe('Tcx file version', () => {
 
-      const path = __dirname + '/fixtures/strava_compliance/garmin_export/garmin_828989227.tcx';
+      const path = __dirname + '/fixtures/strava-streams-compliance/garmin_export/garmin_828989227.tcx';
       const doc = new DOMParser().parseFromString(fs.readFileSync(path).toString(), 'application/xml');
 
       it('should match time', done => {
@@ -366,7 +366,7 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const garminDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const garminDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : value);
           expect(stravaDistanceStream).toEqual(garminDistanceStreamData)
           done();
         });

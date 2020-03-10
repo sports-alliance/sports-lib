@@ -61,7 +61,6 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getStreamData(DataAltitude.type).length);
-        // @todo Thomas do you think that this precision change should happen library wise?
         expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
         done();
       });
@@ -142,13 +141,12 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
-        const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        const streamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        expect(stravaDistanceStream.length).toEqual(streamData.length);
         const commonCount = stravaDistanceStream
-          .filter((value: (number | null)) => distanceStreamData.indexOf(value) !== -1).length;
-        // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
+          .filter((value: (number | null)) => streamData.indexOf(value) !== -1).length;
         expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
-        // expect(stravaDistanceStream).toEqual(distanceStreamData);
+        // expect(stravaDistanceStream).toEqual(streamData);
         done();
       });
     });
@@ -165,8 +163,8 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
         const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
@@ -259,8 +257,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const distanceStreamData = event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          expect(stravaDistanceStream).toEqual(distanceStreamData)
+          const streamData = event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaDistanceStream).toEqual(streamData)
           done();
         });
       });
@@ -276,9 +274,9 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-          const gradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStreamData, stravaGradeStream);
+          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaGradeStream.length).toEqual(streamData.length);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });
@@ -369,14 +367,14 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
-          const distanceStreamData = <number[]>event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaDistanceStream.length).toEqual(streamData.length);
           // const commonCount = stravaDistanceStream
-          //   .filter((value: number) => distanceStreamData.indexOf(value) !== -1).length;
+          //   .filter((value: number) => streamData.indexOf(value) !== -1).length;
           // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
           // expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
-          expect(stravaDistanceStream).toMatchObject(distanceStreamData);
-          // const deltaBetweenStreams = averageDeltaBetweenStreams(distanceStreamData, stravaDistanceStream);
+          expect(stravaDistanceStream).toMatchObject(streamData);
+          // const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaDistanceStream);
           // expect(deltaBetweenStreams).toBeLessThan(toleranceDelta);
           done();
         });
@@ -393,8 +391,8 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
           const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
@@ -476,6 +474,8 @@ describe('Strava data compliance', () => {
       // });
 
 
+      // @todo try different geolib adapters etc to make this diff smaller or investigate more on how strava
+      // Bumps the distance
       it('should match distance with x% error max', done => {
 
         // Given
@@ -488,15 +488,15 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const distanceStreamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(distanceStreamData, stravaDistanceStream);
+          const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaDistanceStream.length).toEqual(streamData.length);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaDistanceStream);
           expect(deltaBetweenStreams).toBeLessThan(deltaTolerance);
           done();
         });
       });
 
-      // Tolerance is higher since distance is different unfortunately
+      // Tolerance is higher since distance is different unfortunately (see above test)
       it('should have an average grade diff lower than 3.2%', done => {
 
         // Given
@@ -508,9 +508,9 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-          const gradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStreamData, stravaGradeStream);
+          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaGradeStream.length).toEqual(streamData.length);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });

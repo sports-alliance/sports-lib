@@ -56,13 +56,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
-  /**
-   * Adds a value to the streams data
-   * Floor is used so a date with > end date does not create and extra slug in the array
-   * @param type
-   * @param date
-   * @param value
-   */
   addDataToStream(type: string, date: Date, value: number): this {
     this.getStreamData(type)[this.getDateIndex(date)] = value;
     return this;
@@ -168,13 +161,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
   }
 
-  /**
-   * Combines the lat - long streams to a DataPositionInterface
-   * @param startDate
-   * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
-   */
   getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[] {
     const latitudeStreamData = latitudeStream ? this.getStreamData(latitudeStream, startDate, endDate) : this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
     const longitudeStreamData = longitudeStream ? this.getStreamData(longitudeStream, startDate, endDate) : this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
@@ -192,14 +178,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       return positionArray;
     }, []);
   }
-
-  /**
-   * Combines the lat - long streams to a DataPositionInterface and excludes nulls
-   * @param startDate
-   * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
-   */
+  
   getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[] {
     return <DataPositionInterface[]>this.getPositionData(startDate, endDate, latitudeStream, longitudeStream).filter(data => data !== null);
   }

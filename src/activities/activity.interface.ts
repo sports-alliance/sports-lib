@@ -19,64 +19,194 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   creator: CreatorInterface;
   intensityZones: IntensityZonesInterface[];
 
+  /**
+   * Checks if there are data for that stream type
+   * @param streamType
+   * @param startDate
+   * @param endDate
+   */
   hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean;
 
+  /**
+   * Checks if there are lat,long data pairs
+   * @param startDate
+   * @param endDate
+   */
   hasPositionData(startDate?: Date, endDate?: Date): boolean;
 
+  /**
+   * Checks if the equipment is a trainer
+   */
   isTrainer(): boolean;
 
+  /**
+   * Checks if the activity has a power meter
+   */
   hasPowerMeter(): boolean;
 
+  /**
+   * Gets the data of a stream with optional params of start and end
+   * @param streamType
+   * @param startDate
+   * @param endDate
+   */
   getStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): (number | null)[];
 
+  /**
+   * Gets the data of a stream with optional params of start and end but removes nulls
+   * @param streamType
+   * @param startDate
+   * @param endDate
+   */
   getSquashedStreamData(streamType: string, startDate?: Date, endDate?: Date): number[];
 
+  /**
+   * Gets the data of the stream based on timestamps
+   * @param streamType
+   * @param filterNull
+   */
   getStreamDataByTime(streamType: string, filterNull?: boolean): StreamDataItem[]
 
+  /**
+   * Gets the data of the stream based on duration
+   * @param streamType
+   * @param filterNull
+   * @param filterInfinity
+   */
   getStreamDataByDuration(streamType: string, filterNull?: boolean, filterInfinity?: boolean): StreamDataItem[]
 
+  /**
+   * Gets more than one stream data based on time
+   * @param streamTypes
+   */
   getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } };
 
+  /**
+   * Gets more than one stream type based on another stream type
+   * @param streamTypeToBaseOn
+   * @param streamTypes
+   */
   getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } };
 
+  /**
+   * Creates a stream with null filled data values
+   * @param type
+   */
   createStream(type: string): StreamInterface;
 
+  /**
+   * Gets a stream
+   * @param type
+   */
   getStream(type: string): StreamInterface;
 
+  /**
+   * Adds a stream
+   * @param stream
+   */
   addStream(stream: StreamInterface): this;
 
+  /**
+   * Adds multiple streams
+   * @param streams
+   */
   addStreams(streams: StreamInterface[]): this;
 
+  /**
+   * Removes a stream
+   * @param stream
+   */
   removeStream(stream: StreamInterface): this;
 
+  /**
+   * Gets all available streams
+   */
   getAllStreams(): StreamInterface[];
 
+  /**
+   * Gets all non-unitbased streams (essential streams)
+   */
   getAllExportableStreams(): StreamInterface[];
 
+  /**
+   * Removes all streams
+   */
   clearStreams(): this;
 
-  addDataToStream(type: string, date: Date, data: number): this;
+  /**
+   * Adds a value to the streams data
+   * Floor is used so a date with > end date does not create and extra slug in the array
+   * @param type
+   * @param date
+   * @param value
+   */
+  addDataToStream(type: string, date: Date, value: number): this;
 
+  /**
+   * Gets the data of 2 streams (lat,long) formated as positional data
+   * @param startDate
+   * @param endDate
+   * @param latitudeStream
+   * @param longitudeStream
+   */
   getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
 
+  /**
+   * Gets the data of 2 streams (lat,long) formated as positional data but ommits nulls
+   * @param startDate
+   * @param endDate
+   * @param latitudeStream
+   * @param longitudeStream
+   */
   getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
 
+  /**
+   * Gets the laps of the activity
+   */
   getLaps(): LapInterface[];
 
+  /**
+   * Adds a lap to the activity
+   * @param lap
+   */
   addLap(lap: LapInterface): this;
 
+  /**
+   * Gets all the timebased events of the activity
+   */
   getAllEvents(): DataEvent[];
 
+  /**
+   * Adds an event to the activity
+   * @param event
+   */
   addEvent(event: DataEvent): this;
 
+  /**
+   * Sets all the events to the activity
+   * @param events
+   */
   setAllEvents(events: DataEvent[]): this;
 
+  /**
+   * Gets only the start type of events
+   */
   getStartEvents(): DataStartEvent[];
 
+  /**
+   * Gets only the stop type of events
+   */
   getStopEvents(): DataStopEvent[];
 
+  /**
+   * Gets the stop all type of events
+   */
   getStopAllEvents(): DataStopAllEvent[];
 
+  /**
+   * Gets the date index/duration from a date relative to the activity
+   * @param date
+   */
   getDateIndex(date: Date): number;
 
   toJSON(): ActivityJSONInterface

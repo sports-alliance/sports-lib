@@ -782,7 +782,7 @@ export class EventUtilities {
           return prevPosition;
         }
         if (prevPosition && position) {
-          distance += this.geoLibAdapter.getDistance([prevPosition, position]);
+          distance += this.geoLibAdapter.getDistance([prevPosition, position], false);
         }
         streamData[index] = distance;
         return position;

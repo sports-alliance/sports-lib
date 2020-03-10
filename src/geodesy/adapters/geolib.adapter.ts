@@ -1,5 +1,6 @@
 import { GeoLibAdapterInterface } from './adapter.interface';
 import getPreciseDistance from 'geolib/es/getPreciseDistance';
+import getDistance from 'geolib/es/getDistance';
 import findNearest from 'geolib/es/findNearest';
 import { DataPositionInterface } from '../../data/data.position.interface';
 
@@ -9,7 +10,7 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
   constructor() {
   }
 
-  getDistance(positionArray: DataPositionInterface[]): number {
+  getDistance(positionArray: DataPositionInterface[], precise= false): number {
     let distance = 0;
     const excludeFirstPointsArray = positionArray.slice(1);
     let firstPosition = positionArray[0];
@@ -22,7 +23,9 @@ export class GeoLibAdapter implements GeoLibAdapterInterface {
         longitude: nextPosition.longitudeDegrees,
         latitude: nextPosition.latitudeDegrees,
       };
-      distance += getPreciseDistance(firstPositionAsDecimal, nextPositionAsDecimal);
+      distance += precise ?
+        getPreciseDistance(firstPositionAsDecimal, nextPositionAsDecimal)
+        : getDistance(firstPositionAsDecimal, nextPositionAsDecimal);
       firstPosition = nextPosition;
     }
     return distance;

@@ -3,6 +3,8 @@ import { SportsLib } from '../src';
 import { EventInterface } from '../src/events/event.interface';
 import * as strava_3156040843 from './fixtures/strava-streams-compliance/suunto_export/strava_3156040843.json';
 import * as strava_343080886 from './fixtures/strava-streams-compliance/garmin_export/strava_343080886.json';
+import * as strava_3171438371_gpx from './fixtures/strava-streams-compliance/garmin_export/strava_3171472783_gpx.json';
+import * as strava_3171487458_tcx from './fixtures/strava-streams-compliance/garmin_export/strava_3171487458_tcx.json';
 import { DataAltitude } from '../src/data/data.altitude';
 import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataCadence } from '../src/data/data.cadence';
@@ -141,12 +143,12 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
-        const suuntoDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
         const commonCount = stravaDistanceStream
-          .filter((value: (number | null)) => suuntoDistanceStreamData.indexOf(value) !== -1).length;
+          .filter((value: (number | null)) => distanceStreamData.indexOf(value) !== -1).length;
         // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
         expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
-        // expect(stravaDistanceStream).toEqual(suuntoDistanceStreamData);
+        // expect(stravaDistanceStream).toEqual(distanceStreamData);
         done();
       });
     });
@@ -164,8 +166,8 @@ describe('Strava data compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-        const suuntoGradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(suuntoGradeStreamData, stravaGradeStream);
+        const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
       });
@@ -257,8 +259,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const garminDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          expect(stravaDistanceStream).toEqual(garminDistanceStreamData)
+          const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaDistanceStream).toEqual(distanceStreamData)
           done();
         });
       });
@@ -275,8 +277,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-          const suuntoGradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(suuntoGradeStreamData, stravaGradeStream);
+          const gradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStreamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });
@@ -292,7 +294,7 @@ describe('Strava data compliance', () => {
       it('should match time', done => {
 
         // Given
-        const stravaCadenceStream = clone(strava_343080886.time);
+        const stravaCadenceStream = clone(strava_3171487458_tcx.time);
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -308,7 +310,7 @@ describe('Strava data compliance', () => {
       it('should match altitude', done => {
 
         // Given
-        const stravaAltitudeStream = clone(strava_343080886.altitude);
+        const stravaAltitudeStream = clone(strava_3171487458_tcx.altitude);
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -324,7 +326,7 @@ describe('Strava data compliance', () => {
       it('should match heart rate', done => {
 
         // Given
-        const stravaHeartRateStream = clone(strava_343080886.heartrate);
+        const stravaHeartRateStream = clone(strava_3171487458_tcx.heartrate);
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -340,7 +342,7 @@ describe('Strava data compliance', () => {
       it('should match cadence', done => {
 
         // Given
-        const stravaCadenceStream = clone(strava_343080886.cadence);
+        const stravaCadenceStream = clone(strava_3171487458_tcx.cadence);
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -356,21 +358,11 @@ describe('Strava data compliance', () => {
       it('should match distance with x% error max', done => {
 
         // Given
-        /**
-         * The tolerance here for this specific test is percent.
-         * There is actually less difference here are some examples of diff
-         * Example of small rounding errors coming from either Strava or the file
-         *
-         * -   83705.6,
-         * +   83705.7,
-         * @todo Thomas should we do the delta here as well?
-         *
-         */
         const tolerance = 2.6; // percent
         const toleranceDelta = 0.1;
 
 
-        const stravaDistanceStream = clone(strava_343080886.distance);
+        const stravaDistanceStream = clone(strava_3171487458_tcx.distance);
 
         // When
         const eventInterfacePromise = SportsLib.importFromTCX(doc);
@@ -378,15 +370,14 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getStreamData(DataDistance.type).length);
-          const garminDistanceStreamData = <number[]>event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const commonCount = stravaDistanceStream
-            .filter((value: number) => garminDistanceStreamData.indexOf(value) !== -1).length;
+          const distanceStreamData = <number[]>event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          // const commonCount = stravaDistanceStream
+          //   .filter((value: number) => distanceStreamData.indexOf(value) !== -1).length;
           // We find the common then add the % tolerance and we check if its more than equal to the "strava" stream
-          expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
-          // expect(stravaDistanceStream).toMatchObject(garminDistanceStreamData);
-
-          const deltaBetweenStreams = averageDeltaBetweenStreams(garminDistanceStreamData, stravaDistanceStream);
-          expect(deltaBetweenStreams).toBeLessThan(toleranceDelta);
+          // expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
+          expect(stravaDistanceStream).toMatchObject(distanceStreamData);
+          // const deltaBetweenStreams = averageDeltaBetweenStreams(distanceStreamData, stravaDistanceStream);
+          // expect(deltaBetweenStreams).toBeLessThan(toleranceDelta);
           done();
         });
       });
@@ -403,8 +394,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-          const suuntoGradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(suuntoGradeStreamData, stravaGradeStream);
+          const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });
@@ -420,73 +411,76 @@ describe('Strava data compliance', () => {
       it('should match time', done => {
 
         // Given
-        const stravaCadenceStream = clone(strava_343080886.time);
+        const stravaTimeStream = clone(strava_3171438371_gpx.time);
 
         // When
         const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
-          expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+          expect(stravaTimeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
+          expect(stravaTimeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
           done();
         });
       });
 
-      it('should match altitude', done => {
+      // Strava adds their own altitude so no go from here
+      // it('should match altitude', done => {
+      //
+      //   // Given
+      //   const stravaAltitudeStream = clone(strava_3171438371_gpx.altitude);
+      //
+      //   // When
+      //   const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
+      //
+      //   // Then
+      //   eventInterfacePromise.then((event: EventInterface) => {
+      //     expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length);
+      //     expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+      //     done();
+      //   });
+      // });
 
-        // Given
-        const stravaAltitudeStream = clone(strava_343080886.altitude);
+      // we skip this because https://support.strava.com/hc/en-us/community/posts/360054808092-Not-getting-Garmin-heart-rate-data-into-Strava
+      // it('should match heart rate', done => {
+      //
+      //   // Given
+      //   const stravaHeartRateStream = clone(strava_3171438371.heartrate);
+      //
+      //   // When
+      //   const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
+      //
+      //   // Then
+      //   eventInterfacePromise.then((event: EventInterface) => {
+      //     expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length);
+      //     expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+      //     done();
+      //   });
+      // });
 
-        // When
-        const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
-
-        // Then
-        eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length);
-          expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
-          done();
-        });
-      });
-
-      it('should match heart rate', done => {
-
-        // Given
-        const stravaHeartRateStream = clone(strava_343080886.heartrate);
-
-        // When
-        const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
-
-        // Then
-        eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length);
-          expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
-          done();
-        });
-      });
-
-      it('should match cadence', done => {
-
-        // Given
-        const stravaCadenceStream = clone(strava_343080886.cadence);
-
-        // When
-        const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
-
-        // Then
-        eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length);
-          expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
-          done();
-        });
-      });
+      // we skip this because https://support.strava.com/hc/en-us/community/posts/360054808092-Not-getting-Garmin-heart-rate-data-into-Strava
+      // it('should match cadence', done => {
+      //
+      //   // Given
+      //   const stravaCadenceStream = clone(strava_3171438371.cadence);
+      //
+      //   // When
+      //   const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
+      //
+      //   // Then
+      //   eventInterfacePromise.then((event: EventInterface) => {
+      //     expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length);
+      //     expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+      //     done();
+      //   });
+      // });
 
       it('should match distance with x% error max', done => {
 
         // Given
         const tolerance = 0.00; // percent
 
-        const stravaDistanceStream = clone(strava_343080886.distance);
+        const stravaDistanceStream = clone(strava_3171438371_gpx.distance);
 
         // When
         const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -494,8 +488,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaDistanceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataDistance.type).length);
-          const garminDistanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          expect(stravaDistanceStream).toEqual(garminDistanceStreamData)
+          const distanceStreamData = event.getFirstActivity().getStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          expect(stravaDistanceStream).toEqual(distanceStreamData)
           done();
         });
       });
@@ -504,7 +498,7 @@ describe('Strava data compliance', () => {
 
         // Given
         const toleranceAvgGradeDelta = 1.5;
-        const stravaGradeStream = clone(strava_343080886.grade_smooth);
+        const stravaGradeStream = clone(strava_3171438371_gpx.grade_smooth);
 
         // When
         const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
@@ -512,8 +506,8 @@ describe('Strava data compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           expect(stravaGradeStream.length).toEqual(event.getFirstActivity().getStreamData(DataGrade.type).length);
-          const suuntoGradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(suuntoGradeStreamData, stravaGradeStream);
+          const gradeStreamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+          const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStreamData, stravaGradeStream);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });

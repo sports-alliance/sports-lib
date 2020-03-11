@@ -291,7 +291,7 @@ describe('GradeCalculator', () => {
       done();
 
     });
-    
+
     it('should compute a grade stream with static distance and static altitude', (done: Function) => {
 
       // Given

@@ -48,14 +48,7 @@ export class GradeCalculator {
   }
 
   private static computeGradeStreamBasedOnDistance(distanceStream: (number | null)[], altitudeStream: (number | null)[]): (number|null)[] {
-    // Back and forth fill a new altitude stream.
-    let altitudeSearch = <number>altitudeStream.find(v => v !== null);
-    // @todo If there is no altitude in the altitude array we just should return an grade stream of 0's
-    const numericAltitudeStream: number[] = altitudeStream.reduce((accu: number[], value) => {
-      altitudeSearch = value !== null ? value : altitudeSearch
-      accu.push(altitudeSearch)
-      return accu
-    }, []);
+    const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
 
     // Reset previous altitude to first element of the numeric array
     let previousAltitude = numericAltitudeStream[0];
@@ -95,27 +88,12 @@ export class GradeCalculator {
   }
 
   private static computeGradeStreamBasedOnAltitude(distanceStream: (number | null)[], altitudeStream: (number | null)[]): (number|null)[] {
-
-    // Back and forth fill a new altitude stream.
-    let altitudeSearch = <number>altitudeStream.find(v => v !== null);
-    // @todo If there is no altitude in the altitude array we just should return an grade stream of 0's
-    const numericAltitudeStream: number[] = altitudeStream.reduce((accu: number[], value) => {
-      altitudeSearch = value !== null ? value : altitudeSearch
-      accu.push(altitudeSearch)
-      return accu
-    }, []);
-
-    // Back and forth fill a new Distance stream.
-    let previousDistance = 0;
-    const numericDistanceStream: number[] = distanceStream.reduce((accu: number[], value) => {
-      previousDistance = value !== null ? value : previousDistance
-      accu.push(previousDistance)
-      return accu
-    }, []);
+    const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
+    const numericDistanceStream = this.getDistanceStreamRepaired(distanceStream);
 
     // Reset previous altitude to first element of the numeric array
     let previousAltitude = numericAltitudeStream[0];
-    previousDistance = 0;
+    let previousDistance = 0;
 
     // Start
     const gradeStream = [];
@@ -140,7 +118,28 @@ export class GradeCalculator {
     return gradeStream;
   }
 
-  /**
+  private static getAltitudeStreamRepaired(altitudeStream: (number | null)[]): number[]{
+    // Back and forth fill a new altitude stream.
+    let altitudeSearch = <number>altitudeStream.find(v => v !== null);
+    // @todo If there is no altitude in the altitude array we just should return an grade stream of 0's
+    return  altitudeStream.reduce((accu: number[], value) => {
+      altitudeSearch = value !== null ? value : altitudeSearch
+      accu.push(altitudeSearch)
+      return accu
+    }, []);
+  }
+
+  private static getDistanceStreamRepaired(distanceStream: (number | null)[]): number[] {
+    // Back and forth fill a new Distance stream.
+    let previousDistance = 0;
+    return distanceStream.reduce((accu: number[], value) => {
+      previousDistance = value !== null ? value : previousDistance
+      accu.push(previousDistance)
+      return accu
+    }, []);
+  }
+
+    /**
    * Contains a 5th order equation which models the Strava GAP behavior described on picture "./fixture/strava_gap_modelization.png"
    *
    * This Strava GAP behavior is described by the below data

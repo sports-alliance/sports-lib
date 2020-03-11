@@ -39,6 +39,38 @@ describe('GradeCalculator', () => {
       done();
     });
 
+    it('should compute a grade stream', (done: Function) => {
+
+      // Given
+      const distanceStream = [0, 10, 20, 30, 40];
+      const altitudeStream = [10, 10, 10, 10, 10];
+
+      // When
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, 0, 0, 0, 0
+      ]);
+      done();
+    });
+
+    it('should compute a grade stream with nulls', (done: Function) => {
+
+      // Given
+      const distanceStream = [0, null, 20, 30, 40];
+      const altitudeStream = [10, null, 10, 10, 10];
+
+      // When
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, null, 0, 0, 0
+      ]);
+      done();
+    });
+
     it('should calculate grade stream from activity strava_3025376963', (done: Function) => {
 
       // Given

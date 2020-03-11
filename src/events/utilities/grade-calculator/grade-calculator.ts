@@ -89,6 +89,7 @@ export class GradeCalculator {
     altitudeStream: (number | null)[],
     lookAhead: boolean
   ): (number | null)[] {
+    const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
 
     // Reset previous altitude to first element of the numeric array
@@ -98,7 +99,7 @@ export class GradeCalculator {
     // Start
     const gradeStream = [];
     for (let i = 0; i < distanceStream.length; i++) {
-      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + 5));
+      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
       nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
 
       // Set the distance
@@ -137,6 +138,7 @@ export class GradeCalculator {
     altitudeStream: (number | null)[],
     lookAhead: boolean
   ): (number | null)[] {
+    const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
     const numericDistanceStream = this.getDistanceStreamRepaired(distanceStream);
 
@@ -147,7 +149,7 @@ export class GradeCalculator {
     // Start
     const gradeStream = [];
     for (let i = 0; i < altitudeStream.length; i++) {
-      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + 15));
+      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
       nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
 
       // We need to check against 0's with is number

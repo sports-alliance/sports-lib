@@ -4,7 +4,12 @@ const KalmanFilter = require('kalmanjs');
 
 export class GradeCalculator {
 
-  public static computeGrade(previousDistance: number, currentDistance: number, previousAltitude: number, currentAltitude: number): number {
+  public static computeGrade(previousDistance: number|null, currentDistance: number|null, previousAltitude: number|null, currentAltitude: number|null): number {
+    previousDistance = previousDistance !== null ? previousDistance : 0;
+    currentDistance = currentDistance !== null ? currentDistance : 0;
+    previousAltitude = previousAltitude !== null ? previousAltitude : 0;
+    currentAltitude = currentAltitude !== null ? currentAltitude : 0;
+
     const distanceDelta = currentDistance - previousDistance;
     const altitudeDelta = currentAltitude - previousAltitude;
     if (distanceDelta === 0) {
@@ -15,10 +20,10 @@ export class GradeCalculator {
     return Math.round(percentage * 10) / 10;
   }
 
-  public static computeGradeStream(distanceStream: number[], altitudeStream: number[]): number[] {
+  public static computeGradeStream(distanceStream: (number|null)[], altitudeStream: (number|null)[]): (number|null)[] {
     // First filter the altitude to remove any noise
     let kf = new KalmanFilter();
-    altitudeStream = altitudeStream.map(v => kf.filter(v));
+    altitudeStream = altitudeStream.map(v => v === null ? null : kf.filter(v));
 
     const gradeStream = [];
 
@@ -29,11 +34,16 @@ export class GradeCalculator {
       // @todo perhaps this threshold should be per avg speed / activity type
       // Or just perhaps the speed?
       // Perhaps round
-      const nextIndex = distanceStream.slice(i).findIndex(d => d >= (previousDistance + 5));
+      const nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + 5));
+
       const currentDistance = distanceStream[nextIndex + i];
       const previousAltitude = isNumber(altitudeStream[i - 1]) ? altitudeStream[i - 1] : altitudeStream[i];
       const currentAltitude = altitudeStream[nextIndex + i];
 
+      // if (distanceStream[i] === null){
+      //   gradeStream.push(null)
+      //   continue;
+      // }
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
       gradeStream.push(currentGrade);
     }
@@ -41,8 +51,8 @@ export class GradeCalculator {
     kf = new KalmanFilter();
     return gradeStream
       // .map(v => Math.round(v * 10) / 10)
-      .map(v => kf.filter(v))
-      .map(v => Math.round(v * 10) / 10)
+      .map(v => v === null ? null : kf.filter(v))
+      .map(v => v === null ? null : Math.round(v * 10) / 10)
   }
 
   /**

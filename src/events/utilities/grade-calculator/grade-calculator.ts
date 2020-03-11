@@ -12,15 +12,12 @@ export class GradeCalculator {
 
     const distanceDelta = currentDistance - previousDistance;
     const altitudeDelta = currentAltitude - previousAltitude;
-    if (distanceDelta === 0 || altitudeDelta === 0) {
+    if (distanceDelta === 0 && altitudeDelta !== 0) {
+      return 45; // @todo improve
+    }
+    if (distanceDelta === 0) {
       return 0;
     }
-    // if (distanceDelta === 0 && altitudeDelta !== 0) {
-    //   return 45;
-    // }
-    // if (distanceDelta === 0){
-    //   return 0;
-    // }
     let percentage: number = altitudeDelta / distanceDelta * 100;
     percentage = Math.min(Math.max(percentage, -45), 45); // Clamp between -45% & 45%
     return Math.round(percentage * 10) / 10;
@@ -31,14 +28,31 @@ export class GradeCalculator {
   // @todo perhaps this threshold should be per avg speed / activity type
   // Or just perhaps the speed?
   // Perhaps round
-  public static computeGradeStream(distanceStream: (number | null)[], altitudeStream: (number | null)[], filterAltitude = true, filterGrade = true): (number | null)[] {
+  public static computeGradeStream(distanceStream: (number | null)[], altitudeStream: (number | null)[], filterAltitude = true, filterGrade = true, basedOnAltitude = true): (number | null)[] {
     // First filter the altitude to remove any noise and predict
     let kf = new KalmanFilter();
     if (filterAltitude) {
       altitudeStream = altitudeStream.map(v => v === null ? null : kf.filter(v));
     }
 
-    let gradeStream = [];
+    let gradeStream = basedOnAltitude ?
+      this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream)
+      : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream)
+
+    kf = new KalmanFilter();
+    if (filterGrade) {
+      gradeStream = gradeStream.map(v => v === null ? null : kf.filter(v))
+    }
+    return gradeStream
+      .map(v => v === null ? null : Math.round(v * 10) / 10)
+  }
+
+  private static computeGradeStreamBasedOnDistance(distanceStream: (number | null)[], altitudeStream: (number | null)[]): (number|null)[] {
+    let gradeStream = [1];
+    return gradeStream;
+  }
+
+  private static computeGradeStreamBasedOnAltitude(distanceStream: (number | null)[], altitudeStream: (number | null)[]): (number|null)[] {
 
     // Back and forth fill a new altitude stream.
     let altitudeSearch = <number>altitudeStream.find(v => v !== null);
@@ -49,44 +63,39 @@ export class GradeCalculator {
       return accu
     }, []);
 
+    // Back and forth fill a new Distance stream.
+    let previousDistance = 0;
+    const numericDistanceStream: number[] = distanceStream.reduce((accu: number[], value) => {
+      previousDistance = value !== null ? value : previousDistance
+      accu.push(previousDistance)
+      return accu
+    }, []);
+
     // Reset previous altitude to first element of the numeric array
     let previousAltitude = numericAltitudeStream[0];
-    let previousDistance = 0;
-    for (let i = 0; i < distanceStream.length; i++) {
-      // Set the distance
-      previousDistance = distanceStream[i - 1] || previousDistance;
-      const currentDistance = distanceStream[i] || previousDistance; // If no distance current distance will be prev
+    previousDistance = 0;
 
-      // Find the previous altitude if possible or use an older value
-      previousAltitude = isNumber(numericAltitudeStream[i - 1]) ? numericAltitudeStream[i - 1] : previousAltitude;
+    // Start
+    const gradeStream = [];
+    for (let i = 0; i < altitudeStream.length; i++) {
+      // We need to check against 0's with is number
+      previousAltitude = isNumber(numericAltitudeStream[i - 1]) ? <number>numericAltitudeStream[i - 1] : previousAltitude;
+      const currentAltitude = numericAltitudeStream[i] || previousAltitude;
 
-      // If the current (real) distance is null return null and buffer the previous altitude till distance is not null
-      if (distanceStream[i] === null) {
-        numericAltitudeStream[i] = previousAltitude
-        gradeStream.push(null)
+      // If based on altitude return null where altitude is null
+      if (altitudeStream[i] === null ){
+        gradeStream.push(null);
         continue;
       }
 
-      if (currentDistance - previousDistance === 0) {
-        numericAltitudeStream[i] = previousAltitude
-        gradeStream.push(0)
-        continue;
-      }
-
-      // Set the current altitude
-      const currentAltitude = numericAltitudeStream[i];
+      previousDistance = numericDistanceStream[i - 1] || previousDistance;
+      const currentDistance = numericDistanceStream[i] || previousDistance;
 
       // Calc
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
       gradeStream.push(currentGrade);
     }
-
-    kf = new KalmanFilter();
-    if (filterGrade) {
-      gradeStream = gradeStream.map(v => v === null ? null : kf.filter(v))
-    }
-    return gradeStream
-      .map(v => v === null ? null : Math.round(v * 10) / 10)
+    return gradeStream;
   }
 
   /**

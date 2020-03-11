@@ -1,6 +1,6 @@
 import * as strava_3025376963 from './fixtures/strava_3025376963.json';
 import * as strava_3025855594 from './fixtures/strava_3025855594.json';
-import { GradeCalculator } from './grade-calculator';
+import { CLAMP, GradeCalculator } from './grade-calculator';
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -98,7 +98,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, null, 45, 0, 0
+        0, null, CLAMP, 0, 0
       ]);
       done();
 
@@ -115,7 +115,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, null, 45, 0, 0
+        0, null, CLAMP, 0, 0
       ]);
       done();
 
@@ -355,7 +355,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 0, 0, 0, 45
+        0, 0, 0, 0, CLAMP
       ]);
 
       distanceStream = [0,  20, 20, 20, 20];
@@ -395,7 +395,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 45, 25, 0, -45
+        0, CLAMP, 25, 0, -CLAMP
       ]);
 
       done();

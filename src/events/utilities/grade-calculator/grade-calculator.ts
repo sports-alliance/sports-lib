@@ -2,6 +2,8 @@ import { isNumber } from '../helpers';
 
 const KalmanFilter = require('kalmanjs');
 
+export const CLAMP = 40
+
 export class GradeCalculator {
 
   public static computeGrade(previousDistance: number | null, currentDistance: number | null, previousAltitude: number | null, currentAltitude: number | null): number {
@@ -16,7 +18,7 @@ export class GradeCalculator {
       return 0;
     }
     let percentage: number = altitudeDelta / distanceDelta * 100;
-    percentage = Math.min(Math.max(percentage, -45), 45); // Clamp between -45% & 45%
+    percentage = Math.min(Math.max(percentage, -CLAMP), CLAMP); // Clamp between -CLAMP% & CLAMP%
     return Math.round(percentage * 10) / 10;
   }
 

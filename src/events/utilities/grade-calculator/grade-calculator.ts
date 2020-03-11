@@ -97,7 +97,7 @@ export class GradeCalculator {
     let previousDistance = 0;
 
     // Start
-    const gradeStream = [];
+    const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < distanceStream.length; i++) {
       let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
       nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
@@ -112,14 +112,14 @@ export class GradeCalculator {
       // If the current (real) distance is null return null and buffer the previous altitude till distance is not null
       if (distanceStream[i] === null) {
         numericAltitudeStream[i] = previousAltitude
-        gradeStream.push(null)
+        gradeStream[i] = null;
         continue;
       }
 
       // perhaps the altitude based can benefit
       if (currentDistance - previousDistance === 0) {
         numericAltitudeStream[i] = previousAltitude
-        gradeStream.push(0)
+        gradeStream[i] = 0;
         continue;
       }
 
@@ -128,7 +128,7 @@ export class GradeCalculator {
 
       // Calc
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
-      gradeStream.push(currentGrade);
+      gradeStream[i] = currentGrade;
     }
     return gradeStream;
   }
@@ -147,7 +147,7 @@ export class GradeCalculator {
     let previousDistance = 0;
 
     // Start
-    const gradeStream = [];
+    const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < altitudeStream.length; i++) {
       let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
       nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
@@ -161,7 +161,7 @@ export class GradeCalculator {
       // If based on altitude return null where altitude is null
       if (altitudeStream[i] === null) {
         numericDistanceStream[i] = previousDistance
-        gradeStream.push(null);
+        gradeStream[i] = null;
         continue;
       }
 
@@ -170,7 +170,7 @@ export class GradeCalculator {
 
       // Calc
       const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
-      gradeStream.push(currentGrade);
+      gradeStream[i] = currentGrade;
     }
     return gradeStream;
   }

@@ -132,7 +132,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, null, 45, 0, 0
+        0, null, 0, 0, 0
       ]);
       done();
 
@@ -166,7 +166,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 45, 45, 0, 0
+        0, 0, 0, 0, 0
       ]);
       done();
 
@@ -183,7 +183,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 45, 45, 0, 0, null, null
+        0, 0, 0, 0, 0, null, null
       ]);
       done();
 
@@ -201,7 +201,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, null, 45, 33.3, -45, null, 33.3
+        0, null, 0, 33.3, 0, null, 33.3
       ]);
       done();
 
@@ -219,7 +219,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 45, 45, 33.3, -45, null, 40
+        0, 0, 0, 33.3, 0, null, 40
       ]);
       done();
 
@@ -237,7 +237,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 45, null, 16.7, -45, null, 40
+        0, 0, null, 16.7, 0, null, 40
       ]);
       done();
 
@@ -384,7 +384,7 @@ describe('GradeCalculator', () => {
 
       // Then
       expect(gradeStream).toEqual([
-        0, 0, 45, 0, 0
+        0, 0, 0, 0, 0
       ]);
 
       distanceStream = [0,  20, 60, 70, 80];

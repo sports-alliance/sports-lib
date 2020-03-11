@@ -166,6 +166,8 @@ describe('Strava data compliance', () => {
         const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        // expect(stravaGradeStream).toEqual(streamData);
+
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
       });

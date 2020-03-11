@@ -48,7 +48,49 @@ export class GradeCalculator {
   }
 
   private static computeGradeStreamBasedOnDistance(distanceStream: (number | null)[], altitudeStream: (number | null)[]): (number|null)[] {
-    let gradeStream = [1];
+    // Back and forth fill a new altitude stream.
+    let altitudeSearch = <number>altitudeStream.find(v => v !== null);
+    // @todo If there is no altitude in the altitude array we just should return an grade stream of 0's
+    const numericAltitudeStream: number[] = altitudeStream.reduce((accu: number[], value) => {
+      altitudeSearch = value !== null ? value : altitudeSearch
+      accu.push(altitudeSearch)
+      return accu
+    }, []);
+
+    // Reset previous altitude to first element of the numeric array
+    let previousAltitude = numericAltitudeStream[0];
+    let previousDistance = 0;
+
+    // Start
+    const gradeStream = [];
+    for (let i = 0; i < distanceStream.length; i++) {
+      // Set the distance
+      previousDistance = distanceStream[i - 1] || previousDistance;
+      const currentDistance = distanceStream[i] || previousDistance; // If no distance current distance will be prev
+
+      // Find the previous altitude if possible or use an older value
+      previousAltitude = isNumber(numericAltitudeStream[i - 1]) ? numericAltitudeStream[i - 1] : previousAltitude;
+
+      // If the current (real) distance is null return null and buffer the previous altitude till distance is not null
+      if (distanceStream[i] === null) {
+        numericAltitudeStream[i] = previousAltitude
+        gradeStream.push(null)
+        continue;
+      }
+
+      if (currentDistance - previousDistance === 0) {
+        numericAltitudeStream[i] = previousAltitude
+        gradeStream.push(0)
+        continue;
+      }
+
+      // Set the current altitude
+      const currentAltitude = numericAltitudeStream[i];
+
+      // Calc
+      const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
+      gradeStream.push(currentGrade);
+    }
     return gradeStream;
   }
 

@@ -15,6 +15,12 @@ export class GradeCalculator {
     if (distanceDelta === 0 || altitudeDelta === 0) {
       return 0;
     }
+    // if (distanceDelta === 0 && altitudeDelta !== 0) {
+    //   return 45;
+    // }
+    // if (distanceDelta === 0){
+    //   return 0;
+    // }
     let percentage: number = altitudeDelta / distanceDelta * 100;
     percentage = Math.min(Math.max(percentage, -45), 45); // Clamp between -45% & 45%
     return Math.round(percentage * 10) / 10;
@@ -58,6 +64,12 @@ export class GradeCalculator {
       if (distanceStream[i] === null) {
         numericAltitudeStream[i] = previousAltitude
         gradeStream.push(null)
+        continue;
+      }
+
+      if (currentDistance - previousDistance === 0) {
+        numericAltitudeStream[i] = previousAltitude
+        gradeStream.push(0)
         continue;
       }
 

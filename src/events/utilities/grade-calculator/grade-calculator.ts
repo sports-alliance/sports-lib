@@ -71,6 +71,7 @@ export class GradeCalculator {
         continue;
       }
 
+      // perhaps the altitude based can benefit
       if (currentDistance - previousDistance === 0) {
         numericAltitudeStream[i] = previousAltitude
         gradeStream.push(0)
@@ -102,8 +103,11 @@ export class GradeCalculator {
       previousAltitude = isNumber(numericAltitudeStream[i - 1]) ? <number>numericAltitudeStream[i - 1] : previousAltitude;
       const currentAltitude = numericAltitudeStream[i] || previousAltitude;
 
+      previousDistance = isNumber(numericDistanceStream[i - 1]) ? numericDistanceStream[i - 1] : previousDistance;
+
       // If based on altitude return null where altitude is null
-      if (altitudeStream[i] === null ){
+      if (altitudeStream[i] === null ) {
+        numericDistanceStream[i] = previousDistance
         gradeStream.push(null);
         continue;
       }

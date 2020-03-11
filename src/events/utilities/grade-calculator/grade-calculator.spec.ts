@@ -207,6 +207,42 @@ describe('GradeCalculator', () => {
 
     });
 
+    it('should compute a grade stream with nulls and change in data #7.1', (done: Function) => {
+
+      // @todo important case to understand
+      // Given
+      const distanceStream = [0,  null,    null,  30,   null,  null,    80];
+      const altitudeStream = [10, 20,      30,    40,   30,    null,    50];
+
+      // When
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, 45, 45, 33.3, -45, null, 40
+      ]);
+      done();
+
+    });
+
+    it('should compute a grade stream with nulls and change in data #7.2', (done: Function) => {
+
+      // @todo important case to understand
+      // Given
+      const distanceStream = [0,  null,    null,    30,   null,  null,    80];
+      const altitudeStream = [10,  35,     null,    40,   30,    null,    50];
+
+      // When
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, 45, null, 16.7, -45, null, 40
+      ]);
+      done();
+
+    });
+
     it('should compute a grade stream with nulls and change in data #8', (done: Function) => {
 
       // Given
@@ -308,14 +344,14 @@ describe('GradeCalculator', () => {
       done();
     });
 
-    it('should compute a grade stream with static distance', (done: Function) => {
+    it('should compute a grade stream with static distance based on distance', (done: Function) => {
 
       // Given
       let distanceStream = [0,  20, 20, 20, 30];
       let altitudeStream = [10, 10, 20, 20, 20];
 
       // When
-      let gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      let gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -326,11 +362,40 @@ describe('GradeCalculator', () => {
       altitudeStream = [10, 10, 20, 20, 20];
 
       // When
-      gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
         0, 0, 0, 0, 0
+      ]);
+
+      done();
+    });
+
+
+    it('should compute a grade stream with static distance based on altitude', (done: Function) => {
+
+      // Given
+      let distanceStream = [0,  20, 20, 20, 30];
+      let altitudeStream = [10, 10, 20, 20, 20];
+
+      // When
+      let gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, 0, 45, 0, 0
+      ]);
+
+      distanceStream = [0,  20, 60, 70, 80];
+      altitudeStream = [10, 20, 30, 30, 20];
+
+      // When
+      gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+
+      // Then
+      expect(gradeStream).toEqual([
+        0, 45, 25, 0, -45
       ]);
 
       done();

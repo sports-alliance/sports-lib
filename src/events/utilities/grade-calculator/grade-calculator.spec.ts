@@ -94,7 +94,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, null, 20, 20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -111,7 +111,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, null, 20, 20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -128,7 +128,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, null, 20, 20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -145,7 +145,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, null, null, 20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -162,7 +162,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 15,   20,   20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -179,7 +179,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 20,  30,  30, 30,   null, null];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -197,7 +197,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, null, 30, 40, 30,    null,  40];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -215,7 +215,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 20,      30,    40,   30,    null,    50];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -233,7 +233,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10,  35,     null,    40,   30,    null,    50];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, true, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -250,7 +250,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 12,   20,   20, 20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -267,7 +267,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 12,   20,   20,  20];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -284,7 +284,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 12,  20,  20, 20,   null, null];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -301,7 +301,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 12,   20,  20, 20,   null, null];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -318,7 +318,7 @@ describe('GradeCalculator', () => {
       const altitudeStream = [10, 12,   20,   20, 10,   null, null];
 
       // When
-      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      const gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -351,7 +351,7 @@ describe('GradeCalculator', () => {
       let altitudeStream = [10, 10, 20, 20, 20];
 
       // When
-      let gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false);
+      let gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([
@@ -391,7 +391,7 @@ describe('GradeCalculator', () => {
       altitudeStream = [10, 20, 30, 30, 20];
 
       // When
-      gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false);
+      gradeStream = GradeCalculator.computeGradeStream(distanceStream, altitudeStream, false, false, false, false);
 
       // Then
       expect(gradeStream).toEqual([

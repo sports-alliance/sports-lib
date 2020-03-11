@@ -13,7 +13,7 @@ export class GradeCalculator {
     const distanceDelta = currentDistance - previousDistance;
     const altitudeDelta = currentAltitude - previousAltitude;
     if (distanceDelta === 0 && altitudeDelta !== 0) {
-      return 45; // @todo improve
+      return currentAltitude < previousAltitude ? -45 : 45
     }
     if (distanceDelta === 0) {
       return 0;

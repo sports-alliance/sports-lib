@@ -910,7 +910,8 @@ export class EventUtilities {
       DataAltitude.type,
       DataHeartRate.type,
       DataCadence.type,
-      DataDistance.type
+      DataDistance.type,
+      DataSpeed.type,
     ];
     activity.getAllStreams().forEach(stream => {
       if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {

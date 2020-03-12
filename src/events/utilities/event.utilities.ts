@@ -174,7 +174,10 @@ import {
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from '../../data/data.grade-adjusted-speed-avg';
-import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from '../../data/data.grade-adjusted-pace-avg';
+import {
+  DataGradeAdjustedPaceAvg,
+  DataGradeAdjustedPaceAvgMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-avg';
 import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,
@@ -200,8 +203,14 @@ import {
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from '../../data/data.grade-adjusted-speed-min';
-import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from '../../data/data.grade-adjusted-pace-max';
-import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from '../../data/data.grade-adjusted-pace-min';
+import {
+  DataGradeAdjustedPaceMax,
+  DataGradeAdjustedPaceMaxMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-max';
+import {
+  DataGradeAdjustedPaceMin,
+  DataGradeAdjustedPaceMinMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
@@ -756,191 +765,6 @@ export class EventUtilities {
     }, Infinity);
   }
 
-  /**
-   * Generates missing streams for an activity such as distance etc if they are missing
-   * This will always create a steam even if the distance is 0
-   * @param activity
-   */
-  private static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
-    // First add any missing data to the streams via interpolating and extrapolating
-    this.addMissingDataToStreams(activity);
-    if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
-      && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
-      const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
-      let distance = 0;
-      streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
-      activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
-        if (!position) {
-          return prevPosition;
-        }
-        if (prevPosition && position) {
-          distance += this.geoLibAdapter.getDistance([prevPosition, position]);
-        }
-        streamData[index] = distance;
-        return position;
-      });
-
-      if (!activity.hasStreamData(DataDistance.type)) {
-        activity.addStream(new Stream(DataDistance.type, streamData));
-      }
-
-      if (!activity.hasStreamData(DataGNSSDistance.type)) {
-        activity.addStream(new Stream(DataGNSSDistance.type, streamData));
-      }
-
-      if (!activity.hasStreamData(DataSpeed.type)) {
-
-        const speedStreamData = activity.createStream(DataSpeed.type).getData();
-        activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
-
-          if (distanceData.value === 0) {
-            speedStreamData[index] = 0;
-            return;
-          }
-
-          if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = distanceData.value / (distanceData.time / 1000);
-            return;
-          }
-
-          speedStreamData[index] = null;
-
-        });
-        activity.addStream(new Stream(DataSpeed.type, speedStreamData));
-      }
-    }
-
-    // Check if we can get a grade stream
-    if (!activity.hasStreamData(DataGrade.type)
-      && activity.hasStreamData(DataDistance.type)
-      && activity.hasStreamData(DataAltitude.type)) {
-      const distanceData = <number[]>activity.getStreamData(DataDistance.type);
-      const altitudeData = <number[]>activity.getStreamData(DataAltitude.type);
-      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
-      activity.addStream(new Stream(DataGrade.type, gradeStreamData));
-    }
-
-    // Get a grade adjusted speed (the model applies to running only)
-    if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running
-      && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
-      && activity.hasStreamData(DataGrade.type)
-      && activity.hasStreamData(DataSpeed.type)){
-      const speedStreamData = <number[]>activity.getSquashedStreamData(DataSpeed.type);
-      const gradeStreamData = <number[]>activity.getSquashedStreamData(DataGrade.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
-      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
-    }
-
-
-    if (activity.hasStreamData(DataPower.type)
-      && activity.hasStreamData(DataRightBalance.type)
-      && !activity.hasStreamData(DataPowerRight.type)) {
-      const rightPowerStream = activity.createStream(DataPowerRight.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
-      rightPowerStream.setData(rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-        const powerStreamDataItem = powerStreamData[index];
-        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-          return accu
-        }
-        accu[index] = (streamData / 100) * powerStreamDataItem;
-        return accu
-      }, []));
-      activity.addStream(rightPowerStream);
-    }
-
-    if (activity.hasStreamData(DataPower.type)
-      && activity.hasStreamData(DataLeftBalance.type)
-      && !activity.hasStreamData(DataPowerLeft.type)) {
-      const leftPowerStream = activity.createStream(DataPowerLeft.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
-      leftPowerStream.setData(leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-        const powerStreamDataItem = powerStreamData[index];
-        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-          return accu
-        }
-        accu[index] = (streamData / 100) * powerStreamDataItem;
-        return accu
-      }, []));
-      activity.addStream(leftPowerStream);
-    }
-    return activity;
-  }
-
-  /**
-   * Back and forth fills an activity's stream data so they can be more "tree" like
-   * It does this for:
-   *
-   *  [DataAltitude.type,
-   * DataHeartRate.type,
-   * DataCadence.type,
-   * DataDistance.type]
-   *
-   * Example
-   *
-   * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
-   * Altitude[100, 101, null, 103, null, null, 106]
-   * Should be
-   * Altitude[100,101,101,103,103,103,106]
-   *
-   * @param activity
-   */
-  private static addMissingDataToStreams(activity: ActivityInterface) {
-    // First generate the time stream
-    // @todo this can be generated on the fly via the activity perhaps
-    const timeStream = activity.createStream(DataTime.type);
-    activity.addStream(timeStream);
-    activity.getAllStreams().forEach(stream => {
-      activity.getStreamDataByDuration(stream.type, true, true).forEach((data: any) => {
-        // activity.addDataToStream(DataTime.type, (new Date(data.timestamp)), activity.getDateIndex((new Date(sample.timestamp))));
-        timeStream.getData()[data.time / 1000] = data.time / 1000
-      })
-    })
-    /**
-     * We do a second pass here and we add missing data on crossing time indexes
-     * for example:
-     * Time[0,1,2,3,4,5,7]
-     * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
-     * Altitude[100, 101, null, 103, null, null, 106]
-     * Should be
-     * Altitude[100,101,101,103,103,103,106]
-     */
-    const streamTypesToBackAndForthFill = [
-      DataAltitude.type,
-      DataHeartRate.type,
-      DataCadence.type,
-      DataDistance.type,
-      DataSpeed.type,
-    ];
-    activity.getAllStreams().forEach(stream => {
-      if (streamTypesToBackAndForthFill.indexOf(stream.type) === -1) {
-        return;
-      }
-      // Find the first sample value
-      let currentValue = <number>stream.getData(true, true)[0];
-      // The time stream will always have more length than each stream when not back/forthfilled
-      const timeStreamData = <number[]>timeStream.getData()
-      stream.setData(timeStreamData.reduce((data: (number | null)[], time, timeIndex) => {
-        // If there is no timeslot put whatever was
-        if (!isNumber(time)) {
-          data.push(stream.getData()[timeIndex]);
-          return data;
-        }
-
-        // We have a time slot here on ...  (for the first run, old is the very first next)
-
-        // If it's a number set the current , else leave it to old to forth fill
-        if (isNumber(stream.getData()[time])) {
-          currentValue = <number>stream.getData()[time];
-        }
-        // Fill the current or old...
-        data.push(currentValue);
-        return data;
-      }, []))
-    })
-  }
-
   public static calculateTotalDistanceForActivity(
     activity: ActivityInterface,
     startDate?: Date,
@@ -1180,6 +1004,187 @@ export class EventUtilities {
     }
 
     return unitStreams;
+  }
+
+  /**
+   * Generates missing streams for an activity such as distance etc if they are missing
+   * This will always create a steam even if the distance is 0
+   * @param activity
+   */
+  private static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+    // First add any missing data to the streams via interpolating and extrapolating
+    this.addMissingDataToStreams(activity);
+    if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
+      && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
+      const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
+      let distance = 0;
+      streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
+      activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
+        if (!position) {
+          return prevPosition;
+        }
+        if (prevPosition && position) {
+          distance += this.geoLibAdapter.getDistance([prevPosition, position]);
+        }
+        streamData[index] = distance;
+        return position;
+      });
+
+      if (!activity.hasStreamData(DataDistance.type)) {
+        activity.addStream(new Stream(DataDistance.type, streamData));
+      }
+
+      if (!activity.hasStreamData(DataGNSSDistance.type)) {
+        activity.addStream(new Stream(DataGNSSDistance.type, streamData));
+      }
+
+      if (!activity.hasStreamData(DataSpeed.type)) {
+
+        const speedStreamData = activity.createStream(DataSpeed.type).getData();
+        activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
+
+          if (distanceData.value === 0) {
+            speedStreamData[index] = 0;
+            return;
+          }
+
+          if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
+            speedStreamData[index] = distanceData.value / (distanceData.time / 1000);
+            return;
+          }
+
+          speedStreamData[index] = null;
+
+        });
+        activity.addStream(new Stream(DataSpeed.type, speedStreamData));
+      }
+    }
+
+    // Check if we can get a grade stream
+    if (!activity.hasStreamData(DataGrade.type)
+      && activity.hasStreamData(DataDistance.type)
+      && activity.hasStreamData(DataAltitude.type)) {
+      const distanceData = <number[]>activity.getStreamData(DataDistance.type);
+      const altitudeData = <number[]>activity.getStreamData(DataAltitude.type);
+      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
+      activity.addStream(new Stream(DataGrade.type, gradeStreamData));
+    }
+
+    // Get a grade adjusted speed (the model applies to running only)
+    if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running
+      && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
+      && activity.hasStreamData(DataGrade.type)
+      && activity.hasStreamData(DataSpeed.type)) {
+      const speedStreamData = <number[]>activity.getSquashedStreamData(DataSpeed.type);
+      const gradeStreamData = <number[]>activity.getSquashedStreamData(DataGrade.type);
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
+      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
+    }
+
+
+    if (activity.hasStreamData(DataPower.type)
+      && activity.hasStreamData(DataRightBalance.type)
+      && !activity.hasStreamData(DataPowerRight.type)) {
+      const rightPowerStream = activity.createStream(DataPowerRight.type);
+      const powerStreamData = activity.getStreamData(DataPower.type);
+      const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
+      rightPowerStream.setData(rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+        const powerStreamDataItem = powerStreamData[index];
+        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+          return accu
+        }
+        accu[index] = (streamData / 100) * powerStreamDataItem;
+        return accu
+      }, []));
+      activity.addStream(rightPowerStream);
+    }
+
+    if (activity.hasStreamData(DataPower.type)
+      && activity.hasStreamData(DataLeftBalance.type)
+      && !activity.hasStreamData(DataPowerLeft.type)) {
+      const leftPowerStream = activity.createStream(DataPowerLeft.type);
+      const powerStreamData = activity.getStreamData(DataPower.type);
+      const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
+      leftPowerStream.setData(leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+        const powerStreamDataItem = powerStreamData[index];
+        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+          return accu
+        }
+        accu[index] = (streamData / 100) * powerStreamDataItem;
+        return accu
+      }, []));
+      activity.addStream(leftPowerStream);
+    }
+    return activity;
+  }
+
+  /**
+   * Back and forth fills an activity's stream data so they can be more "tree" like
+   * It does this for:
+   *
+   *  [DataAltitude.type,
+   * DataHeartRate.type,
+   * DataCadence.type,
+   * DataDistance.type]
+   *
+   * Example
+   *
+   * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
+   * Altitude[100, 101, null, 103, null, null, 106]
+   * Should be
+   * Altitude[100,101,101,103,103,103,106]
+   *
+   * @param activity
+   */
+  private static addMissingDataToStreams(activity: ActivityInterface) {
+    const streamTypesToBackAndForthFill = [
+      DataAltitude.type,
+      DataHeartRate.type,
+      DataCadence.type,
+      DataDistance.type,
+      DataSpeed.type,
+    ];
+    // First generate the time stream
+    // @todo this can be generated on the fly via the activity perhaps
+    const timeStream = activity.createStream(DataTime.type);
+    activity.addStream(timeStream);
+    activity.getAllStreams().forEach(stream => {
+      activity.getStreamDataByDuration(stream.type, true, true).forEach((data: any) => {
+        timeStream.getData()[data.time / 1000] = data.time / 1000
+      })
+    })
+    /**
+     * We do a second pass here and we add missing data on crossing time indexes
+     * for example:
+     * Time[0,1,2,3,4,5,7]
+     * Distance[0, 10, 30, 40, 50,null,60] #null here is legit eg missing record
+     * Altitude[100, 101, null, 103, null, null, 106]
+     * Should be
+     * Altitude[100,101,101,103,103,103,106]
+     */
+    activity.getAllStreams().filter(stream => streamTypesToBackAndForthFill.indexOf(stream.type) !== -1).forEach(stream => {
+      // Find the first sample value
+      let currentValue = <number>stream.getData(true, true)[0];
+      // The time stream will always have more length than each stream when not back/forthfilled
+      const timeStreamData = <number[]>timeStream.getData()
+      stream.setData(timeStreamData.reduce((data: (number | null)[], time, timeIndex) => {
+        // If there is no timeslot put whatever was
+        if (!isNumber(time)) {
+          data.push(stream.getData()[timeIndex]);
+          return data;
+        }
+
+        // We have a time slot here on ...  (for the first run, old is the very first next)
+
+        // If it's a number set the current , else leave it to old to forth fill
+        if (isNumber(stream.getData()[time])) {
+          currentValue = <number>stream.getData()[time];
+        }
+        // Fill the current or old...
+        data.push(currentValue);
+        return data;
+      }, []))
+    })
   }
 
   private static getEventDataTypeGainOrLoss(

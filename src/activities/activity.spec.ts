@@ -295,17 +295,32 @@ describe('Activity', () => {
     const stream = activity.createStream(DataAltitude.type);
     activity.addStream(stream);
     activity.addDataToStream(DataAltitude.type, new Date(0), 0);
+    activity.addDataToStream(DataAltitude.type, new Date(500), 5);
     activity.addDataToStream(DataAltitude.type, new Date(1040), 10);
     activity.addDataToStream(DataAltitude.type, new Date(2010), 20);
-    activity.addDataToStream(DataAltitude.type, new Date(2060), 25);
-    activity.addDataToStream(DataAltitude.type, new Date(3000), 30);
-    activity.addDataToStream(DataAltitude.type, new Date(4000), 40);
-    activity.addDataToStream(DataAltitude.type, new Date(5000), 50);
-    activity.addDataToStream(DataAltitude.type, new Date(6000), 60);
-    activity.addDataToStream(DataAltitude.type, new Date(7000), 70);
-    activity.addDataToStream(DataAltitude.type, new Date(8000), 80);
-    activity.addDataToStream(DataAltitude.type, new Date(9000), 90);
-    activity.addDataToStream(DataAltitude.type, new Date(10000), 100);
+    activity.addDataToStream(DataAltitude.type, new Date(2060), 30);
+    activity.addDataToStream(DataAltitude.type, new Date(2080), 35);
+    activity.addDataToStream(DataAltitude.type, new Date(3000), 40);
+    activity.addDataToStream(DataAltitude.type, new Date(4000), 50);
+    activity.addDataToStream(DataAltitude.type, new Date(5000), 60);
+    activity.addDataToStream(DataAltitude.type, new Date(6300), 70);
+    activity.addDataToStream(DataAltitude.type, new Date(7000), 80);
+    activity.addDataToStream(DataAltitude.type, new Date(8000), 90);
+    activity.addDataToStream(DataAltitude.type, new Date(9000), 100);
+    activity.addDataToStream(DataAltitude.type, new Date(10000), 110);
+    expect(stream.getData()).toEqual([
+      0,
+      10,
+      35,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+    ])
   });
 
   it('should get events correctly', () => {

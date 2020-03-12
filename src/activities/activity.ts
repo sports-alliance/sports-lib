@@ -256,7 +256,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   getDateIndex(date: Date): number {
     // @todo ceil vs floor (still debatable)
-    return Math.ceil((+date - +this.startDate) / 1000);
+    return Math.round((+date - +this.startDate) / 1000);
   }
 
   toJSON(): ActivityJSONInterface {

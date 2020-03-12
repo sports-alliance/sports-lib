@@ -36,8 +36,8 @@ export class GradeCalculator {
     lookAhead = true
   ): (number | null)[] {
     // First filter the altitude to remove any noise and predict
-    let kf = new KalmanFilter();
     if (filterAltitude) {
+      const kf = new KalmanFilter();
       altitudeStream = altitudeStream.map(v => v === null ? null : kf.filter(v));
     }
 
@@ -45,8 +45,8 @@ export class GradeCalculator {
       this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead)
       : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead)
 
-    kf = new KalmanFilter();
     if (filterGrade) {
+      const kf = new KalmanFilter();
       gradeStream = gradeStream.map(v => v === null ? null : kf.filter(v))
     }
     return gradeStream

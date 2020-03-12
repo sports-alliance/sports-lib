@@ -1145,7 +1145,10 @@ export class EventUtilities {
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // First generate the time stream
-    // @todo this can be generated on the fly via the activity perhaps
+    // @todo perhaps this can be moved to the activity side and be generated on the fly
+    if (activity.hasStreamData(DataTime.type)){
+      activity.removeStream(DataTime.type);
+    }
     const timeStream = activity.createStream(DataTime.type);
     activity.addStream(timeStream);
     activity.getAllStreams().forEach(stream => {

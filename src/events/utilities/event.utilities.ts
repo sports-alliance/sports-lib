@@ -396,7 +396,7 @@ export class EventUtilities {
 
 
   public static getDataLength(startDate: Date, endDate: Date): number {
-    return Math.ceil((+endDate - +startDate) / 1000);
+    return Math.ceil((+endDate - +startDate) / 1000) + 1;
   }
 
   public static generateStatsForAll(event: EventInterface) {

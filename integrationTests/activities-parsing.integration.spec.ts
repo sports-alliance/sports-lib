@@ -424,6 +424,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
+          // console.log(event.getFirstActivity().getDuration().getValue() === expectedElapsedTime)
+          //
           expectTolerance(event.getFirstActivity().getPause().getValue(), expectedPauseTime, expectedPauseTime * PAUSE_TIME_TOLERANCE);
           done();
         });
@@ -469,7 +471,7 @@ describe('Integration tests with native & custom dom parser', () => {
 
           const runningActivity = event.getActivities()[4];
           expect(runningActivity.type).toEqual(ActivityTypes.Running);
-          expect(runningActivity.getStreamData(DataSpeed.type).length).toEqual(13478);
+          expect(runningActivity.getStreamData(DataSpeed.type).length).toEqual(13479);
           expect(runningActivity.getDuration().getValue()).toEqual(13092.969);
           expect(runningActivity.getDistance().getValue()).toEqual(42563.91);
           expect(runningActivity.startDate.toISOString()).toEqual('2018-10-13T22:57:45.000Z');

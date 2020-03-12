@@ -15,7 +15,7 @@ describe('Activity', () => {
   let activity: ActivityInterface;
 
   beforeEach(() => {
-    // New activity that ends +6m
+    // New activity that ends +6m and is 10s duration from new Date(0)
     activity = new Activity(
       new Date(0),
       new Date((new Date(0)).getTime() + 10000),
@@ -276,15 +276,37 @@ describe('Activity', () => {
 
   it('should get the time stream', () => {
     activity.addStreams([
-      //                                   0     1    2       3       4         5    6     7    8 9 -> is not set
+      //                                   0     1    2       3       4         5    6     7    8 9 and 10 are not set
       new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN,  0]),
       new Stream(DataDistance.type, [0,   null,   600,   700,   800,      null, NaN, 900, Infinity])
     ])
-    expect(activity.generateTimeStream().getData()).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null]);
+    expect(activity.generateTimeStream().getData()).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
     expect(activity.generateTimeStream().getData(true)).toEqual([0, 2, 3, 4, 6, 7, 8]);
-    expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null]);
+    expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
   });
 
+
+  it('should set the correct sample sizes', () => {
+    const stream = activity.createStream(DataAltitude.type);
+    expect(stream.getData().length).toBe(11);
+  });
+
+  it('should get and set the correct sample keys and ', () => {
+    const stream = activity.createStream(DataAltitude.type);
+    activity.addStream(stream);
+    activity.addDataToStream(DataAltitude.type, new Date(0), 0);
+    activity.addDataToStream(DataAltitude.type, new Date(1040), 10);
+    activity.addDataToStream(DataAltitude.type, new Date(2010), 20);
+    activity.addDataToStream(DataAltitude.type, new Date(2060), 25);
+    activity.addDataToStream(DataAltitude.type, new Date(3000), 30);
+    activity.addDataToStream(DataAltitude.type, new Date(4000), 40);
+    activity.addDataToStream(DataAltitude.type, new Date(5000), 50);
+    activity.addDataToStream(DataAltitude.type, new Date(6000), 60);
+    activity.addDataToStream(DataAltitude.type, new Date(7000), 70);
+    activity.addDataToStream(DataAltitude.type, new Date(8000), 80);
+    activity.addDataToStream(DataAltitude.type, new Date(9000), 90);
+    activity.addDataToStream(DataAltitude.type, new Date(10000), 100);
+  });
 
   it('should get events correctly', () => {
     activity.addEvent(new DataStopEvent(1));

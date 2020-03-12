@@ -1142,7 +1142,7 @@ export class EventUtilities {
       DataHeartRate.type,
       DataCadence.type,
       DataDistance.type,
-      DataSpeed.type,
+      // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // First generate the time stream
     // @todo this can be generated on the fly via the activity perhaps

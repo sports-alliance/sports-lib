@@ -722,7 +722,7 @@ export class EventUtilities {
     return this.getEventDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 4) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 3) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
@@ -1077,7 +1077,7 @@ export class EventUtilities {
       && activity.hasStreamData(DataSpeed.type)) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
       const gradeStreamData = activity.getStreamData(DataGrade.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0))
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 

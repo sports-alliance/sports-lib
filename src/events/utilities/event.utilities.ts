@@ -1075,8 +1075,8 @@ export class EventUtilities {
       && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
       && activity.hasStreamData(DataGrade.type)
       && activity.hasStreamData(DataSpeed.type)) {
-      const speedStreamData = <number[]>activity.getSquashedStreamData(DataSpeed.type);
-      const gradeStreamData = <number[]>activity.getSquashedStreamData(DataGrade.type);
+      const speedStreamData = <number[]>activity.getStreamData(DataSpeed.type);
+      const gradeStreamData = <number[]>activity.getStreamData(DataGrade.type);
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index]))
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }

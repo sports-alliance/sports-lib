@@ -73,9 +73,6 @@ import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.e
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
-import { DataTime } from '../../../../data/data.time';
-import { DataAltitude } from '../../../../data/data.altitude';
-import { DataCadence } from '../../../../data/data.cadence';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -93,7 +90,7 @@ export class EventImporterFIT {
       });
 
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        // debugger;
+        debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
@@ -324,12 +321,15 @@ export class EventImporterFIT {
   // @todo move this to a mapper
   private static getStatsFromObject(object: any, activity: ActivityInterface): DataInterface[] {
     const stats = [];
-    // Set the duration which is the moving time
     // @todo can also check the events ;-)
     let totalTimerTime = 0;
-    if (isNumber(object.total_timer_time)) {
-      totalTimerTime = object.total_timer_time;
-    }else if ((object.timestamp - object.start_time) / 1000 ){
+    if (isNumber(object.total_timer_time) && isNumber(object.total_elapsed_time)) {
+      totalTimerTime = object.total_elapsed_time < object.total_timer_time ?
+        object.total_elapsed_time
+        : object.total_timer_time;
+    } else if (isNumber(object.total_timer_time)) {
+      totalTimerTime = object.total_elapsed_time
+    } else if ((object.timestamp - object.start_time) / 1000) {
       totalTimerTime = (object.timestamp - object.start_time) / 1000;
     }
     // 0 should be not included aha it's not legit to have a 0 for total timer time

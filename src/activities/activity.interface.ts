@@ -114,9 +114,9 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
 
   /**
    * Removes a stream
-   * @param stream
+   * @param streamType
    */
-  removeStream(stream: StreamInterface): this;
+  removeStream(streamType: string|StreamInterface): this;
 
   /**
    * Gets all available streams

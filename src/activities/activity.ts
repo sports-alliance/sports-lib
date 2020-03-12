@@ -74,7 +74,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
-  removeStream(stream: StreamInterface): this {
+  removeStream(streamType: string|StreamInterface): this {
+    const stream = (streamType instanceof Stream) ? streamType : this.getStream(<string>streamType);
     this.streams = this.streams.filter((activityStream) => stream !== activityStream);
     return this;
   }
@@ -178,7 +179,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       return positionArray;
     }, []);
   }
-  
+
   getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[] {
     return <DataPositionInterface[]>this.getPositionData(startDate, endDate, latitudeStream, longitudeStream).filter(data => data !== null);
   }

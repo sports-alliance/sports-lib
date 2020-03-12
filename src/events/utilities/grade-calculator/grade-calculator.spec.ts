@@ -415,6 +415,7 @@ describe('GradeCalculator', () => {
       expect(gradeStream.length).toEqual(altitudeStream.length);
 
       const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStream, strava_3025376963.grade_smooth);
+      console.log(`Delta is ${deltaBetweenStreams}`);
       expect(deltaBetweenStreams).toBeLessThan(1.5);
 
       done();
@@ -434,6 +435,7 @@ describe('GradeCalculator', () => {
       expect(gradeStream.length).toEqual(altitudeStream.length);
 
       const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStream, strava_3025855594.grade_smooth);
+      console.log(`Delta is ${deltaBetweenStreams}`);
       expect(deltaBetweenStreams).toBeLessThan(1.5);
 
       done();

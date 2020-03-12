@@ -166,8 +166,7 @@ describe('Strava data compliance', () => {
         const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
-        // expect(stravaGradeStream).toEqual(streamData);
-
+        console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
       });
@@ -279,6 +278,7 @@ describe('Strava data compliance', () => {
           const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });
@@ -396,6 +396,7 @@ describe('Strava data compliance', () => {
           const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });
@@ -513,6 +514,7 @@ describe('Strava data compliance', () => {
           const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
         });

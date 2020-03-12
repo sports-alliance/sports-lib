@@ -274,6 +274,17 @@ describe('Activity', () => {
 
   });
 
+  it('should get the time stream', () => {
+    activity.addStreams([
+      //                                   0     1    2       3       4         5    6     7    8 9 -> is not set
+      new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN,  0]),
+      new Stream(DataDistance.type, [0,   null,   600,   700,   800,      null, NaN, 900, Infinity])
+    ])
+    expect(activity.generateTimeStream().getData()).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null]);
+    expect(activity.generateTimeStream().getData(true)).toEqual([0, 2, 3, 4, 6, 7, 8]);
+    expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null]);
+  });
+
 
   it('should get events correctly', () => {
     activity.addEvent(new DataStopEvent(1));

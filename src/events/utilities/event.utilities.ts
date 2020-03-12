@@ -1145,17 +1145,7 @@ export class EventUtilities {
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // First generate the time stream
-    // @todo perhaps this can be moved to the activity side and be generated on the fly
-    if (activity.hasStreamData(DataTime.type)){
-      activity.removeStream(DataTime.type);
-    }
-    const timeStream = activity.createStream(DataTime.type);
-    activity.addStream(timeStream);
-    activity.getAllStreams().forEach(stream => {
-      activity.getStreamDataByDuration(stream.type, true, true).forEach((data: any) => {
-        timeStream.getData()[data.time / 1000] = data.time / 1000
-      })
-    })
+    const timeStream = activity.generateTimeStream(streamTypesToBackAndForthFill);
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:

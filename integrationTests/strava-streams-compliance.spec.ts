@@ -12,7 +12,6 @@ import { DataTemperature } from '../src/data/data.temperature';
 import { DataPower } from '../src/data/data.power';
 import { DataDistance } from '../src/data/data.distance';
 import { DataGrade } from '../src/data/data.grade';
-import { DataTime } from '../src/data/data.time';
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
@@ -43,9 +42,8 @@ describe('Strava data compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        // const a = event.getFirstActivity().getSquashedStreamData(DataTime.type);
-        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
-        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true).length);
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true));
         done();
       });
     });
@@ -190,9 +188,8 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          // const a = event.getFirstActivity().getSquashedStreamData(DataTime.type);
-          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
-          expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true).length);
+          expect(stravaCadenceStream).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true));
           done();
         });
       });
@@ -301,8 +298,8 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
-          expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+          expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true).length);
+          expect(stravaCadenceStream).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true));
           done();
         });
       });
@@ -419,8 +416,8 @@ describe('Strava data compliance', () => {
 
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
-          expect(stravaTimeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type).length);
-          expect(stravaTimeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataTime.type));
+          expect(stravaTimeStream.length).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true).length);
+          expect(stravaTimeStream).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true));
           done();
         });
       });

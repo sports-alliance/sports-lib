@@ -15,14 +15,6 @@ describe('Stream', () => {
     expect(stream.getData(true, true)).toEqual([200, 502, 0]);
   });
 
-  it('should get the duration of data', () => {
-    const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
-    expect(stream.getDurationOfData()).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect(stream.getDurationOfData(true)).toEqual([0, 2, 3, 4, 6]);
-    expect(stream.getDurationOfData(false, true)).toEqual([0, 1, 2, 5, 6]);
-    expect(stream.getDurationOfData(true, true)).toEqual([0, 2, 6]);
-  });
-
   it('should get stream data by time', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
     const date = new Date();

@@ -204,6 +204,12 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   getStopAllEvents(): DataStopAllEvent[];
 
   /**
+   * Generates a time stream based on the type of streams requested
+   * @param streamTypes
+   */
+  generateTimeStream(streamTypes?: string[]): StreamInterface;
+
+  /**
    * Gets the date index/duration from a date relative to the activity
    * @param date
    */

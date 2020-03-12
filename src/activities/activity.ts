@@ -22,6 +22,7 @@ import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
+import { DataTime } from '../data/data.time';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -237,6 +238,20 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   setAllEvents(events: DataEvent[]): this {
     this.events = events;
     return this;
+  }
+
+  generateTimeStream(streamTypes: string[] = []): StreamInterface {
+    const timeStream = this.createStream(DataTime.type);
+    let streams = this.getAllStreams();
+    if (streamTypes.length) {
+      streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1)
+    }
+    streams.forEach(stream => {
+      this.getStreamDataByDuration(stream.type, true, false).forEach((data: any) => {
+        timeStream.getData()[data.time / 1000] = data.time / 1000
+      })
+    })
+    return timeStream;
   }
 
   getDateIndex(date: Date): number {

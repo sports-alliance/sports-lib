@@ -385,7 +385,7 @@ export class EventUtilities {
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
     this.generateMissingStreamsForActivity(activity);
-    activity.addStreams(this.getUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
+    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
     this.generateMissingStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
   }
@@ -760,7 +760,7 @@ export class EventUtilities {
    * @param streams
    * @param activityType
    */
-  private static getActivityTypeBasedSpeedStreams(streams: StreamInterface[], activityType: ActivityTypes){
+  private static createActivityTypeBasedSpeedStreams(streams: StreamInterface[], activityType: ActivityTypes){
     const speedDerivedStreams: StreamInterface[] = [];
     // Check if they contain the needed info
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
@@ -813,11 +813,11 @@ export class EventUtilities {
    * @param activityType
    * @param unitStreamTypes this acts like a whitelist
    */
-  public static getUnitStreamsFromStreams(streams: StreamInterface[], activityType: ActivityTypes,  unitStreamTypes?: string[]): StreamInterface[] {
+  public static createUnitStreamsFromStreams(streams: StreamInterface[], activityType: ActivityTypes, unitStreamTypes?: string[]): StreamInterface[] {
     const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
 
     // @todo might need also vertical speed etc and filter on the above
-    streams = this.getActivityTypeBasedSpeedStreams(streams, activityType)
+    streams = this.createActivityTypeBasedSpeedStreams(streams, activityType)
 
     return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
       const baseStream = streams.find(stream => stream.type === baseDataType);

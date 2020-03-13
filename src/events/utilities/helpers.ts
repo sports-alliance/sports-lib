@@ -55,6 +55,10 @@ export function convertPaceToPaceInMinutesPerMile(number: number): number {
   return number * 1.60934;
 }
 
+export function convertMetersToMiles(number: number): number {
+  return  number === 0  ? 0 : number / 1609;
+}
+
 /**
  * Converts m/s to seconds per 100m
  * @param number

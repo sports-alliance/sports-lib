@@ -22,7 +22,7 @@ import { DataSatellite5BestSNR } from './data.satellite-5-best-snr';
 import { DataAbsolutePressure } from './data.absolute-pressure';
 import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
-import { DataDistance } from './data.distance';
+import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataEHPE } from './data.ehpe';
 import { DataEVPE } from './data.evpe';
@@ -235,6 +235,7 @@ import { DataStartEvent } from './data.start-event';
 import { DataStopAllEvent } from './data.stop-all-event';
 import { DataTime } from './data.time';
 import {
+  convertMetersToMiles,
   convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
@@ -468,6 +469,7 @@ export const DataStore: any = {
   DataStopEvent,
   DataStopAllEvent,
   DataTime,
+  DataDistanceMiles,
 };
 
 export class DynamicDataLoader {
@@ -560,6 +562,9 @@ export class DynamicDataLoader {
       [DataVerticalSpeedFeetPerHour.type]: convertSpeedToSpeedInFeetPerHour,
       [DataVerticalSpeedKilometerPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
       [DataVerticalSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+    },
+    [DataDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles,
     }
   };
 

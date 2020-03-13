@@ -191,6 +191,7 @@ import {
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
+import { Activity } from '../../activities/activity';
 
 export class EventUtilities {
 
@@ -752,56 +753,62 @@ export class EventUtilities {
 
 
   /**
-   * @todo remove all other helper functions that do the same
-   * Generates streams for speed (eg swim pace, pace) depending on the activity type
-   * For example for running pace will be created while for swimming swim pace and for cycling none (speed is the default)
-   * You need to provide all the extra streams such as GAS/GAP
-   * This will get what it can
-   * @param streams
+   * Returns streams that derive from speed based on the activity type
+   * @param speedStream
    * @param activityType
    */
-  private static createActivityTypeBasedSpeedStreams(streams: StreamInterface[], activityType: ActivityTypes){
-    const speedDerivedStreams: StreamInterface[] = [];
-    // Check if they contain the needed info
-    const speedStream = streams.find(stream => stream.type === DataSpeed.type);
-    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
-    // If there is no speed then no unit streams to return
-    if (!speedStream) {
-      return speedDerivedStreams;
-    }
-    // For each group
-    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
-      case ActivityTypeGroups.Running:
-        speedDerivedStreams.push(new Stream(DataPace.type, speedStream.getData().map(dataValue => {
-          if (!isNumber(dataValue)) {
-            return null
-          }
-          return convertSpeedToPace(<number>dataValue);
-        })));
-          // @todo this should be generated I suppose
-        if (gradeAdjustedSpeedStream) {
-          speedDerivedStreams.push(new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-            if (!isNumber(dataValue)) {
-              return null
-            }
-            return convertSpeedToPace(<number>dataValue);
-          })));
+  private static createByActivityTypeSpeedBasedStreams(
+    speedStream: StreamInterface,
+    activityType: ActivityTypes
+  ): StreamInterface[] {
+    return ActivityTypesHelper
+      .speedDerivedDataTypesToUseForActivityType(activityType)
+      .reduce((array: StreamInterface[], dataType) => {
+        switch (dataType) {
+          case DataPace.type:
+            return array.concat([new Stream(DataPace.type, speedStream.getData().map(dataValue => {
+              if (!isNumber(dataValue)) {
+                return null
+              }
+              return convertSpeedToPace(<number>dataValue);
+            }))]);
+          case DataSwimPace.type:
+            return array.concat([new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
+              if (!isNumber(dataValue)) {
+                return null
+              }
+              return convertSpeedToSwimPace(<number>dataValue);
+            }))]);
+          default:
+            return array
         }
-        break;
-      case ActivityTypeGroups.WaterSports: // @todo perhaps create seperate swim thingy
-        speedDerivedStreams.push(new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
-          if (!isNumber(dataValue)) {
-            return null
-          }
-          return convertSpeedToSwimPace(<number>dataValue);
-        })));
-        speedDerivedStreams.push(speedStream);
-        break;
-      default:
-        speedDerivedStreams.push(speedStream);
-        break;
-    }
-    return speedDerivedStreams;
+      }, []);
+  }
+
+  /**
+   * Returns streams that derive from grade adjusted speed based on the activity type
+   * @param gradeAdjustedSpeedStream
+   * @param activityType
+   */
+  private static createByActivityTypeAltiDistanceSpeedBasedStreams(
+    gradeAdjustedSpeedStream: StreamInterface,
+    activityType: ActivityTypes
+  ): StreamInterface[] {
+    return ActivityTypesHelper
+      .altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType)
+      .reduce((array: StreamInterface[], dataType) => {
+        switch (dataType) {
+          case DataGradeAdjustedPace.type:
+            return array.concat([new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+              if (!isNumber(dataValue)) {
+                return null
+              }
+              return convertSpeedToPace(<number>dataValue);
+            }))]);
+          default:
+            return array
+        }
+      }, []);
   }
 
   /**
@@ -811,16 +818,30 @@ export class EventUtilities {
    * For example it will create pace from speed, swim pace from speed but also speed in km/h as a unitstream
    * @param streams
    * @param activityType
-   * @param unitStreamTypes this acts like a whitelist
+   * @param unitStreamTypes DynamicDataLoader.allUnitDerivedDataTypes this acts like a whitelist for the unit derived units ONLY!
    */
   public static createUnitStreamsFromStreams(streams: StreamInterface[], activityType: ActivityTypes, unitStreamTypes?: string[]): StreamInterface[] {
+    // @todo perhaps check input to be unitStreamTypesStrictly
     const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
-
-    // @todo might need also vertical speed etc and filter on the above
-    streams = this.createActivityTypeBasedSpeedStreams(streams, activityType)
-
+    let baseUnitStreams: StreamInterface[] = [];
+    const speedStream = streams.find(stream => stream.type === DataSpeed.type)
+    if (speedStream) {
+      baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(speedStream, activityType));
+    }
+    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type)
+    if (gradeAdjustedSpeedStream) {
+      baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType));
+    }
+    const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
+    if (verticalSpeedStream) {
+      // For vertical speed (yet) we dont need a seperate function so just add the base that is the "derived" one
+      baseUnitStreams = ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType).length ?
+        baseUnitStreams.concat(verticalSpeedStream)
+        : baseUnitStreams
+    }
+    // @todo add distance
     return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
-      const baseStream = streams.find(stream => stream.type === baseDataType);
+      const baseStream = baseUnitStreams.find(stream => stream.type === baseDataType);
       if (!baseStream) {
         return array
       }
@@ -835,7 +856,6 @@ export class EventUtilities {
           return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
         }))
       })
-      // debugger;
       return array.concat(unitStreams).concat([baseStream])
     }, []);
   }

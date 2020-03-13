@@ -15,6 +15,6 @@ export class DataDistance extends DataNumber {
 }
 
 export class DataDistanceMiles extends DataDistance {
-  static type = 'Distance ';
+  static type = 'Distance in miles';
   static unit = 'M';
 }

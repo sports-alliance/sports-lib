@@ -9,6 +9,7 @@ import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
 import { DataGradeAdjustedSpeedAvg } from '../data/data.grade-adjusted-speed-avg';
+import { DataVerticalSpeed } from '../data/data.vertical-speed';
 
 export class ActivityTypesHelper {
   static getActivityTypesAsUniqueArray(): string[] {
@@ -41,7 +42,7 @@ export class ActivityTypesHelper {
     });
   }
 
-  static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
+  static averageSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
@@ -52,7 +53,7 @@ export class ActivityTypesHelper {
     }
   }
 
-  static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
+  static speedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
         return [DataPace.type];
@@ -60,6 +61,24 @@ export class ActivityTypesHelper {
         return [DataSpeed.type, DataSwimPace.type];
       default:
         return [DataSpeed.type];
+    }
+  }
+
+  static altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
+    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
+      case ActivityTypeGroups.Running:
+        return [DataGradeAdjustedPace.type];
+      default:
+        return [];
+    }
+  }
+
+  static verticalSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
+    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
+      case ActivityTypeGroups.Running:
+        return [DataVerticalSpeed.type];
+      default:
+        return [];
     }
   }
 

@@ -42,20 +42,10 @@ export class ActivityTypesHelper {
   }
 
   static averageSpeedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
-    switch (activityType) {
-      case ActivityTypes.Running:
+    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
+      case ActivityTypeGroups.Running:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
-      case ActivityTypes.TrailRunning:
-        return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataVerticalSpeedAvg.type];
-      case ActivityTypes.Cycling:
-      case ActivityTypes.MountainBiking:
-        return [DataSpeedAvg.type, DataGradeAdjustedSpeedAvg.type];
-      case ActivityTypes.Treadmill:
-      case ActivityTypes.TrackAndField:
-      case ActivityTypes.EllipticalTrainer:
-        return [DataPaceAvg.type];
-      case ActivityTypes.Swimming:
-      case ActivityTypes.OpenWaterSwimming:
+      case ActivityTypeGroups.WaterSports:
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
       default:
         return [DataSpeedAvg.type];
@@ -63,18 +53,10 @@ export class ActivityTypesHelper {
   }
 
   static speedDerivedMetricsToUseForActivityType(activityType: ActivityTypes): string[] {
-    switch (activityType) {
-      case ActivityTypes.Running:
-      case ActivityTypes.TrailRunning:
-      case ActivityTypes.Treadmill:
-      case ActivityTypes.TrackAndField:
-      case ActivityTypes.EllipticalTrainer:
+    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
+      case ActivityTypeGroups.Running:
         return [DataPace.type];
-      case ActivityTypes.Cycling:
-      case ActivityTypes.MountainBiking:
-        return [DataSpeed.type, DataGradeAdjustedSpeed.type];
-      case ActivityTypes.Swimming:
-      case ActivityTypes.OpenWaterSwimming:
+      case ActivityTypeGroups.WaterSports:
         return [DataSpeed.type, DataSwimPace.type];
       default:
         return [DataSpeed.type];

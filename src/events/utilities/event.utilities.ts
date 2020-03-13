@@ -3,24 +3,8 @@ import { ActivityInterface } from '../../activities/activity.interface';
 import { Event } from '../event';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
-import {
-  DataSpeed,
-  DataSpeedFeetPerMinute,
-  DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour,
-  DataSpeedMetersPerMinute,
-  DataSpeedMilesPerHour
-} from '../../data/data.speed';
-import {
-  DataVerticalSpeed,
-  DataVerticalSpeedFeetPerHour,
-  DataVerticalSpeedFeetPerMinute,
-  DataVerticalSpeedFeetPerSecond,
-  DataVerticalSpeedKilometerPerHour,
-  DataVerticalSpeedMetersPerHour,
-  DataVerticalSpeedMetersPerMinute,
-  DataVerticalSpeedMilesPerHour
-} from '../../data/data.vertical-speed';
+import { DataSpeed } from '../../data/data.speed';
+import { DataVerticalSpeed } from '../../data/data.vertical-speed';
 import { DataTemperature } from '../../data/data.temperature';
 import { DataAltitude } from '../../data/data.altitude';
 import { DataPower } from '../../data/data.power';
@@ -100,7 +84,7 @@ import { DataAscent } from '../../data/data.ascent';
 import { DataDescent } from '../../data/data.descent';
 import { GeoLibAdapter } from '../../geodesy/adapters/geolib.adapter';
 import { DataPaceMax, DataPaceMaxMinutesPerMile } from '../../data/data.pace-max';
-import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
+import { DataPace } from '../../data/data.pace';
 import { DataPaceMin, DataPaceMinMinutesPerMile } from '../../data/data.pace-min';
 import { DataPaceAvg, DataPaceAvgMinutesPerMile } from '../../data/data.pace-avg';
 import { DataBatteryCharge } from '../../data/data.battery-charge';
@@ -133,7 +117,7 @@ import { Privacy } from '../../privacy/privacy.class.interface';
 import { DataStartAltitude } from '../../data/data.start-altitude';
 import { DataEndAltitude } from '../../data/data.end-altitude';
 import { DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard } from '../../data/data.swim-pace-max';
-import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from '../../data/data.swim-pace';
+import { DataSwimPace } from '../../data/data.swim-pace';
 import { DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard } from '../../data/data.swim-pace-min';
 import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from '../../data/data.swim-pace-avg';
 import { DataFeeling } from '../../data/data.feeling';
@@ -178,15 +162,8 @@ import {
   DataGradeAdjustedPaceAvg,
   DataGradeAdjustedPaceAvgMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-avg';
-import {
-  DataGradeAdjustedSpeed,
-  DataGradeAdjustedSpeedFeetPerMinute,
-  DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour,
-  DataGradeAdjustedSpeedMetersPerMinute,
-  DataGradeAdjustedSpeedMilesPerHour
-} from '../../data/data.grade-adjusted-speed';
-import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from '../../data/data.grade-adjusted-pace';
+import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
+import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
 import {
   DataGradeAdjustedSpeedMax,
   DataGradeAdjustedSpeedMaxFeetPerMinute,
@@ -213,8 +190,7 @@ import {
 } from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
-import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
-import { DataTime } from '../../data/data.time';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 
 export class EventUtilities {
 
@@ -409,7 +385,7 @@ export class EventUtilities {
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
     this.generateMissingStreamsForActivity(activity);
-    activity.addStreams(this.getUnitStreamsFromStreams(activity.getAllStreams()));
+    activity.addStreams(this.getUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
     this.generateMissingStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
   }
@@ -774,236 +750,94 @@ export class EventUtilities {
       .filter((position) => position !== null));
   }
 
-  /**
-   * @todo optimize with whitelist
-   * @param streams
-   */
-  public static getUnitStreamsFromStreams(streams: StreamInterface[]): StreamInterface[] {
-    const unitStreams: StreamInterface[] = [];
 
+  /**
+   * @todo remove all other helper functions that do the same
+   * Generates streams for speed (eg swim pace, pace) depending on the activity type
+   * For example for running pace will be created while for swimming swim pace and for cycling none (speed is the default)
+   * You need to provide all the extra streams such as GAS/GAP
+   * This will get what it can
+   * @param streams
+   * @param activityType
+   */
+  private static getActivityTypeBasedSpeedStreams(streams: StreamInterface[], activityType: ActivityTypes){
+    const speedDerivedStreams: StreamInterface[] = [];
     // Check if they contain the needed info
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
     const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
-
-    const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
-    let paceStream = streams.find(stream => stream.type === DataPace.type);
-    let gradeAdjustedPaceStream = streams.find(stream => stream.type === DataGradeAdjustedPace.type);
-    let swimPaceStream = streams.find(stream => stream.type === DataSwimPace.type);
-
     // If there is no speed then no unit streams to return
-    // Not sure if this is the best solution, but since the speed stream is the base for all....
     if (!speedStream) {
-      return unitStreams;
+      return speedDerivedStreams;
     }
-
-    // Pace
-    if (!paceStream) {
-      paceStream = new Stream(DataPace.type, speedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
+    // For each group
+    switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
+      case ActivityTypeGroups.Running:
+        speedDerivedStreams.push(new Stream(DataPace.type, speedStream.getData().map(dataValue => {
+          if (!isNumber(dataValue)) {
+            return null
+          }
+          return convertSpeedToPace(<number>dataValue);
+        })));
+          // @todo this should be generated I suppose
+        if (gradeAdjustedSpeedStream) {
+          speedDerivedStreams.push(new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
+            if (!isNumber(dataValue)) {
+              return null
+            }
+            return convertSpeedToPace(<number>dataValue);
+          })));
         }
-        return convertSpeedToPace(<number>dataValue);
-      }));
-      unitStreams.push(paceStream);
+        break;
+      case ActivityTypeGroups.WaterSports: // @todo perhaps create seperate swim thingy
+        speedDerivedStreams.push(new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
+          if (!isNumber(dataValue)) {
+            return null
+          }
+          return convertSpeedToSwimPace(<number>dataValue);
+        })));
+        speedDerivedStreams.push(speedStream);
+        break;
+      default:
+        speedDerivedStreams.push(speedStream);
+        break;
     }
+    return speedDerivedStreams;
+  }
 
-    // Grade Adjusted Pace
-    if (gradeAdjustedSpeedStream && !gradeAdjustedPaceStream) {
-      gradeAdjustedPaceStream = new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToPace(<number>dataValue);
-      }));
-      unitStreams.push(gradeAdjustedPaceStream);
-    }
+  /**
+   * @todo optimize with whitelist
+   * @todo unit test (get the pun?)
+   * This creates streams that are deriving as unit based streams
+   * For example it will create pace from speed, swim pace from speed but also speed in km/h as a unitstream
+   * @param streams
+   * @param activityType
+   * @param unitStreamTypes this acts like a whitelist
+   */
+  public static getUnitStreamsFromStreams(streams: StreamInterface[], activityType: ActivityTypes,  unitStreamTypes?: string[]): StreamInterface[] {
+    const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
 
-    // Swim Pace
-    if (!swimPaceStream) {
-      swimPaceStream = new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSwimPace(<number>dataValue);
-      }));
-      unitStreams.push(swimPaceStream);
-    }
+    // @todo might need also vertical speed etc and filter on the above
+    streams = this.getActivityTypeBasedSpeedStreams(streams, activityType)
 
-    // Generate speed in Kilometers per hour
-    unitStreams.push(new Stream(DataSpeedKilometersPerHour.type, speedStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
+    return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
+      const baseStream = streams.find(stream => stream.type === baseDataType);
+      if (!baseStream) {
+        return array
       }
-      return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
-    })));
-
-    // Generate speed in Miles per hour
-    unitStreams.push(new Stream(DataSpeedMilesPerHour.type, speedStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
-    })));
-
-    // Generate speed in feet per second
-    unitStreams.push(new Stream(DataSpeedFeetPerSecond.type, speedStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
-    })));
-
-    // Generate speed in meters per minute
-    unitStreams.push(new Stream(DataSpeedMetersPerMinute.type, speedStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
-    })));
-
-    // Generate speed in feet per minute
-    unitStreams.push(new Stream(DataSpeedFeetPerMinute.type, speedStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
-    })));
-
-    if (gradeAdjustedSpeedStream) {
-      // Generate grade adjusted speed in Kilometers per hour
-      unitStreams.push(new Stream(DataGradeAdjustedSpeedKilometersPerHour.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
-      })));
-
-      // Generate grade adjusted speed in Miles per hour
-      unitStreams.push(new Stream(DataGradeAdjustedSpeedMilesPerHour.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
-      })));
-
-      // Generate grade adjusted speed in feet per second
-      unitStreams.push(new Stream(DataGradeAdjustedSpeedFeetPerSecond.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
-      })));
-
-      // Generate grade adjusted speed in meters per minute
-      unitStreams.push(new Stream(DataGradeAdjustedSpeedMetersPerMinute.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
-      })));
-
-      // Generate grade adjusted speed in feet per minute
-      unitStreams.push(new Stream(DataGradeAdjustedSpeedFeetPerMinute.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
-      })));
-    }
-
-    // Generate pace in minutes per mile
-    unitStreams.push(new Stream(DataPaceMinutesPerMile.type, paceStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertPaceToPaceInMinutesPerMile(<number>dataValue);
-    })));
-
-    if (gradeAdjustedPaceStream) {
-      // Generate grade adjusted pace in minutes per mile
-      unitStreams.push(new Stream(DataGradeAdjustedPaceMinutesPerMile.type, gradeAdjustedPaceStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertPaceToPaceInMinutesPerMile(<number>dataValue);
-      })));
-    }
-
-    // Generate swim pace in minutes per 100 yard
-    unitStreams.push(new Stream(DataSwimPaceMinutesPer100Yard.type, swimPaceStream.getData().map(dataValue => {
-      if (!isNumber(dataValue)) {
-        return null
-      }
-      return convertSwimPaceToSwimPacePer100Yard(<number>dataValue);
-    })));
-
-    // If we have more vertical speed data
-    if (verticalSpeedStream) {
-      // Generate vertical speed in feet per second
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerSecond.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerSecond(<number>dataValue);
-      })));
-
-      // Generate vertical speed in meters per minute
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
-      })));
-
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMetersPerMinute(<number>dataValue);
-      })));
-
-      // Generate vertical speed in feet per mintute
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerMinute.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerMinute(<number>dataValue);
-      })));
-
-      // Generate vertical speed in meters per hour
-      unitStreams.push(new Stream(DataVerticalSpeedMetersPerHour.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMetersPerHour(<number>dataValue);
-      })));
-
-      // Generate vertical speed in feet per hour
-      unitStreams.push(new Stream(DataVerticalSpeedFeetPerHour.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInFeetPerHour(<number>dataValue);
-      })));
-
-      // Generate vertical speed in in kilometers per hour
-      unitStreams.push(new Stream(DataVerticalSpeedKilometerPerHour.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInKilometersPerHour(<number>dataValue);
-      })));
-
-      // Generate vertical speed in miles per hour
-      unitStreams.push(new Stream(DataVerticalSpeedMilesPerHour.type, verticalSpeedStream.getData().map(dataValue => {
-        if (!isNumber(dataValue)) {
-          return null
-        }
-        return convertSpeedToSpeedInMilesPerHour(<number>dataValue);
-      })));
-    }
-
-    return unitStreams;
+      const unitStreams =
+        Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
+        .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
+        .map(unitBasedDataType => {
+        return new Stream(unitBasedDataType, baseStream.getData().map(dataValue => {
+          if (!isNumber(dataValue)) {
+            return null
+          }
+          return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
+        }))
+      })
+      // debugger;
+      return array.concat(unitStreams).concat([baseStream])
+    }, []);
   }
 
   /**

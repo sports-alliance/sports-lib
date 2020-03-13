@@ -92,7 +92,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   // @todo needs more logic improvement and transparency
   getAllExportableStreams(): StreamInterface[] {
-    return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType() && stream.type !== DataGNSSDistance.type);
+    return this.getAllStreams().filter((stream) => stream.isExportable());
   }
 
   hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean {

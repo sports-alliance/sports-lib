@@ -48,10 +48,12 @@ export interface StreamInterface extends SerializableClassInterface {
   getStreamDataByDuration(offset?: number, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[]
 
   /**
-   * Checks if the current stream is unit derived metric.
-   * Eg speed is m/s if the current stream is speed in km/h this returns true
+   * Checks if the speed is exportable
+   * - It should not be speed derived stream
+   * - It should not be unit derived stream
+   * - It should not be GNSS distance and other types on blacklist
    */
-  isUnitDerivedDataType(): boolean;
+  isExportable(): boolean;
 
   toJSON(): StreamJSONInterface;
 }

@@ -51,8 +51,10 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[])
   }
 
-  isUnitDerivedDataType(): boolean {
-    return DynamicDataLoader.isUnitDerivedDataType(this.type);
+  isExportable(): boolean {
+    return !DynamicDataLoader.isUnitDerivedDataType(this.type)
+      && !DynamicDataLoader.isSpeedDerivedDataType(this.type)
+      && !DynamicDataLoader.isBlackListedStream(this.type);
   }
 
   toJSON(): StreamJSONInterface {

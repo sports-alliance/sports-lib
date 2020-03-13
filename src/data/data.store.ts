@@ -234,6 +234,13 @@ import { DataStopEvent } from './data.stop-event';
 import { DataStartEvent } from './data.start-event';
 import { DataStopAllEvent } from './data.stop-all-event';
 import { DataTime } from './data.time';
+import {
+  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInFeetPerHour,
+  convertSpeedToSpeedInFeetPerMinute,
+  convertSpeedToSpeedInFeetPerSecond,
+  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMetersPerHour, convertSpeedToSpeedInMetersPerMinute,
+  convertSpeedToSpeedInMilesPerHour, convertSwimPaceToSwimPacePer100Yard
+} from '../events/utilities/helpers';
 
 /**
  * Only concrete classes no abstracts
@@ -521,42 +528,50 @@ export class DynamicDataLoader {
     DataGrade.type
   ];
 
-  static unitBasedDataTypes: DataTypeUnitGroups = {
-    [DataSpeed.type]: [
-      DataSpeedKilometersPerHour.type,
-      DataSpeedMilesPerHour.type,
-      DataSpeedFeetPerSecond.type,
-      DataSpeedFeetPerMinute.type,
-      DataSpeedMetersPerMinute.type,
-      // Pace is also based on speed
-      DataPace.type,
-      DataPaceMinutesPerMile.type,
-      // Swim pace as well
-      DataSwimPace.type,
-      DataSwimPaceMinutesPer100Yard.type,
-    ],
-    [DataGradeAdjustedSpeed.type]: [
-      DataGradeAdjustedSpeedKilometersPerHour.type,
-      DataGradeAdjustedSpeedMilesPerHour.type,
-      DataGradeAdjustedSpeedFeetPerSecond.type,
-      DataGradeAdjustedSpeedFeetPerMinute.type,
-      DataGradeAdjustedSpeedMetersPerMinute.type,
-      // Pace is also based on speed
-      DataGradeAdjustedPace.type,
-      DataGradeAdjustedPaceMinutesPerMile.type,
-    ],
-    [DataVerticalSpeed.type]: [
-      DataVerticalSpeedFeetPerSecond.type,
-      DataVerticalSpeedMetersPerMinute.type,
-      DataVerticalSpeedFeetPerMinute.type,
-      DataVerticalSpeedMetersPerHour.type,
-      DataVerticalSpeedFeetPerHour.type,
-      DataVerticalSpeedKilometerPerHour.type,
-      DataVerticalSpeedMilesPerHour.type,
-    ],
+  static dataTypeUnitGroups: DataTypeUnitGroups = {
+    [DataSpeed.type]: {
+      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+    },
+    [DataGradeAdjustedSpeed.type]: {
+      [DataGradeAdjustedSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataGradeAdjustedSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataGradeAdjustedSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataGradeAdjustedSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataGradeAdjustedSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+    },
+    [DataPace.type]: {
+      [DataPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataGradeAdjustedPace.type]: {
+      [DataGradeAdjustedPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataSwimPace.type]: {
+      [DataSwimPaceMinutesPer100Yard.type]: convertSwimPaceToSwimPacePer100Yard
+    },
+    [DataVerticalSpeed.type]: {
+      [DataVerticalSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataVerticalSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataVerticalSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataVerticalSpeedMetersPerHour.type]: convertSpeedToSpeedInMetersPerHour,
+      [DataVerticalSpeedFeetPerHour.type]: convertSpeedToSpeedInFeetPerHour,
+      [DataVerticalSpeedKilometerPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataVerticalSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+    }
   };
 
+  // @todo perhaps GAS?
+  static speedDerivedDataTypes = [
+    DataPace.type,
+    DataGradeAdjustedPace.type,
+    DataSwimPace.type,
+  ];
+
   static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);
+  static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])), []);
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
     const className = Object.keys(DataStore).find((dataClass) => {
@@ -579,7 +594,18 @@ export class DynamicDataLoader {
   }
 
   static isUnitDerivedDataType(dataType: string): boolean {
-    return Object.values(this.unitBasedDataTypes).reduce((accu, item) => accu.concat(item), []).indexOf(dataType) !== -1;
+    return this.allUnitDerivedDataTypes.indexOf(dataType) !== -1;
+  }
+
+  static isSpeedDerivedDataType(dataType: string): boolean {
+    return this.speedDerivedDataTypes.indexOf(dataType) !== -1;
+  }
+
+  static isBlackListedStream(dataType: string): boolean {
+    return [
+      DataGNSSDistance.type,
+      DataTime.type,
+    ].indexOf(dataType) !== -1;
   }
 
   /**
@@ -956,5 +982,7 @@ export class DynamicDataLoader {
 
 
 export interface DataTypeUnitGroups {
-  [type: string]: string[]
+  [type: string]: {
+    [type: string]: (value: number) => number
+  }
 }

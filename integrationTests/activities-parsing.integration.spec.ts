@@ -150,7 +150,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expectTolerance(event.getFirstActivity().getPause().getValue(), expectedPauseTime, expectedPauseTime * PAUSE_TIME_TOLERANCE);
             expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
@@ -193,7 +192,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expectTolerance(event.getFirstActivity().getPause().getValue(), expectedPauseTime, expectedPauseTime * PAUSE_TIME_TOLERANCE);
             expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
@@ -373,7 +371,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             expect(event.getFirstActivity().getPause().getValue()).toEqual(expectedElapsedTime - expectedMovingTime);
@@ -421,7 +418,6 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-          expect(event.getFirstActivity().getStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           // console.log(event.getFirstActivity().getDuration().getValue() === expectedElapsedTime)
@@ -518,7 +514,6 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-          expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
 
           const missingStreamCall = () => {
             event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -595,7 +590,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -629,7 +623,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
 
             const missingStreamCall = () => {
               event.getFirstActivity().getSquashedStreamData(DataPower.type);
@@ -774,7 +767,6 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
             done();

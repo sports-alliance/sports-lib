@@ -779,6 +779,8 @@ export class EventUtilities {
               }
               return convertSpeedToSwimPace(<number>dataValue);
             }))]);
+          case DataSpeed.type:
+            return array.concat(speedStream);
           default:
             return array
         }
@@ -805,6 +807,8 @@ export class EventUtilities {
               }
               return convertSpeedToPace(<number>dataValue);
             }))]);
+          case DataGradeAdjustedSpeed.type:
+            return array.concat(gradeAdjustedSpeedStream);
           default:
             return array
         }

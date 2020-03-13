@@ -18,6 +18,7 @@ import {
   DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
 import { DataStore, DynamicDataLoader } from './data.store';
+import { DataDistance, DataDistanceMiles } from './data.distance';
 
 describe('DataStore', () => {
 
@@ -43,6 +44,7 @@ describe('DataStore', () => {
     DataVerticalSpeedFeetPerHour.type,
     DataVerticalSpeedKilometerPerHour.type,
     DataVerticalSpeedMilesPerHour.type,
+    DataDistanceMiles.type,
   ];
 
   const speedDerivedDataTypes = [

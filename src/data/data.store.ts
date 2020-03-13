@@ -236,11 +236,15 @@ import { DataStopAllEvent } from './data.stop-all-event';
 import { DataTime } from './data.time';
 import {
   convertMetersToMiles,
-  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInFeetPerHour,
+  convertPaceToPaceInMinutesPerMile,
+  convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
-  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMetersPerHour, convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour, convertSwimPaceToSwimPacePer100Yard
+  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInMetersPerHour,
+  convertSpeedToSpeedInMetersPerMinute,
+  convertSpeedToSpeedInMilesPerHour,
+  convertSwimPaceToSwimPacePer100Yard
 } from '../events/utilities/helpers';
 
 /**
@@ -473,19 +477,24 @@ export const DataStore: any = {
 };
 
 export class DynamicDataLoader {
+  // @todo Convert to enums please and use them on Stream types
 
-  // Convert to enums please
-  static basicDataTypes =
-    [
-      DataHeartRate.type,
-      DataAltitude.type,
-      DataCadence.type,
-      DataPower.type,
-      DataPace.type,
-      DataGradeAdjustedPace.type,
-      DataSpeed.type,
-      DataGradeAdjustedSpeed.type
-    ];
+
+  static positionalDataTypes = [
+    DataLatitudeDegrees.type,
+    DataLongitudeDegrees.type,
+  ]
+
+  static basicDataTypes = [
+    DataHeartRate.type,
+    DataAltitude.type,
+    DataCadence.type,
+    DataPower.type,
+    DataPace.type,
+    DataGradeAdjustedPace.type,
+    DataSpeed.type,
+    // DataGradeAdjustedSpeed.type
+  ];
 
   static advancedDataTypes = [
     DataGrade.type,
@@ -575,7 +584,6 @@ export class DynamicDataLoader {
     DataSwimPace.type,
   ];
 
-  static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])), []);
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {

@@ -72,7 +72,7 @@ export class ActivityTypesHelper {
         return [DataPace.type];
       case ActivityTypes.Cycling:
       case ActivityTypes.MountainBiking:
-        return [DataSpeedAvg.type, DataGradeAdjustedSpeed.type];
+        return [DataSpeed.type, DataGradeAdjustedSpeed.type];
       case ActivityTypes.Swimming:
       case ActivityTypes.OpenWaterSwimming:
         return [DataSpeed.type, DataSwimPace.type];

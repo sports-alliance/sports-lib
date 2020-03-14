@@ -2,6 +2,8 @@ import * as strava_3025376963 from './fixtures/strava_3025376963.json';
 import * as strava_3025855594 from './fixtures/strava_3025855594.json';
 import { CLAMP, GradeCalculator } from './grade-calculator';
 
+export const GRADE_TOLERANCE = 1.5
+
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -416,7 +418,7 @@ describe('GradeCalculator', () => {
 
       const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStream, strava_3025376963.grade_smooth);
       console.log(`Delta is ${deltaBetweenStreams}`);
-      expect(deltaBetweenStreams).toBeLessThan(1.5);
+      expect(deltaBetweenStreams).toBeLessThan(GRADE_TOLERANCE);
 
       done();
     });
@@ -436,7 +438,7 @@ describe('GradeCalculator', () => {
 
       const deltaBetweenStreams = averageDeltaBetweenStreams(gradeStream, strava_3025855594.grade_smooth);
       console.log(`Delta is ${deltaBetweenStreams}`);
-      expect(deltaBetweenStreams).toBeLessThan(1.5);
+      expect(deltaBetweenStreams).toBeLessThan(GRADE_TOLERANCE);
 
       done();
     });

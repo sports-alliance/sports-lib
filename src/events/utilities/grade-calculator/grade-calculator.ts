@@ -34,7 +34,7 @@ export class GradeCalculator {
     filterGrade = true,
     basedOnAltitude = true,
     lookAhead = true,
-    lookAheadInTime = false
+    lookAheadInTime = true
   ): (number | null)[] {
     // First filter the altitude to remove any noise and predict
     if (filterAltitude) {
@@ -91,7 +91,7 @@ export class GradeCalculator {
     lookAhead: boolean,
     lookAheadInTime: boolean,
   ): (number | null)[] {
-    const lookAheadInSeconds = 1 // 1s
+    const lookAheadInSeconds = 3 // 3s
     const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
 
@@ -146,7 +146,7 @@ export class GradeCalculator {
     lookAhead: boolean,
     lookAheadInTime: boolean,
   ): (number | null)[] {
-    const lookAheadInSeconds = 1; // 1s
+    const lookAheadInSeconds = 3; // 3s
     const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
     const numericDistanceStream = this.getDistanceStreamRepaired(distanceStream);

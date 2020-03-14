@@ -16,6 +16,8 @@ import { DataPower } from '../src/data/data.power';
 import { DataDistance } from '../src/data/data.distance';
 import { DataGrade } from '../src/data/data.grade';
 
+export const GRADE_TOLERANCE = 1.5
+
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -152,10 +154,10 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than 1.5%', done => {
+    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
       // Given
-      const toleranceAvgGradeDelta = 1.5;
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
 
       const stravaGradeStream = clone(strava_3156040843.grade_smooth);
 
@@ -266,10 +268,10 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than 1.5%', done => {
+    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
       // Given
-      const toleranceAvgGradeDelta = 1.5;
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
 
       const stravaGradeStream = clone(strava_3182900697.grade_smooth);
 
@@ -377,10 +379,10 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than 1.5%', done => {
+    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
       // Given
-      const toleranceAvgGradeDelta = 1.5;
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
 
       const stravaGradeStream = clone(strava_3183465494.grade_smooth);
 
@@ -489,10 +491,10 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than 1.5%', done => {
+    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
       // Given
-      const toleranceAvgGradeDelta = 1.5;
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
 
       const stravaGradeStream = clone(strava_3183490558.grade_smooth);
 
@@ -602,10 +604,10 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should have an average grade diff lower than 1.5%', done => {
+      it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
         // Given
-        const toleranceAvgGradeDelta = 1.5;
+        const toleranceAvgGradeDelta = GRADE_TOLERANCE;
         const stravaGradeStream = clone(strava_343080886.grade_smooth);
 
         // When
@@ -720,10 +722,10 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should have an average grade diff lower than 1.5%', done => {
+      it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
 
         // Given
-        const toleranceAvgGradeDelta = 1.5;
+        const toleranceAvgGradeDelta = GRADE_TOLERANCE;
         const stravaGradeStream = clone(strava_343080886.grade_smooth);
 
         // When

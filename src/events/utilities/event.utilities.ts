@@ -995,6 +995,13 @@ export class EventUtilities {
    * @param activity
    */
   private static addMissingDataToStreams(activity: ActivityInterface) {
+    /**
+     * This tries to align data with Strava.
+     * Strava fills HR alti cadence with the last value.
+     * For Power and temperature it doesn't but keeps nulls.
+     * However, if you keep nulls for paused portions then strava doens't give back null
+     * that typically indicates a sensor disconnect I suppose. 
+     */
     const streamTypesToBackAndForthFill = [
       DataAltitude.type,
       DataHeartRate.type,
@@ -1003,7 +1010,7 @@ export class EventUtilities {
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // First generate the time stream
-    const timeStream = activity.generateTimeStream(streamTypesToBackAndForthFill);
+    const timeStream = activity.generateTimeStream();
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:

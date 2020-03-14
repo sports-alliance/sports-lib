@@ -50,13 +50,13 @@ export class EventImporterGPX {
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
           activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];
-        } else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
+        } /*else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
           const stravaGpxTypeId = parseInt(trackOrRoute.type[0], 10);
           const entryFound: { id: number, type: string } | undefined = StravaGPXTypeMapping.map.find(entry => entry.id === stravaGpxTypeId);
           if (entryFound) {
             activityType = ActivityTypes[<keyof typeof ActivityTypes>entryFound.type];
           }
-        }
+        }*/
         const activity = new Activity(
           startDate,
           endDate,

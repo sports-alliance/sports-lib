@@ -1000,7 +1000,7 @@ export class EventUtilities {
      * Strava fills HR alti cadence with the last value.
      * For Power and temperature it doesn't but keeps nulls.
      * However, if you keep nulls for paused portions then strava doens't give back null
-     * that typically indicates a sensor disconnect I suppose. 
+     * that typically indicates a sensor disconnect I suppose.
      */
     const streamTypesToBackAndForthFill = [
       DataAltitude.type,

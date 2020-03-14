@@ -1043,6 +1043,14 @@ export class EventUtilities {
         return data;
       }, []))
     })
+    /**
+     * @todo
+     * Linear fill distance where:
+     * a) There is not distance but it's not paused
+     * b) There is no corespoding lat/long but there is distace (aka distance = not trusted)
+     * About B I am not sure. That is because if there is for example an internal accelerometer
+     * that reports better this can help with pace and other things. Even for GAP
+     */
   }
 
   private static getEventDataTypeGainOrLoss(

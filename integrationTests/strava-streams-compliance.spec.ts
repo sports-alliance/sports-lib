@@ -7,6 +7,7 @@ import * as strava_343080886 from './fixtures/strava-streams-compliance/garmin_e
 import * as strava_3171438371_gpx from './fixtures/strava-streams-compliance/garmin_export/strava_3171472783_gpx.json';
 import * as strava_3171487458_tcx from './fixtures/strava-streams-compliance/garmin_export/strava_3171487458_tcx.json';
 import * as strava_3183465494 from './fixtures/strava-streams-compliance/COROS_export/strava_3183465494.json';
+import * as strava_3183490558 from './fixtures/strava-streams-compliance/COROS_export/strava_3183490558.json';
 import { DataAltitude } from '../src/data/data.altitude';
 import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataCadence } from '../src/data/data.cadence';
@@ -398,6 +399,119 @@ describe('Strava data compliance', () => {
     });
 
   });
+
+  describe('Compliance with COROS export trail', () => {
+
+    const path = __dirname + '/fixtures/strava-streams-compliance/COROS_export/TrailRun20200215111630.fit';
+    const buffer = fs.readFileSync(path);
+
+    it('should match time', done => {
+
+      // Given
+      const stravaCadenceStream = clone(strava_3183490558.time);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true).length);
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true));
+        done();
+      });
+    });
+
+    it('should match altitude', done => {
+
+      // Given
+      const stravaAltitudeStream = clone(strava_3183490558.altitude);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        expect(stravaAltitudeStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).length);
+        expect(stravaAltitudeStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataAltitude.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        done();
+      });
+    });
+
+    it('should match heart rate', done => {
+
+      // Given
+      const stravaHeartRateStream = clone(strava_3183490558.heartrate);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        expect(stravaHeartRateStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length);
+        expect(stravaHeartRateStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        done();
+      });
+    });
+
+    it('should match cadence', done => {
+
+      // Given
+      const stravaCadenceStream = clone(strava_3183490558.cadence);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        expect(stravaCadenceStream.length).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length);
+        // @todo leaving this to fail to investigate how to fill linear as seen with Suunto
+        expect(stravaCadenceStream).toEqual(event.getFirstActivity().getSquashedStreamData(DataCadence.type).map(value => value === null ? null : Math.round(value * 10) / 10));
+        done();
+      });
+    });
+
+    it('should match distance', done => {
+
+      // Given
+      const tolerance = 0.6; // percent
+
+      const stravaDistanceStream = clone(strava_3183490558.distance);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const streamData = event.getFirstActivity().getSquashedStreamData(DataDistance.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        expect(stravaDistanceStream.length).toEqual(streamData.length);
+        expect(stravaDistanceStream).toEqual(streamData);
+        done();
+      });
+    });
+
+    it('should have an average grade diff lower than 1.5%', done => {
+
+      // Given
+      const toleranceAvgGradeDelta = 1.5;
+
+      const stravaGradeStream = clone(strava_3183490558.grade_smooth);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type).map(value => value === null ? null : Math.round(value * 10) / 10);
+        expect(stravaGradeStream.length).toEqual(streamData.length);
+        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        console.log(`Delta is ${deltaBetweenStreams}`);
+        expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
+        done();
+      });
+    });
+
+  });
+
 
   describe('Compliance with garmin export (hilly activity: https://connect.garmin.com/modern/activity/828989227 / https://www.strava.com/activities/343080886)', () => {
 

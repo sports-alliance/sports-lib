@@ -33,7 +33,8 @@ export class GradeCalculator {
     filterAltitude = true,
     filterGrade = true,
     basedOnAltitude = true,
-    lookAhead = true
+    lookAhead = true,
+    lookAheadInTime = false
   ): (number | null)[] {
     // First filter the altitude to remove any noise and predict
     if (filterAltitude) {
@@ -42,8 +43,8 @@ export class GradeCalculator {
     }
 
     let gradeStream = basedOnAltitude ?
-      this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead)
-      : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead)
+      this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead, lookAheadInTime)
+      : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead, lookAheadInTime)
 
     if (filterGrade) {
       const kf = new KalmanFilter();
@@ -87,8 +88,10 @@ export class GradeCalculator {
   private static computeGradeStreamBasedOnDistance(
     distanceStream: (number | null)[],
     altitudeStream: (number | null)[],
-    lookAhead: boolean
+    lookAhead: boolean,
+    lookAheadInTime: boolean,
   ): (number | null)[] {
+    const lookAheadInSeconds = 1 // 1s
     const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
 
@@ -99,9 +102,13 @@ export class GradeCalculator {
     // Start
     const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < distanceStream.length; i++) {
-      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
-      nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
-
+      let nextIndex = 0;
+      if (lookAheadInTime) {
+        nextIndex = lookAheadInSeconds;
+      } else if (lookAhead) {
+        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
+      }
+      nextIndex =  nextIndex === -1 ? 0 : nextIndex;
       // Set the distance
       previousDistance = distanceStream[i - 1] || previousDistance;
       const currentDistance = distanceStream[i + nextIndex] || previousDistance; // If no distance current distance will be prev
@@ -136,8 +143,10 @@ export class GradeCalculator {
   private static computeGradeStreamBasedOnAltitude(
     distanceStream: (number | null)[],
     altitudeStream: (number | null)[],
-    lookAhead: boolean
+    lookAhead: boolean,
+    lookAheadInTime: boolean,
   ): (number | null)[] {
+    const lookAheadInSeconds = 1; // 1s
     const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
     const numericDistanceStream = this.getDistanceStreamRepaired(distanceStream);
@@ -149,8 +158,13 @@ export class GradeCalculator {
     // Start
     const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < altitudeStream.length; i++) {
-      let nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
-      nextIndex =  (nextIndex === -1 || !lookAhead) ? 0 : nextIndex;
+      let nextIndex = 0;
+      if (lookAheadInTime) {
+        nextIndex = lookAheadInSeconds;
+      } else if (lookAhead) {
+        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
+      }
+      nextIndex =  nextIndex === -1 ? 0 : nextIndex;
 
       // We need to check against 0's with is number
       previousAltitude = isNumber(numericAltitudeStream[i - 1]) ? <number>numericAltitudeStream[i - 1] : previousAltitude;

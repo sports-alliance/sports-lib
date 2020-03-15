@@ -3,6 +3,8 @@ import { isNumber } from '../helpers';
 const KalmanFilter = require('kalmanjs');
 
 export const CLAMP = 40
+export const LOOK_AHEAD_IN_SECONDS = 2;
+export const LOOK_AHEAD_IN_METERS = 10;
 
 export class GradeCalculator {
 
@@ -91,8 +93,6 @@ export class GradeCalculator {
     lookAhead: boolean,
     lookAheadInTime: boolean,
   ): (number | null)[] {
-    const lookAheadInSeconds = 3 // 3s
-    const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
 
     // Reset previous altitude to first element of the numeric array
@@ -103,10 +103,10 @@ export class GradeCalculator {
     const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < distanceStream.length; i++) {
       let nextIndex = 0;
-      if (lookAheadInTime) {
-        nextIndex = lookAheadInSeconds;
+      if (lookAheadInTime && lookAhead) {
+        nextIndex = LOOK_AHEAD_IN_SECONDS;
       } else if (lookAhead) {
-        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
+        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + LOOK_AHEAD_IN_METERS));
       }
       nextIndex =  nextIndex === -1 ? 0 : nextIndex;
       // Set the distance
@@ -134,8 +134,7 @@ export class GradeCalculator {
       const currentAltitude = numericAltitudeStream[i + nextIndex] || previousDistance;
 
       // Calc
-      const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
-      gradeStream[i] = currentGrade;
+      gradeStream[i] = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
     }
     return gradeStream;
   }
@@ -146,8 +145,6 @@ export class GradeCalculator {
     lookAhead: boolean,
     lookAheadInTime: boolean,
   ): (number | null)[] {
-    const lookAheadInSeconds = 3; // 3s
-    const lookAheadInMeters = 10;
     const numericAltitudeStream = this.getAltitudeStreamRepaired(altitudeStream);
     const numericDistanceStream = this.getDistanceStreamRepaired(distanceStream);
 
@@ -159,10 +156,10 @@ export class GradeCalculator {
     const gradeStream = Array(altitudeStream.length).fill(null);
     for (let i = 0; i < altitudeStream.length; i++) {
       let nextIndex = 0;
-      if (lookAheadInTime) {
-        nextIndex = lookAheadInSeconds;
+      if (lookAheadInTime && lookAhead) {
+        nextIndex = LOOK_AHEAD_IN_SECONDS;
       } else if (lookAhead) {
-        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + lookAheadInMeters));
+        nextIndex = distanceStream.slice(i).findIndex(d => d === null ? false : d >= (previousDistance + LOOK_AHEAD_IN_METERS));
       }
       nextIndex =  nextIndex === -1 ? 0 : nextIndex;
 
@@ -183,8 +180,7 @@ export class GradeCalculator {
       const currentDistance = numericDistanceStream[i + nextIndex] || previousDistance;
 
       // Calc
-      const currentGrade = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
-      gradeStream[i] = currentGrade;
+      gradeStream[i] = GradeCalculator.computeGrade(previousDistance, currentDistance, previousAltitude, currentAltitude);
     }
     return gradeStream;
   }

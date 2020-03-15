@@ -2,9 +2,9 @@ import { isNumber } from '../helpers';
 
 const KalmanFilter = require('kalmanjs');
 
-const CLAMP = 40
-const LOOK_AHEAD_IN_SECONDS = 2;
-const LOOK_AHEAD_IN_METERS = 10;
+export const CLAMP = 40
+export const LOOK_AHEAD_IN_SECONDS = 2;
+export const LOOK_AHEAD_IN_METERS = 10;
 
 export class GradeCalculator {
 

@@ -16,7 +16,7 @@ import { DataPower } from '../src/data/data.power';
 import { DataDistance } from '../src/data/data.distance';
 import { DataGrade } from '../src/data/data.grade';
 
-const GRADE_TOLERANCE = 1.5
+export const GRADE_TOLERANCE = 1.5
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));

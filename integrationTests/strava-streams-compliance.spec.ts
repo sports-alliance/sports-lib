@@ -37,7 +37,7 @@ describe('Strava data compliance', () => {
     const path = __dirname + '/fixtures/strava-streams-compliance/suunto_export/5e5fde38c2de24635a30d383.fit';
     const buffer = fs.readFileSync(path);
 
-    it('should match time', done => {
+    it(`should match time`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3156040843.time);
@@ -53,7 +53,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match altitude', done => {
+    it(`should match altitude`, done => {
 
       // Given
       const stravaAltitudeStream = clone(strava_3156040843.altitude);
@@ -69,7 +69,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match heart rate', done => {
+    it(`should match heart rate`, done => {
 
       // Given
       const stravaHeartRateStream = clone(strava_3156040843.heartrate);
@@ -85,7 +85,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match cadence', done => {
+    it(`should match cadence`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3156040843.cadence);
@@ -101,7 +101,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match temperature', done => {
+    it(`should match temperature`, done => {
       // Given
       const stravaTemperatureStream = clone(strava_3156040843.temp);
 
@@ -116,7 +116,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match power', done => {
+    it(`should match power`, done => {
 
       // Given
       const stravaPowerStream = clone(strava_3156040843.watts);
@@ -132,7 +132,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match distance with x% error max', done => {
+    it(`should match distance with x% error max`, done => {
 
       // Given
       const tolerance = 0.6; // percent
@@ -154,7 +154,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
       // Given
       const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -182,7 +182,7 @@ describe('Strava data compliance', () => {
     const path = __dirname + '/fixtures/strava-streams-compliance/suunto_export/5e5fde38c2de24635a30d383-2.fit';
     const buffer = fs.readFileSync(path);
 
-    it('should match time', done => {
+    it(`should match time`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3182900697.time);
@@ -198,7 +198,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match altitude', done => {
+    it(`should match altitude`, done => {
 
       // Given
       const stravaAltitudeStream = clone(strava_3182900697.altitude);
@@ -214,7 +214,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match heart rate', done => {
+    it(`should match heart rate`, done => {
 
       // Given
       const stravaHeartRateStream = clone(strava_3182900697.heartrate);
@@ -230,7 +230,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match cadence', done => {
+    it(`should match cadence`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3182900697.cadence);
@@ -246,7 +246,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match distance with x% error max', done => {
+    it(`should match distance with x% error max`, done => {
 
       // Given
       const tolerance = 0.6; // percent
@@ -268,7 +268,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
       // Given
       const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -296,7 +296,7 @@ describe('Strava data compliance', () => {
     const path = __dirname + '/fixtures/strava-streams-compliance/COROS_export/OutdoorRun20200314145229.fit';
     const buffer = fs.readFileSync(path);
 
-    it('should match time', done => {
+    it(`should match time`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3183465494.time);
@@ -312,7 +312,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match altitude', done => {
+    it(`should match altitude`, done => {
 
       // Given
       const stravaAltitudeStream = clone(strava_3183465494.altitude);
@@ -328,7 +328,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match heart rate', done => {
+    it(`should match heart rate`, done => {
 
       // Given
       const stravaHeartRateStream = clone(strava_3183465494.heartrate);
@@ -344,7 +344,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match cadence', done => {
+    it(`should match cadence`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3183465494.cadence);
@@ -360,7 +360,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match distance', done => {
+    it(`should match distance`, done => {
 
       // Given
       const tolerance = 0.6; // percent
@@ -379,7 +379,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
       // Given
       const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -407,7 +407,7 @@ describe('Strava data compliance', () => {
     const path = __dirname + '/fixtures/strava-streams-compliance/COROS_export/TrailRun20200215111630.fit';
     const buffer = fs.readFileSync(path);
 
-    it('should match time', done => {
+    it(`should match time`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3183490558.time);
@@ -423,7 +423,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match altitude', done => {
+    it(`should match altitude`, done => {
 
       // Given
       const stravaAltitudeStream = clone(strava_3183490558.altitude);
@@ -439,7 +439,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match heart rate', done => {
+    it(`should match heart rate`, done => {
 
       // Given
       const stravaHeartRateStream = clone(strava_3183490558.heartrate);
@@ -455,7 +455,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match cadence', done => {
+    it(`should match cadence`, done => {
 
       // Given
       const stravaCadenceStream = clone(strava_3183490558.cadence);
@@ -472,7 +472,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should match distance', done => {
+    it(`should match distance`, done => {
 
       // Given
       const tolerance = 0.6; // percent
@@ -491,7 +491,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
       // Given
       const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -521,7 +521,7 @@ describe('Strava data compliance', () => {
       const path = __dirname + '/fixtures/strava-streams-compliance/garmin_export/garmin_828989227.fit';
       const buffer = fs.readFileSync(path);
 
-      it('should match time', done => {
+      it(`should match time`, done => {
 
         // Given
         const stravaCadenceStream = clone(strava_343080886.time);
@@ -537,7 +537,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match altitude', done => {
+      it(`should match altitude`, done => {
 
         // Given
         const stravaAltitudeStream = clone(strava_343080886.altitude);
@@ -553,7 +553,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match heart rate', done => {
+      it(`should match heart rate`, done => {
 
         // Given
         const stravaHeartRateStream = clone(strava_343080886.heartrate);
@@ -569,7 +569,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match cadence', done => {
+      it(`should match cadence`, done => {
 
         // Given
         const stravaCadenceStream = clone(strava_343080886.cadence);
@@ -585,7 +585,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match distance with x% error max', done => {
+      it(`should match distance with x% error max`, done => {
 
         // Given
         const tolerance = 0.00; // percent
@@ -604,7 +604,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+      it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
         // Given
         const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -631,7 +631,7 @@ describe('Strava data compliance', () => {
       const path = __dirname + '/fixtures/strava-streams-compliance/garmin_export/garmin_828989227.tcx';
       const doc = new DOMParser().parseFromString(fs.readFileSync(path).toString(), 'application/xml');
 
-      it('should match time', done => {
+      it(`should match time`, done => {
 
         // Given
         const stravaCadenceStream = clone(strava_3171487458_tcx.time);
@@ -647,7 +647,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match altitude', done => {
+      it(`should match altitude`, done => {
 
         // Given
         const stravaAltitudeStream = clone(strava_3171487458_tcx.altitude);
@@ -663,7 +663,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match heart rate', done => {
+      it(`should match heart rate`, done => {
 
         // Given
         const stravaHeartRateStream = clone(strava_3171487458_tcx.heartrate);
@@ -679,7 +679,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match cadence', done => {
+      it(`should match cadence`, done => {
 
         // Given
         const stravaCadenceStream = clone(strava_3171487458_tcx.cadence);
@@ -695,7 +695,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should match distance with x% error max', done => {
+      it(`should match distance with x% error max`, done => {
 
         // Given
         const tolerance = 2.6; // percent
@@ -722,7 +722,7 @@ describe('Strava data compliance', () => {
         });
       });
 
-      it('should have an average grade diff lower than GRADE_TOLERANCE%', done => {
+      it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
         // Given
         const toleranceAvgGradeDelta = GRADE_TOLERANCE;
@@ -749,7 +749,7 @@ describe('Strava data compliance', () => {
       const path = __dirname + '/fixtures/strava-streams-compliance/garmin_export/garmin_828989227.gpx';
       const gpxString = fs.readFileSync(path).toString();
 
-      it('should match time', done => {
+      it(`should match time`, done => {
 
         // Given
         const stravaTimeStream = clone(strava_3171438371_gpx.time);
@@ -766,7 +766,7 @@ describe('Strava data compliance', () => {
       });
 
       // Strava adds their own altitude so no go from here
-      // it('should match altitude', done => {
+      // it(`should match altitude`, done => {
       //
       //   // Given
       //   const stravaAltitudeStream = clone(strava_3171438371_gpx.altitude);
@@ -783,7 +783,7 @@ describe('Strava data compliance', () => {
       // });
 
       // we skip this because https://support.strava.com/hc/en-us/community/posts/360054808092-Not-getting-Garmin-heart-rate-data-into-Strava
-      // it('should match heart rate', done => {
+      // it(`should match heart rate`, done => {
       //
       //   // Given
       //   const stravaHeartRateStream = clone(strava_3171438371.heartrate);
@@ -800,7 +800,7 @@ describe('Strava data compliance', () => {
       // });
 
       // we skip this because https://support.strava.com/hc/en-us/community/posts/360054808092-Not-getting-Garmin-heart-rate-data-into-Strava
-      // it('should match cadence', done => {
+      // it(`should match cadence`, done => {
       //
       //   // Given
       //   const stravaCadenceStream = clone(strava_3171438371.cadence);
@@ -819,7 +819,7 @@ describe('Strava data compliance', () => {
 
       // @todo try different geolib adapters etc to make this diff smaller or investigate more on how strava
       // Bumps the distance
-      it('should match distance with x% error max', done => {
+      it(`should match distance with x% error max`, done => {
 
         // Given
         const deltaTolerance = 15; // percent
@@ -840,7 +840,7 @@ describe('Strava data compliance', () => {
       });
 
       // Tolerance is higher since distance is different unfortunately (see above test)
-      it('should have an average grade diff lower than 3.2%', done => {
+      it(`should have an average grade diff lower than 3.2%`, done => {
 
         // Given
         const toleranceAvgGradeDelta = 3.2;

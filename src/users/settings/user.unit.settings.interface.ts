@@ -47,6 +47,11 @@ export enum GradeAdjustedPaceUnits {
   MinutesPerMile = 'Grade Adjusted Pace in minutes per mile',
 }
 
+export enum paceUnitsToGradeAdjustedUnits {
+  'Pace' = 'Grade Adjusted Pace',
+  'Pace in minutes per mile' = 'Grade Adjusted Pace in minutes per mile';
+}
+
 export enum SwimPaceUnits {
   MinutesPer100Meter = 'Swim Pace',
   MinutesPer100Yard = 'Swim Pace in minutes per 100 yard',

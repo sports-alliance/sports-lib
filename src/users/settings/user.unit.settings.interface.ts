@@ -8,6 +8,15 @@ export interface UserUnitSettingsInterface {
   startOfTheWeek: DaysOfTheWeek,
 }
 
+export enum SpeedUnits {
+  KilometersPerHour = 'Speed in kilometers per hour',
+  MilesPerHour = 'Speed in miles per hour',
+  MetersPerSecond = 'Speed',
+  FeetPerSecond = 'Speed in feet per second',
+  // MetersPerMinute = 'Meters per minute',
+  // FeetPerMinute = 'Feet per minute',
+}
+
 export enum GradeAdjustedSpeedUnits {
   KilometersPerHour = 'Grade Adjusted Speed in kilometers per hour',
   MilesPerHour = 'Grade Adjusted Speed in miles per hour',
@@ -17,13 +26,13 @@ export enum GradeAdjustedSpeedUnits {
   // FeetPerMinute = 'Feet per minute',
 }
 
-export enum SpeedUnits {
-  KilometersPerHour = 'Speed in kilometers per hour',
-  MilesPerHour = 'Speed in miles per hour',
-  MetersPerSecond = 'Speed',
-  FeetPerSecond = 'Speed in feet per second',
-  // MetersPerMinute = 'Meters per minute',
-  // FeetPerMinute = 'Feet per minute',
+export enum SpeedUnitsToGradeAdjustedSpeedUnits {
+  'Speed in kilometers per hour' = 'KilometersPerHour',
+  'Speed in miles per hour' = 'MilesPerHour',
+  'Speed' = 'MetersPerSecond',
+  'Speed in feet per second' = 'FeetPerSecond',
+  'Meters per minute' = 'MetersPerMinute',
+  'Feet per minute' = 'FeetPerMinute',
 }
 
 export enum VerticalSpeedUnits {
@@ -47,9 +56,9 @@ export enum GradeAdjustedPaceUnits {
   MinutesPerMile = 'Grade Adjusted Pace in minutes per mile',
 }
 
-export enum paceUnitsToGradeAdjustedUnits {
-  'Pace' = 'Grade Adjusted Pace',
-  'Pace in minutes per mile' = 'Grade Adjusted Pace in minutes per mile';
+export enum PaceUnitsToGradeAdjustedPaceUnits {
+  'Pace' = 'MinutesPerKilometer',
+  'Pace in minutes per mile' = 'MinutesPerMile'
 }
 
 export enum SwimPaceUnits {

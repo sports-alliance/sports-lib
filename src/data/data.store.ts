@@ -246,6 +246,7 @@ import {
   convertSpeedToSpeedInMilesPerHour,
   convertSwimPaceToSwimPacePer100Yard
 } from '../events/utilities/helpers';
+import { Data } from './data';
 
 /**
  * Only concrete classes no abstracts
@@ -491,9 +492,9 @@ export class DynamicDataLoader {
     DataCadence.type,
     DataPower.type,
     DataPace.type,
+    DataGradeAdjustedSpeed.type,
     DataGradeAdjustedPace.type,
     DataSpeed.type,
-    // DataGradeAdjustedSpeed.type
   ];
 
   static advancedDataTypes = [
@@ -596,7 +597,7 @@ export class DynamicDataLoader {
     return new DataStore[className](opts);
   }
 
-  static getDataClassFromDataType(dataType: string): any {
+  static getDataClassFromDataType(dataType: string): typeof Data {
     const className = Object.keys(DataStore).find((dataClass) => {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });

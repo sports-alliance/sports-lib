@@ -4,7 +4,7 @@ import { DataPositionInterface } from './data.position.interface';
 import { isNumber } from '../events/utilities/helpers';
 
 export abstract class Data implements DataInterface {
-  static type: string; // @todo perhas add enum type
+  static type: string;
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;

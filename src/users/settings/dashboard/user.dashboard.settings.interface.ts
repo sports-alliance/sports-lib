@@ -7,7 +7,6 @@ export interface UserDashboardSettingsInterface {
   endDate: number,
   tiles: TileSettingsInterface[],
   showSummaries: boolean,
-  pinUploadSection: boolean,
   tableSettings: TableSettings
   activityTypes?: ActivityTypes[],
 }

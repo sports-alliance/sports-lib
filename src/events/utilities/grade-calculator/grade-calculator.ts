@@ -1,4 +1,5 @@
 import { isNumber } from '../helpers';
+import { LowPassFilter } from './low-pass-filter';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -51,6 +52,7 @@ export class GradeCalculator {
     if (filterGrade) {
       const kf = new KalmanFilter();
       gradeStream = gradeStream.map(v => v === null ? null : kf.filter(v))
+      gradeStream =  new LowPassFilter(0.2).smoothArray(gradeStream)
     }
     return gradeStream
       .map(v => v === null ? null : Math.round(v * 10) / 10)

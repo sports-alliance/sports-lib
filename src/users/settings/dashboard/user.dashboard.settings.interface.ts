@@ -6,7 +6,6 @@ export interface UserDashboardSettingsInterface {
   startDate: number,
   endDate: number,
   tiles: TileSettingsInterface[],
-  showSummaries: boolean,
   tableSettings: TableSettings
   activityTypes?: ActivityTypes[],
 }

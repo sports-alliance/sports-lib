@@ -3,7 +3,6 @@ import { DataPace } from './data.pace';
 
 export class DataGradeAdjustedPace extends DataPace {
   static type = 'Grade Adjusted Pace';
-  static displayType = 'G.A.P.';
   static unit = 'min/km';
 
   getValue(formatForDataType?: string): number {

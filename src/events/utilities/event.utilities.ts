@@ -192,6 +192,7 @@ import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { Activity } from '../../activities/activity';
+import { DataMovingTime } from '../../data/data.moving-time';
 
 export class EventUtilities {
 
@@ -1742,8 +1743,7 @@ export class EventUtilities {
 
       movingTime = movingTime / 1000;
 
-      const duration = <number>(<DataInterface>activity.getStat(DataDuration.type)).getValue();
-      activity.setPause(new DataPause(Math.round(duration - movingTime)));
+      activity.addStat(new DataMovingTime(movingTime));
     }
 
     // If there is no pause define that from the start date and end date and duration

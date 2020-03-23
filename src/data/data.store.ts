@@ -247,6 +247,7 @@ import {
   convertSwimPaceToSwimPacePer100Yard
 } from '../events/utilities/helpers';
 import { Data } from './data';
+import { DataMovingTime } from './data.moving-time';
 
 /**
  * Only concrete classes no abstracts
@@ -475,6 +476,7 @@ export const DataStore: any = {
   DataStopAllEvent,
   DataTime,
   DataDistanceMiles,
+  DataMovingTime,
 };
 
 export class DynamicDataLoader {

@@ -1735,7 +1735,7 @@ export class EventUtilities {
 
         const deltaTime = finalSpeedStream[index].time - finalSpeedStream[index - 1].time;
 
-        if (<number>speedEntry.value >= speedThreshold) {
+        if (<number>speedEntry.value > speedThreshold) {
           movingTime += deltaTime;
         }
 

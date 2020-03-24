@@ -55,6 +55,10 @@ export function convertPaceToPaceInMinutesPerMile(number: number): number {
   return number * 1.60934;
 }
 
+export function convertMetersToMiles(number: number): number {
+  return  number === 0  ? 0 : number / 1609;
+}
+
 /**
  * Converts m/s to seconds per 100m
  * @param number
@@ -109,4 +113,29 @@ export function getSize(obj: any): string {
   }
 
   return formatByteSize(sizeOf(obj));
+}
+
+/**
+ * from https://stackoverflow.com/questions/48340403/fill-missing-numeric-values-in-an-array
+ * Very badly written
+ * @param array
+ */
+export function fillMissingValuesLinear(array: (number | null)[]): number[] {
+  let i = 0, j, delta;
+  while (i < array.length) {
+    if (array[i] !== null) {
+      i++;
+      continue;
+    }
+    j = i;
+    while (array[++j] === null) { }
+    // @ts-ignore
+    delta = (array[j] - array[i - 1]) / (j - i + 1);
+    do {
+      // @ts-ignore
+      array[i] = delta + array[i - 1];
+      i++;
+    } while (i < j)
+  }
+  return <number[]>array;
 }

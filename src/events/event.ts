@@ -114,6 +114,10 @@ export class Event extends DurationClassAbstract implements EventInterface {
     }, []).join(', ');
   }
 
+  isMultiSport(): boolean {
+    return !this.isMerge && this.getActivities().length > 1;
+  }
+
   toJSON(): EventJSONInterface {
     const stats = {};
     this.stats.forEach((value: DataInterface, key: string) => {

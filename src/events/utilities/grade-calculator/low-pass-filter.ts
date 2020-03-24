@@ -1,3 +1,5 @@
+import { isNumber } from '../helpers';
+
 export class LowPassFilter {
 
   private _bufferMaxSize: number;
@@ -57,12 +59,18 @@ export class LowPassFilter {
    * @param {number[]} values
    * @returns {number[]}
    */
-  public smoothArray(values: number[]): number[] {
-    let value = values[0];
+  public smoothArray(values: (number|null)[]): (number|null)[] {
+    let value = values.filter(v => isNumber(v))[0];
+    if (!value) {
+      return values
+    }
     for (let i = 1; i < values.length; i++) {
-      const currentValue = values[i];
+      if (values[i] === null) {
+        continue;
+      }
+      const currentValue = <number>values[i];
       value += (currentValue - value) * this._smoothing;
-      values[i] = Math.round(value);
+      values[i] = Math.round(value * 10) / 10;
     }
     return values;
   }

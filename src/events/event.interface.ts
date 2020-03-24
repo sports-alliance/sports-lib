@@ -36,6 +36,8 @@ export interface EventInterface extends StatsClassInterface,
 
   getLastActivity(): ActivityInterface;
 
+  isMultiSport(): boolean;
+
   toJSON(): EventJSONInterface;
 
 }

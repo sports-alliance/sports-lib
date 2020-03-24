@@ -32,13 +32,6 @@ export interface StreamInterface extends SerializableClassInterface {
   setData(data: (number | null)[]): this;
 
   /**
-   * Returns an array of time as of duration in seconds for the current data
-   * @param onlyNumeric
-   * @param filterInfinity
-   */
-  getDurationOfData(onlyNumeric?: boolean, filterInfinity?: boolean): (number | null)[]
-
-  /**
    * Gets the data based / offset on a startDate
    * @param startDate
    * @param onlyNumeric
@@ -55,10 +48,12 @@ export interface StreamInterface extends SerializableClassInterface {
   getStreamDataByDuration(offset?: number, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[]
 
   /**
-   * Checks if the current stream is unit derived metric.
-   * Eg speed is m/s if the current stream is speed in km/h this returns true
+   * Checks if the speed is exportable
+   * - It should not be speed derived stream
+   * - It should not be unit derived stream
+   * - It should not be GNSS distance and other types on blacklist
    */
-  isUnitDerivedDataType(): boolean;
+  isExportable(): boolean;
 
   toJSON(): StreamJSONInterface;
 }

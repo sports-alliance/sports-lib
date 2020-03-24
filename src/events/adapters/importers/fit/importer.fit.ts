@@ -39,7 +39,7 @@ import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
 import { Device } from '../../../../activities/devices/device';
 import { ImporterFitAntPlusDeviceNames } from './importer.fit.ant-plus.device.names';
-import { DataRecoveryTime } from '../../../../data/dataRecoveryTime';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataPeakEPOC } from '../../../../data/data.peak-epoc';
 import { DataFeeling } from '../../../../data/data.feeling';
 import { DataTemperatureMax } from '../../../../data/data.temperature-max';
@@ -70,6 +70,9 @@ import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-thr
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import { DataStartEvent } from '../../../../data/data.start-event';
+import { DataStopEvent } from '../../../../data/data.stop-event';
+import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -94,7 +97,7 @@ export class EventImporterFIT {
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any) => {
-            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject));
+            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity));
           });
 
           // Go over the hr zone info
@@ -149,19 +152,43 @@ export class EventImporterFIT {
             activity.intensityZones.push(speedIntensityZones);
           }
 
+          // Add the events
+          fitDataObject.events.filter((activityEvent: FITFileActivityEvent) => {
+            return activityEvent.timestamp >= activity.startDate && activityEvent.timestamp <= activity.endDate
+          }).forEach((activityEvent: FITFileActivityEvent) => {
+            switch (activityEvent.event_type) {
+              case 'start':
+                activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              case 'stop':
+                activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              case 'stop_all':
+                activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
+                break;
+              default:
+                break;
+            }
+          });
+
+          // Get the samples
           const samples = fitDataObject.records.filter((record: any) => {
             return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
           });
 
           FITSampleMapper.forEach((sampleMapping) => {
+            // @todo not sure if we need to check for number only ...
             const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
             if (subjectSamples.length) {
+              // When we create a stream here it has the length of the activity elapsed time (end-start) filled with nulls.
+              // We keep nulls in order to preserve the array length.
               activity.addStream(activity.createStream(sampleMapping.dataType));
               subjectSamples.forEach((subjectSample) => {
                 activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
               });
             }
           });
+
           return activity;
         });
 
@@ -235,7 +262,7 @@ export class EventImporterFIT {
     })
   }
 
-  private static getLapFromSessionLapObject(sessionLapObject: any): LapInterface {
+  private static getLapFromSessionLapObject(sessionLapObject: any, activity: ActivityInterface): LapInterface {
     const lap = new Lap(
       sessionLapObject.start_time || sessionLapObject.records[0].timestamp || new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
       sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
@@ -246,7 +273,7 @@ export class EventImporterFIT {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
     }
     // Add stats to the lap
-    this.getStatsFromObject(sessionLapObject).forEach(stat => lap.addStat(stat));
+    this.getStatsFromObject(sessionLapObject, activity).forEach(stat => lap.addStat(stat));
     return lap;
   }
 
@@ -256,6 +283,7 @@ export class EventImporterFIT {
     const isSessionTimingCompliant = sessionObject && sessionObject.timestamp
       && (sessionObject.total_elapsed_time || sessionObject.total_timer_time);
 
+    // @todo apparently we should not base on the timstamp for conistency.
     if (isSessionTimingCompliant) { // Session object is legit. We can use it.
       startDate = sessionObject.start_time;
       const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time;
@@ -279,7 +307,7 @@ export class EventImporterFIT {
     const activity = new Activity(startDate, endDate, this.getActivityTypeFromSessionObject(sessionObject),
       this.getCreatorFromFitDataObject(fitDataObject));
     // Set the activity stats
-    this.getStatsFromObject(sessionObject).forEach(stat => activity.addStat(stat));
+    this.getStatsFromObject(sessionObject, activity).forEach(stat => activity.addStat(stat));
     return activity;
   }
 
@@ -291,10 +319,25 @@ export class EventImporterFIT {
   }
 
   // @todo move this to a mapper
-  private static getStatsFromObject(object: any): DataInterface[] {
+  private static getStatsFromObject(object: any, activity: ActivityInterface): DataInterface[] {
     const stats = [];
-    // Set the duration which is the moving time
-    const totalTimerTime = object.total_timer_time ? object.total_timer_time : (object.timestamp - object.start_time) / 1000;
+    // @todo can also check the events ;-)
+    let totalTimerTime = 0;
+    if (isNumber(object.total_timer_time) && isNumber(object.total_elapsed_time)) {
+      totalTimerTime = object.total_elapsed_time < object.total_timer_time ?
+        object.total_elapsed_time
+        : object.total_timer_time;
+    } else if (isNumber(object.total_timer_time)) {
+      totalTimerTime = object.total_elapsed_time
+    } else if ((object.timestamp - object.start_time) / 1000) {
+      totalTimerTime = (object.timestamp - object.start_time) / 1000;
+    }
+    // 0 should be not included aha it's not legit to have a 0 for total timer time
+    // And that typically is a device error we should look at the samples
+    // Since start and end date are inclusive for sample size eg at time [0] there can be a value
+    if (!totalTimerTime) {
+      totalTimerTime = EventUtilities.getDataLength(activity.startDate, activity.endDate) - 1;
+    }
     stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)
     // There is although an exception for Zwift devices that have these fields vise versa
@@ -302,7 +345,7 @@ export class EventImporterFIT {
       object.total_elapsed_time - totalTimerTime :
       totalTimerTime - object.total_elapsed_time) || 0;
     stats.push(new DataPause(pause));
-    // Set the distance @todo check on other importers for this logic
+
     if (isNumberOrString(object.total_distance)) {
       stats.push(new DataDistance(object.total_distance));
     } else {
@@ -469,4 +512,11 @@ export class EventImporterFIT {
     }
     return creator;
   }
+}
+
+export interface FITFileActivityEvent {
+  event: string,
+  timestamp: Date,
+  event_type: 'start' | 'stop' | 'stop_all',
+  data: number
 }

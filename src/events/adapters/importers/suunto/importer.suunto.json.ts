@@ -36,7 +36,7 @@ import { DataAscent } from '../../../../data/data.ascent';
 import { DataEPOC } from '../../../../data/data.epoc';
 import { DataEnergy } from '../../../../data/data.energy';
 import { DataFeeling } from '../../../../data/data.feeling';
-import { DataRecoveryTime } from '../../../../data/dataRecoveryTime';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataPause } from '../../../../data/data.pause';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
@@ -107,7 +107,7 @@ export class EventImporterSuuntoJSON {
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
-      debugger;
+      // debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name

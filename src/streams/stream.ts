@@ -20,10 +20,6 @@ export class Stream implements StreamInterface {
     return <number[]>this.data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity))
   }
 
-  getDurationOfData(onlyNumeric?: boolean, filterInfinity?: boolean): (number | null)[] {
-    return this.getStreamDataByDuration(0, onlyNumeric, filterInfinity).map(data => data.time / 1000);
-  }
-
   setData(data: (number | null)[]): this {
     this.data = data;
     return this;
@@ -55,8 +51,10 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[])
   }
 
-  isUnitDerivedDataType(): boolean {
-    return DynamicDataLoader.isUnitDerivedDataType(this.type);
+  isExportable(): boolean {
+    return !DynamicDataLoader.isUnitDerivedDataType(this.type)
+      && !DynamicDataLoader.isSpeedDerivedDataType(this.type)
+      && !DynamicDataLoader.isBlackListedStream(this.type);
   }
 
   toJSON(): StreamJSONInterface {

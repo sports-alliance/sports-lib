@@ -22,7 +22,7 @@ const expectTolerance = (actual: number, expected: number, tolerance: number) =>
   expect(actual).toBeLessThanOrEqual(expected + tolerance);
 };
 
-const PAUSE_TIME_TOLERANCE = 0.05; // 5% of tolerance
+const MOVING_TIME_TOLERANCE = 0.05; // 5% of tolerance
 
 describe('Integration tests with native & custom dom parser', () => {
 
@@ -68,7 +68,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
           expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
@@ -153,7 +153,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
             expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
@@ -195,7 +195,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
             expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
@@ -239,7 +239,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
           expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
@@ -287,7 +287,7 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
           const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
           expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
           const missingStreamCall = () => {
@@ -333,7 +333,7 @@ describe('Integration tests with native & custom dom parser', () => {
             expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
             const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+            expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
             expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 
             const missingStreamCall = () => {
@@ -425,7 +425,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // console.log(event.getFirstActivity().getDuration().getValue() === expectedElapsedTime)
           //
           const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
-          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * PAUSE_TIME_TOLERANCE);
+          expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
           done();
         });
 

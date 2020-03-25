@@ -606,7 +606,7 @@ describe('Strava data compliance', () => {
       });
     });
 
-    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
+    it.skip(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
 
       // Given
       const toleranceAvgGradeDelta = GRADE_TOLERANCE;

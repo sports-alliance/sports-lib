@@ -1,5 +1,5 @@
 export interface UserServiceMetaInterface {
   didLastHistoryImport: number;
-  processedActivitiesFromLastHistoryImport: number;
+  processedActivitiesFromLastHistoryImportCount: number;
   uploadedRoutesCount?: number
 }

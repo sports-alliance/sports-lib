@@ -1727,6 +1727,8 @@ export class EventUtilities {
       }
 
       let movingTime = 0;
+      // @TODO this is wrong logic. A speed stream can have for example a time
+      //  / duration of 36s while there was a pause on the before at sample time 28s
       finalSpeedStream.forEach((speedEntry, index) => {
 
         if (index === 0) {

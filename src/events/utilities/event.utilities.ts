@@ -191,7 +191,6 @@ import {
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
-import { Activity } from '../../activities/activity';
 import { DataMovingTime } from '../../data/data.moving-time';
 
 export class EventUtilities {
@@ -1712,9 +1711,9 @@ export class EventUtilities {
 
       const hasGradeAdjustedSpeedStream = activity.hasStreamData(DataGradeAdjustedSpeed.type);
 
-      const finalSpeedStream = hasGradeAdjustedSpeedStream
-        ? activity.getStreamDataByDuration(DataGradeAdjustedSpeed.type, true, true)
-        : activity.getStreamDataByDuration(DataSpeed.type, true, true);
+      const finalSpeedStreamData = hasGradeAdjustedSpeedStream
+        ? activity.getStreamData(DataGradeAdjustedSpeed.type)
+        : activity.getStreamData(DataSpeed.type);
 
       let speedThreshold: number;
 
@@ -1726,24 +1725,18 @@ export class EventUtilities {
         speedThreshold = 0;
       }
 
-      let movingTime = 0;
-      // @TODO this is wrong logic. A speed stream can have for example a time
-      //  / duration of 36s while there was a pause on the before at sample time 28s
-      finalSpeedStream.forEach((speedEntry, index) => {
+      // Set the moving time to the actual duration
+      let movingTime = activity.getDuration().getValue();
 
+      // Remove anything that doesn't fit the criteria by removing 1s that it represents on the speed stream
+      finalSpeedStreamData.forEach((speedValue, index) => {
         if (index === 0) {
           return;
         }
-
-        const deltaTime = finalSpeedStream[index].time - finalSpeedStream[index - 1].time;
-
-        if (<number>speedEntry.value > speedThreshold) {
-          movingTime += deltaTime;
+        if (<number>speedValue <= speedThreshold) {
+          movingTime -= 1;
         }
-
       });
-
-      movingTime = movingTime / 1000;
 
       activity.addStat(new DataMovingTime(movingTime));
     }

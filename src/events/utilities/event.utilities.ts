@@ -1712,15 +1712,15 @@ export class EventUtilities {
       const hasGradeAdjustedSpeedStream = activity.hasStreamData(DataGradeAdjustedSpeed.type);
 
       const finalSpeedStreamData = hasGradeAdjustedSpeedStream
-        ? activity.getStreamData(DataGradeAdjustedSpeed.type)
-        : activity.getStreamData(DataSpeed.type);
+        ? activity.getSquashedStreamData(DataGradeAdjustedSpeed.type)
+        : activity.getSquashedStreamData(DataSpeed.type);
 
       let speedThreshold: number;
 
       if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
-        speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 1.9; // @todo final static + tweak => For @thomaschampagne
+        speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
       } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
-        speedThreshold = hasGradeAdjustedSpeedStream ? 1.6 : 1.2; // @todo final static + tweak => For @thomaschampagne
+        speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;
       }

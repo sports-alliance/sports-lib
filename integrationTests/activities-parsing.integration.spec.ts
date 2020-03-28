@@ -15,7 +15,6 @@ import { DataPace } from '../src/data/data.pace';
 import { DataAscent } from '../src/data/data.ascent';
 import { EmptyEventLibError } from '../src/errors/empty-event-sports-libs.error';
 import { DataMovingTime } from '../src/data/data.moving-time';
-import { DataInterface } from '../src/data/data.interface';
 
 const expectTolerance = (actual: number, expected: number, tolerance: number) => {
   expect(actual).toBeGreaterThanOrEqual(expected - tolerance);
@@ -218,7 +217,7 @@ describe('Integration tests with native & custom dom parser', () => {
         const path = __dirname + '/fixtures/rides/garmin_export/20190811_ride_3939576645.fit'; // @ https://connect.garmin.com/modern/activity/3939576645
         const buffer = fs.readFileSync(path);
         const expectedSamplesLength = 2547;
-        const expectedElapsedTime = 7476; // 2:04:36 or 7476s
+        const expectedElapsedTime = 7264; // 2:01:04 or 7264
         const expectedMovingTime = 7242; // 2:00:42 or 7242s
         const expectedElevationGain = 668;
 
@@ -240,9 +239,8 @@ describe('Integration tests with native & custom dom parser', () => {
           expect(event.getFirstActivity().getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(event.getFirstActivity().getSquashedStreamData(DataPace.type).length).toEqual(expectedSamplesLength);
-          // @todo thomas this time you have set is wrong I suppose. The timer time is lower. Was it with pause?
-          // expect(event.getFirstActivity().getDuration().getValue()).toEqual(expectedElapsedTime);
-          const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue()
+          expect(Math.round(event.getFirstActivity().getDuration().getValue())).toEqual(expectedElapsedTime);
+          const movingTime = (<DataMovingTime>event.getFirstActivity().getStat(DataMovingTime.type)).getValue();
           expectTolerance(movingTime, expectedMovingTime, expectedMovingTime * MOVING_TIME_TOLERANCE);
           expectTolerance(<number>event.getFirstActivity().getStats().get(DataAscent.type)?.getValue(), expectedElevationGain, ASCENT_ELEVATION_TOLERANCE);
 

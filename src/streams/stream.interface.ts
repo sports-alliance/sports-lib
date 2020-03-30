@@ -1,5 +1,6 @@
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
 import { StreamJSONInterface } from './stream';
+import { StreamFilterInterface } from './stream.filter.interface';
 
 /**
  * A stream consists of an array of data like this for example
@@ -17,6 +18,22 @@ export interface StreamInterface extends SerializableClassInterface {
    * @todo make this an 'enum'
    */
   type: string;
+
+  /**
+   * Instructs the stream to use a specific filter when asking for data
+   * @param filter
+   */
+  useFilter(filter: StreamFilterInterface): this;
+
+  /**
+   * Removes any filter that is used on the Streamm
+   */
+  clearFilters(): this;
+
+  /**
+   * Checks if a stream has a filter
+   */
+  hasFilter(): boolean;
 
   /**
    * Get's back the streams data as an array

@@ -1,10 +1,13 @@
 import { StreamDataItem, StreamInterface } from './stream.interface';
 import { isNumber } from '../events/utilities/helpers';
 import { DynamicDataLoader } from '../data/data.store';
+import { StreamFilterInterface } from './stream.filter.interface';
 
 export class Stream implements StreamInterface {
   public readonly type: string;
   protected data: (number | null)[] = [];
+
+  protected filter: StreamFilterInterface|null = null;
 
   constructor(type: string, data?: (number | null)[]) {
     this.type = type;
@@ -13,11 +16,26 @@ export class Stream implements StreamInterface {
     }
   }
 
+  clearFilters(): this {
+    this.filter = null;
+    return this;
+  }
+
+  useFilter(filter: StreamFilterInterface): this {
+    this.filter = filter;
+    return this;
+  }
+
+  hasFilter(): boolean {
+    return !!this.filter;
+  }
+
   getData(onlyNumeric = false, filterInfinity = false): (number | null)[] {
+    const data = this.filter ? this.filter.filterData(this.data) : this.data;
     if (!onlyNumeric && !filterInfinity) {
-      return this.data;
+      return data;
     }
-    return <number[]>this.data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity))
+    return <number[]>data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity))
   }
 
   setData(data: (number | null)[]): this {
@@ -26,7 +44,7 @@ export class Stream implements StreamInterface {
   }
 
   getStreamDataByTime(startDate: Date, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
-    return this.data.reduce((accu, dataItem, index) => {
+    return this.getData().reduce((accu, dataItem, index) => {
       if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
         return accu
       }
@@ -39,7 +57,7 @@ export class Stream implements StreamInterface {
   }
 
   getStreamDataByDuration(offset: number = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
-    return this.data.reduce((accu, dataItem, index) => {
+    return this.getData().reduce((accu, dataItem, index) => {
       if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
         return accu
       }
@@ -60,7 +78,7 @@ export class Stream implements StreamInterface {
   toJSON(): StreamJSONInterface {
     return {
       type: this.type,
-      data: this.data,
+      data: this.data, // Exporting does/ should not use a filter
     };
   }
 

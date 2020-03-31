@@ -1,6 +1,6 @@
 {
   "name": "@sports-alliance/sports-lib",
-  "version": "4.0.3",
+  "version": "4.0.5",
   "description": "A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
     "gpx",
@@ -42,22 +42,23 @@
   "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "@types/node": "^13.1.4",
-    "fast-xml-parser": "^3.15.1",
+    "@types/node": "^13.9.0",
+    "fast-xml-parser": "^3.16.0",
     "fit-file-parser": "^1.6.17",
     "geolib": "^3.2.1",
+    "kalmanjs": "^1.1.0",
     "lowpassf": "^0.5.0",
     "moving-median": "^1.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.25",
+    "@types/jest": "^25.1.4",
     "@types/xmldom": "^0.1.29",
     "jest": "^24.9.0",
-    "ts-jest": "^24.3.0",
-    "tslint": "^5.20.1",
-    "typescript": "^3.7.4",
-    "xmldom": "^0.2.1",
-    "typedoc": "^0.15.6"
+    "ts-jest": "^25.1.0",
+    "tslint": "^6.1.0",
+    "typedoc": "^0.16.11",
+    "typescript": "^3.8.3",
+    "xmldom": "^0.2.1"
   },
   "jest": {
     "transform": {

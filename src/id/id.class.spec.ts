@@ -15,6 +15,5 @@ describe('IDClass', () => {
 
 });
 
-
 export class IdClass extends IDClass {
 }

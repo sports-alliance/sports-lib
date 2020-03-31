@@ -6,13 +6,16 @@ import { ActivityTypes } from './activity.types';
 import { Creator } from '../creators/creator';
 import { Stream } from '../streams/stream';
 import { DataDistance } from '../data/data.distance';
+import { DataStopEvent } from '../data/data.stop-event';
+import { DataStartEvent } from '../data/data.start-event';
+import { DataStopAllEvent } from '../data/data.stop-all-event';
 
 describe('Activity', () => {
 
   let activity: ActivityInterface;
 
   beforeEach(() => {
-    // New activity that ends +6m
+    // New activity that ends +6m and is 10s duration from new Date(0)
     activity = new Activity(
       new Date(0),
       new Date((new Date(0)).getTime() + 10000),
@@ -271,4 +274,78 @@ describe('Activity', () => {
 
   });
 
+  it('should get the time stream', () => {
+    activity.addStreams([
+      //                                   0     1    2       3       4         5    6     7    8 9 and 10 are not set
+      new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN,  0]),
+      new Stream(DataDistance.type, [0,   null,   600,   700,   800,      null, NaN, 900, Infinity])
+    ])
+    expect(activity.generateTimeStream().getData()).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
+    expect(activity.generateTimeStream().getData(true)).toEqual([0, 2, 3, 4, 6, 7, 8]);
+    expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
+  });
+
+
+  it('should set the correct sample sizes', () => {
+    const stream = activity.createStream(DataAltitude.type);
+    expect(stream.getData().length).toBe(11);
+  });
+
+  it('should get and set the correct sample keys and ', () => {
+    const stream = activity.createStream(DataAltitude.type);
+    activity.addStream(stream);
+    activity.addDataToStream(DataAltitude.type, new Date(0), 0);
+    activity.addDataToStream(DataAltitude.type, new Date(500), 5);
+    activity.addDataToStream(DataAltitude.type, new Date(1040), 10);
+    activity.addDataToStream(DataAltitude.type, new Date(2010), 20);
+    activity.addDataToStream(DataAltitude.type, new Date(2060), 30);
+    activity.addDataToStream(DataAltitude.type, new Date(2080), 35);
+    activity.addDataToStream(DataAltitude.type, new Date(3000), 40);
+    activity.addDataToStream(DataAltitude.type, new Date(4000), 50);
+    activity.addDataToStream(DataAltitude.type, new Date(5000), 60);
+    activity.addDataToStream(DataAltitude.type, new Date(6300), 70);
+    activity.addDataToStream(DataAltitude.type, new Date(7000), 80);
+    activity.addDataToStream(DataAltitude.type, new Date(8000), 90);
+    activity.addDataToStream(DataAltitude.type, new Date(9000), 100);
+    activity.addDataToStream(DataAltitude.type, new Date(10000), 110);
+    expect(stream.getData()).toEqual([
+      0,
+      10,
+      35,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      110,
+    ])
+  });
+
+  it('should get events correctly', () => {
+    activity.addEvent(new DataStopEvent(1));
+    activity.addEvent(new DataStopEvent(1));
+    activity.addEvent(new DataStartEvent(1));
+    activity.addEvent(new DataStartEvent(1));
+    activity.addEvent(new DataStopAllEvent(1));
+    expect(activity.getAllEvents().length).toBe(5);
+    expect(activity.getStartEvents().length).toBe(2);
+    expect(activity.getStopEvents().length).toBe(2);
+    expect(activity.getStopAllEvents().length).toBe(1);
+  });
+
+  it('should set all events', () => {
+    activity.setAllEvents([
+      new DataStopEvent(1),
+      new DataStopEvent(1),
+      new DataStartEvent(1),
+      new DataStartEvent(1),
+      new DataStopAllEvent(1),
+    ])
+    expect(activity.getAllEvents().length).toBe(5);
+    expect(activity.getStartEvents().length).toBe(2);
+    expect(activity.getStopEvents().length).toBe(2);
+    expect(activity.getStopAllEvents().length).toBe(1);
+  });
 });

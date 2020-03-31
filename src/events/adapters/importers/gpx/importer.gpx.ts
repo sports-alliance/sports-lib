@@ -43,19 +43,20 @@ export class EventImporterGPX {
 
         // Create an activity. Set the dates depending on route etc
         const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
+        // @todo for routes add a seperate parser
         const endDate = isActivity ?
           new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
           activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];
-        } else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
+        } /*else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
           const stravaGpxTypeId = parseInt(trackOrRoute.type[0], 10);
           const entryFound: { id: number, type: string } | undefined = StravaGPXTypeMapping.map.find(entry => entry.id === stravaGpxTypeId);
           if (entryFound) {
             activityType = ActivityTypes[<keyof typeof ActivityTypes>entryFound.type];
           }
-        }
+        }*/
         const activity = new Activity(
           startDate,
           endDate,

@@ -93,7 +93,7 @@ describe('EventUtilities', () => {
 
     event.getFirstActivity().getStreamData(DataAltitude.type).push(400); // Gain 400 (from prev)
     event.getFirstActivity().getStreamData(DataAltitude.type).push(300);
-    ; // Gain 400
+     // Gain 400
     event.getFirstActivity().getStreamData(DataAltitude.type).push(400); // Gain 500
 
     expect(EventUtilities.getEventDataTypeGain(event.getFirstActivity(), DataAltitude.type)).toBe(500);
@@ -190,17 +190,19 @@ describe('EventUtilities', () => {
 
   it('should get the correct data length', () => {
     const activity = event.getFirstActivity(); // 10s
-    // 10 seconds = 10 slugs;
-    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(10);
+    // 10 seconds = 11 slugs; from second 1 eg
+    // [1,2,3,4,5,6,7,8,9,10] ->
+    // [0, 1, 2,3,4,5,6,7,8,9,10]
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(11);
     // Change start / end date to <1s
     activity.startDate = new Date(0);
     activity.endDate = new Date(50);// 50ms
     // More than 0 = 1 slug
-    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(1);
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(2);
     // Change start / end date to >9999ms and <100000s
     activity.startDate = new Date(0);
     activity.endDate = new Date(9999);// 9.9 seconds
     // more than 9 is 10 slugs
-    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(10);
+    expect(EventUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(11);
   });
 });

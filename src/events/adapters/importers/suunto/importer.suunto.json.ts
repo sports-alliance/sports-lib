@@ -36,7 +36,7 @@ import { DataAscent } from '../../../../data/data.ascent';
 import { DataEPOC } from '../../../../data/data.epoc';
 import { DataEnergy } from '../../../../data/data.energy';
 import { DataFeeling } from '../../../../data/data.feeling';
-import { DataRecoveryTime } from '../../../../data/dataRecoveryTime';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataPause } from '../../../../data/data.pause';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
@@ -107,7 +107,7 @@ export class EventImporterSuuntoJSON {
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
-      debugger;
+      // debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] // Try to get a listed name
@@ -498,7 +498,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.HR) {
+    if (Array.isArray(object.HR)) {
       if (isNumber(object.HR[0].Avg)) {
         stats.push(new DataHeartRateAvg(object.HR[0].Avg * 60));
       }
@@ -510,7 +510,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.Cadence) {
+    if (Array.isArray(object.Cadence)) {
       if (isNumber(object.Cadence[0].Avg)) {
         stats.push(new DataCadenceAvg(object.Cadence[0].Avg * 60));
       }
@@ -522,7 +522,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.Power) {
+    if (Array.isArray(object.Power)) {
       if (isNumber(object.Power[0].Avg)) {
         stats.push(new DataPowerAvg(object.Power[0].Avg));
       }
@@ -534,7 +534,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.Speed) {
+    if (Array.isArray(object.Speed)) {
       if (isNumber(object.Speed[0].Avg)) {
         stats.push(new DataSpeedAvg(object.Speed[0].Avg));
         stats.push(new DataPaceAvg(convertSpeedToPace(object.Speed[0].Avg)));
@@ -549,7 +549,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.Temperature) {
+    if (Array.isArray(object.Temperature)) {
       if (isNumber(object.Temperature[0].Avg)) {
         stats.push(new DataTemperatureAvg(object.Temperature[0].Avg - 273.15));
       }

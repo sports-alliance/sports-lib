@@ -13,3 +13,8 @@ export class DataDistance extends DataNumber {
     return this.getValue() >= 1000 ? 'Km' : 'm';
   }
 }
+
+export class DataDistanceMiles extends DataDistance {
+  static type = 'Distance in miles';
+  static unit = 'M';
+}

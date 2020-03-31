@@ -22,7 +22,7 @@ import { DataSatellite5BestSNR } from './data.satellite-5-best-snr';
 import { DataAbsolutePressure } from './data.absolute-pressure';
 import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
-import { DataDistance } from './data.distance';
+import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataEHPE } from './data.ehpe';
 import { DataEVPE } from './data.evpe';
@@ -93,7 +93,7 @@ import {
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour,
 } from './data.speed-avg';
-import { DataRecoveryTime } from './dataRecoveryTime';
+import { DataRecoveryTime } from './data.recovery-time';
 import { DataPowerMin } from './data.power-min';
 import { DataPowerMax } from './data.power-max';
 import { DataPowerAvg } from './data.power-avg';
@@ -128,7 +128,7 @@ import { DataFormPower } from './data.form-power';
 import { DataLegStiffness } from './data.leg-stiffness';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
 import { DataTotalTrainingEffect } from './data.total-training-effect';
-import { DataNumberOfSamples } from './data-number-of.samples';
+import { DataNumberOfSamples } from './data.number-of.samples';
 import { DataFootPodUsed } from './data.foot-pod-used';
 import { DataAutoPauseUsed } from './data.auto-pause-used';
 import { DataAutoLapDuration } from './data.auto-lap-duration';
@@ -172,7 +172,7 @@ import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
 import { DataAirPowerMax } from './data.air-power-max';
 import { DataAirPowerMin } from './data.air-power-min';
-import { DataAirPowerAvg } from './data.-air-power-avg';
+import { DataAirPowerAvg } from './data.air-power-avg';
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataHeartRateZoneOneDuration } from './data.heart-rate-zone-one-duration';
 import { DataHeartRateZoneTwoDuration } from './data.heart-rate-zone-two-duration';
@@ -192,7 +192,7 @@ import { DataPowerZoneFourDuration } from './data.power-zone-four-duration';
 import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
-import { DataGrade } from './data-grade';
+import { DataGrade } from './data.grade';
 import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,
@@ -230,6 +230,24 @@ import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from
 import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from './data.grade-adjusted-pace-max';
 import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from './data.grade-adjusted-pace-min';
 import { DataStepsOld } from './data.steps-old';
+import { DataStopEvent } from './data.stop-event';
+import { DataStartEvent } from './data.start-event';
+import { DataStopAllEvent } from './data.stop-all-event';
+import { DataTime } from './data.time';
+import {
+  convertMetersToMiles,
+  convertPaceToPaceInMinutesPerMile,
+  convertSpeedToSpeedInFeetPerHour,
+  convertSpeedToSpeedInFeetPerMinute,
+  convertSpeedToSpeedInFeetPerSecond,
+  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInMetersPerHour,
+  convertSpeedToSpeedInMetersPerMinute,
+  convertSpeedToSpeedInMilesPerHour,
+  convertSwimPaceToSwimPacePer100Yard
+} from '../events/utilities/helpers';
+import { Data } from './data';
+import { DataMovingTime } from './data.moving-time';
 
 /**
  * Only concrete classes no abstracts
@@ -453,22 +471,33 @@ export const DataStore: any = {
   DataStartPosition,
   DataEndPosition,
   DataGrade,
+  DataStartEvent,
+  DataStopEvent,
+  DataStopAllEvent,
+  DataTime,
+  DataDistanceMiles,
+  DataMovingTime,
 };
 
 export class DynamicDataLoader {
+  // @todo Convert to enums please and use them on Stream types
 
-  // Convert to enums please
-  static basicDataTypes =
-    [
-      DataHeartRate.type,
-      DataAltitude.type,
-      DataCadence.type,
-      DataPower.type,
-      DataPace.type,
-      DataGradeAdjustedPace.type,
-      DataSpeed.type,
-      DataGradeAdjustedSpeed.type
-    ];
+
+  static positionalDataTypes = [
+    DataLatitudeDegrees.type,
+    DataLongitudeDegrees.type,
+  ]
+
+  static basicDataTypes = [
+    DataHeartRate.type,
+    DataAltitude.type,
+    DataCadence.type,
+    DataPower.type,
+    DataPace.type,
+    DataGradeAdjustedSpeed.type,
+    DataGradeAdjustedPace.type,
+    DataSpeed.type,
+  ];
 
   static advancedDataTypes = [
     DataGrade.type,
@@ -510,44 +539,55 @@ export class DynamicDataLoader {
     DataGroundTime.type,
     DataAirPower.type,
     DataGNSSDistance.type,
+    DataGrade.type
   ];
 
-  static unitBasedDataTypes: DataTypeUnitGroups = {
-    [DataSpeed.type]: [
-      DataSpeedKilometersPerHour.type,
-      DataSpeedMilesPerHour.type,
-      DataSpeedFeetPerSecond.type,
-      DataSpeedFeetPerMinute.type,
-      DataSpeedMetersPerMinute.type,
-      // Pace is also based on speed
-      DataPace.type,
-      DataPaceMinutesPerMile.type,
-      // Swim pace as well
-      DataSwimPace.type,
-      DataSwimPaceMinutesPer100Yard.type,
-    ],
-    [DataGradeAdjustedSpeed.type]: [
-      DataGradeAdjustedSpeedKilometersPerHour.type,
-      DataGradeAdjustedSpeedMilesPerHour.type,
-      DataGradeAdjustedSpeedFeetPerSecond.type,
-      DataGradeAdjustedSpeedFeetPerMinute.type,
-      DataGradeAdjustedSpeedMetersPerMinute.type,
-      // Pace is also based on speed
-      DataGradeAdjustedPace.type,
-      DataGradeAdjustedPaceMinutesPerMile.type,
-    ],
-    [DataVerticalSpeed.type]: [
-      DataVerticalSpeedFeetPerSecond.type,
-      DataVerticalSpeedMetersPerMinute.type,
-      DataVerticalSpeedFeetPerMinute.type,
-      DataVerticalSpeedMetersPerHour.type,
-      DataVerticalSpeedFeetPerHour.type,
-      DataVerticalSpeedKilometerPerHour.type,
-      DataVerticalSpeedMilesPerHour.type,
-    ],
+  static dataTypeUnitGroups: DataTypeUnitGroups = {
+    [DataSpeed.type]: {
+      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+    },
+    [DataGradeAdjustedSpeed.type]: {
+      [DataGradeAdjustedSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataGradeAdjustedSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataGradeAdjustedSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataGradeAdjustedSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataGradeAdjustedSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+    },
+    [DataPace.type]: {
+      [DataPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataGradeAdjustedPace.type]: {
+      [DataGradeAdjustedPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataSwimPace.type]: {
+      [DataSwimPaceMinutesPer100Yard.type]: convertSwimPaceToSwimPacePer100Yard
+    },
+    [DataVerticalSpeed.type]: {
+      [DataVerticalSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataVerticalSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataVerticalSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataVerticalSpeedMetersPerHour.type]: convertSpeedToSpeedInMetersPerHour,
+      [DataVerticalSpeedFeetPerHour.type]: convertSpeedToSpeedInFeetPerHour,
+      [DataVerticalSpeedKilometerPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataVerticalSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+    },
+    [DataDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles,
+    }
   };
 
-  static allDataTypes = DynamicDataLoader.basicDataTypes.concat(DynamicDataLoader.advancedDataTypes);
+  // @todo perhaps GAS?
+  static speedDerivedDataTypes = [
+    DataPace.type,
+    DataGradeAdjustedPace.type,
+    DataSwimPace.type,
+  ];
+
+  static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])), []);
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
     const className = Object.keys(DataStore).find((dataClass) => {
@@ -559,7 +599,7 @@ export class DynamicDataLoader {
     return new DataStore[className](opts);
   }
 
-  static getDataClassFromDataType(dataType: string): any {
+  static getDataClassFromDataType(dataType: string): typeof Data {
     const className = Object.keys(DataStore).find((dataClass) => {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
@@ -570,7 +610,18 @@ export class DynamicDataLoader {
   }
 
   static isUnitDerivedDataType(dataType: string): boolean {
-    return Object.values(this.unitBasedDataTypes).reduce((accu, item) => accu.concat(item), []).indexOf(dataType) !== -1;
+    return this.allUnitDerivedDataTypes.indexOf(dataType) !== -1;
+  }
+
+  static isSpeedDerivedDataType(dataType: string): boolean {
+    return this.speedDerivedDataTypes.indexOf(dataType) !== -1;
+  }
+
+  static isBlackListedStream(dataType: string): boolean {
+    return [
+      DataGNSSDistance.type,
+      DataTime.type,
+    ].indexOf(dataType) !== -1;
   }
 
   /**
@@ -947,5 +998,7 @@ export class DynamicDataLoader {
 
 
 export interface DataTypeUnitGroups {
-  [type: string]: string[]
+  [type: string]: {
+    [type: string]: (value: number) => number
+  }
 }

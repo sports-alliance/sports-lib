@@ -19,6 +19,8 @@ export interface DataInterface extends SerializableClassInterface {
 
   getUnitSystem(): UnitSystem;
 
+  isValueTypeValid(value: any): boolean
+
   toJSON(): DataJSONInterface;
 }
 

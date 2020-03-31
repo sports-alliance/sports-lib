@@ -17,6 +17,12 @@ import { isNumber } from '../events/utilities/helpers';
 import { EventUtilities } from '../events/utilities/event.utilities';
 import { DataGNSSDistance } from '../data/data.gnss-distance';
 import { DataPower } from '../data/data.power';
+import { DataEvent } from '../data/data.event';
+import { DataStartEvent } from '../data/data.start-event';
+import { DataStopEvent } from '../data/data.stop-event';
+import { DataJSONInterface } from '../data/data.json.interface';
+import { DataStopAllEvent } from '../data/data.stop-all-event';
+import { DataTime } from '../data/data.time';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -29,6 +35,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private laps: LapInterface[] = [];
   private streams: StreamInterface[] = [];
+
+  private events: DataEvent[] = [];
 
   constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
     super(startDate, endDate);
@@ -49,16 +57,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
-  /**
-   * Adds a value to the streams data
-   * Floor is used so a date with > end date does not create and extra slug in the array
-   * @param type
-   * @param date
-   * @param value
-   */
   addDataToStream(type: string, date: Date, value: number): this {
-    // @todo ceil vs floor (still debatable)
-    this.getStreamData(type)[Math.ceil((+date - +this.startDate) / 1000)] = value;
+    this.getStreamData(type)[this.getDateIndex(date)] = value;
     return this;
   }
 
@@ -75,7 +75,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
-  removeStream(stream: StreamInterface): this {
+  removeStream(streamType: string|StreamInterface): this {
+    const stream = (streamType instanceof Stream) ? streamType : this.getStream(<string>streamType);
     this.streams = this.streams.filter((activityStream) => stream !== activityStream);
     return this;
   }
@@ -91,7 +92,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   // @todo needs more logic improvement and transparency
   getAllExportableStreams(): StreamInterface[] {
-    return this.getAllStreams().filter((stream) => !stream.isUnitDerivedDataType() && stream.type !== DataGNSSDistance.type);
+    return this.getAllStreams().filter((stream) => stream.isExportable());
   }
 
   hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean {
@@ -162,13 +163,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
   }
 
-  /**
-   * Combines the lat - long streams to a DataPositionInterface
-   * @param startDate
-   * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
-   */
   getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[] {
     const latitudeStreamData = latitudeStream ? this.getStreamData(latitudeStream, startDate, endDate) : this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
     const longitudeStreamData = longitudeStream ? this.getStreamData(longitudeStream, startDate, endDate) : this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
@@ -187,13 +181,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }, []);
   }
 
-  /**
-   * Combines the lat - long streams to a DataPositionInterface and excludes nulls
-   * @param startDate
-   * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
-   */
   getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[] {
     return <DataPositionInterface[]>this.getPositionData(startDate, endDate, latitudeStream, longitudeStream).filter(data => data !== null);
   }
@@ -227,6 +214,51 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.laps;
   }
 
+  getAllEvents(): DataEvent[] {
+    return this.events;
+  }
+
+  getStartEvents(): DataStartEvent[] {
+    return this.events.filter(event => event instanceof DataStartEvent)
+  }
+
+  getStopEvents(): DataStopEvent[] {
+    return this.events.filter(event => event instanceof DataStopEvent)
+  }
+
+  getStopAllEvents(): DataStopEvent[] {
+    return this.events.filter(event => event instanceof DataStopAllEvent)
+  }
+
+  addEvent(event: DataEvent): this {
+    this.events.push(event);
+    return this;
+  }
+
+  setAllEvents(events: DataEvent[]): this {
+    this.events = events;
+    return this;
+  }
+
+  generateTimeStream(streamTypes: string[] = []): StreamInterface {
+    const timeStream = this.createStream(DataTime.type);
+    let streams = this.getAllStreams();
+    if (streamTypes.length) {
+      streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1)
+    }
+    streams.forEach(stream => {
+      this.getStreamDataByDuration(stream.type, true, false).forEach((data: any) => {
+        timeStream.getData()[data.time / 1000] = data.time / 1000
+      })
+    })
+    return timeStream;
+  }
+
+  getDateIndex(date: Date): number {
+    // @todo ceil vs floor (still debatable)
+    return Math.round((+date - +this.startDate) / 1000);
+  }
+
   toJSON(): ActivityJSONInterface {
     const intensityZones: IntensityZonesJSONInterface[] = [];
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
@@ -243,6 +275,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       creator: this.creator.toJSON(),
       intensityZones: intensityZones,
       stats: stats,
+      events: this.getAllEvents().reduce((eventsArray: DataJSONInterface[], event) => {
+        eventsArray.push(event.toJSON());
+        return eventsArray;
+      }, []),
       laps: this.getLaps().reduce((jsonLapsArray: any[], lap: LapInterface) => {
         jsonLapsArray.push(lap.toJSON());
         return jsonLapsArray;

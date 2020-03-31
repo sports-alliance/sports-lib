@@ -11,4 +11,8 @@ export abstract class DataNumber extends DataBare {
   getValue(formatForDataType?: string): number {
     return this.value;
   }
+
+  isValueTypeValid(value: any): boolean {
+    return typeof value === 'number'
+  }
 }

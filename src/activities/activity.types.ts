@@ -123,6 +123,7 @@ export enum ActivityTypes {
    * Generic
    */
     'generic' = 'Generic',
+  'generic_exercise' = 'Generic',
   'Generic' = 'Generic',
   /**
    * Transition

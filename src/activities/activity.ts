@@ -163,9 +163,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return <number[]>this.getStreamData(streamType, startDate, endDate).filter(data => isNumber(data))
   }
 
-  getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[] {
-    const latitudeStreamData = latitudeStream ? this.getStreamData(latitudeStream, startDate, endDate) : this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
-    const longitudeStreamData = longitudeStream ? this.getStreamData(longitudeStream, startDate, endDate) : this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
+  getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
+    const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
+    const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
     return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {
       const currentLatitude = latitudeStreamData[index];
       const currentLongitude = longitudeStreamData[index];
@@ -181,8 +181,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }, []);
   }
 
-  getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): DataPositionInterface[] {
-    return <DataPositionInterface[]>this.getPositionData(startDate, endDate, latitudeStream, longitudeStream).filter(data => data !== null);
+  getSquashedPositionData(startDate?: Date, endDate?: Date): DataPositionInterface[] {
+    return <DataPositionInterface[]>this.getPositionData(startDate, endDate).filter(data => data !== null);
   }
 
   getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {

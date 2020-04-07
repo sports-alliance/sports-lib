@@ -1295,10 +1295,9 @@ export class EventUtilities {
     }
 
     // Start and end position
-    if ((!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type))
-      && activity.hasStreamData(DataLatitudeDegrees.type, activity.startDate, activity.endDate) && activity.hasStreamData(DataLongitudeDegrees.type, activity.startDate, activity.endDate)) {
+    if ((!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type)) && activity.hasPositionData()) {
       const activityPositionData = activity
-        .getPositionData(activity.startDate, activity.endDate, activity.getStream(DataLatitudeDegrees.type), activity.getStream(DataLongitudeDegrees.type))
+        .getPositionData()
         .filter(data => data !== null);
       const startPosition = activityPositionData[0];
       const endPosition = activityPositionData[activityPositionData.length - 1];

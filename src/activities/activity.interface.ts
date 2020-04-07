@@ -146,19 +146,15 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * Gets the data of 2 streams (lat,long) formated as positional data
    * @param startDate
    * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
    */
-  getPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
+  getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];
 
   /**
    * Gets the data of 2 streams (lat,long) formated as positional data but ommits nulls
    * @param startDate
    * @param endDate
-   * @param latitudeStream
-   * @param longitudeStream
    */
-  getSquashedPositionData(startDate?: Date, endDate?: Date, latitudeStream?: StreamInterface, longitudeStream?: StreamInterface): (DataPositionInterface | null)[];
+  getSquashedPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[];
 
   /**
    * Gets the laps of the activity

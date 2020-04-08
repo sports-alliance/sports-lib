@@ -625,6 +625,22 @@ export class DynamicDataLoader {
   }
 
   /**
+   * This get's the basic data types for the charts depending or not on the user datatype settings
+   * There are no unit specific datatypes here so if the user has selected pace it implies metric
+   */
+  public static getNonUnitBasedDataTypes(showAllData: boolean, dataTypesToUse: string[]): string[] {
+    // let dataTypes = DynamicDataLoader.basicDataTypes;
+    // Set the datatypes to show if all is selected
+    if (showAllData) {
+      return [...DynamicDataLoader.basicDataTypes, ...DynamicDataLoader.advancedDataTypes];
+    }
+    if (!dataTypesToUse) {
+      return DynamicDataLoader.basicDataTypes;
+    }
+    return dataTypesToUse;
+  }
+
+  /**
    * This gets the base and extended unit datatypes from a datatype array depending on the user settings
    * @param dataTypes
    * @param userUnitSettings

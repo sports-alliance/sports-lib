@@ -816,7 +816,6 @@ export class EventUtilities {
   }
 
   /**
-   * @todo optimize with whitelist
    * @todo unit test (get the pun?)
    * This creates streams that are deriving as unit based streams
    * For example it will create pace from speed, swim pace from speed but also speed in km/h as a unitstream

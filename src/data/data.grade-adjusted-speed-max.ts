@@ -1,7 +1,11 @@
 import {
   DataGradeAdjustedSpeed,
-  DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond, DataGradeAdjustedSpeedKilometersPerHour,
-  DataGradeAdjustedSpeedMetersPerMinute, DataGradeAdjustedSpeedMilesPerHour
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedKnots,
+  DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 
 export class DataGradeAdjustedSpeedMax extends DataGradeAdjustedSpeed {
@@ -46,6 +50,15 @@ export class DataGradeAdjustedSpeedMaxMetersPerMinute extends DataGradeAdjustedS
 
 export class DataGradeAdjustedSpeedMaxFeetPerMinute extends DataGradeAdjustedSpeedFeetPerMinute {
   static type = 'Maximum Grade Adjusted Speed in feet per minute';
+  static displayType = DataGradeAdjustedSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataGradeAdjustedSpeedMaxKnots extends DataGradeAdjustedSpeedKnots {
+  static type = 'Maximum Grade Adjusted Speed in knots';
   static displayType = DataGradeAdjustedSpeedMax.type;
 
   getDisplayType(): string {

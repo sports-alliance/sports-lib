@@ -21,7 +21,7 @@ import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
   DataSpeedMaxFeetPerSecond,
-  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxKilometersPerHour, DataSpeedMaxKnots,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour
 } from '../../data/data.speed-max';
@@ -29,7 +29,7 @@ import {
   DataSpeedMin,
   DataSpeedMinFeetPerMinute,
   DataSpeedMinFeetPerSecond,
-  DataSpeedMinKilometersPerHour,
+  DataSpeedMinKilometersPerHour, DataSpeedMinKnots,
   DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour
 } from '../../data/data.speed-min';
@@ -37,7 +37,7 @@ import {
   DataSpeedAvg,
   DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
-  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgKilometersPerHour, DataSpeedAvgKnots,
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour
 } from '../../data/data.speed-avg';
@@ -94,7 +94,7 @@ import { DataPositionInterface } from '../../data/data.position.interface';
 import { DataLatitudeDegrees } from '../../data/data.latitude-degrees';
 import { Stream } from '../../streams/stream';
 import {
-  convertPaceToPaceInMinutesPerMile,
+  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInKnots,
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
@@ -154,7 +154,7 @@ import {
   DataGradeAdjustedSpeedAvg,
   DataGradeAdjustedSpeedAvgFeetPerMinute,
   DataGradeAdjustedSpeedAvgFeetPerSecond,
-  DataGradeAdjustedSpeedAvgKilometersPerHour,
+  DataGradeAdjustedSpeedAvgKilometersPerHour, DataGradeAdjustedSpeedAvgKnots,
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from '../../data/data.grade-adjusted-speed-avg';
@@ -168,7 +168,7 @@ import {
   DataGradeAdjustedSpeedMax,
   DataGradeAdjustedSpeedMaxFeetPerMinute,
   DataGradeAdjustedSpeedMaxFeetPerSecond,
-  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxKilometersPerHour, DataGradeAdjustedSpeedMaxKnots,
   DataGradeAdjustedSpeedMaxMetersPerMinute,
   DataGradeAdjustedSpeedMaxMilesPerHour
 } from '../../data/data.grade-adjusted-speed-max';
@@ -176,7 +176,7 @@ import {
   DataGradeAdjustedSpeedMin,
   DataGradeAdjustedSpeedMinFeetPerMinute,
   DataGradeAdjustedSpeedMinFeetPerSecond,
-  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinKilometersPerHour, DataGradeAdjustedSpeedMinKnots,
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from '../../data/data.grade-adjusted-speed-min';
@@ -1400,6 +1400,12 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
       }
     }
+    if (!activity.getStat(DataSpeedMaxKnots.type)) {
+      const speedMax = activity.getStat(DataSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataSpeedMaxKnots(convertSpeedToSpeedInKnots(<number>speedMax.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
@@ -1430,6 +1436,12 @@ export class EventUtilities {
         activity.addStat(new DataSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
       }
     }
+    if (!activity.getStat(DataSpeedMinKnots.type)) {
+      const speedMin = activity.getStat(DataSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataSpeedMinKnots(convertSpeedToSpeedInKnots(<number>speedMin.getValue())));
+      }
+    }
     if (!activity.getStat(DataSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
@@ -1458,6 +1470,12 @@ export class EventUtilities {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
         activity.addStat(new DataSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataSpeedAvgKnots.type)) {
+      const speedAvg = activity.getStat(DataSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataSpeedAvgKnots(convertSpeedToSpeedInKnots(<number>speedAvg.getValue())));
       }
     }
 
@@ -1492,6 +1510,12 @@ export class EventUtilities {
         activity.addStat(new DataGradeAdjustedSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
       }
     }
+    if (!activity.getStat(DataGradeAdjustedSpeedMaxKnots.type)) {
+      const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (speedMax) {
+        activity.addStat(new DataGradeAdjustedSpeedMaxKnots(convertSpeedToSpeedInKnots(<number>speedMax.getValue())));
+      }
+    }
     if (!activity.getStat(DataGradeAdjustedSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
@@ -1522,6 +1546,12 @@ export class EventUtilities {
         activity.addStat(new DataGradeAdjustedSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
       }
     }
+    if (!activity.getStat(DataGradeAdjustedSpeedMinKnots.type)) {
+      const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (speedMin) {
+        activity.addStat(new DataGradeAdjustedSpeedMinKnots(convertSpeedToSpeedInKnots(<number>speedMin.getValue())));
+      }
+    }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
@@ -1550,6 +1580,12 @@ export class EventUtilities {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
         activity.addStat(new DataGradeAdjustedSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+      }
+    }
+    if (!activity.getStat(DataGradeAdjustedSpeedAvgKnots.type)) {
+      const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+      if (speedAvg) {
+        activity.addStat(new DataGradeAdjustedSpeedAvgKnots(convertSpeedToSpeedInKnots(<number>speedAvg.getValue())));
       }
     }
 

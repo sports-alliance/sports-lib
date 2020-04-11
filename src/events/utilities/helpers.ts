@@ -51,6 +51,10 @@ export function convertSpeedToSpeedInMetersPerHour(number: number): number {
   return number * 3600;
 }
 
+export function convertSpeedToSpeedInKnots(number: number): number {
+  return number * 1.943844;
+}
+
 export function convertPaceToPaceInMinutesPerMile(number: number): number {
   return number * 1.60934;
 }

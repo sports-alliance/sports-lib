@@ -13,6 +13,7 @@ export enum SpeedUnits {
   MilesPerHour = 'Speed in miles per hour',
   MetersPerSecond = 'Speed',
   FeetPerSecond = 'Speed in feet per second',
+  Knots = 'Speed in knots',
   // MetersPerMinute = 'Meters per minute',
   // FeetPerMinute = 'Feet per minute',
 }
@@ -22,6 +23,7 @@ export enum GradeAdjustedSpeedUnits {
   MilesPerHour = 'Grade Adjusted Speed in miles per hour',
   MetersPerSecond = 'Grade Adjusted Speed',
   FeetPerSecond = 'Grade Adjusted Speed in feet per second',
+  Knots = 'Grade Adjusted Speed in knots',
   // MetersPerMinute = 'Meters per minute',
   // FeetPerMinute = 'Feet per minute',
 }
@@ -31,8 +33,9 @@ export enum SpeedUnitsToGradeAdjustedSpeedUnits {
   'Speed in miles per hour' = 'MilesPerHour',
   'Speed' = 'MetersPerSecond',
   'Speed in feet per second' = 'FeetPerSecond',
-  'Meters per minute' = 'MetersPerMinute',
-  'Feet per minute' = 'FeetPerMinute',
+  'Speed in meters per minute' = 'MetersPerMinute',
+  'Speed in feet per minute' = 'FeetPerMinute',
+  'Speed in knots' = 'Knots',
 }
 
 export enum VerticalSpeedUnits {

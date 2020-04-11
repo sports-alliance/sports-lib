@@ -13,7 +13,7 @@ import {
   DataSpeed,
   DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour,
+  DataSpeedKilometersPerHour, DataSpeedKnots,
   DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from './data.speed';
@@ -73,7 +73,7 @@ import {
   DataSpeedMin,
   DataSpeedMinFeetPerMinute,
   DataSpeedMinFeetPerSecond,
-  DataSpeedMinKilometersPerHour,
+  DataSpeedMinKilometersPerHour, DataSpeedMinKnots,
   DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour,
 } from './data.speed-min';
@@ -81,7 +81,7 @@ import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
   DataSpeedMaxFeetPerSecond,
-  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxKilometersPerHour, DataSpeedMaxKnots,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour,
 } from './data.speed-max';
@@ -89,7 +89,7 @@ import {
   DataSpeedAvg,
   DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
-  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgKilometersPerHour, DataSpeedAvgKnots,
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour,
 } from './data.speed-avg';
@@ -197,7 +197,7 @@ import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,
   DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedKnots,
   DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
@@ -206,7 +206,7 @@ import {
   DataGradeAdjustedSpeedMax,
   DataGradeAdjustedSpeedMaxFeetPerMinute,
   DataGradeAdjustedSpeedMaxFeetPerSecond,
-  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxKilometersPerHour, DataGradeAdjustedSpeedMaxKnots,
   DataGradeAdjustedSpeedMaxMetersPerMinute,
   DataGradeAdjustedSpeedMaxMilesPerHour
 } from './data.grade-adjusted-speed-max';
@@ -214,7 +214,7 @@ import {
   DataGradeAdjustedSpeedMin,
   DataGradeAdjustedSpeedMinFeetPerMinute,
   DataGradeAdjustedSpeedMinFeetPerSecond,
-  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinKilometersPerHour, DataGradeAdjustedSpeedMinKnots,
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from './data.grade-adjusted-speed-min';
@@ -222,7 +222,7 @@ import {
   DataGradeAdjustedSpeedAvg,
   DataGradeAdjustedSpeedAvgFeetPerMinute,
   DataGradeAdjustedSpeedAvgFeetPerSecond,
-  DataGradeAdjustedSpeedAvgKilometersPerHour,
+  DataGradeAdjustedSpeedAvgKilometersPerHour, DataGradeAdjustedSpeedAvgKnots,
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from './data.grade-adjusted-speed-avg';
@@ -236,7 +236,7 @@ import { DataStopAllEvent } from './data.stop-all-event';
 import { DataTime } from './data.time';
 import {
   convertMetersToMiles,
-  convertPaceToPaceInMinutesPerMile,
+  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
@@ -361,6 +361,10 @@ export const DataStore: any = {
   DataSpeedMaxFeetPerSecond,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxFeetPerMinute,
+  DataSpeedKnots,
+  DataSpeedAvgKnots,
+  DataSpeedMinKnots,
+  DataSpeedMaxKnots,
   DataGradeAdjustedSpeedKilometersPerHour,
   DataGradeAdjustedSpeedMilesPerHour,
   DataGradeAdjustedSpeedFeetPerSecond,
@@ -381,6 +385,10 @@ export const DataStore: any = {
   DataGradeAdjustedSpeedMaxFeetPerSecond,
   DataGradeAdjustedSpeedMaxMetersPerMinute,
   DataGradeAdjustedSpeedMaxFeetPerMinute,
+  DataGradeAdjustedSpeedKnots,
+  DataGradeAdjustedSpeedAvgKnots,
+  DataGradeAdjustedSpeedMinKnots,
+  DataGradeAdjustedSpeedMaxKnots,
   DataPaceMinutesPerMile,
   DataPaceAvgMinutesPerMile,
   DataPaceMinMinutesPerMile,
@@ -482,10 +490,14 @@ export const DataStore: any = {
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types
 
-
   static positionalDataTypes = [
     DataLatitudeDegrees.type,
     DataLongitudeDegrees.type,
+  ]
+
+  static baseDataTypes = [
+    DataSpeed.type,
+    DataDistance.type
   ]
 
   static basicDataTypes = [
@@ -542,6 +554,7 @@ export class DynamicDataLoader {
     DataGrade.type
   ];
 
+  // @todo perhaps this can be simplified with using getValue if it becomes static of the data it self
   static dataTypeUnitGroups: DataTypeUnitGroups = {
     [DataSpeed.type]: {
       [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
@@ -549,6 +562,7 @@ export class DynamicDataLoader {
       [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
       [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
       [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots,
     },
     [DataGradeAdjustedSpeed.type]: {
       [DataGradeAdjustedSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
@@ -556,6 +570,7 @@ export class DynamicDataLoader {
       [DataGradeAdjustedSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
       [DataGradeAdjustedSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
       [DataGradeAdjustedSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataGradeAdjustedSpeedKnots.type]: convertSpeedToSpeedInKnots,
     },
     [DataPace.type]: {
       [DataPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
@@ -728,6 +743,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgMetersPerMinute.type, data.getValue(unit))];
             case DataSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgFeetPerMinute.type, data.getValue(unit))];
+            case DataSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedAvgKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);
@@ -747,6 +764,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxMetersPerMinute.type, data.getValue(unit))];
             case DataSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxFeetPerMinute.type, data.getValue(unit))];
+            case DataSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMaxKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);
@@ -765,6 +784,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataSpeedMinMetersPerMinute.type, data.getValue(unit))];
             case DataSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataSpeedMinFeetPerMinute.type, data.getValue(unit))];
+            case DataSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataSpeedMinKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);
@@ -788,6 +809,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedAvgMetersPerMinute.type, data.getValue(unit))];
             case DataGradeAdjustedSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedAvgFeetPerMinute.type, data.getValue(unit))];
+            case DataGradeAdjustedSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedAvgKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);
@@ -807,6 +830,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMaxMetersPerMinute.type, data.getValue(unit))];
             case DataGradeAdjustedSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMaxFeetPerMinute.type, data.getValue(unit))];
+            case DataGradeAdjustedSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMaxKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);
@@ -825,6 +850,8 @@ export class DynamicDataLoader {
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMinMetersPerMinute.type, data.getValue(unit))];
             case DataGradeAdjustedSpeedFeetPerMinute.type:
               return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMinFeetPerMinute.type, data.getValue(unit))];
+            case DataGradeAdjustedSpeedKnots.type:
+              return [...accu, this.getDataInstanceFromDataType(DataGradeAdjustedSpeedMinKnots.type, data.getValue(unit))];
           }
           return accu;
         }, []);

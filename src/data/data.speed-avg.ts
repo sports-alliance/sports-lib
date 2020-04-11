@@ -2,7 +2,7 @@ import {
   DataSpeed,
   DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour,
+  DataSpeedKilometersPerHour, DataSpeedKnots,
   DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from './data.speed';
@@ -49,6 +49,15 @@ export class DataSpeedAvgMetersPerMinute extends DataSpeedMetersPerMinute {
 
 export class DataSpeedAvgFeetPerMinute extends DataSpeedFeetPerMinute {
   static type = 'Average speed in feet per minute';
+  static displayType = DataSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataSpeedAvgKnots extends DataSpeedKnots {
+  static type = 'Average speed in knots';
   static displayType = DataSpeedAvg.type;
 
   getDisplayType(): string {

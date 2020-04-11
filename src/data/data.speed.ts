@@ -1,6 +1,6 @@
 import { DataNumber } from './data.number';
 import {
-  convertPaceToPaceInMinutesPerMile,
+  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInKnots,
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
@@ -34,6 +34,8 @@ export class DataSpeed extends DataNumber {
         return convertSpeedToSpeedInMetersPerMinute(this.value);
       case DataSpeedFeetPerMinute.type:
         return convertSpeedToSpeedInFeetPerMinute(this.value);
+      case DataSpeedKnots.type:
+        return convertSpeedToSpeedInKnots(this.value);
       // Pace
       case DataPace.type:
         return convertSpeedToPace(this.value);
@@ -94,6 +96,16 @@ export class DataSpeedFeetPerMinute extends DataSpeed {
   static type = 'Speed in feet per minute';
   static displayType = DataSpeed.type;
   static unit = 'ft/min';
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataSpeedKnots extends DataSpeed {
+  static type = 'Speed in knots';
+  static displayType = DataSpeed.type;
+  static unit = 'kn';
 
   getDisplayType(): string {
     return super.getDisplayType();

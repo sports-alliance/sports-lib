@@ -1,7 +1,11 @@
 import {
   DataGradeAdjustedSpeed,
-  DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute, DataGradeAdjustedSpeedMilesPerHour
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedKnots,
+  DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 
 export class DataGradeAdjustedSpeedMin extends DataGradeAdjustedSpeed {
@@ -46,6 +50,15 @@ export class DataGradeAdjustedSpeedMinMetersPerMinute extends DataGradeAdjustedS
 
 export class DataGradeAdjustedSpeedMinFeetPerMinute extends DataGradeAdjustedSpeedFeetPerMinute {
   static type = 'Minimum Grade Adjusted Speed in feet per minute';
+  static displayType = DataGradeAdjustedSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataGradeAdjustedSpeedMinKnots extends DataGradeAdjustedSpeedKnots {
+  static type = 'Minimum Grade Adjusted Speed in knots';
   static displayType = DataGradeAdjustedSpeedMin.type;
 
   getDisplayType(): string {

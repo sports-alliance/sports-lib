@@ -1,6 +1,6 @@
 import {
   DataGradeAdjustedSpeed, DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedKnots, DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 
@@ -46,6 +46,15 @@ export class DataGradeAdjustedSpeedAvgMetersPerMinute extends DataGradeAdjustedS
 
 export class DataGradeAdjustedSpeedAvgFeetPerMinute extends DataGradeAdjustedSpeedFeetPerMinute {
   static type = 'Average Grade Adjusted Speed in feet per minute';
+  static displayType = DataGradeAdjustedSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataGradeAdjustedSpeedAvgKnots extends DataGradeAdjustedSpeedKnots {
+  static type = 'Average Grade Adjusted Speed in knots';
   static displayType = DataGradeAdjustedSpeedAvg.type;
 
   getDisplayType(): string {

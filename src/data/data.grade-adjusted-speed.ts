@@ -3,7 +3,7 @@ import {
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
-  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
 } from '../events/utilities/helpers';
@@ -26,6 +26,8 @@ export class DataGradeAdjustedSpeed extends DataSpeed {
         return convertSpeedToSpeedInMetersPerMinute(this.value);
       case DataGradeAdjustedSpeedFeetPerMinute.type:
         return convertSpeedToSpeedInFeetPerMinute(this.value);
+      case DataGradeAdjustedSpeedKnots.type:
+        return convertSpeedToSpeedInKnots(this.value);
       // Pace
       case DataGradeAdjustedPace.type:
         return convertSpeedToPace(this.value);
@@ -79,6 +81,15 @@ export class DataGradeAdjustedSpeedFeetPerMinute extends DataGradeAdjustedSpeed 
   static type = 'Grade Adjusted Speed in feet per minute';
   static displayType = DataGradeAdjustedSpeed.type;
   static unit = 'ft/min';
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataGradeAdjustedSpeedKnots extends DataGradeAdjustedSpeed {
+  static type = 'Grade Adjusted Speed in knots';
+  static displayType = DataGradeAdjustedSpeed.type;
+  static unit = 'kn';
   getDisplayType(): string {
     return super.getDisplayType();
   }

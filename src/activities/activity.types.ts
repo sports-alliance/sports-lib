@@ -76,6 +76,9 @@ export class ActivityTypesHelper {
   static verticalSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
+      case ActivityTypeGroups.Cycling:
+      case ActivityTypeGroups.OutdoorAdventures:
+      case ActivityTypeGroups.Performance:
         return [DataVerticalSpeed.type];
       default:
         return [];

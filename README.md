@@ -29,7 +29,7 @@ Install
 
 - Install via npm 
 
-  `npm install sports-lib --save`
+  `npm install @sports-alliance/sports-lib --save`
   
 Examples
 =======

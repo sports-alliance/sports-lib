@@ -1,14 +1,14 @@
 import {
   DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour, DataSpeedMetersPerMinute,
+  DataSpeedKilometersPerHour, DataSpeedKnots, DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from './data.speed';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
 import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 import {
   DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedKnots, DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from './data.grade-adjusted-pace';
@@ -29,6 +29,7 @@ describe('DataStore', () => {
     DataSpeedFeetPerSecond.type,
     DataSpeedFeetPerMinute.type,
     DataSpeedMetersPerMinute.type,
+    DataSpeedKnots.type,
     DataPaceMinutesPerMile.type,
     DataSwimPaceMinutesPer100Yard.type,
     DataGradeAdjustedSpeedKilometersPerHour.type,
@@ -36,6 +37,7 @@ describe('DataStore', () => {
     DataGradeAdjustedSpeedFeetPerSecond.type,
     DataGradeAdjustedSpeedFeetPerMinute.type,
     DataGradeAdjustedSpeedMetersPerMinute.type,
+    DataGradeAdjustedSpeedKnots.type,
     DataGradeAdjustedPaceMinutesPerMile.type,
     DataVerticalSpeedFeetPerSecond.type,
     DataVerticalSpeedMetersPerMinute.type,

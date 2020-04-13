@@ -592,6 +592,7 @@ export enum ActivityTypes {
    */
   'Orienteering' = 'Orienteering',
   'running_navigate' = 'Orienteering',
+  'generic_navigate' = 'Orienteering',
   /**
    * Rugby
    */

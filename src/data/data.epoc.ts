@@ -2,5 +2,5 @@ import { DataNumber } from './data.number';
 
 export class DataEPOC extends DataNumber {
   static type = 'EPOC';
-  static unit = 'l/kg';
+  static unit = 'ml/kg';
 }

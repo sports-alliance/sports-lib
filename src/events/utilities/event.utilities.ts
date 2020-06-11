@@ -192,6 +192,7 @@ import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { DataMovingTime } from '../../data/data.moving-time';
+import { DataDescription } from '../../data/data.description';
 
 export class EventUtilities {
 
@@ -404,6 +405,11 @@ export class EventUtilities {
       event.getFirstActivity().getStats().forEach(stat => {
         event.addStat(stat);
       });
+      // Add the description
+      const description = event.getStat(DataDescription.type)
+      if (description && description.getValue()) {
+        event.description = <string>description.getValue();
+      }
       return;
     }
     event.startDate = event.getFirstActivity().startDate;

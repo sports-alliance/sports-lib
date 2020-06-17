@@ -9,12 +9,15 @@ export class User implements UserInterface {
   acceptedPrivacyPolicy = false;
   acceptedTrackingPolicy = false;
   acceptedDiagnosticsPolicy = false;
+  creationDate?: Date;
+  lastSignInDate?: Date;
 
   brandText?: string;
   photoURL?: string;
   displayName?: string;
   description?: string;
   settings?: UserSettingsInterface;
+  lastSeenPromoForPatreon?: Date;
 
   constructor(userID: string, displayName?: string, photoURL?: string, privacy?: Privacy, description?: string) {
     this.uid = userID;

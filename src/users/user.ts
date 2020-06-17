@@ -17,7 +17,7 @@ export class User implements UserInterface {
   displayName?: string;
   description?: string;
   settings?: UserSettingsInterface;
-  lastSeenPromoForPatreon?: Date;
+  lastSeenPromo?: number;
 
   constructor(userID: string, displayName?: string, photoURL?: string, privacy?: Privacy, description?: string) {
     this.uid = userID;

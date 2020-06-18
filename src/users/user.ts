@@ -11,6 +11,7 @@ export class User implements UserInterface {
   acceptedDiagnosticsPolicy = false;
   creationDate?: Date;
   lastSignInDate?: Date;
+  isCoach?: boolean;
 
   brandText?: string;
   photoURL?: string;

@@ -935,6 +935,7 @@ export class EventUtilities {
 
     // Get a grade adjusted speed (the model applies to running only)
     if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running
+      || ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning
       && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
       && activity.hasStreamData(DataGrade.type)
       && activity.hasStreamData(DataSpeed.type)) {
@@ -1761,6 +1762,8 @@ export class EventUtilities {
         speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
       } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
         speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
+      } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
+        speedThreshold = hasGradeAdjustedSpeedStream ? 1.65 : 1.10; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;
       }

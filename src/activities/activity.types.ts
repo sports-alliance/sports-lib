@@ -46,6 +46,8 @@ export class ActivityTypesHelper {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
+      case ActivityTypeGroups.TrailRunning:
+        return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataSpeedAvg.type, DataGradeAdjustedSpeedAvg.type];
       case ActivityTypeGroups.WaterSports:
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
       default:
@@ -57,6 +59,8 @@ export class ActivityTypesHelper {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
         return [DataPace.type];
+      case ActivityTypeGroups.TrailRunning:
+        return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.WaterSports:
         return [DataSpeed.type, DataSwimPace.type];
       default:
@@ -68,6 +72,8 @@ export class ActivityTypesHelper {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
         return [DataGradeAdjustedPace.type];
+      case ActivityTypeGroups.TrailRunning:
+        return [DataGradeAdjustedPace.type, DataGradeAdjustedSpeed.type];
       default:
         return [];
     }
@@ -76,6 +82,7 @@ export class ActivityTypesHelper {
   static verticalSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
+      case ActivityTypeGroups.TrailRunning:
       case ActivityTypeGroups.Cycling:
       case ActivityTypeGroups.OutdoorAdventures:
       case ActivityTypeGroups.Performance:
@@ -839,6 +846,8 @@ export enum ActivityTypes {
 
 export enum ActivityTypeGroups {
   'Running' = 'Running',
+  'Trail Running' = 'Trail Running',
+  'TrailRunning' = 'Trail Running',
   'Cycling' = 'Cycling',
   'Performance' = 'Performance',
   'Indoor Sports' = 'Indoor Sports',
@@ -859,10 +868,13 @@ export class ActivityTypesGroupMapping {
   public static readonly map: { [key in ActivityTypeGroups]: ActivityTypes[] } = {
     [ActivityTypeGroups.Running]: [
       ActivityTypes.Running,
-      ActivityTypes.TrailRunning,
       ActivityTypes.Treadmill,
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning,
+      // @todo add more
+    ],
+    [ActivityTypeGroups.TrailRunning]: [
+      ActivityTypes.TrailRunning,
       // @todo add more
     ],
     [ActivityTypeGroups.Cycling]: [

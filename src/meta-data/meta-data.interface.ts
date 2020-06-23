@@ -13,4 +13,5 @@ export interface MetaDataInterface extends SerializableClassInterface {
 
 export enum ServiceNames {
   SuuntoApp = 'Suunto app',
+  GarminHealthAPI = 'Garmin Health API',
 }

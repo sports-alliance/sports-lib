@@ -1,4 +1,4 @@
-export interface ServiceTokenInterface {
+export interface OAuth2OAuth2ServiceTokenInterface {
   accessToken: string;
   refreshToken: string;
   tokenType: string;

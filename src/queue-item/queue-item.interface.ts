@@ -1,6 +1,9 @@
 export interface QueueItemInterface {
-  userName: string,
-  workoutID: string,
+  // @todo make the optional ones not optional per sub class for garmin etc
+  userName?: string,
+  userID?: string
+  workoutID?: string,
+  activityID?: string,
   retryCount: number,
   totalRetryCount: number,
   processed: false,

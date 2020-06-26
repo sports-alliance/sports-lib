@@ -90,7 +90,7 @@ export class EventImporterFIT {
       });
 
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        debugger;
+        // debugger;
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
@@ -281,7 +281,7 @@ export class EventImporterFIT {
 
     let startDate, endDate = null;
     const isSessionTimingCompliant = sessionObject && sessionObject.timestamp
-      && (sessionObject.total_elapsed_time || sessionObject.total_timer_time);
+      && (isNumber(sessionObject.total_elapsed_time) || isNumber(sessionObject.total_timer_time));
 
     // @todo apparently we should not base on the timstamp for conistency.
     if (isSessionTimingCompliant) { // Session object is legit. We can use it.

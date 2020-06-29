@@ -374,6 +374,7 @@ export enum ActivityTypes {
   'downhill' = 'Alpine Skiing',
   'Downhill skiing' = 'Alpine Skiing',
   'DownhillSkiing' = 'Alpine Skiing',
+  'alpine_skiing_backcountry' = 'Alpine Skiing',
   /**
    * Crosscountry Skiing
    * https://en.wikipedia.org/wiki/Cross-country_skiing

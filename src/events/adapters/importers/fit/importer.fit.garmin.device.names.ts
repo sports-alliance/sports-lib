@@ -237,7 +237,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3287:  'Fenix 6S Sport',
   3288:  'Fenix 6S',
   3289:  'Fenix 6 Sport',
-  3290:  'Fenix 6',
+  3290:  'Fenix 6 Pro',
   3291:  'Fenix 6X',
   3299:  'HRM Dual',
   3308:  'VivoMove 3 Premium',

@@ -27,6 +27,7 @@ export class EventImporterTCX {
 
   static getFromXML(xml: Document, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
+      // debugger;
       // Activities
       const activities: ActivityInterface[] = Array.from(xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity'))
         .map((activityElement) => {
@@ -72,8 +73,9 @@ export class EventImporterTCX {
             return trackPointElementArray
           }, []);
 
+
           // If the distance from laps is 0 and there is a last trackpoint with distance use that
-          if (activity.getDistance().getValue() === 0 && trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0]) {
+          if (activity.getDistance().getValue() === 0 && trackPointElements.length && trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0]) {
             activity.setDistance(new DataDistance(Number(trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0].textContent)));
           }
 

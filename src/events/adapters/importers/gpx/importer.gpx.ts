@@ -15,6 +15,7 @@ export class EventImporterGPX {
 
     return new Promise((resolve, reject) => {
 
+      // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte;
 

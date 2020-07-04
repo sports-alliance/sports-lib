@@ -813,6 +813,7 @@ export enum ActivityTypes {
   'training_cardio_training' = 'Cardio Training',
   'Cardio Training' = 'Cardio Training',
   'CardioTraining' = 'Cardio Training',
+  'fitness_equipment_cardio_training' = 'Cardio Training',
   /**
    * Elliptical trainer
    */

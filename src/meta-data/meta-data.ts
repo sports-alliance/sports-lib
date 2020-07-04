@@ -1,20 +1,23 @@
-import { MetaDataInterface, ServiceNames } from './meta-data.interface';
-import { MetaDataJsonInterface } from './meta-data.json.interface';
+import {
+  GarminHealthAPIEventMetaDataInterface,
+  ServiceNames,
+  SuuntoAppEventMetaDataInterface
+} from './event-meta-data.interface';
+import {
+  GarminHealthAPIEventMetaDataJsonInterface,
+  SuuntoAppEventMetaDataJsonInterface
+} from './meta-data.json.interface';
 
-export class MetaData implements MetaDataInterface {
-  date: Date;
-  serviceWorkoutID: string;
+export class SuuntoAppEventMetaData implements SuuntoAppEventMetaDataInterface {
   serviceName: ServiceNames;
-  serviceUserName: string;
 
-  constructor(service: ServiceNames, serviceWorkoutID: string, serviceUser: string, date: Date) {
+  constructor(public serviceWorkoutID: string, public serviceUserName: string, public date: Date) {
     this.serviceWorkoutID = serviceWorkoutID;
-    this.serviceName = service;
+    this.serviceName = ServiceNames.SuuntoApp;
     this.date = date;
-    this.serviceUserName = serviceUser
   }
 
-  toJSON(): MetaDataJsonInterface {
+  toJSON(): SuuntoAppEventMetaDataJsonInterface {
     return {
       serviceWorkoutID: this.serviceWorkoutID,
       serviceName: this.serviceName,
@@ -23,4 +26,30 @@ export class MetaData implements MetaDataInterface {
     }
   }
 
+}
+
+export class GarminHealthAPIEventMetaData implements GarminHealthAPIEventMetaDataInterface {
+  serviceName: ServiceNames;
+
+  constructor(public serviceUserID: string,
+              public serviceActivityFileID: string,
+              public serviceActivityFileType: 'FIT' | 'TCX' | 'GPX',
+              public serviceManual: boolean,
+              public serviceStartTimeInSeconds: number,
+              public date: Date) {
+    this.serviceName = ServiceNames.GarminHealthAPI;
+    this.date = date;
+  }
+
+  toJSON(): GarminHealthAPIEventMetaDataJsonInterface {
+    return {
+      serviceUserID: this.serviceUserID,
+      serviceName: this.serviceName,
+      serviceActivityFileID: this.serviceActivityFileID,
+      serviceActivityFileType: this.serviceActivityFileType,
+      serviceManual: this.serviceManual,
+      serviceStartTimeInSeconds: this.serviceStartTimeInSeconds,
+      date: this.date.getTime()
+    }
+  }
 }

@@ -20,7 +20,6 @@ before_script:
   - npm install
 
 script:
-  - rm -rf lib
   - npm run test-coverage
   - npm run build
 

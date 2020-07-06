@@ -38,7 +38,7 @@ Examples
 GPX
 ---
 ```typescript
-import {SportsLib} from 'sports-lib';
+import {SportsLib} from '@sports-alliance/sports-lib';
 
 // For GPX you need a string 
 const gpxString = 'Some string from a file etc';
@@ -52,7 +52,7 @@ SportsLib.importFromGPX(gpxString).then((event)=>{
 TCX
 ---
 ```typescript
-import {SportsLib} from 'sports-lib';
+import {SportsLib} from '@sports-alliance/sports-lib';
 
 // For TCX you need a string 
 const tcxString = 'Some string from a file etc';
@@ -67,7 +67,7 @@ SportsLib.importFromTCX((new DOMParser()).parseFromString(tcxString, 'applicatio
 FIT
 ---
 ```typescript
-import {SportsLib} from 'sports-lib';
+import {SportsLib} from '@sports-alliance/sports-lib';
 
 // For FIT you need an ArrayBuffer (binary) 
 SportsLib.importFromFit(arrayBuffer).then((event)=>{

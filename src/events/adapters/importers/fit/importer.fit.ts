@@ -279,28 +279,18 @@ export class EventImporterFIT {
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
 
-    let startDate, endDate = null;
-    const isSessionTimingCompliant = sessionObject && sessionObject.timestamp
-      && (isNumber(sessionObject.total_elapsed_time) || isNumber(sessionObject.total_timer_time));
+    let startDate = sessionObject.start_time
+    const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
+    let endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
 
-    // @todo apparently we should not base on the timstamp for conistency.
-    if (isSessionTimingCompliant) { // Session object is legit. We can use it.
-      startDate = sessionObject.start_time;
-      const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time;
-      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
-    }
-
-    if (!startDate && !endDate) {
-
-      const firstRecord = fitDataObject.records[0];
-      if (firstRecord && firstRecord.timestamp) {
-        startDate = firstRecord.timestamp;
-      }
-
-      const lastRecord = fitDataObject.records[fitDataObject.records.length - 1];
-      if (lastRecord && lastRecord.timestamp) {
-        endDate = lastRecord.timestamp
-      }
+    // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
+    if (
+      !totalElapsedTime // Elapsed time missing
+      && fitDataObject.sessions.length === 1 // Has only one session
+      && fitDataObject.records && fitDataObject.records.length // There are records to try to guess
+    ) {
+      startDate = fitDataObject.records[0].timestamp;
+      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
     }
 
     // Create an activity

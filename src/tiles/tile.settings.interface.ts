@@ -53,6 +53,7 @@ export enum ChartDataCategoryTypes {
 }
 
 export enum DateGroups {
+  Auto,
   Hour,
   Day,
   Week,

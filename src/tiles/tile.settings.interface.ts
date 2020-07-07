@@ -1,5 +1,4 @@
 import { MapThemes, MapTypes } from '../users/settings/user.map.settings.interface';
-import { DateRanges } from '../users/settings/dashboard/user.dashboard.settings.interface';
 
 export interface TileSettingsInterface {
   name: string,
@@ -12,7 +11,7 @@ export interface TileChartSettingsInterface extends TileSettingsInterface {
   chartType: ChartTypes,
   dataType: string,
   dataValueType: ChartDataValueTypes,
-  dateGroup: DateGroups,
+  dataTimeInterval: TimeIntervals,
   dataCategoryType: ChartDataCategoryTypes,
   filterLowValues: boolean,
 }
@@ -52,14 +51,14 @@ export enum ChartDataCategoryTypes {
   DateType = 'Date Type',
 }
 
-export enum DateGroups {
-  Auto,
-  Hour,
-  Day,
-  Week,
-  BiWeek,
-  Month,
-  Quarter,
-  Semester,
-  Year,
+export declare enum TimeIntervals {
+  Auto = 0,
+  Hourly = 1,
+  Daily = 2,
+  Weekly = 3,
+  BiWeekly = 4,
+  Monthly = 5,
+  Quarterly = 6,
+  Semesterly = 7,
+  Yearly = 8
 }

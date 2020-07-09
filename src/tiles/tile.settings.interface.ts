@@ -51,14 +51,14 @@ export enum ChartDataCategoryTypes {
   DateType = 'Date Type',
 }
 
-export declare enum TimeIntervals {
-  Auto = 0,
-  Hourly = 1,
-  Daily = 2,
-  Weekly = 3,
-  BiWeekly = 4,
-  Monthly = 5,
-  Quarterly = 6,
-  Semesterly = 7,
-  Yearly = 8
+export enum TimeIntervals {
+  Auto,
+  Hourly ,
+  Daily ,
+  Weekly ,
+  BiWeekly ,
+  Monthly ,
+  Quarterly ,
+  Semesterly,
+  Yearly
 }

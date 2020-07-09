@@ -69,12 +69,14 @@ export enum SwimPaceUnits {
   MinutesPer100Yard = 'Swim Pace in minutes per 100 yard',
 }
 
+// Disabled rest of the days due to lack of availability of calculating the week number
+// See https://www.npmjs.com/package/weeknumber
 export enum DaysOfTheWeek {
   Sunday,
   Monday,
-  Tuesday,
-  Wednesday,
-  Thursday,
-  Friday,
+  // Tuesday,
+  // Wednesday,
+  // Thursday,
+  // Friday,
   Saturday,
 }

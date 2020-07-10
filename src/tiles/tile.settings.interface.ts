@@ -13,7 +13,6 @@ export interface TileChartSettingsInterface extends TileSettingsInterface {
   dataValueType: ChartDataValueTypes,
   dataTimeInterval: TimeIntervals,
   dataCategoryType: ChartDataCategoryTypes,
-  filterLowValues: boolean,
 }
 
 export interface TileMapSettingsInterface extends TileSettingsInterface {

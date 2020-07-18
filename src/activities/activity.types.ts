@@ -134,6 +134,7 @@ export enum ActivityTypes {
    */
     'generic' = 'Generic',
   'generic_exercise' = 'Generic',
+  'generic_track_me' = 'Generic',
   'Generic' = 'Generic',
   /**
    * Transition
@@ -844,6 +845,9 @@ export enum ActivityTypes {
   'Wheel chair' = 'Wheel Chair',
   'Wheel Chair' = 'Wheel Chair',
   'Workout' = 'Workout',
+
+  'generic_match' = 'Match',
+  'Match' = 'Match',
 }
 
 export enum ActivityTypeGroups {

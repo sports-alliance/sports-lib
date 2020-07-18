@@ -602,6 +602,93 @@ export class DynamicDataLoader {
     DataSwimPace.type,
   ];
 
+  static dataTypeMinDataType: {[type: string]: string} =  {
+    [DataAltitude.type]: DataAltitudeMin.type,
+    [DataHeartRate.type]: DataHeartRateMin.type,
+
+    [DataSpeed.type]: DataSpeedMin.type,
+    [DataSpeedKilometersPerHour.type]: DataSpeedMinKilometersPerHour.type,
+    [DataSpeedMilesPerHour.type]: DataSpeedMinMilesPerHour.type,
+    [DataSpeedFeetPerSecond.type]: DataSpeedMinFeetPerSecond.type,
+    [DataSpeedMetersPerMinute.type]: DataSpeedMinMetersPerMinute.type,
+    [DataSpeedKnots.type]: DataSpeedMinKnots.type,
+
+    [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedMin.type,
+    [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedMinKilometersPerHour.type,
+    [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMinMilesPerHour.type,
+    [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedMinFeetPerSecond.type,
+    [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedMinMetersPerMinute.type,
+    [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedMinKnots.type,
+
+    [DataPace.type]: DataPaceMin.type,
+    [DataPaceMinutesPerMile.type]: DataPaceMinMinutesPerMile.type,
+
+    [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceMin.type,
+    [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceMinMinutesPerMile.type,
+
+    [DataPower.type]: DataPowerMin.type,
+    [DataCadence.type]: DataCadenceMin.type,
+    [DataTemperature.type]: DataTemperatureMin.type,
+  }
+
+  static dataTypeMaxDataType: {[type: string]: string} =  {
+    [DataAltitude.type]: DataAltitudeMax.type,
+    [DataHeartRate.type]: DataHeartRateMax.type,
+
+    [DataSpeed.type]: DataSpeedMax.type,
+    [DataSpeedKilometersPerHour.type]: DataSpeedMaxKilometersPerHour.type,
+    [DataSpeedMilesPerHour.type]: DataSpeedMaxMilesPerHour.type,
+    [DataSpeedFeetPerSecond.type]: DataSpeedMaxFeetPerSecond.type,
+    [DataSpeedMetersPerMinute.type]: DataSpeedMaxMetersPerMinute.type,
+    [DataSpeedKnots.type]: DataSpeedMaxKnots.type,
+
+    [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedMax.type,
+    [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedMaxKilometersPerHour.type,
+    [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMaxMilesPerHour.type,
+    [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedMaxFeetPerSecond.type,
+    [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedMaxMetersPerMinute.type,
+    [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedMaxKnots.type,
+
+    [DataPace.type]: DataPaceMax.type,
+    [DataPaceMinutesPerMile.type]: DataPaceMaxMinutesPerMile.type,
+
+    [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceMax.type,
+    [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceMaxMinutesPerMile.type,
+
+    [DataPower.type]: DataPowerMax.type,
+    [DataCadence.type]: DataCadenceMax.type,
+    [DataTemperature.type]: DataTemperatureMax.type,
+  }
+
+  static dataTypeAvgDataType: {[type: string]: string} =  {
+    [DataAltitude.type]: DataAltitudeAvg.type,
+    [DataHeartRate.type]: DataHeartRateAvg.type,
+
+    [DataSpeed.type]: DataSpeedAvg.type,
+    [DataSpeedKilometersPerHour.type]: DataSpeedAvgKilometersPerHour.type,
+    [DataSpeedMilesPerHour.type]: DataSpeedAvgMilesPerHour.type,
+    [DataSpeedFeetPerSecond.type]: DataSpeedAvgFeetPerSecond.type,
+    [DataSpeedMetersPerMinute.type]: DataSpeedAvgMetersPerMinute.type,
+    [DataSpeedKnots.type]: DataSpeedAvgKnots.type,
+
+    [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedAvg.type,
+    [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedAvgKilometersPerHour.type,
+    [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedAvgMilesPerHour.type,
+    [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedAvgFeetPerSecond.type,
+    [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedAvgMetersPerMinute.type,
+    [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedAvgKnots.type,
+
+    [DataPace.type]: DataPaceAvg.type,
+    [DataPaceMinutesPerMile.type]: DataPaceAvgMinutesPerMile.type,
+
+    [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceAvg.type,
+    [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceAvgMinutesPerMile.type,
+
+    [DataPower.type]: DataPowerAvg.type,
+    [DataCadence.type]: DataCadenceAvg.type,
+    [DataTemperature.type]: DataTemperatureAvg.type,
+  }
+
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])), []);
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
@@ -638,6 +725,7 @@ export class DynamicDataLoader {
       DataTime.type,
     ].indexOf(dataType) !== -1;
   }
+
 
   /**
    * This get's the basic data types for the charts depending or not on the user datatype settings

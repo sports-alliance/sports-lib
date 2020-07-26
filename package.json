@@ -42,8 +42,8 @@
   "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "@types/node": "^13.9.0",
-    "fast-xml-parser": "^3.16.0",
+    "@types/node": "^14.0.26",
+    "fast-xml-parser": "^3.17.4",
     "fit-file-parser": "^1.6.18",
     "geolib": "^3.3.1",
     "gpx-builder": "^3.5.0",
@@ -57,7 +57,7 @@
     "jest": "^24.9.0",
     "ts-jest": "^25.1.0",
     "tslint": "^6.1.0",
-    "typedoc": "^0.16.11",
+    "typedoc": "^0.17.8",
     "typescript": "^3.8.3",
     "xmldom": "^0.3.0"
   },

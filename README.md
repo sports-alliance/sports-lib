@@ -76,3 +76,15 @@ SportsLib.importFromFit(arrayBuffer).then((event)=>{
   const duration = event.getDuration();
 });
 ```
+
+Export
+---
+```typescript
+// Get an event as seen above
+const gpxString = await new EventExporterGPX().getAsString(event);
+// Send the blob
+const blob = new Blob(
+  [jsonString],
+  {type: new EventExporterGPX().fileType},
+);
+```

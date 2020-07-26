@@ -35,7 +35,7 @@ export class EventExporterGPX implements EventExporter {
             DataPower.type,
             DataAltitude.type,
             DataSpeed.type
-          ]).reduce((pointsArray: typeof Point[], data) => {
+          ]).reduce((pointsArray: typeof Point[], data, index, array) => {
             pointsArray.push(new Point(
               <number>data[DataLatitudeDegrees.type],
               <number>data[DataLongitudeDegrees.type],
@@ -49,7 +49,7 @@ export class EventExporterGPX implements EventExporter {
                 cad: data[DataCadence.type] || undefined,
                 extensions: {
                   power: data[DataPower.type] || undefined,
-                  distance: data[DataCadence.type] || undefined,
+                  distance: data[DataDistance.type] || undefined,
                 }
               }
             ))

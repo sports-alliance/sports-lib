@@ -20,9 +20,6 @@ export class EventExporterGPX implements EventExporter {
 
   getAsString(event: EventInterface): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (event.getActivities().length > 1) {
-        reject('Multi activity events are not supported');
-      }
       const tracks: typeof Track = []
       event.getActivities().forEach((activity) => {
         const timeStream = event.getFirstActivity().generateTimeStream([DataLatitudeDegrees.type]);

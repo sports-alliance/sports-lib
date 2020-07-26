@@ -185,7 +185,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return <DataPositionInterface[]>this.getPositionData(startDate, endDate).filter(data => data !== null);
   }
 
-  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } } {
+  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: number | null }[] {
     return EventUtilities.getStreamDataTypesBasedOnDataType(
       this.getStream(streamTypeToBaseOn),
       this.getAllStreams()

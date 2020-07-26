@@ -70,66 +70,103 @@ describe('Activity', () => {
 
 
   it('should get streams based on another stream', () => {
-    activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
+    activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 500, 700]));
     activity.addStream(new Stream(DataHeartRate.type, [60, 70, 80, null, null, null, 120]));
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));
-    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual({
-      0: {
-        'Altitude': 200
-      },
-      10: {
-        'Altitude': 500
-      },
-      30: {
-        'Altitude': 502
-      },
-      50: {
-        'Altitude': 600
-      },
-      60: {
-        'Altitude': 700
-      }
-    });
-    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataHeartRate.type, DataAltitude.type])).toEqual({
-      0: {
+    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataAltitude.type])).toEqual([
+      {
         'Altitude': 200,
-        'Heart Rate': 60
-      },
-      10: {
-        'Altitude': 500,
-        'Heart Rate': 70
-      },
-      20: {
-        'Heart Rate': 80
-      },
-      30: {
-        'Altitude': 502,
-      },
-      50: {
-        'Altitude': 600
-      },
-      60: {
-        'Altitude': 700,
-        'Heart Rate': 120
-      }
-    });
-    expect(activity.getStreamDataTypesBasedOnDataType(DataAltitude.type, [DataDistance.type])).toEqual({
-      200: {
         'Distance': 0
       },
-      500: {
+      {
+        'Altitude': 500,
         'Distance': 10
       },
-      502: {
+      {
+        'Altitude': null,
+        'Distance': 20
+      },
+      {
+        'Altitude': 502,
         'Distance': 30
       },
-      600: {
+      {
+        'Altitude': null,
+        'Distance': 40
+      },
+      {
+        'Altitude': 500,
         'Distance': 50
       },
-      700: {
+      {
+        'Altitude': 700,
         'Distance': 60
       }
-    });
+    ]);
+    expect(activity.getStreamDataTypesBasedOnDataType(DataDistance.type, [DataHeartRate.type, DataAltitude.type])).toEqual([
+    {
+      'Altitude': 200,
+      'Distance': 0,
+      'Heart Rate': 60
+    },
+    {
+      'Altitude': 500,
+      'Distance': 10,
+      'Heart Rate': 70
+    },
+    {
+      'Altitude': null,
+      'Distance': 20,
+      'Heart Rate': 80
+    },
+    {
+      'Altitude': 502,
+      'Distance': 30,
+      'Heart Rate': null
+    },
+    {
+      'Altitude': null,
+      'Distance': 40,
+      'Heart Rate': null
+    },
+    {
+      'Altitude': 500,
+      'Distance': 50,
+      'Heart Rate': null
+    },
+    {
+      'Altitude': 700,
+      'Distance': 60,
+      'Heart Rate': 120
+    }
+    ]);
+    expect(activity.getStreamDataTypesBasedOnDataType(DataAltitude.type, [DataDistance.type, DataHeartRate.type])).toEqual([
+      {
+        'Altitude': 200,
+        'Distance': 0,
+        'Heart Rate': 60
+      },
+      {
+        'Altitude': 500,
+        'Distance': 10,
+        'Heart Rate': 70
+      },
+      {
+        'Altitude': 502,
+        'Distance': 30,
+        'Heart Rate': null
+      },
+      {
+        'Altitude': 500,
+        'Distance': 50,
+        'Heart Rate': null
+      },
+      {
+        'Altitude': 700,
+        'Distance': 60,
+        'Heart Rate': 120
+      }
+    ]);
   });
 
   describe('Trainer flagging', () => {

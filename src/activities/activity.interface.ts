@@ -86,7 +86,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * @param streamTypeToBaseOn
    * @param streamTypes
    */
-  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: { [type: string]: number | null } };
+  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: number | null }[];
 
   /**
    * Creates a stream with null filled data values

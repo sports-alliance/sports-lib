@@ -344,19 +344,20 @@ export class EventUtilities {
   }
 
 
-  public static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): { [type: string]: { [type: string]: number | null } } {
-    return streamToBaseOn.getData().reduce((accu: { [type: string]: { [type: string]: number | null } }, streamDataItem, index) => {
+  public static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): { [type: string]: number | null }[] {
+    return streamToBaseOn.getData().reduce((accu: { [type: string]: number | null }[], streamDataItem, index) => {
       if (!isNumberOrString(streamDataItem)) {
         return accu
       }
+      const dataItem: { [type: string]: number | null } = {
+        [streamToBaseOn.type]: streamDataItem
+      };
       streams.forEach((stream) => {
-        if (isNumberOrString(stream.getData()[index])) {
-          accu[<number>streamDataItem] = accu[<number>streamDataItem] || {};
-          accu[<number>streamDataItem][stream.type] = stream.getData()[index];
-        }
+        dataItem[stream.type] = stream.getData()[index]
       });
+      accu.push(dataItem);
       return accu
-    }, {})
+    }, [])
   }
 
   public static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]): { [type: number]: { [type: string]: number | null } } {

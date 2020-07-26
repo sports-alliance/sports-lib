@@ -76,7 +76,6 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataDistance.type,
     getSampleValue: (sample) => {
-      // debugger;
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }

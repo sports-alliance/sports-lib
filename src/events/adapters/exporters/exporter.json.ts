@@ -1,12 +1,13 @@
 import { EventInterface } from '../../event.interface';
 import { ActivityJSONInterface } from '../../../activities/activity.json.interface';
 import { StreamJSONInterface } from '../../../streams/stream';
+import { EventExporter } from './exporter.interface';
 
-export class EventExporterJSON {
-  static fileType = 'application/json';
-  static fileExtension = 'json';
+export class EventExporterJSON implements EventExporter {
+  fileType = 'application/json';
+  fileExtension = 'json';
 
-  static getAsString(event: EventInterface): Promise<string> {
+  getAsString(event: EventInterface): Promise<string> {
     return new Promise((resolve, reject) => {
       const jsonEvent = <any>event.toJSON();
       jsonEvent.activities = event.getActivities().reduce((activities: ActivityJSONInterface[], activity) => {

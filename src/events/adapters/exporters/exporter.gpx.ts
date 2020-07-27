@@ -15,7 +15,7 @@ const {buildGPX, GarminBuilder} = require('gpx-builder');
 const {Point, Metadata, Person, Copyright, Link, Track, Segment} = GarminBuilder.MODELS;
 
 export class EventExporterGPX implements EventExporter {
-  fileType = 'application/json';
+  fileType = 'application/gpx+xml';
   fileExtension = 'gpx';
 
   getAsString(event: EventInterface): Promise<string> {

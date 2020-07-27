@@ -22,6 +22,10 @@ export class EventExporterGPX implements EventExporter {
     return new Promise((resolve, reject) => {
       const tracks: typeof Track = []
       event.getActivities().forEach((activity) => {
+        // We cannot export activities with no positional data!
+        if (!activity.hasPositionData()) {
+          return;
+        }
         const timeStream = activity.generateTimeStream([DataLatitudeDegrees.type]);
         activity.addStream(timeStream);
         const segment = new Segment(

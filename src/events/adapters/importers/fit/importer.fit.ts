@@ -484,34 +484,34 @@ export class EventImporterFIT {
 
   private static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
     let creator: CreatorInterface;
-    switch (fitDataObject.file_id.manufacturer) {
+    switch (fitDataObject.file_ids[0].manufacturer) {
       case 'suunto': {
-        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Suunto Unknown');
+        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Suunto Unknown');
         break;
       }
       case 'coros': {
-        creator = new Creator(fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown');
+        creator = new Creator(fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown');
         break;
       }
       case 'garmin': {
-        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Garmin Unknown');
+        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Garmin Unknown');
         break;
       }
       case 'zwift': {
-        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_id.product] || fitDataObject.file_id.product_name || 'Zwift Unknown');
+        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Zwift Unknown');
         break;
       }
       case 'stryd': {
-        creator = new Creator('Stryd', fitDataObject.file_creator.software_version, fitDataObject.file_creator.hardware_version, fitDataObject.file_id.serial_number);
+        creator = new Creator('Stryd', fitDataObject.file_creator.software_version, fitDataObject.file_creator.hardware_version, fitDataObject.file_ids[0].serial_number);
         break;
       }
       case 'development': {
-        creator = new Creator(fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown');
+        creator = new Creator(fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown');
         break;
       }
       default: {
         creator = new Creator(
-          fitDataObject.file_id.manufacturer ? fitDataObject.file_id.manufacturer + ' ' + (fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown') : fitDataObject.file_id.product_name || fitDataObject.file_id.product || 'Unknown',
+          fitDataObject.file_ids[0].manufacturer ? fitDataObject.file_ids[0].manufacturer + ' ' + (fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown') : fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown',
         )
       }
     }

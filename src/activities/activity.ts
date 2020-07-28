@@ -15,7 +15,6 @@ import { Stream } from '../streams/stream';
 import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.json.interface';
 import { isNumber } from '../events/utilities/helpers';
 import { EventUtilities } from '../events/utilities/event.utilities';
-import { DataGNSSDistance } from '../data/data.gnss-distance';
 import { DataPower } from '../data/data.power';
 import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
@@ -75,7 +74,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
-  removeStream(streamType: string|StreamInterface): this {
+  removeStream(streamType: string | StreamInterface): this {
     const stream = (streamType instanceof Stream) ? streamType : this.getStream(<string>streamType);
     this.streams = this.streams.filter((activityStream) => stream !== activityStream);
     return this;
@@ -193,8 +192,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         .filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
 
-  getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } } {
-    return EventUtilities.getStreamDataTypesBasedOnTime(this.startDate, this.endDate, this.getAllStreams().filter(stream => streamTypes.indexOf(stream.type) !== -1))
+  getStreamDataTypesBasedOnTime(streamTypes?: string[]): { [type: number]: { [type: string]: number | null } } {
+    return EventUtilities.getStreamDataTypesBasedOnTime(
+      this.startDate, this.endDate,
+      !streamTypes
+        ? this.getAllStreams()
+        : this.getAllStreams().filter(stream => streamTypes.indexOf(stream.type) !== -1))
   }
 
   getStreamDataByTime(streamType: string, filterNull = false, filterInfinity = false): StreamDataItem[] {

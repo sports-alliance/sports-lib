@@ -79,7 +79,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * Gets more than one stream data based on time
    * @param streamTypes
    */
-  getStreamDataTypesBasedOnTime(streamTypes: string[]): { [type: number]: { [type: string]: number | null } };
+  getStreamDataTypesBasedOnTime(streamTypes?: string[]): { [type: number]: { [type: string]: number | null } };
 
   /**
    * Gets more than one stream type based on another stream type

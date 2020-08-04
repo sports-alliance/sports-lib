@@ -36,6 +36,7 @@ export enum ChartTypes {
   LinesHorizontal = 'Lines Horizontal',
   LinesVertical = 'Lines Vertical',
   Spiral = 'Spiral',
+  BrianDevine = 'Brian Devine'
 }
 
 export enum ChartDataValueTypes {

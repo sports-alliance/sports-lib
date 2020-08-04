@@ -304,6 +304,13 @@ export enum ActivityTypes {
   'yoga' = 'Yoga',
   'Yoga' = 'Yoga',
   'YogaPilates' = 'Yoga',
+
+  /**
+   * Pilates
+   */
+  'fitness_equipment_pilates' = 'Pilates',
+  'Pilates' = 'Pilates',
+  'pilates' = 'Pilates',
   /**
    * Trekking
    */

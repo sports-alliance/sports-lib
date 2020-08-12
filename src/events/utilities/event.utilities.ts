@@ -198,15 +198,6 @@ export class EventUtilities {
 
   private static geoLibAdapter = new GeoLibAdapter();
 
-
-  // public static async getEventAsTCXBloB(event: EventInterface): Promise<Blob> {
-  //   const tcxString = await EventExporterTCX.getAsString(event);
-  //   return (new Blob(
-  //     [tcxString],
-  //     {type: EventExporterTCX.fileType},
-  //   ));
-  // }
-
   public static getDataTypeAvg(
     activity: ActivityInterface,
     streamType: string,

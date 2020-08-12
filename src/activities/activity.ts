@@ -22,6 +22,7 @@ import { DataStopEvent } from '../data/data.stop-event';
 import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
+import { ActivityUtilities } from '../events/utilities/activity.utilities';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -53,7 +54,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   createStream(type: string): StreamInterface {
-    return new Stream(type, Array(EventUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
+    return new Stream(type, Array(ActivityUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
   }
 
   addDataToStream(type: string, date: Date, value: number): this {
@@ -185,7 +186,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: number | null }[] {
-    return EventUtilities.getStreamDataTypesBasedOnDataType(
+    return ActivityUtilities.getStreamDataTypesBasedOnDataType(
       this.getStream(streamTypeToBaseOn),
       this.getAllStreams()
         .filter(stream => stream.type !== streamTypeToBaseOn)
@@ -193,7 +194,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   getStreamDataTypesBasedOnTime(streamTypes?: string[]): { [type: number]: { [type: string]: number | null } } {
-    return EventUtilities.getStreamDataTypesBasedOnTime(
+    return ActivityUtilities.getStreamDataTypesBasedOnTime(
       this.startDate, this.endDate,
       !streamTypes
         ? this.getAllStreams()

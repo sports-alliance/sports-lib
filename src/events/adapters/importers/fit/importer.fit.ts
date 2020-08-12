@@ -70,6 +70,7 @@ import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.e
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
+import { ActivityUtilities } from '../../../utilities/activity.utilities';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -354,7 +355,7 @@ export class EventImporterFIT {
     // And that typically is a device error we should look at the samples
     // Since start and end date are inclusive for sample size eg at time [0] there can be a value
     if (!totalTimerTime) {
-      totalTimerTime = EventUtilities.getDataLength(activity.startDate, activity.endDate) - 1;
+      totalTimerTime = ActivityUtilities.getDataLength(activity.startDate, activity.endDate) - 1;
     }
     stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)

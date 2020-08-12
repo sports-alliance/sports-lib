@@ -387,14 +387,21 @@ export enum ActivityTypes {
    * Crosscountry Skiing
    * https://en.wikipedia.org/wiki/Cross-country_skiing
    */
-    'NordicSki' = 'Nordic Skiing',
+
+  'Crosscountry Skiing' = 'Crosscountry Skiing',
+  'Crosscountry skiing' = 'Crosscountry Skiing',
+  'CrosscountrySkiing' = 'Crosscountry Skiing',
+  'CrossCountrySkiing' = 'Crosscountry Skiing',
+  'cross_country_skiing' = 'Crosscountry Skiing',
+  'cross_country_skiing_skate_skiing' = 'Crosscountry Skiing',
+
+  /**
+   * Nordic skiing
+   */
+  'NordicSki' = 'Nordic Skiing',
   'Nordic skiing' = 'Nordic Skiing',
-  'Nordic Skiing' = 'Nordic Skiing',
-  'Crosscountry skiing' = 'Nordic Skiing',
-  'Crosscountry Skiing' = 'Nordic Skiing',
-  'CrosscountrySkiing' = 'Nordic Skiing',
-  'CrossCountrySkiing' = 'Nordic Skiing',
-  'cross_country_skiing' = 'Nordic Skiing',
+  'Nordic Skiing' = 'Nordic Skiing'
+  ,
   /**
    * Backcountry Skiing
    * https://en.wikipedia.org/wiki/Backcountry_skiing

@@ -26,14 +26,11 @@ import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
 import { DataHeartRateMax } from '../../../../data/data.heart-rate-max';
 import { DataSpeedMax } from '../../../../data/data.speed-max';
 import { LapTypes } from '../../../../laps/lap.types';
-import { DataPaceAvg } from '../../../../data/data.pace-avg';
-import { DataPaceMax } from '../../../../data/data.pace-max';
 import { DataHeartRateMin } from '../../../../data/data.heart-rate-min';
 import { DataPowerMin } from '../../../../data/data.power-min';
-import { DataPaceMin } from '../../../../data/data.pace-min';
 import { DataTotalTrainingEffect } from '../../../../data/data.total-training-effect';
 import { FITSampleMapper } from './importer.fit.mapper';
-import { convertSpeedToPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
+import { isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
@@ -265,6 +262,7 @@ export class EventImporterFIT {
         activities.forEach(activity => event.addActivity(activity));
         // debugger;
         EventUtilities.generateStatsForAll(event);
+        // debugger;
         resolve(event);
       });
 
@@ -404,28 +402,22 @@ export class EventImporterFIT {
     // Speed
     if (isNumberOrString(object.avg_speed)) {
       stats.push(new DataSpeedAvg(object.avg_speed));
-      stats.push(new DataPaceAvg(convertSpeedToPace(object.avg_speed)));
     }
     if (isNumberOrString(object.min_speed)) {
       stats.push(new DataSpeedMin(object.min_speed));
-      stats.push(new DataPaceMin(convertSpeedToPace(object.min_speed)));
     }
     if (isNumberOrString(object.max_speed)) {
       stats.push(new DataSpeedMax(object.max_speed));
-      stats.push(new DataPaceMax(convertSpeedToPace(object.max_speed)));
     }
     // Keep latest , encanched @todo this can create a bug
     if (isNumberOrString(object.enhanced_avg_speed)) {
       stats.push(new DataSpeedAvg(object.enhanced_avg_speed));
-      stats.push(new DataPaceAvg(convertSpeedToPace(object.enhanced_avg_speed)));
     }
     if (isNumberOrString(object.enhanced_min_speed)) {
       stats.push(new DataSpeedMin(object.enhanced_min_speed));
-      stats.push(new DataPaceMin(convertSpeedToPace(object.enhanced_min_speed)));
     }
     if (isNumberOrString(object.enhanced_max_speed)) {
       stats.push(new DataSpeedMax(object.enhanced_max_speed));
-      stats.push(new DataPaceMax(convertSpeedToPace(object.enhanced_max_speed)));
     }
     // Temperature
     if (isNumberOrString(object.avg_temperature)) {

@@ -390,6 +390,7 @@ export class EventUtilities {
     this.generateMissingStreamsForActivity(activity);
     activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
     this.generateMissingStatsForActivity(activity);
+    this.generateMissingSpeedDerivedStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
   }
 
@@ -1086,13 +1087,10 @@ export class EventUtilities {
 
   /**
    * Generates the stats for an activity
+   * @todo move to factory with next version
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
-    // Add the number of points this activity has
-    // @todo the below wont work since the stats are after the generated streams // Could be wrong and I could still vise versa
-    // activity.addStat(new DataNumberOfSamples(activity.getAllStreams().reduce((sum, stream) => sum + stream.getNumericData().length, 0)));
-
     // If there is no distance
     if (!activity.getStat(DataDistance.type)) {
       let distance = 0;
@@ -1108,189 +1106,175 @@ export class EventUtilities {
       activity.addStat(new DataGNSSDistance(activity.getSquashedStreamData(DataGNSSDistance.type)[activity.getSquashedStreamData(DataGNSSDistance.type).length - 1]));
     }
 
-    // @todo remove the start date and end date parameters
     // Ascent (altitude gain)
     if (!activity.getStat(DataAscent.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAscent(this.getEventDataTypeGain(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataAscent(this.getEventDataTypeGain(activity, DataAltitude.type)));
     }
     // Descent (altitude loss)
     if (!activity.getStat(DataDescent.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataDescent(this.getEventDataTypeLoss(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataDescent(this.getEventDataTypeLoss(activity, DataAltitude.type)));
     }
     // Altitude Max
     if (!activity.getStat(DataAltitudeMax.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type)));
     }
     // Altitude Min
     if (!activity.getStat(DataAltitudeMin.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type)));
     }
     // Altitude Avg
     if (!activity.getStat(DataAltitudeAvg.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type)));
     }
 
     // Altitude start
     if (!activity.getStat(DataStartAltitude.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type)));
     }
 
     // Altitude end
     if (!activity.getStat(DataEndAltitude.type)
-      && activity.hasStreamData(DataAltitude.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAltitude.type)) {
+      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type)));
     }
 
     // Heart Rate  Max
     if (!activity.getStat(DataHeartRateMax.type)
-      && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataHeartRate.type)) {
+      activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type)));
     }
     // Heart Rate Min
     if (!activity.getStat(DataHeartRateMin.type)
-      && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataHeartRateMin(this.getDataTypeMin(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataHeartRate.type)) {
+      activity.addStat(new DataHeartRateMin(this.getDataTypeMin(activity, DataHeartRate.type)));
     }
     // Heart Rate Avg
     if (!activity.getStat(DataHeartRateAvg.type)
-      && activity.hasStreamData(DataHeartRate.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataHeartRateAvg(this.getDataTypeAvg(activity, DataHeartRate.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataHeartRate.type)) {
+      activity.addStat(new DataHeartRateAvg(this.getDataTypeAvg(activity, DataHeartRate.type)));
     }
     // Cadence Max
     if (!activity.getStat(DataCadenceMax.type)
-      && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataCadenceMax(this.getDataTypeMax(activity, DataCadence.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataCadence.type)) {
+      activity.addStat(new DataCadenceMax(this.getDataTypeMax(activity, DataCadence.type)));
     }
     // Cadence Min
     if (!activity.getStat(DataCadenceMin.type)
-      && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataCadence.type)) {
+      activity.addStat(new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type)));
     }
     // Cadence Avg
     if (!activity.getStat(DataCadenceAvg.type)
-      && activity.hasStreamData(DataCadence.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataCadence.type)) {
+      activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type)));
     }
 
     // Speed Max
     if (!activity.getStat(DataSpeedMax.type)
-      && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataPaceMax(convertSpeedToPace(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate))));
-      activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(this.getDataTypeMax(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      && activity.hasStreamData(DataSpeed.type)) {
+      activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type)));
     }
     // Speed Min
     if (!activity.getStat(DataSpeedMin.type)
-      && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataPaceMin(convertSpeedToPace(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate))));
-      activity.addStat(new DataSwimPaceMin(convertSpeedToSwimPace(this.getDataTypeMin(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      && activity.hasStreamData(DataSpeed.type)) {
+      activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type)));
     }
     // Speed Avg
     if (!activity.getStat(DataSpeedAvg.type)
-      && activity.hasStreamData(DataSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataPaceAvg(convertSpeedToPace(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate))));
-      activity.addStat(new DataSwimPaceAvg(convertSpeedToSwimPace(this.getDataTypeAvg(activity, DataSpeed.type, activity.startDate, activity.endDate))));
+      && activity.hasStreamData(DataSpeed.type)) {
+      activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type)));
     }
+
 
     // Grade Adjusted Speed Max
     if (!activity.getStat(DataGradeAdjustedSpeedMax.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+      activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type)));
     }
     // Grade Adjusted Speed Min
     if (!activity.getStat(DataGradeAdjustedSpeedMin.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataGradeAdjustedSpeedMin(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+      activity.addStat(new DataGradeAdjustedSpeedMin(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type)));
     }
     // Grade Adjusted Speed Avg
     if (!activity.getStat(DataGradeAdjustedSpeedAvg.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate)));
-      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type, activity.startDate, activity.endDate))));
-    }
-
-    // Swim Pace Avg
-    if (!activity.getStat(DataSwimPaceAvg.type)
-      && activity.hasStreamData(DataSwimPace.type, activity.startDate, activity.endDate)) {
+      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+      activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type)));
     }
 
     // Vertical Speed Max
     if (!activity.getStat(DataVerticalSpeedMax.type)
-      && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataVerticalSpeedMax(this.getDataTypeMax(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataVerticalSpeed.type)) {
+      activity.addStat(new DataVerticalSpeedMax(this.getDataTypeMax(activity, DataVerticalSpeed.type)));
     }
     // Vertical Speed Min
     if (!activity.getStat(DataVerticalSpeedMin.type)
-      && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataVerticalSpeedMin(this.getDataTypeMin(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataVerticalSpeed.type)) {
+      activity.addStat(new DataVerticalSpeedMin(this.getDataTypeMin(activity, DataVerticalSpeed.type)));
     }
     // Vertical Speed Avg
     if (!activity.getStat(DataVerticalSpeedAvg.type)
-      && activity.hasStreamData(DataVerticalSpeed.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(activity, DataVerticalSpeed.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataVerticalSpeed.type)) {
+      activity.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(activity, DataVerticalSpeed.type)));
     }
     // Power Max
     if (!activity.getStat(DataPowerMax.type)
-      && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPowerMax(this.getDataTypeMax(activity, DataPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataPower.type)) {
+      activity.addStat(new DataPowerMax(this.getDataTypeMax(activity, DataPower.type)));
     }
     // Power Min
     if (!activity.getStat(DataPowerMin.type)
-      && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataPower.type)) {
+      activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type)));
     }
     // Power AVG
     if (!activity.getStat(DataPowerAvg.type)
-      && activity.hasStreamData(DataPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataPower.type)) {
+      activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
     }
 
     // Air AirPower Max
     if (!activity.getStat(DataAirPowerMax.type)
-      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAirPowerMax(this.getDataTypeMax(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAirPower.type)) {
+      activity.addStat(new DataAirPowerMax(this.getDataTypeMax(activity, DataAirPower.type)));
     }
     // Air AirPower Min
     if (!activity.getStat(DataAirPowerMin.type)
-      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAirPowerMin(this.getDataTypeMin(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAirPower.type)) {
+      activity.addStat(new DataAirPowerMin(this.getDataTypeMin(activity, DataAirPower.type)));
     }
     // Air AirPower AVG
     if (!activity.getStat(DataAirPowerAvg.type)
-      && activity.hasStreamData(DataAirPower.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataAirPower.type)) {
+      activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type)));
     }
 
     // Temperature Max
     if (!activity.getStat(DataTemperatureMax.type)
-      && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataTemperatureMax(this.getDataTypeMax(activity, DataTemperature.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataTemperature.type)) {
+      activity.addStat(new DataTemperatureMax(this.getDataTypeMax(activity, DataTemperature.type)));
     }
     // Temperature Min
     if (!activity.getStat(DataTemperatureMin.type)
-      && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataTemperatureMin(this.getDataTypeMin(activity, DataTemperature.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataTemperature.type)) {
+      activity.addStat(new DataTemperatureMin(this.getDataTypeMin(activity, DataTemperature.type)));
     }
     // Temperature Avg
     if (!activity.getStat(DataTemperatureAvg.type)
-      && activity.hasStreamData(DataTemperature.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataTemperatureAvg(this.getDataTypeAvg(activity, DataTemperature.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataTemperature.type)) {
+      activity.addStat(new DataTemperatureAvg(this.getDataTypeAvg(activity, DataTemperature.type)));
     }
 
     // Battery Consumption Avg
     if (!activity.getStat(DataBatteryConsumption.type)
-      && activity.hasStreamData(DataBatteryCharge.type, activity.startDate, activity.endDate)) {
-      activity.addStat(new DataBatteryConsumption(this.getDataTypeMinToMaxDifference(activity, DataBatteryCharge.type, activity.startDate, activity.endDate)));
+      && activity.hasStreamData(DataBatteryCharge.type)) {
+      activity.addStat(new DataBatteryConsumption(this.getDataTypeMinToMaxDifference(activity, DataBatteryCharge.type)));
     }
 
     // Battery Life Estimation based on Consumption
@@ -1314,6 +1298,45 @@ export class EventUtilities {
       if (endPosition && !activity.getStat(DataEndPosition.type)) {
         activity.addStat(new DataEndPosition(endPosition));
       }
+    }
+  }
+
+  private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface){
+    // Pace
+    const speedMax = activity.getStat(DataSpeedMax.type);
+    if (speedMax && !activity.getStat(DataPaceMax.type)) {
+      activity.addStat(new DataPaceMax(convertSpeedToPace(<number>speedMax.getValue())));
+    }
+    const speedMin = activity.getStat(DataSpeedMin.type);
+    if (speedMin && !activity.getStat(DataPaceMin.type)) {
+      activity.addStat(new DataPaceMin(convertSpeedToPace(<number>speedMin.getValue())));
+    }
+    const speedAvg = activity.getStat(DataSpeedAvg.type);
+    if (speedAvg && !activity.getStat(DataPaceAvg.type)) {
+      activity.addStat(new DataPaceAvg(convertSpeedToPace(<number>speedAvg.getValue())));
+    }
+    // GAP
+    const gradeAdjustedSpeedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
+    if (gradeAdjustedSpeedMax && !activity.getStat(DataGradeAdjustedPaceMax.type)) {
+      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(<number>gradeAdjustedSpeedMax.getValue())));
+    }
+    const gradeAdjustedSpeedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
+    if (gradeAdjustedSpeedMin && !activity.getStat(DataGradeAdjustedPaceMin.type)) {
+      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(<number>gradeAdjustedSpeedMin.getValue())));
+    }
+    const gradeAdjustedSpeedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
+    if (gradeAdjustedSpeedAvg && !activity.getStat(DataGradeAdjustedPaceAvg.type)) {
+      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(<number>gradeAdjustedSpeedAvg.getValue())));
+    }
+    // Swim Pace
+    if (speedMax && !activity.getStat(DataSwimPaceMax.type)) {
+      activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(<number>speedMax.getValue())));
+    }
+    if (speedMin && !activity.getStat(DataSwimPaceMin.type)) {
+      activity.addStat(new DataSwimPaceMin(convertSpeedToSwimPace(<number>speedMin.getValue())));
+    }
+    if (speedAvg && !activity.getStat(DataSwimPaceAvg.type)) {
+      activity.addStat(new DataSwimPaceAvg(convertSpeedToSwimPace(<number>speedAvg.getValue())));
     }
   }
 

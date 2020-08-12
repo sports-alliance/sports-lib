@@ -6,11 +6,10 @@ import { DataTemperature } from '../../../../data/data.temperature';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataSeaLevelPressure } from '../../../../data/data.sea-level-pressure';
 import { DataSpeed } from '../../../../data/data.speed';
-import { DataPace } from '../../../../data/data.pace';
 import { DataVerticalSpeed } from '../../../../data/data.vertical-speed';
 import { DataPower } from '../../../../data/data.power';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
-import { convertSpeedToPace, isNumberOrString } from '../../../utilities/helpers';
+import { isNumberOrString } from '../../../utilities/helpers';
 
 export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
@@ -105,18 +104,6 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
       }
       if (sample.extensions[0].speed && isNumberOrString(sample.extensions[0].speed[0])) {
         return Number(sample.extensions[0].speed[0]);
-      }
-      return null;
-    },
-  },
-  {
-    dataType: DataPace.type,
-    getSampleValue: (sample) => {
-      if (!sample.extensions || !sample.extensions.length) {
-        return null;
-      }
-      if (sample.extensions[0].speed && isNumberOrString(sample.extensions[0].speed[0])) {
-        return Number(convertSpeedToPace(sample.extensions[0].speed[0]));
       }
       return null;
     },

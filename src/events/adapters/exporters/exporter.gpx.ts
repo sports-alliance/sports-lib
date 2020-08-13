@@ -26,10 +26,11 @@ export class EventExporterGPX implements EventExporter {
         if (!activity.hasPositionData()) {
           return;
         }
-        const timeStream = activity.generateTimeStream([DataLatitudeDegrees.type]);
+        const timeStream = activity.generateTimeStream([DataLatitudeDegrees.type, DataLongitudeDegrees.type]);
+        // @todo it should make an activity copy
         activity.addStream(timeStream);
         const segment = new Segment(
-          event.getFirstActivity().getStreamDataTypesBasedOnDataType(DataLatitudeDegrees.type, [
+          activity.getStreamDataTypesBasedOnDataType(DataLatitudeDegrees.type, [
             DataLongitudeDegrees.type,
             DataTime.type,
             DataDistance.type,
@@ -59,10 +60,10 @@ export class EventExporterGPX implements EventExporter {
             ))
             return pointsArray;
           }, []))
-        tracks.push(new Track([segment]));
+        tracks.push(new Track([segment], {name: activity.type}));
+        // @todo it should make an activity copy
         activity.removeStream(timeStream);
       })
-
 
       const builder = new GarminBuilder();
       builder.setTracks(tracks);

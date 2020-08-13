@@ -1,27 +1,10 @@
 import { convertSwimPaceToSwimPacePer100Yard } from '../events/utilities/helpers';
 import { DataDuration } from './data.duration';
+import { DataPace } from './data.pace';
 
-export class DataSwimPace extends DataDuration {
+export class DataSwimPace extends DataPace {
   static type = 'Swim Pace';
   static unit = 'min/100m';
-
-  getDisplayValue(): string {
-    const d = super.getValue();
-    const h = Math.floor(d / 3600);
-    const m = Math.floor(d % 3600 / 60);
-    const s = Math.floor(d % 3600 % 60);
-    if (!m && !h) {
-      return '00:' + ('0' + s).slice(-2);
-    } else if (!h) {
-      return ('0' + m).slice(-2) + ':' + ('0' + s).slice(-2);
-    } else {
-      return ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2) + ':' + ('0' + s).slice(-2);
-    }
-  }
-
-  getDisplayUnit(): string {
-    return this.getUnit()
-  }
 
   getValue(formatForDataType?: string): number {
     switch (formatForDataType) {

@@ -19,7 +19,7 @@ import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.name
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { TCXSampleMapper } from './importer.tcx.mapper';
 import { EventUtilities } from '../../../utilities/event.utilities';
-import { convertSpeedToPace, isNumber } from '../../../utilities/helpers';
+import { isNumber } from '../../../utilities/helpers';
 
 export class EventImporterTCX {
 
@@ -83,6 +83,9 @@ export class EventImporterTCX {
               return isNumber(sampleMapping.getSampleValue(element));
             });
             if (subjectTrackPointElements.length) {
+              if (activity.hasStreamData(sampleMapping.dataType)) {
+                return;
+              }
               activity.addStream(activity.createStream(sampleMapping.dataType));
               subjectTrackPointElements.forEach((subjectTrackPointElement: any) => {
                 activity.addDataToStream(sampleMapping.dataType, (new Date(subjectTrackPointElement.getElementsByTagName('Time')[0].textContent)), <number>sampleMapping.getSampleValue(subjectTrackPointElement));

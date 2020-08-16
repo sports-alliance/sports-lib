@@ -938,6 +938,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
       ActivityTypes.RockClimbing,
+      ActivityTypes.BackCountrySki,
       // @todo add more
     ],
     [ActivityTypeGroups.WinterSports]: [

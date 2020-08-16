@@ -201,6 +201,7 @@ export enum ActivityTypes {
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
+  'cycling_commuting' = 'Cycling',
   /**
    * Indoor Cycling
    */

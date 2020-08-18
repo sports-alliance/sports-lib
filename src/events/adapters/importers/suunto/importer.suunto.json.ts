@@ -188,10 +188,10 @@ export class EventImporterSuuntoJSON {
       });
 
       // If nothing found
-      if (!activities.length){
+      if (!activities.length) {
         activities.push(new Activity(
           new Date(eventJSONObject.DeviceLog.Header.DateTime),
-          new Date(new Date(eventJSONObject.DeviceLog.Header.DateTime).getTime() + eventJSONObject.DeviceLog.Header.Duration*1000),
+          new Date(new Date(eventJSONObject.DeviceLog.Header.DateTime).getTime() + eventJSONObject.DeviceLog.Header.Duration * 1000),
           ActivityTypes.unknown,
           creator
         ))
@@ -379,12 +379,10 @@ export class EventImporterSuuntoJSON {
       .movingMedianFilter()
       .lowPassFilter()
       .getAsBPM().forEach((value, key, map) => {
-      // const point = new Point(new Date(activity.startDate.getTime() + key));
-      // point.addData(new DataHeartRate(value));
-      samples.push({
-        TimeISO8601: (new Date(activity.startDate.getTime() + key)).toISOString(),
-        HR: value / 60,
-      })
+        samples.push({
+          TimeISO8601: (new Date(activity.startDate.getTime() + key)).toISOString(),
+          HR: value / 60,
+        })
     });
     return samples;
   }

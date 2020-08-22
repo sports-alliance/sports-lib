@@ -31,4 +31,5 @@ export interface GarminHealthAPIEventMetaDataInterface extends EventMetaDataInte
 export enum ServiceNames {
   SuuntoApp = 'Suunto app',
   GarminHealthAPI = 'Garmin Health API',
+  COROSAPI = 'COROS API',
 }

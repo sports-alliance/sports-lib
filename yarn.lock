@@ -1460,10 +1460,10 @@ find-up@^4.0.0, find-up@^4.1.0:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
 
-fit-file-parser@^1.8.3:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/fit-file-parser/-/fit-file-parser-1.8.3.tgz#4ccec78c95aff270195d7d33ce9d53994d3f272d"
-  integrity sha512-+KIHsZMrnsnZsbgmmxS/xERSYQ52tVn+yCBuLVlEsNJFBhKQZI7Kqf/KhUcDlmqsaL5dK/sf86yqcQDJ9gFUiA==
+fit-file-parser@^1.8.4:
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/fit-file-parser/-/fit-file-parser-1.8.4.tgz#dbebf115e22db3f84b2b8b42147329ab7d23fde5"
+  integrity sha512-+8yBIO4WKwQh0KrMJ02KsHod0+mILqm6+GkiqpQZtYMCRgw/NcdZYQAPfWfP0knPLCy0lC6Jg5gMbRrYAiHnKQ==
   dependencies:
     buffer "^5.1.0"
 

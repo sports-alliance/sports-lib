@@ -85,8 +85,7 @@ describe('Integration tests with native & custom dom parser', () => {
         it('should parse a GPX string', done => {
 
           // Given
-          const gpxString = `
-                      <?xml version="1.0" encoding="UTF-8"?>
+          const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
                       <gpx creator="Garmin Connect" version="1.1"
                         xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/11.xsd"
                         xmlns:ns3="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"

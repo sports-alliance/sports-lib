@@ -88,3 +88,49 @@ const blob = new Blob(
   {type: new EventExporterGPX().fileType},
 );
 ```
+
+
+Example converting a FIT file to GPX
+---
+Thanks to [@guikeller](https://github.com/guikeller)
+```typescript 
+import fs from 'fs';
+import sportsLibPkg from '@sports-alliance/sports-lib';
+import exporterPkg from '@sports-alliance/sports-lib/lib/events/adapters/exporters/exporter.gpx.js'
+
+const { SportsLib } = sportsLibPkg;
+const { EventExporterGPX } = exporterPkg;
+
+// Input and output file path
+const inputFilePath = '/tmp/test.fit';
+const outputGpxFilePath = '/tmp/test.gpx';
+
+// reads the FIT file into memory
+const inputFile = fs.readFileSync(inputFilePath, null);
+if (!inputFile || inputFile.buffer) {
+    console.error('Ooops, could not read the inputFile or it does not exists, see details below');
+    console.error(JSON.stringify(inputFilePath));
+    return;
+}
+const inputFileBuffer = inputFile.buffer;
+// uses lib to read the FIT file
+SportsLib.importFromFit(inputFileBuffer).then((event) => {
+    // convert to gpx
+    const gpxPromise = new EventExporterGPX().getAsString(event);
+    gpxPromise.then((gpxString) => {
+        // writes the gpx to file
+        fs.writeFileSync(outputGpxFilePath, gpxString, (wError) => {
+            if (error) {
+                console.error('Ooops, something went wrong while saving the GPX file, see details below.');
+                console.error(JSON.stringify(wError));
+            }
+        });
+        // all done, celebrate!
+        console.log('Converted FIT file to GPX successfully!');
+        console.log('GPX file saved here: ' + outputGpxFilePath);
+    }).catch((cError) => {
+        console.error('Ooops, something went wrong while converting the FIT file, see details below');
+        console.error(JSON.stringify(cError));
+    });
+});
+```

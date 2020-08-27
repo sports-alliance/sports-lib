@@ -107,7 +107,7 @@ const outputGpxFilePath = '/tmp/test.gpx';
 
 // reads the FIT file into memory
 const inputFile = fs.readFileSync(inputFilePath, null);
-if (!inputFile || inputFile.buffer) {
+if (!inputFile || !inputFile.buffer) {
     console.error('Ooops, could not read the inputFile or it does not exists, see details below');
     console.error(JSON.stringify(inputFilePath));
     return;

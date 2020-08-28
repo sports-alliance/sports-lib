@@ -120,7 +120,7 @@ SportsLib.importFromFit(inputFileBuffer).then((event) => {
     gpxPromise.then((gpxString) => {
         // writes the gpx to file
         fs.writeFileSync(outputGpxFilePath, gpxString, (wError) => {
-            if (error) {
+            if (wError) {
                 console.error('Ooops, something went wrong while saving the GPX file, see details below.');
                 console.error(JSON.stringify(wError));
             }

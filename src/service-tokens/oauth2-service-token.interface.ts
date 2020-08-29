@@ -4,8 +4,14 @@ export interface Auth2ServiceTokenInterface {
   tokenType: string;
   expiresAt: number;
   scope: string;
-  userName: string;
   dateRefreshed: number;
   dateCreated: number;
 }
 
+export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
+  userName: string;
+}
+
+export interface COROSAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
+  openid: string;
+}

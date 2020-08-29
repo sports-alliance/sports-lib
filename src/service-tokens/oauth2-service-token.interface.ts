@@ -6,6 +6,8 @@ export interface Auth2ServiceTokenInterface {
   scope: string;
   dateRefreshed: number;
   dateCreated: number;
+  userName?: string;
+  openid?: string;
 }
 
 export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{

@@ -1,4 +1,7 @@
+import { ServiceNames } from '../meta-data/event-meta-data.interface';
+
 export interface Auth2ServiceTokenInterface {
+  serviceName: ServiceNames
   accessToken: string;
   refreshToken: string;
   tokenType: string;
@@ -10,10 +13,10 @@ export interface Auth2ServiceTokenInterface {
   openId?: string;
 }
 
-export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
+export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface {
   userName: string;
 }
 
-export interface COROSAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
+export interface COROSAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface {
   openId: string;
 }

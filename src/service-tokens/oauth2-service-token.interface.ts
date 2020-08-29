@@ -7,7 +7,7 @@ export interface Auth2ServiceTokenInterface {
   dateRefreshed: number;
   dateCreated: number;
   userName?: string;
-  openid?: string;
+  openId?: string;
 }
 
 export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
@@ -15,5 +15,5 @@ export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenIn
 }
 
 export interface COROSAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface{
-  openid: string;
+  openId: string;
 }

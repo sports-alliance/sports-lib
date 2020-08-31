@@ -1,20 +1,19 @@
 import {
+  COROSAPIEventMetaDataInterface,
   GarminHealthAPIEventMetaDataInterface,
   ServiceNames,
   SuuntoAppEventMetaDataInterface
 } from './event-meta-data.interface';
 import {
+  COROSAPIEventMetaDataJsonInterface,
   GarminHealthAPIEventMetaDataJsonInterface,
   SuuntoAppEventMetaDataJsonInterface
 } from './meta-data.json.interface';
 
 export class SuuntoAppEventMetaData implements SuuntoAppEventMetaDataInterface {
-  serviceName: ServiceNames;
+  serviceName = ServiceNames.SuuntoApp;
 
   constructor(public serviceWorkoutID: string, public serviceUserName: string, public date: Date) {
-    this.serviceWorkoutID = serviceWorkoutID;
-    this.serviceName = ServiceNames.SuuntoApp;
-    this.date = date;
   }
 
   toJSON(): SuuntoAppEventMetaDataJsonInterface {
@@ -28,8 +27,26 @@ export class SuuntoAppEventMetaData implements SuuntoAppEventMetaDataInterface {
 
 }
 
+export class COROSAPIEventMetaData implements COROSAPIEventMetaDataInterface {
+  serviceName = ServiceNames.COROSAPI
+
+  constructor(public serviceWorkoutID: string, public serviceOpenId: string, public serviceFITFileURI: string , public date: Date) {
+  }
+
+  toJSON(): COROSAPIEventMetaDataJsonInterface {
+    return {
+      serviceWorkoutID: this.serviceWorkoutID,
+      serviceName: this.serviceName,
+      serviceOpenId: this.serviceOpenId,
+      serviceFITFileURI: this.serviceFITFileURI,
+      date: this.date.getTime()
+    }
+  }
+
+}
+
 export class GarminHealthAPIEventMetaData implements GarminHealthAPIEventMetaDataInterface {
-  serviceName: ServiceNames;
+  serviceName = ServiceNames.GarminHealthAPI
 
   constructor(public serviceUserID: string,
               public serviceActivityFileID: string,
@@ -37,8 +54,6 @@ export class GarminHealthAPIEventMetaData implements GarminHealthAPIEventMetaDat
               public serviceManual: boolean,
               public serviceStartTimeInSeconds: number,
               public date: Date) {
-    this.serviceName = ServiceNames.GarminHealthAPI;
-    this.date = date;
   }
 
   toJSON(): GarminHealthAPIEventMetaDataJsonInterface {

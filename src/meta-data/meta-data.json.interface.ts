@@ -10,6 +10,12 @@ export interface SuuntoAppEventMetaDataJsonInterface extends EventMetaDataJsonIn
   serviceWorkoutID: string,
 }
 
+export interface COROSAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface{
+  serviceOpenId: string;
+  serviceWorkoutID: string,
+  serviceFITFileURI: string,
+}
+
 export interface GarminHealthAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface{
   serviceUserID: string;
   serviceActivityFileID: string;

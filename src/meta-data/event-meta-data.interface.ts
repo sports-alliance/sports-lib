@@ -1,5 +1,6 @@
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
 import {
+  COROSAPIEventMetaDataJsonInterface,
   EventMetaDataJsonInterface,
   GarminHealthAPIEventMetaDataJsonInterface,
   SuuntoAppEventMetaDataJsonInterface
@@ -16,6 +17,13 @@ export interface SuuntoAppEventMetaDataInterface extends EventMetaDataInterface 
   serviceUserName: string;
   serviceWorkoutID: string;
   toJSON(): SuuntoAppEventMetaDataJsonInterface;
+}
+
+export interface COROSAPIEventMetaDataInterface extends EventMetaDataInterface {
+  serviceOpenId: string;
+  serviceWorkoutID: string;
+  serviceFITFileURI: string;
+  toJSON(): COROSAPIEventMetaDataJsonInterface;
 }
 
 export interface GarminHealthAPIEventMetaDataInterface extends EventMetaDataInterface {

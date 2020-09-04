@@ -19,10 +19,10 @@ About
 Sports Lib tries to achieve a common domain model and lib for sport activity formats
 such as GPX, TCX, FIT and other popular formats. 
 
-Currently the support is limit to the main formats: GPX, TCX, FIT and JSON*
+Currently the support is limited to the main formats: GPX, TCX, FIT and JSON*
 
 *JSON is for specific services while GPX, TCX, FIT should be compatible with the move common services,
-such as Strava, Movescount, Garmin, Polar and any other service that supprots the above exports.
+such as Strava, Movescount, Garmin, Polar and any other service that supports the above exports.
 
 Install
 -------

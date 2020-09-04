@@ -22,7 +22,7 @@ such as GPX, TCX, FIT and other popular formats.
 Currently the support is limited to the main formats: GPX, TCX, FIT and JSON*
 
 *JSON is for specific services while GPX, TCX, FIT should be compatible with the move common services,
-such as Strava, Movescount, Garmin, Polar and any other service that supports the above exports.
+such as Strava, Movescount, Garmin, Polar and any other service that supports the above formats.
 
 Install
 -------

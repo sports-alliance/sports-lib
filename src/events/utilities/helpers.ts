@@ -71,9 +71,14 @@ export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
   return number * 1.93613298
 }
 
-export function getSize(obj: any): string {
+export function getSize(obj: any): number {
+  return <number>getSizeWithOptionalFormat(obj, false);
+}
+export function getSizeFormated(obj: any): string {
+  return <string>getSizeWithOptionalFormat(obj, true);
+}
+function getSizeWithOptionalFormat(obj: any, format = true): string|number {
   let bytes = 0;
-
   function sizeOf(obj: any) {
     if (obj !== null && obj !== undefined) {
       switch (typeof obj) {
@@ -116,7 +121,7 @@ export function getSize(obj: any): string {
     }
   }
 
-  return formatByteSize(sizeOf(obj));
+  return format ? formatByteSize(sizeOf(obj)) : sizeOf(obj);
 }
 
 /**

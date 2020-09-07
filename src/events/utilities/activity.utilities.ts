@@ -827,7 +827,7 @@ export class ActivityUtilities {
           return prevPosition;
         }
         if (prevPosition && position) {
-          distance += this.geoLibAdapter.getDistance([prevPosition, position]);
+          distance += Number(Math.round(this.geoLibAdapter.getDistance([prevPosition, position])));
         }
         streamData[index] = distance;
         return position;
@@ -852,7 +852,7 @@ export class ActivityUtilities {
           }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = distanceData.value / (distanceData.time / 1000);
+            speedStreamData[index] = Number((distanceData.value / (distanceData.time / 1000)).toFixed(2));
             return;
           }
 

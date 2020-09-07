@@ -74,54 +74,27 @@ export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
 export function getSize(obj: any): number {
   return <number>getSizeWithOptionalFormat(obj, false);
 }
+
 export function getSizeFormated(obj: any): string {
   return <string>getSizeWithOptionalFormat(obj, true);
 }
-function getSizeWithOptionalFormat(obj: any, format = true): string|number {
-  let bytes = 0;
-  function sizeOf(obj: any) {
-    if (obj !== null && obj !== undefined) {
-      switch (typeof obj) {
-        case 'number':
-          bytes += 8;
-          break;
-        case 'string':
-          bytes += obj.length * 2;
-          break;
-        case 'boolean':
-          bytes += 4;
-          break;
-        case 'object':
-          const objClass = Object.prototype.toString.call(obj).slice(8, -1);
-          if (objClass === 'Object' || objClass === 'Array') {
-            for (const key in obj) {
-              if (!obj.hasOwnProperty(key)) {
-                continue;
-              }
-              sizeOf(obj[key]);
-            }
-          } else {
-            bytes += obj.toString().length * 2;
-          }
-          break;
-      }
-    }
-    return bytes;
-  }
+
+function getSizeWithOptionalFormat(obj: any, format = true): string | number {
+  const size = new Blob([obj]).size
 
   function formatByteSize(bytes: number): string {
     if (bytes < 1024) {
       return bytes + ' bytes';
     } else if (bytes < 1048576) {
-      return (bytes / 1024).toFixed(3) + ' KiB';
+      return (bytes / 1024).toFixed(4) + ' KiB';
     } else if (bytes < 1073741824) {
-      return (bytes / 1048576).toFixed(3) + ' MiB';
+      return (bytes / 1048576).toFixed(4) + ' MiB';
     } else {
-      return (bytes / 1073741824).toFixed(3) + ' GiB';
+      return (bytes / 1073741824).toFixed(4) + ' GiB';
     }
   }
 
-  return format ? formatByteSize(sizeOf(obj)) : sizeOf(obj);
+  return format ? formatByteSize(size) : size;
 }
 
 /**

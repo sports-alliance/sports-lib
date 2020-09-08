@@ -60,7 +60,7 @@ export function convertPaceToPaceInMinutesPerMile(number: number): number {
 }
 
 export function convertMetersToMiles(number: number): number {
-  return  number === 0  ? 0 : number / 1609;
+  return number === 0 ? 0 : number / 1609;
 }
 
 /**
@@ -80,7 +80,12 @@ export function getSizeFormated(obj: any): string {
 }
 
 function getSizeWithOptionalFormat(obj: any, format = true): string | number {
-  const size = new Blob([obj]).size
+  let size;
+  try {
+    size = new Blob([obj]).size
+  } catch (e) {
+    size = Buffer.from(obj).length;
+  }
 
   function formatByteSize(bytes: number): string {
     if (bytes < 1024) {
@@ -110,7 +115,8 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
       continue;
     }
     j = i;
-    while (array[++j] === null) { }
+    while (array[++j] === null) {
+    }
     // @ts-ignore
     delta = (array[j] - array[i - 1]) / (j - i + 1);
     do {

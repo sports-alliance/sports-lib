@@ -11,7 +11,7 @@ export enum CompressionEncodings {
   None = 'None',
   Binary = 'Binary',
   base64 = 'base64',
-  UInt8 = 'Uint8',
+  UInt8Array = 'UInt8Array',
 }
 
 export enum CompressionMethods {

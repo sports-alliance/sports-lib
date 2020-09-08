@@ -827,7 +827,7 @@ export class ActivityUtilities {
           return prevPosition;
         }
         if (prevPosition && position) {
-          distance += Number(Math.round(this.geoLibAdapter.getDistance([prevPosition, position])));
+          distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
         }
         streamData[index] = distance;
         return position;

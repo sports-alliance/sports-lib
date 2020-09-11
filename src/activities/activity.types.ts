@@ -325,6 +325,7 @@ export enum ActivityTypes {
   'walking_indoor' = 'Walking',
   'Walk' = 'Walking',
   'walk' = 'Walking',
+  'walking_casual_walking' = 'Walking',
   /**
    * Sailing
    */

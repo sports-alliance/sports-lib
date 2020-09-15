@@ -484,6 +484,7 @@ export enum ActivityTypes {
    */
   'tennis' = 'Tennis',
   'Tennis' = 'Tennis',
+  'tennis_match' = 'Tennis',
   /**
    * Badminton
    */
@@ -735,6 +736,12 @@ export enum ActivityTypes {
   'hiking' = 'Hiking',
   'hike' = 'Hiking',
   'Hike' = 'Hiking',
+
+  /**
+   * Canyoning
+   */
+    'canyoning' = 'Canyoning',
+  'Canyoning' = 'Canyoning',
   /**
    * Fishing
    */

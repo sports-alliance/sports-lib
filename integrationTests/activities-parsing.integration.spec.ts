@@ -21,7 +21,7 @@ const expectTolerance = (actual: number, expected: number, tolerance: number) =>
   expect(actual).toBeLessThanOrEqual(expected + tolerance);
 };
 
-const MOVING_TIME_TOLERANCE = 0.05; // 5% of tolerance
+const MOVING_TIME_TOLERANCE = 0.06; // 6% of tolerance
 
 describe('Integration tests with native & custom dom parser', () => {
 

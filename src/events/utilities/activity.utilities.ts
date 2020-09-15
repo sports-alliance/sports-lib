@@ -1,6 +1,4 @@
-import { EventInterface } from '../event.interface';
 import { ActivityInterface } from '../../activities/activity.interface';
-import { Event } from '../event';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
 import { DataSpeed } from '../../data/data.speed';
@@ -21,7 +19,8 @@ import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
   DataSpeedMaxFeetPerSecond,
-  DataSpeedMaxKilometersPerHour, DataSpeedMaxKnots,
+  DataSpeedMaxKilometersPerHour,
+  DataSpeedMaxKnots,
   DataSpeedMaxMetersPerMinute,
   DataSpeedMaxMilesPerHour
 } from '../../data/data.speed-max';
@@ -29,7 +28,8 @@ import {
   DataSpeedMin,
   DataSpeedMinFeetPerMinute,
   DataSpeedMinFeetPerSecond,
-  DataSpeedMinKilometersPerHour, DataSpeedMinKnots,
+  DataSpeedMinKilometersPerHour,
+  DataSpeedMinKnots,
   DataSpeedMinMetersPerMinute,
   DataSpeedMinMilesPerHour
 } from '../../data/data.speed-min';
@@ -37,7 +37,8 @@ import {
   DataSpeedAvg,
   DataSpeedAvgFeetPerMinute,
   DataSpeedAvgFeetPerSecond,
-  DataSpeedAvgKilometersPerHour, DataSpeedAvgKnots,
+  DataSpeedAvgKilometersPerHour,
+  DataSpeedAvgKnots,
   DataSpeedAvgMetersPerMinute,
   DataSpeedAvgMilesPerHour
 } from '../../data/data.speed-avg';
@@ -94,12 +95,13 @@ import { DataPositionInterface } from '../../data/data.position.interface';
 import { DataLatitudeDegrees } from '../../data/data.latitude-degrees';
 import { Stream } from '../../streams/stream';
 import {
-  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInKnots,
+  convertPaceToPaceInMinutesPerMile,
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerHour,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
   convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInMetersPerHour,
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
@@ -151,7 +153,8 @@ import {
   DataGradeAdjustedSpeedAvg,
   DataGradeAdjustedSpeedAvgFeetPerMinute,
   DataGradeAdjustedSpeedAvgFeetPerSecond,
-  DataGradeAdjustedSpeedAvgKilometersPerHour, DataGradeAdjustedSpeedAvgKnots,
+  DataGradeAdjustedSpeedAvgKilometersPerHour,
+  DataGradeAdjustedSpeedAvgKnots,
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from '../../data/data.grade-adjusted-speed-avg';
@@ -165,7 +168,8 @@ import {
   DataGradeAdjustedSpeedMax,
   DataGradeAdjustedSpeedMaxFeetPerMinute,
   DataGradeAdjustedSpeedMaxFeetPerSecond,
-  DataGradeAdjustedSpeedMaxKilometersPerHour, DataGradeAdjustedSpeedMaxKnots,
+  DataGradeAdjustedSpeedMaxKilometersPerHour,
+  DataGradeAdjustedSpeedMaxKnots,
   DataGradeAdjustedSpeedMaxMetersPerMinute,
   DataGradeAdjustedSpeedMaxMilesPerHour
 } from '../../data/data.grade-adjusted-speed-max';
@@ -173,7 +177,8 @@ import {
   DataGradeAdjustedSpeedMin,
   DataGradeAdjustedSpeedMinFeetPerMinute,
   DataGradeAdjustedSpeedMinFeetPerSecond,
-  DataGradeAdjustedSpeedMinKilometersPerHour, DataGradeAdjustedSpeedMinKnots,
+  DataGradeAdjustedSpeedMinKilometersPerHour,
+  DataGradeAdjustedSpeedMinKnots,
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from '../../data/data.grade-adjusted-speed-min';
@@ -1723,9 +1728,8 @@ export class ActivityUtilities {
       if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
         speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
       } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
-        speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
-      } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
-        speedThreshold = hasGradeAdjustedSpeedStream ? 1.65 : 1.10; // @todo final static + tweak => For @thomaschampagne
+          // speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
+        speedThreshold = hasGradeAdjustedSpeedStream ? 1.70 : 1.15; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;
       }

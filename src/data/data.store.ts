@@ -509,6 +509,7 @@ export class DynamicDataLoader {
     DataGradeAdjustedSpeed.type,
     DataGradeAdjustedPace.type,
     DataSpeed.type,
+    DataDistance.type,
   ];
 
   static advancedDataTypes = [
@@ -520,7 +521,7 @@ export class DynamicDataLoader {
     DataNumberOfSatellites.type,
     DataEVPE.type,
     DataEHPE.type,
-    DataDistance.type,
+    // DataDistance.type,
     DataGPSAltitude.type,
     DataAbsolutePressure.type,
     DataPeakTrainingEffect.type,

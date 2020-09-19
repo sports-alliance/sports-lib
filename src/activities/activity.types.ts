@@ -746,6 +746,7 @@ export enum ActivityTypes {
   /**
    * Via ferrata
    */
+    'ViaFerrata' = 'Via Ferrata',
     'Via Ferrata' = 'Via Ferrata',
     'via Ferrata' = 'Via Ferrata',
     'via ferrata' = 'Via Ferrata',
@@ -954,6 +955,9 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Climbing,
       ActivityTypes.RockClimbing,
       ActivityTypes.BackCountrySki,
+      ActivityTypes.NordicSki,
+      ActivityTypes.Canyoning,
+      ActivityTypes.ViaFerrata,
       // @todo add more
     ],
     [ActivityTypeGroups.WinterSports]: [

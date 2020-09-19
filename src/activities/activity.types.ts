@@ -58,7 +58,7 @@ export class ActivityTypesHelper {
   static speedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
       case ActivityTypeGroups.Running:
-        return [DataPace.type];
+        return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.TrailRunning:
         return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.WaterSports:

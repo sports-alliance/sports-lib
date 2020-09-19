@@ -742,6 +742,13 @@ export enum ActivityTypes {
    */
     'canyoning' = 'Canyoning',
   'Canyoning' = 'Canyoning',
+
+  /**
+   * Via ferrata
+   */
+    'Via Ferrata' = 'Via Ferrata',
+    'via Ferrata' = 'Via Ferrata',
+    'via ferrata' = 'Via Ferrata',
   /**
    * Fishing
    */

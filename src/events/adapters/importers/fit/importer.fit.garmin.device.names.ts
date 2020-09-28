@@ -266,6 +266,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3514:  'Fenix 6 Sport',
   3515:  'Fenix 6',
   3516:  'Fenix 6X',
+  3589:  'FR 745',
   3624:  'Marq Adventurer',
   3648:  'Marq Adventurer',
   3639:  'Swim 2',

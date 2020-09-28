@@ -217,6 +217,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3110:  'Fenix 5+',
   3111:  'Fenix 5X+',
   3112:  'Edge 520+',
+  3113:  'FR 945',
   3121:  'Edge 530',
   3122:  'Edge 830',
   3134:  'Fenix 5S+',

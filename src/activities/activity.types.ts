@@ -202,6 +202,7 @@ export enum ActivityTypes {
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
   'cycling_commuting' = 'Cycling',
+  'cycling_mixed_surface' = 'Cycling',
   /**
    * Indoor Cycling
    */
@@ -326,6 +327,7 @@ export enum ActivityTypes {
   'Walk' = 'Walking',
   'walk' = 'Walking',
   'walking_casual_walking' = 'Walking',
+  'walking_indoor_walking' = 'Walking',
   /**
    * Sailing
    */

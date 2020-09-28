@@ -520,7 +520,6 @@ export class DynamicDataLoader {
     DataNumberOfSatellites.type,
     DataEVPE.type,
     DataEHPE.type,
-    // DataDistance.type,
     DataGPSAltitude.type,
     DataAbsolutePressure.type,
     DataPeakTrainingEffect.type,

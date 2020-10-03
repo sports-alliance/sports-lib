@@ -109,7 +109,7 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
       return isNumber(sample.power)
         ? sample.power
         : isNumber(sample.Power)
-          ? sample.power
+          ? sample.Power
           : sample.RP_Power
     },
   },

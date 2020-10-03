@@ -320,6 +320,10 @@ export class EventImporterFIT {
     ) {
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
+    } else if (endDate <= startDate) { // If for some reason this happens
+      console.warn(`endDate is smaller than startDate`)
+      startDate = fitDataObject.records[0].timestamp;
+      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
     }
 
     // Create an activity

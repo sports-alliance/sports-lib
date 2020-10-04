@@ -66,6 +66,7 @@ export class EventImporterGPX {
             parsedGPX.creator,
             parsedGPX.version,
           ),
+          trackOrRoute.name[0]
         );
         // Match
         GPXSampleMapper.forEach((sampleMapping) => {

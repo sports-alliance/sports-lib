@@ -15,6 +15,7 @@ import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 
 export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
+  name: string;
   type: ActivityTypes;
   creator: CreatorInterface;
   intensityZones: IntensityZonesInterface[];

@@ -801,15 +801,15 @@ export class ActivityUtilities {
       }
       const unitStreams =
         Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
-        .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
-        .map(unitBasedDataType => {
-        return new Stream(unitBasedDataType, baseStream.getData().map(dataValue => {
-          if (!isNumber(dataValue)) {
-            return null
-          }
-          return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
-        }))
-      })
+          .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
+          .map(unitBasedDataType => {
+            return new Stream(unitBasedDataType, baseStream.getData().map(dataValue => {
+              if (!isNumber(dataValue)) {
+                return null
+              }
+              return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
+            }))
+          })
       return array.concat(unitStreams).concat([baseStream])
     }, []);
   }
@@ -857,7 +857,7 @@ export class ActivityUtilities {
           }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = Number((distanceData.value / (distanceData.time / 1000)).toFixed(2));
+            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * 100 ) / 100;
             return;
           }
 
@@ -886,7 +886,9 @@ export class ActivityUtilities {
       && activity.hasStreamData(DataSpeed.type)) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
       const gradeStreamData = activity.getStreamData(DataGrade.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null ? null : GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0))
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null
+        ? null
+        : Math.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0) * 100) / 100)
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 
@@ -1244,7 +1246,7 @@ export class ActivityUtilities {
     }
   }
 
-  private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface){
+  private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {
     // Pace
     const speedMax = activity.getStat(DataSpeedMax.type);
     if (speedMax && !activity.getStat(DataPaceMax.type)) {
@@ -1728,7 +1730,7 @@ export class ActivityUtilities {
       if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
         speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
       } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
-          // speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
+        // speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
         speedThreshold = hasGradeAdjustedSpeedStream ? 1.70 : 1.15; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;

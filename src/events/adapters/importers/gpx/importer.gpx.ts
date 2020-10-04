@@ -58,6 +58,7 @@ export class EventImporterGPX {
             activityType = ActivityTypes[<keyof typeof ActivityTypes>entryFound.type];
           }
         }*/
+        const activityName =  trackOrRoute.name?.[0] || "";
         const activity = new Activity(
           startDate,
           endDate,
@@ -66,7 +67,7 @@ export class EventImporterGPX {
             parsedGPX.creator,
             parsedGPX.version,
           ),
-          trackOrRoute.name[0]
+          activityName
         );
         // Match
         GPXSampleMapper.forEach((sampleMapping) => {

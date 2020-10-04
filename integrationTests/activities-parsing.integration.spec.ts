@@ -588,6 +588,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
+            expect(event.getFirstActivity().name).toEqual('Meylan Road Cycling');
             expect(event.getFirstActivity().generateTimeStream([DataDistance.type]).getData(true).length)
               .toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
@@ -621,6 +622,7 @@ describe('Integration tests with native & custom dom parser', () => {
           // Then
           eventInterfacePromise.then((event: EventInterface) => {
             expect(event.getFirstActivity().type).toEqual(ActivityTypes.cycling);
+            expect(event.getFirstActivity().name).toEqual('Meylan Road Cycling');
             expect(event.getFirstActivity().generateTimeStream([DataDistance.type]).getData(true).length)
               .toEqual(expectedSamplesLength);
             expect(event.getFirstActivity().getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);

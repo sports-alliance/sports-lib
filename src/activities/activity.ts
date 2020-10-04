@@ -29,6 +29,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   private static readonly TRAINER_TYPES: ActivityTypes[] = [ActivityTypes.VirtualRun, ActivityTypes.VirtualCycling, ActivityTypes.Treadmill,
     ActivityTypes.IndoorCycling, ActivityTypes.IndoorRunning, ActivityTypes.IndoorRowing, ActivityTypes.Crosstrainer, ActivityTypes.EllipticalTrainer, ActivityTypes.FitnessEquipment, ActivityTypes.StairStepper,];
 
+  public name: string;
   public type: ActivityTypes;
   public creator: CreatorInterface;
   public intensityZones: IntensityZonesInterface[] = []; // maybe rename
@@ -38,7 +39,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private events: DataEvent[] = [];
 
-  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator) {
+  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name: string = "") {
     super(startDate, endDate);
     if (!startDate || !endDate) {
       throw new Error('Start and end dates are required');
@@ -51,6 +52,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }
     this.type = type;
     this.creator = creator;
+    this.name = name;
   }
 
   createStream(type: string): StreamInterface {

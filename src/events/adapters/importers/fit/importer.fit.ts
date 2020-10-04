@@ -321,7 +321,7 @@ export class EventImporterFIT {
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
     } else if (endDate < startDate) { // If for some reason this happens
-      if (!fitDataObject.records || fitDataObject.records[0]){
+      if (!fitDataObject.records || !fitDataObject.records[0]){
         throw new Error('Cannot parse dates. Start date is greater than the end date')
       }
       startDate = fitDataObject.records[0].timestamp;

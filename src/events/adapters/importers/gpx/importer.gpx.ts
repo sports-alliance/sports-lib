@@ -2,7 +2,7 @@ import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
 import { Event } from '../../../event';
-import { ActivityTypes, StravaGPXTypeMapping } from '../../../../activities/activity.types';
+import { ActivityTypes } from '../../../../activities/activity.types';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { GPXSampleMapper } from './importer.gpx.mapper';
 import { isNumberOrString } from '../../../utilities/helpers';
@@ -25,6 +25,9 @@ export class EventImporterGPX {
         let isActivity = false;
         if (trackOrRoute.trkseg) {
           samples = trackOrRoute.trkseg.reduce((trkptArray: any[], trkseg: any) => {
+            if (!trkseg.trkpt) {
+              return trkptArray;
+            }
             return trkptArray.concat(trkseg.trkpt);
           }, []);
           // Determine if it's a route. The samples will most probably be missing the time
@@ -46,8 +49,9 @@ export class EventImporterGPX {
         const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
         // @todo for routes add a seperate parser
         const endDate = isActivity ?
-          new Date(trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt[trackOrRoute.trkseg[trackOrRoute.trkseg.length - 1].trkpt.length - 1].time[0]) :
+          new Date(samples[samples.length - 1].time[0]) :
           new Date(startDate.getTime() + samples.length * 1000);
+
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
           activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];

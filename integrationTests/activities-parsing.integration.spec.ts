@@ -787,6 +787,22 @@ describe('Integration tests with native & custom dom parser', () => {
     });
   });
 
+  it('should parse a MyTrail GPX file', done => {
+
+    // Given
+    const path = __dirname + '/fixtures/others/mytrail_export.gpx';
+    const gpxString = fs.readFileSync(path).toString();
+
+    // When
+    const eventInterfacePromise = SportsLib.importFromGPX(gpxString);
+
+    // Then
+    eventInterfacePromise.then((event: EventInterface) => {
+      expect(event.getFirstActivity().type).toBeDefined();
+      done();
+    });
+  })
+
   describe('Other', () => {
 
     it('should reject parsing of broken fit file (empty)', done => {

@@ -47,15 +47,7 @@ export class EventExporterGPX implements EventExporter {
               {
                 ele: data[DataAltitude.type] || undefined,
                 time: new Date(activity.startDate.getTime() + <number>data[DataTime.type] * 1000),
-                hr: data[DataHeartRate.type],
-                power: data[DataPower.type] || undefined,
                 speed: data[DataSpeed.type] || undefined,
-                atemp: data[DataTemperature.type] || undefined,
-                cad: data[DataCadence.type] || undefined,
-                extensions: {
-                  power: data[DataPower.type] || undefined,
-                  distance: data[DataDistance.type] || undefined,
-                }
               }
             ))
             return pointsArray;

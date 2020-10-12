@@ -194,6 +194,10 @@ import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { DataMovingTime } from '../../data/data.moving-time';
+import {
+  DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
+  SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES
+} from '../../constants/constants';
 
 export class ActivityUtilities {
 
@@ -832,7 +836,7 @@ export class ActivityUtilities {
           return prevPosition;
         }
         if (prevPosition && position) {
-          distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
+          distance += Math.round(this.geoLibAdapter.getDistance([prevPosition, position]) * Math.pow(10, DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES;
         }
         streamData[index] = distance;
         return position;
@@ -857,7 +861,7 @@ export class ActivityUtilities {
           }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * 100 ) / 100;
+            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES ) / SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES;
             return;
           }
 

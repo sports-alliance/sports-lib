@@ -836,7 +836,7 @@ export class ActivityUtilities {
           return prevPosition;
         }
         if (prevPosition && position) {
-          distance += Math.round(this.geoLibAdapter.getDistance([prevPosition, position]) * Math.pow(10, DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES;
+          distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
         }
         streamData[index] = distance;
         return position;
@@ -861,7 +861,7 @@ export class ActivityUtilities {
           }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES ) / SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES;
+            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * 100 ) / 100;
             return;
           }
 

@@ -814,7 +814,7 @@ export class ActivityUtilities {
               return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
             }))
           })
-      return array.concat(unitStreams).concat([baseStream])
+      return array.concat(unitStreams).concat([baseStream]) // @todo fix
     }, []);
   }
 

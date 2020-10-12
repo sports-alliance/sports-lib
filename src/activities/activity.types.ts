@@ -639,6 +639,7 @@ export enum ActivityTypes {
   'strength training' = 'Strength Training',
   'Strength Training' = 'Strength Training',
   'StrengthTraining' = 'Strength Training',
+  'generic_strength_training' = 'Strength Training',
   /**
    * Track and Field
    */

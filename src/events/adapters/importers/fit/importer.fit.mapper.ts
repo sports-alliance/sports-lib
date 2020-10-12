@@ -25,18 +25,26 @@ import { DataStepLength } from '../../../../data/data.step-length';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataAirPower } from '../../../../data/data.air-power';
+import {
+  ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
+  GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES
+} from '../../../../constants/constants';
 
 export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
   {
     dataType: DataLatitudeDegrees.type,
     getSampleValue: (sample: any) => {
-      return sample.position_lat;
+      return isNumber(sample.position_lat)
+        ? Math.round(sample.position_lat * Math.pow(10, GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / Math.pow(10, GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES)
+        : sample.position_lat;
     },
   },
   {
     dataType: DataLongitudeDegrees.type,
     getSampleValue: (sample: any) => {
-      return sample.position_long;
+      return isNumber(sample.position_long)
+        ? Math.round(sample.position_long * Math.pow(10, GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / Math.pow(10, GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES)
+        : sample.position_long;
     },
   },
   {
@@ -54,13 +62,19 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
   {
     dataType: DataAltitude.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.enhanced_altitude) ? sample.enhanced_altitude : sample.altitude;
+      return isNumber(sample.enhanced_altitude)
+        ? Math.round(sample.enhanced_altitude * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)
+        : isNumber(sample.altitude)
+          ? Math.round(sample.altitude * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES) :
+          sample.altitude
     },
   },
   {
     dataType: DataStrydAltitude.type,
     getSampleValue: (sample: any) => {
-      return sample.Elevation;
+      return isNumber(sample.Elevation)
+        ? Math.round(sample.Elevation * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) / Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES) :
+        sample.Elevation
     },
   },
   {

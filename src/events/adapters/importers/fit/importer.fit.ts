@@ -182,7 +182,7 @@ export class EventImporterFIT {
 
           // Add the events
           fitDataObject.events.filter((activityEvent: FITFileActivityEvent) => {
-            return activityEvent.event === 'timer' && activityEvent.timestamp >= activity.startDate && activityEvent.timestamp <= activity.endDate
+            return activityEvent.event === 'timer' && (activityEvent.timestamp >= activity.startDate) && (activityEvent.timestamp <= activity.endDate)
           }).forEach((activityEvent: FITFileActivityEvent) => {
             switch (activityEvent.event_type) {
               case 'start':

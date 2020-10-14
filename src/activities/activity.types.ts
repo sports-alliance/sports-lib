@@ -718,6 +718,7 @@ export enum ActivityTypes {
   /**
    * Treadmill
    */
+    'fitness_equipment_treadmill' = 'Treadmill',
     'running_treadmill' = 'Treadmill',
   'Treadmill' = 'Treadmill',
   'treadmill' = 'Treadmill',

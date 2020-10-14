@@ -797,7 +797,8 @@ export class ActivityUtilities {
         baseUnitStreams.concat(verticalSpeedStream)
         : baseUnitStreams
     }
-    // @todo add distance
+    // @todo add distance ?
+    const startWith = baseUnitStreams.filter(baseUnitStream => unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1);
     return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
       const baseStream = baseUnitStreams.find(stream => stream.type === baseDataType);
       if (!baseStream) {
@@ -814,8 +815,8 @@ export class ActivityUtilities {
               return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
             }))
           })
-      return array.concat(unitStreams).concat([baseStream]) // @todo fix
-    }, []);
+      return array.concat(unitStreams)
+    }, startWith);
   }
 
   /**

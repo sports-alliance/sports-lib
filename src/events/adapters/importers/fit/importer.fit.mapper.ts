@@ -106,12 +106,6 @@ export const FITSampleMapper: { dataType: string, getSampleValue(sample: any): n
     },
   },
   {
-    dataType: DataPace.type,
-    getSampleValue: (sample: any) => {
-      return isNumber(sample.enhanced_speed) || isNumber(sample.speed) ? convertSpeedToPace(sample.enhanced_speed || sample.speed) : null;
-    },
-  },
-  {
     dataType: DataVerticalSpeed.type,
     getSampleValue: (sample: any) => {
       return sample.vertical_speed;

@@ -14,6 +14,7 @@ export interface TableSettings {
   eventsPerPage: number,
   active: string,
   direction: 'asc' | 'desc'
+  selectedColumns: string[]
 }
 
 export enum DateRanges {

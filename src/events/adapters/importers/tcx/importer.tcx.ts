@@ -145,7 +145,10 @@ export class EventImporterTCX {
 
       // Create a stats (required TCX fields)
       lap.addStat(new DataDuration(Number(lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)));
-      lap.addStat(new DataDistance(Number(lapElement.getElementsByTagName('DistanceMeters')[0].textContent)));
+      lap.addStat(new DataDistance(0));
+      if (lapElement.getElementsByTagName('DistanceMeters')[0]) {
+        lap.addStat(new DataDistance(Number(lapElement.getElementsByTagName('DistanceMeters')[0].textContent)));
+      }
       lap.setPause(new DataPause(0));
 
       // Optionals

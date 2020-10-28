@@ -1,6 +1,6 @@
 # Sports Lib
 
-*A Library to for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc*
+*A Library for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc*
 
 About
 -----

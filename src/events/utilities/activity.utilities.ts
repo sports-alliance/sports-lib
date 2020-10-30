@@ -198,6 +198,9 @@ import {
   DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
   SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES
 } from '../../constants/constants';
+import { StatsClassInterface } from '../../stats/stats.class.interface';
+import { IntensityZonesInterface } from '../../intensity-zones/intensity-zones.interface';
+import { IntensityZones } from '../../intensity-zones/intensity-zones';
 
 export class ActivityUtilities {
 
@@ -587,37 +590,7 @@ export class ActivityUtilities {
       stats.push(new DataRPE(averageRPE));
     }
 
-    // Zones
-    [
-      DataHeartRateZoneOneDuration.type,
-      DataHeartRateZoneTwoDuration.type,
-      DataHeartRateZoneThreeDuration.type,
-      DataHeartRateZoneFourDuration.type,
-      DataHeartRateZoneFiveDuration.type,
-      DataPowerZoneOneDuration.type,
-      DataPowerZoneTwoDuration.type,
-      DataPowerZoneThreeDuration.type,
-      DataPowerZoneFourDuration.type,
-      DataPowerZoneFiveDuration.type,
-      DataSpeedZoneOneDuration.type,
-      DataSpeedZoneTwoDuration.type,
-      DataSpeedZoneThreeDuration.type,
-      DataSpeedZoneFourDuration.type,
-      DataSpeedZoneFiveDuration.type,
-    ].forEach(zone => {
-      const zoneDuration = activities.reduce((duration: number | null, activity) => {
-        const durationStat = <DataDuration>activity.getStat(zone);
-        if (durationStat) {
-          duration = duration || 0;
-          duration += durationStat.getValue()
-        }
-        return duration;
-      }, null);
-
-      if (isNumber(zoneDuration)) {
-        stats.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
-      }
-    });
+    stats.push(...this.getIntensityZonesStatsAggregated(activities))
 
     // Add start and end position
     // This expects the to be sorted
@@ -633,6 +606,40 @@ export class ActivityUtilities {
     }
     // debugger;
     return stats;
+  }
+
+  public static getIntensityZonesStatsAggregated(statClassInstances: StatsClassInterface[]): DataInterface[] {
+    return [
+      DataHeartRateZoneOneDuration.type,
+      DataHeartRateZoneTwoDuration.type,
+      DataHeartRateZoneThreeDuration.type,
+      DataHeartRateZoneFourDuration.type,
+      DataHeartRateZoneFiveDuration.type,
+      DataPowerZoneOneDuration.type,
+      DataPowerZoneTwoDuration.type,
+      DataPowerZoneThreeDuration.type,
+      DataPowerZoneFourDuration.type,
+      DataPowerZoneFiveDuration.type,
+      DataSpeedZoneOneDuration.type,
+      DataSpeedZoneTwoDuration.type,
+      DataSpeedZoneThreeDuration.type,
+      DataSpeedZoneFourDuration.type,
+      DataSpeedZoneFiveDuration.type,
+    ].reduce( (statsArray: DataInterface[], zone) => {
+      const zoneDuration = statClassInstances.reduce((duration: number | null, statClassInstance) => {
+        const durationStat = <DataDuration>statClassInstance.getStat(zone);
+        if (durationStat) {
+          duration = duration || 0;
+          duration += durationStat.getValue()
+        }
+        return duration;
+      }, null);
+
+      if (isNumber(zoneDuration)) {
+        statsArray.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
+      }
+      return statsArray
+    }, []);
   }
 
   public static getActivityDataTypeGain(

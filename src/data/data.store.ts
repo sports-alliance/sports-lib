@@ -689,6 +689,39 @@ export class DynamicDataLoader {
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])), []);
 
+  static zoneStatsTypeMap: {type: string, stats: string[]}[] = [
+    {
+      type: DataHeartRate.type,
+      stats: [
+        DataHeartRateZoneOneDuration.type,
+        DataHeartRateZoneTwoDuration.type,
+        DataHeartRateZoneThreeDuration.type,
+        DataHeartRateZoneFourDuration.type,
+        DataHeartRateZoneFiveDuration.type,
+      ]
+    },
+    {
+      type: DataSpeed.type,
+      stats: [
+        DataSpeedZoneOneDuration.type,
+        DataSpeedZoneTwoDuration.type,
+        DataSpeedZoneThreeDuration.type,
+        DataSpeedZoneFourDuration.type,
+        DataSpeedZoneFiveDuration.type,
+      ],
+    },
+    {
+      type: DataPower.type,
+      stats: [
+        DataPowerZoneOneDuration.type,
+        DataPowerZoneTwoDuration.type,
+        DataPowerZoneThreeDuration.type,
+        DataPowerZoneFourDuration.type,
+        DataPowerZoneFiveDuration.type,
+      ]
+    }
+  ]
+
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
     const className = Object.keys(DataStore).find((dataClass) => {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;

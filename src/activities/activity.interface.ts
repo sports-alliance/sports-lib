@@ -18,6 +18,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;
+  // Probably kill intensity zones and use the stats
   intensityZones: IntensityZonesInterface[];
 
   /**

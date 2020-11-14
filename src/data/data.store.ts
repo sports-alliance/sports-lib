@@ -550,6 +550,7 @@ export class DynamicDataLoader {
     DataGroundTime.type,
     DataAirPower.type,
     DataGNSSDistance.type,
+    DataDistance.type,
   ];
 
   // @todo perhaps this can be simplified with using getValue if it becomes static of the data it self

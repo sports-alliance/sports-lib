@@ -1,5 +1,5 @@
 import { Event } from '../../../event';
-import { Activity } from '../../../../activities/activity';
+import { Activity, MAX_ACTIVITY_DURATION } from '../../../../activities/activity';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -326,6 +326,9 @@ export class EventImporterFIT {
       }
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
+    } else if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
+      debugger
+      endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
     }
 
     // Create an activity

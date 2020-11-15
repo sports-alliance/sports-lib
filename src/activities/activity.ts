@@ -14,7 +14,6 @@ import { DataPositionInterface } from '../data/data.position.interface';
 import { Stream } from '../streams/stream';
 import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.json.interface';
 import { isNumber } from '../events/utilities/helpers';
-import { EventUtilities } from '../events/utilities/event.utilities';
 import { DataPower } from '../data/data.power';
 import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
@@ -23,6 +22,8 @@ import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
+
+export const MAX_ACTIVITY_DURATION = 12 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 year
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -47,8 +48,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     if (endDate < startDate) {
       throw new Error('Activity end date is before the start date and that is not acceptable')
     }
-    if (+endDate - +startDate > 12 * 10 * 30 * 24 * 60 * 60 * 1000) {
-      throw new Error('Activity duration is over 10 years and that is not supported');
+    if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
+      throw new Error('Activity duration is over 1 year and that is not supported');
     }
     this.type = type;
     this.creator = creator;

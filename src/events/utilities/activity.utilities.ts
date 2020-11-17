@@ -1048,11 +1048,13 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
-    // If there is no distance
-    if (!activity.getStat(DataDistance.type)) {
+    // If there is no distance or distance for some reason is 0
+    const activityDistanceStat = activity.getStat(DataDistance.type)
+    if (!activityDistanceStat || activityDistanceStat.getValue() === 0) {
       let distance = 0;
       if (activity.hasStreamData(DataDistance.type)) {
-        distance = activity.getSquashedStreamData(DataDistance.type)[activity.getSquashedStreamData(DataDistance.type).length - 1] || 0;
+        const distanceData = activity.getSquashedStreamData(DataDistance.type);
+        distance =  (distanceData[distanceData.length - 1] - distanceData[0]) || 0;
       } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)) {
         distance = this.calculateTotalDistanceForActivity(activity, activity.startDate, activity.endDate);
       }

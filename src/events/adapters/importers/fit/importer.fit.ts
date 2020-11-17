@@ -327,7 +327,6 @@ export class EventImporterFIT {
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
     } else if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
-      debugger
       endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
     }
 

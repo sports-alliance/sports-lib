@@ -189,6 +189,7 @@ export enum ActivityTypes {
   'IndoorRunning' = 'Indoor Running',
   'running_indoor' = 'Indoor Running',
   'running_indoor_running' = 'Indoor Running',
+  'training_indoor_running' = 'Indoor Running',
   /**
    * Cycling
    */
@@ -837,6 +838,7 @@ export enum ActivityTypes {
   'flexibility_training' = 'Flexibility Training',
   'Flexibility Training' = 'Flexibility Training',
   'FlexibilityTraining' = 'Flexibility Training',
+  'generic_flexibility_training' = 'Flexibility Training',
   /**
    * Training
    */

@@ -4,7 +4,6 @@ import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
 import { DataPace } from '../data/data.pace';
 import { DataSpeed } from '../data/data.speed';
 import { DataSwimPace } from '../data/data.swim-pace';
-import { DataVerticalSpeedAvg } from '../data/data.vertical-speed-avg';
 import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
@@ -158,7 +157,7 @@ export enum ActivityTypes {
   /**
    * Virtual Running
    */
-  'running_virtual_activity' = 'Virtual Running',
+    'running_virtual_activity' = 'Virtual Running',
   'VirtualRun' = 'Virtual Running',
   'Virtual running' = 'Virtual Running',
   'Virtual Running' = 'Virtual Running',
@@ -166,7 +165,7 @@ export enum ActivityTypes {
   /**
    * Running
    */
-  'Run' = 'Running',
+    'Run' = 'Running',
   'run' = 'Running',
   'running_track' = 'Running',
   'running_trail' = 'Trail Running',
@@ -177,14 +176,14 @@ export enum ActivityTypes {
   /**
    * Trail Running
    */
-  'TrailRunning' = 'Trail Running',
+    'TrailRunning' = 'Trail Running',
   'Trail Running' = 'Trail Running',
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
   /**
    * Indoor Running
    */
-  'Indoor running' = 'Indoor Running',
+    'Indoor running' = 'Indoor Running',
   'Indoor Running' = 'Indoor Running',
   'IndoorRunning' = 'Indoor Running',
   'running_indoor' = 'Indoor Running',
@@ -193,7 +192,7 @@ export enum ActivityTypes {
   /**
    * Cycling
    */
-  'Cycling' = 'Cycling',
+    'Cycling' = 'Cycling',
   'cycling' = 'Cycling',
   'cycling_road' = 'Cycling',
   'road_biking' = 'Cycling',
@@ -207,7 +206,7 @@ export enum ActivityTypes {
   /**
    * Indoor Cycling
    */
-  'cycling_indoor_cycling' = 'Indoor Cycling',
+    'cycling_indoor_cycling' = 'Indoor Cycling',
   'Indoorcycling' = 'Indoor Cycling',
   'indoor_cycling' = 'Indoor Cycling',
   'Indoor cycling' = 'Indoor Cycling',
@@ -216,7 +215,7 @@ export enum ActivityTypes {
   /**
    * Virtual Cycling
    */
-  'cycling_virtual_activity' = 'Virtual Cycling',
+    'cycling_virtual_activity' = 'Virtual Cycling',
   'VirtualRide' = 'Virtual Cycling',
   'Virtual Cycling' = 'Virtual Cycling',
   'VirtualCycling' = 'Virtual Cycling',
@@ -224,7 +223,7 @@ export enum ActivityTypes {
   /**
    * E-Biking
    */
-  'e_biking' = 'E-Biking',
+    'e_biking' = 'E-Biking',
   'E Biking' = 'E-Biking',
   'EBiking' = 'E-Biking',
   'E biking' = 'E-Biking',
@@ -233,7 +232,7 @@ export enum ActivityTypes {
   /**
    * Mountain biking
    */
-  'cycling_mountain' = 'Mountain Biking',
+    'cycling_mountain' = 'Mountain Biking',
   'MountainBiking' = 'Mountain Biking',
   'Mountain Biking' = 'Mountain Biking',
   'cycling_cyclocross' = 'Mountain Biking',
@@ -242,27 +241,27 @@ export enum ActivityTypes {
   /**
    * Motorcycling
    */
-  'motorcycling' = 'Motorcycling',
+    'motorcycling' = 'Motorcycling',
   'Motorcycling' = 'Motorcycling',
   /**
    * Boating
    */
-  'boating' = 'Boating',
+    'boating' = 'Boating',
   'Boating' = 'Boating',
   /**
    * Driving
    */
-  'driving' = 'Driving',
+    'driving' = 'Driving',
   'Driving' = 'Driving',
   /**
    * Circuit training
    */
-  'Circuit training' = 'Circuit Training',
+    'Circuit training' = 'Circuit Training',
   'Circuit Training' = 'Circuit Training',
   /**
    * Swimming
    */
-  'Swimming' = 'Swimming',
+    'Swimming' = 'Swimming',
   'swimming' = 'Swimming',
   'Swim' = 'Swimming',
   'swim' = 'Swimming',
@@ -270,7 +269,7 @@ export enum ActivityTypes {
   /**
    * Open Water Swimming
    */
-  'swimming_open_water' = 'Open Water Swimming',
+    'swimming_open_water' = 'Open Water Swimming',
   'Open water swimming' = 'Open Water Swimming',
   'open water swimming' = 'Open Water Swimming',
   'Open Water Swimming' = 'Open Water Swimming',
@@ -279,31 +278,31 @@ export enum ActivityTypes {
   /**
    * Basketball
    */
-  'basketball' = 'Basketball',
+    'basketball' = 'Basketball',
   /**
    * Soccer
    */
-  'soccer' = 'Soccer',
+    'soccer' = 'Soccer',
   'Soccer' = 'Soccer',
   /**
    * American Football
    */
-  'american_football' = 'American Football',
+    'american_football' = 'American Football',
   'American footBall' = 'American Football',
   'American Football' = 'American Football',
   'AmericanFootball' = 'American Football',
   /**
    * Skating
    */
-  'Skating' = 'Skating',
+    'Skating' = 'Skating',
   /**
    * Aerobics
    */
-  'Aerobics' = 'Aerobics',
+    'Aerobics' = 'Aerobics',
   /**
    * Yoga
    */
-  'training_yoga' = 'Yoga',
+    'training_yoga' = 'Yoga',
   'yoga' = 'Yoga',
   'Yoga' = 'Yoga',
   'YogaPilates' = 'Yoga',
@@ -311,18 +310,18 @@ export enum ActivityTypes {
   /**
    * Pilates
    */
-  'fitness_equipment_pilates' = 'Pilates',
+    'fitness_equipment_pilates' = 'Pilates',
   'Pilates' = 'Pilates',
   'pilates' = 'Pilates',
   /**
    * Trekking
    */
-  'Trekking' = 'Trekking',
+    'Trekking' = 'Trekking',
   'Trek' = 'Trekking',
   /**
    * Walking
    */
-  'Walking' = 'Walking',
+    'Walking' = 'Walking',
   'walking' = 'Walking',
   'walking_indoor' = 'Walking',
   'Walk' = 'Walking',
@@ -332,22 +331,22 @@ export enum ActivityTypes {
   /**
    * Sailing
    */
-  'Sailing' = 'Sailing',
+    'Sailing' = 'Sailing',
   'sailing' = 'Sailing',
   /**
    * Kayaking
    */
-  'Kayaking' = 'Kayaking',
+    'Kayaking' = 'Kayaking',
   'kayaking' = 'Kayaking',
   /**
    * Rafting
    */
-  'rafting' = 'Rafting',
+    'rafting' = 'Rafting',
   'Rafting' = 'Rafting',
   /**
    * Rowing
    */
-  'rowing' = 'Rowing',
+    'rowing' = 'Rowing',
   'Rowing' = 'Rowing',
   /**
    * Indoor Rowing
@@ -361,7 +360,7 @@ export enum ActivityTypes {
   /**
    * Climbing
    */
-  'Climbing' = 'Climbing',
+    'Climbing' = 'Climbing',
   /**
    * Triathlon
    */
@@ -393,7 +392,7 @@ export enum ActivityTypes {
    * https://en.wikipedia.org/wiki/Cross-country_skiing
    */
 
-  'Crosscountry Skiing' = 'Crosscountry Skiing',
+    'Crosscountry Skiing' = 'Crosscountry Skiing',
   'Crosscountry skiing' = 'Crosscountry Skiing',
   'CrosscountrySkiing' = 'Crosscountry Skiing',
   'CrossCountrySkiing' = 'Crosscountry Skiing',
@@ -403,7 +402,7 @@ export enum ActivityTypes {
   /**
    * Nordic skiing
    */
-  'NordicSki' = 'Nordic Skiing',
+    'NordicSki' = 'Nordic Skiing',
   'Nordic skiing' = 'Nordic Skiing',
   'Nordic Skiing' = 'Nordic Skiing'
   ,
@@ -411,7 +410,7 @@ export enum ActivityTypes {
    * Backcountry Skiing
    * https://en.wikipedia.org/wiki/Backcountry_skiing
    */
-  'Backcountry skiing' = 'Backcountry Skiing',
+    'Backcountry skiing' = 'Backcountry Skiing',
   'Backcountry Skiing' = 'Backcountry Skiing',
   'BackCountrySkiing' = 'Backcountry Skiing',
   'BackcountrySkiing' = 'Backcountry Skiing',
@@ -423,53 +422,53 @@ export enum ActivityTypes {
    * Ski Touring
    * https://en.wikipedia.org/wiki/Ski_touring
    */
-  'Ski Touring' = 'Ski Touring',
+    'Ski Touring' = 'Ski Touring',
   'SkiTouring' = 'Ski Touring',
   /**
    * Telemark Skiing
    */
-  'Telemark skiing' = 'Telemark Skiing',
+    'Telemark skiing' = 'Telemark Skiing',
   'TelemarkSkiing' = 'Telemark Skiing',
   'Telemark Skiing' = 'Telemark Skiing',
   /**
    * Roller Skiing
    */
-  'Roller skiing' = 'Roller Skiing',
+    'Roller skiing' = 'Roller Skiing',
   'RollerSki' = 'Roller Skiing',
   'Roller Skiing' = 'Roller Skiing',
   /**
    * Snowboarding
    */
-  'Snowboarding' = 'Snowboarding',
+    'Snowboarding' = 'Snowboarding',
   'snowboarding' = 'Snowboarding',
   'Snowboard' = 'Snowboarding',
   /**
    * Weight training
    */
-  'Weight Training' = 'Weight Training',
+    'Weight Training' = 'Weight Training',
   'Weight training' = 'Weight Training',
   'WeightTraining' = 'Weight Training',
   /**
    * Basketball
    */
-  'Basketball' = 'Basketball',
+    'Basketball' = 'Basketball',
   /**
    * Ice Hockey
    */
-  'Ice Hockey' = 'Ice Hockey',
+    'Ice Hockey' = 'Ice Hockey',
   'IceHockey' = 'Ice Hockey',
   /**
    * Volleyball
    */
-  'Volleyball' = 'Volleyball',
+    'Volleyball' = 'Volleyball',
   /**
    * Football
    */
-  'Football' = 'Football',
+    'Football' = 'Football',
   /**
    * Softball
    */
-  'Softball' = 'Softball',
+    'Softball' = 'Softball',
   /**
    * Handball
    */
@@ -477,31 +476,31 @@ export enum ActivityTypes {
   /**
    * Cheerleading
    */
-  'Cheerleading' = 'Cheerleading',
+    'Cheerleading' = 'Cheerleading',
   /**
    * Baseball
    */
-  'Baseball' = 'Baseball',
+    'Baseball' = 'Baseball',
   /**
    * Tennis
    */
-  'tennis' = 'Tennis',
+    'tennis' = 'Tennis',
   'Tennis' = 'Tennis',
   'tennis_match' = 'Tennis',
   /**
    * Badminton
    */
-  'Badminton' = 'Badminton',
+    'Badminton' = 'Badminton',
   /**
    * Table Tennis
    */
-  'Table tennis' = 'Table Tennis',
+    'Table tennis' = 'Table Tennis',
   'Table Tennis' = 'Table Tennis',
   'TableTennis' = 'Table Tennis',
   /**
    * Racquet Ball
    */
-  'racket' = 'Racquet Ball',
+    'racket' = 'Racquet Ball',
   'racquet_ball' = 'Racquet Ball',
   'Racquet Ball' = 'Racquet Ball',
   'RacquetBall' = 'Racquet Ball',
@@ -509,66 +508,66 @@ export enum ActivityTypes {
   /**
    * Squash
    */
-  'Squash' = 'Squash',
+    'Squash' = 'Squash',
   /**
    * Combat sport
    */
-  'Combat sport' = 'Combat',
+    'Combat sport' = 'Combat',
   'Combat' = 'Combat',
   /**
    * Boxing
    */
-  'Boxing' = 'Boxing',
+    'Boxing' = 'Boxing',
   /**
    * Floorball
    */
-  'Floorball' = 'Floorball',
+    'Floorball' = 'Floorball',
   /**
    * Scuba Diving
    */
-  'Scuba diving' = 'Scuba Diving',
+    'Scuba diving' = 'Scuba Diving',
   'Scuba Diving' = 'Scuba Diving',
   'ScubaDiving' = 'Scuba Diving',
   /**
    * Free Diving
    */
-  'Free diving' = 'Free Diving',
+    'Free diving' = 'Free Diving',
   'Free Diving' = 'Free Diving',
   'FreeDiving' = 'Free Diving',
   /**
    * Diving
    */
-  'diving' = 'Diving',
+    'diving' = 'Diving',
   'Diving' = 'Diving',
   'diving_apnea_hunting' = 'Diving',
   /**
    * Snorkeling
    */
-  'Snorkeling' = 'Snorkeling',
+    'Snorkeling' = 'Snorkeling',
   /**
    * Swimrun
    */
-  'Swimrun' = 'Swimrun',
+    'Swimrun' = 'Swimrun',
   /**
    * Adventure Racing
    */
-  'Adventure Racing' = 'Adventure Racing',
+    'Adventure Racing' = 'Adventure Racing',
   /**
    * Bowling
    */
-  'Bowling' = 'Bowling',
+    'Bowling' = 'Bowling',
   /**
    * Cricket
    */
-  'Cricket' = 'Cricket',
+    'Cricket' = 'Cricket',
   /**
    * Crosstrainer
    */
-  'Crosstrainer' = 'Crosstrainer',
+    'Crosstrainer' = 'Crosstrainer',
   /**
    * Dancing
    */
-  'Dancing' = 'Dancing',
+    'Dancing' = 'Dancing',
   /**
    * Golf
    */
@@ -592,11 +591,11 @@ export enum ActivityTypes {
   /**
    * Gymnastics
    */
-  'Gymnastics' = 'Gymnastics',
+    'Gymnastics' = 'Gymnastics',
   /**
    * Ice Skating
    */
-  'Ice Skating' = 'Ice Skating',
+    'Ice Skating' = 'Ice Skating',
   'IceSkating' = 'Ice Skating',
   'ice_skating' = 'Ice Skating',
   'ice skating' = 'Ice Skating',
@@ -606,34 +605,34 @@ export enum ActivityTypes {
   /**
    * Canoeing
    */
-  'Canoeing' = 'Canoeing',
+    'Canoeing' = 'Canoeing',
   /**
    * Motorsports
    */
-  'Motorsports' = 'Motorsports',
+    'Motorsports' = 'Motorsports',
   /**
    * Mountaineering
    */
-  'Mountaineering' = 'Mountaineering',
+    'Mountaineering' = 'Mountaineering',
   'mountaineering' = 'Mountaineering',
   /**
    * Orienteering
    */
-  'Orienteering' = 'Orienteering',
+    'Orienteering' = 'Orienteering',
   'running_navigate' = 'Orienteering',
   'generic_navigate' = 'Orienteering',
   /**
    * Rugby
    */
-  'Rugby' = 'Rugby',
+    'Rugby' = 'Rugby',
   /**
    * Stretching
    */
-  'Stretching' = 'Stretching',
+    'Stretching' = 'Stretching',
   /**
    * Strength Training
    */
-  'training_strength_training' = 'Strength Training',
+    'training_strength_training' = 'Strength Training',
   'fitness_equipment_strength_training' = 'Strength Training',
   'strength_training' = 'Strength Training',
   'Strength training' = 'Strength Training',
@@ -644,62 +643,62 @@ export enum ActivityTypes {
   /**
    * Track and Field
    */
-  'TrackAndField' = 'Track and Field',
+    'TrackAndField' = 'Track and Field',
   'Track and Field' = 'Track and Field',
   /**
    * Nordic walking
    */
-  'NordicWalking' = 'Nordic Walking',
+    'NordicWalking' = 'Nordic Walking',
   'Nordic Walking' = 'Nordic Walking',
   'Nordic walking' = 'Nordic Walking',
   /**
    * Snowshoeing
    */
-  'Snow shoeing' = 'Snowshoeing',
+    'Snow shoeing' = 'Snowshoeing',
   /**
    * Windsrufing
    */
-  'Windsurfing/Surfing' = 'Windsurfing',
+    'Windsurfing/Surfing' = 'Windsurfing',
   'windsurfing' = 'Windsurfing',
   'Windsurfing' = 'Windsurfing',
   'Windsurf' = 'Windsurfing',
   /**
    * Kettlebell
    */
-  'Kettlebell' = 'Kettlebell',
+    'Kettlebell' = 'Kettlebell',
   /**
    * Paddling
    */
-  'paddling' = 'Paddling',
+    'paddling' = 'Paddling',
   'Paddling' = 'Paddling',
   /**
    * Flying
    */
-  'flying' = 'Flying',
+    'flying' = 'Flying',
   'Flying' = 'Flying',
   /**
    * Crossfit
    */
-  'Cross fit' = 'Crossfit',
+    'Cross fit' = 'Crossfit',
   'Cross Fit' = 'Crossfit',
   'cross_fit' = 'Crossfit',
   'Crossfit' = 'Crossfit',
   /**
    * Kitesurfing
    */
-  'Kitesurfing/Kiting' = 'Kitesurfing',
+    'Kitesurfing/Kiting' = 'Kitesurfing',
   'kitesurfing' = 'Kitesurfing',
   'Kitesurfing' = 'Kitesurfing',
   'Kitesurf' = 'Kitesurfing',
   /**
    * Tactical
    */
-  'tactical' = 'Tactical',
+    'tactical' = 'Tactical',
   'Tactical' = 'Tactical',
   /**
    * Jumpmaster
    */
-  'jumpmaster' = 'Jumpmaster',
+    'jumpmaster' = 'Jumpmaster',
   'Jumpmaster' = 'Jumpmaster',
   /**
    * Boxing
@@ -720,7 +719,7 @@ export enum ActivityTypes {
    * Treadmill
    */
     'fitness_equipment_treadmill' = 'Treadmill',
-    'running_treadmill' = 'Treadmill',
+  'running_treadmill' = 'Treadmill',
   'Treadmill' = 'Treadmill',
   'treadmill' = 'Treadmill',
   /**
@@ -752,28 +751,28 @@ export enum ActivityTypes {
    * Via ferrata
    */
     'ViaFerrata' = 'Via Ferrata',
-    'Via Ferrata' = 'Via Ferrata',
-    'via Ferrata' = 'Via Ferrata',
-    'via ferrata' = 'Via Ferrata',
+  'Via Ferrata' = 'Via Ferrata',
+  'via Ferrata' = 'Via Ferrata',
+  'via ferrata' = 'Via Ferrata',
   /**
    * Fishing
    */
-  'Fishing' = 'Fishing',
+    'Fishing' = 'Fishing',
   'fishing' = 'Fishing',
   /**
    * Hunting
    */
-  'Hunting' = 'Hunting',
+    'Hunting' = 'Hunting',
   'hunting' = 'Hunting',
   /**
    * Route
    */
-  'route' = 'Route',
+    'route' = 'Route',
   'Route' = 'Route',
   /**
    * Inline Skating
    */
-  'inline_skating' = 'Inline Skating',
+    'inline_skating' = 'Inline Skating',
   'InlineSkating' = 'Inline Skating',
   'Inline Skating' = 'Inline Skating',
   'Inline skating' = 'Inline Skating',
@@ -781,7 +780,7 @@ export enum ActivityTypes {
   /**
    * Rock Climbing
    */
-  'rock_climbing' = 'Rock Climbing',
+    'rock_climbing' = 'Rock Climbing',
   'Rock Climbing' = 'Rock Climbing',
   'Rock climbing' = 'Rock Climbing',
   'RockClimbing' = 'Rock Climbing',
@@ -807,7 +806,7 @@ export enum ActivityTypes {
   /**
    * Stand Up Paddling
    */
-  'stand_up_paddleboarding' = 'Stand Up Paddling',
+    'stand_up_paddleboarding' = 'Stand Up Paddling',
   'Standup paddling (SUP)' = 'Stand Up Paddling',
   'Stand up paddling' = 'Stand Up Paddling',
   'stand up paddling' = 'Stand Up Paddling',
@@ -817,7 +816,7 @@ export enum ActivityTypes {
   /**
    * Surfing
    */
-  'surfing' = 'Surfing',
+    'surfing' = 'Surfing',
   'Surfing' = 'Surfing',
   /**
    * Wakeboarding
@@ -863,22 +862,22 @@ export enum ActivityTypes {
   /**
    * Hand Cycle
    */
-  'Handcycle' = 'Hand Cycle',
+    'Handcycle' = 'Hand Cycle',
   'Hand cycle' = 'Hand Cycle',
   'Hand Cycle' = 'Hand Cycle',
   /**
    * Stair Stepper
    */
-  'StairStepper' = 'Stair Stepper',
+    'StairStepper' = 'Stair Stepper',
   'Stair Stepper' = 'Stair Stepper',
   /**
    * Velomobile
    */
-  'Velomobile' = 'Velomobile',
+    'Velomobile' = 'Velomobile',
   /**
    * Wheel Chair
    */
-  'Wheelchair' = 'Wheel Chair',
+    'Wheelchair' = 'Wheel Chair',
   'Wheel chair' = 'Wheel Chair',
   'Wheel Chair' = 'Wheel Chair',
   'Workout' = 'Workout',
@@ -1016,41 +1015,22 @@ export class ActivityTypesGroupMapping {
   };
 }
 
-export class StravaGPXTypeMapping {
-
-  public static readonly map: Array<{ id: number, type: string }> = [
-    {id: 1, type: ActivityTypes.Cycling},
-    {id: 2, type: ActivityTypes.AlpineSki},
-    {id: 3, type: ActivityTypes.BackCountrySki},
-    {id: 4, type: ActivityTypes.Hiking},
-    {id: 5, type: ActivityTypes.IceSkate},
-    {id: 6, type: ActivityTypes.InlineSkate},
-    {id: 7, type: ActivityTypes.NordicSki},
-    {id: 8, type: ActivityTypes.RollerSki},
-    {id: 9, type: ActivityTypes.Running},
-    {id: 10, type: ActivityTypes.Walking},
-    {id: 11, type: ActivityTypes.Workout},
-    {id: 12, type: ActivityTypes.Snowboard},
-    {id: 13, type: ActivityTypes.Snowshoeing},
-    {id: 14, type: ActivityTypes.Kitesurfing},
-    {id: 15, type: ActivityTypes.Windsurfing},
-    {id: 16, type: ActivityTypes.Swimming},
-    {id: 17, type: ActivityTypes.VirtualRide},
-    {id: 18, type: ActivityTypes.EBikeRide},
-    {id: 19, type: ActivityTypes.Velomobile},
-    {id: 21, type: ActivityTypes.Canoeing},
-    {id: 22, type: ActivityTypes.Kayaking},
-    {id: 23, type: ActivityTypes.Rowing},
-    {id: 24, type: ActivityTypes.StandUpPaddling},
-    {id: 25, type: ActivityTypes.Surfing},
-    {id: 26, type: ActivityTypes.Crossfit},
-    {id: 27, type: ActivityTypes.Elliptical},
-    {id: 28, type: ActivityTypes.RockClimbing},
-    {id: 29, type: ActivityTypes.StairStepper},
-    {id: 30, type: ActivityTypes.WeightTraining},
-    {id: 31, type: ActivityTypes.Yoga},
-    {id: 51, type: ActivityTypes.Handcycle},
-    {id: 52, type: ActivityTypes.Wheelchair},
-    {id: 53, type: ActivityTypes.VirtualRun}
-  ];
+export class StravaGPXTypes {
+  public static readonly map: Map<number, ActivityTypes> = new Map<number, ActivityTypes>([
+    [1, ActivityTypes.Cycling],
+    [2, ActivityTypes.AlpineSki],
+    [3, ActivityTypes.BackCountrySki],
+    [4, ActivityTypes.Hiking],
+    [6, ActivityTypes.InlineSkate],
+    [7, ActivityTypes.NordicSki],
+    [9, ActivityTypes.Running],
+    [10, ActivityTypes.Walking],
+    [12, ActivityTypes.Snowboard],
+    [13, ActivityTypes.Snowshoeing],
+    [16, ActivityTypes.Swimming],
+    [17, ActivityTypes.VirtualCycling],
+    [18, ActivityTypes.EBikeRide],
+    [23, ActivityTypes.Rowing],
+    [53, ActivityTypes.VirtualRunning]
+  ]);
 }

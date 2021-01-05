@@ -2,7 +2,7 @@ import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
 import { Event } from '../../../event';
-import { ActivityTypes } from '../../../../activities/activity.types';
+import { ActivityTypes, StravaGPXTypes } from '../../../../activities/activity.types';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { GPXSampleMapper } from './importer.gpx.mapper';
 import { isNumberOrString } from '../../../utilities/helpers';
@@ -55,14 +55,14 @@ export class EventImporterGPX {
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
           activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];
-        } /*else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
+        } else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
           const stravaGpxTypeId = parseInt(trackOrRoute.type[0], 10);
-          const entryFound: { id: number, type: string } | undefined = StravaGPXTypeMapping.map.find(entry => entry.id === stravaGpxTypeId);
-          if (entryFound) {
-            activityType = ActivityTypes[<keyof typeof ActivityTypes>entryFound.type];
+          const typeFound: ActivityTypes | undefined = StravaGPXTypes.map.get(stravaGpxTypeId);
+          if (typeFound) {
+            activityType = typeFound;
           }
-        }*/
-        const activityName =  trackOrRoute.name?.[0] || "";
+        }
+        const activityName =  trackOrRoute.name?.[0] || '';
         const activity = new Activity(
           startDate,
           endDate,

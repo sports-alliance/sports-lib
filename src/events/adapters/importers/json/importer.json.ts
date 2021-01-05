@@ -37,7 +37,7 @@ export class EventImporterJSON {
   }
 
   static getCreatorFromJSON(json: CreatorJSONInterface): CreatorInterface {
-    const creator = new Creator(json.name);
+    const creator = new Creator(json.name || 'Unknown Device');
     if (json.hwInfo) {
       creator.hwInfo = json.hwInfo;
     }

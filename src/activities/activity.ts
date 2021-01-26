@@ -23,7 +23,7 @@ import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 
-export const MAX_ACTIVITY_DURATION = 12 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 year
+export const MAX_ACTIVITY_DURATION = 1 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 month
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
 
@@ -49,7 +49,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       throw new Error('Activity end date is before the start date and that is not acceptable')
     }
     if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
-      throw new Error('Activity duration is over 1 year and that is not supported');
+      throw new Error('Activity duration is over 1 month and that is not supported');
     }
     this.type = type;
     this.creator = creator;

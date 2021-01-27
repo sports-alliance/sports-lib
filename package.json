@@ -1,6 +1,6 @@
 {
   "name": "@sports-alliance/sports-lib",
-  "version": "5.4.15",
+  "version": "5.4.16",
   "description": "A Library to for importing / exporting and processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc",
   "keywords": [
     "gpx",
@@ -45,7 +45,7 @@
   "dependencies": {
     "@types/node": "^14.6.1",
     "fast-xml-parser": "^3.17.4",
-    "fit-file-parser": "^1.8.5",
+    "fit-file-parser": "^1.9.0",
     "geolib": "^3.3.1",
     "gpx-builder": "^3.6.0",
     "kalmanjs": "^1.1.0",

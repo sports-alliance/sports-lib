@@ -415,6 +415,7 @@ export enum ActivityTypes {
   'BackcountrySkiing' = 'Backcountry Skiing',
   'BackcountrySki' = 'Backcountry Skiing',
   'cross_country_skiing_backcountry' = 'Backcountry Skiing', // Hack for suunto
+  'alpine_skiing_backcountry' = 'Backcountry Skiing', // Hack for suunto
   'backcountry' = 'Backcountry Skiing',
   'BackCountrySki' = 'Backcountry Skiing',
   /**
@@ -429,7 +430,6 @@ export enum ActivityTypes {
     'Telemark skiing' = 'Telemark Skiing',
   'TelemarkSkiing' = 'Telemark Skiing',
   'Telemark Skiing' = 'Telemark Skiing',
-  'alpine_skiing_backcountry' = 'Telemark Skiing', // Hack for suunto
   /**
    * Roller Skiing
    */

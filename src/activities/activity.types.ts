@@ -430,6 +430,7 @@ export enum ActivityTypes {
     'Telemark skiing' = 'Telemark Skiing',
   'TelemarkSkiing' = 'Telemark Skiing',
   'Telemark Skiing' = 'Telemark Skiing',
+  'cross_country_skiing_downhill' = 'Telemark Skiing',
   /**
    * Roller Skiing
    */
@@ -959,8 +960,6 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
       ActivityTypes.RockClimbing,
-      ActivityTypes.BackCountrySki,
-      ActivityTypes.NordicSki,
       ActivityTypes.Canyoning,
       ActivityTypes.ViaFerrata,
       // @todo add more
@@ -974,6 +973,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Snowshoeing,
       ActivityTypes.SkiTouring,
       ActivityTypes.IceSkating,
+      ActivityTypes.BackCountrySki,
+      ActivityTypes.NordicSki,
       // @todo add more
     ],
     [ActivityTypeGroups.WaterSports]: [
@@ -1034,3 +1035,58 @@ export class StravaGPXTypes {
     [53, ActivityTypes.VirtualRunning]
   ]);
 }
+
+
+
+GENERIC((short)0),
+RUNNING((short)1),
+CYCLING((short)2),
+TRANSITION((short)3),
+FITNESS_EQUIPMENT((short)4),
+SWIMMING((short)5),
+BASKETBALL((short)6),
+SOCCER((short)7),
+TENNIS((short)8),
+AMERICAN_FOOTBALL((short)9),
+TRAINING((short)10),
+WALKING((short)11),
+CROSS_COUNTRY_SKIING((short)12),
+ALPINE_SKIING((short)13),
+SNOWBOARDING((short)14),
+ROWING((short)15),
+MOUNTAINEERING((short)16),
+HIKING((short)17),
+MULTISPORT((short)18),
+PADDLING((short)19),
+FLYING((short)20),
+E_BIKING((short)21),
+MOTORCYCLING((short)22),
+BOATING((short)23),
+DRIVING((short)24),
+GOLF((short)25),
+HANG_GLIDING((short)26),
+HORSEBACK_RIDING((short)27),
+HUNTING((short)28),
+FISHING((short)29),
+INLINE_SKATING((short)30),
+ROCK_CLIMBING((short)31),
+SAILING((short)32),
+ICE_SKATING((short)33),
+SKY_DIVING((short)34),
+SNOWSHOEING((short)35),
+SNOWMOBILING((short)36),
+STAND_UP_PADDLEBOARDING((short)37),
+SURFING((short)38),
+WAKEBOARDING((short)39),
+WATER_SKIING((short)40),
+KAYAKING((short)41),
+RAFTING((short)42),
+WINDSURFING((short)43),
+KITESURFING((short)44),
+TACTICAL((short)45),
+JUMPMASTER((short)46),
+BOXING((short)47),
+FLOOR_CLIMBING((short)48),
+DIVING((short)53),
+ALL((short)254),
+INVALID((short)255);

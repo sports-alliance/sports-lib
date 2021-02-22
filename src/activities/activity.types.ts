@@ -985,6 +985,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Kitesurfing,
       ActivityTypes.Wakeboarding,
       ActivityTypes.Sailing,
+      ActivityTypes.Canoeing,
+      ActivityTypes.Kayaking,
+      ActivityTypes.Paddling,
+      ActivityTypes.StandUpPaddling,
       // @todo add more
     ],
     [ActivityTypeGroups.Diving]: [

@@ -381,7 +381,6 @@ export enum ActivityTypes {
   'Alpine Skiing' = 'Alpine Skiing',
   'AlpineSkiing' = 'Alpine Skiing',
   'alpine_skiing' = 'Alpine Skiing',
-  'alpine_skiing_downhill' = 'Alpine Skiing',
   'AlpineSki' = 'Alpine Skiing',
   'downhill' = 'Alpine Skiing',
   'Downhill skiing' = 'Alpine Skiing',
@@ -431,6 +430,7 @@ export enum ActivityTypes {
   'TelemarkSkiing' = 'Telemark Skiing',
   'Telemark Skiing' = 'Telemark Skiing',
   'cross_country_skiing_downhill' = 'Telemark Skiing',
+  'alpine_skiing_downhill' = 'Telemark Skiing',
   /**
    * Roller Skiing
    */

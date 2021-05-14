@@ -13,6 +13,6 @@ export abstract class DataString extends DataBare {
   }
 
   isValueTypeValid(value: any): boolean {
-    return typeof value === 'string'
+    return typeof value === 'string';
   }
 }

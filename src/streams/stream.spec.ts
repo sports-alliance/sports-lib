@@ -2,7 +2,6 @@ import { DataAltitude } from '../data/data.altitude';
 import { Stream } from './stream';
 import { DataPace, DataPaceMinutesPerMile } from '../data/data.pace';
 import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from '../data/data.swim-pace';
-import { DataSwimPaceMinMinutesPer100Yard } from '../data/data.swim-pace-min';
 import { DataSpeed, DataSpeedKilometersPerHour } from '../data/data.speed';
 import { DataGNSSDistance } from '../data/data.gnss-distance';
 import { DataGradeAdjustedSpeed, DataGradeAdjustedSpeedKilometersPerHour } from '../data/data.grade-adjusted-speed';
@@ -11,10 +10,7 @@ import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from '../d
 import { DataVerticalSpeed, DataVerticalSpeedFeetPerHour } from '../data/data.vertical-speed';
 
 describe('Stream', () => {
-
-  beforeEach(() => {
-
-  });
+  beforeEach(() => {});
 
   it('should get data', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
@@ -65,7 +61,6 @@ describe('Stream', () => {
     expect(stream.isExportable()).toBe(true);
     stream = new Stream(DataVerticalSpeedFeetPerHour.type);
     expect(stream.isExportable()).toBe(false);
-
   });
 
   it('should get stream data by time', () => {
@@ -178,5 +173,4 @@ describe('Stream', () => {
       }
     ]);
   });
-
 });

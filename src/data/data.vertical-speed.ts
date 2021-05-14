@@ -110,7 +110,6 @@ export class DataVerticalSpeedFeetPerHour extends DataVerticalSpeed {
   }
 }
 
-
 export class DataVerticalSpeedKilometerPerHour extends DataVerticalSpeed {
   static type = 'Vertical speed in kilometers per hour';
   static displayType = DataVerticalSpeed.type;
@@ -140,4 +139,3 @@ export class DataVerticalSpeedMilesPerHour extends DataVerticalSpeed {
     return this.getValue().toFixed(2);
   }
 }
-

@@ -1,6 +1,5 @@
 import { DataNumber } from './data.number';
 
-
 // Due to legacy
 export class DataLegStiffness extends DataNumber {
   static type = 'Leg Stiffness';

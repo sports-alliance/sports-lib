@@ -1,7 +1,6 @@
 import { IBIData } from './data.ibi';
 
 describe('Data IBI', function () {
-
   let ibiData: IBIData;
 
   beforeEach(() => {
@@ -74,5 +73,4 @@ describe('Data IBI', function () {
   it('should export correctly to JSON', function () {
     expect(ibiData.toJSON()).toEqual([600, 700, 800, 900]);
   });
-
 });

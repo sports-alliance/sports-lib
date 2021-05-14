@@ -1,13 +1,17 @@
 import {
-  DataVerticalSpeed, DataVerticalSpeedFeetPerHour, DataVerticalSpeedFeetPerMinute,
-  DataVerticalSpeedFeetPerSecond, DataVerticalSpeedKilometerPerHour, DataVerticalSpeedMetersPerHour,
-  DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
+  DataVerticalSpeed,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
 
 export class DataVerticalSpeedAvg extends DataVerticalSpeed {
   static type = 'Average Vertical Speed';
 }
-
 
 export class DataVerticalSpeedAvgFeetPerSecond extends DataVerticalSpeedFeetPerSecond {
   static type = 'Average vertical speed in feet per second';

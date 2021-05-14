@@ -1,18 +1,18 @@
 import { MapThemes, MapTypes } from '../users/settings/user.map.settings.interface';
 
 export interface TileSettingsInterface {
-  name: string,
-  order: number,
-  type: TileTypes,
-  size: { columns: number, rows: number }
+  name: string;
+  order: number;
+  type: TileTypes;
+  size: { columns: number; rows: number };
 }
 
 export interface TileChartSettingsInterface extends TileSettingsInterface {
-  chartType: ChartTypes,
-  dataType: string,
-  dataValueType: ChartDataValueTypes,
-  dataTimeInterval: TimeIntervals,
-  dataCategoryType: ChartDataCategoryTypes,
+  chartType: ChartTypes;
+  dataType: string;
+  dataValueType: ChartDataValueTypes;
+  dataTimeInterval: TimeIntervals;
+  dataCategoryType: ChartDataCategoryTypes;
 }
 
 export interface TileMapSettingsInterface extends TileSettingsInterface {
@@ -24,9 +24,8 @@ export interface TileMapSettingsInterface extends TileSettingsInterface {
 
 export enum TileTypes {
   Chart = 'Chart',
-  Map = 'Map',
+  Map = 'Map'
 }
-
 
 export enum ChartTypes {
   Pie = 'Pie',
@@ -44,22 +43,22 @@ export enum ChartDataValueTypes {
   Total = 'Total',
   Average = 'Average',
   Maximum = 'Maximum',
-  Minimum = 'Minimum',
+  Minimum = 'Minimum'
 }
 
 export enum ChartDataCategoryTypes {
   ActivityType = 'Activity Type',
-  DateType = 'Date Type',
+  DateType = 'Date Type'
 }
 
 export enum TimeIntervals {
   Auto,
-  Hourly ,
-  Daily ,
-  Weekly ,
-  BiWeekly ,
-  Monthly ,
-  Quarterly ,
+  Hourly,
+  Daily,
+  Weekly,
+  BiWeekly,
+  Monthly,
+  Quarterly,
   Semesterly,
   Yearly
 }

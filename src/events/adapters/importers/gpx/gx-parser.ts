@@ -1,11 +1,10 @@
 export class GXParser {
-
   constructor(xml: string, domParser: any = null) {
     domParser = domParser || DOMParser;
     const parser = new domParser();
     const root = parser.parseFromString(xml, 'text/xml');
 
-    return this.parseChild(root.documentElement)
+    return this.parseChild(root.documentElement);
   }
 
   private parseChild(elm: any): any {
@@ -15,32 +14,29 @@ export class GXParser {
     for (const attribute of attributes) {
       const attr: any = attribute;
       if (attr && attr.value) {
-        attrs[attr.name] = attr.value
+        attrs[attr.name] = attr.value;
       }
     }
 
     if (elm.childNodes) {
-
       const children = elm.childNodes;
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const name = child.localName;
         if (!name) {
-          continue
+          continue;
         }
 
         if (!attrs[name]) {
-          attrs[name] = []
+          attrs[name] = [];
         }
-        attrs[name].push(this.parseChild(child))
+        attrs[name].push(this.parseChild(child));
       }
     }
 
     if (Object.keys(attrs).length === 0) {
-      return elm.textContent
+      return elm.textContent;
     }
-    return attrs
+    return attrs;
   }
-
 }
-

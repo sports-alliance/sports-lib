@@ -9,7 +9,6 @@ import { DataActivityTypes } from '../data/data.activity-types';
 import { DataDeviceNames } from '../data/data.device-names';
 
 export class Event extends DurationClassAbstract implements EventInterface {
-
   public name: string;
   public description?: string;
   public privacy: Privacy = Privacy.Private;
@@ -42,7 +41,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   }
 
   removeActivity(activityToRemove: ActivityInterface) {
-    this.activities = this.activities.filter((activity) => activityToRemove.getID() !== activity.getID());
+    this.activities = this.activities.filter(activity => activityToRemove.getID() !== activity.getID());
   }
 
   getActivities(): ActivityInterface[] {
@@ -66,7 +65,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   getActivityTypesAsArray(): string[] {
     const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
     if (!activityTypesStat) {
-      throw new Error(`Event with id ${this.getID()} has no activity types`)
+      throw new Error(`Event with id ${this.getID()} has no activity types`);
     }
     return activityTypesStat.getValue();
   }
@@ -74,17 +73,21 @@ export class Event extends DurationClassAbstract implements EventInterface {
   getActivityTypesAsString(): string {
     const activityTypesStat = <DataActivityTypes>this.getStat(DataActivityTypes.type);
     if (!activityTypesStat) {
-      throw new Error(`Event with id ${this.getID()} has no activity types`)
+      throw new Error(`Event with id ${this.getID()} has no activity types`);
     }
-    return activityTypesStat.getValue().length > 1 ?
-      `${this.getUniqueStringWithMultiplier(activityTypesStat.getValue().map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType]))}`
-      : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()]
+    return activityTypesStat.getValue().length > 1
+      ? `${this.getUniqueStringWithMultiplier(
+          activityTypesStat
+            .getValue()
+            .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
+        )}`
+      : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()];
   }
 
   getDeviceNamesAsString(): string {
     const deviceNamesStat = <DataDeviceNames>this.getStat(DataDeviceNames.type);
     if (!deviceNamesStat) {
-      throw new Error(`Event with id ${this.getID()} has no device names`)
+      throw new Error(`Event with id ${this.getID()} has no device names`);
     }
     return `${this.getUniqueStringWithMultiplier(deviceNamesStat.getValue())}`;
   }
@@ -104,14 +107,16 @@ export class Event extends DurationClassAbstract implements EventInterface {
       }
       return uniqueObj;
     }, {});
-    return Object.keys(uniqueObject).reduce((uniqueArray: any[], key, index, object) => {
-      if (uniqueObject[key] === 1) {
-        uniqueArray.push(key);
-      } else {
-        uniqueArray.push(uniqueObject[key] + 'x ' + key);
-      }
-      return uniqueArray;
-    }, []).join(', ');
+    return Object.keys(uniqueObject)
+      .reduce((uniqueArray: any[], key, index, object) => {
+        if (uniqueObject[key] === 1) {
+          uniqueArray.push(key);
+        } else {
+          uniqueArray.push(uniqueObject[key] + 'x ' + key);
+        }
+        return uniqueArray;
+      }, [])
+      .join(', ');
   }
 
   isMultiSport(): boolean {

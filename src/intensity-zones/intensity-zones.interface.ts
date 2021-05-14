@@ -2,7 +2,7 @@ import { SerializableClassInterface } from '../serializable/serializable.class.i
 import { IntensityZonesJSONInterface } from './intensity-zones.json.interface';
 
 export interface IntensityZonesInterface extends SerializableClassInterface {
-  type: string
+  type: string;
   zone1Duration: number;
   zone2Duration: number;
   zone3Duration: number;

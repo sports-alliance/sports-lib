@@ -7,7 +7,6 @@ import { EventImporterJSON } from './events/adapters/importers/json/importer.jso
 import { EventJSONInterface } from './events/event.json.interface';
 
 export class SportsLib {
-
   /**
    * Parses and returns an event using GPX format
    * @param gpxString
@@ -15,7 +14,7 @@ export class SportsLib {
    */
   public static importFromGPX(gpxString: string, domParser?: Function): Promise<EventInterface> {
     return EventImporterGPX.getFromString(gpxString, domParser);
-  };
+  }
 
   /**
    * Parses and returns an event using TCX format
@@ -23,7 +22,7 @@ export class SportsLib {
    */
   public static importFromTCX(xmlDocument: XMLDocument): Promise<EventInterface> {
     return EventImporterTCX.getFromXML(xmlDocument);
-  };
+  }
 
   /**
    * Parses and returns an event using FIT format
@@ -31,7 +30,7 @@ export class SportsLib {
    */
   public static importFromFit(arrayBuffer: ArrayBuffer): Promise<EventInterface> {
     return EventImporterFIT.getFromArrayBuffer(arrayBuffer);
-  };
+  }
 
   /**
    * Parses and returns an event using Suunto format

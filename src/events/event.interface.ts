@@ -6,12 +6,12 @@ import { EventJSONInterface } from './event.json.interface';
 import { IDClassInterface } from '../id/id.class.interface';
 import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
 
-export interface EventInterface extends StatsClassInterface,
-  DurationClassInterface,
-  PrivacyClassInterface,
-  SerializableClassInterface,
-  IDClassInterface {
-
+export interface EventInterface
+  extends StatsClassInterface,
+    DurationClassInterface,
+    PrivacyClassInterface,
+    SerializableClassInterface,
+    IDClassInterface {
   name: string;
   description?: string;
   isMerge: boolean;
@@ -39,5 +39,4 @@ export interface EventInterface extends StatsClassInterface,
   isMultiSport(): boolean;
 
   toJSON(): EventJSONInterface;
-
 }

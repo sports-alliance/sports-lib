@@ -25,20 +25,20 @@ export class IntensityZones implements IntensityZonesInterface {
       zone2Duration: this.zone2Duration,
       zone3Duration: this.zone3Duration,
       zone4Duration: this.zone4Duration,
-      zone5Duration: this.zone5Duration,
+      zone5Duration: this.zone5Duration
     };
     if (isNumber(this.zone2LowerLimit)) {
-      json.zone2LowerLimit = this.zone2LowerLimit
+      json.zone2LowerLimit = this.zone2LowerLimit;
     }
     if (isNumber(this.zone3LowerLimit)) {
-      json.zone3LowerLimit = this.zone3LowerLimit
+      json.zone3LowerLimit = this.zone3LowerLimit;
     }
     if (isNumber(this.zone4LowerLimit)) {
-      json.zone4LowerLimit = this.zone4LowerLimit
+      json.zone4LowerLimit = this.zone4LowerLimit;
     }
     if (isNumber(this.zone5LowerLimit)) {
-      json.zone5LowerLimit = this.zone5LowerLimit
+      json.zone5LowerLimit = this.zone5LowerLimit;
     }
-    return json
+    return json;
   }
 }

@@ -11,22 +11,22 @@ import { DataPower } from '../../../../data/data.power';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { isNumberOrString } from '../../../utilities/helpers';
 
-export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): number | null }[] = [
+export const GPXSampleMapper: { dataType: string; getSampleValue(sample: any): number | null }[] = [
   {
     dataType: DataLatitudeDegrees.type,
-    getSampleValue: sample => Number(sample.lat),
+    getSampleValue: sample => Number(sample.lat)
   },
   {
     dataType: DataLongitudeDegrees.type,
-    getSampleValue: sample => Number(sample.lon),
+    getSampleValue: sample => Number(sample.lon)
   },
   {
     dataType: DataAltitude.type,
-    getSampleValue: sample => sample.ele ? Number(sample.ele[0]) : null,
+    getSampleValue: sample => (sample.ele ? Number(sample.ele[0]) : null)
   },
   {
     dataType: DataHeartRate.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       // debugger;
       if (!sample.extensions || !sample.extensions.length) {
         return null;
@@ -34,15 +34,19 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
       if (sample.extensions[0].heartrate && isNumberOrString(sample.extensions[0].heartrate[0])) {
         return Number(sample.extensions[0].heartrate[0]);
       }
-      if (sample.extensions[0].TrackPointExtension && sample.extensions[0].TrackPointExtension[0] && sample.extensions[0].TrackPointExtension[0].hr) {
+      if (
+        sample.extensions[0].TrackPointExtension &&
+        sample.extensions[0].TrackPointExtension[0] &&
+        sample.extensions[0].TrackPointExtension[0].hr
+      ) {
         return Number(sample.extensions[0].TrackPointExtension[0].hr[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataCadence.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       // debugger;
       if (!sample.extensions || !sample.extensions.length) {
         return null;
@@ -50,15 +54,19 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
       if (sample.extensions[0].cadence && isNumberOrString(sample.extensions[0].cadence[0])) {
         return Number(sample.extensions[0].cadence[0]);
       }
-      if (sample.extensions[0].TrackPointExtension && sample.extensions[0].TrackPointExtension[0] && sample.extensions[0].TrackPointExtension[0].cad) {
+      if (
+        sample.extensions[0].TrackPointExtension &&
+        sample.extensions[0].TrackPointExtension[0] &&
+        sample.extensions[0].TrackPointExtension[0].cad
+      ) {
         return Number(sample.extensions[0].TrackPointExtension[0].cad[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataTemperature.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       // debugger;
       if (!sample.extensions || !sample.extensions.length) {
         return null;
@@ -66,15 +74,19 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
       if (sample.extensions[0].temp && isNumberOrString(sample.extensions[0].temp[0])) {
         return Number(sample.extensions[0].temp[0]);
       }
-      if (sample.extensions[0].TrackPointExtension && sample.extensions[0].TrackPointExtension[0] && sample.extensions[0].TrackPointExtension[0].atemp) {
+      if (
+        sample.extensions[0].TrackPointExtension &&
+        sample.extensions[0].TrackPointExtension[0] &&
+        sample.extensions[0].TrackPointExtension[0].atemp
+      ) {
         return Number(sample.extensions[0].TrackPointExtension[0].atemp[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataDistance.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -82,11 +94,11 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return Number(sample.extensions[0].distance[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataSeaLevelPressure.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -94,11 +106,11 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return Number(sample.extensions[0].seaLevelPressure[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataSpeed.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -106,11 +118,11 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return Number(sample.extensions[0].speed[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataVerticalSpeed.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -118,11 +130,11 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return Number(sample.extensions[0].verticalSpeed[0]);
       }
       return null;
-    },
+    }
   },
   {
     dataType: DataPower.type,
-    getSampleValue: (sample) => {
+    getSampleValue: sample => {
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -130,6 +142,6 @@ export const GPXSampleMapper: { dataType: string, getSampleValue(sample: any): n
         return Number(sample.extensions[0].power[0]);
       }
       return null;
-    },
-  },
+    }
+  }
 ];

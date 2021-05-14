@@ -4,6 +4,6 @@ export class DataVO2Max extends DataNumber {
   static type = 'VO2 Max';
 
   getDisplayValue(): string {
-    return this.getValue().toFixed(2)
+    return this.getValue().toFixed(2);
   }
 }

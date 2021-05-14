@@ -686,7 +686,7 @@ export class ActivityUtilities {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 3) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 3) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain

@@ -56,7 +56,7 @@ export class Stream implements StreamInterface {
     }, <StreamDataItem[]>[]);
   }
 
-  getStreamDataByDuration(offset: number = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
+  getStreamDataByDuration(offset = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.getData().reduce((accu, dataItem, index) => {
       if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
         return accu;

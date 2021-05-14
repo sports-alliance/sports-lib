@@ -49,7 +49,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private events: DataEvent[] = [];
 
-  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name: string = '') {
+  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name = '') {
     super(startDate, endDate);
     if (!startDate || !endDate) {
       throw new Error('Start and end dates are required');

@@ -158,7 +158,10 @@ import {
   DataGradeAdjustedSpeedAvgMetersPerMinute,
   DataGradeAdjustedSpeedAvgMilesPerHour
 } from '../../data/data.grade-adjusted-speed-avg';
-import { DataGradeAdjustedPaceAvg, DataGradeAdjustedPaceAvgMinutesPerMile } from '../../data/data.grade-adjusted-pace-avg';
+import {
+  DataGradeAdjustedPaceAvg,
+  DataGradeAdjustedPaceAvgMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-avg';
 import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
 import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
 import {
@@ -179,8 +182,14 @@ import {
   DataGradeAdjustedSpeedMinMetersPerMinute,
   DataGradeAdjustedSpeedMinMilesPerHour
 } from '../../data/data.grade-adjusted-speed-min';
-import { DataGradeAdjustedPaceMax, DataGradeAdjustedPaceMaxMinutesPerMile } from '../../data/data.grade-adjusted-pace-max';
-import { DataGradeAdjustedPaceMin, DataGradeAdjustedPaceMinMinutesPerMile } from '../../data/data.grade-adjusted-pace-min';
+import {
+  DataGradeAdjustedPaceMax,
+  DataGradeAdjustedPaceMaxMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-max';
+import {
+  DataGradeAdjustedPaceMin,
+  DataGradeAdjustedPaceMinMinutesPerMile
+} from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';

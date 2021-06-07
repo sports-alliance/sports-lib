@@ -1,9 +1,9 @@
 export function isNumberOrString(property: any) {
-  return (typeof property === 'number' || typeof property === 'string');
+  return typeof property === 'number' || typeof property === 'string';
 }
 
 export function isNumber(property: any) {
-  return (typeof property === 'number' && !isNaN(property));
+  return typeof property === 'number' && !isNaN(property);
 }
 
 /**
@@ -12,7 +12,7 @@ export function isNumber(property: any) {
  * @return {number}
  */
 export function convertSpeedToPace(number: number): number {
-  return number === 0 ? Infinity : (1000 / number);
+  return number === 0 ? Infinity : 1000 / number;
 }
 
 /**
@@ -20,7 +20,7 @@ export function convertSpeedToPace(number: number): number {
  * @param number
  */
 export function convertSpeedToSwimPace(number: number): number {
-  return number === 0 ? Infinity : (100 / number);
+  return number === 0 ? Infinity : 100 / number;
 }
 
 export function convertSpeedToSpeedInKilometersPerHour(number: number): number {
@@ -68,7 +68,7 @@ export function convertMetersToMiles(number: number): number {
  * @param number
  */
 export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
-  return number * 1.93613298
+  return number * 1.93613298;
 }
 
 export function getSize(obj: any): number {
@@ -82,7 +82,7 @@ export function getSizeFormated(obj: any): string {
 function getSizeWithOptionalFormat(obj: any, format = true): string | number {
   let size;
   try {
-    size = new Blob([obj]).size
+    size = new Blob([obj]).size;
   } catch (e) {
     size = Buffer.from(obj).length;
   }
@@ -108,22 +108,23 @@ function getSizeWithOptionalFormat(obj: any, format = true): string | number {
  * @param array
  */
 export function fillMissingValuesLinear(array: (number | null)[]): number[] {
-  let i = 0, j, delta;
+  let i = 0,
+    j,
+    delta;
   while (i < array.length) {
     if (array[i] !== null) {
       i++;
       continue;
     }
     j = i;
-    while (array[++j] === null) {
-    }
+    while (array[++j] === null) {}
     // @ts-ignore
     delta = (array[j] - array[i - 1]) / (j - i + 1);
     do {
       // @ts-ignore
       array[i] = delta + array[i - 1];
       i++;
-    } while (i < j)
+    } while (i < j);
   }
   return <number[]>array;
 }

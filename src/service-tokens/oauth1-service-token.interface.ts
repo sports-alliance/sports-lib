@@ -4,4 +4,3 @@ export interface Auth1ServiceTokenInterface {
   userID: string;
   dateCreated: number;
 }
-

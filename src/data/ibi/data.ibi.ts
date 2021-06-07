@@ -28,7 +28,7 @@ export class IBIData implements SerializableClassInterface {
         this.ibiDataMap.set(totalTime, ibiData);
       }
       return totalTime;
-    }, 0)
+    }, 0);
   }
 
   /**
@@ -37,7 +37,7 @@ export class IBIData implements SerializableClassInterface {
    * @param ibi
    */
   public setIBI(time: number, ibi: number) {
-    this.ibiDataMap.set(time, ibi)
+    this.ibiDataMap.set(time, ibi);
   }
 
   /**
@@ -55,7 +55,7 @@ export class IBIData implements SerializableClassInterface {
   public getAsBPM(): Map<number, number> {
     const hrDataMap = new Map();
     this.ibiDataMap.forEach((value, key, map) => {
-      hrDataMap.set(key, Math.round(60000 / value))
+      hrDataMap.set(key, Math.round(60000 / value));
     });
     return hrDataMap;
   }

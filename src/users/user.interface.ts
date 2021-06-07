@@ -8,7 +8,7 @@ export interface UserInterface extends PrivacyClassInterface, SerializableClassI
   acceptedDataPolicy: boolean;
   acceptedTrackingPolicy: boolean;
   acceptedDiagnosticsPolicy: boolean;
-  brandText?: string
+  brandText?: string;
   photoURL?: string;
   displayName?: string;
   description?: string;

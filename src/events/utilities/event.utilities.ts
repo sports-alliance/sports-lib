@@ -8,18 +8,26 @@ import { DataDescription } from '../../data/data.description';
 import { ActivityUtilities } from './activity.utilities';
 
 export class EventUtilities {
-
   public static mergeEvents(events: EventInterface[]): EventInterface {
     events.sort((eventA: EventInterface, eventB: EventInterface) => {
       return +eventA.getFirstActivity().startDate - +eventB.getFirstActivity().startDate;
     });
-    const activities = events.reduce((activitiesArray: ActivityInterface[], event) => {
-      activitiesArray.push(...event.getActivities());
-      return activitiesArray;
-    }, []).map((activity) => {
-      return activity.setID(null);
-    });
-    const event = new Event(`Merged at ${(new Date()).toISOString()}`, activities[0].startDate, activities[activities.length - 1].endDate, Privacy.Private, `A merge of 2 or more activities `, true);
+    const activities = events
+      .reduce((activitiesArray: ActivityInterface[], event) => {
+        activitiesArray.push(...event.getActivities());
+        return activitiesArray;
+      }, [])
+      .map(activity => {
+        return activity.setID(null);
+      });
+    const event = new Event(
+      `Merged at ${new Date().toISOString()}`,
+      activities[0].startDate,
+      activities[activities.length - 1].endDate,
+      Privacy.Private,
+      `A merge of 2 or more activities `,
+      true
+    );
     event.addActivities(activities);
     this.generateStatsForAll(event);
     return event;
@@ -43,11 +51,14 @@ export class EventUtilities {
 
     // If only one
     if (event.getActivities().length === 1) {
-      event.getFirstActivity().getStats().forEach(stat => {
-        event.addStat(stat);
-      });
+      event
+        .getFirstActivity()
+        .getStats()
+        .forEach(stat => {
+          event.addStat(stat);
+        });
       // Add the description
-      const description = event.getStat(DataDescription.type)
+      const description = event.getStat(DataDescription.type);
       if (description && description.getValue()) {
         event.description = <string>description.getValue();
       }
@@ -58,4 +69,3 @@ export class EventUtilities {
     ActivityUtilities.getSummaryStatsForActivities(event.getActivities()).forEach(stat => event.addStat(stat));
   }
 }
-

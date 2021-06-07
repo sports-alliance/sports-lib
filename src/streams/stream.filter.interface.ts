@@ -1,3 +1,3 @@
 export interface StreamFilterInterface {
-  filterData(data: (number|null)[]): (number|null)[]
+  filterData(data: (number | null)[]): (number | null)[];
 }

@@ -1,10 +1,11 @@
 import { DataNumber } from './data.number';
 import {
-  convertPaceToPaceInMinutesPerMile, convertSpeedToSpeedInKnots,
+  convertPaceToPaceInMinutesPerMile,
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
   convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
   convertSpeedToSwimPace,

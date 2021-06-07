@@ -1,7 +1,6 @@
 import { IDClass } from './id.abstract.class';
 
 describe('IDClass', () => {
-
   let idClass: IDClass;
 
   beforeEach(() => {
@@ -12,8 +11,6 @@ describe('IDClass', () => {
     idClass.setID('123');
     expect(idClass.getID()).toBe('123');
   });
-
 });
 
-export class IdClass extends IDClass {
-}
+export class IdClass extends IDClass {}

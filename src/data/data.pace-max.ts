@@ -7,5 +7,4 @@ export class DataPaceMax extends DataPace {
 export class DataPaceMaxMinutesPerMile extends DataPaceMinutesPerMile {
   static type = 'Maximum pace in minutes per mile';
   static displayType = DataPaceMax.type;
-
 }

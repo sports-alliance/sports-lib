@@ -12,7 +12,6 @@ import { StreamFilterInterface } from './stream.filter.interface';
  * null means no value and that means missing data.
  */
 export interface StreamInterface extends SerializableClassInterface {
-
   /**
    * Type of the string. Can be any of the datatypes stored in the dataStore.
    * @todo make this an 'enum'
@@ -54,7 +53,7 @@ export interface StreamInterface extends SerializableClassInterface {
    * @param onlyNumeric
    * @param filterInfinity
    */
-  getStreamDataByTime(startDate: Date, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[]
+  getStreamDataByTime(startDate: Date, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[];
 
   /**
    * Gets the data offset on a time
@@ -62,7 +61,7 @@ export interface StreamInterface extends SerializableClassInterface {
    * @param onlyNumeric
    * @param filterInfinity
    */
-  getStreamDataByDuration(offset?: number, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[]
+  getStreamDataByDuration(offset?: number, onlyNumeric?: boolean, filterInfinity?: boolean): StreamDataItem[];
 
   /**
    * Checks if the speed is exportable
@@ -81,7 +80,7 @@ export interface StreamDataItem {
    * The time of the value
    * Can be time as of date or just time in ms
    */
-  time: number,
+  time: number;
 
-  value: number | null
+  value: number | null;
 }

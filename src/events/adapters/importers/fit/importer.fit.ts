@@ -75,7 +75,6 @@ import { ActivityUtilities } from '../../../utilities/activity.utilities';
 const FitFileParser = require('fit-file-parser').default;
 
 export class EventImporterFIT {
-
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
@@ -84,7 +83,7 @@ export class EventImporterFIT {
         lengthUnit: 'm',
         temperatureUnit: 'celsius',
         elapsedRecordField: false,
-        mode: 'both',
+        mode: 'both'
       });
 
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
@@ -181,38 +180,50 @@ export class EventImporterFIT {
           }
 
           // Add the events
-          fitDataObject.events.filter((activityEvent: FITFileActivityEvent) => {
-            return activityEvent.event === 'timer' && (activityEvent.timestamp >= activity.startDate) && (activityEvent.timestamp <= activity.endDate)
-          }).forEach((activityEvent: FITFileActivityEvent) => {
-            switch (activityEvent.event_type) {
-              case 'start':
-                activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
-                break;
-              case 'stop':
-                activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
-                break;
-              case 'stop_all':
-                activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
-                break;
-              default:
-                break;
-            }
-          });
+          fitDataObject.events
+            .filter((activityEvent: FITFileActivityEvent) => {
+              return (
+                activityEvent.event === 'timer' &&
+                activityEvent.timestamp >= activity.startDate &&
+                activityEvent.timestamp <= activity.endDate
+              );
+            })
+            .forEach((activityEvent: FITFileActivityEvent) => {
+              switch (activityEvent.event_type) {
+                case 'start':
+                  activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
+                  break;
+                case 'stop':
+                  activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
+                  break;
+                case 'stop_all':
+                  activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
+                  break;
+                default:
+                  break;
+              }
+            });
 
           // Get the samples
           const samples = fitDataObject.records.filter((record: any) => {
-            return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate
+            return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
           });
 
-          FITSampleMapper.forEach((sampleMapping) => {
+          FITSampleMapper.forEach(sampleMapping => {
             // @todo not sure if we need to check for number only ...
-            const subjectSamples = <any[]>samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)));
+            const subjectSamples = <any[]>(
+              samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)))
+            );
             if (subjectSamples.length) {
               // When we create a stream here it has the length of the activity elapsed time (end-start) filled with nulls.
               // We keep nulls in order to preserve the array length.
               activity.addStream(activity.createStream(sampleMapping.dataType));
-              subjectSamples.forEach((subjectSample) => {
-                activity.addDataToStream(sampleMapping.dataType, (new Date(subjectSample.timestamp)), <number>sampleMapping.getSampleValue(subjectSample));
+              subjectSamples.forEach(subjectSample => {
+                activity.addDataToStream(
+                  sampleMapping.dataType,
+                  new Date(subjectSample.timestamp),
+                  <number>sampleMapping.getSampleValue(subjectSample)
+                );
               });
             }
           });
@@ -249,12 +260,11 @@ export class EventImporterFIT {
           });
         }
 
-
         // Parse the device infos
         if (fitDataObject.device_infos && fitDataObject.device_infos.length) {
-          activities.forEach((activity) => {
+          activities.forEach(activity => {
             activity.creator.devices = this.getDeviceInfos(fitDataObject.device_infos);
-          })
+          });
         }
 
         // Create an event
@@ -266,7 +276,6 @@ export class EventImporterFIT {
         // debugger;
         resolve(event);
       });
-
     });
   }
 
@@ -288,14 +297,17 @@ export class EventImporterFIT {
       device.sourceType = deviceInfo.source_type;
       device.cumOperatingTime = deviceInfo.cum_operating_time;
       return device;
-    })
+    });
   }
 
   private static getLapFromSessionLapObject(sessionLapObject: any, activity: ActivityInterface): LapInterface {
     const lap = new Lap(
-      sessionLapObject.start_time || sessionLapObject.records[0].timestamp || new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
-      sessionLapObject.timestamp || new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
-      LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown,
+      sessionLapObject.start_time ||
+        sessionLapObject.records[0].timestamp ||
+        new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
+      sessionLapObject.timestamp ||
+        new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
+      LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
     // Set the calories
     if (sessionLapObject.total_calories) {
@@ -307,22 +319,23 @@ export class EventImporterFIT {
   }
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
-
-    let startDate = sessionObject.start_time
+    let startDate = sessionObject.start_time;
     const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
     let endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
     if (
-      !totalElapsedTime // Elapsed time missing
-      && fitDataObject.sessions.length === 1 // Has only one session
-      && fitDataObject.records && fitDataObject.records.length // There are records to try to guess
+      !totalElapsedTime && // Elapsed time missing
+      fitDataObject.sessions.length === 1 && // Has only one session
+      fitDataObject.records &&
+      fitDataObject.records.length // There are records to try to guess
     ) {
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (endDate < startDate) { // If for some reason this happens
-      if (!fitDataObject.records || !fitDataObject.records[0]){
-        throw new Error('Cannot parse dates. Start date is greater than the end date')
+    } else if (endDate < startDate) {
+      // If for some reason this happens
+      if (!fitDataObject.records || !fitDataObject.records[0]) {
+        throw new Error('Cannot parse dates. Start date is greater than the end date');
       }
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
@@ -331,8 +344,12 @@ export class EventImporterFIT {
     }
 
     // Create an activity
-    const activity = new Activity(startDate, endDate, this.getActivityTypeFromSessionObject(sessionObject),
-      this.getCreatorFromFitDataObject(fitDataObject));
+    const activity = new Activity(
+      startDate,
+      endDate,
+      this.getActivityTypeFromSessionObject(sessionObject),
+      this.getCreatorFromFitDataObject(fitDataObject)
+    );
     // Set the activity stats
     this.getStatsFromObject(sessionObject, activity).forEach(stat => activity.addStat(stat));
     return activity;
@@ -340,7 +357,12 @@ export class EventImporterFIT {
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport && session.sub_sport !== 'generic') {
-      return ActivityTypes[<keyof typeof ActivityTypes>`${session.sport}_${session.sub_sport}`] || `${session.sport}_${session.sub_sport}` || session.sport || ActivityTypes.unknown;
+      return (
+        ActivityTypes[<keyof typeof ActivityTypes>`${session.sport}_${session.sub_sport}`] ||
+        `${session.sport}_${session.sub_sport}` ||
+        session.sport ||
+        ActivityTypes.unknown
+      );
     }
     return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || session.sport || ActivityTypes.unknown;
   }
@@ -351,11 +373,10 @@ export class EventImporterFIT {
     // @todo can also check the events ;-)
     let totalTimerTime = 0;
     if (isNumber(object.total_timer_time) && isNumber(object.total_elapsed_time)) {
-      totalTimerTime = object.total_elapsed_time < object.total_timer_time ?
-        object.total_elapsed_time
-        : object.total_timer_time;
+      totalTimerTime =
+        object.total_elapsed_time < object.total_timer_time ? object.total_elapsed_time : object.total_timer_time;
     } else if (isNumber(object.total_timer_time)) {
-      totalTimerTime = object.total_elapsed_time
+      totalTimerTime = object.total_elapsed_time;
     } else if ((object.timestamp - object.start_time) / 1000) {
       totalTimerTime = (object.timestamp - object.start_time) / 1000;
     }
@@ -368,9 +389,10 @@ export class EventImporterFIT {
     stats.push(new DataDuration(totalTimerTime));
     // Set the pause which is elapsed time - moving time (timer_time)
     // There is although an exception for Zwift devices that have these fields vise versa
-    const pause = (object.total_elapsed_time > totalTimerTime ?
-      object.total_elapsed_time - totalTimerTime :
-      totalTimerTime - object.total_elapsed_time) || 0;
+    const pause =
+      (object.total_elapsed_time > totalTimerTime
+        ? object.total_elapsed_time - totalTimerTime
+        : totalTimerTime - object.total_elapsed_time) || 0;
     stats.push(new DataPause(pause));
 
     if (isNumberOrString(object.total_distance)) {
@@ -487,7 +509,11 @@ export class EventImporterFIT {
     let creator: CreatorInterface;
     switch (fitDataObject.file_ids[0].manufacturer) {
       case 'suunto': {
-        creator = new Creator(ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Suunto Unknown');
+        creator = new Creator(
+          ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_ids[0].product] ||
+            fitDataObject.file_ids[0].product_name ||
+            'Suunto Unknown'
+        );
         break;
       }
       case 'coros': {
@@ -495,15 +521,28 @@ export class EventImporterFIT {
         break;
       }
       case 'garmin': {
-        creator = new Creator(ImporterFitGarminDeviceNames[fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Garmin Unknown');
+        creator = new Creator(
+          ImporterFitGarminDeviceNames[fitDataObject.file_ids[0].product] ||
+            fitDataObject.file_ids[0].product_name ||
+            'Garmin Unknown'
+        );
         break;
       }
       case 'zwift': {
-        creator = new Creator(ImporterZwiftDeviceNames[fitDataObject.file_ids[0].product] || fitDataObject.file_ids[0].product_name || 'Zwift Unknown');
+        creator = new Creator(
+          ImporterZwiftDeviceNames[fitDataObject.file_ids[0].product] ||
+            fitDataObject.file_ids[0].product_name ||
+            'Zwift Unknown'
+        );
         break;
       }
       case 'stryd': {
-        creator = new Creator('Stryd', fitDataObject.file_creator.software_version, fitDataObject.file_creator.hardware_version, fitDataObject.file_ids[0].serial_number);
+        creator = new Creator(
+          'Stryd',
+          fitDataObject.file_creator.software_version,
+          fitDataObject.file_creator.hardware_version,
+          fitDataObject.file_ids[0].serial_number
+        );
         break;
       }
       case 'development': {
@@ -512,8 +551,12 @@ export class EventImporterFIT {
       }
       default: {
         creator = new Creator(
-          fitDataObject.file_ids[0].manufacturer ? fitDataObject.file_ids[0].manufacturer + ' ' + (fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown') : fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown',
-        )
+          fitDataObject.file_ids[0].manufacturer
+            ? fitDataObject.file_ids[0].manufacturer +
+              ' ' +
+              (fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown')
+            : fitDataObject.file_ids[0].product_name || fitDataObject.file_ids[0].product || 'Unknown'
+        );
       }
     }
 
@@ -524,7 +567,7 @@ export class EventImporterFIT {
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.software_version)) {
       creator.swInfo = String(fitDataObject.file_creator.software_version);
     } else if (fitDataObject.device_info && isNumberOrString(fitDataObject.device_info.software_version)) {
-      creator.swInfo = String(fitDataObject.device_info.software_version)
+      creator.swInfo = String(fitDataObject.device_info.software_version);
     }
     if (fitDataObject.file_ids[0] && isNumberOrString(fitDataObject.file_ids[0].serial_number)) {
       creator.serialNumber = fitDataObject.file_ids[0].serial_number;
@@ -534,8 +577,8 @@ export class EventImporterFIT {
 }
 
 export interface FITFileActivityEvent {
-  event: string,
-  timestamp: Date,
-  event_type: 'start' | 'stop' | 'stop_all',
-  data: number
+  event: string;
+  timestamp: Date;
+  event_type: 'start' | 'stop' | 'stop_all';
+  data: number;
 }

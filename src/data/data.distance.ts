@@ -1,7 +1,6 @@
 import { DataNumber } from './data.number';
 
 export class DataDistance extends DataNumber {
-
   static type = 'Distance';
   static unit = 'm';
 

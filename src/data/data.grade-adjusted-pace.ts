@@ -10,7 +10,7 @@ export class DataGradeAdjustedPace extends DataPace {
       case DataGradeAdjustedPaceMinutesPerMile.type:
         return convertPaceToPaceInMinutesPerMile(this.value);
       default:
-        return super.getValue(formatForDataType)
+        return super.getValue(formatForDataType);
     }
   }
 }

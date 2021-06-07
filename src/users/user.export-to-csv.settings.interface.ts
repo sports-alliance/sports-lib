@@ -1,5 +1,3 @@
 export interface UserExportToCsvSettingsInterface {
-  [type: string]: boolean
+  [type: string]: boolean;
 }
-
-

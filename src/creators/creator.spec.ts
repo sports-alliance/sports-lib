@@ -2,7 +2,6 @@ import { CreatorInterface } from './creator.interface';
 import { Creator } from './creator';
 
 describe('Creator', () => {
-
   let creator: CreatorInterface;
 
   beforeEach(() => {
@@ -18,8 +17,7 @@ describe('Creator', () => {
       serialNumber: 'SerialNumber',
       swInfo: 'SWInfo',
       hwInfo: 'HWInfo',
-      devices: [],
+      devices: []
     });
-
   });
 });

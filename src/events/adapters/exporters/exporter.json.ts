@@ -20,6 +20,6 @@ export class EventExporterJSON implements EventExporter {
         return activities;
       }, []);
       resolve(JSON.stringify(jsonEvent));
-    })
+    });
   }
 }

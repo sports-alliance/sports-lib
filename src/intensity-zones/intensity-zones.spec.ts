@@ -1,7 +1,6 @@
 import { IntensityZones } from './intensity-zones';
 
 describe('Zone', () => {
-
   let zones: IntensityZones;
 
   beforeEach(() => {
@@ -19,17 +18,16 @@ describe('Zone', () => {
     zones.zone5LowerLimit = 7;
     zones.zone5Duration = 8;
     expect(zones.toJSON()).toEqual({
-      'type': 'test',
-      'zone1Duration': 0,
-      'zone2Duration': 2,
-      'zone2LowerLimit': 1,
-      'zone3Duration': 4,
-      'zone3LowerLimit': 3,
-      'zone4Duration': 6,
-      'zone4LowerLimit': 5,
-      'zone5Duration': 8,
-      'zone5LowerLimit': 7
+      type: 'test',
+      zone1Duration: 0,
+      zone2Duration: 2,
+      zone2LowerLimit: 1,
+      zone3Duration: 4,
+      zone3LowerLimit: 3,
+      zone4Duration: 6,
+      zone4LowerLimit: 5,
+      zone5Duration: 8,
+      zone5LowerLimit: 7
     });
   });
-
 });

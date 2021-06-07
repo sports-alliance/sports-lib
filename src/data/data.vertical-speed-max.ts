@@ -1,7 +1,12 @@
 import {
-  DataVerticalSpeed, DataVerticalSpeedFeetPerHour, DataVerticalSpeedFeetPerMinute,
-  DataVerticalSpeedFeetPerSecond, DataVerticalSpeedKilometerPerHour, DataVerticalSpeedMetersPerHour,
-  DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
+  DataVerticalSpeed,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
 
 export class DataVerticalSpeedMax extends DataVerticalSpeed {

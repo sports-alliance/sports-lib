@@ -7,7 +7,7 @@ export class Stream implements StreamInterface {
   public readonly type: string;
   protected data: (number | null)[] = [];
 
-  protected filter: StreamFilterInterface|null = null;
+  protected filter: StreamFilterInterface | null = null;
 
   constructor(type: string, data?: (number | null)[]) {
     this.type = type;
@@ -35,7 +35,7 @@ export class Stream implements StreamInterface {
     if (!onlyNumeric && !filterInfinity) {
       return data;
     }
-    return <number[]>data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity))
+    return <number[]>data.filter(dataItem => !this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity));
   }
 
   setData(data: (number | null)[]): this {
@@ -46,44 +46,46 @@ export class Stream implements StreamInterface {
   getStreamDataByTime(startDate: Date, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.getData().reduce((accu, dataItem, index) => {
       if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
-        return accu
+        return accu;
       }
       accu.push({
         time: startDate.getTime() + index * 1000,
-        value: dataItem,
+        value: dataItem
       });
       return accu;
-    }, <StreamDataItem[]>[])
+    }, <StreamDataItem[]>[]);
   }
 
-  getStreamDataByDuration(offset: number = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
+  getStreamDataByDuration(offset = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
     return this.getData().reduce((accu, dataItem, index) => {
       if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
-        return accu
+        return accu;
       }
       accu.push({
         time: index * 1000 + (offset || 0),
-        value: dataItem,
+        value: dataItem
       });
       return accu;
-    }, <StreamDataItem[]>[])
+    }, <StreamDataItem[]>[]);
   }
 
   isExportable(): boolean {
-    return !DynamicDataLoader.isUnitDerivedDataType(this.type)
-      && !DynamicDataLoader.isSpeedDerivedDataType(this.type)
-      && !DynamicDataLoader.isBlackListedStream(this.type);
+    return (
+      !DynamicDataLoader.isUnitDerivedDataType(this.type) &&
+      !DynamicDataLoader.isSpeedDerivedDataType(this.type) &&
+      !DynamicDataLoader.isBlackListedStream(this.type)
+    );
   }
 
   toJSON(): StreamJSONInterface {
     return {
       type: this.type,
-      data: this.data, // Exporting does/ should not use a filter
+      data: this.data // Exporting does/ should not use a filter
     };
   }
 
   private shouldDataBeFiltered(data: any, onlyNumeric: boolean, filterInfinity: boolean): boolean {
-    return (onlyNumeric && !isNumber(data)) || (filterInfinity && (data === Infinity || data === -Infinity))
+    return (onlyNumeric && !isNumber(data)) || (filterInfinity && (data === Infinity || data === -Infinity));
   }
 }
 

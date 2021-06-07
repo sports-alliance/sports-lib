@@ -39,7 +39,7 @@ export class Device implements DeviceInterface {
       antTransmissionType: this.antTransmissionType || null,
       antNetwork: this.antNetwork || null,
       sourceType: this.sourceType || null,
-      cumOperatingTime: this.cumOperatingTime || null,
+      cumOperatingTime: this.cumOperatingTime || null
     };
   }
 }

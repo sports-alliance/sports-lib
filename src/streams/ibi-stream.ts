@@ -5,7 +5,7 @@ export class IBIStream extends Stream {
   constructor(data?: number[]) {
     super('IBI');
     if (data) {
-      this.data = data
+      this.data = data;
     }
   }
 
@@ -14,14 +14,14 @@ export class IBIStream extends Stream {
     return this.data.reduce((accu, dataItem, index) => {
       time += <number>dataItem;
       if (filterNull && dataItem === null) {
-        return accu
+        return accu;
       }
       accu.push({
         time: startDate.getTime() + time,
-        value: dataItem,
+        value: dataItem
       });
       return accu;
-    }, <StreamDataItem[]>[])
+    }, <StreamDataItem[]>[]);
   }
 
   //
@@ -35,13 +35,13 @@ export class IBIStream extends Stream {
     return data.reduce((accu, dataItem, index) => {
       time += <number>dataItem;
       if (filterNull && dataItem === null) {
-        return accu
+        return accu;
       }
       accu.push({
         time: time,
-        value: dataItem,
+        value: dataItem
       });
       return accu;
-    }, <StreamDataItem[]>[])
+    }, <StreamDataItem[]>[]);
   }
 }

@@ -21,5 +21,5 @@ export const ImporterFitAntPlusDeviceNames: { [index: number]: string } = {
   301005: 'G. Cadence 1',
   22480: 'G. Cadence 2 | Cycplus C2 ',
   35363: 'G. SDM4 footpod',
-  57114: 'G. remote',
+  57114: 'G. remote'
 };

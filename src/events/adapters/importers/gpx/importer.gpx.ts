@@ -19,7 +19,7 @@ import { DataDistance } from '../../../../data/data.distance';
 import { DataPaceAvg } from '../../../../data/data.pace-avg';
 
 export class EventImporterGPX {
-  static getFromString(gpx: string, domParser?: Function, name = 'New Event'): Promise<EventInterface> {
+  static getFromString(gpx: string, domParser?: any, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);

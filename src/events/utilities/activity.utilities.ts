@@ -772,15 +772,11 @@ export class ActivityUtilities {
   }
 
   public static getMax(data: number[]): number {
-    return data.reduce(function(previousValue, currentValue) {
-      return Math.max(previousValue, currentValue);
-    }, -Infinity);
+    return data.reduce((previousValue, currentValue) => Math.max(previousValue, currentValue), -Infinity);
   }
 
   public static getMin(data: number[]): number {
-    return data.reduce(function(previousValue, currentValue) {
-      return Math.min(previousValue, currentValue);
-    }, Infinity);
+    return data.reduce((previousValue, currentValue) => Math.min(previousValue, currentValue), Infinity);
   }
 
   public static calculateTotalDistanceForActivity(
@@ -1210,8 +1206,8 @@ export class ActivityUtilities {
       activity.addStat(
         new DataGNSSDistance(
           activity.getSquashedStreamData(DataGNSSDistance.type)[
-          activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
-            ]
+            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+          ]
         )
       );
     }
@@ -1409,16 +1405,32 @@ export class ActivityUtilities {
     // GAP
     const gradeAdjustedSpeedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
     if (gradeAdjustedSpeedMax && !activity.getStat(DataGradeAdjustedPaceMax.type)) {
-      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(<number>gradeAdjustedSpeedMax.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedMax>gradeAdjustedSpeedMax).getValue() < (<DataSpeedMax>speedMax).getValue()
+          ? (<DataSpeedMax>speedMax).getValue()
+          : (<DataGradeAdjustedSpeedMax>gradeAdjustedSpeedMax).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(targetAdjustedSpeed)));
     }
     const gradeAdjustedSpeedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
     if (gradeAdjustedSpeedMin && !activity.getStat(DataGradeAdjustedPaceMin.type)) {
-      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(<number>gradeAdjustedSpeedMin.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedMin>gradeAdjustedSpeedMin).getValue() < (<DataSpeedMin>speedMin).getValue()
+          ? (<DataSpeedMin>speedMin).getValue()
+          : (<DataGradeAdjustedSpeedMin>gradeAdjustedSpeedMin).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(targetAdjustedSpeed)));
     }
     const gradeAdjustedSpeedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
     if (gradeAdjustedSpeedAvg && !activity.getStat(DataGradeAdjustedPaceAvg.type)) {
-      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(<number>gradeAdjustedSpeedAvg.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedAvg>gradeAdjustedSpeedAvg).getValue() < (<DataSpeedAvg>speedAvg).getValue()
+          ? (<DataSpeedAvg>speedAvg).getValue()
+          : (<DataGradeAdjustedSpeedAvg>gradeAdjustedSpeedAvg).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(targetAdjustedSpeed)));
     }
+
     // Swim Pace
     if (speedMax && !activity.getStat(DataSwimPaceMax.type)) {
       activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(<number>speedMax.getValue())));

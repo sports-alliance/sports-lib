@@ -128,6 +128,13 @@ export interface ActivityInterface
   removeStream(streamType: string | StreamInterface): this;
 
   /**
+   * Replace stream data by another
+   * @param streamType
+   * @param data
+   */
+  replaceStreamData(streamType: string, data: (number | null)[]): this;
+
+  /**
    * Gets all available streams
    */
   getAllStreams(): StreamInterface[];

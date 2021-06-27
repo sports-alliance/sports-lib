@@ -93,6 +93,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
+  replaceStreamData(streamType: string, data: (number | null)[]): this {
+    this.removeStream(streamType);
+    this.addStream(this.createStream(streamType).setData(data));
+    return this;
+  }
+
   addStreams(streams: StreamInterface[]): this {
     this.streams.push(...streams);
     return this;

@@ -1,8 +1,6 @@
 import { isNumber } from '../helpers';
 import { LowPassFilter } from './low-pass-filter';
 
-const KalmanFilter = require('kalmanjs');
-
 export const CLAMP = 40;
 export const LOOK_AHEAD_IN_SECONDS = 2;
 export const LOOK_AHEAD_IN_METERS = 15;
@@ -36,25 +34,16 @@ export class GradeCalculator {
   public static computeGradeStream(
     distanceStream: (number | null)[],
     altitudeStream: (number | null)[],
-    filterAltitude = true,
     filterGrade = true,
     basedOnAltitude = false,
     lookAhead = true,
     lookAheadInTime = false
   ): (number | null)[] {
-    // First filter the altitude to remove any noise and predict
-    if (filterAltitude) {
-      const kf = new KalmanFilter();
-      altitudeStream = altitudeStream.map(v => (v === null ? null : kf.filter(v)));
-    }
-
     let gradeStream = basedOnAltitude
       ? this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead, lookAheadInTime)
       : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead, lookAheadInTime);
 
     if (filterGrade) {
-      const kf = new KalmanFilter();
-      gradeStream = gradeStream.map(v => (v === null ? null : kf.filter(v)));
       gradeStream = new LowPassFilter(0.5).smoothArray(gradeStream);
     }
     return gradeStream.map(v => (v === null ? null : Math.round(v * 10) / 10));

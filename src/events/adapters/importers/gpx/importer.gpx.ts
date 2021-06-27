@@ -98,7 +98,7 @@ export class EventImporterGPX {
         });
 
         // Force creation of missing streams earlier to compute moving time from speed stream
-        ActivityUtilities.generateMissingStreamsForActivity(activity);
+        ActivityUtilities.generateMissingStreams(activity);
 
         // Compute moving time, timer time and elapsed time
         let movingTime = 0;

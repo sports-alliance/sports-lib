@@ -108,7 +108,9 @@ import {
   convertSpeedToSwimPace,
   convertSwimPaceToSwimPacePer100Yard,
   isNumber,
-  isNumberOrString
+  isNumberOrString,
+  meanWindowSmoothing,
+  medianSelfFilter
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
@@ -420,12 +422,18 @@ export class ActivityUtilities {
     return Math.ceil((+endDate - +startDate) / 1000) + 1;
   }
 
-  public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
-    this.generateMissingStreamsForActivity(activity);
-    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
+  public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
+    this.generateMissingStreams(activity);
     this.generateMissingStatsForActivity(activity);
     this.generateMissingSpeedDerivedStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
+  }
+
+  public static generateMissingStreams(activity: ActivityInterface): void {
+    // Smooth primitive streams which have to be smoothed before generating other missing stream
+    this.smoothPrimitivesStreams(activity);
+    this.generateMissingStreamsForActivity(activity);
+    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
   }
 
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
@@ -1061,6 +1069,53 @@ export class ActivityUtilities {
         }, [])
       );
       activity.addStream(leftPowerStream);
+    }
+    return activity;
+  }
+
+  /**
+   * Provides squashed stream data as callback for manipulation and rebuild the stream on duration including missing values
+   * @param streamType
+   * @param activity
+   * @param shapeStreamData
+   */
+  public static shapeStream(
+    streamType: string,
+    activity: ActivityInterface,
+    shapeStreamData: (squashedStreamData: number[]) => number[]
+  ): void {
+    let streamDataByDuration = activity.getStreamDataByDuration(streamType, true, true);
+
+    // Shape data along function param
+    const streamData = shapeStreamData(streamDataByDuration.map(item => item.value) as number[]);
+
+    // Update streamDataByDuration with shaped data
+    streamDataByDuration = streamDataByDuration.map((item: StreamDataItem, index: number) => {
+      item.value = streamData[index];
+      return item;
+    });
+
+    // Rebuild/replace stream with new shaped value
+    activity.removeStream(streamType);
+    activity.addStream(activity.createStream(streamType));
+
+    const activityStartTime = activity.startDate.getTime();
+    streamDataByDuration.forEach(item => {
+      activity.addDataToStream(DataAltitude.type, new Date(activityStartTime + item.time), item.value as number);
+    });
+  }
+
+  /**
+   * Smooth primitive stream which need to be
+   * @param activity
+   */
+  public static smoothPrimitivesStreams(activity: ActivityInterface): ActivityInterface {
+    if (activity.hasStreamData(DataAltitude.type)) {
+      this.shapeStream(DataAltitude.type, activity, squashedAltData => {
+        squashedAltData = medianSelfFilter(squashedAltData); // Remove unexpected spikes
+        squashedAltData = meanWindowSmoothing(squashedAltData); // Global smoothing
+        return squashedAltData;
+      });
     }
     return activity;
   }

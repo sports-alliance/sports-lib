@@ -130,7 +130,7 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
   return <number[]>array;
 }
 
-export const meanWindowSmoothing = (array: number[], windowSize: number, roundDecimals = 3): number[] => {
+export const meanWindowSmoothing = (array: number[], windowSize = 5, roundDecimals = 3): number[] => {
   const roundDecimalsFactor = 10 ** roundDecimals;
   return array.map((value: number, index: number) => {
     const window = array.slice(index, index + windowSize); // Get window
@@ -176,7 +176,12 @@ export const medianFilter = (array: number[], window = 3) => {
   return f;
 };
 
-export const medianSelfFilter = (array: number[], windowPercentage = 1) => {
+/**
+ * Apply median filter using a window size of % of arrqy size
+ * @param array
+ * @param windowPercentage
+ */
+export const medianSelfFilter = (array: number[], windowPercentage = 0.4) => {
   let window = Math.floor((array.length * windowPercentage) / 100);
   // Ensure window is odd
   window = window % 2 === 0 ? window + 1 : window;

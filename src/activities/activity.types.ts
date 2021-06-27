@@ -1033,7 +1033,7 @@ export class ActivityTypesMoving {
    * Holds moving speed threshold in m/s per sport group
    */
   private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypes, number>([
-    [ActivityTypes.Running, 2 / 3.6], // m/s
+    [ActivityTypes.Running, 1 / 3.6], // m/s
     [ActivityTypes.Cycling, 7 / 3.6] // m/s
   ]);
 

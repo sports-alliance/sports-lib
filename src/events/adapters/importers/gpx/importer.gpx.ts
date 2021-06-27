@@ -2,7 +2,13 @@ import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
 import { Event } from '../../../event';
-import { ActivityTypes, ActivityTypesMoving, StravaGPXTypes } from '../../../../activities/activity.types';
+import {
+  ActivityTypeGroups,
+  ActivityTypes,
+  ActivityTypesHelper,
+  ActivityTypesMoving,
+  StravaGPXTypes
+} from '../../../../activities/activity.types';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { GPXSampleMapper } from './importer.gpx.mapper';
 import { convertSpeedToPace, isNumberOrString } from '../../../utilities/helpers';
@@ -120,7 +126,11 @@ export class EventImporterGPX {
         activity.addStat(new DataMovingTime(movingTime));
 
         // Now calculating avg speed/pace from moving time => This is how garmin & strava compute them from GPX file.
-        if (activity.hasStreamData(DataDistance.type)) {
+        // Only if not a Running activity: we need to compute pace independently for running (regarding grade adjusted speed)
+        if (
+          ActivityTypesHelper.getActivityGroupForActivityType(activityType) !== ActivityTypeGroups.Running &&
+          activity.hasStreamData(DataDistance.type)
+        ) {
           const distanceStream = activity.getSquashedStreamData(DataDistance.type);
           const distance = distanceStream[distanceStream.length - 1];
           if (distance > 0 && movingTime > 0) {

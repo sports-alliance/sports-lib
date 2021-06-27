@@ -387,6 +387,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '10:28', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '09:06',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -434,7 +439,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '01:19:30');
+          SpecUtils.assertNearEqualTime(movingTime, '01:20:03');
           SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:23:09');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -468,6 +473,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:35', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '05:34',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -507,6 +517,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '19:20', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '07:20',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -544,13 +559,18 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:49', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '06:20',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue(); // TODO If moving time unknown orINVALID loop on all records in activity utils
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '05:28:14');
+          SpecUtils.assertNearEqualTime(movingTime, '05:31:26');
           SpecUtils.assertNearEqualTime(timerTime, '05:40:19');
           SpecUtils.assertNearEqualTime(elapsedTime, '05:40:19');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -587,7 +607,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '18:29');
+          SpecUtils.assertNearEqualTime(movingTime, '19:33');
           SpecUtils.assertNearEqualTime(timerTime, '21:04');
           SpecUtils.assertNearEqualTime(elapsedTime, '21:04');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -745,13 +765,18 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:12', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '06:27',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '58:59', 3);
+          SpecUtils.assertNearEqualTime(movingTime, '01:02:32', 3);
           SpecUtils.assertNearEqualTime(timerTime, '01:07:47');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:07:47');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -788,13 +813,18 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           );
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:38');
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '05:13',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '01:19:31');
+          SpecUtils.assertNearEqualTime(movingTime, '01:20:04');
           SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:23:09');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -905,14 +935,19 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
           );
 
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '10:11', 1);
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:18', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '09:18',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '44:48');
+          SpecUtils.assertNearEqualTime(movingTime, '45:41');
           SpecUtils.assertNearEqualTime(timerTime, '47:00');
           SpecUtils.assertNearEqualTime(elapsedTime, '47:04');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -942,7 +977,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
           );
 
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:21', 1);
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:53', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
             '05:15',
@@ -954,7 +989,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '01:16:34');
+          SpecUtils.assertNearEqualTime(movingTime, '01:18:08');
           SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:23:09');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -986,14 +1021,19 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
           );
 
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:57', 1);
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:27', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '06:21',
+            1
+          );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '31:56');
+          SpecUtils.assertNearEqualTime(movingTime, '32:38');
           SpecUtils.assertNearEqualTime(timerTime, '32:38');
           SpecUtils.assertNearEqualTime(elapsedTime, '32:38');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
@@ -1050,11 +1090,17 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(16772, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(86);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(123);
+
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:48', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '04:13',
+            1
+          );
+
           expect((activity.getStat(DataPaceAvg.type) as DataNumber).getValue()).toBeGreaterThanOrEqual(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
           );
-
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '03:50', 1);
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -1064,6 +1110,49 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(movingTime, '01:04:19');
           SpecUtils.assertNearEqualTime(timerTime, '01:22:50');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:22:50');
+          SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+
+          done();
+        });
+      });
+
+      it('should parse running GPX file (6)', done => {
+        // Given https://www.strava.com/activities/3632493456 or https://connect.garmin.com/modern/activity/6037744996
+        const path = __dirname + '/fixtures/runs/gpx/6037744996.gpx';
+        const gpxString = fs.readFileSync(path).toString();
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromGPX(gpxString, xmldom.DOMParser);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.type).toEqual(ActivityTypes.run);
+          expect(activity.hasPowerMeter()).toEqual(false);
+          expect(activity.isTrainer()).toEqual(false);
+
+          expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(5113, 0);
+          expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(68);
+          expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(124);
+          expect((activity.getStat(DataPaceAvg.type) as DataNumber).getValue()).toBeGreaterThanOrEqual(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
+          );
+
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '13:10', 1);
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '08:43',
+            1
+          );
+
+          const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+          const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+          const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
+          const elapsedTime = activity.getDuration().getValue();
+
+          SpecUtils.assertNearEqualTime(movingTime, '35:39');
+          SpecUtils.assertNearEqualTime(timerTime, '01:07:19');
+          SpecUtils.assertNearEqualTime(elapsedTime, '01:07:19');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();

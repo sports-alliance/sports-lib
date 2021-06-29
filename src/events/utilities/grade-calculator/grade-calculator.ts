@@ -1,4 +1,4 @@
-import { isNumber } from '../helpers';
+import { isNumber, medianFilter } from '../helpers';
 import { LowPassFilter } from './low-pass-filter';
 
 export const CLAMP = 40;
@@ -44,7 +44,8 @@ export class GradeCalculator {
       : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead, lookAheadInTime);
 
     if (filterGrade) {
-      gradeStream = new LowPassFilter(0.5).smoothArray(gradeStream);
+      gradeStream = medianFilter(gradeStream as number[]); // Remove spikes (Safe use as number[] since altitude+distance stream "repaired")
+      gradeStream = new LowPassFilter(0.3).smoothArray(gradeStream); // Global smoothing
     }
     return gradeStream.map(v => (v === null ? null : Math.round(v * 10) / 10));
   }

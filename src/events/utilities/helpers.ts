@@ -130,7 +130,7 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
   return <number[]>array;
 }
 
-export const meanWindowSmoothing = (array: number[], windowSize = 5, roundDecimals = 3): number[] => {
+export const meanWindowSmoothing = (array: number[], windowSize = 7, roundDecimals = 3): number[] => {
   const roundDecimalsFactor = 10 ** roundDecimals;
   return array.map((value: number, index: number) => {
     const window = array.slice(index, index + windowSize); // Get window
@@ -151,7 +151,7 @@ const median = (inputArray: number[]): number => {
  * @param array to be filtered
  * @param window Window size (should be odd number)
  */
-export const medianFilter = (array: number[], window = 3) => {
+export const medianFilter = (array: number[], window = 11) => {
   if (window % 2 === 0) {
     throw new Error('Window size should be an odd number');
   }

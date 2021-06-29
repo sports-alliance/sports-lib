@@ -69,7 +69,7 @@ export class LowPassFilter {
       }
       const currentValue = <number>values[i];
       value += (currentValue - value) * this._smoothing;
-      values[i] = Math.round(value * 10) / 10;
+      values[i] = Math.round(value * 100) / 100;
     }
     return values;
   }

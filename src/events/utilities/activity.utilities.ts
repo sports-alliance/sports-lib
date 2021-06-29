@@ -109,8 +109,7 @@ import {
   convertSwimPaceToSwimPacePer100Yard,
   isNumber,
   isNumberOrString,
-  meanWindowSmoothing,
-  medianSelfFilter
+  medianFilter
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
@@ -204,6 +203,7 @@ import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataNumber } from '../../data/data.number';
+import { LowPassFilter } from './grade-calculator/low-pass-filter';
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
@@ -430,7 +430,7 @@ export class ActivityUtilities {
   }
 
   public static generateMissingStreams(activity: ActivityInterface): void {
-    // Smooth primitive streams which have to be smoothed before generating other missing stream
+    // Smooth primitive streams which have to be smoothed before generating other missing stream and stats
     this.smoothPrimitivesStreams(activity);
     this.generateMissingStreamsForActivity(activity);
     activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
@@ -1112,8 +1112,8 @@ export class ActivityUtilities {
   public static smoothPrimitivesStreams(activity: ActivityInterface): ActivityInterface {
     if (activity.hasStreamData(DataAltitude.type)) {
       this.shapeStream(DataAltitude.type, activity, squashedAltData => {
-        squashedAltData = medianSelfFilter(squashedAltData); // Remove unexpected spikes
-        squashedAltData = meanWindowSmoothing(squashedAltData); // Global smoothing
+        squashedAltData = medianFilter(squashedAltData); // Remove unexpected spikes
+        squashedAltData = new LowPassFilter(0.3).smoothArray(squashedAltData) as number[]; // Global smoothing
         return squashedAltData;
       });
     }

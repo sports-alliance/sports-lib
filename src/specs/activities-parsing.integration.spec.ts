@@ -295,9 +295,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.000Z');
 
           expect((swimActivity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(3869, 0);
-          expect((swimActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(36);
+          expect((swimActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(37);
           expect((swimActivity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(39);
-          expect((swimActivity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(74);
+          expect((swimActivity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(73);
           expect((swimActivity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(115);
 
           SpecUtils.assertNearEqualTime(
@@ -389,7 +389,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '10:28', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '09:06',
+            '09:15',
             1
           );
 
@@ -644,7 +644,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:31', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '04:21',
+            '04:24',
             1
           );
 
@@ -753,7 +753,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
 
-          SpecUtils.assertEqual((event.getFirstActivity().getStat(DataDescent.type) as DataNumber).getValue(), 400);
+          SpecUtils.assertEqual((event.getFirstActivity().getStat(DataDescent.type) as DataNumber).getValue(), 373);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(6106.6);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(69);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(99);
@@ -766,7 +766,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:12', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '06:34',
+            '08:48',
             1
           );
 
@@ -799,8 +799,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.type).toEqual(ActivityTypes.run);
           expect(activity.creator.name).toEqual('Forerunner 945');
 
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 350);
-          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 367);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 343);
+          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 369);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(14004.85);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(982);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(80);
@@ -845,7 +845,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
 
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 76);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 73);
           SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 67);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(13973.09);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(739);
@@ -926,8 +926,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(4400, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(34.4, 1);
-          expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(67);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(34, 1);
+          expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(68);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(88);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(134);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(178);
@@ -969,7 +969,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(14170, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(342, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(341, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(82);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(111);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(137);
@@ -1014,10 +1014,10 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.isTrainer()).toEqual(false);
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(4593, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(31, 0);
-          expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(79);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(25, 0);
+          expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(80);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(96);
-          expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(146);
+          expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(147);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(176);
           expect((activity.getStat(DataPaceAvg.type) as DataNumber).getValue()).toBeGreaterThanOrEqual(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue()
@@ -1026,7 +1026,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:27', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '06:21',
+            '06:27',
             1
           );
 
@@ -1057,7 +1057,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           // expect(activity.type).toEqual(ActivityTypes.run); // TODO To be auto-detected by sports-data-science library (work in progress)
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(40878.5, 1);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(2217, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(2127, 0);
           // expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(2137, 0); // TODO Must be fixed
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '07:07', 1);
 
@@ -1091,14 +1091,14 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.isTrainer()).toEqual(false);
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(16772, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(541, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(547, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(86);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(123);
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:48', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '04:13',
+            '04:20',
             1
           );
 
@@ -1136,7 +1136,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.isTrainer()).toEqual(false);
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(5113, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(506, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(503, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(68);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(124);
           expect((activity.getStat(DataPaceAvg.type) as DataNumber).getValue()).toBeGreaterThanOrEqual(
@@ -1146,7 +1146,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '13:10', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '08:43',
+            '08:12',
             1
           );
 
@@ -1342,7 +1342,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(32227.5);
 
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 232, 0);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 239, 0);
 
           expect(activity.getStat(DataEnergy.type) as DataNumber).toBeUndefined(); // Zwift didn't give the calories
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(76);
@@ -1386,8 +1386,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect(activity.creator.name).toEqual('Garmin Edge 1000');
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 656, 0);
-          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 647);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 653, 0);
+          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 645);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(42220.87);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(1497);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(69);
@@ -1427,8 +1427,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.hasPowerMeter()).toEqual(false);
           expect(activity.isTrainer()).toEqual(false);
 
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 650, 0);
-          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 644);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 647, 0);
+          SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 639);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(59853.31);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(2206);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(68);
@@ -1470,7 +1470,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(32227.5);
 
-          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 232);
+          SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 239);
 
           expect(activity.getStat(DataEnergy.type) as DataNumber).toBeUndefined(); // Zwift didn't give the calories
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(76);
@@ -1514,8 +1514,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.type).toEqual(ActivityTypes.Cycling);
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(41829, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(649, 0);
-          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(645, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(640, 0);
+          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(639, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(69);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(108);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(153);
@@ -1551,8 +1551,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(141975, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(1938, 0);
-          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(1910, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(1968, 0);
+          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(1950, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(79);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(118);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(148);
@@ -1591,7 +1591,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           // expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(300, 0); // TODO Must be fixed
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(76);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(117);
-          expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(165);
+          expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(164);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(186);
           expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(7.828); // Or 28.1 kph
 
@@ -1625,8 +1625,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.isTrainer()).toEqual(true);
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(28620, 0);
-          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(264, 0);
-          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(249, 0);
+          expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(262, 0);
+          expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(238, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(75);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(120);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(161);

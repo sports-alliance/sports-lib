@@ -203,6 +203,8 @@ import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataNumber } from '../../data/data.number';
+import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
+import { DataGradeSmooth } from '../../data/data.grade-smooth';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -214,10 +216,6 @@ const ALTITUDE_SPIKES_FILTER_WIN = 17;
 const GRADE_PROCESS_NOISE = 0.1;
 const GRADE_MEASUREMENT_ERROR = 1.5;
 const GRADE_SPIKES_FILTER_WIN = 19;
-
-// Grade adjusted speed
-const GAS_PROCESS_NOISE = 0.05;
-const GAS_MEASUREMENT_ERROR = 1;
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
@@ -956,8 +954,8 @@ export class ActivityUtilities {
    * @param activity
    */
   public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
-    // Smooth primitive streams which have to be smoothed before generating other missing stream and stats
-    this.preSmoothPrimitivesStreams(activity);
+    // Create derived primitive streams which will be needed for others streams & stats computations
+    this.createDerivedStreams(activity);
 
     // First add any missing data to the streams via interpolating and extrapolating
     this.addMissingDataToStreams(activity);
@@ -1022,16 +1020,21 @@ export class ActivityUtilities {
     if (
       !activity.hasStreamData(DataGrade.type) &&
       activity.hasStreamData(DataDistance.type) &&
-      activity.hasStreamData(DataAltitude.type)
+      activity.hasStreamData(DataAltitudeSmooth.type)
     ) {
       const distanceData = activity.getStreamData(DataDistance.type);
-      const altitudeData = activity.getStreamData(DataAltitude.type);
+      const altitudeData = activity.getStreamData(DataAltitudeSmooth.type);
       const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
 
+      // Append new grade stream to activity
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
 
+      // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
+      // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
+      this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
+
       // Smooth grade computed stream
-      this.shapeStream(DataGrade.type, activity, squashedGradeData => {
+      this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
         // Predict proper grade values
         const kf = new KalmanFilter({
           R: GRADE_PROCESS_NOISE,
@@ -1050,11 +1053,11 @@ export class ActivityUtilities {
       (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running ||
         ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
-      activity.hasStreamData(DataGrade.type) &&
+      activity.hasStreamData(DataGradeSmooth.type) &&
       activity.hasStreamData(DataSpeed.type)
     ) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
-      const gradeStreamData = activity.getStreamData(DataGrade.type);
+      const gradeStreamData = activity.getStreamData(DataGradeSmooth.type);
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) =>
         value === null ? null : this.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0), 2)
       );
@@ -1066,17 +1069,6 @@ export class ActivityUtilities {
       }
 
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
-
-      // Post shape computed stream.
-      this.shapeStream(DataGradeAdjustedSpeed.type, activity, squashedGasData => {
-        // Predict grade adj speeds values
-        const kf = new KalmanFilter({
-          R: GAS_PROCESS_NOISE,
-          Q: GAS_MEASUREMENT_ERROR ** 2 // Provide grade measurement error as variance (see https://www.kalmanfilter.net/kalman1d.html)
-        });
-        squashedGasData = squashedGasData.map(v => (v === null ? null : kf.filter(v)));
-        return squashedGasData;
-      });
     }
 
     if (
@@ -1125,7 +1117,7 @@ export class ActivityUtilities {
 
   /**
    * Provides squashed stream data through callback for data manipulation.
-   * Rebuild the stream based on duration including missing values (null, Infinity, ...)
+   * Then rebuild the stream based on duration including the missing values (null, Infinity, ...) like the source stream
    * @param streamType
    * @param activity
    * @param shapeStreamData
@@ -1156,14 +1148,25 @@ export class ActivityUtilities {
     });
   }
 
+  public static cloneStream(activity: ActivityInterface, sourceStreamType: string, targetStreamType: string): void {
+    const sourceStream = activity.getStream(sourceStreamType);
+    const targetSmoothStream = activity.createStream(targetStreamType);
+    targetSmoothStream.setData(Array.from(sourceStream.getData())); // Shallow copy data to new stream
+    activity.addStream(targetSmoothStream);
+  }
+
   /**
-   * Smooth primitive stream which need to be
+   * Create derived primitive streams which will be needed for others streams & stats computations
    * @param activity
    */
-  public static preSmoothPrimitivesStreams(activity: ActivityInterface): ActivityInterface {
-    if (activity.hasStreamData(DataAltitude.type)) {
+  public static createDerivedStreams(activity: ActivityInterface): ActivityInterface {
+    if (activity.hasStreamData(DataAltitude.type) && !activity.hasStreamData(DataAltitudeSmooth.type)) {
+      // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
+      // Activity stats will be computed on the smoothed altitude stream
+      this.cloneStream(activity, DataAltitude.type, DataAltitudeSmooth.type);
+
       // Remove spiky data altitudes
-      this.shapeStream(DataAltitude.type, activity, squashedAltData => {
+      this.shapeStream(DataAltitudeSmooth.type, activity, squashedAltData => {
         squashedAltData = medianFilter(squashedAltData, ALTITUDE_SPIKES_FILTER_WIN); // Remove data spikes
         return squashedAltData;
       });
@@ -1319,34 +1322,34 @@ export class ActivityUtilities {
     }
 
     // Ascent (altitude gain)
-    if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAscent(this.getActivityDataTypeGain(activity, DataAltitude.type)));
+    if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataAscent(this.getActivityDataTypeGain(activity, DataAltitudeSmooth.type)));
     }
     // Descent (altitude loss)
-    if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataDescent(this.getActivityDataTypeLoss(activity, DataAltitude.type)));
+    if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataDescent(this.getActivityDataTypeLoss(activity, DataAltitudeSmooth.type)));
     }
     // Altitude Max
-    if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type)));
+    if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitudeSmooth.type)));
     }
     // Altitude Min
-    if (!activity.getStat(DataAltitudeMin.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type)));
+    if (!activity.getStat(DataAltitudeMin.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitudeSmooth.type)));
     }
     // Altitude Avg
-    if (!activity.getStat(DataAltitudeAvg.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type)));
+    if (!activity.getStat(DataAltitudeAvg.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitudeSmooth.type)));
     }
 
     // Altitude start
-    if (!activity.getStat(DataStartAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type)));
+    if (!activity.getStat(DataStartAltitude.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitudeSmooth.type)));
     }
 
     // Altitude end
-    if (!activity.getStat(DataEndAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type)));
+    if (!activity.getStat(DataEndAltitude.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitudeSmooth.type)));
     }
 
     // Heart Rate  Max

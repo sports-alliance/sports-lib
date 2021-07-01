@@ -203,7 +203,21 @@ import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataNumber } from '../../data/data.number';
-import { LowPassFilter } from './grade-calculator/low-pass-filter';
+
+const KalmanFilter = require('kalmanjs');
+
+/* Configure filtering values */
+// Altitude stream
+const ALTITUDE_SPIKES_FILTER_WIN = 17;
+
+// Grade stream
+const GRADE_PROCESS_NOISE = 0.1;
+const GRADE_MEASUREMENT_ERROR = 1.5;
+const GRADE_SPIKES_FILTER_WIN = 19;
+
+// Grade adjusted speed
+const GAS_PROCESS_NOISE = 0.05;
+const GAS_MEASUREMENT_ERROR = 1;
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
@@ -430,8 +444,7 @@ export class ActivityUtilities {
   }
 
   public static generateMissingStreams(activity: ActivityInterface): void {
-    // Smooth primitive streams which have to be smoothed before generating other missing stream and stats
-    this.smoothPrimitivesStreams(activity);
+    // Compute missing streams
     this.generateMissingStreamsForActivity(activity);
     activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
   }
@@ -943,8 +956,12 @@ export class ActivityUtilities {
    * @param activity
    */
   public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+    // Smooth primitive streams which have to be smoothed before generating other missing stream and stats
+    this.preSmoothPrimitivesStreams(activity);
+
     // First add any missing data to the streams via interpolating and extrapolating
     this.addMissingDataToStreams(activity);
+
     if (
       activity.hasStreamData(DataLatitudeDegrees.type) &&
       activity.hasStreamData(DataLatitudeDegrees.type) &&
@@ -1010,7 +1027,22 @@ export class ActivityUtilities {
       const distanceData = activity.getStreamData(DataDistance.type);
       const altitudeData = activity.getStreamData(DataAltitude.type);
       const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
+
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
+
+      // Smooth grade computed stream
+      this.shapeStream(DataGrade.type, activity, squashedGradeData => {
+        // Predict proper grade values
+        const kf = new KalmanFilter({
+          R: GRADE_PROCESS_NOISE,
+          Q: GRADE_MEASUREMENT_ERROR ** 2 // Provide grade measurement error as variance (see https://www.kalmanfilter.net/kalman1d.html)
+        });
+        squashedGradeData = squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
+
+        // Filter spikes using a median filter (see https://www.mathworks.com/help/signal/ref/medfilt1.html)
+        squashedGradeData = medianFilter(squashedGradeData, GRADE_SPIKES_FILTER_WIN);
+        return squashedGradeData;
+      });
     }
 
     // Get a grade adjusted speed (the model applies to running only)
@@ -1026,7 +1058,25 @@ export class ActivityUtilities {
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) =>
         value === null ? null : this.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0), 2)
       );
+
+      // Ensure first grade adjusted pace dont start with 0 (it's common) meaning infinity
+      if (!gradeAdjustedSpeedData[0]) {
+        const firstKnownValue = gradeAdjustedSpeedData.find(v => (v as number) > 0);
+        gradeAdjustedSpeedData[0] = firstKnownValue ? firstKnownValue : gradeAdjustedSpeedData[0];
+      }
+
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
+
+      // Post shape computed stream.
+      this.shapeStream(DataGradeAdjustedSpeed.type, activity, squashedGasData => {
+        // Predict grade adj speeds values
+        const kf = new KalmanFilter({
+          R: GAS_PROCESS_NOISE,
+          Q: GAS_MEASUREMENT_ERROR ** 2 // Provide grade measurement error as variance (see https://www.kalmanfilter.net/kalman1d.html)
+        });
+        squashedGasData = squashedGasData.map(v => (v === null ? null : kf.filter(v)));
+        return squashedGasData;
+      });
     }
 
     if (
@@ -1074,7 +1124,8 @@ export class ActivityUtilities {
   }
 
   /**
-   * Provides squashed stream data as callback for manipulation and rebuild the stream on duration including missing values
+   * Provides squashed stream data through callback for data manipulation.
+   * Rebuild the stream based on duration including missing values (null, Infinity, ...)
    * @param streamType
    * @param activity
    * @param shapeStreamData
@@ -1101,7 +1152,7 @@ export class ActivityUtilities {
 
     const activityStartTime = activity.startDate.getTime();
     streamDataByDuration.forEach(item => {
-      activity.addDataToStream(DataAltitude.type, new Date(activityStartTime + item.time), item.value as number);
+      activity.addDataToStream(streamType, new Date(activityStartTime + item.time), item.value as number);
     });
   }
 
@@ -1109,11 +1160,11 @@ export class ActivityUtilities {
    * Smooth primitive stream which need to be
    * @param activity
    */
-  public static smoothPrimitivesStreams(activity: ActivityInterface): ActivityInterface {
+  public static preSmoothPrimitivesStreams(activity: ActivityInterface): ActivityInterface {
     if (activity.hasStreamData(DataAltitude.type)) {
+      // Remove spiky data altitudes
       this.shapeStream(DataAltitude.type, activity, squashedAltData => {
-        squashedAltData = medianFilter(squashedAltData); // Remove unexpected spikes
-        squashedAltData = new LowPassFilter(0.3).smoothArray(squashedAltData) as number[]; // Global smoothing
+        squashedAltData = medianFilter(squashedAltData, ALTITUDE_SPIKES_FILTER_WIN); // Remove data spikes
         return squashedAltData;
       });
     }

@@ -1,5 +1,4 @@
-import { isNumber, medianFilter } from '../helpers';
-import { LowPassFilter } from './low-pass-filter';
+import { isNumber } from '../helpers';
 
 export const CLAMP = 40;
 export const LOOK_AHEAD_IN_SECONDS = 2;
@@ -34,19 +33,20 @@ export class GradeCalculator {
   public static computeGradeStream(
     distanceStream: (number | null)[],
     altitudeStream: (number | null)[],
-    filterGrade = true,
+    filterGrade = true, // TODO Remove
     basedOnAltitude = false,
     lookAhead = true,
     lookAheadInTime = false
   ): (number | null)[] {
-    let gradeStream = basedOnAltitude
+    const gradeStream = basedOnAltitude
       ? this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead, lookAheadInTime)
       : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead, lookAheadInTime);
-
-    if (filterGrade) {
-      gradeStream = medianFilter(gradeStream as number[]); // Remove spikes (Safe use as number[] since altitude+distance stream "repaired")
-      gradeStream = new LowPassFilter(0.3).smoothArray(gradeStream); // Global smoothing
-    }
+    /*    if (filterGrade) {
+      gradeStream = meanWindowSmoothing(gradeStream as number[], 5); // Remove spikes (Safe use as number[] since altitude+distance stream "repaired")
+      // gradeStream = new LowPassFilter(0.15).smoothArray(gradeStream); // Global smoothing
+      console.log(ActivityUtilities.getMax(gradeStream as number[]));
+      console.log(ActivityUtilities.getMin(gradeStream as number[]));
+    }*/
     return gradeStream.map(v => (v === null ? null : Math.round(v * 10) / 10));
   }
 

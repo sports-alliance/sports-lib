@@ -222,7 +222,7 @@ export class EventImporterTCX {
         activity.addStat(
           new DataEnergy(
             (<DataEnergy>activity.getStat(DataEnergy.type)).getValue() +
-            (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
+              (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
           )
         );
       }

@@ -1032,9 +1032,9 @@ export class ActivityTypesMoving {
   /**
    * Holds moving speed threshold in m/s per sport group
    */
-  private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypes, number>([
-    [ActivityTypes.Running, 1 / 3.6], // m/s
-    [ActivityTypes.Cycling, 7 / 3.6] // m/s
+  private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
+    [ActivityTypeGroups.Running, 1.5 / 3.6], // kph to m/s
+    [ActivityTypeGroups.Cycling, 7 / 3.6] // kph to m/s
   ]);
 
   private static DEFAULT_MOVING_SPEED_THRESHOLD = 0.3; // m/s
@@ -1044,7 +1044,9 @@ export class ActivityTypesMoving {
    * @param activityType
    */
   static getSpeedThreshold(activityType: ActivityTypes): number {
-    const threshold = this.SPORTS_MOVING_SPEED_THRESHOLD_MAP.get(activityType);
+    const threshold = this.SPORTS_MOVING_SPEED_THRESHOLD_MAP.get(
+      ActivityTypesHelper.getActivityGroupForActivityType(activityType)
+    );
     return threshold && Number.isFinite(threshold) ? threshold : this.DEFAULT_MOVING_SPEED_THRESHOLD;
   }
 }

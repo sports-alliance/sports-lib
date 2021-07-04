@@ -1,10 +1,5 @@
-import { DataNumber } from './data.number';
+import { DataAltitude } from './data.altitude';
 
-export class DataAltitudeSmooth extends DataNumber {
+export class DataAltitudeSmooth extends DataAltitude {
   static type = 'Altitude Smooth';
-  static unit = 'm';
-
-  getDisplayValue() {
-    return Math.round(this.getValue());
-  }
 }

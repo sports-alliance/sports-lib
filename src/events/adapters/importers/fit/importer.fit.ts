@@ -73,9 +73,10 @@ import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { ActivityUtilities } from '../../../utilities/activity.utilities';
 import { DataTimerTime } from '../../../../data/data.timer-time';
-import { DataTotalCycles } from '../../../../data/data-total.cycles';
+import { DataTotalCycles } from '../../../../data/data-total-cycles';
 import { DataPoolLength } from '../../../../data/data.pool-length';
-import { DataActiveLengths } from '../../../../data/data-active.lengths';
+import { DataActiveLengths } from '../../../../data/data-active-lengths';
+import { DataActiveLap } from '../../../../data/data-active-lap';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -432,6 +433,9 @@ export class EventImporterFIT {
     // Pause TIME on Object (activity, lap...)
     const pause = elapsedTime > movingTime && movingTime > 0 ? Math.round((elapsedTime - movingTime) * 100) / 100 : 0;
     stats.push(new DataPause(pause));
+
+    // Assign is active lap status
+    stats.push(new DataActiveLap(!!(object.total_distance || object.avg_speed || object.max_speed)));
 
     if (isNumberOrString(object.total_distance)) {
       stats.push(new DataDistance(object.total_distance));

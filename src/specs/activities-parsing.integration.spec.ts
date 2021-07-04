@@ -25,13 +25,14 @@ import { DataPowerMax } from '../data/data.power-max';
 import { DataDescent } from '../data/data.descent';
 import { DataHeartRateMax } from '../data/data.heart-rate-max';
 import { DataPoolLength } from '../data/data.pool-length';
-import { DataTotalCycles } from '../data/data-total.cycles';
-import { DataActiveLengths } from '../data/data-active.lengths';
+import { DataTotalCycles } from '../data/data-total-cycles';
+import { DataActiveLengths } from '../data/data-active-lengths';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataTemperatureAvg } from '../data/data.temperature-avg';
 import { DataMovingTime } from '../data/data.moving-time';
 import xmldom from 'xmldom';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
+import { DataActiveLap } from '../data/data-active-lap';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -65,6 +66,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(50);
           expect((activity.getStat(DataActiveLengths.type) as DataNumber).getValue()).toEqual(46);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(806);
+
+          const laps = activity.getLaps();
+          expect(laps.length).toEqual(36);
+          expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
+          expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeFalsy();
+
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
             '01:50'
@@ -216,6 +223,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(458);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(119);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(146);
+
+          const laps = activity.getLaps();
+          expect(laps.length).toEqual(36);
+          expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
+          expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeFalsy();
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
@@ -433,6 +445,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             '05:16',
             1
           );
+
+          const laps = activity.getLaps();
+          expect(laps.length).toEqual(2);
+          expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
+          expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();

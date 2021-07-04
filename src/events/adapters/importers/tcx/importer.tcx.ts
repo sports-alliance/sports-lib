@@ -24,12 +24,13 @@ import { DataCadence } from '../../../../data/data.cadence';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
-import { DataTotalCycles } from '../../../../data/data-total.cycles';
+import { DataTotalCycles } from '../../../../data/data-total-cycles';
 import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { ActivityUtilities } from '../../../utilities/activity.utilities';
 import { DataPowerAvg } from '../../../../data/data.power-avg';
 import { DataPowerMax } from '../../../../data/data.power-max';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
+import { DataActiveLap } from '../../../../data/data-active-lap';
 
 export class EventImporterTCX {
   /**
@@ -386,10 +387,11 @@ export class EventImporterTCX {
         });
       });
 
+      // Active or rest lap?
+      const isActiveLap = this.isActiveLap(lapElement);
+
       // If no moving time detected, try to detect from active laps
       if (movingTime === 0) {
-        const isActiveLap = this.isActiveLap(lapElement); // This will be used on swim poo
-
         // Lap is considered as active. Track moving time..
         if (isActiveLap) {
           movingTime = timerTime;
@@ -419,8 +421,10 @@ export class EventImporterTCX {
 
       // Pause TIME on Object (activity, lap...)
       const pause = elapsedTime > movingTime ? Math.round((elapsedTime - movingTime) * 100) / 100 : 0;
-
       lap.setPause(new DataPause(pause));
+
+      // Assign is active lap status
+      lap.addStat(new DataActiveLap(isActiveLap));
 
       if (lapElement.getElementsByTagName('TriggerMethod')[0]) {
         lap.type = LapTypes[<keyof typeof LapTypes>lapElement.getElementsByTagName('TriggerMethod')[0].textContent];

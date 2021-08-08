@@ -156,7 +156,7 @@ import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from './data.swim-pace-avg';
 import { DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard } from './data.swim-pace-max';
 import { DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard } from './data.swim-pace-min';
-import { DataSWOLFAvg } from './data.swolf-avg';
+import { DataSWOLF25m } from './data.swolf-25m';
 import { DataAccumulatedPower } from './data.accumulated-power';
 import { DataStrydDistance } from './data.stryd-distance';
 import { DataStrydSpeed } from './data.stryd-speed';
@@ -257,6 +257,7 @@ import {
 } from '../events/utilities/helpers';
 import { Data } from './data';
 import { DataMovingTime } from './data.moving-time';
+import { DataSWOLF50m } from './data.swolf-50m';
 
 /**
  * Only concrete classes no abstracts
@@ -451,7 +452,8 @@ export const DataStore: any = {
   DataDeviceNames,
   DataStartAltitude,
   DataEndAltitude,
-  DataSWOLFAvg,
+  DataSWOLF25m,
+  DataSWOLF50m,
   DataAccumulatedPower,
   DataLeftBalance,
   DataRightBalance,

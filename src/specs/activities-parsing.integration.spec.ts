@@ -33,7 +33,8 @@ import { DataMovingTime } from '../data/data.moving-time';
 import xmldom from 'xmldom';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataActiveLap } from '../data/data-active-lap';
-import { DataSWOLFAvg } from '../data/data.swolf-avg';
+import { DataSWOLF25m } from '../data/data.swolf-25m';
+import { DataSWOLF50m } from '../data/data.swolf-50m';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -66,7 +67,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(146);
           expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(50);
           expect((activity.getStat(DataActiveLengths.type) as DataNumber).getValue()).toEqual(46);
-          expect((activity.getStat(DataSWOLFAvg.type) as DataSWOLFAvg).getValue()).toEqual(73);
+          expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(36.7);
+          expect((activity.getStat(DataSWOLF50m.type) as DataSWOLF50m).getValue()).toEqual(73.4);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(806);
 
           const laps = activity.getLaps();
@@ -106,7 +108,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(28);
           expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(20);
           expect((activity.getStat(DataActiveLengths.type) as DataNumber).getValue()).toEqual(39);
-          expect((activity.getStat(DataSWOLFAvg.type) as DataSWOLFAvg).getValue()).toEqual(51);
+          expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(63.9);
+          expect((activity.getStat(DataSWOLF50m.type) as DataSWOLF50m).getValue()).toEqual(127.7);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(596);
 
           SpecUtils.assertNearEqualTime(
@@ -147,7 +150,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(157);
           expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(25);
           expect((activity.getStat(DataActiveLengths.type) as DataNumber).getValue()).toEqual(80);
-          expect((activity.getStat(DataSWOLFAvg.type) as DataSWOLFAvg).getValue()).toEqual(46);
+          expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(46.1);
+          expect((activity.getStat(DataSWOLF50m.type) as DataSWOLF50m).getValue()).toEqual(92.2);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(984);
 
           SpecUtils.assertNearEqualTime(
@@ -188,7 +192,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(158);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(170);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(993);
-          expect((activity.getStat(DataSWOLFAvg.type) as DataSWOLFAvg).getValue()).toEqual(47);
+          expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(47.5);
+          expect((activity.getStat(DataSWOLF50m.type) as DataSWOLF50m).getValue()).toEqual(95);
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),

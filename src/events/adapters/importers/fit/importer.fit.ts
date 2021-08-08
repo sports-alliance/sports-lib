@@ -44,7 +44,7 @@ import { DataTemperatureMin } from '../../../../data/data.temperature-min';
 import { DataTemperatureAvg } from '../../../../data/data.temperature-avg';
 import { DataSpeedMin } from '../../../../data/data.speed-min';
 import { DataCadenceMin } from '../../../../data/data.cadence-min';
-import { DataSWOLFAvg } from '../../../../data/data.swolf-avg';
+import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
 import { DataDescription } from '../../../../data/data.description';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
@@ -77,6 +77,7 @@ import { DataTotalCycles } from '../../../../data/data-total-cycles';
 import { DataPoolLength } from '../../../../data/data.pool-length';
 import { DataActiveLengths } from '../../../../data/data-active-lengths';
 import { DataActiveLap } from '../../../../data/data-active-lap';
+import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 
 const FitFileParser = require('fit-file-parser').default;
 
@@ -541,21 +542,19 @@ export class EventImporterFIT {
       stats.push(new DataPoolLength(poolLength));
     }
 
-    // Average SWOLF
-    if (isNumberOrString(object.avg_swolf)) {
-      stats.push(new DataSWOLFAvg(object.avg_swolf));
-    } else if (
+    // Average SWOLF in 25m and 50m pool
+    if (
       (isNumberOrString(object.avg_speed) || isNumberOrString(object.enhanced_avg_speed)) &&
-      isNumberOrString(object.avg_cadence) &&
-      isNumberOrString(object.pool_length)
+      isNumberOrString(object.avg_cadence)
     ) {
       const avgPace100m = 100 / (object.avg_speed || object.enhanced_avg_speed);
-      const cadence = object.avg_cadence;
+      const avgCadence = object.avg_cadence;
 
-      const poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
+      const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
+      stats.push(new DataSWOLF25m(swolf25m));
 
-      const swolf = ActivityUtilities.computeSwimSwolf(avgPace100m, cadence, poolLength);
-      stats.push(new DataSWOLFAvg(swolf));
+      const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
+      stats.push(new DataSWOLF50m(swolf50m));
     }
 
     // Active lengths

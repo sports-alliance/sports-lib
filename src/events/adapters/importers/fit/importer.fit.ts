@@ -436,7 +436,7 @@ export class EventImporterFIT {
     stats.push(new DataPause(pause));
 
     // Assign is active lap status
-    stats.push(new DataActiveLap(!!(object.total_distance || object.avg_speed || object.max_speed)));
+    stats.push(new DataActiveLap(!!(object.total_distance || object.avg_speed)));
 
     if (isNumberOrString(object.total_distance)) {
       stats.push(new DataDistance(object.total_distance));

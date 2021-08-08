@@ -534,15 +534,28 @@ export class EventImporterFIT {
     if (isNumberOrString(object.feeling)) {
       stats.push(new DataFeeling(object.feeling));
     }
-    // Average SWOLF
-    if (isNumberOrString(object.avg_swolf)) {
-      stats.push(new DataSWOLFAvg(object.avg_swolf));
-    }
 
     // Pool length
     if (isNumberOrString(object.pool_length)) {
       const poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
       stats.push(new DataPoolLength(poolLength));
+    }
+
+    // Average SWOLF
+    if (isNumberOrString(object.avg_swolf)) {
+      stats.push(new DataSWOLFAvg(object.avg_swolf));
+    } else if (
+      (isNumberOrString(object.avg_speed) || isNumberOrString(object.enhanced_avg_speed)) &&
+      isNumberOrString(object.avg_cadence) &&
+      isNumberOrString(object.pool_length)
+    ) {
+      const avgPace100m = 100 / (object.avg_speed || object.enhanced_avg_speed);
+      const cadence = object.avg_cadence;
+
+      const poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
+
+      const swolf = ActivityUtilities.computeSwimSwolf(avgPace100m, cadence, poolLength);
+      stats.push(new DataSWOLFAvg(swolf));
     }
 
     // Active lengths

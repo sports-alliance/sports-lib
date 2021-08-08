@@ -205,6 +205,8 @@ import { DataTimerTime } from '../../data/data.timer-time';
 import { DataNumber } from '../../data/data.number';
 import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
 import { DataGradeSmooth } from '../../data/data.grade-smooth';
+import { DataSWOLFAvg } from '../../data/data.swolf-avg';
+import { DataPoolLength } from '../../data/data.pool-length';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -216,6 +218,8 @@ const ALTITUDE_SPIKES_FILTER_WIN = 17;
 const GRADE_PROCESS_NOISE = 0.1;
 const GRADE_MEASUREMENT_ERROR = 1.5;
 const GRADE_SPIKES_FILTER_WIN = 19;
+
+const DEFAULT_SWIM_POOL_LENGTH_SWOLF = 25;
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
@@ -1256,6 +1260,20 @@ export class ActivityUtilities {
      */
   }
 
+  /**
+   *
+   * @param secondsPer100m
+   * @param avgStrokesPerMin
+   * @param poolLength
+   */
+  public static computeSwimSwolf(secondsPer100m: number, avgStrokesPerMin: number, poolLength: number): number {
+    const minutesPer100m = secondsPer100m / 60;
+    const avgStrokePer100m = avgStrokesPerMin * minutesPer100m;
+    const strokesPerMeter = avgStrokePer100m / 100;
+    const secondsPerMeter = secondsPer100m / 100;
+    return Math.floor((secondsPerMeter + strokesPerMeter) * poolLength);
+  }
+
   private static getActivityDataTypeGainOrLoss(
     activity: ActivityInterface,
     streamType: string,
@@ -2116,6 +2134,25 @@ export class ActivityUtilities {
           new DataVerticalSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMin.getValue()))
         );
       }
+    }
+
+    if (
+      (activity.type === ActivityTypes.Swimming || activity.type === ActivityTypes.OpenWaterSwimming) &&
+      !activity.getStat(DataSWOLFAvg.type) &&
+      (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type))?.getValue() &&
+      (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type))?.getValue()
+    ) {
+      //
+      const avgPace100m = 100 / (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type)).getValue();
+      const cadence = (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type)).getValue();
+
+      let poolLength = DEFAULT_SWIM_POOL_LENGTH_SWOLF;
+      if ((<DataPoolLength>activity.getStat(DataPoolLength.type))?.getValue()) {
+        poolLength = (<DataPoolLength>activity.getStat(DataPoolLength.type)).getValue();
+      }
+
+      const swolf = ActivityUtilities.computeSwimSwolf(avgPace100m, cadence, poolLength);
+      activity.addStat(new DataSWOLFAvg(swolf));
     }
 
     if (!activity.getStat(DataDuration.type)) {

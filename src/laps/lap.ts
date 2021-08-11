@@ -3,6 +3,7 @@ import { DataInterface } from '../data/data.interface';
 import { DurationClassAbstract } from '../duration/duration.class.abstract';
 import { LapTypes } from './lap.types';
 import { LapJSONInterface } from './lap.json.interface';
+import { ActivityInterface } from '../activities/activity.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
   public type: LapTypes;
@@ -10,6 +11,14 @@ export class Lap extends DurationClassAbstract implements LapInterface {
   constructor(startDate: Date, endDate: Date, type: LapTypes) {
     super(startDate, endDate);
     this.type = type;
+  }
+
+  getStartIndex(activity: ActivityInterface): number {
+    return activity.getDateIndex(this.startDate);
+  }
+
+  getEndIndex(activity: ActivityInterface): number {
+    return activity.getDateIndex(this.endDate);
   }
 
   toJSON(): LapJSONInterface {

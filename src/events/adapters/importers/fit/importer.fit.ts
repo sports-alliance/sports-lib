@@ -544,6 +544,7 @@ export class EventImporterFIT {
 
     // Average SWOLF in 25m and 50m pool
     if (
+      (activity.type === ActivityTypes.Swimming || activity.type === ActivityTypes.OpenWaterSwimming) &&
       (isNumberOrString(object.avg_speed) || isNumberOrString(object.enhanced_avg_speed)) &&
       isNumberOrString(object.avg_cadence)
     ) {

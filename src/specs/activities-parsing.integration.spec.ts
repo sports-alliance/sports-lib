@@ -52,7 +52,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
-          expect(activity.creator.name).toEqual('Garmin FR 935');
+          expect(activity.creator.name).toEqual('Garmin Forerunner 935');
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();

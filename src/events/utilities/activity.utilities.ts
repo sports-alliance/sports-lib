@@ -2187,7 +2187,7 @@ export class ActivityUtilities {
       const lapsMovingTimeValid = movingTime > 0 && movingTime <= timerTime;
 
       // If moving time from laps is not valid
-      if (!lapsMovingTimeValid) {
+      if (!lapsMovingTimeValid && activity.hasStreamData(DataSpeed.type)) {
         // ...then re-compute moving time but using global records.
         movingTime = 0;
         const speedByDurationStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);

@@ -1,7 +1,8 @@
 /*
 To update this list:
 - Download fit sdk here: https://developer.garmin.com/fit/download/
-- Run below python script on "c/"fit_example.h" file to extract devices list
+- Run below python tool script on "c/"fit_example.h" file to extract most of new devices
+- Then rework the list manually with a git diff
 --------------
 import re
 
@@ -11,12 +12,22 @@ def list_garmin_products(header_file):
     replace_words_blank = ["CHN", "JPN", "SEA", "KOR", "EA", "CHINA", "JAPAN", "TAIWAN", "KOREA", "ASIA", "RUSSIA",
                            "TWN", "OLED", "THAI", "HEBREW", "SMALL", "LARGE", "OLD", "APAC", "WIN", "MAC", "ANDROID",
                            "IOS", "DAIMLER"]
-    replace_words_map = {
+    pre_replace_words_map = {
         "JR": "JUNIOR",
         "FR": "FORERUNNER",
         "D2AIRVENU": "D2 AIR",
         "VENU(\w+)": r"VENU \1",
         "VIRB(\w+)": r"VIRB \1",
+    }
+
+    post_replace_words_map = {
+        "Vivo Fit": "VivoFit",
+        "Vivo Smart": "VivoSmart",
+        "Vivo Active": "VivoActive",
+        "Vivoactive": "VivoActive",
+        "Vivo Move": "VivoMove",
+        "Vivo Sport": "VivoSport",
+        "Vivo KI": "VivoKi",
     }
 
     garmin_sdk_data = open(header_file, "r").readlines()
@@ -37,8 +48,8 @@ def list_garmin_products(header_file):
                 # Add spaces after product names with version
                 name = re.sub(r"([a-zA-Z][a-zA-Z]+)(\d+)", r"\1 \2", name)
 
-                # Replace words by others when matching
-                for src, target in replace_words_map.items():
+                # Pre-replace words by others when matching
+                for src, target in pre_replace_words_map.items():
                     name = re.sub(src, target, name)
 
                 # Cleaning
@@ -47,9 +58,22 @@ def list_garmin_products(header_file):
                 name = name.strip()
                 name = name.lower()
                 name_arr = []
+
                 for word in name.split(" "):
-                    name_arr.append(word.capitalize())
+                    # First capitalize every words
+                    word = word.capitalize()
+
+                    # If word start with number then upper case word or size if 2-3 length
+                    if re.match(r"^[0-9]+.*", word) or re.match(r"^\w{2}$", word):
+                        word = word.upper()
+
+                    name_arr.append(word)
+
                 name = " ".join(name_arr)
+
+                # Post-replace words by others when matching
+                for src, target in post_replace_words_map.items():
+                    name = re.sub(src, target, name)
 
                 results[product_id] = "Garmin {}".format(name)
     return results
@@ -64,6 +88,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 --------------
  */
 
@@ -96,7 +121,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   1410: 'Garmin Forerunner 610',
   1422: 'Garmin Edge 500',
   1436: 'Garmin Forerunner 70',
-  1446: 'Garmin Forerunner 310XT4T',
+  1446: 'Garmin Forerunner 310XT 4T',
   1461: 'Garmin Amx',
   1482: 'Garmin Forerunner 10',
   1497: 'Garmin Edge 800',
@@ -123,7 +148,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   1836: 'Garmin Edge 1000',
   1837: 'Garmin VivoFit',
   1853: 'Garmin Virb Remote',
-  1885: 'Garmin Vivo Ki',
+  1885: 'Garmin VivoKi',
   1903: 'Garmin Forerunner 15',
   1907: 'Garmin VivoActive',
   1918: 'Garmin Edge 510',
@@ -180,6 +205,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2292: 'Garmin Approach X40',
   2293: 'Garmin Fenix 3',
   2294: 'Garmin VivoSmart',
+  2310: 'Garmin Forerunner 630',
   2311: 'Garmin Forerunner 630',
   2313: 'Garmin Forerunner 230',
   2332: 'Garmin Epix',
@@ -209,7 +235,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2477: 'Garmin Fenix 3 HR',
   2496: 'Garmin Nautix',
   2497: 'Garmin VivoActive HR',
-  2512: 'Garmin Oregon 7XXWW',
+  2512: 'Garmin Oregon 7XX WW',
   2530: 'Garmin Edge 820',
   2531: 'Garmin Edge Explore 820',
   2533: 'Garmin Forerunner 735XT',
@@ -234,10 +260,10 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2687: 'Garmin Virb 360',
   2691: 'Garmin Forerunner 935',
   2697: 'Garmin Fenix 5',
-  2700: 'Garmin Vivoactive 3',
+  2700: 'Garmin VivoActive 3',
   2733: 'Garmin Forerunner 235',
   2769: 'Garmin Foretrex 601 701',
-  2772: 'Garmin VivoMove Hr',
+  2772: 'Garmin VivoMove HR',
   2713: 'Garmin Edge 1030',
   2796: 'Garmin Fenix 5',
   2797: 'Garmin Fenix 5S',
@@ -245,47 +271,47 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2806: 'Garmin Approach Z80',
   2814: 'Garmin Forerunner 35',
   2819: 'Garmin D2charlie',
-  2831: 'Garmin Vivo Smart 3',
-  2832: 'Garmin Vivo Sport',
+  2831: 'Garmin VivoSmart 3',
+  2832: 'Garmin VivoSport',
   2833: 'Garmin Forerunner 935',
   2859: 'Garmin Descent',
   2878: 'Garmin VivoFit 4',
   2886: 'Garmin Forerunner 645',
   2888: 'Garmin Forerunner 645M',
   2891: 'Garmin Forerunner 30',
-  2900: 'Garmin Fenix 5s Plus',
+  2900: 'Garmin Fenix 5S Plus',
   2909: 'Garmin Edge 130',
   2924: 'Garmin Edge 1030',
   2927: 'Garmin Vivosmart 4',
-  2945: 'Garmin VivoMove Hr',
+  2945: 'Garmin VivoMove HR',
   2962: 'Garmin Approach X10',
   2977: 'Garmin Forerunner 30',
-  2988: 'Garmin Vivoactive 3m W',
+  2988: 'Garmin VivoActive 3M W',
   3003: 'Garmin Forerunner 645',
-  3004: 'Garmin Forerunner 645m',
+  3004: 'Garmin Forerunner 645M',
   3011: 'Garmin Edge Explore',
   3028: 'Garmin Gpsmap 66',
   3049: 'Garmin Approach S10',
-  3066: 'Garmin Vivoactive 3m L',
+  3066: 'Garmin VivoActive 3M L',
   3085: 'Garmin Approach G80',
   3092: 'Garmin Edge 130',
   3095: 'Garmin Edge 1030 Bontrager',
   3110: 'Garmin Fenix 5 Plus',
-  3111: 'Garmin Fenix 5x Plus',
+  3111: 'Garmin Fenix 5X Plus',
   3112: 'Garmin Edge 520 Plus',
   3113: 'Garmin Forerunner 945',
   3121: 'Garmin Edge 530',
   3122: 'Garmin Edge 830',
   3126: 'Garmin Instinct Esports',
-  3134: 'Garmin Fenix 5s Plus',
-  3135: 'Garmin Fenix 5x Plus',
+  3134: 'Garmin Fenix 5S Plus',
+  3135: 'Garmin Fenix 5X Plus',
   3142: 'Garmin Edge 520 Plus',
-  3144: 'Garmin Forerunner 235l',
+  3144: 'Garmin Forerunner 235L',
   3145: 'Garmin Forerunner 245',
-  3163: 'Garmin VivoActive 3m',
+  3163: 'Garmin VivoActive 3M',
   3218: 'Garmin VivoSmart 4',
-  3224: 'Garmin Vivoactive 4',
-  3225: 'Garmin Vivoactive 4',
+  3224: 'Garmin VivoActive 4',
+  3225: 'Garmin VivoActive 4',
   3226: 'Garmin Venu',
   3246: 'Garmin Marq Driver',
   3247: 'Garmin Marq Aviator',
@@ -293,22 +319,22 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3249: 'Garmin Marq Commander',
   3250: 'Garmin Marq Expedition',
   3251: 'Garmin Marq Athlete',
-  3258: 'Garmin Descent Mk 2',
-  3284: 'Garmin Gpsmap 66i',
+  3258: 'Garmin Descent MK 2',
+  3284: 'Garmin Gpsmap 66I',
   3287: 'Garmin Fenix 6S Sport',
   3288: 'Garmin Fenix 6S',
   3289: 'Garmin Fenix 6 Sport',
   3290: 'Garmin Fenix 6',
-  3291: 'Garmin Fenix 6x',
+  3291: 'Garmin Fenix 6X',
   3308: 'Garmin VivoMove 3 Premium',
   3314: 'Garmin Approach S40',
   3321: 'Garmin Forerunner 245M',
   3349: 'Garmin Edge 530',
   3350: 'Garmin Edge 830',
   3378: 'Garmin VivoMove 3',
-  3387: 'Garmin VivoActive 4S',
-  3388: 'Garmin VivoActive 4L',
-  3389: 'Garmin VivoActive 4OL',
+  3387: 'Garmin VivoActive 4',
+  3388: 'Garmin VivoActive 4',
+  3389: 'Garmin VivoActive 4',
   3405: 'Garmin Swim 2',
   3420: 'Garmin Marq Driver',
   3421: 'Garmin Marq Aviator',
@@ -320,17 +346,17 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3450: 'Garmin Marq Expedition',
   3451: 'Garmin Marq Athlete',
   3469: 'Garmin Forerunner 45',
-  3473: 'Garmin Vivoactive 3',
+  3473: 'Garmin VivoActive 3',
   3512: 'Garmin Fenix 6S Sport',
   3513: 'Garmin Fenix 6S',
   3514: 'Garmin Fenix 6 Sport',
   3515: 'Garmin Fenix 6',
-  3516: 'Garmin Fenix 6x',
-  3542: 'Garmin Descent Mk 2S',
+  3516: 'Garmin Fenix 6X',
+  3542: 'Garmin Descent MK 2S',
   3558: 'Garmin Edge 130 Plus',
   3570: 'Garmin Edge 1030 Plus',
   3589: 'Garmin Forerunner 745',
-  3600: 'Garmin Venu Sq',
+  3600: 'Garmin Venu SQ',
   3615: 'Garmin Lily',
   3624: 'Garmin Marq Adventurer',
   3638: 'Garmin Enduro',
@@ -347,9 +373,9 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3813: 'Garmin Edge 130 Plus',
   3823: 'Garmin Approach S12',
   3872: 'Garmin Enduro',
-  3837: 'Garmin Venu Sq',
+  3837: 'Garmin Venu SQ',
   3850: 'Garmin Marq Golfer',
-  3930: 'Garmin Descent Mk 2S',
+  3930: 'Garmin Descent MK 2S',
   3934: 'Garmin Approach S42',
   3949: 'Garmin Venu 2S',
   3950: 'Garmin Venu 2',

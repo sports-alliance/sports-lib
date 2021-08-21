@@ -12,5 +12,5 @@ export interface LapInterface extends StatsClassInterface, DurationClassInterfac
 
   getEndIndex(activity: ActivityInterface): number;
 
-  toJSON(): LapJSONInterface;
+  toJSON(activity?: ActivityInterface): LapJSONInterface;
 }

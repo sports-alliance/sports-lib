@@ -11,7 +11,7 @@ import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../streams/stream.interface';
 import { ActivityJSONInterface } from './activity.json.interface';
 import { DataPositionInterface } from '../data/data.position.interface';
-import { Stream } from '../streams/stream';
+import { Stream, StreamJSONInterface } from '../streams/stream';
 import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.json.interface';
 import { isNumber } from '../events/utilities/helpers';
 import { DataPower } from '../data/data.power';
@@ -22,6 +22,8 @@ import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
+import { LapJSONInterface } from '../laps/lap.json.interface';
+import { DataDistance } from '../data/data.distance';
 
 export const MAX_ACTIVITY_DURATION = 1 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 month
 
@@ -300,19 +302,37 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.stats.forEach((value: DataInterface, key: string) => {
       Object.assign(stats, value.toJSON());
     });
+
+    // Fetch streams from activity
+    const streams = this.getAllStreams().reduce((streams: StreamJSONInterface[], stream) => {
+      streams.push(stream.toJSON());
+      return streams;
+    }, []);
+
+    // Now append missing time stream to JSON export
+    if (streams?.length) {
+      const stream = streams.find(s => s.type === DataDistance.type) || streams[0];
+      const timeStream = this.generateTimeStream([stream.type]).toJSON();
+      streams.push(timeStream);
+    }
+
     return {
+      name: this.name || null,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       type: this.type,
       creator: this.creator.toJSON(),
       intensityZones: intensityZones,
+      powerMeter: this.hasPowerMeter(),
+      trainer: this.isTrainer(),
       stats: stats,
+      streams: streams,
       events: this.getAllEvents().reduce((eventsArray: DataJSONInterface[], event) => {
         eventsArray.push(event.toJSON());
         return eventsArray;
       }, []),
-      laps: this.getLaps().reduce((jsonLapsArray: any[], lap: LapInterface) => {
-        jsonLapsArray.push(lap.toJSON());
+      laps: this.getLaps().reduce((jsonLapsArray: LapJSONInterface[], lap: LapInterface) => {
+        jsonLapsArray.push(lap.toJSON(this));
         return jsonLapsArray;
       }, [])
     };

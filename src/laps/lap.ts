@@ -21,7 +21,7 @@ export class Lap extends DurationClassAbstract implements LapInterface {
     return activity.getDateIndex(this.endDate);
   }
 
-  toJSON(): LapJSONInterface {
+  toJSON(activity?: ActivityInterface): LapJSONInterface {
     const stats = {};
     this.stats.forEach((value: DataInterface, key: string) => {
       Object.assign(stats, value.toJSON());
@@ -29,6 +29,8 @@ export class Lap extends DurationClassAbstract implements LapInterface {
     return {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
+      startIndex: activity ? this.getStartIndex(activity) : null,
+      endIndex: activity ? this.getEndIndex(activity) : null,
       type: this.type,
       stats: stats
     };

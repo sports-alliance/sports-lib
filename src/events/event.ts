@@ -7,6 +7,7 @@ import { Privacy } from '../privacy/privacy.class.interface';
 import { ActivityTypes } from '../activities/activity.types';
 import { DataActivityTypes } from '../data/data.activity-types';
 import { DataDeviceNames } from '../data/data.device-names';
+import { ActivityJSONInterface } from '../activities/activity.json.interface';
 
 export class Event extends DurationClassAbstract implements EventInterface {
   public name: string;
@@ -134,7 +135,12 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
-      isMerge: this.isMerge
+      isMerge: this.isMerge,
+      activities: this.getActivities().reduce((activities: ActivityJSONInterface[], activity: ActivityInterface) => {
+        const jsonActivity = activity.toJSON();
+        activities.push(jsonActivity);
+        return activities;
+      }, [])
     };
   }
 }

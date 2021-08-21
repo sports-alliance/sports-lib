@@ -79,6 +79,7 @@ import { DataActiveLengths } from '../../../../data/data-active-lengths';
 import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
 
 export class EventImporterFIT {

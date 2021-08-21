@@ -1623,6 +1623,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
 
+          expect(activity.name).toEqual('Meylan Road Cycling');
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(49909, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(269, 0);

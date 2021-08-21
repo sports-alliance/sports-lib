@@ -9,6 +9,11 @@ import { Creator } from '../../creators/creator';
 import { ActivityTypes } from '../../activities/activity.types';
 import { Stream } from '../../streams/stream';
 import { ActivityUtilities } from './activity.utilities';
+import { DataSpeed } from '../../data/data.speed';
+import { Lap } from '../../laps/lap';
+import { DataSpeedAvg } from '../../data/data.speed-avg';
+import { LapTypes } from '../../laps/lap.types';
+import { DataTime } from '../../data/data.time';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -213,5 +218,45 @@ describe('Activity Utilities', () => {
     activity.endDate = new Date(9999); // 9.9 seconds
     // more than 9 is 10 slugs
     expect(ActivityUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(11);
+  });
+
+  it('should provide serialization through toJSON', () => {
+    // Given
+    const activity = event.getFirstActivity();
+    activity.startDate = new Date();
+    activity.endDate = new Date(activity.startDate.getTime() + 3000);
+    event.getFirstActivity().addStream(new Stream(DataDistance.type, [0, 9, null, 30]));
+    event.getFirstActivity().addStream(new Stream(DataSpeed.type, [0, 10, null, 15]));
+    event.getFirstActivity().addStream(new Stream(DataHeartRate.type, [0, 50, null, 100]));
+    event.getFirstActivity().addStream(new Stream(DataAltitude.type, [200, 300, null, 400]));
+
+    const lap1 = new Lap(activity.startDate, activity.endDate, LapTypes.Autolap);
+    lap1.addStat(new DataSpeedAvg(10));
+    activity.addLap(lap1);
+
+    const lap2 = new Lap(activity.startDate, activity.endDate, LapTypes.Autolap);
+    lap2.addStat(new DataSpeedAvg(15));
+    activity.addLap(lap2);
+
+    // When
+    const activityJson = activity.toJSON();
+
+    // Then
+    expect(activityJson.name).toBeNull();
+    expect(activityJson.startDate).toEqual(activity.startDate.getTime());
+    expect(activityJson.endDate).toEqual(activity.endDate.getTime());
+    expect(activityJson.powerMeter).toBeFalsy();
+    expect(activityJson.trainer).toBeFalsy();
+    expect(activityJson.laps.length).toEqual(activity.getLaps().length);
+    expect(activityJson.laps[0].startIndex).toEqual(0);
+    expect(activityJson.laps[0].endIndex).toEqual(3);
+    expect(activityJson.laps[0].stats[DataSpeedAvg.type]).toEqual(
+      (activity.getLaps()[0].getStat(DataSpeedAvg.type) as DataSpeedAvg).getValue()
+    );
+
+    expect(activityJson.streams.length).toEqual(activity.getAllStreams().length + 1); // +1 because we add time stream
+    expect(activityJson.streams.find(s => s.type == DataTime.type)?.data.length).toEqual(
+      activityJson.streams.find(s => s.type == DataDistance.type)?.data.length
+    );
   });
 });

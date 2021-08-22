@@ -30,6 +30,9 @@ import { DataPowerAvg } from '../../../../data/data.power-avg';
 import { DataPowerMax } from '../../../../data/data.power-max';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
 import { DataActiveLap } from '../../../../data/data-active-lap';
+import { DataInterface } from '../../../../data/data.interface';
+import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
+import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 
 export class EventImporterTCX {
   /**
@@ -497,6 +500,35 @@ export class EventImporterTCX {
       const lapAvgRunCadence = findLapExtensionValue(lapElement.childNodes, 'AvgRunCadence');
       if (lapAvgRunCadence !== null) {
         lap.addStat(new DataCadenceAvg(lapAvgRunCadence));
+      }
+
+      // Try to set avg cadence from total cycle if not set
+      if (
+        isActiveLap &&
+        !(lap.getStat(DataCadenceAvg.type) as DataInterface)?.getValue() &&
+        timerTime &&
+        lapTotalCycle
+      ) {
+        const lapAvgCadence = Math.round((lapTotalCycle / timerTime) * 60);
+        lap.addStat(new DataCadenceAvg(lapAvgCadence));
+      }
+
+      // Average SWOLF in 25m and 50m pool
+      if (
+        isActiveLap &&
+        (activityType === ActivityTypes.Swimming || activityType === ActivityTypes.OpenWaterSwimming) &&
+        (lap.getStat(DataCadenceAvg.type) as DataInterface)?.getValue() > 0 &&
+        (lap.getStat(DataSpeedAvg.type) as DataInterface)?.getValue() > 0
+      ) {
+        const avgCadence = (lap.getStat(DataCadenceAvg.type) as DataInterface).getValue() as number;
+        const avgSpeed = (lap.getStat(DataSpeedAvg.type) as DataInterface).getValue() as number;
+        const avgPace100m = 100 / avgSpeed;
+
+        const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
+        lap.addStat(new DataSWOLF25m(swolf25m));
+
+        const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
+        lap.addStat(new DataSWOLF50m(swolf50m));
       }
 
       lapArray.push(lap);

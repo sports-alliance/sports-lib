@@ -75,6 +75,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(laps.length).toEqual(36);
           expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
           expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeFalsy();
+          expect(laps[1].lapId).toEqual(2);
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
@@ -238,6 +239,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(laps.length).toEqual(36);
           expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
           expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeFalsy();
+          expect(laps[1].lapId).toEqual(2);
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),

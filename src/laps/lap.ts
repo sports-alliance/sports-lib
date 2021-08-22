@@ -6,10 +6,12 @@ import { LapJSONInterface } from './lap.json.interface';
 import { ActivityInterface } from '../activities/activity.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
+  public lapId: number;
   public type: LapTypes;
 
-  constructor(startDate: Date, endDate: Date, type: LapTypes) {
+  constructor(startDate: Date, endDate: Date, lapId: number, type: LapTypes) {
     super(startDate, endDate);
+    this.lapId = lapId;
     this.type = type;
   }
 
@@ -27,6 +29,7 @@ export class Lap extends DurationClassAbstract implements LapInterface {
       Object.assign(stats, value.toJSON());
     });
     return {
+      lapId: this.lapId,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       startIndex: activity ? this.getStartIndex(activity) : null,

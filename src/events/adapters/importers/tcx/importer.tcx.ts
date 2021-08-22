@@ -20,7 +20,6 @@ import { ActivityInterface } from '../../../../activities/activity.interface';
 import { TCXSampleMapper } from './importer.tcx.mapper';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { convertSpeedToPace, isNumber } from '../../../utilities/helpers';
-import { DataCadence } from '../../../../data/data.cadence';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
@@ -320,7 +319,7 @@ export class EventImporterTCX {
   }
 
   private static getLaps(lapElements: HTMLElement[], activityType: ActivityTypes): LapInterface[] {
-    return Array.from(lapElements).reduce((lapArray: LapInterface[], lapElement: HTMLElement) => {
+    return Array.from(lapElements).reduce((lapArray: LapInterface[], lapElement: HTMLElement, lapIndex: number) => {
       // Calculating lap time data (moving time, timer time, elapsed time...)
       const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activityType);
       let movingTime = 0;
@@ -407,7 +406,7 @@ export class EventImporterTCX {
       const startDate = new Date(<string>lapElement.getAttribute('StartTime'));
       const endDate = new Date(startDate);
       endDate.setSeconds(endDate.getSeconds() + elapsedTime);
-      const lap = new Lap(startDate, endDate, LapTypes.AutoLap);
+      const lap = new Lap(startDate, endDate, lapIndex + 1, LapTypes.AutoLap);
 
       // Add elapsed & timer stats to lap
       lap.addStat(new DataDuration(elapsedTime));
@@ -466,7 +465,7 @@ export class EventImporterTCX {
       }
 
       if (lapElement.getElementsByTagName('Cadence')[0]) {
-        lap.addStat(new DataCadence(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
+        lap.addStat(new DataCadenceAvg(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
       }
 
       // Fetching activity lap extensions according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema

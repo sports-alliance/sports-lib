@@ -236,7 +236,7 @@ export class EventImporterSuuntoJSON {
         {}
       );
       const laps = lapEventSamples.reduce(
-        (lapArray: LapInterface[], lapEventSample: any, index: number): LapInterface[] => {
+        (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
           // if there is only one lap then skip it's the whole activity
           if (lapEventSamples.length === 1) {
             return lapArray;
@@ -248,12 +248,13 @@ export class EventImporterSuuntoJSON {
           const lap = new Lap(
             lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
             lapEndDate,
+            lapIndex + 1,
             LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
           );
           lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
-          if (lapWindows[index]) {
-            this.getStats(lapWindows[index]).forEach(stat => {
+          if (lapWindows[lapIndex]) {
+            this.getStats(lapWindows[lapIndex]).forEach(stat => {
               lap.addStat(stat);
             });
           }

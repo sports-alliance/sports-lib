@@ -118,8 +118,13 @@ export class EventImporterJSON {
     return device;
   }
 
-  static getLapFromJSON(json: LapJSONInterface): LapInterface {
-    const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
+  static getLapFromJSON(json: LapJSONInterface, lapIndex: number): LapInterface {
+    const lap = new Lap(
+      new Date(json.startDate),
+      new Date(json.endDate),
+      lapIndex + 1,
+      LapTypes[<keyof typeof LapTypes>json.type]
+    );
     Object.keys(json.stats).forEach((statName: any) => {
       lap.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
     });
@@ -163,8 +168,8 @@ export class EventImporterJSON {
     Object.keys(json.stats).forEach((statName: any) => {
       activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
     });
-    json.laps.forEach((lapJSON: LapJSONInterface) => {
-      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));
+    json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
+      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
     });
     json.intensityZones.forEach(intensityZonesJSON => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON));

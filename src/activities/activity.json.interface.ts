@@ -14,7 +14,7 @@ export interface ActivityJSONInterface {
   powerMeter: boolean;
   trainer: boolean;
   stats: DataJSONInterface;
-  streams: StreamJSONInterface[];
+  streams: StreamJSONInterface[] | { [key: string]: number[] };
   laps: LapJSONInterface[];
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];

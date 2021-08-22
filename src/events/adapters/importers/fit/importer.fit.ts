@@ -100,8 +100,8 @@ export class EventImporterFIT {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
           // Go over the laps
-          sessionObject.laps.forEach((sessionLapObject: any) => {
-            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity));
+          sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
+            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index));
           });
 
           // Go over the hr zone info
@@ -307,13 +307,18 @@ export class EventImporterFIT {
     });
   }
 
-  private static getLapFromSessionLapObject(sessionLapObject: any, activity: ActivityInterface): LapInterface {
+  private static getLapFromSessionLapObject(
+    sessionLapObject: any,
+    activity: ActivityInterface,
+    lapIndex: number
+  ): LapInterface {
     const lap = new Lap(
       sessionLapObject.start_time ||
         sessionLapObject.records[0].timestamp ||
         new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
       sessionLapObject.timestamp ||
         new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
+      lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
     // Set the calories

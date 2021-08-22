@@ -7,7 +7,7 @@ import { DataDuration } from '../../data/data.duration';
 import { EventInterface } from '../event.interface';
 import { Creator } from '../../creators/creator';
 import { ActivityTypes } from '../../activities/activity.types';
-import { Stream } from '../../streams/stream';
+import { Stream, StreamJSONInterface } from '../../streams/stream';
 import { ActivityUtilities } from './activity.utilities';
 import { DataSpeed } from '../../data/data.speed';
 import { Lap } from '../../laps/lap';
@@ -230,11 +230,11 @@ describe('Activity Utilities', () => {
     event.getFirstActivity().addStream(new Stream(DataHeartRate.type, [0, 50, null, 100]));
     event.getFirstActivity().addStream(new Stream(DataAltitude.type, [200, 300, null, 400]));
 
-    const lap1 = new Lap(activity.startDate, activity.endDate, LapTypes.Autolap);
+    const lap1 = new Lap(activity.startDate, activity.endDate, 1, LapTypes.Autolap);
     lap1.addStat(new DataSpeedAvg(10));
     activity.addLap(lap1);
 
-    const lap2 = new Lap(activity.startDate, activity.endDate, LapTypes.Autolap);
+    const lap2 = new Lap(activity.startDate, activity.endDate, 2, LapTypes.Autolap);
     lap2.addStat(new DataSpeedAvg(15));
     activity.addLap(lap2);
 
@@ -255,8 +255,8 @@ describe('Activity Utilities', () => {
     );
 
     expect(activityJson.streams.length).toEqual(activity.getAllStreams().length + 1); // +1 because we add time stream
-    expect(activityJson.streams.find(s => s.type == DataTime.type)?.data.length).toEqual(
-      activityJson.streams.find(s => s.type == DataDistance.type)?.data.length
+    expect((activityJson.streams as StreamJSONInterface[]).find(s => s.type == DataTime.type)?.data.length).toEqual(
+      (activityJson.streams as StreamJSONInterface[]).find(s => s.type == DataDistance.type)?.data.length
     );
   });
 });

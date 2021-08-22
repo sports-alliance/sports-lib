@@ -6,6 +6,8 @@ import { LapJSONInterface } from './lap.json.interface';
 import { ActivityInterface } from '../activities/activity.interface';
 
 export interface LapInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
+  lapId: number;
+
   type: LapTypes;
 
   getStartIndex(activity: ActivityInterface): number;

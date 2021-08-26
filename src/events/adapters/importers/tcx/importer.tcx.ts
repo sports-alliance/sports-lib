@@ -33,6 +33,7 @@ import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
+import { FileType } from '../../file-type.enum';
 
 export class EventImporterTCX {
   /**
@@ -140,7 +141,7 @@ export class EventImporterTCX {
       });
 
       // Init the event
-      const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
+      const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate, FileType.TCX);
       activities.forEach(activity => event.addActivity(activity));
 
       EventUtilities.generateStatsForAll(event);

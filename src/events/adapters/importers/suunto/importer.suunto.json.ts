@@ -101,6 +101,7 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
+import { FileType } from '../../file-type.enum';
 
 export class EventImporterSuuntoJSON {
   static getFromJSONString(jsonString: string): Promise<EventInterface> {
@@ -336,7 +337,7 @@ export class EventImporterSuuntoJSON {
 
       // Create an event
       // @todo check if start and end date can derive from the json
-      const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate);
+      const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate, FileType.SUUNTO);
       activities.forEach(activity => event.addActivity(activity));
       // Populate the event stats from the Header Object // @todo maybe remove
       this.getStats(eventJSONObject.DeviceLog.Header).forEach(stat => {

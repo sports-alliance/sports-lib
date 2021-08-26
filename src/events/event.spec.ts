@@ -4,12 +4,13 @@ import { Activity } from '../activities/activity';
 import { Creator } from '../creators/creator';
 import { ActivityTypes } from '../activities/activity.types';
 import { ActivityJSONInterface } from '../activities/activity.json.interface';
+import { FileType } from './adapters/file-type.enum';
 
 describe('Event', () => {
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event('Test', new Date(0), new Date(200));
+    event = new Event('Test', new Date(0), new Date(200), FileType.FIT);
     event.description = 'Test';
   });
 

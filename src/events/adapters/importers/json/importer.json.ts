@@ -24,14 +24,15 @@ import { DeviceInterface } from '../../../../activities/devices/device.interface
 import { Device } from '../../../../activities/devices/device';
 import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataEvent } from '../../../../data/data.event';
+import { DataTime } from '../../../../data/data.time';
 
 export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
-    // debugger;
     const event = new Event(
       json.name,
       new Date(json.startDate),
       new Date(json.endDate),
+      json.srcFileType,
       json.privacy,
       json.description || undefined,
       json.isMerge || false
@@ -171,6 +172,24 @@ export class EventImporterJSON {
     json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
     });
+
+    if (Array.isArray(json.streams)) {
+      json.streams.forEach((streamJson: StreamJSONInterface) => {
+        if (streamJson.type === DataTime.type) {
+          return;
+        }
+        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
+      });
+    } else {
+      Object.keys(json.streams).forEach(streamKey => {
+        const streamJson: StreamJSONInterface = {
+          type: streamKey,
+          data: (json.streams as { [key: string]: number[] })[streamKey]
+        };
+        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
+      });
+    }
+
     json.intensityZones.forEach(intensityZonesJSON => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON));
     });

@@ -10,6 +10,7 @@ import { EventUtilities } from '../../../utilities/event.utilities';
 import { GXParser } from './gx-parser';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataTimerTime } from '../../../../data/data.timer-time';
+import { FileType } from '../../file-type.enum';
 
 export class EventImporterGPX {
   static getFromString(gpx: string, domParser?: any, name = 'New Event'): Promise<EventInterface> {
@@ -97,7 +98,7 @@ export class EventImporterGPX {
         return activities;
       }, []);
 
-      const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
+      const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate, FileType.GPX);
       activities.forEach(activity => {
         event.addActivity(activity);
       });

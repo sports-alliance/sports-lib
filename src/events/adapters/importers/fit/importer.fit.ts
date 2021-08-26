@@ -78,6 +78,7 @@ import { DataPoolLength } from '../../../../data/data.pool-length';
 import { DataActiveLengths } from '../../../../data/data-active-lengths';
 import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
+import { FileType } from '../../file-type.enum';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -276,7 +277,7 @@ export class EventImporterFIT {
 
         // Create an event
         // @todo check if the start and end date can derive from the file
-        const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
+        const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate, FileType.FIT);
         activities.forEach(activity => event.addActivity(activity));
         // debugger;
         EventUtilities.generateStatsForAll(event);

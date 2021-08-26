@@ -14,12 +14,14 @@ import { Lap } from '../../laps/lap';
 import { DataSpeedAvg } from '../../data/data.speed-avg';
 import { LapTypes } from '../../laps/lap.types';
 import { DataTime } from '../../data/data.time';
+import { FileType } from '../adapters/file-type.enum';
+import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event('New name', new Date(0), new Date(200));
+    event = new Event('New name', new Date(0), new Date(200), FileType.FIT);
     const activity = new Activity(
       new Date(0),
       new Date(new Date(0).getTime() + 10000),
@@ -220,7 +222,7 @@ describe('Activity Utilities', () => {
     expect(ActivityUtilities.getDataLength(activity.startDate, activity.endDate)).toBe(11);
   });
 
-  it('should provide serialization through toJSON', () => {
+  it('should provide serialization/deserialization through toJSON', () => {
     // Given
     const activity = event.getFirstActivity();
     activity.startDate = new Date();
@@ -238,25 +240,47 @@ describe('Activity Utilities', () => {
     lap2.addStat(new DataSpeedAvg(15));
     activity.addLap(lap2);
 
-    // When
-    const activityJson = activity.toJSON();
+    // When serialize
+    const activitySerialized = activity.toJSON();
 
     // Then
-    expect(activityJson.name).toBeNull();
-    expect(activityJson.startDate).toEqual(activity.startDate.getTime());
-    expect(activityJson.endDate).toEqual(activity.endDate.getTime());
-    expect(activityJson.powerMeter).toBeFalsy();
-    expect(activityJson.trainer).toBeFalsy();
-    expect(activityJson.laps.length).toEqual(activity.getLaps().length);
-    expect(activityJson.laps[0].startIndex).toEqual(0);
-    expect(activityJson.laps[0].endIndex).toEqual(3);
-    expect(activityJson.laps[0].stats[DataSpeedAvg.type]).toEqual(
+    expect(activitySerialized.name).toBeNull();
+    expect(activitySerialized.startDate).toEqual(activity.startDate.getTime());
+    expect(activitySerialized.endDate).toEqual(activity.endDate.getTime());
+    expect(activitySerialized.powerMeter).toBeFalsy();
+    expect(activitySerialized.trainer).toBeFalsy();
+    expect(activitySerialized.laps.length).toEqual(activity.getLaps().length);
+    expect(activitySerialized.laps[0].startIndex).toEqual(0);
+    expect(activitySerialized.laps[0].endIndex).toEqual(3);
+    expect(activitySerialized.laps[0].stats[DataSpeedAvg.type]).toEqual(
       (activity.getLaps()[0].getStat(DataSpeedAvg.type) as DataSpeedAvg).getValue()
     );
 
-    expect(activityJson.streams.length).toEqual(activity.getAllStreams().length + 1); // +1 because we add time stream
-    expect((activityJson.streams as StreamJSONInterface[]).find(s => s.type == DataTime.type)?.data.length).toEqual(
-      (activityJson.streams as StreamJSONInterface[]).find(s => s.type == DataDistance.type)?.data.length
+    expect(activitySerialized.streams.length).toEqual(activity.getAllStreams().length + 1); // +1 because we add time stream
+    expect(
+      (activitySerialized.streams as StreamJSONInterface[]).find(s => s.type == DataTime.type)?.data.length
+    ).toEqual(
+      (activitySerialized.streams as StreamJSONInterface[]).find(s => s.type == DataDistance.type)?.data.length
     );
+
+    // When deserialize
+    const activityDeserialized = EventImporterJSON.getActivityFromJSON(activitySerialized);
+
+    // Then
+    expect(activityDeserialized.startDate).toEqual(activity.startDate);
+    expect(activityDeserialized.endDate).toEqual(activity.endDate);
+    expect(activityDeserialized.hasPowerMeter()).toEqual(activity.hasPowerMeter());
+    expect(activityDeserialized.getLaps().length).toEqual(activity.getLaps().length);
+    expect((activityDeserialized.getLaps()[0].getStat(DataSpeedAvg.type) as DataSpeedAvg).getValue()).toEqual(
+      (activity.getLaps()[0].getStat(DataSpeedAvg.type) as DataSpeedAvg).getValue()
+    );
+    expect(activityDeserialized.getStream(DataDistance.type).getData().length).toEqual(
+      activity.getStream(DataDistance.type).getData().length
+    );
+    expect(activityDeserialized.getStream(DataDistance.type)).toEqual(activity.getStream(DataDistance.type));
+    expect(activityDeserialized.getStream(DataSpeed.type)).toEqual(activity.getStream(DataSpeed.type));
+    expect(activityDeserialized.getStream(DataHeartRate.type)).toEqual(activity.getStream(DataHeartRate.type));
+    expect(activityDeserialized.getStream(DataAltitude.type)).toEqual(activity.getStream(DataAltitude.type));
+    expect(activityDeserialized.hasStreamData(DataTime.type)).toBeFalsy();
   });
 });

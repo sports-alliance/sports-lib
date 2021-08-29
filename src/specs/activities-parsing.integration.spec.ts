@@ -39,6 +39,21 @@ import { DataSWOLF50m } from '../data/data.swolf-50m';
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
 
+  /*  it('Template: should parse FIT/TCX/GPX activity file', done => {
+    // Given FIT/TCX/GPX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
+    const path = __dirname + '/path/to/your/file.fit';
+    const buffer = fs.readFileSync(path);
+
+    // When
+    const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+    // Then
+    eventInterfacePromise.then((event: EventInterface) => {
+      const activity = event.getFirstActivity();
+      done();
+    });
+  });*/
+
   describe('Swimming', () => {
     describe('FIT', () => {
       it('should parse swimming pool FIT file (1)', done => {
@@ -76,6 +91,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((laps[0].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeTruthy();
           expect((laps[1].getStat(DataActiveLap.type) as DataActiveLap).getValue()).toBeFalsy();
           expect(laps[1].lapId).toEqual(2);
+
+          expect(activity.hasStreamData(DataSpeed.type)).toBeTruthy();
+          expect(activity.hasStreamData(DataHeartRate.type)).toBeTruthy();
+          expect(activity.hasStreamData(DataCadence.type)).toBeTruthy();
+          expect(activity.hasStreamData(DataDistance.type)).toBeTruthy();
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
@@ -154,6 +174,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(46.1);
           expect((activity.getStat(DataSWOLF50m.type) as DataSWOLF50m).getValue()).toEqual(92.2);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(984);
+
+          // TODO Check streams based on laps for swims performed in a pool
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),

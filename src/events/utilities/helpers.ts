@@ -175,15 +175,3 @@ export const medianFilter = (array: number[], window = 11) => {
   }
   return f;
 };
-
-/**
- * Apply median filter using a window size of % of arrqy size
- * @param array
- * @param windowPercentage
- */
-export const medianSelfFilter = (array: number[], windowPercentage = 0.4) => {
-  let window = Math.floor((array.length * windowPercentage) / 100);
-  // Ensure window is odd
-  window = window % 2 === 0 ? window + 1 : window;
-  return medianFilter(array, window);
-};

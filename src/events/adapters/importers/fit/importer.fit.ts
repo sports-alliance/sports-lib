@@ -66,7 +66,7 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
-import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import { EmptyEventLibError, ParsingEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
@@ -212,10 +212,17 @@ export class EventImporterFIT {
               }
             });
 
-          // Get the samples
-          const samples = fitDataObject.records.filter((record: any) => {
-            return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-          });
+          // Get the samples..
+          // Test if activity is lengths based
+          // Indeed when based on lengths, an activity do not provides samples under records object (e.g. Pool swimming activities)
+          // This is how Strava generate streams for this kind of activities
+          const isLengthsBased = this.isLengthsBased(sessionObject);
+
+          const samples = isLengthsBased
+            ? this.generateSamplesFromLengths(sessionObject)
+            : fitDataObject.records.filter((record: any) => {
+                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+              });
 
           FITSampleMapper.forEach(sampleMapping => {
             // @todo not sure if we need to check for number only ...
@@ -285,6 +292,73 @@ export class EventImporterFIT {
         resolve(event);
       });
     });
+  }
+
+  /**
+   * Tell if an activity is lengths based (e.g. Pool swimming activities)
+   * @param sessionObject
+   * @private
+   */
+  private static isLengthsBased(sessionObject: any): boolean {
+    return sessionObject.laps?.filter((lap: any) => lap.lengths?.length).length > 1;
+  }
+
+  /**
+   * Generate streams samples based on lengths on an activity
+   * When based on lengths, an activity do not provides sample under records object
+   * @param sessionObject
+   * @private
+   */
+  private static generateSamplesFromLengths(sessionObject: any): any[] {
+    if (!this.isLengthsBased(sessionObject)) {
+      throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
+    }
+
+    let samples: any[] = [];
+
+    // Loop on every laps to catch every lengths where data is (speed, cadence, hr, ...)
+    sessionObject.laps.forEach((lap: any) => {
+      // Loop on every laps
+      if (lap.lengths?.length) {
+        // Get length in meters from lap total distance and total number of lengths
+        // We will use it to generate the distance stream below
+        const lengthMeters = lap.total_distance / lap.lengths.length;
+
+        // For each length of every laps build the streams data we will need for a later use
+        lap.lengths.forEach((length: any) => {
+          // Resolve start/end date of current length
+          const lengthStartDate: Date = length.start_time;
+          const lengthEndDate = new Date(
+            lengthStartDate.getTime() + (length.total_timer_time || length.total_elapsed_time || 0) * 1000
+          );
+
+          if (lengthEndDate.getTime() <= lengthStartDate.getTime()) {
+            throw new ParsingEventLibError('length end date must be strictly superior to length start date');
+          }
+
+          // Generate a stream from length start date to end date filled by null values
+          let lengthStream = Array(ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate)).fill(null);
+
+          // Define distance step to be used for distance stream
+          const lengthStepSize = lengthMeters / (lengthStream.length - 1);
+
+          // Generate the length stream based on data we have on current length
+          lengthStream = lengthStream.map((value, index) => {
+            return {
+              timestamp: new Date(lengthStartDate.getTime() + index * 1000),
+              distance: (samples[samples.length - 1]?.distance || 0) + lengthStepSize * index,
+              speed: length.avg_speed || lap.avg_speed,
+              cadence: length.avg_cadence || length.avg_swimming_cadence || lap.avg_cadence,
+              heart_rate: length.avg_heart_rate || lap.avg_heart_rate
+            };
+          });
+
+          // Append to existing samples
+          samples = samples.concat(lengthStream);
+        });
+      }
+    });
+    return samples;
   }
 
   private static getDeviceInfos(deviceInfos: any[]): DeviceInterface[] {

@@ -34,6 +34,7 @@ import { DataInterface } from '../../../../data/data.interface';
 import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
+import { DataCadence } from '../../../../data/data.cadence';
 
 export class EventImporterTCX {
   /**
@@ -469,7 +470,7 @@ export class EventImporterTCX {
       }
 
       if (lapElement.getElementsByTagName('Cadence')[0]) {
-        lap.addStat(new DataCadenceAvg(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
+        lap.addStat(new DataCadence(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
       }
 
       // Fetching activity lap extensions according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema
@@ -503,9 +504,10 @@ export class EventImporterTCX {
         lap.addStat(new DataCadenceAvg(lapAvgRunCadence));
       }
 
-      // Try to set avg cadence from total cycle if not set
+      // Try to set avg cadence from total cycle if not set on swimming activities only
       if (
         isActiveLap &&
+        (activityType === ActivityTypes.Swimming || activityType === ActivityTypes.OpenWaterSwimming) &&
         !(lap.getStat(DataCadenceAvg.type) as DataInterface)?.getValue() &&
         timerTime &&
         lapTotalCycle

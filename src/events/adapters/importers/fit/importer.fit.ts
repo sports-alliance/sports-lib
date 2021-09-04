@@ -401,7 +401,7 @@ export class EventImporterFIT {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
     }
     // Add stats to the lap
-    this.getStatsFromObject(sessionLapObject, activity).forEach(stat => lap.addStat(stat));
+    this.getStatsFromObject(sessionLapObject, activity, true).forEach(stat => lap.addStat(stat));
     return lap;
   }
 
@@ -438,7 +438,7 @@ export class EventImporterFIT {
       this.getCreatorFromFitDataObject(fitDataObject)
     );
     // Set the activity stats
-    this.getStatsFromObject(sessionObject, activity).forEach(stat => activity.addStat(stat));
+    this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
     return activity;
   }
 
@@ -455,7 +455,7 @@ export class EventImporterFIT {
   }
 
   // @todo move this to a mapper
-  private static getStatsFromObject(object: any, activity: ActivityInterface): DataInterface[] {
+  private static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
     const stats = [];
 
     // TOTAL ELAPSED TIME on Object (activity, lap...)
@@ -506,10 +506,17 @@ export class EventImporterFIT {
       });
     }
 
-    // Append moving stat only if moving time has been detected
-    // We need that to compute total global moving time later
-    if (movingTime > 0) {
-      stats.push(new DataMovingTime(Math.round(movingTime * 100) / 100));
+    if (isLap) {
+      // In case we moved (distance > 0) & moving time is invalid, then set it to timer time value
+      if (object.total_distance > 0 && (!movingTime || movingTime > timerTime)) {
+        movingTime = timerTime;
+      }
+
+      // Append moving stat only if moving time has been detected
+      // We need that to compute total global moving time later
+      if (movingTime > 0) {
+        stats.push(new DataMovingTime(Math.round(movingTime * 100) / 100));
+      }
     }
 
     // Pause TIME on Object (activity, lap...)

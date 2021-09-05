@@ -1,7 +1,7 @@
 /*
 To update this list:
 - Download fit sdk here: https://developer.garmin.com/fit/download/
-- Run below python tool script on "c/"fit_example.h" file to extract most of new devices
+- Run below python tool script on "c/fit_example.h" file to extract most of new devices
 - Then rework the list manually with a git diff
 --------------
 import re

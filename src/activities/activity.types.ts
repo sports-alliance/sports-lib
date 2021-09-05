@@ -1034,7 +1034,7 @@ export class ActivityTypesMoving {
    */
   private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
     [ActivityTypeGroups.Running, 1.5 / 3.6], // kph to m/s
-    [ActivityTypeGroups.Cycling, 7 / 3.6] // kph to m/s
+    [ActivityTypeGroups.Cycling, 4 / 3.6] // kph to m/s
   ]);
 
   private static DEFAULT_MOVING_SPEED_THRESHOLD = 0.3; // m/s

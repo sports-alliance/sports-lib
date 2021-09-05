@@ -511,12 +511,12 @@ export class EventImporterFIT {
       if (object.total_distance > 0 && (!movingTime || movingTime > timerTime)) {
         movingTime = timerTime;
       }
+    }
 
-      // Append moving stat only if moving time has been detected
-      // We need that to compute total global moving time later
-      if (movingTime > 0) {
-        stats.push(new DataMovingTime(Math.round(movingTime * 100) / 100));
-      }
+    // Append moving stat only if moving time has been detected
+    // We need that to compute total global moving time later
+    if (movingTime > 0) {
+      stats.push(new DataMovingTime(Math.round(movingTime * 100) / 100));
     }
 
     // Pause TIME on Object (activity, lap...)

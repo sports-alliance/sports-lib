@@ -744,7 +744,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
           const elapsedTime = activity.getDuration().getValue();
 
-          SpecUtils.assertNearEqualTime(movingTime, '02:41:39');
+          SpecUtils.assertNearEqualTime(movingTime, '02:39:59');
           SpecUtils.assertNearEqualTime(timerTime, '02:41:39');
           SpecUtils.assertNearEqualTime(elapsedTime, '02:41:39');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);

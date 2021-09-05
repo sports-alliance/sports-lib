@@ -2183,11 +2183,11 @@ export class ActivityUtilities {
       // Get timer time...
       const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type))?.getValue();
 
-      // ... and compare with moving time and determine moving time validity
-      const lapsMovingTimeValid = movingTime > 0 && movingTime <= timerTime;
+      // ... and compare with moving time and determine if moving time is like "moving time"
+      const isMovingTimeAlike = movingTime > 0 && movingTime < timerTime;
 
       // If moving time from laps is not valid
-      if (!lapsMovingTimeValid && activity.hasStreamData(DataSpeed.type)) {
+      if (!isMovingTimeAlike && activity.hasStreamData(DataSpeed.type)) {
         // ...then re-compute moving time but using global records.
         movingTime = 0;
         const speedByDurationStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);

@@ -1875,5 +1875,21 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         }
       );
     });
+
+    it('should parse fit file with broken start/end dates', done => {
+      // Given
+      const path = __dirname + '/fixtures/others/broken-dates.fit';
+      const buffer = fs.readFileSync(path);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then(activity => {
+        expect(activity.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
+        expect(activity.endDate.toISOString()).toEqual('2017-03-20T19:20:24.000Z');
+        done();
+      });
+    });
   });
 });

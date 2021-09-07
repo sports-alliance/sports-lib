@@ -25,7 +25,7 @@ import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
 
-export const MAX_ACTIVITY_DURATION = 1 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 month
+export const MAX_ACTIVITY_DURATION = 30 * 24 * 60 * 60 * 1000; // 1 month
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [

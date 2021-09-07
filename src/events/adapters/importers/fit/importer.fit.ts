@@ -79,6 +79,7 @@ import { DataActiveLengths } from '../../../../data/data-active-lengths';
 import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
+import { LibError } from '../../../../errors/lib.error';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -411,12 +412,27 @@ export class EventImporterFIT {
   }
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
-    let startDate = sessionObject.start_time;
-    const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
-    let endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+    let startDate = null;
+    let endDate = null;
+    let totalElapsedTime = null;
+
+    if (sessionObject.start_time) {
+      startDate = sessionObject.start_time;
+      totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
+      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+    }
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
     if (
+      // S/E Dates missing
+      (!startDate || !endDate) &&
+      fitDataObject.sessions.length === 1 && // Has only one session
+      fitDataObject.records &&
+      fitDataObject.records.length // There are records to try to guess
+    ) {
+      startDate = fitDataObject.records[0].timestamp;
+      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
+    } else if (
       !totalElapsedTime && // Elapsed time missing
       fitDataObject.sessions.length === 1 && // Has only one session
       fitDataObject.records &&
@@ -424,27 +440,35 @@ export class EventImporterFIT {
     ) {
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (endDate < startDate) {
+    } else if (endDate && startDate && endDate < startDate) {
       // If for some reason this happens
       if (!fitDataObject.records || !fitDataObject.records[0]) {
         throw new Error('Cannot parse dates. Start date is greater than the end date');
       }
       startDate = fitDataObject.records[0].timestamp;
       endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
+    } else if (endDate && startDate && +endDate - +startDate > MAX_ACTIVITY_DURATION) {
       endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+    } else if (startDate && totalElapsedTime && !endDate) {
+      endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
+    } else if (endDate && totalElapsedTime && !startDate) {
+      startDate = new Date(endDate.getTime() - totalElapsedTime * 1000);
     }
 
-    // Create an activity
-    const activity = new Activity(
-      startDate,
-      endDate,
-      this.getActivityTypeFromSessionObject(sessionObject),
-      this.getCreatorFromFitDataObject(fitDataObject)
-    );
-    // Set the activity stats
-    this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
-    return activity;
+    if (!startDate || !endDate) {
+      throw new LibError('Cannot parse dates');
+    } else {
+      // Create an activity
+      const activity = new Activity(
+        startDate,
+        endDate,
+        this.getActivityTypeFromSessionObject(sessionObject),
+        this.getCreatorFromFitDataObject(fitDataObject)
+      );
+      // Set the activity stats
+      this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
+      return activity;
+    }
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {

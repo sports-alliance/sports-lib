@@ -1828,9 +1828,33 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
   });
 
   describe('Others', () => {
-    it('should reject parsing of broken fit file (empty)', done => {
+    it('should reject parsing of broken fit file (empty activities)', done => {
       // Given
-      const path = __dirname + '/fixtures/others/broken.fit';
+      const path = __dirname + '/fixtures/others/empty-activities.fit';
+      const buffer = fs.readFileSync(path);
+      const expectedErrorMessage = 'Empty fit file';
+      const expectedErrorClassName = 'EmptyEventLibError';
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then(
+        () => {
+          throw new Error('Should not be resolved...');
+        },
+        err => {
+          expect(err.constructor.name).toEqual(expectedErrorClassName);
+          expect(err.message).toEqual(expectedErrorMessage);
+          expect(err.event).toBeNull();
+          done();
+        }
+      );
+    });
+
+    it('should reject parsing of broken fit file (empty sessions)', done => {
+      // Given
+      const path = __dirname + '/fixtures/others/empty-sessions.fit';
       const buffer = fs.readFileSync(path);
       const expectedErrorMessage = 'Empty fit file';
       const expectedErrorClassName = 'EmptyEventLibError';

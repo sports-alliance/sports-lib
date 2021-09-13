@@ -38,6 +38,12 @@ export class EventImporterGPX {
 
         // Sort the points if its only an activity
         if (isActivity) {
+          // Filter samples having time data only for upcoming sort
+          samples = samples.filter(sample => {
+            return !!sample.time;
+          });
+
+          // Sort samples !
           samples.sort((sampleA: any, sampleB: any) => {
             return +new Date(sampleA.time[0]) - +new Date(sampleB.time[0]);
           });

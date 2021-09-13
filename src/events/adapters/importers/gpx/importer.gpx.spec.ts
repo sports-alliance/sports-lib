@@ -1,5 +1,5 @@
 import { EventImporterGPX } from './importer.gpx';
-import xmldom from 'xmldom';
+import xmldom from '@xmldom/xmldom';
 
 describe('importer.gpx', () => {
   it('parses gpx without name', async () => {

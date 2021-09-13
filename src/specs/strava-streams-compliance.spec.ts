@@ -16,7 +16,7 @@ import { DataTemperature } from '../data/data.temperature';
 import { DataPower } from '../data/data.power';
 import { DataDistance } from '../data/data.distance';
 import { DataGrade } from '../data/data.grade';
-import xmldom from 'xmldom';
+import xmldom from '@xmldom/xmldom';
 
 export const GRADE_TOLERANCE = 1.5;
 

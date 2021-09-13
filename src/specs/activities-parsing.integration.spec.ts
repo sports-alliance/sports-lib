@@ -30,7 +30,7 @@ import { DataActiveLengths } from '../data/data-active-lengths';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataTemperatureAvg } from '../data/data.temperature-avg';
 import { DataMovingTime } from '../data/data.moving-time';
-import xmldom from 'xmldom';
+import xmldom from '@xmldom/xmldom';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataActiveLap } from '../data/data-active-lap';
 import { DataSWOLF25m } from '../data/data.swolf-25m';

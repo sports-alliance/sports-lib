@@ -3,8 +3,8 @@ import { Event } from './event';
 import { Activity } from '../activities/activity';
 import { Creator } from '../creators/creator';
 import { ActivityTypes } from '../activities/activity.types';
-import { ActivityJSONInterface } from '../activities/activity.json.interface';
 import { FileType } from './adapters/file-type.enum';
+import { EventJSONInterface } from './event.json.interface';
 
 describe('Event', () => {
   let event: EventInterface;
@@ -53,17 +53,16 @@ describe('Event', () => {
     const activity = new Activity(d1, d2, ActivityTypes.Running, new Creator('Test'));
     event.addActivity(activity);
     event.setID('123');
-    jest.spyOn(activity, 'toJSON').mockImplementation(() => {
-      return <ActivityJSONInterface>{};
-    });
     expect(event.toJSON()).toEqual({
       name: 'Test',
       description: 'Test',
       isMerge: false,
       privacy: 'private',
+      srcFileType: FileType.FIT,
       stats: {},
+      activities: [activity.toJSON()],
       startDate: d1.getTime(),
       endDate: d2.getTime()
-    });
+    } as EventJSONInterface);
   });
 });

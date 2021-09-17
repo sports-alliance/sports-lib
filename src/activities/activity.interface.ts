@@ -13,6 +13,7 @@ import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
+import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 
 export interface ActivityInterface
   extends StatsClassInterface,
@@ -219,6 +220,11 @@ export interface ActivityInterface
    * Gets the stop all type of events
    */
   getStopAllEvents(): DataStopAllEvent[];
+
+  /**
+   * Gets all rider position change events
+   */
+  getAllRiderPositionChangeEvents(): DataRiderPositionChangeEvent[];
 
   /**
    * Generates a time stream based on the type of streams requested

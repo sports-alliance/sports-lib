@@ -24,6 +24,7 @@ import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
+import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 
 export const MAX_ACTIVITY_DURATION = 30 * 24 * 60 * 60 * 1000; // 1 month
 
@@ -262,6 +263,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   getStopAllEvents(): DataStopEvent[] {
     return this.events.filter(event => event instanceof DataStopAllEvent);
+  }
+
+  getAllRiderPositionChangeEvents(): DataRiderPositionChangeEvent[] {
+    return this.events.filter(event => event instanceof DataRiderPositionChangeEvent) as DataRiderPositionChangeEvent[];
   }
 
   addEvent(event: DataEvent): this {

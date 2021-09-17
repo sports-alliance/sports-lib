@@ -207,6 +207,8 @@ import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
 import { DataGradeSmooth } from '../../data/data.grade-smooth';
 import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
+import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
+import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -1114,6 +1116,20 @@ export class ActivityUtilities {
       );
       activity.addStream(leftPowerStream);
     }
+
+    // If left stance time stream available, then add the right balance stream too
+    if (activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
+      const rightStanceBalanceTimeStream = activity.createStream(DataStanceTimeBalanceRight.type);
+      const leftStanceBalanceTimeStream = activity.getStreamData(DataStanceTimeBalanceLeft.type);
+
+      const rightStanceBalanceTimeData = leftStanceBalanceTimeStream.map(leftBalance => {
+        return Number.isFinite(leftBalance) ? 100 - (leftBalance as number) : null;
+      });
+
+      rightStanceBalanceTimeStream.setData(rightStanceBalanceTimeData);
+      activity.addStream(rightStanceBalanceTimeStream);
+    }
+
     return activity;
   }
 
@@ -1510,6 +1526,20 @@ export class ActivityUtilities {
       if (endPosition && !activity.getStat(DataEndPosition.type)) {
         activity.addStat(new DataEndPosition(endPosition));
       }
+    }
+
+    // Assign L/R balance from streams if exists
+    if (!activity.getStat(DataRightBalance.type) && activity.hasStreamData(DataRightBalance.type)) {
+      const avgRightBalance = this.round(this.getDataTypeAvg(activity, DataRightBalance.type), 2);
+      activity.addStat(new DataRightBalance(avgRightBalance));
+      activity.addStat(new DataLeftBalance(100 - avgRightBalance));
+    }
+
+    // Assign L/R balance stance time from streams if exists
+    if (!activity.getStat(DataStanceTimeBalanceLeft.type) && activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
+      const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataStanceTimeBalanceLeft.type), 2);
+      activity.addStat(new DataStanceTimeBalanceLeft(avgStanceTimeLeftBalance));
+      activity.addStat(new DataStanceTimeBalanceRight(100 - avgStanceTimeLeftBalance));
     }
   }
 

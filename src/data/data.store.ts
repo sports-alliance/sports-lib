@@ -167,7 +167,7 @@ import { DataRPE } from './data.rpe';
 import { DataPowerRight } from './data.power-right';
 import { DataPowerLeft } from './data.power-left';
 import { DataStanceTime } from './data.stance-time';
-import { DataStanceTimeBalance } from './data.stance-time-balance';
+import { DataStanceTimeBalanceLeft } from './data-stance-time-balance-left';
 import { DataStepLength } from './data.step-length';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataDescription } from './data.description';
@@ -258,6 +258,7 @@ import {
 import { Data } from './data';
 import { DataMovingTime } from './data.moving-time';
 import { DataSWOLF50m } from './data.swolf-50m';
+import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
 
 /**
  * Only concrete classes no abstracts
@@ -461,7 +462,8 @@ export const DataStore: any = {
   DataPowerRight,
   DataRPE,
   DataStanceTime,
-  DataStanceTimeBalance,
+  DataStanceTimeBalanceRight,
+  DataStanceTimeBalanceLeft,
   DataStepLength,
   DataVerticalRatio,
   DataDescription,
@@ -549,7 +551,7 @@ export class DynamicDataLoader {
     DataPowerLeft.type,
     DataPowerRight.type,
     DataStanceTime.type,
-    DataStanceTimeBalance.type,
+    DataStanceTimeBalanceLeft.type,
     DataStepLength.type,
     DataVerticalRatio.type,
     DataGroundTime.type,
@@ -732,7 +734,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${dataType}\' is not in the store`);
+      throw new Error(`Class type of '${dataType}' is not in the store`);
     }
     return new DataStore[className](opts);
   }
@@ -742,7 +744,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${dataType}\' is not in the store`);
+      throw new Error(`Class type of '${dataType}' is not in the store`);
     }
     return DataStore[className];
   }

@@ -19,7 +19,7 @@ import { DataStrydSpeed } from '../../../../data/data.stryd-speed';
 import { DataRightBalance } from '../../../../data/data.right-balance';
 import { DataLeftBalance } from '../../../../data/data.left-balance';
 import { DataStanceTime } from '../../../../data/data.stance-time';
-import { DataStanceTimeBalance } from '../../../../data/data.stance-time-balance';
+import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
 import { DataStepLength } from '../../../../data/data.step-length';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataGroundTime } from '../../../../data/data.ground-time';
@@ -194,9 +194,9 @@ export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): n
     }
   },
   {
-    dataType: DataStanceTimeBalance.type,
+    dataType: DataStanceTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time_balance;
+      return sample.stance_time_balance; // The field sample refers to the balance on left leg
     }
   },
   {

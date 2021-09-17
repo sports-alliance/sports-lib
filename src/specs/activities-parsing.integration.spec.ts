@@ -35,6 +35,26 @@ import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataActiveLap } from '../data/data-active-lap';
 import { DataSWOLF25m } from '../data/data.swolf-25m';
 import { DataSWOLF50m } from '../data/data.swolf-50m';
+import { DataLeftBalance } from '../data/data.left-balance';
+import { DataRightBalance } from '../data/data.right-balance';
+import { DataPowerTorqueEffectivenessLeft } from '../data/data.power-torque-effectiveness-left';
+import { DataPowerTorqueEffectivenessRight } from '../data/data.power-torque-effectiveness-right';
+import { DataPowerPedalSmoothnessRight } from '../data/data.power-pedal-smoothness-right';
+import { DataPowerPedalSmoothnessLeft } from '../data/data.power-pedal-smoothness-left';
+import { DataPowerNormalized } from '../data/data.power-normalized';
+import { DataPowerIntensityFactor } from '../data/data.power-intensity-factor';
+import { DataPowerTrainingStressScore } from '../data/data.power-training-stress-score';
+import { DataPowerWork } from '../data/data.power-work';
+import { DataCyclingStandingTime } from '../data/data.cycling-standing-time';
+import { DataCyclingSeatedTime } from '../data/data.cycling-seated-time';
+import { DataVerticalOscillation } from '../data/data.vertical-oscillation';
+import { DataVerticalRatio } from '../data/data.vertical-ratio';
+import { DataStanceTime } from '../data/data.stance-time';
+import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
+import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
+import { DataAvgStrideLength } from '../data/data.avg-stride-length';
+import { DataTotalTrainingEffect } from '../data/data.total-training-effect';
+import { DataTotalAnaerobicEffect } from '../data/data.total-anaerobic-effect';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -699,6 +719,13 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             1
           );
 
+          expect((activity.getStat(DataStanceTimeBalanceLeft.type) as DataNumber).getValue()).toEqual(49.14);
+          expect((activity.getStat(DataStanceTimeBalanceRight.type) as DataNumber).getValue()).toEqual(50.86);
+          expect((activity.getStat(DataStanceTime.type) as DataNumber).getValue()).toEqual(206);
+          expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(94);
+          expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(7.9);
+          expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.2);
+
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
@@ -773,6 +800,16 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(128);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(145);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(177);
+
+          expect((activity.getStat(DataStanceTimeBalanceLeft.type) as DataNumber).getValue()).toEqual(49.91);
+          expect((activity.getStat(DataStanceTimeBalanceRight.type) as DataNumber).getValue()).toEqual(50.09);
+          expect((activity.getStat(DataStanceTime.type) as DataNumber).getValue()).toEqual(271.3);
+          expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(97.2);
+          expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(9.57);
+          expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
+
+          expect((activity.getStat(DataTotalTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
+          expect((activity.getStat(DataTotalAnaerobicEffect.type) as DataNumber).getValue()).toEqual(1.8);
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:51', 1);
 
@@ -1370,6 +1407,73 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(timerTime, '05:08:22');
           SpecUtils.assertNearEqualTime(elapsedTime, '07:26:55');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+          done();
+        });
+      });
+
+      it('should parse cycling FIT file (5)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7386755164 OR https://www.strava.com/activities/5952147686
+        const path = __dirname + '/fixtures/rides/fit/7386755164.fit';
+        const buffer = fs.readFileSync(path);
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.creator.name).toEqual('Garmin Edge 1030');
+
+          // Power extended stats
+          expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(51.45);
+          expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(48.55);
+          expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(80);
+          expect((activity.getStat(DataPowerTorqueEffectivenessRight.type) as DataNumber).getValue()).toEqual(76.5);
+          expect((activity.getStat(DataPowerPedalSmoothnessLeft.type) as DataNumber).getValue()).toEqual(22);
+          expect((activity.getStat(DataPowerPedalSmoothnessRight.type) as DataNumber).getValue()).toEqual(20.5);
+          expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toEqual(179);
+          expect((activity.getStat(DataPowerIntensityFactor.type) as DataNumber).getValue()).toEqual(0.786);
+          expect((activity.getStat(DataPowerTrainingStressScore.type) as DataNumber).getValue()).toEqual(105.4);
+          expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(832);
+
+          // Cycling dynamics: Power "position" stats
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataCyclingStandingTime.type) as DataNumber).getValue(),
+            '17:53',
+            0
+          );
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataCyclingSeatedTime.type) as DataNumber).getValue(),
+            '01:25:02',
+            0
+          );
+          done();
+        });
+      });
+
+      it('should parse cycling FIT file (6)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7445393868 OR https://www.strava.com/activities/5921768617
+        const path = __dirname + '/fixtures/rides/fit/7445393868.fit';
+        const buffer = fs.readFileSync(path);
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.creator.name).toEqual('Garmin Edge 1000');
+          expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(45.91);
+          expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(54.09);
+          expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(71);
+          expect((activity.getStat(DataPowerTorqueEffectivenessRight.type) as DataNumber).getValue()).toEqual(73);
+          expect((activity.getStat(DataPowerPedalSmoothnessLeft.type) as DataNumber).getValue()).toEqual(20);
+          expect((activity.getStat(DataPowerPedalSmoothnessRight.type) as DataNumber).getValue()).toEqual(21.5);
+          expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toEqual(147);
+          expect((activity.getStat(DataPowerIntensityFactor.type) as DataNumber).getValue()).toEqual(0.733);
+          expect((activity.getStat(DataPowerTrainingStressScore.type) as DataNumber).getValue()).toEqual(48.3);
+          expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(417);
+
           done();
         });
       });

@@ -80,6 +80,23 @@ import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
 import { LibError } from '../../../../errors/lib.error';
+import { DataPowerTorqueEffectivenessLeft } from '../../../../data/data.power-torque-effectiveness-left';
+import { DataPowerTorqueEffectivenessRight } from '../../../../data/data.power-torque-effectiveness-right';
+import { DataPowerPedalSmoothnessLeft } from '../../../../data/data.power-pedal-smoothness-left';
+import { DataPowerPedalSmoothnessRight } from '../../../../data/data.power-pedal-smoothness-right';
+import { DataPowerNormalized } from '../../../../data/data.power-normalized';
+import { DataPowerIntensityFactor } from '../../../../data/data.power-intensity-factor';
+import { DataPowerTrainingStressScore } from '../../../../data/data.power-training-stress-score';
+import { DataPowerWork } from '../../../../data/data.power-work';
+import { DataCyclingStandingTime } from '../../../../data/data.cycling-standing-time';
+import { DataCyclingSeatedTime } from '../../../../data/data.cycling-seated-time';
+import { RiderPosition } from '../../../../data/data.cycling-position';
+import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
+import { DataStanceTime } from '../../../../data/data.stance-time';
+import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
+import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
+import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
+import { DataTotalAnaerobicEffect } from '../../../../data/data.total-anaerobic-effect';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -196,25 +213,35 @@ export class EventImporterFIT {
           // Add the events
           fitDataObject.events
             .filter((activityEvent: FITFileActivityEvent) => {
-              return (
-                activityEvent.event === 'timer' &&
-                activityEvent.timestamp >= activity.startDate &&
-                activityEvent.timestamp <= activity.endDate
-              );
+              return activityEvent.timestamp >= activity.startDate && activityEvent.timestamp <= activity.endDate;
             })
             .forEach((activityEvent: FITFileActivityEvent) => {
-              switch (activityEvent.event_type) {
-                case 'start':
-                  activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
-                  break;
-                case 'stop':
-                  activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
-                  break;
-                case 'stop_all':
-                  activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
-                  break;
-                default:
-                  break;
+              if (activityEvent.event === 'timer') {
+                switch (activityEvent.event_type) {
+                  case 'start':
+                    activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
+                    break;
+                  case 'stop':
+                    activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
+                    break;
+                  case 'stop_all':
+                    activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
+                    break;
+                  default:
+                    break;
+                }
+              } else if (activityEvent.event === 'rider_position_change') {
+                const positionChange = activityEvent.data as RiderPosition;
+                if (
+                  positionChange === RiderPosition.SEATED ||
+                  positionChange === RiderPosition.STANDING ||
+                  positionChange === RiderPosition.TRANSITION_TO_SEATED ||
+                  positionChange === RiderPosition.TRANSITION_TO_STANDING
+                ) {
+                  activity.addEvent(
+                    new DataRiderPositionChangeEvent(activity.getDateIndex(activityEvent.timestamp), positionChange)
+                  );
+                }
               }
             });
 
@@ -590,6 +617,39 @@ export class EventImporterFIT {
     if (isNumberOrString(object.max_power)) {
       stats.push(new DataPowerMax(object.max_power));
     }
+
+    if (Number.isFinite(object.normalized_power)) {
+      stats.push(new DataPowerNormalized(object.normalized_power));
+    }
+
+    if (Number.isFinite(object.intensity_factor)) {
+      stats.push(new DataPowerIntensityFactor(object.intensity_factor));
+    }
+
+    if (Number.isFinite(object.training_stress_score)) {
+      stats.push(new DataPowerTrainingStressScore(object.training_stress_score));
+    }
+
+    if (Number.isFinite(object.total_work)) {
+      stats.push(new DataPowerWork(Math.round(object.total_work / 1000)));
+    }
+
+    if (Number.isFinite(object.avg_left_torque_effectiveness)) {
+      stats.push(new DataPowerTorqueEffectivenessLeft(object.avg_left_torque_effectiveness));
+    }
+
+    if (Number.isFinite(object.avg_right_torque_effectiveness)) {
+      stats.push(new DataPowerTorqueEffectivenessRight(object.avg_right_torque_effectiveness));
+    }
+
+    if (Number.isFinite(object.avg_left_pedal_smoothness)) {
+      stats.push(new DataPowerPedalSmoothnessLeft(object.avg_left_pedal_smoothness));
+    }
+
+    if (Number.isFinite(object.avg_right_pedal_smoothness)) {
+      stats.push(new DataPowerPedalSmoothnessRight(object.avg_right_pedal_smoothness));
+    }
+
     // Speed
     if (isNumberOrString(object.avg_speed)) {
       stats.push(new DataSpeedAvg(object.avg_speed));
@@ -632,10 +692,17 @@ export class EventImporterFIT {
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
     }
+
     // Total training effect
     if (isNumberOrString(object.total_training_effect)) {
       stats.push(new DataTotalTrainingEffect(object.total_training_effect));
     }
+
+    // Total training anaerobic effect
+    if (isNumberOrString(object.total_anaerobic_effect)) {
+      stats.push(new DataTotalAnaerobicEffect(object.total_anaerobic_effect));
+    }
+
     // Vo2Max
     if (isNumberOrString(object.estimated_vo2_max)) {
       stats.push(new DataVO2Max(object.estimated_vo2_max));
@@ -688,6 +755,33 @@ export class EventImporterFIT {
     // Description
     if (isNumberOrString(object.description)) {
       stats.push(new DataDescription(object.description));
+    }
+
+    // Cycling dynamics
+    if (Number.isFinite(object.time_standing)) {
+      const standingTime = Math.round(object.time_standing);
+      stats.push(new DataCyclingStandingTime(standingTime));
+
+      const seatedTime = Math.round(timerTime - standingTime);
+      stats.push(new DataCyclingSeatedTime(seatedTime));
+    }
+
+    // Running dynamics
+    if (Number.isFinite(object.avg_stance_time)) {
+      stats.push(new DataStanceTime(object.avg_stance_time));
+    }
+
+    if (Number.isFinite(object.avg_vertical_oscillation)) {
+      stats.push(new DataVerticalOscillation(object.avg_vertical_oscillation));
+    }
+
+    if (Number.isFinite(object.avg_vertical_ratio)) {
+      stats.push(new DataVerticalRatio(object.avg_vertical_ratio));
+    }
+
+    if (Number.isFinite(object.avg_step_length)) {
+      const avgStrideLengthMeters = object.avg_step_length / 1000;
+      stats.push(new DataAvgStrideLength(Math.round(avgStrideLengthMeters * 100) / 100));
     }
 
     return stats;

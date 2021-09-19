@@ -214,12 +214,12 @@ const KalmanFilter = require('kalmanjs');
 
 /* Configure filtering values */
 // Altitude stream
-const ALTITUDE_SPIKES_FILTER_WIN = 17;
+const ALTITUDE_SPIKES_FILTER_WIN = 3;
 
 // Grade stream
-const GRADE_PROCESS_NOISE = 0.1;
-const GRADE_MEASUREMENT_ERROR = 1.5;
-const GRADE_SPIKES_FILTER_WIN = 19;
+const GRADE_PROCESS_NOISE = 1;
+const GRADE_MEASUREMENT_ERROR = 2;
+const GRADE_SPIKES_FILTER_WIN = 3;
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();

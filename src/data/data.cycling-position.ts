@@ -10,8 +10,7 @@ export enum RiderPosition {
   TRANSITION_TO_STANDING = 3
 }
 
-export abstract class DataCyclingPosition extends DataCyclingDynamics {
-}
+export abstract class DataCyclingPosition extends DataCyclingDynamics {}
 
 // The below stats could be implemented based on RiderPosition events
 /*

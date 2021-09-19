@@ -2,7 +2,7 @@ import { isNumber } from '../helpers';
 
 export const CLAMP = 40;
 export const LOOK_AHEAD_IN_SECONDS = 2;
-export const LOOK_AHEAD_IN_METERS = 15;
+export const LOOK_AHEAD_IN_METERS = 12.5;
 
 export class GradeCalculator {
   public static computeGrade(
@@ -33,7 +33,6 @@ export class GradeCalculator {
   public static computeGradeStream(
     distanceStream: (number | null)[],
     altitudeStream: (number | null)[],
-    filterGrade = true, // TODO Remove
     basedOnAltitude = false,
     lookAhead = true,
     lookAheadInTime = false
@@ -41,17 +40,15 @@ export class GradeCalculator {
     const gradeStream = basedOnAltitude
       ? this.computeGradeStreamBasedOnAltitude(distanceStream, altitudeStream, lookAhead, lookAheadInTime)
       : this.computeGradeStreamBasedOnDistance(distanceStream, altitudeStream, lookAhead, lookAheadInTime);
-    /*    if (filterGrade) {
-      gradeStream = meanWindowSmoothing(gradeStream as number[], 5); // Remove spikes (Safe use as number[] since altitude+distance stream "repaired")
-      // gradeStream = new LowPassFilter(0.15).smoothArray(gradeStream); // Global smoothing
-      console.log(ActivityUtilities.getMax(gradeStream as number[]));
-      console.log(ActivityUtilities.getMin(gradeStream as number[]));
-    }*/
-    return gradeStream.map(v => (v === null ? null : Math.round(v * 10) / 10));
+    return gradeStream.map(v => (v === null ? null : Math.round(v * 100) / 100));
   }
 
   /**
    * Contains a 5th order equation which models the Strava GAP behavior described on picture "./fixture/strava_gap_modelization.png"
+   * ------------------------------------------------------------------------------------
+   * Get Real Strava Premium Grade Adjusted Pace on every strava activities with below gist
+   * https://gist.github.com/thomaschampagne/2781dce212d12cd048728e70ae791a30
+   * ------------------------------------------------------------------------------------
    *
    * This Strava GAP behavior is described by the below data
    * [{ grade: -34, speedFactor: 1.7 }, { grade: -32, speedFactor: 1.6 }, { grade: -30, speedFactor: 1.5 },

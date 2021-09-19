@@ -3,12 +3,14 @@ import { SportsLib } from '../index';
 import { EventInterface } from '../events/event.interface';
 import * as strava_3156040843 from './fixtures/streams/strava/runs/3156040843.json';
 import * as strava_3182900697 from './fixtures/streams/strava/runs/3182900697.json';
-import * as strava_343080886 from './fixtures/streams/strava/rides/343080886.json';
-import * as strava_3171438371_gpx from './fixtures/streams/strava/rides/3171472783.json';
-import * as strava_3171487458_tcx from './fixtures/streams/strava/rides/3171487458.json';
+import * as strava_2451375851 from './fixtures/streams/strava/runs/2451375851.json';
 import * as strava_3183465494 from './fixtures/streams/strava/runs/3183465494.json';
 import * as strava_3183490558 from './fixtures/streams/strava/runs/3183490558.json';
 import * as strava_2709634581 from './fixtures/streams/strava/runs/2709634581.json';
+import * as strava_343080886 from './fixtures/streams/strava/rides/343080886.json';
+import * as strava_5910143591 from './fixtures/streams/strava/rides/5910143591.json';
+import * as strava_3171438371_gpx from './fixtures/streams/strava/rides/3171472783.json';
+import * as strava_3171487458_tcx from './fixtures/streams/strava/rides/3171487458.json';
 import { DataAltitude } from '../data/data.altitude';
 import { DataHeartRate } from '../data/data.heart-rate';
 import { DataCadence } from '../data/data.cadence';
@@ -17,6 +19,7 @@ import { DataPower } from '../data/data.power';
 import { DataDistance } from '../data/data.distance';
 import { DataGrade } from '../data/data.grade';
 import xmldom from '@xmldom/xmldom';
+import { DataGradeSmooth } from '../data/data.grade-smooth';
 
 export const GRADE_TOLERANCE = 1.5;
 
@@ -34,6 +37,93 @@ describe('Strava stream compliance', () => {
     });
     return deltaSum / actualStream.length;
   };
+
+  describe('Compliance with garmin edge export (hilly activity)', () => {
+    // Given https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591 (FTP 201 w @ Weight 78.3 kg)
+    const path = __dirname + '/fixtures/rides/fit/7432332116.fit';
+    const buffer = fs.readFileSync(path);
+
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
+      // Given
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
+
+      const stravaGradeStream = clone(strava_5910143591.grade_smooth);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const streamData = <number[]>event
+          .getFirstActivity()
+          .getSquashedStreamData(DataGradeSmooth.type)
+          .map(value => (value === null ? null : Math.round(value * 10) / 10));
+        expect(stravaGradeStream.length).toEqual(streamData.length);
+        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        console.log(`Delta is ${deltaBetweenStreams}`);
+        expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
+        done();
+      });
+    });
+  });
+
+  describe('Compliance with garmin Forerunner 945 export (hilly activity)', () => {
+    // Given: https://connect.garmin.com/modern/activity/6782987395 OR https://www.strava.com/activities/2451375851
+    const path = __dirname + '/fixtures/runs/fit/6782987395.fit';
+    const buffer = fs.readFileSync(path);
+
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
+      // Given
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
+
+      const stravaGradeStream = clone(strava_2451375851.grade_smooth);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const streamData = <number[]>event
+          .getFirstActivity()
+          .getSquashedStreamData(DataGradeSmooth.type)
+          .map(value => (value === null ? null : Math.round(value * 10) / 10));
+        expect(stravaGradeStream.length).toEqual(streamData.length);
+        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        console.log(`Delta is ${deltaBetweenStreams}`);
+        expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
+        done();
+      });
+    });
+  });
+
+  /*
+  describe('Compliance with garmin fenix 6S Pro export (hilly activity)', () => {
+    // Given: https://connect.garmin.com/modern/activity/7428153946 OR https://www.strava.com/activities/5889573727
+    const path = __dirname + '/fixtures/runs/fit/7428153946.fit';
+    const buffer = fs.readFileSync(path);
+
+    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
+      // Given
+      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
+
+      const stravaGradeStream = clone(strava_5889573727.grade_smooth);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGradeSmooth.type);
+        // .map(value => (value === null ? null : Math.round(value * 10) / 10));
+        // expect(stravaGradeStream.length).toEqual(streamData.length);
+        const deltaBetweenStreams = averageDeltaBetweenStreams(stravaGradeStream, streamData);
+        console.log(`Delta is ${deltaBetweenStreams}`);
+        expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
+        done();
+      });
+    });
+  });
+*/
 
   describe('Compliance with suunto export (flat activity)', () => {
     // Given FIT Source (Suunto export): https://connect.garmin.com/modern/activity/6909950168 OR https://www.strava.com/activities/5423646653
@@ -201,7 +291,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getStreamData(DataGrade.type)
+          .getStreamData(DataGradeSmooth.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -342,7 +432,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getSquashedStreamData(DataGradeSmooth.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -614,7 +704,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getSquashedStreamData(DataGradeSmooth.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -887,7 +977,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getSquashedStreamData(DataGradeSmooth.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -1028,7 +1118,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getSquashedStreamData(DataGradeSmooth.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -1152,7 +1242,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getSquashedStreamData(DataGradeSmooth.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);

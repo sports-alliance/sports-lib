@@ -209,6 +209,7 @@ import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
+import { LowPassFilter } from './grade-calculator/low-pass-filter';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -763,7 +764,7 @@ export class ActivityUtilities {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 3) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 2) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
@@ -1186,6 +1187,7 @@ export class ActivityUtilities {
       // Remove spiky data altitudes
       this.shapeStream(DataAltitudeSmooth.type, activity, squashedAltData => {
         squashedAltData = medianFilter(squashedAltData, ALTITUDE_SPIKES_FILTER_WIN); // Remove data spikes
+        squashedAltData = LowPassFilter.smooth(squashedAltData) as number[]; // Remove too high altitude frequencies
         return squashedAltData;
       });
     }

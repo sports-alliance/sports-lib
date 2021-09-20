@@ -21,7 +21,7 @@ import { DataGrade } from '../data/data.grade';
 import xmldom from '@xmldom/xmldom';
 import { DataGradeSmooth } from '../data/data.grade-smooth';
 
-export const GRADE_TOLERANCE = 1.5;
+export const GRADE_TOLERANCE = 1.7;
 
 function clone(obj: any) {
   return JSON.parse(JSON.stringify(obj));

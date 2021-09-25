@@ -496,7 +496,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:56', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '05:12',
+            '05:19',
             1
           );
 
@@ -844,7 +844,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:15', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '06:32',
+            '07:12',
             1
           );
 
@@ -891,7 +891,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:38');
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '05:12',
+            '05:19',
             1
           );
 

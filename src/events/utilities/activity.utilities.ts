@@ -217,11 +217,6 @@ const KalmanFilter = require('kalmanjs');
 // Altitude stream
 const ALTITUDE_SPIKES_FILTER_WIN = 3;
 
-// Grade stream
-const GRADE_PROCESS_NOISE = 1;
-const GRADE_MEASUREMENT_ERROR = 2;
-const GRADE_SPIKES_FILTER_WIN = 3;
-
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
 
@@ -1040,16 +1035,15 @@ export class ActivityUtilities {
 
       // Smooth grade computed stream
       this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
-        // Predict proper grade values
-        const kf = new KalmanFilter({
-          R: GRADE_PROCESS_NOISE,
-          Q: GRADE_MEASUREMENT_ERROR ** 2 // Provide grade measurement error as variance (see https://www.kalmanfilter.net/kalman1d.html)
-        });
-        squashedGradeData = squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
+        // Grade stream
+        const GRADE_KALMAN_SMOOTHING = {
+          R: 0.01, // Grade model is stable
+          Q: 0.6 // Grade measurement which can be expected
+        };
 
-        // Filter spikes using a median filter (see https://www.mathworks.com/help/signal/ref/medfilt1.html)
-        squashedGradeData = medianFilter(squashedGradeData, GRADE_SPIKES_FILTER_WIN);
-        return squashedGradeData;
+        // Predict proper grade values
+        const kf = new KalmanFilter(GRADE_KALMAN_SMOOTHING);
+        return squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
       });
     }
 

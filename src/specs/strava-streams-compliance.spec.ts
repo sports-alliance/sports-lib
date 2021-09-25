@@ -17,9 +17,8 @@ import { DataCadence } from '../data/data.cadence';
 import { DataTemperature } from '../data/data.temperature';
 import { DataPower } from '../data/data.power';
 import { DataDistance } from '../data/data.distance';
-import { DataGrade } from '../data/data.grade';
 import xmldom from '@xmldom/xmldom';
-import { DataGradeSmooth } from '../data/data.grade-smooth';
+import { DataGrade } from '../data/data.grade';
 
 export const GRADE_TOLERANCE = 1.7;
 
@@ -56,7 +55,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGradeSmooth.type)
+          .getSquashedStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -85,7 +84,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGradeSmooth.type)
+          .getSquashedStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -113,7 +112,7 @@ describe('Strava stream compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGradeSmooth.type);
+        const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type);
         // .map(value => (value === null ? null : Math.round(value * 10) / 10));
         // expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(stravaGradeStream, streamData);
@@ -291,7 +290,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getStreamData(DataGradeSmooth.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -432,7 +431,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGradeSmooth.type)
+          .getSquashedStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -704,7 +703,7 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGradeSmooth.type)
+          .getSquashedStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         expect(stravaGradeStream.length).toEqual(streamData.length);
         const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -977,7 +976,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGradeSmooth.type)
+            .getSquashedStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -1118,7 +1117,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGradeSmooth.type)
+            .getSquashedStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
@@ -1242,7 +1241,7 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGradeSmooth.type)
+            .getSquashedStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaGradeStream.length).toEqual(streamData.length);
           const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);

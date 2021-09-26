@@ -59,13 +59,43 @@ import { DataTotalAnaerobicEffect } from '../data/data.total-anaerobic-effect';
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
 
-  /*  it('Template: should parse FIT/TCX/GPX activity file', done => {
-    // Given FIT/TCX/GPX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
-    const path = __dirname + '/path/to/your/file.fit';
+  /*  it('Template: should parse FIT activity file', done => {
+    // Given FIT Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
+    const path = '/path/to/your/file.fit';
     const buffer = fs.readFileSync(path);
 
     // When
     const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+    // Then
+    eventInterfacePromise.then((event: EventInterface) => {
+      const activity = event.getFirstActivity();
+      done();
+    });
+  });*/
+
+  /*  it('Template: should parse TCX activity file', done => {
+    // Given TCX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
+    const path = '/path/to/your/file.tcx';
+    const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+
+    // When
+    const eventInterfacePromise = SportsLib.importFromTCX(doc);
+
+    // Then
+    eventInterfacePromise.then((event: EventInterface) => {
+      const activity = event.getFirstActivity();
+      done();
+    });
+  });*/
+
+  /*  it('Template: should parse GPX activity file', done => {
+    // Given GPX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
+    const path = '/path/to/your/file.gpx';
+    const gpxString = fs.readFileSync(path).toString();
+
+    // When
+    const eventInterfacePromise = SportsLib.importFromGPX(gpxString, xmldom.DOMParser);
 
     // Then
     eventInterfacePromise.then((event: EventInterface) => {

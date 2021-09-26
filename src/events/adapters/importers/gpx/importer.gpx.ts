@@ -77,7 +77,7 @@ export class EventImporterGPX {
 
         // Setup sample info which could be use when getting sample values
         const hasPowerMeter =
-          samples.findIndex(sample => sample.extensions.find((ext: any) => ext.power?.length)) !== -1;
+          samples.findIndex(sample => sample.extensions?.find((ext: any) => ext.power?.length)) !== -1;
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
         // Match

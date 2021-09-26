@@ -74,10 +74,16 @@ export class EventImporterGPX {
           new Creator(parsedGPX.creator, parsedGPX.version),
           activityName
         );
+
+        // Setup sample info which could be use when getting sample values
+        const hasPowerMeter =
+          samples.findIndex(sample => sample.extensions.find((ext: any) => ext.power?.length)) !== -1;
+        const samplesInfo = { hasPowerMeter: hasPowerMeter };
+
         // Match
         GPXSampleMapper.forEach(sampleMapping => {
           const subjectSamples = <any[]>(
-            samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)))
+            samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
           );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
@@ -85,7 +91,7 @@ export class EventImporterGPX {
               activity.addDataToStream(
                 sampleMapping.dataType,
                 isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000),
-                <number>sampleMapping.getSampleValue(subjectSample)
+                <number>sampleMapping.getSampleValue(subjectSample, samplesInfo)
               );
             });
           }

@@ -10,8 +10,12 @@ import { DataVerticalSpeed } from '../../../../data/data.vertical-speed';
 import { DataPower } from '../../../../data/data.power';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { isNumberOrString } from '../../../utilities/helpers';
+import { SampleInfo } from '../sample-info.interface';
 
-export const GPXSampleMapper: { dataType: string; getSampleValue(sample: any): number | null }[] = [
+export const GPXSampleMapper: {
+  dataType: string;
+  getSampleValue(sample: any, sampleInfo?: SampleInfo): number | null;
+}[] = [
   {
     dataType: DataLatitudeDegrees.type,
     getSampleValue: sample => Number(sample.lat)
@@ -134,14 +138,16 @@ export const GPXSampleMapper: { dataType: string; getSampleValue(sample: any): n
   },
   {
     dataType: DataPower.type,
-    getSampleValue: sample => {
-      if (!sample.extensions || !sample.extensions.length) {
-        return null;
+    getSampleValue: (sample: any, sampleInfo?: SampleInfo) => {
+      let watts = null;
+      if (sample.extensions?.length && sample.extensions[0].power && isNumberOrString(sample.extensions[0].power[0])) {
+        watts = Number(sample.extensions[0].power[0]);
       }
-      if (sample.extensions[0].power && isNumberOrString(sample.extensions[0].power[0])) {
-        return Number(sample.extensions[0].power[0]);
-      }
-      return null;
+
+      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
+      // Just set watts to 0 when this happen
+      // Case example: ride file "7555261629.gpx"  from integration tests
+      return sampleInfo?.hasPowerMeter ? watts || 0 : null;
     }
   }
 ];

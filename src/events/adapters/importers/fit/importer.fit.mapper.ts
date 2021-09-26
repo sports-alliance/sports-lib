@@ -28,8 +28,12 @@ import {
   ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
   GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES
 } from '../../../../constants/constants';
+import { SampleInfo } from '../sample-info.interface';
 
-export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): number | null }[] = [
+export const FITSampleMapper: {
+  dataType: string;
+  getSampleValue(sample: any, sampleInfo?: SampleInfo): number | null;
+}[] = [
   {
     dataType: DataLatitudeDegrees.type,
     getSampleValue: (sample: any) => {
@@ -117,8 +121,12 @@ export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): n
   },
   {
     dataType: DataPower.type,
-    getSampleValue: (sample: any) => {
-      return isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
+    getSampleValue: (sample: any, sampleInfo?: SampleInfo) => {
+      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
+      // Just set watts to 0 when this happen
+      // Case example: ride file "7432332116.fit"  from integration tests
+      const watts = isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
+      return sampleInfo?.hasPowerMeter ? watts || 0 : null;
     }
   },
   {

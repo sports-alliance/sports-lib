@@ -119,10 +119,17 @@ export class EventImporterTCX {
           );
         }
 
+        // Setup sample info which could be use when getting sample values
+        const hasPowerMeter =
+          trackPointElements.findIndex(trackPointElement =>
+            Number.isFinite(findTrackPointExtensionValue(trackPointElement.childNodes, 'Watts'))
+          ) !== -1;
+        const samplesInfo = { hasPowerMeter: hasPowerMeter };
+
         TCXSampleMapper.forEach(sampleMapping => {
           // Should check the children
           const subjectTrackPointElements = trackPointElements.filter((element: any) => {
-            return isNumber(sampleMapping.getSampleValue(element));
+            return isNumber(sampleMapping.getSampleValue(element, samplesInfo));
           });
           if (subjectTrackPointElements.length) {
             if (activity.hasStreamData(sampleMapping.dataType)) {
@@ -133,7 +140,7 @@ export class EventImporterTCX {
               activity.addDataToStream(
                 sampleMapping.dataType,
                 new Date(subjectTrackPointElement.getElementsByTagName('Time')[0].textContent),
-                <number>sampleMapping.getSampleValue(subjectTrackPointElement)
+                <number>sampleMapping.getSampleValue(subjectTrackPointElement, samplesInfo)
               );
             });
           }

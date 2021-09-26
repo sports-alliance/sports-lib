@@ -792,8 +792,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Treadmill);
 
-          expect(activity.hasPowerMeter()).toEqual(true);
-          expect(activity.isTrainer()).toEqual(true);
+          expect(activity.hasPowerMeter()).toBeTruthy();
+          expect(activity.isTrainer()).toBeTruthy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(10630.37);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(82);
@@ -979,7 +979,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.IndoorRunning);
 
-          expect(activity.isTrainer()).toEqual(true);
+          expect(activity.isTrainer()).toBeTruthy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(10630.37);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(82);
@@ -1105,8 +1105,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
-          expect(activity.hasPowerMeter()).toEqual(false);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+          expect(activity.isTrainer()).toBeFalsy();
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:27', 1);
           SpecUtils.assertNearEqualTime(
@@ -1182,8 +1182,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
-          expect(activity.hasPowerMeter()).toEqual(false);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+          expect(activity.isTrainer()).toBeFalsy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(16772, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(579, 0);
@@ -1231,8 +1231,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
-          expect(activity.hasPowerMeter()).toEqual(false);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+          expect(activity.isTrainer()).toBeFalsy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(5113, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(516, 0);
@@ -1282,8 +1282,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Garmin Edge 1000');
           expect(activity.generateTimeStream([DataDistance.type]).getData(true).length).toEqual(expectedSamplesLength);
-          expect(activity.hasPowerMeter()).toEqual(false);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+          expect(activity.isTrainer()).toBeFalsy();
           expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -1338,6 +1338,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
           expect(activity.type).toEqual(ActivityTypes.Cycling);
           expect(activity.creator.name).toEqual('Garmin Edge 810');
+          expect(activity.hasPowerMeter()).toBeFalsy();
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(141944.2);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(2052);
           expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toEqual(2028);
@@ -1373,6 +1374,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Garmin Edge 800');
+          expect(activity.hasPowerMeter()).toBeFalsy();
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
@@ -1463,6 +1465,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Garmin Edge 1000');
+          expect(activity.hasPowerMeter()).toBeTruthy();
           expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(45.91);
           expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(54.09);
           expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(71);
@@ -1473,6 +1476,38 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataPowerIntensityFactor.type) as DataNumber).getValue()).toEqual(0.733);
           expect((activity.getStat(DataPowerTrainingStressScore.type) as DataNumber).getValue()).toEqual(48.3);
           expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(417);
+
+          done();
+        });
+      });
+
+      it('should parse cycling FIT file (7)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591
+        const path = __dirname + '/fixtures/rides/fit/7432332116.fit';
+        const buffer = fs.readFileSync(path);
+        const expectedSamplesLength = 10063;
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.creator.name).toEqual('Garmin Edge 1000');
+          expect(activity.hasPowerMeter()).toBeTruthy();
+
+          expect((activity.getStat(DataPowerAvg.type) as DataNumber).getValue()).toEqual(152);
+          expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toEqual(172);
+          expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(564);
+
+          expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
           done();
         });
@@ -1493,8 +1528,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Unknown');
           expect(activity.generateTimeStream([DataDistance.type]).getData(true).length).toEqual(expectedSamplesLength);
-          expect(activity.hasPowerMeter()).toEqual(true);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeTruthy();
+          expect(activity.isTrainer()).toBeFalsy();
           expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
@@ -1590,8 +1625,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Cycling);
-          expect(activity.hasPowerMeter()).toEqual(false);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+          expect(activity.isTrainer()).toBeFalsy();
 
           SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 685, 0);
           SpecUtils.assertEqual((activity.getStat(DataDescent.type) as DataNumber).getValue(), 670);
@@ -1618,6 +1653,39 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         });
       });
 
+      it('should parse cycling TCX file (3)', done => {
+        // Given TCX Source: https://connect.garmin.com/modern/activity/7555170032 or https://www.strava.com/activities/6020442882
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591
+        const path = __dirname + '/fixtures/rides/tcx/7555170032.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+        const expectedSamplesLength = 10063;
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.creator.name).toEqual('Garmin Edge 1000');
+          expect(activity.hasPowerMeter()).toBeTruthy();
+
+          expect((activity.getStat(DataPowerAvg.type) as DataNumber).getValue()).toBeCloseTo(152, 0);
+          expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171, 0);
+          expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(564);
+
+          expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+
+          done();
+        });
+      });
+
       it('should parse virtual cycling TCX file (1)', done => {
         // Given https://connect.garmin.com/modern/activity/6823905801 OR https://www.strava.com/activities/5340305665
         const path = __dirname + '/fixtures/rides/tcx/6823905801.tcx';
@@ -1629,8 +1697,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
-          expect(activity.hasPowerMeter()).toEqual(true);
-          expect(activity.isTrainer()).toEqual(false);
+          expect(activity.hasPowerMeter()).toBeTruthy();
+          expect(activity.isTrainer()).toBeFalsy();
 
           // Verify global activity stats
           expect(activity.type).toEqual(ActivityTypes.Cycling);
@@ -1678,6 +1746,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Cycling);
+          expect(activity.hasPowerMeter()).toBeFalsy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(41829, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(672, 0);
@@ -1714,8 +1783,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         // Then
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
-
           expect(activity.type).toEqual(ActivityTypes.Cycling);
+          expect(activity.hasPowerMeter()).toBeFalsy();
+
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(141975, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(2052, 0);
           expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(2034, 0);
@@ -1775,6 +1845,38 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         });
       });
 
+      it('should parse cycling GPX file (4)', done => {
+        // Given GPX Source: https://connect.garmin.com/modern/activity/7555261629 or https://www.strava.com/activities/6020530554
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591
+        const path = __dirname + '/fixtures/rides/gpx/7555261629.gpx';
+        const gpxString = fs.readFileSync(path).toString();
+        const expectedSamplesLength = 10063;
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromGPX(gpxString, xmldom.DOMParser);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.hasPowerMeter()).toBeTruthy();
+
+          expect((activity.getStat(DataPowerAvg.type) as DataNumber).getValue()).toBeCloseTo(152, 0);
+          expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171, 0);
+          expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(564);
+
+          expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+
+          done();
+        });
+      });
+
       it('should parse virtual cycling GPX file (1)', done => {
         // Given GPX Source: https://connect.garmin.com/modern/activity/6909869014 OR https://www.strava.com/activities/5423473093
         // Given FIT Source: https://connect.garmin.com/modern/activity/1137672073 OR https://www.strava.com/activities/553573871
@@ -1788,8 +1890,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.VirtualCycling);
-          expect(activity.hasPowerMeter()).toEqual(true);
-          expect(activity.isTrainer()).toEqual(true);
+          expect(activity.hasPowerMeter()).toBeTruthy();
+          expect(activity.isTrainer()).toBeTruthy();
 
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(28620, 0);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(271, 0);

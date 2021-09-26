@@ -248,7 +248,7 @@ export class EventImporterFIT {
           // Get the samples..
           // Test if activity is lengths based
           // Indeed when based on lengths, an activity do not provides samples under records object (e.g. Pool swimming activities)
-          // This is how Strava generate streams for this kind of activities
+          // Note: this is how Strava generate streams for this kind of activities
           const isLengthsBased = this.isLengthsBased(sessionObject);
 
           const samples = isLengthsBased
@@ -257,10 +257,19 @@ export class EventImporterFIT {
                 return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
               });
 
+          // Setup sample info which could be use when getting sample values
+          const hasPowerMeter =
+            samples.findIndex((sample: any) =>
+              Number.isFinite(
+                isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power
+              )
+            ) !== -1;
+          const samplesInfo = { hasPowerMeter: hasPowerMeter };
+
           FITSampleMapper.forEach(sampleMapping => {
             // @todo not sure if we need to check for number only ...
             const subjectSamples = <any[]>(
-              samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample)))
+              samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample, samplesInfo)))
             );
             if (subjectSamples.length) {
               // When we create a stream here it has the length of the activity elapsed time (end-start) filled with nulls.
@@ -270,7 +279,7 @@ export class EventImporterFIT {
                 activity.addDataToStream(
                   sampleMapping.dataType,
                   new Date(subjectSample.timestamp),
-                  <number>sampleMapping.getSampleValue(subjectSample)
+                  <number>sampleMapping.getSampleValue(subjectSample, samplesInfo)
                 );
               });
             }

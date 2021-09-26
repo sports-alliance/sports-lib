@@ -210,6 +210,7 @@ import { DataSWOLF50m } from '../../data/data.swolf-50m';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
+import { DataPowerNormalized } from '../../data/data.power-normalized';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -1284,6 +1285,48 @@ export class ActivityUtilities {
     return this.round((secondsPerMeter + strokesPerMeter) * poolLength, 1);
   }
 
+  /**
+   * Andrew Coggan weighted power compute method
+   * 1) starting at the 30s mark, calculate a rolling 30 s average (of the preceding time points, obviously).
+   * 2) raise all the values obtained in step #1 to the 4th power.
+   * 3) take the average of all of the values obtained in step #2.
+   * 4) take the 4th root of the value obtained in step #3.
+   * (And when you get tired of exporting every file to, e.g., Excel to perform such calculations, help develop a program
+   * like WKO+ to do the work for you <g>.)
+   */
+  private static computeNormalizedPower(powerArray: number[], timeArray: number[]): number {
+    const WEIGHTED_WATTS_TIME_BUFFER = 30; // Seconds
+
+    const poweredWeightedWatts = [];
+
+    let accumulatedTimeInBuffer = 0; // seconds
+    let wattsInBuffer = [];
+
+    for (const [index, current] of timeArray.entries()) {
+      if (index === 0) {
+        continue;
+      }
+
+      wattsInBuffer.push(powerArray[index]);
+
+      if (accumulatedTimeInBuffer >= WEIGHTED_WATTS_TIME_BUFFER) {
+        const meanWatts = this.getAverage(wattsInBuffer);
+
+        if (Number.isFinite(meanWatts)) {
+          poweredWeightedWatts.push(Math.pow(meanWatts, 4));
+        }
+
+        // Reset
+        accumulatedTimeInBuffer = 0;
+        wattsInBuffer = [];
+      }
+
+      accumulatedTimeInBuffer += current - timeArray[index - 1];
+    }
+
+    return Math.sqrt(Math.sqrt(this.getAverage(poweredWeightedWatts)));
+  }
+
   private static getActivityDataTypeGainOrLoss(
     activity: ActivityInterface,
     streamType: string,
@@ -1461,6 +1504,15 @@ export class ActivityUtilities {
     // Power AVG
     if (!activity.getStat(DataPowerAvg.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
+    }
+
+    // Power Normalized
+    if (!activity.getStat(DataPowerNormalized.type) && activity.hasStreamData(DataPower.type)) {
+      const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
+      const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
+      const powerStream = powerDurationStream.map(item => item.value) as number[];
+      const normalizedPower = this.computeNormalizedPower(powerStream, timeStream);
+      activity.addStat(new DataPowerNormalized(normalizedPower));
     }
 
     // Air AirPower Max

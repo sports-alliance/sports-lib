@@ -4,6 +4,6 @@ export class DataPeakEPOC extends DataEPOC {
   static type = 'Peak EPOC';
 
   getDisplayValue() {
-    return this.value.toFixed(1)
+    return this.value.toFixed(1);
   }
 }

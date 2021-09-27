@@ -16,10 +16,10 @@ export class DataPosition extends DataBare {
   }
 
   getDisplayValue(): string {
-    return `${this.getValue().latitudeDegrees.toString()}, ${this.getValue().longitudeDegrees.toString()}`
+    return `${this.getValue().latitudeDegrees.toString()}, ${this.getValue().longitudeDegrees.toString()}`;
   }
 
   isValueTypeValid(value: any): boolean {
-    return isNumber(value.longitudeDegrees) && isNumber(value.latitudeDegrees)
+    return isNumber(value.longitudeDegrees) && isNumber(value.latitudeDegrees);
   }
 }

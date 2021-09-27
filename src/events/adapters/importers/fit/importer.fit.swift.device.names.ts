@@ -1,3 +1,3 @@
 export const ImporterZwiftDeviceNames: { [index: number]: string } = {
-  0: 'Zwift',
+  0: 'Zwift'
 };

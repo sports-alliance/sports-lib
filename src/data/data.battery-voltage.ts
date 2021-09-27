@@ -5,6 +5,6 @@ export class DataBatteryVoltage extends DataNumber {
   static unit = 'V';
 
   getDisplayValue() {
-    return this.getValue().toFixed(3)
+    return this.getValue().toFixed(3);
   }
 }

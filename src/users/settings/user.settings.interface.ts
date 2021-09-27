@@ -9,13 +9,13 @@ import { UserSummariesSettingsInterface } from './user.summaries.settings.interf
 import { UserMyTracksSettingsInterface } from './user.my-tracks.settings.interface';
 
 export interface UserSettingsInterface {
-  mapSettings?: UserMapSettingsInterface,
-  chartSettings?: UserChartSettingsInterface,
-  myTracksSettings?: UserMyTracksSettingsInterface,
-  appSettings?: UserAppSettingsInterface,
-  unitSettings?: UserUnitSettingsInterface,
-  statsSettings?: UserStatsSettingsInterface,
-  dashboardSettings?: UserDashboardSettingsInterface,
-  summariesSettings?: UserSummariesSettingsInterface,
-  exportToCSVSettings?: UserExportToCsvSettingsInterface
+  mapSettings?: UserMapSettingsInterface;
+  chartSettings?: UserChartSettingsInterface;
+  myTracksSettings?: UserMyTracksSettingsInterface;
+  appSettings?: UserAppSettingsInterface;
+  unitSettings?: UserUnitSettingsInterface;
+  statsSettings?: UserStatsSettingsInterface;
+  dashboardSettings?: UserDashboardSettingsInterface;
+  summariesSettings?: UserSummariesSettingsInterface;
+  exportToCSVSettings?: UserExportToCsvSettingsInterface;
 }

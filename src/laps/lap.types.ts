@@ -1,9 +1,13 @@
 export class LapTypesHelper {
   static getLapTypesAsUniqueArray(): string[] {
-    return Array.from(new Set(Object.keys(LapTypes).reduce((array: string[], key: string) => {
-      array.push(LapTypes[<keyof typeof LapTypes>key]); // Important get the key via the enum else it will be chaos
-      return array;
-    }, [])));
+    return Array.from(
+      new Set(
+        Object.keys(LapTypes).reduce((array: string[], key: string) => {
+          array.push(LapTypes[<keyof typeof LapTypes>key]); // Important get the key via the enum else it will be chaos
+          return array;
+        }, [])
+      )
+    );
   }
 }
 
@@ -48,6 +52,5 @@ export enum LapTypes {
   'fitness_equipment' = 'Fitness equipment',
   'fitness equipment' = 'Fitness equipment',
   'Fitness equipment' = 'Fitness equipment',
-  'FitnessEquipment' = 'Fitness equipment',
-
+  'FitnessEquipment' = 'Fitness equipment'
 }

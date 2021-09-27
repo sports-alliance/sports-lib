@@ -2,7 +2,6 @@ import { DataInterface, UnitSystem } from './data.interface';
 import { DataTemperature } from './data.temperature';
 
 describe('Data', () => {
-
   let data: DataInterface;
 
   beforeEach(() => {
@@ -21,16 +20,13 @@ describe('Data', () => {
     expect(data.getUnit()).toBe('°C');
   });
 
-
   it('should get the unit system correctly', () => {
     expect(data.getUnitSystem()).toBe(UnitSystem.Metric);
   });
 
-
   it('should export correctly to JSON', () => {
     expect(data.toJSON()).toEqual({
-      'Temperature': 60,
+      Temperature: 60
     });
   });
-
 });

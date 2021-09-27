@@ -5,7 +5,6 @@ import { LapTypes } from './lap.types';
 import { LapJSONInterface } from './lap.json.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
-
   public type: LapTypes;
 
   constructor(startDate: Date, endDate: Date, type: LapTypes) {

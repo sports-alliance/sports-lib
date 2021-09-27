@@ -4,7 +4,7 @@ import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataJSONInterface } from '../data/data.json.interface';
 
 export interface ActivityJSONInterface {
-  id?: string,
+  id?: string;
   startDate: number;
   endDate: number;
   type: string;
@@ -12,5 +12,5 @@ export interface ActivityJSONInterface {
   laps: LapJSONInterface[];
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];
-  events: DataJSONInterface[]
+  events: DataJSONInterface[];
 }

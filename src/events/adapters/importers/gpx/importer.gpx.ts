@@ -10,11 +10,8 @@ import { EventUtilities } from '../../../utilities/event.utilities';
 import { GXParser } from './gx-parser';
 
 export class EventImporterGPX {
-
   static getFromString(gpx: string, domParser?: Function, name = 'New Event'): Promise<EventInterface> {
-
     return new Promise((resolve, reject) => {
-
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte;
@@ -39,7 +36,7 @@ export class EventImporterGPX {
         // Sort the points if its only an activity
         if (isActivity) {
           samples.sort((sampleA: any, sampleB: any) => {
-            return +(new Date(sampleA.time[0])) - +(new Date(sampleB.time[0]));
+            return +new Date(sampleA.time[0]) - +new Date(sampleB.time[0]);
           });
         }
 
@@ -48,9 +45,9 @@ export class EventImporterGPX {
         // Create an activity. Set the dates depending on route etc
         const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
         // @todo for routes add a seperate parser
-        const endDate = isActivity ?
-          new Date(samples[samples.length - 1].time[0]) :
-          new Date(startDate.getTime() + samples.length * 1000);
+        const endDate = isActivity
+          ? new Date(samples[samples.length - 1].time[0])
+          : new Date(startDate.getTime() + samples.length * 1000);
 
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
@@ -62,24 +59,27 @@ export class EventImporterGPX {
             activityType = typeFound;
           }
         }
-        const activityName =  trackOrRoute.name?.[0] || '';
+        const activityName = trackOrRoute.name?.[0] || '';
         const activity = new Activity(
           startDate,
           endDate,
           activityType,
-          new Creator(
-            parsedGPX.creator,
-            parsedGPX.version,
-          ),
+          new Creator(parsedGPX.creator, parsedGPX.version),
           activityName
         );
         // Match
-        GPXSampleMapper.forEach((sampleMapping) => {
-          const subjectSamples = <any[]>samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)));
+        GPXSampleMapper.forEach(sampleMapping => {
+          const subjectSamples = <any[]>(
+            samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample)))
+          );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
             subjectSamples.forEach((subjectSample, index) => {
-              activity.addDataToStream(sampleMapping.dataType, isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000), <number>sampleMapping.getSampleValue(subjectSample));
+              activity.addDataToStream(
+                sampleMapping.dataType,
+                isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000),
+                <number>sampleMapping.getSampleValue(subjectSample)
+              );
             });
           }
         });
@@ -89,7 +89,7 @@ export class EventImporterGPX {
       }, []);
 
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate);
-      activities.forEach((activity) => {
+      activities.forEach(activity => {
         event.addActivity(activity);
       });
       // debugger;
@@ -99,6 +99,3 @@ export class EventImporterGPX {
     });
   }
 }
-
-
-

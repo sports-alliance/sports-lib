@@ -1,28 +1,35 @@
 import {
   DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour, DataSpeedKnots, DataSpeedMetersPerMinute,
+  DataSpeedKilometersPerHour,
+  DataSpeedKnots,
+  DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from './data.speed';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
 import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 import {
-  DataGradeAdjustedSpeedFeetPerMinute, DataGradeAdjustedSpeedFeetPerSecond,
-  DataGradeAdjustedSpeedKilometersPerHour, DataGradeAdjustedSpeedKnots, DataGradeAdjustedSpeedMetersPerMinute,
+  DataGradeAdjustedSpeedFeetPerMinute,
+  DataGradeAdjustedSpeedFeetPerSecond,
+  DataGradeAdjustedSpeedKilometersPerHour,
+  DataGradeAdjustedSpeedKnots,
+  DataGradeAdjustedSpeedMetersPerMinute,
   DataGradeAdjustedSpeedMilesPerHour
 } from './data.grade-adjusted-speed';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from './data.grade-adjusted-pace';
 import {
-  DataVerticalSpeedFeetPerHour, DataVerticalSpeedFeetPerMinute,
-  DataVerticalSpeedFeetPerSecond, DataVerticalSpeedKilometerPerHour, DataVerticalSpeedMetersPerHour,
-  DataVerticalSpeedMetersPerMinute, DataVerticalSpeedMilesPerHour
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
 import { DataStore, DynamicDataLoader } from './data.store';
-import { DataDistance, DataDistanceMiles } from './data.distance';
+import { DataDistanceMiles } from './data.distance';
 
 describe('DataStore', () => {
-
-
   const unitDerivedDataTypes = [
     DataSpeedKilometersPerHour.type,
     DataSpeedMilesPerHour.type,
@@ -46,18 +53,13 @@ describe('DataStore', () => {
     DataVerticalSpeedFeetPerHour.type,
     DataVerticalSpeedKilometerPerHour.type,
     DataVerticalSpeedMilesPerHour.type,
-    DataDistanceMiles.type,
+    DataDistanceMiles.type
   ];
 
-  const speedDerivedDataTypes = [
-    DataPace.type,
-    DataGradeAdjustedPace.type,
-    DataSwimPace.type,
-  ]
+  const speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
 
   it('should get the correct unitbased datatypes', () => {
     // @todo here we should think
-    expect(DynamicDataLoader.allUnitDerivedDataTypes.sort()).toEqual(unitDerivedDataTypes.sort())
+    expect(DynamicDataLoader.allUnitDerivedDataTypes.sort()).toEqual(unitDerivedDataTypes.sort());
   });
-
 });

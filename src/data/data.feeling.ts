@@ -13,5 +13,5 @@ export enum Feelings {
   'Average' = 2,
   'Good' = 3,
   'Very Good' = 4,
-  'Excellent' = 5,
+  'Excellent' = 5
 }

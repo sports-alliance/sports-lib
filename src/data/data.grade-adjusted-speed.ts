@@ -3,9 +3,10 @@ import {
   convertSpeedToPace,
   convertSpeedToSpeedInFeetPerMinute,
   convertSpeedToSpeedInFeetPerSecond,
-  convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInKnots,
+  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInMetersPerMinute,
-  convertSpeedToSpeedInMilesPerHour,
+  convertSpeedToSpeedInMilesPerHour
 } from '../events/utilities/helpers';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from './data.grade-adjusted-pace';
 import { DataSpeed } from './data.speed';

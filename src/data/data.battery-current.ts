@@ -5,6 +5,6 @@ export class DataBatteryCurrent extends DataNumber {
   static unit = 'mA';
 
   getDisplayValue() {
-    return this.getValue().toFixed(3)
+    return this.getValue().toFixed(3);
   }
 }

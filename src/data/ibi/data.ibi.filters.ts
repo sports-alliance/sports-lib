@@ -3,12 +3,10 @@ import { IBIData } from './data.ibi';
 const CreateMedianFilter = require('moving-median');
 const LowPassFilter = require('lowpassf');
 
-
 /**
  * Collection of filters parsers and converters for IBI (R-R) data
  */
 export class IBIFilters {
-
   /**
    * A limit filter. It removes all values outside the limit
    * @param {IBIData} ibiData
@@ -20,7 +18,7 @@ export class IBIFilters {
       if (value < limit && lowLimit) {
         map.delete(key);
       } else if (value > limit && !lowLimit) {
-        map.delete(key)
+        map.delete(key);
       }
     });
   }

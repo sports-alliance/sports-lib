@@ -14,7 +14,11 @@ import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 
-export interface ActivityInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
+export interface ActivityInterface
+  extends StatsClassInterface,
+    DurationClassInterface,
+    SerializableClassInterface,
+    IDClassInterface {
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;
@@ -67,7 +71,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * @param streamType
    * @param filterNull
    */
-  getStreamDataByTime(streamType: string, filterNull?: boolean): StreamDataItem[]
+  getStreamDataByTime(streamType: string, filterNull?: boolean): StreamDataItem[];
 
   /**
    * Gets the data of the stream based on duration
@@ -75,7 +79,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * @param filterNull
    * @param filterInfinity
    */
-  getStreamDataByDuration(streamType: string, filterNull?: boolean, filterInfinity?: boolean): StreamDataItem[]
+  getStreamDataByDuration(streamType: string, filterNull?: boolean, filterInfinity?: boolean): StreamDataItem[];
 
   /**
    * Gets more than one stream data based on time
@@ -88,7 +92,10 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * @param streamTypeToBaseOn
    * @param streamTypes
    */
-  getStreamDataTypesBasedOnDataType(streamTypeToBaseOn: string, streamTypes: string[]): { [type: string]: number | null }[];
+  getStreamDataTypesBasedOnDataType(
+    streamTypeToBaseOn: string,
+    streamTypes: string[]
+  ): { [type: string]: number | null }[];
 
   /**
    * Creates a stream with null filled data values
@@ -118,7 +125,7 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    * Removes a stream
    * @param streamType
    */
-  removeStream(streamType: string|StreamInterface): this;
+  removeStream(streamType: string | StreamInterface): this;
 
   /**
    * Gets all available streams
@@ -213,5 +220,5 @@ export interface ActivityInterface extends StatsClassInterface, DurationClassInt
    */
   getDateIndex(date: Date): number;
 
-  toJSON(): ActivityJSONInterface
+  toJSON(): ActivityJSONInterface;
 }

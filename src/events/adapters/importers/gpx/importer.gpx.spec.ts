@@ -1,9 +1,8 @@
 import { EventImporterGPX } from './importer.gpx';
 
-describe("importer.gpx", () => {
-
-    it("parses gpx without name", async () => {
-        const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+describe('importer.gpx', () => {
+  it('parses gpx without name', async () => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
         <gpx creator="Garmin Connect" version="1.1"
           xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/11.xsd"
           xmlns:ns3="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
@@ -20,12 +19,12 @@ describe("importer.gpx", () => {
           </trk>
         </gpx> `;
 
-        const result = await EventImporterGPX.getFromString(gpxString);
-        expect(result.getFirstActivity().name).toEqual("");
-    });
+    const result = await EventImporterGPX.getFromString(gpxString);
+    expect(result.getFirstActivity().name).toEqual('');
+  });
 
-    it("parses gpx with name", async () => {
-        const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+  it('parses gpx with name', async () => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
         <gpx creator="Garmin Connect" version="1.1"
           xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/11.xsd"
           xmlns:ns3="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
@@ -43,7 +42,7 @@ describe("importer.gpx", () => {
           </trk>
         </gpx> `;
 
-        const result = await EventImporterGPX.getFromString(gpxString);
-        expect(result.getFirstActivity().name).toEqual("Meylan Road Cycling");
-    });
-})
+    const result = await EventImporterGPX.getFromString(gpxString);
+    expect(result.getFirstActivity().name).toEqual('Meylan Road Cycling');
+  });
+});

@@ -194,25 +194,22 @@ import { DataGrade } from '../../data/data.grade';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { DataMovingTime } from '../../data/data.moving-time';
-import {
-  DISTANCE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
-  SPEED_PRECISION_NUMBER_OF_DECIMAL_PLACES
-} from '../../constants/constants';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
-import { IntensityZonesInterface } from '../../intensity-zones/intensity-zones.interface';
-import { IntensityZones } from '../../intensity-zones/intensity-zones';
 
 export class ActivityUtilities {
-
   private static geoLibAdapter = new GeoLibAdapter();
 
   public static getDataTypeAvg(
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
-    const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== -Infinity);
+    endDate?: Date
+  ): number {
+    const data = <number[]>(
+      activity
+        .getSquashedStreamData(streamType, startDate, endDate)
+        .filter(streamData => streamData !== Infinity && streamData !== -Infinity)
+    );
     return this.getAverage(data);
   }
 
@@ -221,14 +218,15 @@ export class ActivityUtilities {
       sumbuff += value;
       return sumbuff;
     }, 0);
-    return (sum / data.length);
+    return sum / data.length;
   }
 
   public static getDataTypeMax(
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
+    endDate?: Date
+  ): number {
     return this.getActivityDataTypeMinOrMax(activity, streamType, true, startDate, endDate);
   }
 
@@ -236,7 +234,8 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
+    endDate?: Date
+  ): number {
     return this.getActivityDataTypeMinOrMax(activity, streamType, false, startDate, endDate);
   }
 
@@ -244,17 +243,21 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
-    return this.getDataTypeMax(activity, streamType, startDate, endDate) - this.getDataTypeMin(activity, streamType, startDate, endDate);
+    endDate?: Date
+  ): number {
+    return (
+      this.getDataTypeMax(activity, streamType, startDate, endDate) -
+      this.getDataTypeMin(activity, streamType, startDate, endDate)
+    );
   }
 
   public static getDataTypeFirst(
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
-    const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+    endDate?: Date
+  ): number {
+    const data = <number[]>activity.getSquashedStreamData(streamType, startDate, endDate);
     return data[0];
   }
 
@@ -262,13 +265,17 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date): number {
-    const data = <number[]>activity
-      .getSquashedStreamData(streamType, startDate, endDate);
+    endDate?: Date
+  ): number {
+    const data = <number[]>activity.getSquashedStreamData(streamType, startDate, endDate);
     return data[data.length - 1];
   }
 
-  public static cropDistance(startDistance: number, endDistance: number, activity: ActivityInterface): ActivityInterface {
+  public static cropDistance(
+    startDistance: number,
+    endDistance: number,
+    activity: ActivityInterface
+  ): ActivityInterface {
     // Short to do the search just in case
     let startDistanceDate: Date | undefined; // Does not sound right
     let endDistanceDate: Date | undefined;
@@ -277,13 +284,13 @@ export class ActivityUtilities {
     activity.getStreamData(DataDistance.type).forEach((distanceFromData, index) => {
       // Find the index with greater dinstnce and convert it to time
       if (startDistance && !startDistanceDate && distanceFromData && distanceFromData >= startDistance) {
-        startDistanceDate = new Date(activity.startDate.getTime() + (index * 1000));
-        return
+        startDistanceDate = new Date(activity.startDate.getTime() + index * 1000);
+        return;
       }
       // Same for end
       if (endDistance && !endDistanceDate && distanceFromData && distanceFromData >= endDistance) {
-        endDistanceDate = new Date(activity.startDate.getTime() + (index * 1000));
-        return
+        endDistanceDate = new Date(activity.startDate.getTime() + index * 1000);
+        return;
       }
     });
 
@@ -294,11 +301,11 @@ export class ActivityUtilities {
     activity = this.cropTime(activity, startDistanceDate, endDistanceDate);
 
     // Remove because it is invalid, you cannot just offset the distance as a stream I think
-    const distanceStream = activity.getAllStreams().find((s => DataDistance.type === s.type));
+    const distanceStream = activity.getAllStreams().find(s => DataDistance.type === s.type);
     if (distanceStream) {
       activity.removeStream(distanceStream);
     }
-    const gnssDistanceStream = activity.getAllStreams().find((s => DataGNSSDistance.type === s.type));
+    const gnssDistanceStream = activity.getAllStreams().find(s => DataGNSSDistance.type === s.type);
     if (gnssDistanceStream) {
       activity.removeStream(gnssDistanceStream);
     }
@@ -313,7 +320,7 @@ export class ActivityUtilities {
    * @param endDate
    */
   public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
-    activity.getAllStreams().forEach((stream) => {
+    activity.getAllStreams().forEach(stream => {
       // Get the data for the range specified
       const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
       activity.removeStream(stream);
@@ -326,36 +333,43 @@ export class ActivityUtilities {
     return activity;
   }
 
-
-  public static getStreamDataTypesBasedOnDataType(streamToBaseOn: StreamInterface, streams: StreamInterface[]): { [type: string]: number | null }[] {
+  public static getStreamDataTypesBasedOnDataType(
+    streamToBaseOn: StreamInterface,
+    streams: StreamInterface[]
+  ): { [type: string]: number | null }[] {
     return streamToBaseOn.getData().reduce((accu: { [type: string]: number | null }[], streamDataItem, index) => {
       if (!isNumberOrString(streamDataItem)) {
-        return accu
+        return accu;
       }
       const dataItem: { [type: string]: number | null } = {
         [streamToBaseOn.type]: streamDataItem
       };
-      streams.forEach((stream) => {
-        dataItem[stream.type] = stream.getData()[index]
+      streams.forEach(stream => {
+        dataItem[stream.type] = stream.getData()[index];
       });
       accu.push(dataItem);
-      return accu
-    }, [])
+      return accu;
+    }, []);
   }
 
-  public static getStreamDataTypesBasedOnTime(startDate: Date, endDate: Date, streams: StreamInterface[]): { [type: number]: { [type: string]: number | null } } {
+  public static getStreamDataTypesBasedOnTime(
+    startDate: Date,
+    endDate: Date,
+    streams: StreamInterface[]
+  ): { [type: number]: { [type: string]: number | null } } {
     const streamDataBasedOnTime: { [type: number]: { [type: string]: number | null } } = {};
-    for (let i = 0; i < this.getDataLength(startDate, endDate); i++) { // Perhaps this can be optimized with a search function
+    for (let i = 0; i < this.getDataLength(startDate, endDate); i++) {
+      // Perhaps this can be optimized with a search function
       streams.forEach((stream: StreamInterface) => {
         if (isNumber(stream.getData()[i])) {
-          streamDataBasedOnTime[startDate.getTime() + (i * 1000)] = streamDataBasedOnTime[startDate.getTime() + (i * 1000)] || {};
-          streamDataBasedOnTime[startDate.getTime() + (i * 1000)][stream.type] = stream.getData()[i];
+          streamDataBasedOnTime[startDate.getTime() + i * 1000] =
+            streamDataBasedOnTime[startDate.getTime() + i * 1000] || {};
+          streamDataBasedOnTime[startDate.getTime() + i * 1000][stream.type] = stream.getData()[i];
         }
-      })
+      });
     }
     return streamDataBasedOnTime;
   }
-
 
   public static getDataLength(startDate: Date, endDate: Date): number {
     return Math.ceil((+endDate - +startDate) / 1000) + 1;
@@ -395,25 +409,25 @@ export class ActivityUtilities {
     let averageRPE = 0;
 
     // Sum Duration
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       duration += activity.getDuration().getValue();
     });
     stats.push(new DataDuration(duration));
 
     // Sum pause time
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       pauseTime += activity.getPause().getValue();
     });
     stats.push(new DataPause(pauseTime));
 
     // Sum Distance
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       distance += activity.getDistance().getValue();
     });
     stats.push(new DataDistance(distance));
 
     // Sum ascent
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAscent = activity.getStat(DataAscent.type);
       if (activityAscent) {
         ascent += <number>activityAscent.getValue();
@@ -422,7 +436,7 @@ export class ActivityUtilities {
     stats.push(new DataAscent(ascent));
 
     // Sum descent
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityDescent = activity.getStat(DataDescent.type);
       if (activityDescent) {
         descent += <number>activityDescent.getValue();
@@ -431,7 +445,7 @@ export class ActivityUtilities {
     stats.push(new DataDescent(descent));
 
     // Sum energy
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityEnergy = activity.getStat(DataEnergy.type);
       if (activityEnergy) {
         energy += <number>activityEnergy.getValue();
@@ -440,11 +454,13 @@ export class ActivityUtilities {
     stats.push(new DataEnergy(energy));
 
     // Avg Avg HR
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgHeartRate = activity.getStat(DataHeartRateAvg.type);
       if (activityAvgHeartRate) {
         // The below will fallback for 0
-        averageHeartRate = averageHeartRate ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2 : <number>activityAvgHeartRate.getValue();
+        averageHeartRate = averageHeartRate
+          ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2
+          : <number>activityAvgHeartRate.getValue();
       }
     });
     if (averageHeartRate) {
@@ -452,11 +468,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg HR
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgHeartRate = activity.getStat(DataHeartRateAvg.type);
       if (activityAvgHeartRate) {
         // The below will fallback for 0
-        averageHeartRate = averageHeartRate ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2 : <number>activityAvgHeartRate.getValue();
+        averageHeartRate = averageHeartRate
+          ? (averageHeartRate + <number>activityAvgHeartRate.getValue()) / 2
+          : <number>activityAvgHeartRate.getValue();
       }
     });
     if (averageHeartRate) {
@@ -464,11 +482,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Power
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgPower = activity.getStat(DataPowerAvg.type);
       if (activityAvgPower) {
         // The below will fallback for 0
-        averagePower = averagePower ? (averagePower + <number>activityAvgPower.getValue()) / 2 : <number>activityAvgPower.getValue();
+        averagePower = averagePower
+          ? (averagePower + <number>activityAvgPower.getValue()) / 2
+          : <number>activityAvgPower.getValue();
       }
     });
     if (averagePower) {
@@ -476,11 +496,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Cadence
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgCadence = activity.getStat(DataCadenceAvg.type);
       if (activityAvgCadence) {
         // The below will fallback for 0
-        averageCadence = averageCadence ? (averageCadence + <number>activityAvgCadence.getValue()) / 2 : <number>activityAvgCadence.getValue();
+        averageCadence = averageCadence
+          ? (averageCadence + <number>activityAvgCadence.getValue()) / 2
+          : <number>activityAvgCadence.getValue();
       }
     });
     if (averageCadence) {
@@ -488,11 +510,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Speed
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgSpeed = activity.getStat(DataSpeedAvg.type);
       if (activityAvgSpeed) {
         // The below will fallback for 0
-        averageSpeed = averageSpeed ? (averageSpeed + <number>activityAvgSpeed.getValue()) / 2 : <number>activityAvgSpeed.getValue();
+        averageSpeed = averageSpeed
+          ? (averageSpeed + <number>activityAvgSpeed.getValue()) / 2
+          : <number>activityAvgSpeed.getValue();
       }
     });
     if (averageSpeed) {
@@ -500,14 +524,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Gap Speed
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgGradeAdjustedSpeed = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (activityAvgGradeAdjustedSpeed) {
         // The below will fallback for 0
-        averageGradeAdjustedSpeed =
-          averageGradeAdjustedSpeed ?
-            (averageGradeAdjustedSpeed + <number>activityAvgGradeAdjustedSpeed.getValue()) / 2 :
-            <number>activityAvgGradeAdjustedSpeed.getValue();
+        averageGradeAdjustedSpeed = averageGradeAdjustedSpeed
+          ? (averageGradeAdjustedSpeed + <number>activityAvgGradeAdjustedSpeed.getValue()) / 2
+          : <number>activityAvgGradeAdjustedSpeed.getValue();
       }
     });
     if (averageGradeAdjustedSpeed) {
@@ -515,11 +538,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Pace
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgPace = activity.getStat(DataPaceAvg.type);
       if (activityAvgPace) {
         // The below will fallback for 0
-        averagePace = averagePace ? (averagePace + <number>activityAvgPace.getValue()) / 2 : <number>activityAvgPace.getValue();
+        averagePace = averagePace
+          ? (averagePace + <number>activityAvgPace.getValue()) / 2
+          : <number>activityAvgPace.getValue();
       }
     });
     if (averagePace) {
@@ -527,27 +552,27 @@ export class ActivityUtilities {
     }
 
     // Avg Avg GAP Pace
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgGradeAdjustedPace = activity.getStat(DataGradeAdjustedPaceAvg.type);
       if (activityAvgGradeAdjustedPace) {
         // The below will fallback for 0
-        averageGradeAdjustedPace =
-          averageGradeAdjustedPace ?
-            (averageGradeAdjustedPace + <number>activityAvgGradeAdjustedPace.getValue()) / 2 :
-            <number>activityAvgGradeAdjustedPace.getValue();
+        averageGradeAdjustedPace = averageGradeAdjustedPace
+          ? (averageGradeAdjustedPace + <number>activityAvgGradeAdjustedPace.getValue()) / 2
+          : <number>activityAvgGradeAdjustedPace.getValue();
       }
     });
     if (averageGradeAdjustedPace) {
       stats.push(new DataGradeAdjustedPaceAvg(averageGradeAdjustedPace));
     }
 
-
     // Avg Avg SwimPace
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgSwimPace = activity.getStat(DataSwimPaceAvg.type);
       if (activityAvgSwimPace) {
         // The below will fallback for 0
-        averageSwimPace = averageSwimPace ? (averageSwimPace + <number>activityAvgSwimPace.getValue()) / 2 : <number>activityAvgSwimPace.getValue();
+        averageSwimPace = averageSwimPace
+          ? (averageSwimPace + <number>activityAvgSwimPace.getValue()) / 2
+          : <number>activityAvgSwimPace.getValue();
       }
     });
     if (averageSwimPace) {
@@ -555,11 +580,13 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Temperature
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgTemperature = activity.getStat(DataTemperatureAvg.type);
       if (activityAvgTemperature) {
         // The below will fallback for 0
-        averageTemperature = averageTemperature ? (averageTemperature + <number>activityAvgTemperature.getValue()) / 2 : <number>activityAvgTemperature.getValue();
+        averageTemperature = averageTemperature
+          ? (averageTemperature + <number>activityAvgTemperature.getValue()) / 2
+          : <number>activityAvgTemperature.getValue();
       }
     });
     if (averageTemperature) {
@@ -567,11 +594,13 @@ export class ActivityUtilities {
     }
 
     // Avg Feeling
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgFeeling = activity.getStat(DataFeeling.type);
       if (activityAvgFeeling) {
         // The below will fallback for 0
-        averageFeeling = averageFeeling ? Math.ceil((averageFeeling + <number>activityAvgFeeling.getValue()) / 2) : <number>activityAvgFeeling.getValue();
+        averageFeeling = averageFeeling
+          ? Math.ceil((averageFeeling + <number>activityAvgFeeling.getValue()) / 2)
+          : <number>activityAvgFeeling.getValue();
       }
     });
     if (averageFeeling) {
@@ -579,18 +608,20 @@ export class ActivityUtilities {
     }
 
     // Avg RPE
-    activities.forEach((activity) => {
+    activities.forEach(activity => {
       const activityAvgRPE = activity.getStat(DataFeeling.type);
       if (activityAvgRPE) {
         // The below will fallback for 0
-        averageRPE = averageRPE ? Math.ceil((averageRPE + <number>activityAvgRPE.getValue()) / 2) : <number>activityAvgRPE.getValue();
+        averageRPE = averageRPE
+          ? Math.ceil((averageRPE + <number>activityAvgRPE.getValue()) / 2)
+          : <number>activityAvgRPE.getValue();
       }
     });
     if (averageRPE) {
       stats.push(new DataRPE(averageRPE));
     }
 
-    stats.push(...this.getIntensityZonesStatsAggregated(activities))
+    stats.push(...this.getIntensityZonesStatsAggregated(activities));
 
     // Add start and end position
     // This expects the to be sorted
@@ -601,7 +632,9 @@ export class ActivityUtilities {
       stats.push(new DataStartPosition(startPositionStat.getValue()));
     }
     if (activitiesWithEndPosition && activitiesWithEndPosition.length) {
-      const endPositionStat = <DataEndPosition>activitiesWithEndPosition[activitiesWithEndPosition.length - 1].getStat(DataEndPosition.type);
+      const endPositionStat = <DataEndPosition>(
+        activitiesWithEndPosition[activitiesWithEndPosition.length - 1].getStat(DataEndPosition.type)
+      );
       stats.push(new DataEndPosition(endPositionStat.getValue()));
     }
     // debugger;
@@ -624,13 +657,13 @@ export class ActivityUtilities {
       DataSpeedZoneTwoDuration.type,
       DataSpeedZoneThreeDuration.type,
       DataSpeedZoneFourDuration.type,
-      DataSpeedZoneFiveDuration.type,
-    ].reduce( (statsArray: DataInterface[], zone) => {
+      DataSpeedZoneFiveDuration.type
+    ].reduce((statsArray: DataInterface[], zone) => {
       const zoneDuration = statClassInstances.reduce((duration: number | null, statClassInstance) => {
         const durationStat = <DataDuration>statClassInstance.getStat(zone);
         if (durationStat) {
           duration = duration || 0;
-          duration += durationStat.getValue()
+          duration += durationStat.getValue();
         }
         return duration;
       }, null);
@@ -638,7 +671,7 @@ export class ActivityUtilities {
       if (isNumber(zoneDuration)) {
         statsArray.push(DynamicDataLoader.getDataInstanceFromDataType(zone, <number>zoneDuration));
       }
-      return statsArray
+      return statsArray;
     }, []);
   }
 
@@ -647,27 +680,28 @@ export class ActivityUtilities {
     streamType: string,
     starDate?: Date,
     endDate?: Date,
-    minDiff?: number): number {
+    minDiff?: number
+  ): number {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, true, starDate, endDate, minDiff);
   }
-
 
   public static getActivityDataTypeLoss(
     activity: ActivityInterface,
     streamType: string,
     starDate?: Date,
     endDate?: Date,
-    minDiff?: number): number {
+    minDiff?: number
+  ): number {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff: number = 3) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 3) {
     let gainOrLoss = 0;
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
       if (gain) {
         // Increase the gain if eligible first check to be greater plus diff  [200, 300, 400, 100, 101, 102]
-        if ((previousValue + minDiff) <= nextValue) {
+        if (previousValue + minDiff <= nextValue) {
           gainOrLoss += nextValue - previousValue;
           return nextValue;
         }
@@ -675,11 +709,11 @@ export class ActivityUtilities {
         if (previousValue < nextValue) {
           return previousValue;
         }
-        return nextValue
+        return nextValue;
       }
 
       // For Loss
-      if ((previousValue - minDiff) >= nextValue) {
+      if (previousValue - minDiff >= nextValue) {
         gainOrLoss += previousValue - nextValue;
         return nextValue;
       }
@@ -707,12 +741,12 @@ export class ActivityUtilities {
   public static calculateTotalDistanceForActivity(
     activity: ActivityInterface,
     startDate?: Date,
-    endDate?: Date): number {
-    return this.geoLibAdapter.getDistance(<DataPositionInterface[]>activity
-      .getPositionData(startDate, endDate)
-      .filter((position) => position !== null));
+    endDate?: Date
+  ): number {
+    return this.geoLibAdapter.getDistance(
+      <DataPositionInterface[]>activity.getPositionData(startDate, endDate).filter(position => position !== null)
+    );
   }
-
 
   /**
    * Returns streams that derive from speed based on the activity type
@@ -723,30 +757,41 @@ export class ActivityUtilities {
     speedStream: StreamInterface,
     activityType: ActivityTypes
   ): StreamInterface[] {
-    return ActivityTypesHelper
-      .speedDerivedDataTypesToUseForActivityType(activityType)
-      .reduce((array: StreamInterface[], dataType) => {
+    return ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(activityType).reduce(
+      (array: StreamInterface[], dataType) => {
         switch (dataType) {
           case DataPace.type:
-            return array.concat([new Stream(DataPace.type, speedStream.getData().map(dataValue => {
-              if (!isNumber(dataValue)) {
-                return null
-              }
-              return convertSpeedToPace(<number>dataValue);
-            }))]);
+            return array.concat([
+              new Stream(
+                DataPace.type,
+                speedStream.getData().map(dataValue => {
+                  if (!isNumber(dataValue)) {
+                    return null;
+                  }
+                  return convertSpeedToPace(<number>dataValue);
+                })
+              )
+            ]);
           case DataSwimPace.type:
-            return array.concat([new Stream(DataSwimPace.type, speedStream.getData().map(dataValue => {
-              if (!isNumber(dataValue)) {
-                return null
-              }
-              return convertSpeedToSwimPace(<number>dataValue);
-            }))]);
+            return array.concat([
+              new Stream(
+                DataSwimPace.type,
+                speedStream.getData().map(dataValue => {
+                  if (!isNumber(dataValue)) {
+                    return null;
+                  }
+                  return convertSpeedToSwimPace(<number>dataValue);
+                })
+              )
+            ]);
           case DataSpeed.type:
             return array.concat(speedStream);
           default:
-            return array
+            return array;
         }
-      }, []);
+      },
+      []
+    );
   }
 
   /**
@@ -758,23 +803,29 @@ export class ActivityUtilities {
     gradeAdjustedSpeedStream: StreamInterface,
     activityType: ActivityTypes
   ): StreamInterface[] {
-    return ActivityTypesHelper
-      .altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType)
-      .reduce((array: StreamInterface[], dataType) => {
+    return ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType).reduce(
+      (array: StreamInterface[], dataType) => {
         switch (dataType) {
           case DataGradeAdjustedPace.type:
-            return array.concat([new Stream(DataGradeAdjustedPace.type, gradeAdjustedSpeedStream.getData().map(dataValue => {
-              if (!isNumber(dataValue)) {
-                return null
-              }
-              return convertSpeedToPace(<number>dataValue);
-            }))]);
+            return array.concat([
+              new Stream(
+                DataGradeAdjustedPace.type,
+                gradeAdjustedSpeedStream.getData().map(dataValue => {
+                  if (!isNumber(dataValue)) {
+                    return null;
+                  }
+                  return convertSpeedToPace(<number>dataValue);
+                })
+              )
+            ]);
           case DataGradeAdjustedSpeed.type:
             return array.concat(gradeAdjustedSpeedStream);
           default:
-            return array
+            return array;
         }
-      }, []);
+      },
+      []
+    );
   }
 
   /**
@@ -785,44 +836,55 @@ export class ActivityUtilities {
    * @param activityType
    * @param unitStreamTypes DynamicDataLoader.allUnitDerivedDataTypes this acts like a whitelist for the unit derived units ONLY!
    */
-  public static createUnitStreamsFromStreams(streams: StreamInterface[], activityType: ActivityTypes, unitStreamTypes?: string[]): StreamInterface[] {
+  public static createUnitStreamsFromStreams(
+    streams: StreamInterface[],
+    activityType: ActivityTypes,
+    unitStreamTypes?: string[]
+  ): StreamInterface[] {
     // @todo perhaps check input to be unitStreamTypesStrictly
     const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
     let baseUnitStreams: StreamInterface[] = [];
-    const speedStream = streams.find(stream => stream.type === DataSpeed.type)
+    const speedStream = streams.find(stream => stream.type === DataSpeed.type);
     if (speedStream) {
       baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(speedStream, activityType));
     }
-    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type)
+    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
     if (gradeAdjustedSpeedStream) {
-      baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType));
+      baseUnitStreams = baseUnitStreams.concat(
+        this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType)
+      );
     }
     const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
     if (verticalSpeedStream) {
       // For vertical speed (yet) we dont need a seperate function so just add the base that is the "derived" one
-      baseUnitStreams = ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType).length ?
-        baseUnitStreams.concat(verticalSpeedStream)
-        : baseUnitStreams
+      baseUnitStreams = ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType).length
+        ? baseUnitStreams.concat(verticalSpeedStream)
+        : baseUnitStreams;
     }
     // @todo add distance ?
-    const startWith = baseUnitStreams.filter(baseUnitStream => unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1);
+    const startWith = baseUnitStreams.filter(
+      baseUnitStream =>
+        unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1
+    );
     return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
       const baseStream = baseUnitStreams.find(stream => stream.type === baseDataType);
       if (!baseStream) {
-        return array
+        return array;
       }
-      const unitStreams =
-        Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
-          .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
-          .map(unitBasedDataType => {
-            return new Stream(unitBasedDataType, baseStream.getData().map(dataValue => {
+      const unitStreams = Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
+        .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
+        .map(unitBasedDataType => {
+          return new Stream(
+            unitBasedDataType,
+            baseStream.getData().map(dataValue => {
               if (!isNumber(dataValue)) {
-                return null
+                return null;
               }
               return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
-            }))
-          })
-      return array.concat(unitStreams)
+            })
+          );
+        });
+      return array.concat(unitStreams);
     }, startWith);
   }
 
@@ -834,21 +896,33 @@ export class ActivityUtilities {
   private static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
     // First add any missing data to the streams via interpolating and extrapolating
     this.addMissingDataToStreams(activity);
-    if (activity.hasStreamData(DataLatitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)
-      && (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))) {
+    if (
+      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))
+    ) {
       const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
       let distance = 0;
       streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
-      activity.getPositionData().reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number, array) => {
-        if (!position) {
-          return prevPosition;
-        }
-        if (prevPosition && position) {
-          distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
-        }
-        streamData[index] = distance;
-        return position;
-      });
+      activity
+        .getPositionData()
+        .reduce(
+          (
+            prevPosition: DataPositionInterface | null,
+            position: DataPositionInterface | null,
+            index: number,
+            array
+          ) => {
+            if (!position) {
+              return prevPosition;
+            }
+            if (prevPosition && position) {
+              distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
+            }
+            streamData[index] = distance;
+            return position;
+          }
+        );
 
       if (!activity.hasStreamData(DataDistance.type)) {
         activity.addStream(new Stream(DataDistance.type, streamData));
@@ -859,83 +933,93 @@ export class ActivityUtilities {
       }
 
       if (!activity.hasStreamData(DataSpeed.type)) {
-
         const speedStreamData = activity.createStream(DataSpeed.type).getData();
         activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
-
           if (distanceData.value === 0) {
             speedStreamData[index] = 0;
             return;
           }
 
           if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000) ) * 100 ) / 100;
+            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000)) * 100) / 100;
             return;
           }
 
           speedStreamData[index] = null;
-
         });
         activity.addStream(new Stream(DataSpeed.type, speedStreamData));
       }
     }
 
     // Check if we can get a grade stream
-    if (!activity.hasStreamData(DataGrade.type)
-      && activity.hasStreamData(DataDistance.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (
+      !activity.hasStreamData(DataGrade.type) &&
+      activity.hasStreamData(DataDistance.type) &&
+      activity.hasStreamData(DataAltitude.type)
+    ) {
       const distanceData = activity.getStreamData(DataDistance.type);
       const altitudeData = activity.getStreamData(DataAltitude.type);
-      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData)
+      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
     }
 
     // Get a grade adjusted speed (the model applies to running only)
-    if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running
-      || ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning)
-      && !activity.hasStreamData(DataGradeAdjustedSpeed.type)
-      && activity.hasStreamData(DataGrade.type)
-      && activity.hasStreamData(DataSpeed.type)) {
+    if (
+      (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running ||
+        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning) &&
+      !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
+      activity.hasStreamData(DataGrade.type) &&
+      activity.hasStreamData(DataSpeed.type)
+    ) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
       const gradeStreamData = activity.getStreamData(DataGrade.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) => value === null
-        ? null
-        : Math.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0) * 100) / 100)
+      const gradeAdjustedSpeedData = speedStreamData.map((value, index) =>
+        value === null
+          ? null
+          : Math.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0) * 100) / 100
+      );
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 
-
-    if (activity.hasStreamData(DataPower.type)
-      && activity.hasStreamData(DataRightBalance.type)
-      && !activity.hasStreamData(DataPowerRight.type)) {
+    if (
+      activity.hasStreamData(DataPower.type) &&
+      activity.hasStreamData(DataRightBalance.type) &&
+      !activity.hasStreamData(DataPowerRight.type)
+    ) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
-      rightPowerStream.setData(rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-        const powerStreamDataItem = powerStreamData[index];
-        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-          return accu
-        }
-        accu[index] = (streamData / 100) * powerStreamDataItem;
-        return accu
-      }, []));
+      rightPowerStream.setData(
+        rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+          const powerStreamDataItem = powerStreamData[index];
+          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+            return accu;
+          }
+          accu[index] = (streamData / 100) * powerStreamDataItem;
+          return accu;
+        }, [])
+      );
       activity.addStream(rightPowerStream);
     }
 
-    if (activity.hasStreamData(DataPower.type)
-      && activity.hasStreamData(DataLeftBalance.type)
-      && !activity.hasStreamData(DataPowerLeft.type)) {
+    if (
+      activity.hasStreamData(DataPower.type) &&
+      activity.hasStreamData(DataLeftBalance.type) &&
+      !activity.hasStreamData(DataPowerLeft.type)
+    ) {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
-      leftPowerStream.setData(leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-        const powerStreamDataItem = powerStreamData[index];
-        if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-          return accu
-        }
-        accu[index] = (streamData / 100) * powerStreamDataItem;
-        return accu
-      }, []));
+      leftPowerStream.setData(
+        leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
+          const powerStreamDataItem = powerStreamData[index];
+          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
+            return accu;
+          }
+          accu[index] = (streamData / 100) * powerStreamDataItem;
+          return accu;
+        }, [])
+      );
       activity.addStream(leftPowerStream);
     }
     return activity;
@@ -971,7 +1055,7 @@ export class ActivityUtilities {
       DataAltitude.type,
       DataHeartRate.type,
       DataCadence.type,
-      DataDistance.type,
+      DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // First generate the time stream
@@ -985,29 +1069,34 @@ export class ActivityUtilities {
      * Should be
      * Altitude[100,101,101,103,103,103,106]
      */
-    activity.getAllStreams().filter(stream => streamTypesToBackAndForthFill.indexOf(stream.type) !== -1).forEach(stream => {
-      // Find the first sample value
-      let currentValue = <number>stream.getData(true, true)[0];
-      // The time stream will always have more length than each stream when not back/forthfilled
-      const timeStreamData = <number[]>timeStream.getData()
-      stream.setData(timeStreamData.reduce((data: (number | null)[], time, timeIndex) => {
-        // If there is no timeslot put whatever was
-        if (!isNumber(time)) {
-          data.push(stream.getData()[timeIndex]);
-          return data;
-        }
+    activity
+      .getAllStreams()
+      .filter(stream => streamTypesToBackAndForthFill.indexOf(stream.type) !== -1)
+      .forEach(stream => {
+        // Find the first sample value
+        let currentValue = <number>stream.getData(true, true)[0];
+        // The time stream will always have more length than each stream when not back/forthfilled
+        const timeStreamData = <number[]>timeStream.getData();
+        stream.setData(
+          timeStreamData.reduce((data: (number | null)[], time, timeIndex) => {
+            // If there is no timeslot put whatever was
+            if (!isNumber(time)) {
+              data.push(stream.getData()[timeIndex]);
+              return data;
+            }
 
-        // We have a time slot here on ...  (for the first run, old is the very first next)
+            // We have a time slot here on ...  (for the first run, old is the very first next)
 
-        // If it's a number set the current , else leave it to old to forth fill
-        if (isNumber(stream.getData()[time])) {
-          currentValue = <number>stream.getData()[time];
-        }
-        // Fill the current or old...
-        data.push(currentValue);
-        return data;
-      }, []))
-    })
+            // If it's a number set the current , else leave it to old to forth fill
+            if (isNumber(stream.getData()[time])) {
+              currentValue = <number>stream.getData()[time];
+            }
+            // Fill the current or old...
+            data.push(currentValue);
+            return data;
+          }, [])
+        );
+      });
     /**
      * @todo
      * Linear fill distance where:
@@ -1024,7 +1113,8 @@ export class ActivityUtilities {
     gain: boolean,
     startDate?: Date,
     endDate?: Date,
-    minDiff?: number): number {
+    minDiff?: number
+  ): number {
     return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
   }
 
@@ -1033,9 +1123,11 @@ export class ActivityUtilities {
     streamType: string,
     max: boolean,
     startDate?: Date,
-    endDate?: Date): number {
+    endDate?: Date
+  ): number {
     const data = activity
-      .getSquashedStreamData(streamType, startDate, endDate).filter(streamData => streamData !== Infinity && streamData !== -Infinity);
+      .getSquashedStreamData(streamType, startDate, endDate)
+      .filter(streamData => streamData !== Infinity && streamData !== -Infinity);
     if (max) {
       return this.getMax(data);
     }
@@ -1049,206 +1141,189 @@ export class ActivityUtilities {
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
     // If there is no distance or distance for some reason is 0
-    const activityDistanceStat = activity.getStat(DataDistance.type)
+    const activityDistanceStat = activity.getStat(DataDistance.type);
     if (!activityDistanceStat || activityDistanceStat.getValue() === 0) {
       let distance = 0;
       if (activity.hasStreamData(DataDistance.type)) {
         const distanceData = activity.getSquashedStreamData(DataDistance.type);
-        distance =  (distanceData[distanceData.length - 1] - distanceData[0]) || 0;
-      } else if (activity.hasStreamData(DataLongitudeDegrees.type) && activity.hasStreamData(DataLatitudeDegrees.type)) {
+        distance = distanceData[distanceData.length - 1] - distanceData[0] || 0;
+      } else if (
+        activity.hasStreamData(DataLongitudeDegrees.type) &&
+        activity.hasStreamData(DataLatitudeDegrees.type)
+      ) {
         distance = this.calculateTotalDistanceForActivity(activity, activity.startDate, activity.endDate);
       }
       activity.addStat(new DataDistance(distance));
     }
 
     if (!activity.getStat(DataGNSSDistance.type) && activity.hasStreamData(DataGNSSDistance.type)) {
-      activity.addStat(new DataGNSSDistance(activity.getSquashedStreamData(DataGNSSDistance.type)[activity.getSquashedStreamData(DataGNSSDistance.type).length - 1]));
+      activity.addStat(
+        new DataGNSSDistance(
+          activity.getSquashedStreamData(DataGNSSDistance.type)[
+            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+          ]
+        )
+      );
     }
 
     // Ascent (altitude gain)
-    if (!activity.getStat(DataAscent.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataAscent(this.getActivityDataTypeGain(activity, DataAltitude.type)));
     }
     // Descent (altitude loss)
-    if (!activity.getStat(DataDescent.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataDescent(this.getActivityDataTypeLoss(activity, DataAltitude.type)));
     }
     // Altitude Max
-    if (!activity.getStat(DataAltitudeMax.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type)));
     }
     // Altitude Min
-    if (!activity.getStat(DataAltitudeMin.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataAltitudeMin.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type)));
     }
     // Altitude Avg
-    if (!activity.getStat(DataAltitudeAvg.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataAltitudeAvg.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type)));
     }
 
     // Altitude start
-    if (!activity.getStat(DataStartAltitude.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataStartAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type)));
     }
 
     // Altitude end
-    if (!activity.getStat(DataEndAltitude.type)
-      && activity.hasStreamData(DataAltitude.type)) {
+    if (!activity.getStat(DataEndAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
       activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type)));
     }
 
     // Heart Rate  Max
-    if (!activity.getStat(DataHeartRateMax.type)
-      && activity.hasStreamData(DataHeartRate.type)) {
+    if (!activity.getStat(DataHeartRateMax.type) && activity.hasStreamData(DataHeartRate.type)) {
       activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type)));
     }
     // Heart Rate Min
-    if (!activity.getStat(DataHeartRateMin.type)
-      && activity.hasStreamData(DataHeartRate.type)) {
+    if (!activity.getStat(DataHeartRateMin.type) && activity.hasStreamData(DataHeartRate.type)) {
       activity.addStat(new DataHeartRateMin(this.getDataTypeMin(activity, DataHeartRate.type)));
     }
     // Heart Rate Avg
-    if (!activity.getStat(DataHeartRateAvg.type)
-      && activity.hasStreamData(DataHeartRate.type)) {
+    if (!activity.getStat(DataHeartRateAvg.type) && activity.hasStreamData(DataHeartRate.type)) {
       activity.addStat(new DataHeartRateAvg(this.getDataTypeAvg(activity, DataHeartRate.type)));
     }
     // Cadence Max
-    if (!activity.getStat(DataCadenceMax.type)
-      && activity.hasStreamData(DataCadence.type)) {
+    if (!activity.getStat(DataCadenceMax.type) && activity.hasStreamData(DataCadence.type)) {
       activity.addStat(new DataCadenceMax(this.getDataTypeMax(activity, DataCadence.type)));
     }
     // Cadence Min
-    if (!activity.getStat(DataCadenceMin.type)
-      && activity.hasStreamData(DataCadence.type)) {
+    if (!activity.getStat(DataCadenceMin.type) && activity.hasStreamData(DataCadence.type)) {
       activity.addStat(new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type)));
     }
     // Cadence Avg
-    if (!activity.getStat(DataCadenceAvg.type)
-      && activity.hasStreamData(DataCadence.type)) {
+    if (!activity.getStat(DataCadenceAvg.type) && activity.hasStreamData(DataCadence.type)) {
       activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type)));
     }
 
     // Speed Max
-    if (!activity.getStat(DataSpeedMax.type)
-      && activity.hasStreamData(DataSpeed.type)) {
+    if (!activity.getStat(DataSpeedMax.type) && activity.hasStreamData(DataSpeed.type)) {
       activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type)));
     }
     // Speed Min
-    if (!activity.getStat(DataSpeedMin.type)
-      && activity.hasStreamData(DataSpeed.type)) {
+    if (!activity.getStat(DataSpeedMin.type) && activity.hasStreamData(DataSpeed.type)) {
       activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type)));
     }
     // Speed Avg
-    if (!activity.getStat(DataSpeedAvg.type)
-      && activity.hasStreamData(DataSpeed.type)) {
+    if (!activity.getStat(DataSpeedAvg.type) && activity.hasStreamData(DataSpeed.type)) {
       activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type)));
     }
 
-
     // Grade Adjusted Speed Max
-    if (!activity.getStat(DataGradeAdjustedSpeedMax.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+    if (!activity.getStat(DataGradeAdjustedSpeedMax.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
       activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type)));
     }
     // Grade Adjusted Speed Min
-    if (!activity.getStat(DataGradeAdjustedSpeedMin.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+    if (!activity.getStat(DataGradeAdjustedSpeedMin.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
       activity.addStat(new DataGradeAdjustedSpeedMin(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type)));
     }
     // Grade Adjusted Speed Avg
-    if (!activity.getStat(DataGradeAdjustedSpeedAvg.type)
-      && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
+    if (!activity.getStat(DataGradeAdjustedSpeedAvg.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
       activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type)));
     }
 
     // Vertical Speed Max
-    if (!activity.getStat(DataVerticalSpeedMax.type)
-      && activity.hasStreamData(DataVerticalSpeed.type)) {
+    if (!activity.getStat(DataVerticalSpeedMax.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
       activity.addStat(new DataVerticalSpeedMax(this.getDataTypeMax(activity, DataVerticalSpeed.type)));
     }
     // Vertical Speed Min
-    if (!activity.getStat(DataVerticalSpeedMin.type)
-      && activity.hasStreamData(DataVerticalSpeed.type)) {
+    if (!activity.getStat(DataVerticalSpeedMin.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
       activity.addStat(new DataVerticalSpeedMin(this.getDataTypeMin(activity, DataVerticalSpeed.type)));
     }
     // Vertical Speed Avg
-    if (!activity.getStat(DataVerticalSpeedAvg.type)
-      && activity.hasStreamData(DataVerticalSpeed.type)) {
+    if (!activity.getStat(DataVerticalSpeedAvg.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
       activity.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(activity, DataVerticalSpeed.type)));
     }
     // Power Max
-    if (!activity.getStat(DataPowerMax.type)
-      && activity.hasStreamData(DataPower.type)) {
+    if (!activity.getStat(DataPowerMax.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerMax(this.getDataTypeMax(activity, DataPower.type)));
     }
     // Power Min
-    if (!activity.getStat(DataPowerMin.type)
-      && activity.hasStreamData(DataPower.type)) {
+    if (!activity.getStat(DataPowerMin.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type)));
     }
     // Power AVG
-    if (!activity.getStat(DataPowerAvg.type)
-      && activity.hasStreamData(DataPower.type)) {
+    if (!activity.getStat(DataPowerAvg.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
     }
 
     // Air AirPower Max
-    if (!activity.getStat(DataAirPowerMax.type)
-      && activity.hasStreamData(DataAirPower.type)) {
+    if (!activity.getStat(DataAirPowerMax.type) && activity.hasStreamData(DataAirPower.type)) {
       activity.addStat(new DataAirPowerMax(this.getDataTypeMax(activity, DataAirPower.type)));
     }
     // Air AirPower Min
-    if (!activity.getStat(DataAirPowerMin.type)
-      && activity.hasStreamData(DataAirPower.type)) {
+    if (!activity.getStat(DataAirPowerMin.type) && activity.hasStreamData(DataAirPower.type)) {
       activity.addStat(new DataAirPowerMin(this.getDataTypeMin(activity, DataAirPower.type)));
     }
     // Air AirPower AVG
-    if (!activity.getStat(DataAirPowerAvg.type)
-      && activity.hasStreamData(DataAirPower.type)) {
+    if (!activity.getStat(DataAirPowerAvg.type) && activity.hasStreamData(DataAirPower.type)) {
       activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type)));
     }
 
     // Temperature Max
-    if (!activity.getStat(DataTemperatureMax.type)
-      && activity.hasStreamData(DataTemperature.type)) {
+    if (!activity.getStat(DataTemperatureMax.type) && activity.hasStreamData(DataTemperature.type)) {
       activity.addStat(new DataTemperatureMax(this.getDataTypeMax(activity, DataTemperature.type)));
     }
     // Temperature Min
-    if (!activity.getStat(DataTemperatureMin.type)
-      && activity.hasStreamData(DataTemperature.type)) {
+    if (!activity.getStat(DataTemperatureMin.type) && activity.hasStreamData(DataTemperature.type)) {
       activity.addStat(new DataTemperatureMin(this.getDataTypeMin(activity, DataTemperature.type)));
     }
     // Temperature Avg
-    if (!activity.getStat(DataTemperatureAvg.type)
-      && activity.hasStreamData(DataTemperature.type)) {
+    if (!activity.getStat(DataTemperatureAvg.type) && activity.hasStreamData(DataTemperature.type)) {
       activity.addStat(new DataTemperatureAvg(this.getDataTypeAvg(activity, DataTemperature.type)));
     }
 
     // Battery Consumption Avg
-    if (!activity.getStat(DataBatteryConsumption.type)
-      && activity.hasStreamData(DataBatteryCharge.type)) {
-      activity.addStat(new DataBatteryConsumption(this.getDataTypeMinToMaxDifference(activity, DataBatteryCharge.type)));
+    if (!activity.getStat(DataBatteryConsumption.type) && activity.hasStreamData(DataBatteryCharge.type)) {
+      activity.addStat(
+        new DataBatteryConsumption(this.getDataTypeMinToMaxDifference(activity, DataBatteryCharge.type))
+      );
     }
 
     // Battery Life Estimation based on Consumption
     if (!activity.getStat(DataBatteryLifeEstimation.type)) {
       const consumption = activity.getStat(DataBatteryConsumption.type);
       if (consumption && consumption.getValue()) {
-        activity.addStat(new DataBatteryLifeEstimation(Number((+activity.endDate - +activity.startDate) / 1000 * 100) / Number(consumption.getValue())));
+        activity.addStat(
+          new DataBatteryLifeEstimation(
+            Number(((+activity.endDate - +activity.startDate) / 1000) * 100) / Number(consumption.getValue())
+          )
+        );
       }
     }
 
     // Start and end position
-    if ((!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type)) && activity.hasPositionData()) {
-      const activityPositionData = activity
-        .getPositionData()
-        .filter(data => data !== null);
+    if (
+      (!activity.getStat(DataStartPosition.type) || !activity.getStat(DataEndPosition.type)) &&
+      activity.hasPositionData()
+    ) {
+      const activityPositionData = activity.getPositionData().filter(data => data !== null);
       const startPosition = activityPositionData[0];
       const endPosition = activityPositionData[activityPositionData.length - 1];
       if (startPosition && !activity.getStat(DataStartPosition.type)) {
@@ -1324,38 +1399,56 @@ export class ActivityUtilities {
     if (!activity.getStat(DataGradeAdjustedPaceMaxMinutesPerMile.type)) {
       const gradeAdjustedPaceMax = activity.getStat(DataGradeAdjustedPaceMax.type);
       if (gradeAdjustedPaceMax) {
-        activity.addStat(new DataGradeAdjustedPaceMaxMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedPaceMaxMinutesPerMile(
+            convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMax.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedPaceMinMinutesPerMile.type)) {
       const gradeAdjustedPaceMin = activity.getStat(DataGradeAdjustedPaceMin.type);
       if (gradeAdjustedPaceMin) {
-        activity.addStat(new DataGradeAdjustedPaceMinMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedPaceMinMinutesPerMile(
+            convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceMin.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedPaceAvgMinutesPerMile.type)) {
       const gradeAdjustedPaceAvg = activity.getStat(DataGradeAdjustedPaceAvg.type);
       if (gradeAdjustedPaceAvg) {
-        activity.addStat(new DataGradeAdjustedPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedPaceAvgMinutesPerMile(
+            convertPaceToPaceInMinutesPerMile(<number>gradeAdjustedPaceAvg.getValue())
+          )
+        );
       }
     }
     // Swim Pace
     if (!activity.getStat(DataSwimPaceMaxMinutesPer100Yard.type)) {
       const swimPaceMax = activity.getStat(DataSwimPaceMax.type);
       if (swimPaceMax) {
-        activity.addStat(new DataSwimPaceMaxMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMax.getValue())));
+        activity.addStat(
+          new DataSwimPaceMaxMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSwimPaceMinMinutesPer100Yard.type)) {
       const swimPaceMin = activity.getStat(DataSwimPaceMin.type);
       if (swimPaceMin) {
-        activity.addStat(new DataSwimPaceMinMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMin.getValue())));
+        activity.addStat(
+          new DataSwimPaceMinMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)) {
       const swimPaceAvg = activity.getStat(DataPaceAvg.type);
       if (swimPaceAvg) {
-        activity.addStat(new DataSwimPaceAvgMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceAvg.getValue())));
+        activity.addStat(
+          new DataSwimPaceAvgMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceAvg.getValue()))
+        );
       }
     }
 
@@ -1363,7 +1456,9 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedMaxKilometersPerHour.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataSpeedMaxKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataSpeedMaxKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMaxMilesPerHour.type)) {
@@ -1375,19 +1470,25 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedMaxFeetPerSecond.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMaxFeetPerMinute.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMaxMetersPerMinute.type)) {
       const speedMax = activity.getStat(DataSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMaxKnots.type)) {
@@ -1399,7 +1500,9 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataSpeedMinKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataSpeedMinKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMinMilesPerHour.type)) {
@@ -1411,19 +1514,25 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedMinFeetPerSecond.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMinFeetPerMinute.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMinMetersPerMinute.type)) {
       const speedMin = activity.getStat(DataSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedMinKnots.type)) {
@@ -1435,7 +1544,9 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataSpeedAvgKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataSpeedAvgKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedAvgMilesPerHour.type)) {
@@ -1447,19 +1558,25 @@ export class ActivityUtilities {
     if (!activity.getStat(DataSpeedAvgFeetPerSecond.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedAvgFeetPerMinute.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedAvgMetersPerMinute.type)) {
       const speedAvg = activity.getStat(DataSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataSpeedAvgKnots.type)) {
@@ -1473,31 +1590,45 @@ export class ActivityUtilities {
     if (!activity.getStat(DataGradeAdjustedSpeedMaxKilometersPerHour.type)) {
       const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataGradeAdjustedSpeedMaxKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMaxKilometersPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>speedMax.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMaxMilesPerHour.type)) {
       const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataGradeAdjustedSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMaxFeetPerSecond.type)) {
       const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataGradeAdjustedSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMaxFeetPerMinute.type)) {
       const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataGradeAdjustedSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMax.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMaxMetersPerMinute.type)) {
       const speedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
       if (speedMax) {
-        activity.addStat(new DataGradeAdjustedSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMaxMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>speedMax.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMaxKnots.type)) {
@@ -1509,31 +1640,45 @@ export class ActivityUtilities {
     if (!activity.getStat(DataGradeAdjustedSpeedMinKilometersPerHour.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataGradeAdjustedSpeedMinKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMinKilometersPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>speedMin.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMinMilesPerHour.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataGradeAdjustedSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMinFeetPerSecond.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataGradeAdjustedSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMinFeetPerMinute.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataGradeAdjustedSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedMin.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMinMetersPerMinute.type)) {
       const speedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
       if (speedMin) {
-        activity.addStat(new DataGradeAdjustedSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedMinMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>speedMin.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedMinKnots.type)) {
@@ -1545,31 +1690,45 @@ export class ActivityUtilities {
     if (!activity.getStat(DataGradeAdjustedSpeedAvgKilometersPerHour.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataGradeAdjustedSpeedAvgKilometersPerHour(convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedAvgKilometersPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>speedAvg.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgMilesPerHour.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataGradeAdjustedSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgFeetPerSecond.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataGradeAdjustedSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgFeetPerMinute.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataGradeAdjustedSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>speedAvg.getValue()))
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgMetersPerMinute.type)) {
       const speedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
       if (speedAvg) {
-        activity.addStat(new DataGradeAdjustedSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())));
+        activity.addStat(
+          new DataGradeAdjustedSpeedAvgMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>speedAvg.getValue())
+          )
+        );
       }
     }
     if (!activity.getStat(DataGradeAdjustedSpeedAvgKnots.type)) {
@@ -1583,156 +1742,209 @@ export class ActivityUtilities {
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerSecond.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedAvg.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMetersPerMinute.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedAvg.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerMinute.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedAvg.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMetersPerHour.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedAvg.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerHour.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedAvg.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgKilometerPerHour.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgKilometerPerHour(convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgKilometerPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedAvg.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMilesPerHour.type)) {
       const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
-        activity.addStat(new DataVerticalSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedAvg.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedAvg.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxFeetPerSecond.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedMax.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxMetersPerMinute.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedMax.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxFeetPerMinute.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedMax.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxMetersPerHour.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedMax.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxFeetPerHour.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedMax.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxKilometerPerHour.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxKilometerPerHour(convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxKilometerPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedMax.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMaxMilesPerHour.type)) {
       const verticalSpeedMax = activity.getStat(DataVerticalSpeedMax.type);
       if (verticalSpeedMax) {
-        activity.addStat(new DataVerticalSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMax.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMaxMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMax.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinFeetPerSecond.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedMin.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinMetersPerMinute.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinMetersPerMinute(
+            convertSpeedToSpeedInMetersPerMinute(<number>verticalSpeedMin.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinFeetPerMinute.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedMin.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinMetersPerHour.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedMin.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinFeetPerHour.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedMin.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinKilometerPerHour.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinKilometerPerHour(convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinKilometerPerHour(
+            convertSpeedToSpeedInKilometersPerHour(<number>verticalSpeedMin.getValue())
+          )
+        );
       }
     }
 
     if (!activity.getStat(DataVerticalSpeedMinMilesPerHour.type)) {
       const verticalSpeedMin = activity.getStat(DataVerticalSpeedMin.type);
       if (verticalSpeedMin) {
-        activity.addStat(new DataVerticalSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMin.getValue())));
+        activity.addStat(
+          new DataVerticalSpeedMinMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedMin.getValue()))
+        );
       }
     }
 
     if (!activity.getStat(DataDuration.type)) {
-      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000))
+      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
     }
 
     if (activity.hasStreamData(DataSpeed.type)) {
-
       const hasGradeAdjustedSpeedStream = activity.hasStreamData(DataGradeAdjustedSpeed.type);
 
       const finalSpeedStreamData = hasGradeAdjustedSpeedStream
@@ -1743,9 +1955,9 @@ export class ActivityUtilities {
 
       if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
         speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
-      } else if ((ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running)) {
+      } else if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running) {
         // speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
-        speedThreshold = hasGradeAdjustedSpeedStream ? 1.70 : 1.15; // @todo final static + tweak => For @thomaschampagne
+        speedThreshold = hasGradeAdjustedSpeedStream ? 1.7 : 1.15; // @todo final static + tweak => For @thomaschampagne
       } else {
         speedThreshold = 0;
       }
@@ -1768,9 +1980,11 @@ export class ActivityUtilities {
 
     // If there is no pause define that from the start date and end date and duration
     if (!activity.getStat(DataPause.type)) {
-      activity.addStat(new DataPause(((activity.endDate.getTime() - activity.startDate.getTime()) / 1000) - activity.getDuration().getValue()))
+      activity.addStat(
+        new DataPause(
+          (activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()
+        )
+      );
     }
-
   }
 }
-

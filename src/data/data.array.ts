@@ -13,6 +13,6 @@ export abstract class DataArray extends DataBare {
   }
 
   isValueTypeValid(value: any): boolean {
-    return Array.isArray(value)
+    return Array.isArray(value);
   }
 }

@@ -2,7 +2,8 @@ import {
   DataSpeed,
   DataSpeedFeetPerMinute,
   DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour, DataSpeedKnots,
+  DataSpeedKilometersPerHour,
+  DataSpeedKnots,
   DataSpeedMetersPerMinute,
   DataSpeedMilesPerHour
 } from './data.speed';

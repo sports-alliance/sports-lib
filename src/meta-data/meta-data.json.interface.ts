@@ -2,21 +2,21 @@ import { ServiceNames } from './event-meta-data.interface';
 
 export interface EventMetaDataJsonInterface {
   serviceName: ServiceNames;
-  date: number,
+  date: number;
 }
 
-export interface SuuntoAppEventMetaDataJsonInterface extends EventMetaDataJsonInterface{
+export interface SuuntoAppEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
   serviceUserName: string;
-  serviceWorkoutID: string,
+  serviceWorkoutID: string;
 }
 
-export interface COROSAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface{
+export interface COROSAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
   serviceOpenId: string;
-  serviceWorkoutID: string,
-  serviceFITFileURI: string,
+  serviceWorkoutID: string;
+  serviceFITFileURI: string;
 }
 
-export interface GarminHealthAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface{
+export interface GarminHealthAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
   serviceUserID: string;
   serviceActivityFileID: string;
   serviceActivityFileType: 'FIT' | 'TCX' | 'GPX';

@@ -1,7 +1,6 @@
 import { IDClassInterface } from './id.class.interface';
 
 export abstract class IDClass implements IDClassInterface {
-
   private id?: string;
 
   getID(): string | null {

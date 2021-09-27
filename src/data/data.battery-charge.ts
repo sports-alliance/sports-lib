@@ -5,6 +5,6 @@ export class DataBatteryCharge extends DataNumber {
   static unit = '%';
 
   getDisplayValue() {
-    return this.getValue().toFixed(3)
+    return this.getValue().toFixed(3);
   }
 }

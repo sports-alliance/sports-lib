@@ -4,6 +4,6 @@ export class DataNumberOfSatellites extends DataNumber {
   static type = 'Number of Satellites';
 
   getDisplayValue() {
-    return this.getValue().toFixed(0)
+    return this.getValue().toFixed(0);
   }
 }

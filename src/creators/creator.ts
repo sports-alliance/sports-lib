@@ -15,7 +15,7 @@ export class Creator implements CreatorInterface {
       this.swInfo = swInfo;
     }
     if (hwInfo) {
-      this.hwInfo = hwInfo
+      this.hwInfo = hwInfo;
     }
     if (serialNumber) {
       this.serialNumber = serialNumber;
@@ -31,7 +31,7 @@ export class Creator implements CreatorInterface {
       devices: this.devices.reduce((devicesArray: any[], device: DeviceInterface) => {
         devicesArray.push(device.toJSON());
         return devicesArray;
-      }, []),
+      }, [])
     };
   }
 }

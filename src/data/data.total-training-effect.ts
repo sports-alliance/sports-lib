@@ -5,6 +5,6 @@ export class DataTotalTrainingEffect extends DataNumber {
   static displayType = 'Total Training Effect';
 
   getDisplayValue() {
-    return this.value.toFixed(1)
+    return this.value.toFixed(1);
   }
 }

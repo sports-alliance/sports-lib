@@ -48,7 +48,7 @@ export class User implements UserInterface {
       photoURL: this.photoURL || null,
       displayName: this.displayName || null,
       description: this.description || null,
-      settings: this.settings ? this.settings : null,
-    }
+      settings: this.settings ? this.settings : null
+    };
   }
 }

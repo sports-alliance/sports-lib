@@ -64,12 +64,19 @@ export abstract class Data implements DataInterface {
   }
 
   isValueTypeValid(value: any): boolean {
-    return !((typeof value !== 'string') && (typeof value !== 'number') && (typeof value !== 'boolean') && !Array.isArray(value) && !isNumber(value.latitudeDegrees) && !isNumber(value.longitudeDegrees))
+    return !(
+      typeof value !== 'string' &&
+      typeof value !== 'number' &&
+      typeof value !== 'boolean' &&
+      !Array.isArray(value) &&
+      !isNumber(value.latitudeDegrees) &&
+      !isNumber(value.longitudeDegrees)
+    );
   }
 
   toJSON(): DataJSONInterface {
     return {
-      [this.getType()]: this.getValue(),
+      [this.getType()]: this.getValue()
     };
   }
 }

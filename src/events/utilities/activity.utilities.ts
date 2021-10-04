@@ -1269,6 +1269,36 @@ export class ActivityUtilities {
      * About B I am not sure. That is because if there is for example an internal accelerometer
      * that reports better this can help with pace and other things. Even for GAP
      */
+
+    // Fix activity having broken start lat/lng
+    // Case: "fixtures/others/broken-start-latlng.fit"
+    if (activity.hasStreamData(DataLongitudeDegrees.type)) {
+      this.shapeStream(DataLongitudeDegrees.type, activity, (squashedData: number[]) => {
+        const firstKnownCoord = (squashedData as number[]).find(l => l != 0);
+        if (firstKnownCoord != null) {
+          let index = 0;
+          while (squashedData[index] === 0) {
+            squashedData[index] = firstKnownCoord;
+            index++;
+          }
+        }
+        return squashedData;
+      });
+    }
+
+    if (activity.hasStreamData(DataLatitudeDegrees.type)) {
+      this.shapeStream(DataLatitudeDegrees.type, activity, (squashedData: number[]) => {
+        const firstKnownCoord = (squashedData as number[]).find(l => l != 0);
+        if (firstKnownCoord != null) {
+          let index = 0;
+          while (squashedData[index] === 0) {
+            squashedData[index] = firstKnownCoord;
+            index++;
+          }
+        }
+        return squashedData;
+      });
+    }
   }
 
   /**

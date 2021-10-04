@@ -2121,9 +2121,28 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const eventInterfacePromise = SportsLib.importFromFit(buffer);
 
       // Then
-      eventInterfacePromise.then(activity => {
-        expect(activity.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
-        expect(activity.endDate.toISOString()).toEqual('2017-03-20T19:20:24.000Z');
+      eventInterfacePromise.then(event => {
+        expect(event.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
+        expect(event.endDate.toISOString()).toEqual('2017-03-20T19:20:24.000Z');
+        done();
+      });
+    });
+
+    it('should handle activity with broken start lat/lng', done => {
+      // Given FIT Source: https://connect.garmin.com/modern/activity/7606651718 OR https://www.strava.com/activities/6066984530
+      const path = __dirname + '/fixtures/others/broken-start-latlng.fit';
+      const buffer = fs.readFileSync(path);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const activity = event.getFirstActivity();
+        const longStream = activity.getSquashedStreamData(DataLongitudeDegrees.type);
+        const latStream = activity.getSquashedStreamData(DataLatitudeDegrees.type);
+        expect(longStream[0]).not.toEqual(0);
+        expect(latStream[0]).not.toEqual(0);
         done();
       });
     });

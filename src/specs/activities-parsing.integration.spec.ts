@@ -246,6 +246,30 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         });
       });
 
+      it('should parse swimming pool FIT file (4)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7617306288 OR https://www.strava.com/activities/6076695527
+        const path = __dirname + '/fixtures/swim/fit/7617306288.fit';
+        const buffer = fs.readFileSync(path);
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.type).toEqual(ActivityTypes.Swimming);
+          expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(150);
+
+          SpecUtils.assertNearEqualTime(
+            <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
+            '01:54'
+          );
+
+          expect(activity.getLaps().length).toEqual(6);
+          done();
+        });
+      });
+
       it('should parse swimming open water FIT file (1)', done => {
         // Given https://connect.garmin.com/modern/activity/6788312639/1 OR https://www.strava.com/activities/5305763421
         const path = __dirname + '/fixtures/swim/fit/6788312639-1.fit';

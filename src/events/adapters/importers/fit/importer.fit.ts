@@ -375,7 +375,7 @@ export class EventImporterFIT {
           );
 
           if (lengthEndDate.getTime() <= lengthStartDate.getTime()) {
-            throw new ParsingEventLibError('length end date must be strictly superior to length start date');
+            return;
           }
 
           // Generate a stream from length start date to end date filled by null values
@@ -742,13 +742,16 @@ export class EventImporterFIT {
       isNumberOrString(object.avg_cadence)
     ) {
       const avgPace100m = 100 / (object.avg_speed || object.enhanced_avg_speed);
-      const avgCadence = object.avg_cadence;
 
-      const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
-      stats.push(new DataSWOLF25m(swolf25m));
+      if (Number.isFinite(avgPace100m) && Number.isFinite(object.avg_cadence)) {
+        const avgCadence = object.avg_cadence;
 
-      const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
-      stats.push(new DataSWOLF50m(swolf50m));
+        const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
+        stats.push(new DataSWOLF25m(swolf25m));
+
+        const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
+        stats.push(new DataSWOLF50m(swolf50m));
+      }
     }
 
     // Active lengths

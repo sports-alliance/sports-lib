@@ -1,9 +1,13 @@
 /*
 To update this list:
 - Download fit sdk here: https://developer.garmin.com/fit/download/
-- Run below python tool script on "c/fit_example.h" file to extract most of new devices
-- Then rework the list manually with a git diff
---------------
+- Extract & go inside folder "c/"
+- Create a new file named "garmin_devices.py" inside folder "c/"
+- Copy paste below python script (code between "START/END SCRIPT") into the "garmin_devices.py" file
+- Run `python "garmin_devices.py"`
+- Retrieve list, then copy/rework it here using git diff.
+
+###### START SCRIPT ######
 import re
 
 
@@ -89,7 +93,7 @@ def main():
 if __name__ == '__main__':
     main()
 
---------------
+###### END SCRIPT ######
  */
 
 export const ImporterFitGarminDeviceNames: { [index: number]: string } = {

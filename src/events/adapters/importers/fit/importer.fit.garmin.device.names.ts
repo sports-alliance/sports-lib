@@ -349,6 +349,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3449: 'Garmin Marq Commander',
   3450: 'Garmin Marq Expedition',
   3451: 'Garmin Marq Athlete',
+  3466: 'Garmin Instinct Solar',
   3469: 'Garmin Forerunner 45',
   3473: 'Garmin VivoActive 3',
   3512: 'Garmin Fenix 6S Sport',

@@ -1039,7 +1039,7 @@ export class ActivityUtilities {
         // Grade stream
         const GRADE_KALMAN_SMOOTHING = {
           R: 0.01, // Grade model is stable
-          Q: 0.6 // Grade measurement which can be expected
+          Q: 0.6 // Grade measurement error which can be expected
         };
 
         // Predict proper grade values
@@ -1164,9 +1164,9 @@ export class ActivityUtilities {
 
   public static cloneStream(activity: ActivityInterface, sourceStreamType: string, targetStreamType: string): void {
     const sourceStream = activity.getStream(sourceStreamType);
-    const targetSmoothStream = activity.createStream(targetStreamType);
-    targetSmoothStream.setData(Array.from(sourceStream.getData())); // Shallow copy data to new stream
-    activity.addStream(targetSmoothStream);
+    const targetStream = activity.createStream(targetStreamType);
+    targetStream.setData(Array.from(sourceStream.getData())); // Shallow copy data to new stream
+    activity.addStream(targetStream);
   }
 
   /**

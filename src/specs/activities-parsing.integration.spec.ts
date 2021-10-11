@@ -59,9 +59,10 @@ import { DataTotalAnaerobicEffect } from '../data/data.total-anaerobic-effect';
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
 
-  /*  it('Template: should parse FIT activity file', done => {
+  it('Template: should parse FIT activity file', done => {
     // Given FIT Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
-    const path = '/path/to/your/file.fit';
+    const path =
+      'C:\\Users\\Thomas\\Documents\\Projects\\elevate-workspace\\elevate\\desktop\\src\\connectors\\file\\integration-fixtures\\running\\bloemendaal.fit';
     const buffer = fs.readFileSync(path);
 
     // When
@@ -72,7 +73,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const activity = event.getFirstActivity();
       done();
     });
-  });*/
+  });
 
   /*  it('Template: should parse TCX activity file', done => {
     // Given TCX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")

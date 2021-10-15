@@ -59,10 +59,9 @@ import { DataTotalAnaerobicEffect } from '../data/data.total-anaerobic-effect';
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
 
-  it('Template: should parse FIT activity file', done => {
+  /*  it('Template: should parse FIT activity file', done => {
     // Given FIT Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
-    const path =
-      'C:\\Users\\Thomas\\Documents\\Projects\\elevate-workspace\\elevate\\desktop\\src\\connectors\\file\\integration-fixtures\\running\\bloemendaal.fit';
+    const path = '/path/to/your/file.fit';
     const buffer = fs.readFileSync(path);
 
     // When
@@ -73,7 +72,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const activity = event.getFirstActivity();
       done();
     });
-  });
+  });*/
+
 
   /*  it('Template: should parse TCX activity file', done => {
     // Given TCX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
@@ -501,6 +501,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(4489.39);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(58);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(88);
+          expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(2782);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(130);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(179);
           expect((activity.getStat(DataPaceAvg.type) as DataNumber).getValue()).toBeGreaterThanOrEqual(
@@ -862,6 +863,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(97.2);
           expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(9.57);
           expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
+          expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
 
           expect((activity.getStat(DataTotalTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
           expect((activity.getStat(DataTotalAnaerobicEffect.type) as DataNumber).getValue()).toEqual(1.8);

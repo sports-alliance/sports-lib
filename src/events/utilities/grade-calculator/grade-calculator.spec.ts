@@ -371,7 +371,7 @@ describe('GradeCalculator', () => {
       const gradeAdjustedSpeed = GradeCalculator.estimateAdjustedSpeed(speedMeterSeconds, grade);
 
       // Then
-      expect(floor(gradeAdjustedSpeed, 1)).toEqual(14.9);
+      expect(floor(gradeAdjustedSpeed, 1)).toEqual(15);
     });
 
     it('should model grade adjusted pace at grade of 0', () => {
@@ -383,7 +383,7 @@ describe('GradeCalculator', () => {
       const gradeAdjustedSpeed = GradeCalculator.estimateAdjustedSpeed(speedMeterSeconds, grade);
 
       // Then
-      expect(floor(gradeAdjustedSpeed, 1)).toEqual(9.9);
+      expect(floor(gradeAdjustedSpeed, 1)).toEqual(10);
     });
 
     it('should model grade adjusted pace at grade of 6', () => {
@@ -395,7 +395,7 @@ describe('GradeCalculator', () => {
       const gradeAdjustedSpeed = GradeCalculator.estimateAdjustedSpeed(speedMeterSeconds, grade);
 
       // Then
-      expect(floor(gradeAdjustedSpeed, 1)).toEqual(12.3);
+      expect(floor(gradeAdjustedSpeed, 1)).toEqual(12.4);
     });
 
     it('should model grade adjusted pace at grade of 28', () => {
@@ -407,7 +407,7 @@ describe('GradeCalculator', () => {
       const gradeAdjustedSpeed = GradeCalculator.estimateAdjustedSpeed(speedMeterSeconds, grade);
 
       // Then
-      expect(floor(gradeAdjustedSpeed, 1)).toEqual(29.6);
+      expect(floor(gradeAdjustedSpeed, 1)).toEqual(29.7);
     });
   });
 });

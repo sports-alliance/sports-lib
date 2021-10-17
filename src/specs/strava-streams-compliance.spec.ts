@@ -230,7 +230,10 @@ describe('Strava stream compliance', () => {
       });
     });
 
-    it(`should match power`, done => {
+    /**
+     * This test has not sense anymore since null watts provided from a squashed streams should considered as 0 watts
+     */
+    xit(`should match power`, done => {
       // Given
       const stravaPowerStream = clone(strava_3156040843.watts);
 

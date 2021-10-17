@@ -67,7 +67,7 @@ export class GradeCalculator {
    * The 5th order equation has been curve fitted using plot.ly
    */
   public static estimateAdjustedSpeed(speedMeterSeconds: number, grade: number): number {
-    const kA = 0.9944001227713231;
+    const kA = 1;
     const kB = 0.029290920646623777;
     const kC = 0.0018083953212790634;
     const kD = 4.0662425671715924e-7;

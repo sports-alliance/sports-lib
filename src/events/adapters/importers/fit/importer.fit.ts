@@ -803,11 +803,11 @@ export class EventImporterFIT {
     let creator: CreatorInterface;
     switch (fitDataObject.file_ids[0].manufacturer) {
       case 'suunto': {
-        creator = new Creator(
+        const productName =
           ImporterFitSuuntoDeviceNames[<number>fitDataObject.file_ids[0].product] ||
-            fitDataObject.file_ids[0].product_name ||
-            'Suunto Unknown'
-        );
+          fitDataObject.file_ids[0].product_name ||
+          'Unknown';
+        creator = new Creator(`Suunto ${productName}`);
         break;
       }
       case 'coros': {
@@ -815,11 +815,11 @@ export class EventImporterFIT {
         break;
       }
       case 'garmin': {
-        creator = new Creator(
+        const productName =
           ImporterFitGarminDeviceNames[fitDataObject.file_ids[0].product] ||
-            fitDataObject.file_ids[0].product_name ||
-            'Garmin Unknown'
-        );
+          fitDataObject.file_ids[0].product_name ||
+          'Unknown';
+        creator = new Creator(`Garmin ${productName}`);
         break;
       }
       case 'zwift': {

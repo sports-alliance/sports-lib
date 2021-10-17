@@ -74,7 +74,6 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
     });
   });*/
 
-
   /*  it('Template: should parse TCX activity file', done => {
     // Given TCX Source: https://connect.garmin.com/modern/activity/xxxxxxxx OR https://www.strava.com/activities/xxxxxxx (should be "public")
     const path = '/path/to/your/file.tcx';

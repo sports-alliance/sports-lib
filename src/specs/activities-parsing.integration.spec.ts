@@ -864,6 +864,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
 
+          expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
           expect((activity.getStat(DataTotalTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
           expect((activity.getStat(DataTotalAnaerobicEffect.type) as DataNumber).getValue()).toEqual(1.8);
 
@@ -993,7 +994,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:27');
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '04:25'
+            '04:24'
           );
 
           SpecUtils.assertEqual((activity.getStat(DataAscent.type) as DataNumber).getValue(), 85);
@@ -1364,6 +1365,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(155);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(186);
           expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toEqual(5.812); // Or 20.9 kph
+          expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(6550);
 
           // Verifying time data
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();

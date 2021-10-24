@@ -211,6 +211,7 @@ import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-l
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
+import { DataPowerWork } from '../../data/data.power-work';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -2314,6 +2315,19 @@ export class ActivityUtilities {
       }
 
       activity.addStat(new DataMovingTime(movingTime));
+    }
+
+    // Add Power Work if missing when avg power and moving time are available
+    if (
+      !activity.getStat(DataPowerWork.type) &&
+      activity.getStat(DataPowerAvg.type) &&
+      activity.getStat(DataMovingTime.type)
+    ) {
+      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+      const avgPower = (<DataPowerAvg>activity.getStat(DataPowerAvg.type)).getValue();
+      const powerWork = Math.round((avgPower * movingTime) / 1000);
+
+      activity.addStat(new DataPowerWork(powerWork));
     }
 
     // If there is no pause defined then get it from duration and moving time (if available)

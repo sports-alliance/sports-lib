@@ -862,11 +862,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(97.2);
           expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(9.57);
           expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
-          expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
 
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
           expect((activity.getStat(DataTotalTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
           expect((activity.getStat(DataTotalAnaerobicEffect.type) as DataNumber).getValue()).toEqual(1.8);
+          expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(692);
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:51', 1);
 

@@ -28,7 +28,7 @@ import { DataSpeedMax } from '../../../../data/data.speed-max';
 import { LapTypes } from '../../../../laps/lap.types';
 import { DataHeartRateMin } from '../../../../data/data.heart-rate-min';
 import { DataPowerMin } from '../../../../data/data.power-min';
-import { DataTotalTrainingEffect } from '../../../../data/data.total-training-effect';
+import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { FITSampleMapper } from './importer.fit.mapper';
 import { isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
@@ -96,7 +96,7 @@ import { DataStanceTime } from '../../../../data/data.stance-time';
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
-import { DataTotalAnaerobicEffect } from '../../../../data/data.total-anaerobic-effect';
+import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -702,14 +702,14 @@ export class EventImporterFIT {
       stats.push(new DataEnergy(object.total_calories));
     }
 
-    // Total training effect
+    // Total training effect = Aerobic training effect
     if (isNumberOrString(object.total_training_effect)) {
-      stats.push(new DataTotalTrainingEffect(object.total_training_effect));
+      stats.push(new DataAerobicTrainingEffect(object.total_training_effect));
     }
 
     // Total training anaerobic effect
     if (isNumberOrString(object.total_anaerobic_effect)) {
-      stats.push(new DataTotalAnaerobicEffect(object.total_anaerobic_effect));
+      stats.push(new DataAnaerobicTrainingEffect(object.total_anaerobic_effect));
     }
 
     // Vo2Max

@@ -85,7 +85,7 @@ import { IBIStream } from '../../../../streams/ibi-stream';
 import { DataSteps } from '../../../../data/data.steps';
 import { DataPoolLength } from '../../../../data/data.pool-length';
 import { DataDeviceLocation } from '../../../../data/data.device-location';
-import { DataTotalTrainingEffect } from '../../../../data/data.total-training-effect';
+import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { DataHeartRateZoneOneDuration } from '../../../../data/data.heart-rate-zone-one-duration';
 import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-zone-two-duration';
 import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
@@ -524,7 +524,7 @@ export class EventImporterSuuntoJSON {
     }
 
     if (isNumberOrString(object.PeakTrainingEffect)) {
-      stats.push(new DataTotalTrainingEffect(object.PeakTrainingEffect));
+      stats.push(new DataAerobicTrainingEffect(object.PeakTrainingEffect));
     }
     if (isNumberOrString(object.RecoveryTime)) {
       stats.push(new DataRecoveryTime(object.RecoveryTime));

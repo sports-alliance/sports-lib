@@ -53,8 +53,8 @@ import { DataStanceTime } from '../data/data.stance-time';
 import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
 import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
 import { DataAvgStrideLength } from '../data/data.avg-stride-length';
-import { DataTotalTrainingEffect } from '../data/data.total-training-effect';
-import { DataTotalAnaerobicEffect } from '../data/data.total-anaerobic-effect';
+import { DataAerobicTrainingEffect } from '../data/data-aerobic-training-effect';
+import { DataAnaerobicTrainingEffect } from '../data/data-anaerobic-training-effect';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -864,8 +864,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
 
           expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
-          expect((activity.getStat(DataTotalTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
-          expect((activity.getStat(DataTotalAnaerobicEffect.type) as DataNumber).getValue()).toEqual(1.8);
+          expect((activity.getStat(DataAerobicTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
+          expect((activity.getStat(DataAnaerobicTrainingEffect.type) as DataNumber).getValue()).toEqual(1.8);
           expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(692);
 
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:51', 1);

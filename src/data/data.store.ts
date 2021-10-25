@@ -131,7 +131,7 @@ import { DataBatteryLifeEstimation } from './data.battery-life-estimation';
 import { DataFormPower } from './data.form-power';
 import { DataLegStiffness } from './data.leg-stiffness';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
-import { DataTotalTrainingEffect } from './data.total-training-effect';
+import { DataAerobicTrainingEffect } from './data-aerobic-training-effect';
 import { DataNumberOfSamples } from './data.number-of.samples';
 import { DataFootPodUsed } from './data.foot-pod-used';
 import { DataAutoPauseUsed } from './data.auto-pause-used';
@@ -341,7 +341,7 @@ export const DataStore: any = {
   DataFormPower,
   DataLegStiffness,
   DataVerticalOscillation,
-  DataTotalTrainingEffect,
+  DataAerobicTrainingEffect,
   DataFootPodUsed,
   DataAltiBaroProfile,
   DataAutoPauseUsed,
@@ -539,7 +539,7 @@ export class DynamicDataLoader {
     DataFormPower.type,
     DataLegStiffness.type,
     DataVerticalOscillation.type,
-    DataTotalTrainingEffect.type,
+    DataAerobicTrainingEffect.type,
     DataIBI.type,
     DataStrydAltitude.type,
     DataAccumulatedPower.type,

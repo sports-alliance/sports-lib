@@ -115,7 +115,7 @@ export class EventImporterFIT {
 
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
         if (!fitDataObject.sessions) {
-          reject(new EmptyEventLibError('Empty fit file'));
+          reject(new EmptyEventLibError());
           return;
         }
 
@@ -290,7 +290,7 @@ export class EventImporterFIT {
 
         // If there are no activities to parse ....
         if (!activities.length) {
-          reject(new EmptyEventLibError('Empty fit file'));
+          reject(new EmptyEventLibError());
           return;
         }
 

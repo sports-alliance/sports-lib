@@ -4,13 +4,18 @@ import { DeviceInterface } from '../activities/devices/device.interface';
 
 export class Creator implements CreatorInterface {
   public name: string;
+  public productId?: string;
   public swInfo?: string;
   public hwInfo?: string;
   public serialNumber?: string;
   public devices: DeviceInterface[] = [];
 
-  constructor(name: string, swInfo?: string, hwInfo?: string, serialNumber?: string) {
+  constructor(name: string, productId?: string, swInfo?: string, hwInfo?: string, serialNumber?: string) {
     this.name = name;
+
+    if (productId) {
+      this.productId = productId;
+    }
     if (swInfo) {
       this.swInfo = swInfo;
     }

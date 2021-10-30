@@ -118,6 +118,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Garmin Forerunner 935');
+          expect(activity.creator.productId).toEqual(2691);
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
           const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
           const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
@@ -586,6 +587,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.TrailRunning);
           expect(activity.creator.name).toEqual('Suunto 9');
+          expect(activity.creator.productId).toEqual(34);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(6458);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(487);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(90);
@@ -754,6 +756,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect(activity.creator.name).toEqual('COROS APEX Pro');
+          expect(activity.creator.productId).toEqual(841);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(10743.64);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(142);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(685);
@@ -1585,6 +1588,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           // Verify streams consistency
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Unknown');
+          expect(activity.creator.productId).toEqual(15706);
           expect(activity.generateTimeStream([DataDistance.type]).getData(true).length).toEqual(expectedSamplesLength);
           expect(activity.hasPowerMeter()).toBeTruthy();
           expect(activity.isTrainer()).toBeFalsy();
@@ -2096,7 +2100,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-activities.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'Empty fit file';
+      const expectedErrorMessage = 'EMPTY_FIT_FILE_ERROR';
       const expectedErrorClassName = 'EmptyEventLibError';
 
       // When
@@ -2120,7 +2124,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-sessions.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'Empty fit file';
+      const expectedErrorMessage = 'EMPTY_FIT_FILE_ERROR';
       const expectedErrorClassName = 'EmptyEventLibError';
 
       // When

@@ -71,7 +71,7 @@ export class EventImporterGPX {
           startDate,
           endDate,
           activityType,
-          new Creator(parsedGPX.creator, parsedGPX.version),
+          new Creator(parsedGPX.creator, undefined, parsedGPX.version),
           activityName
         );
 

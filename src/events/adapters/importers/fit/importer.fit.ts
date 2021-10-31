@@ -12,7 +12,6 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
 import { ImporterFitGarminDeviceNames } from './importer.fit.garmin.device.names';
 import { ImporterFitSuuntoDeviceNames } from './importer.fit.suunto.device.names';
-import { ImporterZwiftDeviceNames } from './importer.fit.zwift.device.names';
 import { DataPause } from '../../../../data/data.pause';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
@@ -834,8 +833,7 @@ export class EventImporterFIT {
         break;
       }
       case 'zwift': {
-        recognizedName = ImporterZwiftDeviceNames[productId];
-        creator = new Creator(recognizedName || fitDataObject.file_ids[0].product_name || 'Zwift Unknown', productId);
+        creator = new Creator('Zwift');
         break;
       }
       case 'stryd': {

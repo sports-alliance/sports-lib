@@ -8,9 +8,17 @@ export class Creator implements CreatorInterface {
   public swInfo?: string;
   public hwInfo?: string;
   public serialNumber?: string;
+  public isRecognized?: boolean;
   public devices: DeviceInterface[] = [];
 
-  constructor(name: string, productId?: string, swInfo?: string, hwInfo?: string, serialNumber?: string) {
+  constructor(
+    name: string,
+    productId?: string,
+    swInfo?: string,
+    hwInfo?: string,
+    serialNumber?: string,
+    isRecognized?: boolean
+  ) {
     this.name = name;
 
     if (productId) {
@@ -25,6 +33,8 @@ export class Creator implements CreatorInterface {
     if (serialNumber) {
       this.serialNumber = serialNumber;
     }
+
+    this.isRecognized = !!isRecognized;
   }
 
   toJSON(): CreatorJSONInterface {

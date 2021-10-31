@@ -755,7 +755,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
-          expect(activity.creator.name).toEqual('COROS APEX Pro');
+          expect(activity.creator.name).toEqual('Coros APEX Pro');
           expect(activity.creator.productId).toEqual(841);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(10743.64);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(142);
@@ -809,7 +809,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
-          expect(activity.creator.name).toEqual('COROS APEX Pro');
+          expect(activity.creator.name).toEqual('Coros APEX Pro');
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(21524.3);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(539);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(1661);
@@ -1570,6 +1570,22 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
+          done();
+        });
+      });
+
+      it('should parse cycling FIT file (8)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/7739869618 OR https://www.strava.com/activities/2380240532
+        const path = __dirname + '/fixtures/rides/fit/7739869618.fit';
+        const buffer = fs.readFileSync(path);
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.creator.name).toEqual('Wahoo ELEMNT BOLT');
           done();
         });
       });

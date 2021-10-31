@@ -97,6 +97,8 @@ import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillat
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
+import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
+import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -804,28 +806,36 @@ export class EventImporterFIT {
 
     const productId = fitDataObject.file_ids[0].product || null;
 
+    let recognizedName = null;
+
     switch (fitDataObject.file_ids[0].manufacturer) {
       case 'suunto': {
-        const productName =
-          ImporterFitSuuntoDeviceNames[<number>productId] || fitDataObject.file_ids[0].product_name || 'Unknown';
+        recognizedName = ImporterFitSuuntoDeviceNames[<number>productId];
+        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
         creator = new Creator(`Suunto ${productName}`, productId);
         break;
       }
       case 'coros': {
-        creator = new Creator(fitDataObject.file_ids[0].product_name || productId || 'Unknown', productId);
+        recognizedName = ImporterFitCorosDeviceNames[productId];
+        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
+        creator = new Creator(`Coros ${productName}`, productId);
         break;
       }
       case 'garmin': {
-        const productName =
-          ImporterFitGarminDeviceNames[productId] || fitDataObject.file_ids[0].product_name || 'Unknown';
+        recognizedName = ImporterFitGarminDeviceNames[productId];
+        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
         creator = new Creator(`Garmin ${productName}`, productId);
         break;
       }
+      case 'wahoo_fitness': {
+        recognizedName = ImporterFitWahooDeviceNames[productId];
+        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
+        creator = new Creator(`Wahoo ${productName}`, productId);
+        break;
+      }
       case 'zwift': {
-        creator = new Creator(
-          ImporterZwiftDeviceNames[productId] || fitDataObject.file_ids[0].product_name || 'Zwift Unknown',
-          productId
-        );
+        recognizedName = ImporterZwiftDeviceNames[productId];
+        creator = new Creator(recognizedName || fitDataObject.file_ids[0].product_name || 'Zwift Unknown', productId);
         break;
       }
       case 'stryd': {
@@ -853,6 +863,8 @@ export class EventImporterFIT {
         );
       }
     }
+
+    creator.isRecognized = !!recognizedName;
 
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {
       creator.hwInfo = String(fitDataObject.file_creator.hardware_version);

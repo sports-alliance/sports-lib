@@ -9,6 +9,7 @@ export interface CreatorInterface extends SerializableClassInterface {
   devices: DeviceInterface[];
   swInfo?: string;
   hwInfo?: string;
+  isRecognized?: boolean;
 
   toJSON(): CreatorJSONInterface;
 }

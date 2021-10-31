@@ -788,7 +788,7 @@ export class ActivityUtilities {
         return previousValue;
       }
       return nextValue;
-    });
+    }, 0);
     return gainOrLoss;
   }
 
@@ -1445,12 +1445,20 @@ export class ActivityUtilities {
     }
 
     // Altitude start
-    if (!activity.getStat(DataStartAltitude.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+    if (
+      !activity.getStat(DataStartAltitude.type) &&
+      activity.hasStreamData(DataAltitudeSmooth.type) &&
+      this.getDataTypeFirst(activity, DataAltitudeSmooth.type)
+    ) {
       activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitudeSmooth.type)));
     }
 
     // Altitude end
-    if (!activity.getStat(DataEndAltitude.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
+    if (
+      !activity.getStat(DataEndAltitude.type) &&
+      activity.hasStreamData(DataAltitudeSmooth.type) &&
+      this.getDataTypeLast(activity, DataAltitudeSmooth.type)
+    ) {
       activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitudeSmooth.type)));
     }
 

@@ -105,7 +105,7 @@ export class EventImporterTCX {
         activity = this.updateActivityTypeCaseIndoor(hasGpsData, activity);
 
         if (
-          activity.getDistance().getValue() === 0 &&
+          !activity.getDistance()?.getValue() &&
           trackPointElements.length &&
           trackPointElements[trackPointElements.length - 1].getElementsByTagName('DistanceMeters')[0]
         ) {

@@ -732,7 +732,12 @@ export class EventImporterFIT {
 
     // Pool length
     if (isNumberOrString(object.pool_length)) {
-      const poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
+      let poolLength = object.pool_length;
+
+      if (object.pool_length_unit) {
+        poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
+      }
+
       stats.push(new DataPoolLength(poolLength));
     }
 

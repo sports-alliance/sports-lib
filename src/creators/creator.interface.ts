@@ -5,6 +5,7 @@ import { DeviceInterface } from '../activities/devices/device.interface';
 export interface CreatorInterface extends SerializableClassInterface {
   name: string;
   productId?: string;
+  manufacturer?: string;
   serialNumber?: string;
   devices: DeviceInterface[];
   swInfo?: string;

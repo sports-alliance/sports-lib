@@ -5,6 +5,7 @@ import { DeviceInterface } from '../activities/devices/device.interface';
 export class Creator implements CreatorInterface {
   public name: string;
   public productId?: string;
+  public manufacturer?: string;
   public swInfo?: string;
   public hwInfo?: string;
   public serialNumber?: string;
@@ -14,6 +15,7 @@ export class Creator implements CreatorInterface {
   constructor(
     name: string,
     productId?: string,
+    manufacturer?: string,
     swInfo?: string,
     hwInfo?: string,
     serialNumber?: string,
@@ -23,6 +25,9 @@ export class Creator implements CreatorInterface {
 
     if (productId) {
       this.productId = productId;
+    }
+    if (manufacturer) {
+      this.manufacturer = manufacturer;
     }
     if (swInfo) {
       this.swInfo = swInfo;

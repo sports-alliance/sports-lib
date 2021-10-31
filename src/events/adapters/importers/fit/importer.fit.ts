@@ -863,7 +863,7 @@ export class EventImporterFIT {
         );
       }
     }
-
+    creator.manufacturer = fitDataObject.file_ids[0].manufacturer;
     creator.isRecognized = !!recognizedName;
 
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {

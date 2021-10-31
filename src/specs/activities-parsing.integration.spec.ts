@@ -497,6 +497,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Garmin VivoActive HR');
+          expect(activity.creator.manufacturer).toEqual('garmin');
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(4489.39);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(58);
@@ -719,6 +720,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect(activity.creator.name).toEqual('Suunto 9 Baroless');
+          expect(activity.creator.manufacturer).toEqual('suunto');
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(4330);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(0);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(354);
@@ -810,6 +812,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.Running);
           expect(activity.creator.name).toEqual('Coros APEX Pro');
+          expect(activity.creator.manufacturer).toEqual('coros');
           expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(21524.3);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(539);
           expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(1661);
@@ -1586,6 +1589,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Wahoo ELEMNT BOLT');
+          expect(activity.creator.manufacturer).toEqual('wahoo_fitness');
+          expect(activity.creator.isRecognized).toBeTruthy();
           done();
         });
       });
@@ -1605,6 +1610,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.creator.name).toEqual('Unknown');
           expect(activity.creator.productId).toEqual(15706);
+          expect(activity.creator.isRecognized).toBeFalsy();
           expect(activity.generateTimeStream([DataDistance.type]).getData(true).length).toEqual(expectedSamplesLength);
           expect(activity.hasPowerMeter()).toBeTruthy();
           expect(activity.isTrainer()).toBeFalsy();

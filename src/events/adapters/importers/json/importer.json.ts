@@ -45,6 +45,7 @@ export class EventImporterJSON {
 
   static getCreatorFromJSON(json: CreatorJSONInterface): CreatorInterface {
     const creator = new Creator(json.name || 'Unknown Device');
+
     if (json.hwInfo) {
       creator.hwInfo = json.hwInfo;
     }
@@ -54,7 +55,15 @@ export class EventImporterJSON {
     if (json.serialNumber) {
       creator.serialNumber = json.serialNumber;
     }
-
+    if (json.manufacturer) {
+      creator.manufacturer = json.manufacturer;
+    }
+    if (json.isRecognized) {
+      creator.isRecognized = json.isRecognized;
+    }
+    if (json.productId) {
+      creator.productId = json.productId;
+    }
     if (json.devices && json.devices.length) {
       json.devices.forEach(jsonDevice => creator.devices.push(this.getDeviceFromJSON(jsonDevice)));
     }

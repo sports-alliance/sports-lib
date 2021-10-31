@@ -45,6 +45,9 @@ export class Creator implements CreatorInterface {
   toJSON(): CreatorJSONInterface {
     return {
       name: this.name,
+      manufacturer: this.manufacturer,
+      isRecognized: this.isRecognized,
+      productId: this.productId,
       serialNumber: this.serialNumber ? this.serialNumber : null,
       swInfo: this.swInfo ? this.swInfo : null,
       hwInfo: this.hwInfo ? this.hwInfo : null,

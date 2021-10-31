@@ -833,7 +833,8 @@ export class EventImporterFIT {
         break;
       }
       case 'zwift': {
-        creator = new Creator('Zwift');
+        recognizedName = 'Zwift';
+        creator = new Creator(recognizedName);
         break;
       }
       case 'stryd': {

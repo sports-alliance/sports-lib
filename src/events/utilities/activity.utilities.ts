@@ -747,7 +747,7 @@ export class ActivityUtilities {
     starDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, true, starDate, endDate, minDiff);
   }
 
@@ -757,12 +757,17 @@ export class ActivityUtilities {
     starDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 2) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 2): number | null {
     let gainOrLoss = 0;
+
+    if (!data?.length) {
+      return null;
+    }
+
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
       if (gain) {
@@ -788,7 +793,7 @@ export class ActivityUtilities {
         return previousValue;
       }
       return nextValue;
-    }, 0);
+    }, data[0]);
     return gainOrLoss;
   }
 
@@ -1365,7 +1370,7 @@ export class ActivityUtilities {
     startDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
   }
 
@@ -1425,11 +1430,17 @@ export class ActivityUtilities {
 
     // Ascent (altitude gain)
     if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      activity.addStat(new DataAscent(this.getActivityDataTypeGain(activity, DataAltitudeSmooth.type)));
+      const gain = this.getActivityDataTypeGain(activity, DataAltitudeSmooth.type);
+      if (gain !== null) {
+        activity.addStat(new DataAscent(gain));
+      }
     }
     // Descent (altitude loss)
     if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      activity.addStat(new DataDescent(this.getActivityDataTypeLoss(activity, DataAltitudeSmooth.type)));
+      const loss = this.getActivityDataTypeLoss(activity, DataAltitudeSmooth.type);
+      if (loss !== null) {
+        activity.addStat(new DataDescent(loss));
+      }
     }
     // Altitude Max
     if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {

@@ -2122,7 +2122,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-activities.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'EMPTY_FIT_FILE_ERROR';
+      const expectedErrorMessage = 'EMPTY_FIT_FILE';
       const expectedErrorClassName = 'EmptyEventLibError';
 
       // When
@@ -2146,7 +2146,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-sessions.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'EMPTY_FIT_FILE_ERROR';
+      const expectedErrorMessage = 'EMPTY_FIT_FILE';
       const expectedErrorClassName = 'EmptyEventLibError';
 
       // When

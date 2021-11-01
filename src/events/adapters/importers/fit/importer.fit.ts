@@ -457,7 +457,7 @@ export class EventImporterFIT {
     if (sessionObject.start_time) {
       startDate = sessionObject.start_time;
       totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
-      endDate = sessionObject.timestamp || new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+      endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
     }
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time

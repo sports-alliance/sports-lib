@@ -1549,7 +1549,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         // Given FIT Source: https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591
         const path = __dirname + '/fixtures/rides/fit/7432332116.fit';
         const buffer = fs.readFileSync(path);
-        const expectedSamplesLength = 10063;
+        const expectedSamplesLength = 10062;
 
         // When
         const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -1591,6 +1591,23 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.creator.name).toEqual('Wahoo ELEMNT BOLT');
           expect(activity.creator.manufacturer).toEqual('wahoo_fitness');
           expect(activity.creator.isRecognized).toBeTruthy();
+          done();
+        });
+      });
+
+      it('should parse cycling FIT file (9)', done => {
+        // Given FIT Source: https://connect.garmin.com/modern/activity/5319808632 OR https://www.strava.com/activities/3849490840
+        const path = __dirname + '/fixtures/rides/fit/5319808632.fit';
+        const buffer = fs.readFileSync(path);
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.startDate.toISOString()).toEqual('2020-07-26T15:28:41.000Z');
+          expect(activity.endDate.toISOString()).toEqual('2020-07-26T16:31:26.063Z');
           done();
         });
       });
@@ -2022,9 +2039,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           // Swim
           const swimActivity = event.getFirstActivity();
           expect(swimActivity.type).toEqual(ActivityTypes.OpenWaterSwimming);
-          expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3689);
+          expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3690);
           expect(swimActivity.startDate.toISOString()).toEqual('2018-10-13T17:05:01.000Z');
-          expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.000Z');
+          expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.603Z');
 
           expect((swimActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(3933.3);
           expect((swimActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(869);
@@ -2059,7 +2076,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(cyclingActivity.type).toEqual(ActivityTypes.Cycling);
           expect(cyclingActivity.getStreamData(DataSpeed.type).length).toEqual(17250);
           expect(cyclingActivity.startDate.toISOString()).toEqual('2018-10-13T18:10:15.000Z');
-          expect(cyclingActivity.endDate.toISOString()).toEqual('2018-10-13T22:57:44.000Z');
+          expect(cyclingActivity.endDate.toISOString()).toEqual('2018-10-13T22:57:43.550Z');
 
           expect((cyclingActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(180301.58);
           expect((cyclingActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(3804);
@@ -2087,7 +2104,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const runningActivity = event.getActivities()[4];
           expect(runningActivity.type).toEqual(ActivityTypes.Running);
           expect(runningActivity.startDate.toISOString()).toEqual('2018-10-13T22:57:45.000Z');
-          expect(runningActivity.endDate.toISOString()).toEqual('2018-10-14T02:42:23.000Z');
+          expect(runningActivity.endDate.toISOString()).toEqual('2018-10-14T02:36:46.182Z');
           expect((runningActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(42563.91);
           expect((runningActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(2056);
           expect((runningActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(84);

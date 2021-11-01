@@ -239,6 +239,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   2477: 'Fenix 3 HR',
   2496: 'Nautix',
   2497: 'VivoActive HR',
+  2503: 'Forerunner 35',
   2512: 'Oregon 7XX WW',
   2530: 'Edge 820',
   2531: 'Edge Explore 820',

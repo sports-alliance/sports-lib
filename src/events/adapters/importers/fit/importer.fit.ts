@@ -98,6 +98,7 @@ import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
 import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
+import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -835,6 +836,12 @@ export class EventImporterFIT {
         recognizedName = ImporterFitWahooDeviceNames[productId];
         const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
         creator = new Creator(`Wahoo ${productName}`, productId);
+        break;
+      }
+      case 'srm': {
+        recognizedName = ImporterFitSrmDeviceNames[productId];
+        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
+        creator = new Creator(`SRM ${productName}`, productId);
         break;
       }
       case 'zwift': {

@@ -16,6 +16,7 @@ import { LapTypes } from '../../laps/lap.types';
 import { DataTime } from '../../data/data.time';
 import { FileType } from '../adapters/file-type.enum';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
+import { ActivityInterface } from '../../activities/activity.interface';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -282,5 +283,47 @@ describe('Activity Utilities', () => {
     expect(activityDeserialized.getStream(DataHeartRate.type)).toEqual(activity.getStream(DataHeartRate.type));
     expect(activityDeserialized.getStream(DataAltitude.type)).toEqual(activity.getStream(DataAltitude.type));
     expect(activityDeserialized.hasStreamData(DataTime.type)).toBeFalsy();
+  });
+
+  describe('Fill streams', () => {
+    const createFakeActivityWithStreams = (
+      lengthInSeconds: number,
+      streams: { type: string; data: (number | null)[] }[]
+    ): ActivityInterface => {
+      const startDate = new Date();
+      const endDate = new Date(startDate.getTime() + lengthInSeconds * 1000);
+      const activity = new Activity(startDate, endDate, ActivityTypes.Running, new Creator('creator'));
+      streams.forEach(stream => {
+        activity.addStream(new Stream(stream.type).setData(stream.data));
+      });
+
+      return activity;
+    };
+
+    it('should add missing data to streams (1)', done => {
+      // Given
+      const timeData = [0, 1, 2, 3, 4, 5, 6]; // 6 seconds
+      const seconds = timeData.length - 1;
+      const distanceData = [0, 10, 20, 25, 40, 45, 55];
+      const altitudeData = [null, 13, 10, null, 8, 7, null];
+      const heartRateData = [123, 135, null, null, null, null, null];
+      const expectedAltitudes = [13, 13, 10, 10, 8, 7, 7];
+      const expectedHeartRates = [123, 135, 135, 135, 135, 135, 135];
+
+      const activity = createFakeActivityWithStreams(seconds, [
+        { type: DataDistance.type, data: distanceData },
+        { type: DataAltitude.type, data: altitudeData },
+        { type: DataHeartRate.type, data: heartRateData }
+      ]);
+
+      // When
+      ActivityUtilities.addMissingDataToStreams(activity);
+
+      // Then
+      expect(activity.getStreamData(DataDistance.type)).toEqual(distanceData);
+      expect(activity.getStreamData(DataAltitude.type)).toEqual(expectedAltitudes);
+      expect(activity.getStreamData(DataHeartRate.type)).toEqual(expectedHeartRates);
+      done();
+    });
   });
 });

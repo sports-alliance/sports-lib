@@ -1213,7 +1213,7 @@ export class ActivityUtilities {
    *
    * @param activity
    */
-  private static addMissingDataToStreams(activity: ActivityInterface) {
+  public static addMissingDataToStreams(activity: ActivityInterface) {
     /**
      * This tries to align data with Strava.
      * Strava fills HR alti cadence with the last value.

@@ -1,5 +1,5 @@
 import { Event } from '../../../event';
-import { Activity, MAX_ACTIVITY_DURATION } from '../../../../activities/activity';
+import { Activity, MAX_ACTIVITY_DURATION_MS } from '../../../../activities/activity';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -102,6 +102,9 @@ import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
+
+// Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
+const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 
 export class EventImporterFIT {
   static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
@@ -450,47 +453,91 @@ export class EventImporterFIT {
   }
 
   private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
-    let startDate = null;
-    let endDate = null;
-    let totalElapsedTime = null;
+    /**
+     * Provides start/end date based on records available in given session object first, then in parent fit object
+     */
+    const getStartEndDatesFromRecords = (sessionObject: any, fitDataObject: any): [Date | null, Date | null] => {
+      let startDate: Date | null = null;
+      let endDate: Date | null = null;
 
-    if (sessionObject.start_time) {
-      startDate = sessionObject.start_time;
-      totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
-      endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
-    }
+      // Try to get from session first
+      if (
+        sessionObject?.laps?.length > 0 && // Current session has laps
+        sessionObject.laps[0].records?.length > 0 && // Current session has records in first lap
+        sessionObject.laps[sessionObject.laps.length - 1].records?.length > 0 // Current session has records in last lap
+      ) {
+        const firstLapRecords = sessionObject.laps[0].records;
+        const firstRecordTimeStamp = firstLapRecords[0]?.timestamp as Date;
+        if (firstRecordTimeStamp) {
+          startDate = firstRecordTimeStamp;
+        }
+
+        const lastLapRecords = sessionObject.laps[sessionObject.laps.length - 1].records;
+        const lastRecordTimeStamp = lastLapRecords[lastLapRecords.length - 1]?.timestamp as Date;
+        if (lastRecordTimeStamp) {
+          endDate = lastRecordTimeStamp;
+        }
+      }
+
+      // Then from parent fit object first
+      if ((!startDate || !endDate) && fitDataObject.records?.length) {
+        startDate = fitDataObject.records[0]?.timestamp || null;
+        endDate = fitDataObject.records[fitDataObject.records.length - 1]?.timestamp || null;
+      }
+
+      return [startDate, endDate];
+    };
+
+    // Start finding out total elapsed time from fit dedicated fields
+    const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
+
+    // Pick start/end date values
+    let startDate = sessionObject.start_time || getStartEndDatesFromRecords(sessionObject, fitDataObject)[0] || null;
+    let endDate =
+      sessionObject.timestamp || (startDate && new Date(startDate.getTime() + totalElapsedTime * 1000)) || null;
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
+    // Get dates from records in that case
     if (
-      // S/E Dates missing
-      (!startDate || !endDate) &&
-      fitDataObject.sessions.length === 1 && // Has only one session
-      fitDataObject.records &&
-      fitDataObject.records.length // There are records to try to guess
+      !totalElapsedTime // Elapsed time missing
     ) {
-      startDate = fitDataObject.records[0].timestamp;
-      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (
-      !totalElapsedTime && // Elapsed time missing
-      fitDataObject.sessions.length === 1 && // Has only one session
-      fitDataObject.records &&
-      fitDataObject.records.length // There are records to try to guess
-    ) {
-      startDate = fitDataObject.records[0].timestamp;
-      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (endDate && startDate && endDate < startDate) {
-      // If for some reason this happens
-      if (!fitDataObject.records || !fitDataObject.records[0]) {
-        throw new Error('Cannot parse dates. Start date is greater than the end date');
+      const [startDateResult, endDateResult] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
+      if (startDateResult) {
+        startDate = startDateResult;
       }
-      startDate = fitDataObject.records[0].timestamp;
-      endDate = fitDataObject.records[fitDataObject.records.length - 1].timestamp;
-    } else if (endDate && startDate && +endDate - +startDate > MAX_ACTIVITY_DURATION) {
+
+      if (endDateResult) {
+        endDate = endDateResult;
+      }
+    }
+
+    // Now verify the start/end date compliance,
+    // If for some reason this happens, get from records too
+    if (endDate <= startDate) {
+      const [startDateResult, endDateResult] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
+      if (startDateResult) {
+        startDate = startDateResult;
+      }
+
+      if (endDateResult) {
+        endDate = endDateResult;
+      }
+    }
+
+    const elapsedTimeFromDates = (+endDate - +startDate) / 1000; // Get elapsed calculated from dates
+
+    // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
+    // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
+    // @see test case implying 'fixtures/rides/fit/5319808632.fit' fit file
+    if (elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
+      if (totalElapsedTime) {
+        endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+      }
+    }
+
+    // Re-test potential updated activity duration against max accepted duration
+    if (+endDate - +startDate > MAX_ACTIVITY_DURATION_MS) {
       endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
-    } else if (startDate && totalElapsedTime && !endDate) {
-      endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
-    } else if (endDate && totalElapsedTime && !startDate) {
-      startDate = new Date(endDate.getTime() - totalElapsedTime * 1000);
     }
 
     if (!startDate || !endDate) {
@@ -823,7 +870,7 @@ export class EventImporterFIT {
       case 'coros': {
         recognizedName = ImporterFitCorosDeviceNames[productId];
         const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`Coros ${productName}`, productId);
+        creator = new Creator(`${productName}`, productId);
         break;
       }
       case 'garmin': {
@@ -836,6 +883,11 @@ export class EventImporterFIT {
         recognizedName = ImporterFitWahooDeviceNames[productId];
         const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
         creator = new Creator(`Wahoo ${productName}`, productId);
+        break;
+      }
+      case 'the_sufferfest': {
+        recognizedName = `Wahoo SYSTM`;
+        creator = new Creator(recognizedName, productId);
         break;
       }
       case 'srm': {

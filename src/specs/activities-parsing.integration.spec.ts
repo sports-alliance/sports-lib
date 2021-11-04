@@ -55,6 +55,8 @@ import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left
 import { DataAvgStrideLength } from '../data/data.avg-stride-length';
 import { DataAerobicTrainingEffect } from '../data/data-aerobic-training-effect';
 import { DataAnaerobicTrainingEffect } from '../data/data-anaerobic-training-effect';
+import { DataAltitudeSmooth } from '../data/data.altitude-smooth';
+import { DataGrade } from '../data/data.grade';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -1351,9 +1353,11 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataAltitudeSmooth.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
           expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+          expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
 
           const missingStreamCall = () => {
             activity.getSquashedStreamData(DataPower.type);
@@ -1549,7 +1553,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         // Given FIT Source: https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591
         const path = __dirname + '/fixtures/rides/fit/7432332116.fit';
         const buffer = fs.readFileSync(path);
-        const expectedSamplesLength = 10062;
+        const expectedSamplesLength = 10063;
 
         // When
         const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -2039,9 +2043,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           // Swim
           const swimActivity = event.getFirstActivity();
           expect(swimActivity.type).toEqual(ActivityTypes.OpenWaterSwimming);
-          expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3690);
+          expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3689);
           expect(swimActivity.startDate.toISOString()).toEqual('2018-10-13T17:05:01.000Z');
-          expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.603Z');
+          expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.000Z');
 
           expect((swimActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(3933.3);
           expect((swimActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(869);
@@ -2076,7 +2080,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(cyclingActivity.type).toEqual(ActivityTypes.Cycling);
           expect(cyclingActivity.getStreamData(DataSpeed.type).length).toEqual(17250);
           expect(cyclingActivity.startDate.toISOString()).toEqual('2018-10-13T18:10:15.000Z');
-          expect(cyclingActivity.endDate.toISOString()).toEqual('2018-10-13T22:57:43.550Z');
+          expect(cyclingActivity.endDate.toISOString()).toEqual('2018-10-13T22:57:44.000Z');
 
           expect((cyclingActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(180301.58);
           expect((cyclingActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(3804);
@@ -2104,7 +2108,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const runningActivity = event.getActivities()[4];
           expect(runningActivity.type).toEqual(ActivityTypes.Running);
           expect(runningActivity.startDate.toISOString()).toEqual('2018-10-13T22:57:45.000Z');
-          expect(runningActivity.endDate.toISOString()).toEqual('2018-10-14T02:36:46.182Z');
+          expect(runningActivity.endDate.toISOString()).toEqual('2018-10-14T02:42:23.000Z');
           expect((runningActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(42563.91);
           expect((runningActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(2056);
           expect((runningActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(84);
@@ -2183,7 +2187,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       );
     });
 
-    it('should parse fit file with broken start/end dates', done => {
+    it('should parse fit file with broken sessionObject.start_time date', done => {
       // Given
       const path = __dirname + '/fixtures/others/broken-dates.fit';
       const buffer = fs.readFileSync(path);
@@ -2194,7 +2198,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Then
       eventInterfacePromise.then(event => {
         expect(event.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
-        expect(event.endDate.toISOString()).toEqual('2017-03-20T19:20:24.000Z');
+        expect(event.endDate.toISOString()).toEqual('2017-03-20T19:20:26.083Z');
         done();
       });
     });
@@ -2214,6 +2218,24 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         const latStream = activity.getSquashedStreamData(DataLatitudeDegrees.type);
         expect(longStream[0]).not.toEqual(0);
         expect(latStream[0]).not.toEqual(0);
+        done();
+      });
+    });
+
+    // TODO @jimmykane
+    // TODO This activity take very very very too much time to complete. Problem is due to the current grade calculation
+    // TODO The grade calculation should be performed on sauashed streams first to be performant
+    it.skip('should handle a very long activity (27 days) in a human life time :)', done => {
+      // Given FIT Source: https://connect.garmin.com/modern/activity/7769719668 OR https://www.strava.com/activities/6197356353
+      const path = __dirname + '/fixtures/others/27-days-activity.fit';
+      const buffer = fs.readFileSync(path);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const activity = event.getFirstActivity();
         done();
       });
     });

@@ -10,9 +10,9 @@ export class SportsLib {
   /**
    * Parses and returns an event using GPX format
    * @param gpxString
-   * @param domParser custom DomParse (case of NodeJs usage)
+   * @param domParser custom DOMParser (case of NodeJs usage)
    */
-  public static importFromGPX(gpxString: string, domParser?: Function): Promise<EventInterface> {
+  public static importFromGPX(gpxString: string, domParser?: any): Promise<EventInterface> {
     return EventImporterGPX.getFromString(gpxString, domParser);
   }
 

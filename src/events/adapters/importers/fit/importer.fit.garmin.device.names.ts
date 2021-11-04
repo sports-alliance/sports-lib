@@ -368,6 +368,7 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3638: 'Enduro',
   3648: 'Marq Adventurer',
   3639: 'Swim 2',
+  3652: 'Forerunner 945',
   3703: 'Venu 2',
   3704: 'Venu 2S',
   3737: 'Venu',
@@ -381,12 +382,15 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   3872: 'Enduro',
   3837: 'Venu SQ',
   3850: 'Marq Golfer',
+  3869: 'Forerunner 55',
   3930: 'Descent MK 2S',
   3934: 'Approach S42',
   3949: 'Venu 2S',
   3950: 'Venu 2',
+  3978: 'Forerunner 945',
   3986: 'Approach S12',
   4002: 'Approach S42',
+  4033: 'Forerunner 55',
   10014: 'Edge Remote',
   20533: 'Tacx Training App',
   20534: 'Tacx Training App',
@@ -394,5 +398,6 @@ export const ImporterFitGarminDeviceNames: { [index: number]: string } = {
   30045: 'Tacx Training App',
   30046: 'Tacx Training App',
   65531: 'Connectiq Simulator',
-  65532: 'Antplus Plugin'
+  65532: 'Antplus Plugin',
+  65534: 'Connect'
 };

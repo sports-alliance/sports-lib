@@ -25,8 +25,9 @@ import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
+import { ParsingEventLibError } from '../errors/empty-event-sports-libs.error';
 
-export const MAX_ACTIVITY_DURATION = 30 * 24 * 60 * 60 * 1000; // 1 month
+export const MAX_ACTIVITY_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
@@ -55,13 +56,13 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name = '') {
     super(startDate, endDate);
     if (!startDate || !endDate) {
-      throw new Error('Start and end dates are required');
+      throw new ParsingEventLibError('Start and end dates are required');
     }
     if (endDate < startDate) {
-      throw new Error('Activity end date is before the start date and that is not acceptable');
+      throw new ParsingEventLibError('Activity end date is before the start date and that is not acceptable');
     }
-    if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
-      throw new Error('Activity duration is over 1 month and that is not supported');
+    if (+endDate - +startDate > MAX_ACTIVITY_DURATION_MS) {
+      throw new ParsingEventLibError('Activity duration exceed 30 days. That is not supported');
     }
     this.type = type;
     this.creator = creator;

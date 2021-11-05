@@ -102,9 +102,10 @@ import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-thr
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
 import { FileType } from '../../file-type.enum';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterSuuntoJSON {
-  static getFromJSONString(jsonString: string): Promise<EventInterface> {
+  static getFromJSONString(jsonString: string, options?: ActivityParsingOptions): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
       // debugger;
@@ -175,7 +176,8 @@ export class EventImporterSuuntoJSON {
                 ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]
               )
             ],
-            creator
+            creator,
+            options
           );
 
           // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
@@ -216,7 +218,8 @@ export class EventImporterSuuntoJSON {
                 eventJSONObject.DeviceLog.Header.Duration * 1000
             ),
             ActivityTypes.unknown,
-            creator
+            creator,
+            options
           )
         );
       }

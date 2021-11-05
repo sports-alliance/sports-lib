@@ -11,9 +11,15 @@ import { GXParser } from './gx-parser';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { FileType } from '../../file-type.enum';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterGPX {
-  static getFromString(gpx: string, domParser?: any, name = 'New Event'): Promise<EventInterface> {
+  static getFromString(
+    gpx: string,
+    domParser?: any,
+    options?: ActivityParsingOptions,
+    name = 'New Event'
+  ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
@@ -72,6 +78,7 @@ export class EventImporterGPX {
           endDate,
           activityType,
           new Creator(parsedGPX.creator, undefined, parsedGPX.version),
+          options,
           activityName
         );
 

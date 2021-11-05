@@ -26,6 +26,7 @@ import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 import { ParsingEventLibError } from '../errors/empty-event-sports-libs.error';
+import { ActivityParsingOptions } from './activity-parsing-options';
 
 export const MAX_ACTIVITY_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -46,6 +47,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   public name: string;
   public type: ActivityTypes;
   public creator: CreatorInterface;
+  public parseOptions: ActivityParsingOptions;
   public intensityZones: IntensityZonesInterface[] = []; // maybe rename
 
   private laps: LapInterface[] = [];
@@ -53,7 +55,14 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private events: DataEvent[] = [];
 
-  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name = '') {
+  constructor(
+    startDate: Date,
+    endDate: Date,
+    type: ActivityTypes,
+    creator: Creator,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
+    name = ''
+  ) {
     super(startDate, endDate);
     if (!startDate || !endDate) {
       throw new ParsingEventLibError('Start and end dates are required');
@@ -66,6 +75,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }
     this.type = type;
     this.creator = creator;
+    this.parseOptions = options;
     this.name = name;
   }
 

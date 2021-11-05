@@ -14,6 +14,7 @@ import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
+import { ActivityParsingOptions } from './activity-parsing-options';
 
 export interface ActivityInterface
   extends StatsClassInterface,
@@ -23,6 +24,7 @@ export interface ActivityInterface
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;
+  parseOptions: ActivityParsingOptions;
   // Probably kill intensity zones and use the stats
   intensityZones: IntensityZonesInterface[];
 

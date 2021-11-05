@@ -1025,33 +1025,38 @@ export class ActivityUtilities {
 
     // Check if we can get a grade stream
     if (
+      activity.parseOptions?.streams?.grade &&
       !activity.hasStreamData(DataGrade.type) &&
       activity.hasStreamData(DataDistance.type) &&
-      activity.hasStreamData(DataAltitudeSmooth.type)
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
       const distanceData = activity.getStreamData(DataDistance.type);
-      const altitudeData = activity.getStreamData(DataAltitudeSmooth.type);
+      const altitudeData = activity.getStreamData(
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
       const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
 
       // Append new grade stream to activity
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
 
-      // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
-      // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
-      this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
+      if (activity.parseOptions?.streams?.gradeSmooth) {
+        // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
+        // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
+        this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
 
-      // Smooth grade computed stream
-      this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
-        // Grade stream
-        const GRADE_KALMAN_SMOOTHING = {
-          R: 0.01, // Grade model is stable
-          Q: 0.6 // Grade measurement error which can be expected
-        };
+        // Smooth grade computed stream
+        this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
+          // Grade stream
+          const GRADE_KALMAN_SMOOTHING = {
+            R: 0.01, // Grade model is stable
+            Q: 0.6 // Grade measurement error which can be expected
+          };
 
-        // Predict proper grade values
-        const kf = new KalmanFilter(GRADE_KALMAN_SMOOTHING);
-        return squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
-      });
+          // Predict proper grade values
+          const kf = new KalmanFilter(GRADE_KALMAN_SMOOTHING);
+          return squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
+        });
+      }
     }
 
     // Get a grade adjusted speed (the model applies to running only)
@@ -1180,7 +1185,11 @@ export class ActivityUtilities {
    * @param activity
    */
   public static createDerivedStreams(activity: ActivityInterface): ActivityInterface {
-    if (activity.hasStreamData(DataAltitude.type) && !activity.hasStreamData(DataAltitudeSmooth.type)) {
+    if (
+      activity.parseOptions?.streams?.altitudeSmooth &&
+      activity.hasStreamData(DataAltitude.type) &&
+      !activity.hasStreamData(DataAltitudeSmooth.type)
+    ) {
       // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
       // Activity stats will be computed on the smoothed altitude stream
       this.cloneStream(activity, DataAltitude.type, DataAltitudeSmooth.type);
@@ -1429,48 +1438,110 @@ export class ActivityUtilities {
     }
 
     // Ascent (altitude gain)
-    if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      const gain = this.getActivityDataTypeGain(activity, DataAltitudeSmooth.type);
+    if (
+      !activity.getStat(DataAscent.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      const gain = this.getActivityDataTypeGain(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
       if (gain !== null) {
         activity.addStat(new DataAscent(gain));
       }
     }
     // Descent (altitude loss)
-    if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      const loss = this.getActivityDataTypeLoss(activity, DataAltitudeSmooth.type);
+    if (
+      !activity.getStat(DataDescent.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      const loss = this.getActivityDataTypeLoss(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
       if (loss !== null) {
         activity.addStat(new DataDescent(loss));
       }
     }
     // Altitude Max
-    if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitudeSmooth.type)));
+    if (
+      !activity.getStat(DataAltitudeMax.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeMax(
+          this.getDataTypeMax(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
     // Altitude Min
-    if (!activity.getStat(DataAltitudeMin.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitudeSmooth.type)));
+    if (
+      !activity.getStat(DataAltitudeMin.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeMin(
+          this.getDataTypeMin(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
     // Altitude Avg
-    if (!activity.getStat(DataAltitudeAvg.type) && activity.hasStreamData(DataAltitudeSmooth.type)) {
-      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitudeSmooth.type)));
+    if (
+      !activity.getStat(DataAltitudeAvg.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeAvg(
+          this.getDataTypeAvg(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Altitude start
     if (
       !activity.getStat(DataStartAltitude.type) &&
-      activity.hasStreamData(DataAltitudeSmooth.type) &&
-      this.getDataTypeFirst(activity, DataAltitudeSmooth.type)
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type)) &&
+      this.getDataTypeFirst(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      )
     ) {
-      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitudeSmooth.type)));
+      activity.addStat(
+        new DataStartAltitude(
+          this.getDataTypeFirst(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Altitude end
     if (
       !activity.getStat(DataEndAltitude.type) &&
-      activity.hasStreamData(DataAltitudeSmooth.type) &&
-      this.getDataTypeLast(activity, DataAltitudeSmooth.type)
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type)) &&
+      this.getDataTypeLast(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      )
     ) {
-      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitudeSmooth.type)));
+      activity.addStat(
+        new DataEndAltitude(
+          this.getDataTypeLast(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Heart Rate  Max

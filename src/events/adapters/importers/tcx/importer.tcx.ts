@@ -35,6 +35,7 @@ import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
 import { DataCadence } from '../../../../data/data.cadence';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterTCX {
   /**
@@ -56,7 +57,7 @@ export class EventImporterTCX {
     return lapDistance > 0 || lapMaxSpeed > 0;
   }
 
-  static getFromXML(xml: Document, name = 'New Event'): Promise<EventInterface> {
+  static getFromXML(xml: Document, options?: ActivityParsingOptions, name = 'New Event'): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       // Activities
       const activities: ActivityInterface[] = Array.from(
@@ -77,7 +78,8 @@ export class EventImporterTCX {
           startDate,
           endDate,
           activityType,
-          this.getCreator(<any>activityElement.getElementsByTagName('Creator')[0])
+          this.getCreator(<any>activityElement.getElementsByTagName('Creator')[0]),
+          options
         );
 
         // Extract activity stats from laps retrieved

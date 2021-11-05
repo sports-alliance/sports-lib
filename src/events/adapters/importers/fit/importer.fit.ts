@@ -99,6 +99,7 @@ import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-tra
 import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
 import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
 import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -107,7 +108,11 @@ const FitFileParser = require('fit-file-parser').default;
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 
 export class EventImporterFIT {
-  static getFromArrayBuffer(arrayBuffer: ArrayBuffer, name = 'New Event'): Promise<EventInterface> {
+  static getFromArrayBuffer(
+    arrayBuffer: ArrayBuffer,
+    options?: ActivityParsingOptions,
+    name = 'New Event'
+  ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,
@@ -127,7 +132,7 @@ export class EventImporterFIT {
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
-          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject);
+          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
             activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index));
@@ -452,7 +457,11 @@ export class EventImporterFIT {
     return lap;
   }
 
-  private static getActivityFromSessionObject(sessionObject: any, fitDataObject: any): ActivityInterface {
+  private static getActivityFromSessionObject(
+    sessionObject: any,
+    fitDataObject: any,
+    options?: ActivityParsingOptions
+  ): ActivityInterface {
     /**
      * Provides start/end date based on records available in given session object first, then in parent fit object
      */
@@ -548,7 +557,8 @@ export class EventImporterFIT {
         startDate,
         endDate,
         this.getActivityTypeFromSessionObject(sessionObject),
-        this.getCreatorFromFitDataObject(fitDataObject)
+        this.getCreatorFromFitDataObject(fitDataObject),
+        options
       );
       // Set the activity stats
       this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));

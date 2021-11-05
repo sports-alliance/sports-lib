@@ -439,12 +439,25 @@ export class EventImporterFIT {
     activity: ActivityInterface,
     lapIndex: number
   ): LapInterface {
+    const startDate =
+      sessionLapObject?.start_time ||
+      sessionLapObject?.records[0]?.timestamp ||
+      (sessionLapObject?.total_elapsed_time &&
+        new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000)) ||
+      null;
+
+    const endDate =
+      sessionLapObject?.timestamp ||
+      (sessionLapObject.records?.length > 0 &&
+        sessionLapObject.records[sessionLapObject.records.length - 1]?.timestamp) ||
+      (sessionLapObject.start_time &&
+        sessionLapObject.total_elapsed_time &&
+        new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000)) ||
+      null;
+
     const lap = new Lap(
-      sessionLapObject.start_time ||
-        sessionLapObject.records[0].timestamp ||
-        new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000),
-      sessionLapObject.timestamp ||
-        new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000), // Some dont have a timestamp
+      startDate,
+      endDate, // Some dont have a timestamp
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
@@ -503,7 +516,10 @@ export class EventImporterFIT {
     // Pick start/end date values
     let startDate = sessionObject.start_time || getStartEndDatesFromRecords(sessionObject, fitDataObject)[0] || null;
     let endDate =
-      sessionObject.timestamp || (startDate && new Date(startDate.getTime() + totalElapsedTime * 1000)) || null;
+      sessionObject.timestamp ||
+      (startDate && totalElapsedTime && new Date(startDate.getTime() + totalElapsedTime * 1000)) ||
+      getStartEndDatesFromRecords(sessionObject, fitDataObject)[1] ||
+      null;
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
     // Get dates from records in that case
@@ -624,7 +640,8 @@ export class EventImporterFIT {
       const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activity.type);
       object.records.forEach((record: any, index: number) => {
         if ((record.speed || record.enhanced_speed) > speedThreshold) {
-          const previousRecordTime = object.records[index - 1]?.timestamp || object.start_time;
+          const previousRecordTime =
+            object.records[index - 1]?.timestamp || object.start_time || object.records[0].timestamp;
           movingTime += (record.timestamp.getTime() - previousRecordTime.getTime()) / 1000;
         }
       });

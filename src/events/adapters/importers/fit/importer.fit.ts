@@ -100,6 +100,7 @@ import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
 import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
 import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -880,47 +881,73 @@ export class EventImporterFIT {
     return stats;
   }
 
-  private static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
+  public static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
+    const toStartCase = (str: string): string => {
+      return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    };
+
+    const formatDeviceName = (
+      manufacturer: string | null,
+      productName: string | null,
+      recognizedName: string | null,
+      recognizedBrand: string | null
+    ) => {
+      let name = '';
+
+      if (recognizedBrand && recognizedName) {
+        name = `${toStartCase(recognizedBrand)} ${recognizedName}`;
+      } else if (recognizedBrand && !recognizedName && productName) {
+        if (productName.match(new RegExp(`${recognizedBrand}`, 'gi'))) {
+          productName = productName.replace(new RegExp(`${recognizedBrand}`, 'gi'), '').trim();
+        }
+        name = `${toStartCase(recognizedBrand)} ${productName}`;
+      } else if (recognizedBrand && !recognizedName && !productName) {
+        name = `${toStartCase(recognizedBrand)}`;
+      } else if (manufacturer && !recognizedBrand && !recognizedName && !productName) {
+        const formattedManufacturer = manufacturer.replace(new RegExp('[-_]', 'gi'), ' ').trim();
+        name = `${toStartCase(formattedManufacturer)}`;
+      } else {
+        name = 'Unknown';
+      }
+
+      return name;
+    };
+
     let creator: CreatorInterface;
-
-    const productId = fitDataObject.file_ids[0].product || null;
-
     let recognizedName = null;
+    const manufacturer = fitDataObject.file_ids[0].manufacturer;
+    const productId = fitDataObject.file_ids[0].product || null;
+    const productName = fitDataObject.file_ids[0].product_name;
 
-    switch (fitDataObject.file_ids[0].manufacturer) {
+    switch (manufacturer) {
       case 'suunto': {
         recognizedName = ImporterFitSuuntoDeviceNames[<number>productId];
-        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`Suunto ${productName}`, productId);
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Suunto'), productId);
         break;
       }
       case 'coros': {
         recognizedName = ImporterFitCorosDeviceNames[productId];
-        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`${productName}`, productId);
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Coros'), productId);
         break;
       }
       case 'garmin': {
         recognizedName = ImporterFitGarminDeviceNames[productId];
-        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`Garmin ${productName}`, productId);
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Garmin'), productId);
         break;
       }
       case 'wahoo_fitness': {
         recognizedName = ImporterFitWahooDeviceNames[productId];
-        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`Wahoo ${productName}`, productId);
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Wahoo'), productId);
         break;
       }
-      case 'the_sufferfest': {
-        recognizedName = `Wahoo SYSTM`;
-        creator = new Creator(recognizedName, productId);
+      case 'hammerhead': {
+        recognizedName = ImporterFitHammerheadDeviceNames[productId];
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Hammerhead'), productId);
         break;
       }
       case 'srm': {
         recognizedName = ImporterFitSrmDeviceNames[productId];
-        const productName = recognizedName || fitDataObject.file_ids[0].product_name || 'Unknown';
-        creator = new Creator(`SRM ${productName}`, productId);
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'SRM'), productId);
         break;
       }
       case 'zwift': {
@@ -928,9 +955,15 @@ export class EventImporterFIT {
         creator = new Creator(recognizedName);
         break;
       }
+      case 'the_sufferfest': {
+        recognizedName = `Wahoo SYSTM`;
+        creator = new Creator(recognizedName, productId);
+        break;
+      }
       case 'stryd': {
+        recognizedName = `Stryd`;
         creator = new Creator(
-          'Stryd',
+          recognizedName,
           productId,
           fitDataObject.file_creator.software_version,
           fitDataObject.file_creator.hardware_version,
@@ -939,21 +972,14 @@ export class EventImporterFIT {
         break;
       }
       case 'development': {
-        creator = new Creator(fitDataObject.file_ids[0].product_name || productId || 'Unknown', productId);
+        creator = new Creator(formatDeviceName(null, productName, null, null), productId);
         break;
       }
       default: {
-        creator = new Creator(
-          fitDataObject.file_ids[0].manufacturer
-            ? fitDataObject.file_ids[0].manufacturer +
-              ' ' +
-              (fitDataObject.file_ids[0].product_name || productId || 'Unknown')
-            : fitDataObject.file_ids[0].product_name || productId || 'Unknown',
-          productId
-        );
+        creator = new Creator(formatDeviceName(manufacturer, productName, null, null), productId);
       }
     }
-    creator.manufacturer = fitDataObject.file_ids[0].manufacturer;
+    creator.manufacturer = manufacturer;
     creator.isRecognized = !!recognizedName;
 
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {

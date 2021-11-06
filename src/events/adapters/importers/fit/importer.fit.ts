@@ -101,6 +101,9 @@ import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
 import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.device.names';
+import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names';
+import { ImporterFitMagellanDeviceNames } from './importer.fit.magellan.device.names';
+import { ImporterFitSarisDeviceNames } from './importer.fit.saris.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -945,6 +948,21 @@ export class EventImporterFIT {
         creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Hammerhead'), productId);
         break;
       }
+      case 'lezyne': {
+        recognizedName = ImporterFitLezyneDeviceNames[productId];
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Lezyne'), productId);
+        break;
+      }
+      case 'magellan': {
+        recognizedName = ImporterFitMagellanDeviceNames[productId];
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Magellan'), productId);
+        break;
+      }
+      case 'saris': {
+        recognizedName = ImporterFitSarisDeviceNames[productId];
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Saris'), productId);
+        break;
+      }
       case 'srm': {
         recognizedName = ImporterFitSrmDeviceNames[productId];
         creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'SRM'), productId);
@@ -952,6 +970,11 @@ export class EventImporterFIT {
       }
       case 'zwift': {
         recognizedName = 'Zwift';
+        creator = new Creator(recognizedName);
+        break;
+      }
+      case 'virtualtraining': {
+        recognizedName = 'Rouvy';
         creator = new Creator(recognizedName);
         break;
       }

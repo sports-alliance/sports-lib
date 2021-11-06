@@ -142,6 +142,22 @@ describe('EventImporterFIT', () => {
         done();
       });
 
+      it('should recognize a known Rouvy virtual device', done => {
+        const manufacturer = 'virtualtraining';
+        const expectedName = 'Rouvy';
+        const fitDataObject = generateFitDeviceDataObject(manufacturer, 1);
+
+        // When
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        // Then
+        expect(creator.isRecognized).toBeTruthy();
+
+        expect(creator.name).toEqual(expectedName);
+        expect(creator.manufacturer).toEqual(manufacturer);
+        done();
+      });
+
       it('should recognize a known Wahoo SYSTM virtual device', done => {
         const manufacturer = 'the_sufferfest';
         const expectedName = 'Wahoo SYSTM';

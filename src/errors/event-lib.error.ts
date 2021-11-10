@@ -1,10 +1,10 @@
 import { LibError } from './lib.error';
 import { EventInterface } from '../events/event.interface';
 
-export class EventLibError extends LibError {
-  public event: EventInterface;
+export abstract class EventLibError extends LibError {
+  public event: EventInterface | null;
 
-  constructor(message: string, event: EventInterface) {
+  protected constructor(message: string, event: EventInterface | null) {
     super(message);
     Object.setPrototypeOf(this, EventLibError.prototype); // Set the prototype explicitly.
     this.event = event;

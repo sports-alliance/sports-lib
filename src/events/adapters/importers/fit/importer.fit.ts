@@ -65,7 +65,7 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
-import { EmptyEventLibError, ParsingEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataStopAllEvent } from '../../../../data/data.stop-all-event';
@@ -78,7 +78,6 @@ import { DataActiveLengths } from '../../../../data/data-active-lengths';
 import { DataActiveLap } from '../../../../data/data-active-lap';
 import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
-import { LibError } from '../../../../errors/lib.error';
 import { DataPowerTorqueEffectivenessLeft } from '../../../../data/data.power-torque-effectiveness-left';
 import { DataPowerTorqueEffectivenessRight } from '../../../../data/data.power-torque-effectiveness-right';
 import { DataPowerPedalSmoothnessLeft } from '../../../../data/data.power-pedal-smoothness-left';
@@ -104,6 +103,7 @@ import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.devi
 import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names';
 import { ImporterFitMagellanDeviceNames } from './importer.fit.magellan.device.names';
 import { ImporterFitSarisDeviceNames } from './importer.fit.saris.device.names';
+import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -570,7 +570,7 @@ export class EventImporterFIT {
     }
 
     if (!startDate || !endDate) {
-      throw new LibError('Cannot parse dates');
+      throw new ParsingEventLibError('Cannot parse start and end dates');
     } else {
       // Create an activity
       const activity = new Activity(

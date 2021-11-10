@@ -57,6 +57,7 @@ import { DataAerobicTrainingEffect } from '../data/data-aerobic-training-effect'
 import { DataAnaerobicTrainingEffect } from '../data/data-anaerobic-training-effect';
 import { DataAltitudeSmooth } from '../data/data.altitude-smooth';
 import { DataGrade } from '../data/data.grade';
+import { EventLibError } from '../errors/event-lib.error';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -2143,8 +2144,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-activities.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'EMPTY_FIT_FILE';
+      const expectedErrorMessage = 'No activities found';
       const expectedErrorClassName = 'EmptyEventLibError';
+      const expectedCode = 'EVENT_EMPTY_ERROR';
 
       // When
       const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -2154,9 +2156,10 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         () => {
           throw new Error('Should not be resolved...');
         },
-        err => {
+        (err: EventLibError) => {
           expect(err.constructor.name).toEqual(expectedErrorClassName);
           expect(err.message).toEqual(expectedErrorMessage);
+          expect(err.code).toEqual(expectedCode);
           expect(err.event).toBeNull();
           done();
         }
@@ -2167,8 +2170,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-sessions.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'EMPTY_FIT_FILE';
+      const expectedErrorMessage = 'No activities found';
       const expectedErrorClassName = 'EmptyEventLibError';
+      const expectedCode = 'EVENT_EMPTY_ERROR';
 
       // When
       const eventInterfacePromise = SportsLib.importFromFit(buffer);
@@ -2178,9 +2182,10 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         () => {
           throw new Error('Should not be resolved...');
         },
-        err => {
+        (err: EventLibError) => {
           expect(err.constructor.name).toEqual(expectedErrorClassName);
           expect(err.message).toEqual(expectedErrorMessage);
+          expect(err.code).toEqual(expectedCode);
           expect(err.event).toBeNull();
           done();
         }
@@ -2220,6 +2225,32 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         expect(latStream[0]).not.toEqual(0);
         done();
       });
+    });
+
+    it('should reject parsing of a too long activity (31 days)', done => {
+      // Given
+      const path = __dirname + '/fixtures/others/31-days-activity.fit';
+      const buffer = fs.readFileSync(path);
+      const expectedErrorMessage = 'Activity duration exceed 30 days. That is not supported';
+      const expectedErrorClassName = 'DurationEventLibError';
+      const expectedCode = 'DURATION_EXCEEDED_EVENT_ERROR';
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then(
+        () => {
+          throw new Error('Should not be resolved...');
+        },
+        (err: EventLibError) => {
+          expect(err.constructor.name).toEqual(expectedErrorClassName);
+          expect(err.message).toEqual(expectedErrorMessage);
+          expect(err.code).toEqual(expectedCode);
+          expect(err.event).toBeNull();
+          done();
+        }
+      );
     });
 
     // TODO @jimmykane

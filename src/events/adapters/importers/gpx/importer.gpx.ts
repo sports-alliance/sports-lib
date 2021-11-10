@@ -12,6 +12,7 @@ import { DataDuration } from '../../../../data/data.duration';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 
 export class EventImporterGPX {
   static getFromString(
@@ -24,6 +25,10 @@ export class EventImporterGPX {
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte;
+
+      if (!track?.length) {
+        reject(new EmptyEventLibError());
+      }
 
       const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {
         // Get the samples

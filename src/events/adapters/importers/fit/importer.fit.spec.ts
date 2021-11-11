@@ -9,7 +9,7 @@ describe('EventImporterFIT', () => {
     ) {
       const data: any = {};
 
-      if (productId !== null) {
+      if (manufacturer !== null) {
         data.manufacturer = manufacturer;
       }
 
@@ -293,9 +293,22 @@ describe('EventImporterFIT', () => {
           expect(creator.manufacturer).toEqual(manufacturer);
           done();
         });
-      });
 
-      // TODO Unknown Manufacturer and product name
+        it('should format a non-recognized Garmin device without productId && product name', done => {
+          const manufacturer = 'wahoo_fitness';
+          const expectedName = 'Wahoo';
+          const fitDataObject = generateFitDeviceDataObject(manufacturer);
+
+          // When
+          const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+          // Then
+          expect(creator.isRecognized).toBeFalsy();
+          expect(creator.name).toEqual(expectedName);
+          expect(creator.manufacturer).toEqual(manufacturer);
+          done();
+        });
+      });
 
       describe('Unknown manufacturer with missing productId & missing product name', () => {
         it('should format a non-recognized Suunto device without productId && product name', done => {

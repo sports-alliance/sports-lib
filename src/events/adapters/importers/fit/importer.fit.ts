@@ -104,6 +104,8 @@ import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names
 import { ImporterFitMagellanDeviceNames } from './importer.fit.magellan.device.names';
 import { ImporterFitSarisDeviceNames } from './importer.fit.saris.device.names';
 import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
+import { DataPowerDown } from '../../../../data/data.power-down';
+import { DataPowerUp } from '../../../../data/data.power-up';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -244,6 +246,10 @@ export class EventImporterFIT {
                   default:
                     break;
                 }
+              } else if (activityEvent.event === 'power_down') {
+                activity.addEvent(new DataPowerDown(activity.getDateIndex(activityEvent.timestamp)));
+              } else if (activityEvent.event === 'power_up') {
+                activity.addEvent(new DataPowerUp(activity.getDateIndex(activityEvent.timestamp)));
               } else if (activityEvent.event === 'rider_position_change') {
                 const positionChange = activityEvent.data as RiderPosition;
                 if (

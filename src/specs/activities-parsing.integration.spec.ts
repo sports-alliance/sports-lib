@@ -2232,7 +2232,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const path = __dirname + '/fixtures/others/31-days-activity.fit';
       const buffer = fs.readFileSync(path);
       const expectedErrorMessage = 'Activity duration exceed 30 days. That is not supported';
-      const expectedErrorClassName = 'DurationEventLibError';
+      const expectedErrorClassName = 'DurationExceededEventLibError';
       const expectedCode = 'DURATION_EXCEEDED_EVENT_ERROR';
 
       // When

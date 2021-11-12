@@ -905,6 +905,7 @@ export enum ActivityTypeGroups {
   'Trail Running' = 'Trail Running',
   'TrailRunning' = 'Trail Running',
   'Cycling' = 'Cycling',
+  'Swimming' = 'Swimming',
   'Performance' = 'Performance',
   'Indoor Sports' = 'Indoor Sports',
   'IndoorSports' = 'Indoor Sports',
@@ -942,6 +943,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.EBiking
       // @todo add more
     ],
+    [ActivityTypeGroups.Swimming]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
     [ActivityTypeGroups.Performance]: [
       ActivityTypes.Crossfit,
       ActivityTypes.Orienteering,
@@ -992,8 +994,6 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.WaterSports]: [
       ActivityTypes.Rowing,
-      ActivityTypes.Swimming,
-      ActivityTypes.OpenWaterSwimming,
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
       ActivityTypes.Wakeboarding,
@@ -1034,7 +1034,8 @@ export class ActivityTypesMoving {
    */
   private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
     [ActivityTypeGroups.Running, 1.5 / 3.6], // kph to m/s
-    [ActivityTypeGroups.Cycling, 4 / 3.6] // kph to m/s
+    [ActivityTypeGroups.Cycling, 4 / 3.6], // kph to m/s
+    [ActivityTypeGroups.Swimming, 0.3] // 30 cm/s
   ]);
 
   private static DEFAULT_MOVING_SPEED_THRESHOLD = 0.3; // m/s

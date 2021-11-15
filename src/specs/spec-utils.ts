@@ -55,6 +55,9 @@ export class SpecUtils {
   }
 
   public static assertNearEqual(actual: number, expected: number, decimals = 0, tolerancePercentage = 1): void {
+    if (actual === null || actual === undefined) {
+      throw new Error('actual cannot be null or undefined');
+    }
     const actualRounded = round(actual, decimals);
     const expectedRounded = round(expected, decimals);
 
@@ -117,6 +120,10 @@ export class SpecUtils {
     expectedTime: number | string,
     tolerancePercentage = 0.5
   ): void {
+    if (actualTime === null || actualTime === undefined) {
+      throw new Error('actual cannot be null or undefined');
+    }
+
     const expectedSeconds = typeof expectedTime === 'string' ? Time.militaryToSec(expectedTime) : expectedTime;
     const actualSeconds = typeof actualTime === 'string' ? Time.militaryToSec(actualTime) : actualTime;
 

@@ -58,6 +58,7 @@ import { DataAnaerobicTrainingEffect } from '../data/data-anaerobic-training-eff
 import { DataAltitudeSmooth } from '../data/data.altitude-smooth';
 import { DataGrade } from '../data/data.grade';
 import { EventLibError } from '../errors/event-lib.error';
+import { ActivityParsingOptions } from '../activities/activity-parsing-options';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -2231,7 +2232,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Given
       const path = __dirname + '/fixtures/others/31-days-activity.fit';
       const buffer = fs.readFileSync(path);
-      const expectedErrorMessage = 'Activity duration exceed 30 days. That is not supported';
+      const expectedErrorMessage = 'Activity duration exceeds 14 days. That is not supported';
       const expectedErrorClassName = 'DurationExceededEventLibError';
       const expectedCode = 'DURATION_EXCEEDED_EVENT_ERROR';
 
@@ -2253,16 +2254,18 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       );
     });
 
-    // TODO @jimmykane
+    // TODO @jimmykane unskip test
     // TODO This activity take very very very too much time to complete. Problem is due to the current grade calculation
-    // TODO The grade calculation should be performed on sauashed streams first to be performant
+    // TODO The grade calculation should be performed on squashed streams first to be performant
     it.skip('should handle a very long activity (27 days) in a human life time :)', done => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7769719668 OR https://www.strava.com/activities/6197356353
       const path = __dirname + '/fixtures/others/27-days-activity.fit';
       const buffer = fs.readFileSync(path);
+      const options = ActivityParsingOptions.DEFAULT;
+      options.maxActivityDurationDays = 30;
 
       // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+      const eventInterfacePromise = SportsLib.importFromFit(buffer, options);
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {

@@ -18,7 +18,7 @@ export class EventImporterGPX {
   static getFromString(
     gpx: string,
     domParser?: any,
-    options?: ActivityParsingOptions,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {

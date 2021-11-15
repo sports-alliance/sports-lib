@@ -29,8 +29,6 @@ import { ActivityParsingOptions } from './activity-parsing-options';
 import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
 import { DurationExceededEventLibError } from '../errors/duration-exceeded-event-lib.error';
 
-export const MAX_ACTIVITY_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
     ActivityTypes.VirtualRun,
@@ -71,8 +69,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     if (endDate < startDate) {
       throw new ParsingEventLibError('Activity end date is before the start date and that is not acceptable');
     }
-    if (+endDate - +startDate > MAX_ACTIVITY_DURATION_MS) {
-      throw new DurationExceededEventLibError('Activity duration exceed 30 days. That is not supported');
+    if (+endDate - +startDate > options.maxActivityDurationDays * 24 * 60 * 60 * 1000) {
+      throw new DurationExceededEventLibError(
+        `Activity duration exceeds ${options.maxActivityDurationDays} days. That is not supported`
+      );
     }
     this.type = type;
     this.creator = creator;

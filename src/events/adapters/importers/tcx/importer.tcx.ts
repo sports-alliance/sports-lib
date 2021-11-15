@@ -57,7 +57,11 @@ export class EventImporterTCX {
     return lapDistance > 0 || lapMaxSpeed > 0;
   }
 
-  static getFromXML(xml: Document, options?: ActivityParsingOptions, name = 'New Event'): Promise<EventInterface> {
+  static getFromXML(
+    xml: Document,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
+    name = 'New Event'
+  ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       // Activities
       const activities: ActivityInterface[] = Array.from(

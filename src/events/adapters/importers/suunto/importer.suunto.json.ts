@@ -105,7 +105,10 @@ import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterSuuntoJSON {
-  static getFromJSONString(jsonString: string, options?: ActivityParsingOptions): Promise<EventInterface> {
+  static getFromJSONString(
+    jsonString: string,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
+  ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
       // debugger;

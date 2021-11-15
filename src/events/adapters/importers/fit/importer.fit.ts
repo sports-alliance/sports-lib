@@ -1,5 +1,5 @@
 import { Event } from '../../../event';
-import { Activity, MAX_ACTIVITY_DURATION_MS } from '../../../../activities/activity';
+import { Activity } from '../../../../activities/activity';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -116,7 +116,7 @@ const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 export class EventImporterFIT {
   static getFromArrayBuffer(
     arrayBuffer: ArrayBuffer,
-    options?: ActivityParsingOptions,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
@@ -483,7 +483,7 @@ export class EventImporterFIT {
   private static getActivityFromSessionObject(
     sessionObject: any,
     fitDataObject: any,
-    options?: ActivityParsingOptions
+    options: ActivityParsingOptions
   ): ActivityInterface {
     /**
      * Provides start/end date based on records available in given session object first, then in parent fit object
@@ -571,7 +571,7 @@ export class EventImporterFIT {
     }
 
     // Re-test potential updated activity duration against max accepted duration
-    if (+endDate - +startDate > MAX_ACTIVITY_DURATION_MS) {
+    if (+endDate - +startDate > options.maxActivityDurationDays * 24 * 60 * 60 * 1000) {
       endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
     }
 

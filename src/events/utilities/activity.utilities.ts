@@ -192,7 +192,6 @@ import {
   DataGradeAdjustedPaceMinMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
-import { GradeCalculator } from './grade-calculator/grade-calculator';
 import {
   ActivityTypeGroups,
   ActivityTypes,
@@ -212,6 +211,7 @@ import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
+import { GradeCalculator } from './grade-calculator/grade-calculator';
 
 const KalmanFilter = require('kalmanjs');
 
@@ -1034,7 +1034,10 @@ export class ActivityUtilities {
       const altitudeData = activity.getStreamData(
         activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
       );
-      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
+
+      // Create the grade stream from time, distance and altitude non-squashed streams
+      const timeData = activity.generateTimeStream([DataDistance.type]);
+      const gradeStreamData = GradeCalculator.computeGradeStream(timeData.getData(), distanceData, altitudeData);
 
       // Append new grade stream to activity
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
@@ -1049,7 +1052,7 @@ export class ActivityUtilities {
           // Grade stream
           const GRADE_KALMAN_SMOOTHING = {
             R: 0.01, // Grade model is stable
-            Q: 0.6 // Grade measurement error which can be expected
+            Q: 0.5 // Grade measurement error which can be expected
           };
 
           // Predict proper grade values

@@ -71,9 +71,9 @@ describe('Strava stream compliance', () => {
     const path = __dirname + '/fixtures/runs/fit/6782987395.fit';
     const buffer = fs.readFileSync(path);
 
-    it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
+    it(`should have an average grade diff lower than 2.1%`, done => {
       // Given
-      const toleranceAvgGradeDelta = GRADE_TOLERANCE;
+      const toleranceAvgGradeDelta = 2.1;
 
       const stravaGradeStream = clone(strava_2451375851.grade_smooth);
 

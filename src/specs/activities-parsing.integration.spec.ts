@@ -652,7 +652,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '19:20', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '07:23',
+            '07:32',
             1
           );
 
@@ -911,7 +911,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:15', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '07:12',
+            '07:07',
             1
           );
 
@@ -1312,7 +1312,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '13:10', 1);
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-            '08:58',
+            '09:07',
             1
           );
 
@@ -2254,15 +2254,13 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       );
     });
 
-    // TODO @jimmykane unskip test
-    // TODO This activity take very very very too much time to complete. Problem is due to the current grade calculation
-    // TODO The grade calculation should be performed on squashed streams first to be performant
-    it.skip('should handle a very long activity (27 days) in a human life time :)', done => {
+    it('should handle calculation on a ultra long activity (27 days) with acceptable human time', done => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7769719668 OR https://www.strava.com/activities/6197356353
       const path = __dirname + '/fixtures/others/27-days-activity.fit';
       const buffer = fs.readFileSync(path);
       const options = ActivityParsingOptions.DEFAULT;
       options.maxActivityDurationDays = 30;
+      const expectedSamplesLength = 3699;
 
       // When
       const eventInterfacePromise = SportsLib.importFromFit(buffer, options);
@@ -2270,6 +2268,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
         const activity = event.getFirstActivity();
+
+        expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+        expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+        expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+        expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+        expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
         done();
       });
     });

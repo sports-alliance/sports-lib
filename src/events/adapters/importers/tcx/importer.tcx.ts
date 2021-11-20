@@ -347,6 +347,7 @@ export class EventImporterTCX {
         : 0;
 
       // Loop on track-points to detect moving speed
+      const trackSpeeds: number[] = [];
       const trackElements = Array.from(lapElement.getElementsByTagName('Track'));
       trackElements.forEach(trackElement => {
         const trackPointsElements = Array.from(trackElement.getElementsByTagName('Trackpoint'));
@@ -394,7 +395,10 @@ export class EventImporterTCX {
               );
               const meters = currentDistance - previousDistance;
               speed = meters / seconds;
+              trackSpeeds.push(speed);
             }
+          } else {
+            trackSpeeds.push(speed);
           }
 
           // We track moving time only if speed available on track points and upper than threshold
@@ -458,8 +462,12 @@ export class EventImporterTCX {
       }
 
       // Optionals
-      if (lapElement.getElementsByTagName('MaximumSpeed')[0]) {
-        lap.addStat(new DataSpeedMax(Number(lapElement.getElementsByTagName('MaximumSpeed')[0].textContent)));
+      if (trackSpeeds.length) {
+        const maxSpeed = ActivityUtilities.getMax(trackSpeeds);
+        lap.addStat(new DataSpeedMax(maxSpeed));
+      } else if (lapElement.getElementsByTagName('MaximumSpeed')[0]) {
+        const maxSpeed = Number(lapElement.getElementsByTagName('MaximumSpeed')[0].textContent);
+        lap.addStat(new DataSpeedMax(maxSpeed));
       }
 
       if (lapElement.getElementsByTagName('AverageHeartRateBpm')[0]) {
@@ -486,8 +494,10 @@ export class EventImporterTCX {
         lap.addStat(new DataCadence(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
       }
 
-      // Fetching activity lap extensions according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema
-      const lapAvgSpeed = findLapExtensionValue(lapElement.childNodes, 'AvgSpeed');
+      // Fetching activity lap speed from records or from extensions if exists according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema
+      const lapAvgSpeed = trackSpeeds.length
+        ? ActivityUtilities.getAverage(trackSpeeds)
+        : findLapExtensionValue(lapElement.childNodes, 'AvgSpeed');
       if (lapAvgSpeed !== null) {
         lap.addStat(new DataSpeedAvg(lapAvgSpeed));
         lap.addStat(new DataPaceAvg(convertSpeedToPace(lapAvgSpeed)));

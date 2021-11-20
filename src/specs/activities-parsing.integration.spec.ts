@@ -344,7 +344,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
           SpecUtils.assertNearEqualTime(
             <number>SpecUtils.speedToSwimPace((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
-            '01:45'
+            '01:50'
           );
 
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -955,7 +955,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.type).toEqual(ActivityTypes.run);
           expect(activity.creator.name).toEqual('Forerunner 945');
 
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:38');
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '05:41');
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
             '05:19',
@@ -1001,7 +1001,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           const activity = event.getFirstActivity();
           expect(activity.type).toEqual(ActivityTypes.run);
 
-          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:27');
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:25');
           SpecUtils.assertNearEqualTime(
             (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
             '04:24'
@@ -1027,6 +1027,42 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(movingTime, '01:02:17');
           SpecUtils.assertNearEqualTime(timerTime, '01:02:17');
           SpecUtils.assertNearEqualTime(elapsedTime, '01:02:17');
+          SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+
+          done();
+        });
+      });
+
+      it('should parse running TCX file (4)', done => {
+        // Given TCX Source: (garmin connect upload impossible) or https://www.strava.com/activities/6281425038
+        const path = __dirname + '/fixtures/runs/tcx/6281425038.tcx';
+        const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+
+        // When
+        const eventInterfacePromise = SportsLib.importFromTCX(doc);
+
+        // Then
+        eventInterfacePromise.then((event: EventInterface) => {
+          const activity = event.getFirstActivity();
+          expect(activity.type).toEqual(ActivityTypes.run);
+
+          SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:19');
+          SpecUtils.assertNearEqualTime(
+            (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
+            '05:58'
+          );
+
+          const laps = activity.getLaps();
+          expect(laps.length).toEqual(5);
+
+          const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+          const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+          const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
+          const elapsedTime = activity.getDuration().getValue();
+
+          SpecUtils.assertNearEqualTime(movingTime, '25:45');
+          SpecUtils.assertNearEqualTime(timerTime, '25:45');
+          SpecUtils.assertNearEqualTime(elapsedTime, '36:02');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
@@ -1702,7 +1738,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(108);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(153);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(186);
-          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(5.812); // Or 20.9 kph
+          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(6.536); // Or 23.5 kph
 
           // Verifying time data
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -1743,7 +1779,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(109);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(160);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(192);
-          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(6.0279); // 21.7 kph
+          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(6.278); // 22.6 kph
 
           // Verifying time data
           const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -1818,7 +1854,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(114);
           expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(148);
           expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(180);
-          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(8.476, 3); // Or 30.5 kph
+          expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(8.47, 3); // Or 30.5 kph
 
           SpecUtils.assertEqual((activity.getStat(DataPowerAvg.type) as DataNumber).getValue(), 143);
           expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(381);

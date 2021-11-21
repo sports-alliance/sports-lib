@@ -2290,6 +2290,28 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       );
     });
 
+    it('should handle inverted elapsed and timer time', done => {
+      // Given FIT Source: https://connect.garmin.com/modern/activity/7852903753 OR https://www.strava.com/activities/6288405028
+      const path = __dirname + '/fixtures/others/inverted-times.fit';
+      const buffer = fs.readFileSync(path);
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const activity = event.getFirstActivity();
+        // Verifying time data
+        const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+        const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+        const elapsedTime = activity.getDuration().getValue();
+        SpecUtils.assertNearEqualTime(movingTime, '47:20', 1);
+        SpecUtils.assertNearEqualTime(timerTime, '47:20');
+        SpecUtils.assertNearEqualTime(elapsedTime, '06:01:20');
+        done();
+      });
+    });
+
     it('should handle calculation on a ultra long activity (27 days) with acceptable human time', done => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7769719668 OR https://www.strava.com/activities/6197356353
       const path = __dirname + '/fixtures/others/27-days-activity.fit';

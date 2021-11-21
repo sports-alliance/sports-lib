@@ -520,6 +520,10 @@ export class EventImporterFIT {
       return [startDate, endDate];
     };
 
+    // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
+    // Just invert fields if that's the case
+    this.swapTimesIfRequired(sessionObject);
+
     // Start finding out total elapsed time from fit dedicated fields
     const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
 
@@ -592,6 +596,23 @@ export class EventImporterFIT {
     }
   }
 
+  /**
+   * For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
+   * Just swap them if that's the case
+   */
+  private static swapTimesIfRequired(object: any): void {
+    if (
+      isNumber(object.total_timer_time) &&
+      isNumber(object.total_elapsed_time) &&
+      object.total_elapsed_time < object.total_timer_time
+    ) {
+      const realTimerTime = object.total_elapsed_time;
+      const realElapsedTime = object.total_timer_time;
+      object.total_timer_time = realTimerTime;
+      object.total_elapsed_time = realElapsedTime;
+    }
+  }
+
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     if (session.sub_sport && session.sub_sport !== 'generic') {
       return (
@@ -607,6 +628,10 @@ export class EventImporterFIT {
   // @todo move this to a mapper
   private static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
     const stats = [];
+
+    // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
+    // Just invert fields if that's the case
+    this.swapTimesIfRequired(object);
 
     // TOTAL ELAPSED TIME on Object (activity, lap...)
     let elapsedTime = 0;

@@ -130,12 +130,15 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
   return <number[]>array;
 }
 
+export const mean = (array: number[]): number => {
+  return array.reduce((a: number, b: number) => a + b, 0) / array.length;
+};
+
 export const meanWindowSmoothing = (array: number[], windowSize = 7, roundDecimals = 3): number[] => {
   const roundDecimalsFactor = 10 ** roundDecimals;
   return array.map((value: number, index: number) => {
     const window = array.slice(index, index + windowSize); // Get window
-    const mean = window.reduce((a: number, b: number) => a + b, 0) / window.length; // mean of window
-    return Math.round(mean * roundDecimalsFactor) / roundDecimalsFactor; // Round and return
+    return Math.round(mean(window) * roundDecimalsFactor) / roundDecimalsFactor; // Round and return
   });
 };
 
@@ -174,4 +177,10 @@ export const medianFilter = (array: number[], window = 11) => {
     }
   }
   return f;
+};
+
+export const standardDeviation = (stream: number[]): number => {
+  const avg = mean(stream);
+  const variance = mean(stream.map(value => Math.pow(value, 2))) - Math.pow(avg, 2);
+  return variance > 0 ? Math.sqrt(variance) : 0;
 };

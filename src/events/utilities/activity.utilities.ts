@@ -109,7 +109,8 @@ import {
   convertSwimPaceToSwimPacePer100Yard,
   isNumber,
   isNumberOrString,
-  medianFilter
+  medianFilter,
+  standardDeviation
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
@@ -218,6 +219,14 @@ const KalmanFilter = require('kalmanjs');
 /* Configure filtering values */
 // Altitude stream
 const ALTITUDE_SPIKES_FILTER_WIN = 3;
+
+// Fix abnormal streams
+const SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT = 25 / 3.6; // Kph to mps
+const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
+  [ActivityTypeGroups.Running, 15 / 3.6], // kph to m/s
+  [ActivityTypeGroups.Cycling, 27 / 3.6], // kph to m/s
+  [ActivityTypeGroups.Swimming, 5 / 3.6] // kph to m/s
+]);
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
@@ -438,9 +447,38 @@ export class ActivityUtilities {
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.generateMissingStreams(activity);
+    this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
     this.generateMissingSpeedDerivedStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
+  }
+
+  public static fixAbnormalStreamData(activity: ActivityInterface): void {
+    // Check if fix abnormal speed option has been enable and if we have stream data
+    if (activity.parseOptions?.streams?.fixAbnormal?.speed && activity.hasStreamData(DataSpeed.type)) {
+      // Check for speed data dispersion using standard deviation
+      const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
+
+      // Get speed standard deviation threshold at which we will attempt to fix the stream
+      const stdDevThreshold =
+        SPEED_STREAM_STD_DEV_THRESHOLD_MAP.get(ActivityTypesHelper.getActivityGroupForActivityType(activity.type)) ||
+        SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT;
+
+      if (speedStdDev > stdDevThreshold) {
+        // Fix/Predict speed stream through Kalman filtering
+        this.shapeStream(DataSpeed.type, activity, squashedSpeedData => {
+          // Grade stream
+          const SPEED_KALMAN_SMOOTHING = {
+            R: 0.01, // Speed model calculation is something stable
+            Q: speedStdDev * 2 // We intend to get a measurement error which can be under and over std dev (explaining the double factor)
+          };
+
+          // Apply kalman filter
+          const kf = new KalmanFilter(SPEED_KALMAN_SMOOTHING);
+          return squashedSpeedData.map(v => (v === null ? null : kf.filter(v)));
+        });
+      }
+    }
   }
 
   public static generateMissingStreams(activity: ActivityInterface): void {
@@ -1025,7 +1063,7 @@ export class ActivityUtilities {
 
     // Check if we can get a grade stream
     if (
-      activity.parseOptions?.streams?.grade &&
+      activity.parseOptions?.streams?.smooth?.grade &&
       !activity.hasStreamData(DataGrade.type) &&
       activity.hasStreamData(DataDistance.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
@@ -1042,7 +1080,7 @@ export class ActivityUtilities {
       // Append new grade stream to activity
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
 
-      if (activity.parseOptions?.streams?.gradeSmooth) {
+      if (activity.parseOptions?.streams?.smooth?.gradeSmooth) {
         // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
         // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
         this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
@@ -1189,7 +1227,7 @@ export class ActivityUtilities {
    */
   public static createDerivedStreams(activity: ActivityInterface): ActivityInterface {
     if (
-      activity.parseOptions?.streams?.altitudeSmooth &&
+      activity.parseOptions?.streams?.smooth?.altitudeSmooth &&
       activity.hasStreamData(DataAltitude.type) &&
       !activity.hasStreamData(DataAltitudeSmooth.type)
     ) {

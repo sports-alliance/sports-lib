@@ -59,6 +59,7 @@ import { DataAltitudeSmooth } from '../data/data.altitude-smooth';
 import { DataGrade } from '../data/data.grade';
 import { EventLibError } from '../errors/event-lib.error';
 import { ActivityParsingOptions } from '../activities/activity-parsing-options';
+import { standardDeviation } from '../events/utilities/helpers';
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -2332,6 +2333,32 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
         expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
         expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
+        done();
+      });
+    });
+
+    it('should handle and detect an activity with broken speed data', done => {
+      // Given TCX Source: (unable to upload on garmin connect) OR https://www.strava.com/activities/3197023890
+      const path = __dirname + '/fixtures/others/broken-speed-activity.tcx';
+      const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
+      const options = ActivityParsingOptions.DEFAULT;
+      options.streams.fixAbnormal.speed = true;
+
+      // When
+      const eventInterfacePromise = SportsLib.importFromTCX(doc);
+
+      // Then
+      eventInterfacePromise.then((event: EventInterface) => {
+        const activity = event.getFirstActivity();
+        const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
+        expect(speedStdDev).toBeCloseTo(0.55, 2);
+        // Verifying time data
+        const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+        const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+        const elapsedTime = activity.getDuration().getValue();
+        SpecUtils.assertNearEqualTime(movingTime, '05:04:20');
+        SpecUtils.assertNearEqualTime(timerTime, '5:07:54');
+        SpecUtils.assertNearEqualTime(elapsedTime, '5:07:54');
         done();
       });
     });

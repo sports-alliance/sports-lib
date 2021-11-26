@@ -454,8 +454,13 @@ export class ActivityUtilities {
   }
 
   public static fixAbnormalStreamData(activity: ActivityInterface): void {
-    // Check if fix abnormal speed option has been enable and if we have stream data
-    if (activity.parseOptions?.streams?.fixAbnormal?.speed && activity.hasStreamData(DataSpeed.type)) {
+    // Check if fix abnormal speed option has been enable and if we have stream data and position data (e.g. do not fix for swim pool activities)
+    if (
+      activity.parseOptions?.streams?.fixAbnormal?.speed &&
+      activity.hasStreamData(DataSpeed.type) &&
+      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      activity.hasStreamData(DataLongitudeDegrees.type)
+    ) {
       // Check for speed data dispersion using standard deviation
       const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
 
@@ -1007,7 +1012,7 @@ export class ActivityUtilities {
 
     if (
       activity.hasStreamData(DataLatitudeDegrees.type) &&
-      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      activity.hasStreamData(DataLongitudeDegrees.type) &&
       (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))
     ) {
       const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s

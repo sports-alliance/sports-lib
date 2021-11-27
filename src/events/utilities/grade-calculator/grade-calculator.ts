@@ -69,7 +69,7 @@ export class GradeCalculator {
     const squashedAlignedAlt: number[] = [];
 
     let lastKnownDistance = distanceData.find(dist => Number.isFinite(dist));
-    let lastKnownAlt = distanceData.find(dist => Number.isFinite(dist));
+    let lastKnownAlt = altitudeData.find(alt => Number.isFinite(alt));
 
     timeData.forEach((seconds, index) => {
       // If we have time data

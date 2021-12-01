@@ -352,12 +352,16 @@ export class EventImporterTCX {
       trackElements.forEach(trackElement => {
         const trackPointsElements = Array.from(trackElement.getElementsByTagName('Trackpoint'));
 
+        if (!trackPointsElements?.length) {
+          return;
+        }
+
         // Setting lap elapsed time from first and last track point
         const firstTrackPoint = trackPointsElements[0];
         const lastTrackPoint = trackPointsElements[trackPointsElements.length - 1];
 
         // Assign elapsed time if time available on first and last point
-        if (lastTrackPoint.getElementsByTagName('Time').length && firstTrackPoint.getElementsByTagName('Time').length) {
+        if (lastTrackPoint?.getElementsByTagName('Time')?.length) {
           elapsedTime =
             (new Date(<string>lastTrackPoint.getElementsByTagName('Time')[0].textContent).getTime() -
               new Date(<string>firstTrackPoint.getElementsByTagName('Time')[0].textContent).getTime()) /

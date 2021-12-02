@@ -475,23 +475,23 @@ export class EventImporterTCX {
       }
 
       if (lapElement.getElementsByTagName('AverageHeartRateBpm')[0]) {
-        lap.addStat(
-          new DataHeartRateAvg(
-            Number(
-              lapElement.getElementsByTagName('AverageHeartRateBpm')[0].getElementsByTagName('Value')[0].textContent
-            )
-          )
-        );
+        const value =
+          lapElement.getElementsByTagName('AverageHeartRateBpm')[0]?.getElementsByTagName('Value')[0]?.textContent ||
+          lapElement.getElementsByTagName('AverageHeartRateBpm')[0]?.textContent;
+
+        if (value) {
+          lap.addStat(new DataHeartRateAvg(Number(value)));
+        }
       }
 
       if (lapElement.getElementsByTagName('MaximumHeartRateBpm')[0]) {
-        lap.addStat(
-          new DataHeartRateMax(
-            Number(
-              lapElement.getElementsByTagName('MaximumHeartRateBpm')[0].getElementsByTagName('Value')[0].textContent
-            )
-          )
-        );
+        const value =
+          lapElement.getElementsByTagName('MaximumHeartRateBpm')[0]?.getElementsByTagName('Value')[0]?.textContent ||
+          lapElement.getElementsByTagName('MaximumHeartRateBpm')[0]?.textContent;
+
+        if (value) {
+          lap.addStat(new DataHeartRateMax(Number(value)));
+        }
       }
 
       if (lapElement.getElementsByTagName('Cadence')[0]) {

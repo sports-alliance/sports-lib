@@ -42,7 +42,7 @@ export class EventImporterGPX {
             return trkptArray.concat(trkseg.trkpt);
           }, []);
           // Determine if it's a route. The samples will most probably be missing the time
-          isActivity = !!samples[0].time;
+          isActivity = !!samples[0]?.time;
         } else if (trackOrRoute.rtept) {
           samples = trackOrRoute.rtept;
         }

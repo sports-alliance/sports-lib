@@ -110,7 +110,15 @@ export const FITSampleMapper: {
   {
     dataType: DataSpeed.type,
     getSampleValue: (sample: any) => {
-      return sample.enhanced_speed || sample.speed;
+      if (Number.isFinite(sample.enhanced_speed)) {
+        return sample.enhanced_speed;
+      }
+
+      if (Number.isFinite(sample.speed)) {
+        return sample.speed;
+      }
+
+      return null;
     }
   },
   {

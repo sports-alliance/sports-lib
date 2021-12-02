@@ -1668,9 +1668,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           // Verify streams consistency
           const activity = event.getFirstActivity();
-          expect(activity.creator.name).toEqual('Unknown');
+          expect(activity.creator.name).toEqual('Zwift');
           expect(activity.creator.productId).toEqual(15706);
-          expect(activity.creator.isRecognized).toBeFalsy();
+          expect(activity.creator.isRecognized).toBeTruthy();
           expect(activity.generateTimeStream([DataDistance.type]).getData(true).length).toEqual(expectedSamplesLength);
           expect(activity.hasPowerMeter()).toBeTruthy();
           expect(activity.isTrainer()).toBeFalsy();

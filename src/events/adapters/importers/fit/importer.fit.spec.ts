@@ -174,9 +174,44 @@ describe('EventImporterFIT', () => {
         expect(creator.manufacturer).toEqual(manufacturer);
         done();
       });
+
+      it('should recognize a known development device', done => {
+        const manufacturer = 'development';
+        const expectedName = 'Zwift';
+        const productId = 15706;
+        const fitDataObject = generateFitDeviceDataObject(manufacturer, productId);
+
+        // When
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        // Then
+        expect(creator.isRecognized).toBeTruthy();
+
+        expect(creator.name).toEqual(expectedName);
+        expect(creator.manufacturer).toEqual(manufacturer);
+        done();
+      });
     });
 
     describe('Non recognized', () => {
+      describe('Known manufacturer with unknown productId & known product name', () => {
+        it('should format a non-recognized development device with known productId & unknown product name', done => {
+          const manufacturer = 'development';
+          const productId = 42;
+          const expectedName = 'Unknown';
+          const fitDataObject = generateFitDeviceDataObject(manufacturer, productId);
+
+          // When
+          const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+          // Then
+          expect(creator.isRecognized).toBeTruthy();
+          expect(creator.name).toEqual(expectedName);
+          expect(creator.manufacturer).toEqual(manufacturer);
+          done();
+        });
+      });
+
       describe('Known manufacturer with unknown productId & known product name', () => {
         it('should format a non-recognized Coros device with unknown productId & known product name', done => {
           const manufacturer = 'coros';

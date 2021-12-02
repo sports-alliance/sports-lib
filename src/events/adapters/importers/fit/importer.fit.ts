@@ -106,6 +106,7 @@ import { ImporterFitSarisDeviceNames } from './importer.fit.saris.device.names';
 import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
+import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const FitFileParser = require('fit-file-parser').default;
@@ -924,7 +925,8 @@ export class EventImporterFIT {
       manufacturer: string | null,
       productName: string | null,
       recognizedName: string | null,
-      recognizedBrand: string | null
+      recognizedBrand: string | null,
+      isDevelopment = false
     ) => {
       let name = '';
 
@@ -937,9 +939,11 @@ export class EventImporterFIT {
         name = `${toStartCase(recognizedBrand)} ${productName}`;
       } else if (recognizedBrand && !recognizedName && !productName) {
         name = `${toStartCase(recognizedBrand)}`;
-      } else if (manufacturer && !recognizedBrand && !recognizedName && !productName) {
+      } else if (manufacturer && !recognizedBrand && !recognizedName && !productName && !isDevelopment) {
         const formattedManufacturer = manufacturer.replace(new RegExp('[-_]', 'gi'), ' ').trim();
         name = `${toStartCase(formattedManufacturer)}`;
+      } else if (!recognizedBrand && recognizedName) {
+        name = `${recognizedName}`;
       } else {
         name = 'Unknown';
       }
@@ -951,7 +955,7 @@ export class EventImporterFIT {
     let recognizedName = null;
     const manufacturer = fitDataObject.file_ids[0].manufacturer;
     const productId = fitDataObject.file_ids[0].product || null;
-    const productName = fitDataObject.file_ids[0].product_name;
+    const productName = fitDataObject.file_ids[0].product_name || null;
 
     switch (manufacturer) {
       case 'suunto': {
@@ -1026,7 +1030,9 @@ export class EventImporterFIT {
         break;
       }
       case 'development': {
-        creator = new Creator(formatDeviceName(null, productName, null, null), productId);
+        recognizedName = ImporterFitDevelopmentDeviceNames[productId];
+        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, null, true), productId);
+        creator.isRecognized = typeof recognizedName === 'string' || recognizedName === null;
         break;
       }
       default: {
@@ -1034,7 +1040,7 @@ export class EventImporterFIT {
       }
     }
     creator.manufacturer = manufacturer;
-    creator.isRecognized = !!recognizedName;
+    creator.isRecognized = creator.isRecognized || !!recognizedName;
 
     if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {
       creator.hwInfo = String(fitDataObject.file_creator.hardware_version);

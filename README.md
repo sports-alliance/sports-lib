@@ -27,10 +27,11 @@ GPX
 ---
 ```typescript
 import {SportsLib} from '@sports-alliance/sports-lib';
+import {DOMParser} from 'xmldom'
 
 // For GPX you need a string 
 const gpxString = 'Some string from a file etc';
-SportsLib.importFromGPX(gpxString).then((event)=>{
+SportsLib.importFromGPX(gpxString, DOMParser).then((event)=>{
   // do Stuff with the file
   const distance = event.getDistance();
   const duration = event.getDuration();

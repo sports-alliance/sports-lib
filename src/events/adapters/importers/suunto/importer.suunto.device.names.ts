@@ -18,6 +18,7 @@ export const ImporterSuuntoDeviceNames: { [index: string]: string } = {
   Gdansk: 'Spartan WHR Baro',
   'Spartan Sport Wrist HR Baro': 'Spartan WHR Baro',
   Helsinki: '3 Fitness',
+  Ambit2: 'Ambit2',
   'Ambit3 Sport': 'Ambit3 Sport',
   'Ambit3 Peak': 'Ambit3 Peak',
   'Ambit3 Run': 'Ambit3 Run',

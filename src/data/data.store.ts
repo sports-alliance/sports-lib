@@ -131,7 +131,7 @@ import { DataBatteryLifeEstimation } from './data.battery-life-estimation';
 import { DataFormPower } from './data.form-power';
 import { DataLegStiffness } from './data.leg-stiffness';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
-import { DataTotalTrainingEffect } from './data.total-training-effect';
+import { DataAerobicTrainingEffect } from './data-aerobic-training-effect';
 import { DataNumberOfSamples } from './data.number-of.samples';
 import { DataFootPodUsed } from './data.foot-pod-used';
 import { DataAutoPauseUsed } from './data.auto-pause-used';
@@ -156,7 +156,7 @@ import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from './data.swim-pace-avg';
 import { DataSwimPaceMax, DataSwimPaceMaxMinutesPer100Yard } from './data.swim-pace-max';
 import { DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard } from './data.swim-pace-min';
-import { DataSWOLFAvg } from './data.swolf-avg';
+import { DataSWOLF25m } from './data.swolf-25m';
 import { DataAccumulatedPower } from './data.accumulated-power';
 import { DataStrydDistance } from './data.stryd-distance';
 import { DataStrydSpeed } from './data.stryd-speed';
@@ -167,7 +167,7 @@ import { DataRPE } from './data.rpe';
 import { DataPowerRight } from './data.power-right';
 import { DataPowerLeft } from './data.power-left';
 import { DataStanceTime } from './data.stance-time';
-import { DataStanceTimeBalance } from './data.stance-time-balance';
+import { DataStanceTimeBalanceLeft } from './data-stance-time-balance-left';
 import { DataStepLength } from './data.step-length';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataDescription } from './data.description';
@@ -257,6 +257,8 @@ import {
 } from '../events/utilities/helpers';
 import { Data } from './data';
 import { DataMovingTime } from './data.moving-time';
+import { DataSWOLF50m } from './data.swolf-50m';
+import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
 
 /**
  * Only concrete classes no abstracts
@@ -339,7 +341,7 @@ export const DataStore: any = {
   DataFormPower,
   DataLegStiffness,
   DataVerticalOscillation,
-  DataTotalTrainingEffect,
+  DataAerobicTrainingEffect,
   DataFootPodUsed,
   DataAltiBaroProfile,
   DataAutoPauseUsed,
@@ -451,7 +453,8 @@ export const DataStore: any = {
   DataDeviceNames,
   DataStartAltitude,
   DataEndAltitude,
-  DataSWOLFAvg,
+  DataSWOLF25m,
+  DataSWOLF50m,
   DataAccumulatedPower,
   DataLeftBalance,
   DataRightBalance,
@@ -459,7 +462,8 @@ export const DataStore: any = {
   DataPowerRight,
   DataRPE,
   DataStanceTime,
-  DataStanceTimeBalance,
+  DataStanceTimeBalanceRight,
+  DataStanceTimeBalanceLeft,
   DataStepLength,
   DataVerticalRatio,
   DataDescription,
@@ -535,7 +539,7 @@ export class DynamicDataLoader {
     DataFormPower.type,
     DataLegStiffness.type,
     DataVerticalOscillation.type,
-    DataTotalTrainingEffect.type,
+    DataAerobicTrainingEffect.type,
     DataIBI.type,
     DataStrydAltitude.type,
     DataAccumulatedPower.type,
@@ -547,7 +551,7 @@ export class DynamicDataLoader {
     DataPowerLeft.type,
     DataPowerRight.type,
     DataStanceTime.type,
-    DataStanceTimeBalance.type,
+    DataStanceTimeBalanceLeft.type,
     DataStepLength.type,
     DataVerticalRatio.type,
     DataGroundTime.type,
@@ -730,7 +734,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${dataType}\' is not in the store`);
+      throw new Error(`Class type of '${dataType}' is not in the store`);
     }
     return new DataStore[className](opts);
   }
@@ -740,7 +744,7 @@ export class DynamicDataLoader {
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {
-      throw new Error(`Class type of \'${dataType}\' is not in the store`);
+      throw new Error(`Class type of '${dataType}' is not in the store`);
     }
     return DataStore[className];
   }

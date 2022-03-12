@@ -85,7 +85,7 @@ import { IBIStream } from '../../../../streams/ibi-stream';
 import { DataSteps } from '../../../../data/data.steps';
 import { DataPoolLength } from '../../../../data/data.pool-length';
 import { DataDeviceLocation } from '../../../../data/data.device-location';
-import { DataTotalTrainingEffect } from '../../../../data/data.total-training-effect';
+import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { DataHeartRateZoneOneDuration } from '../../../../data/data.heart-rate-zone-one-duration';
 import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-zone-two-duration';
 import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
@@ -101,9 +101,14 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
+import { FileType } from '../../file-type.enum';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterSuuntoJSON {
-  static getFromJSONString(jsonString: string): Promise<EventInterface> {
+  static getFromJSONString(
+    jsonString: string,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
+  ): Promise<EventInterface> {
     return new Promise((resolve, reject) => {
       const eventJSONObject = JSON.parse(jsonString);
       // debugger;
@@ -174,7 +179,8 @@ export class EventImporterSuuntoJSON {
                 ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]
               )
             ],
-            creator
+            creator,
+            options
           );
 
           // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
@@ -215,7 +221,8 @@ export class EventImporterSuuntoJSON {
                 eventJSONObject.DeviceLog.Header.Duration * 1000
             ),
             ActivityTypes.unknown,
-            creator
+            creator,
+            options
           )
         );
       }
@@ -236,7 +243,7 @@ export class EventImporterSuuntoJSON {
         {}
       );
       const laps = lapEventSamples.reduce(
-        (lapArray: LapInterface[], lapEventSample: any, index: number): LapInterface[] => {
+        (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
           // if there is only one lap then skip it's the whole activity
           if (lapEventSamples.length === 1) {
             return lapArray;
@@ -248,12 +255,13 @@ export class EventImporterSuuntoJSON {
           const lap = new Lap(
             lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
             lapEndDate,
+            lapIndex + 1,
             LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
           );
           lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
 
-          if (lapWindows[index]) {
-            this.getStats(lapWindows[index]).forEach(stat => {
+          if (lapWindows[lapIndex]) {
+            this.getStats(lapWindows[lapIndex]).forEach(stat => {
               lap.addStat(stat);
             });
           }
@@ -335,7 +343,7 @@ export class EventImporterSuuntoJSON {
 
       // Create an event
       // @todo check if start and end date can derive from the json
-      const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate);
+      const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate, FileType.SUUNTO);
       activities.forEach(activity => event.addActivity(activity));
       // Populate the event stats from the Header Object // @todo maybe remove
       this.getStats(eventJSONObject.DeviceLog.Header).forEach(stat => {
@@ -522,7 +530,7 @@ export class EventImporterSuuntoJSON {
     }
 
     if (isNumberOrString(object.PeakTrainingEffect)) {
-      stats.push(new DataTotalTrainingEffect(object.PeakTrainingEffect));
+      stats.push(new DataAerobicTrainingEffect(object.PeakTrainingEffect));
     }
     if (isNumberOrString(object.RecoveryTime)) {
       stats.push(new DataRecoveryTime(object.RecoveryTime));

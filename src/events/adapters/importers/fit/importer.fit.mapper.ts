@@ -19,7 +19,7 @@ import { DataStrydSpeed } from '../../../../data/data.stryd-speed';
 import { DataRightBalance } from '../../../../data/data.right-balance';
 import { DataLeftBalance } from '../../../../data/data.left-balance';
 import { DataStanceTime } from '../../../../data/data.stance-time';
-import { DataStanceTimeBalance } from '../../../../data/data.stance-time-balance';
+import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
 import { DataStepLength } from '../../../../data/data.step-length';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataGroundTime } from '../../../../data/data.ground-time';
@@ -28,8 +28,12 @@ import {
   ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
   GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES
 } from '../../../../constants/constants';
+import { SampleInfo } from '../sample-info.interface';
 
-export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): number | null }[] = [
+export const FITSampleMapper: {
+  dataType: string;
+  getSampleValue(sample: any, sampleInfo?: SampleInfo): number | null;
+}[] = [
   {
     dataType: DataLatitudeDegrees.type,
     getSampleValue: (sample: any) => {
@@ -106,7 +110,15 @@ export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): n
   {
     dataType: DataSpeed.type,
     getSampleValue: (sample: any) => {
-      return sample.enhanced_speed || sample.speed;
+      if (Number.isFinite(sample.enhanced_speed)) {
+        return sample.enhanced_speed;
+      }
+
+      if (Number.isFinite(sample.speed)) {
+        return sample.speed;
+      }
+
+      return null;
     }
   },
   {
@@ -117,8 +129,12 @@ export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): n
   },
   {
     dataType: DataPower.type,
-    getSampleValue: (sample: any) => {
-      return isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
+    getSampleValue: (sample: any, sampleInfo?: SampleInfo) => {
+      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
+      // Just set watts to 0 when this happen
+      // Case example: ride file "7432332116.fit"  from integration tests
+      const watts = isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
+      return sampleInfo?.hasPowerMeter ? watts || 0 : null;
     }
   },
   {
@@ -194,9 +210,9 @@ export const FITSampleMapper: { dataType: string; getSampleValue(sample: any): n
     }
   },
   {
-    dataType: DataStanceTimeBalance.type,
+    dataType: DataStanceTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time_balance;
+      return sample.stance_time_balance; // The field sample refers to the balance on left leg
     }
   },
   {

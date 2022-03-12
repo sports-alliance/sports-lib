@@ -7,18 +7,30 @@ import { Privacy } from '../privacy/privacy.class.interface';
 import { ActivityTypes } from '../activities/activity.types';
 import { DataActivityTypes } from '../data/data.activity-types';
 import { DataDeviceNames } from '../data/data.device-names';
+import { ActivityJSONInterface } from '../activities/activity.json.interface';
+import { FileType } from './adapters/file-type.enum';
 
 export class Event extends DurationClassAbstract implements EventInterface {
   public name: string;
+  public srcFileType: FileType;
   public description?: string;
   public privacy: Privacy = Privacy.Private;
   public isMerge: boolean;
 
   private activities: ActivityInterface[] = [];
 
-  constructor(name: string, startDate: Date, endDate: Date, privacy?: Privacy, description?: string, isMerge = false) {
+  constructor(
+    name: string,
+    startDate: Date,
+    endDate: Date,
+    srcFileType: FileType,
+    privacy?: Privacy,
+    description?: string,
+    isMerge = false
+  ) {
     super(startDate, endDate);
     this.name = name;
+    this.srcFileType = srcFileType;
     if (privacy) {
       this.privacy = privacy;
     }
@@ -46,7 +58,6 @@ export class Event extends DurationClassAbstract implements EventInterface {
 
   getActivities(): ActivityInterface[] {
     this.sortActivities(); // PErhaps move on adding ? Lets check performance
-    // debugger
     return this.activities;
   }
 
@@ -130,12 +141,18 @@ export class Event extends DurationClassAbstract implements EventInterface {
     });
     return {
       name: this.name,
+      srcFileType: this.srcFileType,
       description: this.description || null,
       privacy: this.privacy,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
-      isMerge: this.isMerge
+      isMerge: this.isMerge,
+      activities: this.getActivities().reduce((activities: ActivityJSONInterface[], activity: ActivityInterface) => {
+        const jsonActivity = activity.toJSON();
+        activities.push(jsonActivity);
+        return activities;
+      }, [])
     };
   }
 }

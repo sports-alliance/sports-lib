@@ -5,6 +5,7 @@ import { DurationClassInterface } from '../duration/duration.class.interface';
 import { EventJSONInterface } from './event.json.interface';
 import { IDClassInterface } from '../id/id.class.interface';
 import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
+import { FileType } from './adapters/file-type.enum';
 
 export interface EventInterface
   extends StatsClassInterface,
@@ -13,6 +14,7 @@ export interface EventInterface
     SerializableClassInterface,
     IDClassInterface {
   name: string;
+  srcFileType: FileType;
   description?: string;
   isMerge: boolean;
 

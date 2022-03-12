@@ -1,11 +1,16 @@
 import { EventInterface } from '../../../event.interface';
 import { EventImporterSuuntoJSON } from './importer.suunto.json';
 import { isNumber } from '../../../utilities/helpers';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 const parser = require('fast-xml-parser');
 
 export class EventImporterSuuntoSML {
-  static getFromXML(contents: string, name = 'New Event'): Promise<EventInterface> {
+  static getFromXML(
+    contents: string,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
+    name = 'New Event'
+  ): Promise<EventInterface> {
     const json = parser.parse(contents).sml;
 
     // debugger;
@@ -80,10 +85,13 @@ export class EventImporterSuuntoSML {
     json.DeviceLog.Windows = [{ Window: Object.assign({ Type: 'Activity' }, json.DeviceLog.Header) }];
 
     // debugger;
-    return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(json));
+    return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(json), options);
   }
 
-  static getFromJSONString(jsonString: string): Promise<EventInterface> {
+  static getFromJSONString(
+    jsonString: string,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
+  ): Promise<EventInterface> {
     const json = JSON.parse(jsonString);
 
     let samples;
@@ -141,6 +149,6 @@ export class EventImporterSuuntoSML {
       }
     };
     // debugger;
-    return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON));
+    return EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(suuntoJSON), options);
   }
 }

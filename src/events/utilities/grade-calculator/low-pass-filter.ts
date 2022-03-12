@@ -1,9 +1,11 @@
-import { isNumber } from '../helpers';
-
 export class LowPassFilter {
   private _bufferMaxSize: number;
   private _buffer: number[];
   private _smoothing: number;
+
+  public static smooth(values: number[], smoothing = 0.5): (number | null)[] {
+    return new LowPassFilter(smoothing).smoothArray(values);
+  }
 
   constructor(smoothing?: number) {
     this._smoothing = smoothing || 0.5; // must be smaller than 1
@@ -41,12 +43,11 @@ export class LowPassFilter {
    * @returns {number}
    */
   public next(nextValue: number): number {
-    const self = this;
     // push new value to the end, and remove oldest one
     const removed = this.__push(nextValue);
     // smooth value using all values from buffer
     const result = this._buffer.reduce((last, current) => {
-      return self._smoothing * current + (1 - self._smoothing) * last;
+      return this._smoothing * current + (1 - this._smoothing) * last;
     }, removed);
     // replace smoothed value
     this._buffer[this._buffer.length - 1] = result;
@@ -59,7 +60,7 @@ export class LowPassFilter {
    * @returns {number[]}
    */
   public smoothArray(values: (number | null)[]): (number | null)[] {
-    let value = values.filter(v => isNumber(v))[0];
+    let value = values.filter(v => Number.isFinite(v))[0];
     if (!value) {
       return values;
     }
@@ -69,7 +70,7 @@ export class LowPassFilter {
       }
       const currentValue = <number>values[i];
       value += (currentValue - value) * this._smoothing;
-      values[i] = Math.round(value * 10) / 10;
+      values[i] = Math.round(value * 100) / 100;
     }
     return values;
   }

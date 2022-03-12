@@ -3,12 +3,14 @@ import { Event } from './event';
 import { Activity } from '../activities/activity';
 import { Creator } from '../creators/creator';
 import { ActivityTypes } from '../activities/activity.types';
+import { FileType } from './adapters/file-type.enum';
+import { EventJSONInterface } from './event.json.interface';
 
 describe('Event', () => {
   let event: EventInterface;
 
   beforeEach(() => {
-    event = new Event('Test', new Date(0), new Date(200));
+    event = new Event('Test', new Date(0), new Date(200), FileType.FIT);
     event.description = 'Test';
   });
 
@@ -51,15 +53,16 @@ describe('Event', () => {
     const activity = new Activity(d1, d2, ActivityTypes.Running, new Creator('Test'));
     event.addActivity(activity);
     event.setID('123');
-    spyOn(activity, 'toJSON').and.returnValue({});
     expect(event.toJSON()).toEqual({
       name: 'Test',
       description: 'Test',
       isMerge: false,
       privacy: 'private',
+      srcFileType: FileType.FIT,
       stats: {},
+      activities: [activity.toJSON()],
       startDate: d1.getTime(),
       endDate: d2.getTime()
-    });
+    } as EventJSONInterface);
   });
 });

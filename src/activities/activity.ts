@@ -11,7 +11,7 @@ import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../streams/stream.interface';
 import { ActivityJSONInterface } from './activity.json.interface';
 import { DataPositionInterface } from '../data/data.position.interface';
-import { Stream } from '../streams/stream';
+import { Stream, StreamJSONInterface } from '../streams/stream';
 import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.json.interface';
 import { isNumber } from '../events/utilities/helpers';
 import { DataPower } from '../data/data.power';
@@ -22,8 +22,12 @@ import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
-
-export const MAX_ACTIVITY_DURATION = 1 * 1 * 30 * 24 * 60 * 60 * 1000; // 1 month
+import { LapJSONInterface } from '../laps/lap.json.interface';
+import { DataDistance } from '../data/data.distance';
+import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
+import { ActivityParsingOptions } from './activity-parsing-options';
+import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
+import { DurationExceededEventLibError } from '../errors/duration-exceeded-event-lib.error';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
@@ -42,6 +46,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   public name: string;
   public type: ActivityTypes;
   public creator: CreatorInterface;
+  public parseOptions: ActivityParsingOptions;
   public intensityZones: IntensityZonesInterface[] = []; // maybe rename
 
   private laps: LapInterface[] = [];
@@ -49,19 +54,29 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   private events: DataEvent[] = [];
 
-  constructor(startDate: Date, endDate: Date, type: ActivityTypes, creator: Creator, name = '') {
+  constructor(
+    startDate: Date,
+    endDate: Date,
+    type: ActivityTypes,
+    creator: Creator,
+    options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
+    name = ''
+  ) {
     super(startDate, endDate);
     if (!startDate || !endDate) {
-      throw new Error('Start and end dates are required');
+      throw new ParsingEventLibError('Start and end dates are required');
     }
     if (endDate < startDate) {
-      throw new Error('Activity end date is before the start date and that is not acceptable');
+      throw new ParsingEventLibError('Activity end date is before the start date and that is not acceptable');
     }
-    if (+endDate - +startDate > MAX_ACTIVITY_DURATION) {
-      throw new Error('Activity duration is over 1 month and that is not supported');
+    if (+endDate - +startDate > options.maxActivityDurationDays * 24 * 60 * 60 * 1000) {
+      throw new DurationExceededEventLibError(
+        `Activity duration exceeds ${options.maxActivityDurationDays} days. That is not supported`
+      );
     }
     this.type = type;
     this.creator = creator;
+    this.parseOptions = options;
     this.name = name;
   }
 
@@ -90,6 +105,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   removeStream(streamType: string | StreamInterface): this {
     const stream = streamType instanceof Stream ? streamType : this.getStream(<string>streamType);
     this.streams = this.streams.filter(activityStream => stream !== activityStream);
+    return this;
+  }
+
+  replaceStreamData(streamType: string, data: (number | null)[]): this {
+    this.removeStream(streamType);
+    this.addStream(this.createStream(streamType).setData(data));
     return this;
   }
 
@@ -236,6 +257,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.laps;
   }
 
+  hasLaps(): boolean {
+    return this.laps.length > 0;
+  }
+
   getAllEvents(): DataEvent[] {
     return this.events;
   }
@@ -250,6 +275,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   getStopAllEvents(): DataStopEvent[] {
     return this.events.filter(event => event instanceof DataStopAllEvent);
+  }
+
+  getAllRiderPositionChangeEvents(): DataRiderPositionChangeEvent[] {
+    return this.events.filter(event => event instanceof DataRiderPositionChangeEvent) as DataRiderPositionChangeEvent[];
   }
 
   addEvent(event: DataEvent): this {
@@ -290,19 +319,37 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     this.stats.forEach((value: DataInterface, key: string) => {
       Object.assign(stats, value.toJSON());
     });
+
+    // Fetch streams from activity
+    const streams = this.getAllStreams().reduce((streams: StreamJSONInterface[], stream) => {
+      streams.push(stream.toJSON());
+      return streams;
+    }, []);
+
+    // Now append missing time stream to JSON export
+    if (streams?.length) {
+      const stream = streams.find(s => s.type === DataDistance.type) || streams[0];
+      const timeStream = this.generateTimeStream([stream.type]).toJSON();
+      streams.push(timeStream);
+    }
+
     return {
+      name: this.name || null,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       type: this.type,
       creator: this.creator.toJSON(),
       intensityZones: intensityZones,
+      powerMeter: this.hasPowerMeter(),
+      trainer: this.isTrainer(),
       stats: stats,
+      streams: streams,
       events: this.getAllEvents().reduce((eventsArray: DataJSONInterface[], event) => {
         eventsArray.push(event.toJSON());
         return eventsArray;
       }, []),
-      laps: this.getLaps().reduce((jsonLapsArray: any[], lap: LapInterface) => {
-        jsonLapsArray.push(lap.toJSON());
+      laps: this.getLaps().reduce((jsonLapsArray: LapJSONInterface[], lap: LapInterface) => {
+        jsonLapsArray.push(lap.toJSON(this));
         return jsonLapsArray;
       }, [])
     };

@@ -117,6 +117,7 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
       continue;
     }
     j = i;
+    // eslint-disable-next-line no-empty
     while (array[++j] === null) {}
     // @ts-ignore
     delta = (array[j] - array[i - 1]) / (j - i + 1);
@@ -128,3 +129,58 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
   }
   return <number[]>array;
 }
+
+export const mean = (array: number[]): number => {
+  return array.reduce((a: number, b: number) => a + b, 0) / array.length;
+};
+
+export const meanWindowSmoothing = (array: number[], windowSize = 7, roundDecimals = 3): number[] => {
+  const roundDecimalsFactor = 10 ** roundDecimals;
+  return array.map((value: number, index: number) => {
+    const window = array.slice(index, index + windowSize); // Get window
+    return Math.round(mean(window) * roundDecimalsFactor) / roundDecimalsFactor; // Round and return
+  });
+};
+
+const median = (inputArray: number[]): number => {
+  const s = inputArray.slice().sort((a: number, b: number) => {
+    return a - b;
+  });
+  return s[Math.floor((s.length - 1) / 2)];
+};
+
+/**
+ * Remove spikes into a vector (http://fourier.eng.hmc.edu/e161/lectures/smooth_sharpen/node2.html)
+ * @param array to be filtered
+ * @param window Window size (should be odd number)
+ */
+export const medianFilter = (array: number[], window = 11) => {
+  if (window % 2 === 0) {
+    throw new Error('Window size should be an odd number');
+  }
+
+  if (array.length < window) {
+    return array;
+  }
+  const f = [];
+  const w = [];
+  let i;
+  w.push(array[0]);
+  for (i = 0; i < array.length; i++) {
+    const midWindowIndex = Math.floor(window / 2);
+    if (array.length - 1 >= i + midWindowIndex) {
+      w.push(array[i + midWindowIndex]);
+    }
+    f.push(median(w));
+    if (i >= midWindowIndex) {
+      w.shift();
+    }
+  }
+  return f;
+};
+
+export const standardDeviation = (stream: number[]): number => {
+  const avg = mean(stream);
+  const variance = mean(stream.map(value => Math.pow(value, 2))) - Math.pow(avg, 2);
+  return variance > 0 ? Math.sqrt(variance) : 0;
+};

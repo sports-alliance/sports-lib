@@ -24,6 +24,7 @@ export class EventUtilities {
       `Merged at ${new Date().toISOString()}`,
       activities[0].startDate,
       activities[activities.length - 1].endDate,
+      events[0].srcFileType,
       Privacy.Private,
       `A merge of 2 or more activities `,
       true

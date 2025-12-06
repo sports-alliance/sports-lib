@@ -46,7 +46,7 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "fast-xml-parser": "^3.20.3",
-    "fit-file-parser": "^1.9.3",
+    "fit-file-parser": "^2.0.4",
     "geolib": "^3.3.1",
     "gpx-builder": "^3.7.8",
     "kalmanjs": "^1.1.0",
@@ -54,12 +54,16 @@
     "moving-median": "^1.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@types/jest": "^27.0.1",
     "@types/node": "^14.6.1",
     "@types/xmldom": "^0.1.31",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "@xmldom/xmldom": "^0.7.4",
+    "babel-jest": "^30.2.0",
+    "buffer": "^6.0.3",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",

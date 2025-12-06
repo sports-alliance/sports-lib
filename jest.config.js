@@ -1,6 +1,11 @@
 module.exports = {
   transform: {
-    '^.+\\.(ts|tsx)?$': 'ts-jest'
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest'
+  },
+  transformIgnorePatterns: ['node_modules/(?!fit-file-parser)'],
+  moduleNameMapper: {
+    '^node:buffer$': '<rootDir>/node_modules/buffer/index.js'
   },
   testTimeout: 30000, // Allow 30s for integrations tests
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',

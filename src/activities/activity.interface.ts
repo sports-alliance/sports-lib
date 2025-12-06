@@ -13,6 +13,8 @@ import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
+import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
+import { ActivityParsingOptions } from './activity-parsing-options';
 
 export interface ActivityInterface
   extends StatsClassInterface,
@@ -22,6 +24,7 @@ export interface ActivityInterface
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;
+  parseOptions: ActivityParsingOptions;
   // Probably kill intensity zones and use the stats
   intensityZones: IntensityZonesInterface[];
 
@@ -128,6 +131,13 @@ export interface ActivityInterface
   removeStream(streamType: string | StreamInterface): this;
 
   /**
+   * Replace stream data by another
+   * @param streamType
+   * @param data
+   */
+  replaceStreamData(streamType: string, data: (number | null)[]): this;
+
+  /**
    * Gets all available streams
    */
   getAllStreams(): StreamInterface[];
@@ -177,6 +187,11 @@ export interface ActivityInterface
   addLap(lap: LapInterface): this;
 
   /**
+   * Gets the laps of the activity
+   */
+  hasLaps(): boolean;
+
+  /**
    * Gets all the timebased events of the activity
    */
   getAllEvents(): DataEvent[];
@@ -207,6 +222,11 @@ export interface ActivityInterface
    * Gets the stop all type of events
    */
   getStopAllEvents(): DataStopAllEvent[];
+
+  /**
+   * Gets all rider position change events
+   */
+  getAllRiderPositionChangeEvents(): DataRiderPositionChangeEvent[];
 
   /**
    * Generates a time stream based on the type of streams requested

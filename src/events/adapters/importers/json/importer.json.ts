@@ -24,14 +24,15 @@ import { DeviceInterface } from '../../../../activities/devices/device.interface
 import { Device } from '../../../../activities/devices/device';
 import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataEvent } from '../../../../data/data.event';
+import { DataTime } from '../../../../data/data.time';
 
 export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
-    // debugger;
     const event = new Event(
       json.name,
       new Date(json.startDate),
       new Date(json.endDate),
+      json.srcFileType,
       json.privacy,
       json.description || undefined,
       json.isMerge || false
@@ -44,6 +45,7 @@ export class EventImporterJSON {
 
   static getCreatorFromJSON(json: CreatorJSONInterface): CreatorInterface {
     const creator = new Creator(json.name || 'Unknown Device');
+
     if (json.hwInfo) {
       creator.hwInfo = json.hwInfo;
     }
@@ -53,7 +55,15 @@ export class EventImporterJSON {
     if (json.serialNumber) {
       creator.serialNumber = json.serialNumber;
     }
-
+    if (json.manufacturer) {
+      creator.manufacturer = json.manufacturer;
+    }
+    if (json.isRecognized) {
+      creator.isRecognized = json.isRecognized;
+    }
+    if (json.productId) {
+      creator.productId = json.productId;
+    }
     if (json.devices && json.devices.length) {
       json.devices.forEach(jsonDevice => creator.devices.push(this.getDeviceFromJSON(jsonDevice)));
     }
@@ -118,8 +128,13 @@ export class EventImporterJSON {
     return device;
   }
 
-  static getLapFromJSON(json: LapJSONInterface): LapInterface {
-    const lap = new Lap(new Date(json.startDate), new Date(json.endDate), LapTypes[<keyof typeof LapTypes>json.type]);
+  static getLapFromJSON(json: LapJSONInterface, lapIndex: number): LapInterface {
+    const lap = new Lap(
+      new Date(json.startDate),
+      new Date(json.endDate),
+      lapIndex + 1,
+      LapTypes[<keyof typeof LapTypes>json.type]
+    );
     Object.keys(json.stats).forEach((statName: any) => {
       lap.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
     });
@@ -163,9 +178,27 @@ export class EventImporterJSON {
     Object.keys(json.stats).forEach((statName: any) => {
       activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
     });
-    json.laps.forEach((lapJSON: LapJSONInterface) => {
-      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON));
+    json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
+      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
     });
+
+    if (Array.isArray(json.streams)) {
+      json.streams.forEach((streamJson: StreamJSONInterface) => {
+        if (streamJson.type === DataTime.type) {
+          return;
+        }
+        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
+      });
+    } else {
+      Object.keys(json.streams).forEach(streamKey => {
+        const streamJson: StreamJSONInterface = {
+          type: streamKey,
+          data: (json.streams as { [key: string]: number[] })[streamKey]
+        };
+        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
+      });
+    }
+
     json.intensityZones.forEach(intensityZonesJSON => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON));
     });

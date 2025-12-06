@@ -9,8 +9,8 @@ export const ImporterFitSuuntoDeviceNames: { [index: number]: string } = {
   32: ImporterSuuntoDeviceNames.Gdansk,
   31: ImporterSuuntoDeviceNames.Forssa,
   30: ImporterSuuntoDeviceNames.Cairo,
-  22: ImporterSuuntoDeviceNames['Suunto Ambit3 Peak'],
-  23: ImporterSuuntoDeviceNames['Suunto Ambit3 Sport'],
-  24: ImporterSuuntoDeviceNames['Suunto Ambit3 Run'],
-  25: ImporterSuuntoDeviceNames['Suunto Ambit3 Vertical']
+  22: ImporterSuuntoDeviceNames['Ambit3 Peak'],
+  23: ImporterSuuntoDeviceNames['Ambit3 Sport'],
+  24: ImporterSuuntoDeviceNames['Ambit3 Run'],
+  25: ImporterSuuntoDeviceNames['Ambit3 Vertical']
 };

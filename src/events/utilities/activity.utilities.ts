@@ -108,7 +108,9 @@ import {
   convertSpeedToSwimPace,
   convertSwimPaceToSwimPacePer100Yard,
   isNumber,
-  isNumberOrString
+  isNumberOrString,
+  medianFilter,
+  standardDeviation
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
@@ -191,34 +193,101 @@ import {
   DataGradeAdjustedPaceMinMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
-import { GradeCalculator } from './grade-calculator/grade-calculator';
-import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
+import {
+  ActivityTypeGroups,
+  ActivityTypes,
+  ActivityTypesHelper,
+  ActivityTypesMoving
+} from '../../activities/activity.types';
 import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
+import { DataTimerTime } from '../../data/data.timer-time';
+import { DataNumber } from '../../data/data.number';
+import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
+import { DataGradeSmooth } from '../../data/data.grade-smooth';
+import { DataSWOLF25m } from '../../data/data.swolf-25m';
+import { DataSWOLF50m } from '../../data/data.swolf-50m';
+import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
+import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
+import { LowPassFilter } from './grade-calculator/low-pass-filter';
+import { DataPowerNormalized } from '../../data/data.power-normalized';
+import { DataPowerWork } from '../../data/data.power-work';
+import { GradeCalculator } from './grade-calculator/grade-calculator';
+
+const KalmanFilter = require('kalmanjs');
+
+/* Configure filtering values */
+// Altitude stream
+const ALTITUDE_SPIKES_FILTER_WIN = 3;
+
+// Fix abnormal streams
+const SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT = 25 / 3.6; // Kph to mps
+const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
+  [ActivityTypeGroups.Running, 15 / 3.6], // kph to m/s
+  [ActivityTypeGroups.Cycling, 27 / 3.6], // kph to m/s
+  [ActivityTypeGroups.Swimming, 5 / 3.6] // kph to m/s
+]);
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
 
+  /**
+   * Provide average from laps a given stat type
+   */
+  public static getDataTypeAvgFromLaps(
+    activity: ActivityInterface,
+    statType: string,
+    filterOver?: number
+  ): number | null {
+    const data = <number[]>activity
+      .getLaps()
+      .map(lap => (<DataNumber>lap.getStat(statType))?.getValue())
+      .filter(d => Number.isFinite(d) && (Number.isFinite(filterOver) ? d > <number>filterOver : true));
+
+    if (data.length > 0) {
+      return this.getAverage(data);
+    }
+
+    return null;
+  }
+
+  /**
+   * Provide average of a given stream type
+   */
   public static getDataTypeAvg(
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    filterOver?: number
   ): number {
     const data = <number[]>(
       activity
         .getSquashedStreamData(streamType, startDate, endDate)
-        .filter(streamData => streamData !== Infinity && streamData !== -Infinity)
+        .filter(
+          streamData =>
+            streamData !== Infinity &&
+            streamData !== -Infinity &&
+            (Number.isFinite(filterOver) ? streamData > <number>filterOver : true)
+        )
     );
     return this.getAverage(data);
   }
 
+  public static round(value: number, decimals = 0) {
+    const decimalsFactor = Math.pow(10, decimals);
+    return Math.round(value * decimalsFactor) / decimalsFactor;
+  }
+
   public static getAverage(data: number[]): number {
-    const sum = data.reduce((sumbuff: number, value: number) => {
+    return this.getSum(data) / data.length;
+  }
+
+  public static getSum(data: number[]): number {
+    return data.reduce((sumbuff: number, value: number) => {
       sumbuff += value;
       return sumbuff;
     }, 0);
-    return sum / data.length;
   }
 
   public static getDataTypeMax(
@@ -234,9 +303,10 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     streamType: string,
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    filterOver?: number
   ): number {
-    return this.getActivityDataTypeMinOrMax(activity, streamType, false, startDate, endDate);
+    return this.getActivityDataTypeMinOrMax(activity, streamType, false, startDate, endDate, filterOver);
   }
 
   public static getDataTypeMinToMaxDifference(
@@ -375,12 +445,51 @@ export class ActivityUtilities {
     return Math.ceil((+endDate - +startDate) / 1000) + 1;
   }
 
-  public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface) {
-    this.generateMissingStreamsForActivity(activity);
-    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
+  public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
+    this.generateMissingStreams(activity);
+    this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
     this.generateMissingSpeedDerivedStatsForActivity(activity);
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
+  }
+
+  public static fixAbnormalStreamData(activity: ActivityInterface): void {
+    // Check if fix abnormal speed option has been enable and if we have stream data and position data (e.g. do not fix for swim pool activities)
+    if (
+      activity.parseOptions?.streams?.fixAbnormal?.speed &&
+      activity.hasStreamData(DataSpeed.type) &&
+      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      activity.hasStreamData(DataLongitudeDegrees.type)
+    ) {
+      // Check for speed data dispersion using standard deviation
+      const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
+
+      // Get speed standard deviation threshold at which we will attempt to fix the stream
+      const stdDevThreshold =
+        SPEED_STREAM_STD_DEV_THRESHOLD_MAP.get(ActivityTypesHelper.getActivityGroupForActivityType(activity.type)) ||
+        SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT;
+
+      if (speedStdDev > stdDevThreshold) {
+        // Fix/Predict speed stream through Kalman filtering
+        this.shapeStream(DataSpeed.type, activity, squashedSpeedData => {
+          // Grade stream
+          const SPEED_KALMAN_SMOOTHING = {
+            R: 0.01, // Speed model calculation is something stable
+            Q: speedStdDev * 2 // We intend to get a measurement error which can be under and over std dev (explaining the double factor)
+          };
+
+          // Apply kalman filter
+          const kf = new KalmanFilter(SPEED_KALMAN_SMOOTHING);
+          return squashedSpeedData.map(v => (v === null ? null : kf.filter(v)));
+        });
+      }
+    }
+  }
+
+  public static generateMissingStreams(activity: ActivityInterface): void {
+    // Compute missing streams
+    this.generateMissingStreamsForActivity(activity);
+    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
   }
 
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
@@ -681,7 +790,7 @@ export class ActivityUtilities {
     starDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, true, starDate, endDate, minDiff);
   }
 
@@ -691,12 +800,17 @@ export class ActivityUtilities {
     starDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getActivityDataTypeGainOrLoss(activity, streamType, false, starDate, endDate, minDiff);
   }
 
-  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 3) {
+  public static getGainOrLoss(data: number[], gain: boolean, minDiff = 2): number | null {
     let gainOrLoss = 0;
+
+    if (!data?.length) {
+      return null;
+    }
+
     data.reduce((previousValue: number, nextValue: number) => {
       // For gain
       if (gain) {
@@ -722,20 +836,16 @@ export class ActivityUtilities {
         return previousValue;
       }
       return nextValue;
-    });
+    }, data[0]);
     return gainOrLoss;
   }
 
   public static getMax(data: number[]): number {
-    return data.reduce(function (previousValue, currentValue) {
-      return Math.max(previousValue, currentValue);
-    }, -Infinity);
+    return data.reduce((previousValue, currentValue) => Math.max(previousValue, currentValue), -Infinity);
   }
 
   public static getMin(data: number[]): number {
-    return data.reduce(function (previousValue, currentValue) {
-      return Math.min(previousValue, currentValue);
-    }, Infinity);
+    return data.reduce((previousValue, currentValue) => Math.min(previousValue, currentValue), Infinity);
   }
 
   public static calculateTotalDistanceForActivity(
@@ -893,12 +1003,16 @@ export class ActivityUtilities {
    * This will always create a steam even if the distance is 0
    * @param activity
    */
-  private static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+  public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
+    // Create derived primitive streams which will be needed for others streams & stats computations
+    this.createDerivedStreams(activity);
+
     // First add any missing data to the streams via interpolating and extrapolating
     this.addMissingDataToStreams(activity);
+
     if (
       activity.hasStreamData(DataLatitudeDegrees.type) &&
-      activity.hasStreamData(DataLatitudeDegrees.type) &&
+      activity.hasStreamData(DataLongitudeDegrees.type) &&
       (!activity.hasStreamData(DataDistance.type) || !activity.hasStreamData(DataGNSSDistance.type))
     ) {
       const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
@@ -906,23 +1020,16 @@ export class ActivityUtilities {
       streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
       activity
         .getPositionData()
-        .reduce(
-          (
-            prevPosition: DataPositionInterface | null,
-            position: DataPositionInterface | null,
-            index: number,
-            array
-          ) => {
-            if (!position) {
-              return prevPosition;
-            }
-            if (prevPosition && position) {
-              distance += Number(this.geoLibAdapter.getDistance([prevPosition, position]).toFixed(1));
-            }
-            streamData[index] = distance;
-            return position;
+        .reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number) => {
+          if (!position) {
+            return prevPosition;
           }
-        );
+          if (prevPosition && position) {
+            distance += this.round(this.geoLibAdapter.getDistance([prevPosition, position]), 2);
+          }
+          streamData[index] = distance;
+          return position;
+        });
 
       if (!activity.hasStreamData(DataDistance.type)) {
         activity.addStream(new Stream(DataDistance.type, streamData));
@@ -934,18 +1041,26 @@ export class ActivityUtilities {
 
       if (!activity.hasStreamData(DataSpeed.type)) {
         const speedStreamData = activity.createStream(DataSpeed.type).getData();
-        activity.getStreamDataByDuration(DataDistance.type).forEach((distanceData: StreamDataItem, index: number) => {
-          if (distanceData.value === 0) {
-            speedStreamData[index] = 0;
-            return;
+        const distanceStream = activity.getStreamDataByDuration(DataDistance.type);
+        let previousDistanceItem: StreamDataItem;
+        distanceStream.forEach((distanceItem: StreamDataItem, index: number) => {
+          // Use the first distance item value if previous distance is unknown
+          if (!previousDistanceItem) {
+            previousDistanceItem = distanceItem;
           }
 
-          if (distanceData.value !== null && isFinite(distanceData.time) && distanceData.time > 0) {
-            speedStreamData[index] = Math.round((distanceData.value / (distanceData.time / 1000)) * 100) / 100;
-            return;
-          }
+          // If know distance then compute speed from last known distance item
+          if (Number.isFinite(distanceItem.value)) {
+            const deltaTime = (distanceItem.time - previousDistanceItem.time) / 1000;
+            const deltaDistance = distanceItem?.value ? distanceItem.value - (previousDistanceItem?.value || 0) : 0;
 
-          speedStreamData[index] = null;
+            speedStreamData[index] = this.round(deltaTime > 0 ? deltaDistance / deltaTime : 0, 3);
+
+            // Keep tracking of last know distance item
+            previousDistanceItem = distanceItem;
+          } else {
+            speedStreamData[index] = null;
+          }
         });
         activity.addStream(new Stream(DataSpeed.type, speedStreamData));
       }
@@ -953,14 +1068,41 @@ export class ActivityUtilities {
 
     // Check if we can get a grade stream
     if (
+      activity.parseOptions?.streams?.smooth?.grade &&
       !activity.hasStreamData(DataGrade.type) &&
       activity.hasStreamData(DataDistance.type) &&
-      activity.hasStreamData(DataAltitude.type)
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
       const distanceData = activity.getStreamData(DataDistance.type);
-      const altitudeData = activity.getStreamData(DataAltitude.type);
-      const gradeStreamData = GradeCalculator.computeGradeStream(distanceData, altitudeData);
+      const altitudeData = activity.getStreamData(
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
+
+      // Create the grade stream from time, distance and altitude non-squashed streams
+      const timeData = activity.generateTimeStream([DataDistance.type]);
+      const gradeStreamData = GradeCalculator.computeGradeStream(timeData.getData(), distanceData, altitudeData);
+
+      // Append new grade stream to activity
       activity.addStream(new Stream(DataGrade.type, gradeStreamData));
+
+      if (activity.parseOptions?.streams?.smooth?.gradeSmooth) {
+        // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
+        // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
+        this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
+
+        // Smooth grade computed stream
+        this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
+          // Grade stream
+          const GRADE_KALMAN_SMOOTHING = {
+            R: 0.01, // Grade model is stable
+            Q: 0.5 // Grade measurement error which can be expected
+          };
+
+          // Predict proper grade values
+          const kf = new KalmanFilter(GRADE_KALMAN_SMOOTHING);
+          return squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
+        });
+      }
     }
 
     // Get a grade adjusted speed (the model applies to running only)
@@ -968,16 +1110,21 @@ export class ActivityUtilities {
       (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running ||
         ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
-      activity.hasStreamData(DataGrade.type) &&
+      activity.hasStreamData(DataGradeSmooth.type) &&
       activity.hasStreamData(DataSpeed.type)
     ) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
-      const gradeStreamData = activity.getStreamData(DataGrade.type);
+      const gradeStreamData = activity.getStreamData(DataGradeSmooth.type);
       const gradeAdjustedSpeedData = speedStreamData.map((value, index) =>
-        value === null
-          ? null
-          : Math.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0) * 100) / 100
+        value === null ? null : this.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0), 2)
       );
+
+      // Ensure first grade adjusted pace dont start with 0 (it's common) meaning infinity
+      if (!gradeAdjustedSpeedData[0]) {
+        const firstKnownValue = gradeAdjustedSpeedData.find(v => (v as number) > 0);
+        gradeAdjustedSpeedData[0] = firstKnownValue ? firstKnownValue : gradeAdjustedSpeedData[0];
+      }
+
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 
@@ -1022,6 +1169,84 @@ export class ActivityUtilities {
       );
       activity.addStream(leftPowerStream);
     }
+
+    // If left stance time stream available, then add the right balance stream too
+    if (activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
+      const rightStanceBalanceTimeStream = activity.createStream(DataStanceTimeBalanceRight.type);
+      const leftStanceBalanceTimeStream = activity.getStreamData(DataStanceTimeBalanceLeft.type);
+
+      const rightStanceBalanceTimeData = leftStanceBalanceTimeStream.map(leftBalance => {
+        return Number.isFinite(leftBalance) ? 100 - (leftBalance as number) : null;
+      });
+
+      rightStanceBalanceTimeStream.setData(rightStanceBalanceTimeData);
+      activity.addStream(rightStanceBalanceTimeStream);
+    }
+
+    return activity;
+  }
+
+  /**
+   * Provides squashed stream data through callback for data manipulation.
+   * Then rebuild the stream based on duration including the missing values (null, Infinity, ...) like the source stream
+   * @param streamType
+   * @param activity
+   * @param shapeStreamData
+   */
+  public static shapeStream(
+    streamType: string,
+    activity: ActivityInterface,
+    shapeStreamData: (squashedStreamData: number[]) => number[]
+  ): void {
+    let streamDataByDuration = activity.getStreamDataByDuration(streamType, true, true);
+
+    // Shape data along function param
+    const streamData = shapeStreamData(streamDataByDuration.map(item => item.value) as number[]);
+
+    // Update streamDataByDuration with shaped data
+    streamDataByDuration = streamDataByDuration.map((item: StreamDataItem, index: number) => {
+      item.value = streamData[index];
+      return item;
+    });
+
+    // Rebuild/replace stream with new shaped value
+    activity.removeStream(streamType);
+    activity.addStream(activity.createStream(streamType));
+
+    const activityStartTime = activity.startDate.getTime();
+    streamDataByDuration.forEach(item => {
+      activity.addDataToStream(streamType, new Date(activityStartTime + item.time), item.value as number);
+    });
+  }
+
+  public static cloneStream(activity: ActivityInterface, sourceStreamType: string, targetStreamType: string): void {
+    const sourceStream = activity.getStream(sourceStreamType);
+    const targetStream = activity.createStream(targetStreamType);
+    targetStream.setData(Array.from(sourceStream.getData())); // Shallow copy data to new stream
+    activity.addStream(targetStream);
+  }
+
+  /**
+   * Create derived primitive streams which will be needed for others streams & stats computations
+   * @param activity
+   */
+  public static createDerivedStreams(activity: ActivityInterface): ActivityInterface {
+    if (
+      activity.parseOptions?.streams?.smooth?.altitudeSmooth &&
+      activity.hasStreamData(DataAltitude.type) &&
+      !activity.hasStreamData(DataAltitudeSmooth.type)
+    ) {
+      // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
+      // Activity stats will be computed on the smoothed altitude stream
+      this.cloneStream(activity, DataAltitude.type, DataAltitudeSmooth.type);
+
+      // Remove spiky data altitudes
+      this.shapeStream(DataAltitudeSmooth.type, activity, squashedAltData => {
+        squashedAltData = medianFilter(squashedAltData, ALTITUDE_SPIKES_FILTER_WIN); // Remove data spikes
+        squashedAltData = LowPassFilter.smooth(squashedAltData) as number[]; // Remove too high altitude frequencies
+        return squashedAltData;
+      });
+    }
     return activity;
   }
 
@@ -1043,7 +1268,7 @@ export class ActivityUtilities {
    *
    * @param activity
    */
-  private static addMissingDataToStreams(activity: ActivityInterface) {
+  public static addMissingDataToStreams(activity: ActivityInterface) {
     /**
      * This tries to align data with Strava.
      * Strava fills HR alti cadence with the last value.
@@ -1105,6 +1330,92 @@ export class ActivityUtilities {
      * About B I am not sure. That is because if there is for example an internal accelerometer
      * that reports better this can help with pace and other things. Even for GAP
      */
+
+    // Fix activity having broken start lat/lng
+    // Case: "fixtures/others/broken-start-latlng.fit"
+    if (activity.hasStreamData(DataLongitudeDegrees.type)) {
+      this.shapeStream(DataLongitudeDegrees.type, activity, (squashedData: number[]) => {
+        const firstKnownCoord = (squashedData as number[]).find(l => l != 0);
+        if (firstKnownCoord != null) {
+          let index = 0;
+          while (squashedData[index] === 0) {
+            squashedData[index] = firstKnownCoord;
+            index++;
+          }
+        }
+        return squashedData;
+      });
+    }
+
+    if (activity.hasStreamData(DataLatitudeDegrees.type)) {
+      this.shapeStream(DataLatitudeDegrees.type, activity, (squashedData: number[]) => {
+        const firstKnownCoord = (squashedData as number[]).find(l => l != 0);
+        if (firstKnownCoord != null) {
+          let index = 0;
+          while (squashedData[index] === 0) {
+            squashedData[index] = firstKnownCoord;
+            index++;
+          }
+        }
+        return squashedData;
+      });
+    }
+  }
+
+  /**
+   *
+   * @param secondsPer100m
+   * @param avgStrokesPerMin
+   * @param poolLength
+   */
+  public static computeSwimSwolf(secondsPer100m: number, avgStrokesPerMin: number, poolLength: number): number {
+    const minutesPer100m = secondsPer100m / 60;
+    const avgStrokePer100m = avgStrokesPerMin * minutesPer100m;
+    const strokesPerMeter = avgStrokePer100m / 100;
+    const secondsPerMeter = secondsPer100m / 100;
+    return this.round((secondsPerMeter + strokesPerMeter) * poolLength, 1);
+  }
+
+  /**
+   * Andrew Coggan weighted power compute method
+   * 1) starting at the 30s mark, calculate a rolling 30 s average (of the preceding time points, obviously).
+   * 2) raise all the values obtained in step #1 to the 4th power.
+   * 3) take the average of all of the values obtained in step #2.
+   * 4) take the 4th root of the value obtained in step #3.
+   * (And when you get tired of exporting every file to, e.g., Excel to perform such calculations, help develop a program
+   * like WKO+ to do the work for you <g>.)
+   */
+  private static computeNormalizedPower(powerArray: number[], timeArray: number[]): number {
+    const WEIGHTED_WATTS_TIME_BUFFER = 30; // Seconds
+
+    const poweredWeightedWatts = [];
+
+    let accumulatedTimeInBuffer = 0; // seconds
+    let wattsInBuffer = [];
+
+    for (const [index, current] of timeArray.entries()) {
+      if (index === 0) {
+        continue;
+      }
+
+      wattsInBuffer.push(powerArray[index]);
+
+      if (accumulatedTimeInBuffer >= WEIGHTED_WATTS_TIME_BUFFER) {
+        const meanWatts = this.getAverage(wattsInBuffer);
+
+        if (Number.isFinite(meanWatts)) {
+          poweredWeightedWatts.push(Math.pow(meanWatts, 4));
+        }
+
+        // Reset
+        accumulatedTimeInBuffer = 0;
+        wattsInBuffer = [];
+      }
+
+      accumulatedTimeInBuffer += current - timeArray[index - 1];
+    }
+
+    return Math.sqrt(Math.sqrt(this.getAverage(poweredWeightedWatts)));
   }
 
   private static getActivityDataTypeGainOrLoss(
@@ -1114,7 +1425,7 @@ export class ActivityUtilities {
     startDate?: Date,
     endDate?: Date,
     minDiff?: number
-  ): number {
+  ): number | null {
     return this.getGainOrLoss(activity.getSquashedStreamData(streamType, startDate, endDate), gain, minDiff);
   }
 
@@ -1123,11 +1434,17 @@ export class ActivityUtilities {
     streamType: string,
     max: boolean,
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    filterOver?: number
   ): number {
     const data = activity
       .getSquashedStreamData(streamType, startDate, endDate)
-      .filter(streamData => streamData !== Infinity && streamData !== -Infinity);
+      .filter(
+        streamData =>
+          streamData !== Infinity &&
+          streamData !== -Infinity &&
+          (Number.isFinite(filterOver) ? streamData > <number>filterOver : true)
+      );
     if (max) {
       return this.getMax(data);
     }
@@ -1167,34 +1484,110 @@ export class ActivityUtilities {
     }
 
     // Ascent (altitude gain)
-    if (!activity.getStat(DataAscent.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAscent(this.getActivityDataTypeGain(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataAscent.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      const gain = this.getActivityDataTypeGain(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
+      if (gain !== null) {
+        activity.addStat(new DataAscent(gain));
+      }
     }
     // Descent (altitude loss)
-    if (!activity.getStat(DataDescent.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataDescent(this.getActivityDataTypeLoss(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataDescent.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      const loss = this.getActivityDataTypeLoss(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      );
+      if (loss !== null) {
+        activity.addStat(new DataDescent(loss));
+      }
     }
     // Altitude Max
-    if (!activity.getStat(DataAltitudeMax.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeMax(this.getDataTypeMax(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataAltitudeMax.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeMax(
+          this.getDataTypeMax(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
     // Altitude Min
-    if (!activity.getStat(DataAltitudeMin.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeMin(this.getDataTypeMin(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataAltitudeMin.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeMin(
+          this.getDataTypeMin(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
     // Altitude Avg
-    if (!activity.getStat(DataAltitudeAvg.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataAltitudeAvg(this.getDataTypeAvg(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataAltitudeAvg.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+    ) {
+      activity.addStat(
+        new DataAltitudeAvg(
+          this.getDataTypeAvg(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Altitude start
-    if (!activity.getStat(DataStartAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataStartAltitude(this.getDataTypeFirst(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataStartAltitude.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type)) &&
+      this.getDataTypeFirst(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      )
+    ) {
+      activity.addStat(
+        new DataStartAltitude(
+          this.getDataTypeFirst(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Altitude end
-    if (!activity.getStat(DataEndAltitude.type) && activity.hasStreamData(DataAltitude.type)) {
-      activity.addStat(new DataEndAltitude(this.getDataTypeLast(activity, DataAltitude.type)));
+    if (
+      !activity.getStat(DataEndAltitude.type) &&
+      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type)) &&
+      this.getDataTypeLast(
+        activity,
+        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+      )
+    ) {
+      activity.addStat(
+        new DataEndAltitude(
+          this.getDataTypeLast(
+            activity,
+            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
+          )
+        )
+      );
     }
 
     // Heart Rate  Max
@@ -1207,7 +1600,7 @@ export class ActivityUtilities {
     }
     // Heart Rate Avg
     if (!activity.getStat(DataHeartRateAvg.type) && activity.hasStreamData(DataHeartRate.type)) {
-      activity.addStat(new DataHeartRateAvg(this.getDataTypeAvg(activity, DataHeartRate.type)));
+      activity.addStat(new DataHeartRateAvg(this.round(this.getDataTypeAvg(activity, DataHeartRate.type))));
     }
     // Cadence Max
     if (!activity.getStat(DataCadenceMax.type) && activity.hasStreamData(DataCadence.type)) {
@@ -1215,11 +1608,18 @@ export class ActivityUtilities {
     }
     // Cadence Min
     if (!activity.getStat(DataCadenceMin.type) && activity.hasStreamData(DataCadence.type)) {
-      activity.addStat(new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type)));
+      // Get min cadence except 0. A 0 cadence is not meaningful.
+      const minCadenceOver = 0;
+      activity.addStat(
+        new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type, undefined, undefined, minCadenceOver))
+      );
     }
     // Cadence Avg
     if (!activity.getStat(DataCadenceAvg.type) && activity.hasStreamData(DataCadence.type)) {
-      activity.addStat(new DataCadenceAvg(this.getDataTypeAvg(activity, DataCadence.type)));
+      // Get avg cadence except 0 values. Platforms like garmin/strava don't include 0 cadences in their averages.
+      const avgCadenceOver = 0;
+      const avgCadence = this.getDataTypeAvg(activity, DataCadence.type, undefined, undefined, avgCadenceOver);
+      activity.addStat(new DataCadenceAvg(this.round(avgCadence)));
     }
 
     // Speed Max
@@ -1271,6 +1671,15 @@ export class ActivityUtilities {
     // Power AVG
     if (!activity.getStat(DataPowerAvg.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
+    }
+
+    // Power Normalized
+    if (!activity.getStat(DataPowerNormalized.type) && activity.hasStreamData(DataPower.type)) {
+      const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
+      const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
+      const powerStream = powerDurationStream.map(item => item.value) as number[];
+      const normalizedPower = this.computeNormalizedPower(powerStream, timeStream);
+      activity.addStat(new DataPowerNormalized(normalizedPower));
     }
 
     // Air AirPower Max
@@ -1333,6 +1742,20 @@ export class ActivityUtilities {
         activity.addStat(new DataEndPosition(endPosition));
       }
     }
+
+    // Assign L/R balance from streams if exists
+    if (!activity.getStat(DataRightBalance.type) && activity.hasStreamData(DataRightBalance.type)) {
+      const avgRightBalance = this.round(this.getDataTypeAvg(activity, DataRightBalance.type), 2);
+      activity.addStat(new DataRightBalance(avgRightBalance));
+      activity.addStat(new DataLeftBalance(100 - avgRightBalance));
+    }
+
+    // Assign L/R balance stance time from streams if exists
+    if (!activity.getStat(DataStanceTimeBalanceLeft.type) && activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
+      const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataStanceTimeBalanceLeft.type), 2);
+      activity.addStat(new DataStanceTimeBalanceLeft(avgStanceTimeLeftBalance));
+      activity.addStat(new DataStanceTimeBalanceRight(100 - avgStanceTimeLeftBalance));
+    }
   }
 
   private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {
@@ -1352,16 +1775,32 @@ export class ActivityUtilities {
     // GAP
     const gradeAdjustedSpeedMax = activity.getStat(DataGradeAdjustedSpeedMax.type);
     if (gradeAdjustedSpeedMax && !activity.getStat(DataGradeAdjustedPaceMax.type)) {
-      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(<number>gradeAdjustedSpeedMax.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedMax>gradeAdjustedSpeedMax).getValue() < (<DataSpeedMax>speedMax).getValue()
+          ? (<DataSpeedMax>speedMax).getValue()
+          : (<DataGradeAdjustedSpeedMax>gradeAdjustedSpeedMax).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(targetAdjustedSpeed)));
     }
     const gradeAdjustedSpeedMin = activity.getStat(DataGradeAdjustedSpeedMin.type);
     if (gradeAdjustedSpeedMin && !activity.getStat(DataGradeAdjustedPaceMin.type)) {
-      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(<number>gradeAdjustedSpeedMin.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedMin>gradeAdjustedSpeedMin).getValue() < (<DataSpeedMin>speedMin).getValue()
+          ? (<DataSpeedMin>speedMin).getValue()
+          : (<DataGradeAdjustedSpeedMin>gradeAdjustedSpeedMin).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(targetAdjustedSpeed)));
     }
     const gradeAdjustedSpeedAvg = activity.getStat(DataGradeAdjustedSpeedAvg.type);
     if (gradeAdjustedSpeedAvg && !activity.getStat(DataGradeAdjustedPaceAvg.type)) {
-      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(<number>gradeAdjustedSpeedAvg.getValue())));
+      const targetAdjustedSpeed: number =
+        (<DataGradeAdjustedSpeedAvg>gradeAdjustedSpeedAvg).getValue() < (<DataSpeedAvg>speedAvg).getValue()
+          ? (<DataSpeedAvg>speedAvg).getValue()
+          : (<DataGradeAdjustedSpeedAvg>gradeAdjustedSpeedAvg).getValue();
+
+      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(targetAdjustedSpeed)));
     }
+
     // Swim Pace
     if (speedMax && !activity.getStat(DataSwimPaceMax.type)) {
       activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(<number>speedMax.getValue())));
@@ -1940,51 +2379,99 @@ export class ActivityUtilities {
       }
     }
 
+    // Test SWOLF existence for swimming activities
+    if (
+      (activity.type === ActivityTypes.Swimming || activity.type === ActivityTypes.OpenWaterSwimming) &&
+      (!activity.getStat(DataSWOLF25m.type) || !activity.getStat(DataSWOLF50m.type)) &&
+      (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type))?.getValue() &&
+      (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type))?.getValue()
+    ) {
+      const avgPace100m = 100 / (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type)).getValue();
+      const avgCadence = (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type)).getValue();
+
+      if (!activity.getStat(DataSWOLF25m.type)) {
+        const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
+        activity.addStat(new DataSWOLF25m(swolf25m));
+      }
+
+      if (!activity.getStat(DataSWOLF50m.type)) {
+        const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
+        activity.addStat(new DataSWOLF50m(swolf50m));
+      }
+    }
+
     if (!activity.getStat(DataDuration.type)) {
       activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
     }
 
-    if (activity.hasStreamData(DataSpeed.type)) {
-      const hasGradeAdjustedSpeedStream = activity.hasStreamData(DataGradeAdjustedSpeed.type);
+    // If timer time not set, then assign elapsed time by default (e.g. GPX file dont support timer time)
+    if (!activity.getStat(DataTimerTime.type)) {
+      activity.addStat(new DataTimerTime(this.round(activity.getDuration().getValue(), 2)));
+    }
 
-      const finalSpeedStreamData = hasGradeAdjustedSpeedStream
-        ? activity.getSquashedStreamData(DataGradeAdjustedSpeed.type)
-        : activity.getSquashedStreamData(DataSpeed.type);
+    // If missing moving time
+    // Or moving time equals duration, then try to build real moving from laps if available
+    if (!activity.getStat(DataMovingTime.type)) {
+      let movingTime = 0;
 
-      let speedThreshold: number;
-
-      if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) {
-        speedThreshold = hasGradeAdjustedSpeedStream ? 2.6 : 2.15; // @todo final static + tweak => For @thomaschampagne
-      } else if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running) {
-        // speedThreshold = hasGradeAdjustedSpeedStream ? 1.75 : 1.20; // @todo final static + tweak => For @thomaschampagne
-        speedThreshold = hasGradeAdjustedSpeedStream ? 1.7 : 1.15; // @todo final static + tweak => For @thomaschampagne
-      } else {
-        speedThreshold = 0;
+      // First try to compute moving time from laps
+      const laps = activity.getLaps();
+      if (laps && laps.length > 0) {
+        activity.getLaps().forEach(lap => {
+          const stat = <DataMovingTime>lap.getStat(DataMovingTime.type);
+          if (stat) {
+            movingTime += stat.getValue();
+          }
+        });
       }
 
-      // Set the moving time to the actual duration
-      let movingTime = activity.getDuration().getValue();
+      // Get timer time...
+      const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type))?.getValue();
 
-      // Remove anything that doesn't fit the criteria by removing 1s that it represents on the speed stream
-      finalSpeedStreamData.forEach((speedValue, index) => {
-        if (index === 0) {
-          return;
-        }
-        if (<number>speedValue <= speedThreshold) {
-          movingTime -= 1;
-        }
-      });
+      // ... and compare with moving time and determine if moving time is like "moving time"
+      const isMovingTimeAlike = movingTime > 0 && movingTime < timerTime;
+
+      // If moving time from laps is not valid
+      if (!isMovingTimeAlike && activity.hasStreamData(DataSpeed.type)) {
+        // ...then re-compute moving time but using global records.
+        movingTime = 0;
+        const speedByDurationStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);
+
+        const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activity.type);
+        speedByDurationStream.forEach((speedItem: StreamDataItem, index: number) => {
+          if (speedItem.value !== null && speedItem.value > speedThreshold) {
+            movingTime += (speedByDurationStream[index].time - (speedByDurationStream[index - 1]?.time || 0)) / 1000;
+          }
+        });
+      }
+
+      // In case moving time would be invalid, set it to timer time "at max"
+      if (!movingTime || movingTime > timerTime) {
+        movingTime = timerTime;
+      }
 
       activity.addStat(new DataMovingTime(movingTime));
     }
 
-    // If there is no pause define that from the start date and end date and duration
-    if (!activity.getStat(DataPause.type)) {
-      activity.addStat(
-        new DataPause(
-          (activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()
-        )
-      );
+    // Add Power Work if missing when avg power and moving time are available
+    if (
+      !activity.getStat(DataPowerWork.type) &&
+      activity.getStat(DataPowerAvg.type) &&
+      activity.getStat(DataMovingTime.type)
+    ) {
+      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+      const avgPower = (<DataPowerAvg>activity.getStat(DataPowerAvg.type)).getValue();
+      const powerWork = Math.round((avgPower * movingTime) / 1000);
+
+      activity.addStat(new DataPowerWork(powerWork));
+    }
+
+    // If there is no pause defined then get it from duration and moving time (if available)
+    if (!activity.getStat(DataPause.type) || !(<DataPause>activity.getStat(DataPause.type)).getValue()) {
+      const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
+      const pauseTime =
+        movingTimeStat && movingTimeStat.getValue() ? activity.getDuration().getValue() - movingTimeStat.getValue() : 0;
+      activity.addStat(new DataPause(this.round(pauseTime, 2)));
     }
   }
 }

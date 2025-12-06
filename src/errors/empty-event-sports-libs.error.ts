@@ -1,15 +1,11 @@
 import { EventLibError } from './event-lib.error';
 
 export class EmptyEventLibError extends EventLibError {
-  constructor(message: string) {
-    super(message, <any>null);
-    Object.setPrototypeOf(this, EmptyEventLibError.prototype); // Set the prototype explicitly.
-  }
-}
+  public static readonly CODE: string = 'EVENT_EMPTY_ERROR';
+  readonly code: string = EmptyEventLibError.CODE;
 
-export class ParsingEventLibError extends EventLibError {
-  constructor(message: string) {
-    super(message, <any>null);
+  constructor(message = 'No activities found') {
+    super(message, null);
     Object.setPrototypeOf(this, EmptyEventLibError.prototype); // Set the prototype explicitly.
   }
 }

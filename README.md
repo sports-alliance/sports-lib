@@ -9,7 +9,7 @@ such as GPX, TCX, FIT and other popular formats.
 
 Currently the support is limited to the main formats: GPX, TCX, FIT and JSON*
 
-*JSON is for specific services while GPX, TCX, FIT should be compatible with the move common services,
+*JSON is for specific services while GPX, TCX, FIT should be compatible with the most common services,
 such as Strava, Movescount, Garmin, Polar and any other service that supports the above formats.
 
 Install
@@ -27,10 +27,11 @@ GPX
 ---
 ```typescript
 import {SportsLib} from '@sports-alliance/sports-lib';
+import {DOMParser} from 'xmldom'
 
 // For GPX you need a string 
 const gpxString = 'Some string from a file etc';
-SportsLib.importFromGPX(gpxString).then((event)=>{
+SportsLib.importFromGPX(gpxString, DOMParser).then((event)=>{
   // do Stuff with the file
   const distance = event.getDistance();
   const duration = event.getDuration();

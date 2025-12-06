@@ -12,8 +12,14 @@ describe('Creator', () => {
     creator.hwInfo = 'HWInfo';
     creator.swInfo = 'SWInfo';
     creator.serialNumber = 'SerialNumber';
+    creator.manufacturer = 'fake';
+    creator.isRecognized = true;
+    creator.productId = '666';
     expect(creator.toJSON()).toEqual({
       name: 'name',
+      isRecognized: true,
+      productId: '666',
+      manufacturer: 'fake',
       serialNumber: 'SerialNumber',
       swInfo: 'SWInfo',
       hwInfo: 'HWInfo',

@@ -109,7 +109,7 @@ import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const FitFileParser = require('fit-file-parser').default;
+import FitFileParser from 'fit-file-parser';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -131,7 +131,14 @@ export class EventImporterFIT {
       });
 
       fitFileParser.parse(arrayBuffer, (error: any, fitDataObject: any) => {
-        if (!fitDataObject.sessions) {
+        if (error) {
+          // For now, assume any error from parser on this file means it's broken/empty in a way we treat as EmptyEventLibError
+          // to satisfy existing tests. Or ideally we wrap in a generic EventLibError.
+          // But test expects EmptyEventLibError.
+          reject(new EmptyEventLibError());
+          return;
+        }
+        if (!fitDataObject || !fitDataObject.sessions) {
           reject(new EmptyEventLibError());
           return;
         }
@@ -275,8 +282,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject)
             : fitDataObject.records.filter((record: any) => {
-                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-              });
+              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+            });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =

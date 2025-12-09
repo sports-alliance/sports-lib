@@ -129,7 +129,7 @@ import { DataBatteryVoltage } from './data.battery-voltage';
 import { DataBatteryConsumption } from './data.battery-consumption';
 import { DataBatteryLifeEstimation } from './data.battery-life-estimation';
 import { DataFormPower } from './data.form-power';
-import { DataLegStiffness } from './data.leg-stiffness';
+import { DataLegStiffness, DataLegSpringStiffness } from './data.leg-stiffness';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
 import { DataAerobicTrainingEffect } from './data-aerobic-training-effect';
 import { DataNumberOfSamples } from './data.number-of.samples';
@@ -258,7 +258,40 @@ import {
 import { Data } from './data';
 import { DataMovingTime } from './data.moving-time';
 import { DataSWOLF50m } from './data.swolf-50m';
+import { DataTimerTime } from './data.timer-time';
+import { DataActiveLap } from './data-active-lap';
+import { DataActiveLengths } from './data-active-lengths';
+import { DataAnaerobicTrainingEffect } from './data-anaerobic-training-effect';
+import { DataTotalCycles } from './data-total-cycles';
+import { DataPowerIntensityFactor } from './data.power-intensity-factor';
+import { DataPowerNormalized } from './data.power-normalized';
+import { DataPowerPedalSmoothnessLeft } from './data.power-pedal-smoothness-left';
+import { DataPowerPedalSmoothnessRight } from './data.power-pedal-smoothness-right';
+import { DataPowerTorqueEffectivenessLeft } from './data.power-torque-effectiveness-left';
+import { DataPowerTorqueEffectivenessRight } from './data.power-torque-effectiveness-right';
+import { DataPowerTrainingStressScore } from './data.power-training-stress-score';
+import { DataPowerWork } from './data.power-work';
+import { DataPowerDown } from './data.power-down';
+import { DataPowerUp } from './data.power-up';
+import { DataTargetPowerZone } from './data.target-power-zone';
+import { DataTargetHeartRateZone } from './data.target-heart-rate-zone';
+import { DataTargetSpeedZone } from './data.target-speed-zone';
+import { DataTargetDistance } from './data.target-distance';
+import { DataTargetTime } from './data.target-time';
 import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
+import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
+import { DataSportProfileName } from './data.sport-profile-name';
+import { DataBalance } from './data.balance';
+import { DataAltitudeSmooth } from './data.altitude-smooth';
+import { DataAvgStrideLength } from './data.avg-stride-length';
+import { DataCyclingSeatedTime } from './data.cycling-seated-time';
+import { DataCyclingStandingTime } from './data.cycling-standing-time';
+import { DataGradeSmooth } from './data.grade-smooth';
+
+// "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
+export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
+  static override type = 'Total Training effect';
+}
 
 /**
  * Only concrete classes no abstracts
@@ -340,6 +373,7 @@ export const DataStore: any = {
   DataBatteryLifeEstimation,
   DataFormPower,
   DataLegStiffness,
+  DataLegSpringStiffness,
   DataVerticalOscillation,
   DataAerobicTrainingEffect,
   DataFootPodUsed,
@@ -497,7 +531,36 @@ export const DataStore: any = {
   DataStopAllEvent,
   DataTime,
   DataDistanceMiles,
-  DataMovingTime
+  DataMovingTime,
+  DataTimerTime,
+  DataActiveLap,
+  DataActiveLengths,
+  DataAnaerobicTrainingEffect,
+  DataTotalCycles,
+  DataPowerIntensityFactor,
+  DataPowerNormalized,
+  DataPowerPedalSmoothnessLeft,
+  DataPowerPedalSmoothnessRight,
+  DataPowerTorqueEffectivenessLeft,
+  DataPowerTorqueEffectivenessRight,
+  DataPowerTrainingStressScore,
+  DataPowerWork,
+  DataRiderPositionChangeEvent,
+  DataSportProfileName,
+  DataBalance,
+  DataAltitudeSmooth,
+  DataAvgStrideLength,
+  DataCyclingSeatedTime,
+  DataCyclingStandingTime,
+  DataGradeSmooth,
+  DataPowerDown,
+  DataPowerUp,
+  DataTargetPowerZone,
+  DataTargetHeartRateZone,
+  DataTargetSpeedZone,
+  DataTargetDistance,
+  DataTargetTime,
+  DataTotalTrainingEffectLegacy
 };
 
 export class DynamicDataLoader {

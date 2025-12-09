@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "npm: build",
+            "detail": "npm run clean && tsc --project tsconfig.lib.json"
+        },
+        {
+            "type": "npm",
+            "script": "watch",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "typescript",
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "^.*Starting compilation in watch mode.*$"
+                    },
+                    "endsPattern": {
+                        "regexp": "^.*Found [0-9]+ errors.*$"
+                    }
+                }
+            },
+            "label": "npm: watch",
+            "detail": "npm run build -- --watch"
+        }
+    ]
+}

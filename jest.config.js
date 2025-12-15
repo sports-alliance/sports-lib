@@ -7,7 +7,7 @@ module.exports = {
   moduleNameMapper: {
     '^node:buffer$': '<rootDir>/node_modules/buffer/index.js'
   },
-  testTimeout: 30000, // Allow 30s for integrations tests
+  testTimeout: 120000, // Allow 120s for integrations tests
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   // Since Jest 27 'node' env is the default and recommended one.

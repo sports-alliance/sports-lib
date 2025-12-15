@@ -121,7 +121,7 @@ export class EventImporterFIT {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-    const { default: FitFileParser } = await (new Function('return import("fit-file-parser")'))();
+    const { default: FitFileParser } = await import('fit-file-parser');
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,

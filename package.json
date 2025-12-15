@@ -21,10 +21,18 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "types": "lib/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/esm/index.d.ts",
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "npm run clean && tsc --project tsconfig.lib.json",
+    "build": "npm run clean && tsc --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > lib/cjs/package.json",
     "watch": "npm run build -- --watch",
     "clean": "rimraf ./lib/",
     "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",

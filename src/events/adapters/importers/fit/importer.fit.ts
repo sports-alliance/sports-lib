@@ -121,7 +121,6 @@ export class EventImporterFIT {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,
@@ -284,8 +283,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject)
             : fitDataObject.records.filter((record: any) => {
-              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-            });
+                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+              });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =

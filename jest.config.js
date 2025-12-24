@@ -3,7 +3,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
     '^.+\\.(js|jsx)$': 'babel-jest'
   },
-  transformIgnorePatterns: ['node_modules/(?!fit-file-parser)'],
+  transformIgnorePatterns: ['node_modules/(?!fit-file-parser|@garmin/fitsdk)'],
   testPathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/node_modules/'],
   moduleNameMapper: {
     '^node:buffer$': '<rootDir>/node_modules/buffer/index.js'

@@ -64,6 +64,7 @@
   "devDependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
+    "@garmin/fitsdk": "^21.178.0",
     "@types/jest": "^27.0.1",
     "@types/node": "^14.6.1",
     "@types/xmldom": "^0.1.31",

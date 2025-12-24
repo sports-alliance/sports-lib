@@ -10,8 +10,8 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { ImporterFitGarminDeviceNames } from './importer.fit.garmin.device.names';
 import { ImporterFitSuuntoDeviceNames } from './importer.fit.suunto.device.names';
+import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
 import { DataPause } from '../../../../data/data.pause';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
@@ -624,15 +624,29 @@ export class EventImporterFIT {
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
-    if (session.sub_sport && session.sub_sport !== 'generic') {
-      return (
-        ActivityTypes[<keyof typeof ActivityTypes>`${session.sport}_${session.sub_sport}`] ||
-        `${session.sport}_${session.sub_sport}` ||
-        session.sport ||
-        ActivityTypes.unknown
-      );
+    const activityTypeKey =
+      session.sub_sport && session.sub_sport !== 'generic' ? `${session.sport}_${session.sub_sport}` : session.sport;
+    let activityType = ActivityTypes[<keyof typeof ActivityTypes>activityTypeKey];
+
+    if (!activityType || activityType === ActivityTypes.unknown) {
+      // Fallback to Garmin SDK mappings
+      const sportName = GarminProfileMapper.getSportName(session.sport);
+      const subSportName =
+        session.sub_sport && session.sub_sport !== 'generic'
+          ? GarminProfileMapper.getSubSportName(session.sub_sport)
+          : null;
+
+      if (sportName || subSportName) {
+        // Try to find in ActivityTypes using the name from Garmin SDK
+        const nameKey = subSportName ? `${sportName}_${subSportName}` : sportName;
+        activityType =
+          ActivityTypes[<keyof typeof ActivityTypes>nameKey] ||
+          ActivityTypes[<keyof typeof ActivityTypes>sportName] ||
+          (nameKey as any);
+      }
     }
-    return ActivityTypes[<keyof typeof ActivityTypes>session.sport] || session.sport || ActivityTypes.unknown;
+
+    return activityType || session.sport || ActivityTypes.unknown;
   }
 
   // @todo move this to a mapper
@@ -978,7 +992,7 @@ export class EventImporterFIT {
         break;
       }
       case 'garmin': {
-        recognizedName = ImporterFitGarminDeviceNames[productId];
+        recognizedName = GarminProfileMapper.getDeviceName(productId);
         creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Garmin'), productId);
         break;
       }
@@ -1045,7 +1059,16 @@ export class EventImporterFIT {
         break;
       }
       default: {
-        creator = new Creator(formatDeviceName(manufacturer, productName, null, null), productId);
+        // Try to find if it's a numeric Garmin mapping that was missed
+        const manufacturerName =
+          typeof manufacturer === 'number' ? GarminProfileMapper.getManufacturerName(manufacturer) : manufacturer;
+        if (manufacturerName === 'garmin') {
+          recognizedName = GarminProfileMapper.getDeviceName(productId);
+        }
+        creator = new Creator(
+          formatDeviceName(manufacturer, productName, recognizedName, manufacturerName === 'garmin' ? 'Garmin' : null),
+          productId
+        );
       }
     }
     creator.manufacturer = manufacturer;

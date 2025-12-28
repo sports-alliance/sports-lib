@@ -18,9 +18,9 @@ import { ActivityParsingOptions } from './activity-parsing-options';
 
 export interface ActivityInterface
   extends StatsClassInterface,
-    DurationClassInterface,
-    SerializableClassInterface,
-    IDClassInterface {
+  DurationClassInterface,
+  SerializableClassInterface,
+  IDClassInterface {
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;

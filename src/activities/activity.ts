@@ -24,6 +24,7 @@ import { DataTime } from '../data/data.time';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
+import { DataDuration } from '../data/data.duration';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 import { ActivityParsingOptions } from './activity-parsing-options';
 import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
@@ -303,6 +304,13 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       });
     });
     return timeStream;
+  }
+
+  generateDurationStream(streamTypes: string[] = []): StreamInterface {
+    const timeStream = this.generateTimeStream(streamTypes);
+    const durationStream = this.createStream(DataDuration.type);
+    durationStream.setData(timeStream.getData());
+    return durationStream;
   }
 
   getDateIndex(date: Date): number {

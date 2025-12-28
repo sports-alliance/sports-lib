@@ -235,6 +235,12 @@ export interface ActivityInterface
   generateTimeStream(streamTypes?: string[]): StreamInterface;
 
   /**
+   * Generates a duration stream based on the type of streams requested
+   * @param streamTypes
+   */
+  generateDurationStream(streamTypes?: string[]): StreamInterface;
+
+  /**
    * Gets the date index/duration from a date relative to the activity
    * @param date
    */

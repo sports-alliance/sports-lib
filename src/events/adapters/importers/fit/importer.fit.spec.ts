@@ -61,7 +61,7 @@ describe('EventImporterFIT', () => {
       it('should recognize a known Garmin device', done => {
         const manufacturer = 'garmin';
         const expectedName = 'Garmin Edge 1000';
-        const productId = 2274;
+        const productId = 1836;
         const fitDataObject = generateFitDeviceDataObject(manufacturer, productId);
 
         // When

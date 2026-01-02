@@ -3,7 +3,7 @@ import { EventImporterSuuntoJSON } from './importer.suunto.json';
 import { isNumber } from '../../../utilities/helpers';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
-const parser = require('fast-xml-parser');
+import { XMLParser } from 'fast-xml-parser';
 
 export class EventImporterSuuntoSML {
   static getFromXML(
@@ -11,6 +11,7 @@ export class EventImporterSuuntoSML {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
+    const parser = new XMLParser();
     const json = parser.parse(contents).sml;
 
     // debugger;

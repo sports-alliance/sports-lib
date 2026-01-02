@@ -253,6 +253,8 @@ export enum ActivityTypes {
   'mountain' = 'Mountain Biking', // @todo this feels hacky but exists and indeed it's MTB
   'Mountain biking' = 'Mountain Biking',
   'cycling_downhill' = 'Downhill Cycling',
+  'DownhillCycling' = 'Downhill Cycling',
+  'Downhill Cycling' = 'Downhill Cycling',
   /**
    * Motorcycling
    */
@@ -941,7 +943,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.MountainBiking,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,
-      ActivityTypes.EBiking
+      ActivityTypes.EBiking,
+      ActivityTypes.DownhillCycling
       // @todo add more
     ],
     [ActivityTypeGroups.Swimming]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],

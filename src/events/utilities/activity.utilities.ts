@@ -1171,7 +1171,7 @@ export class ActivityUtilities {
     }
 
     // If left stance time stream available, then add the right balance stream too
-    if (activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
+    if (activity.hasStreamData(DataStanceTimeBalanceLeft.type) && !activity.hasStreamData(DataStanceTimeBalanceRight.type)) {
       const rightStanceBalanceTimeStream = activity.createStream(DataStanceTimeBalanceRight.type);
       const leftStanceBalanceTimeStream = activity.getStreamData(DataStanceTimeBalanceLeft.type);
 
@@ -1477,7 +1477,7 @@ export class ActivityUtilities {
       activity.addStat(
         new DataGNSSDistance(
           activity.getSquashedStreamData(DataGNSSDistance.type)[
-            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+          activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
           ]
         )
       );

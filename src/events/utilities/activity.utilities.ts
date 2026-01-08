@@ -939,30 +939,44 @@ export class ActivityUtilities {
   }
 
   /**
+
    * @todo unit test (get the pun?)
    * This creates streams that are deriving as unit based streams
    * For example it will create pace from speed, swim pace from speed but also speed in km/h as a unitstream
    * @param streams
    * @param activityType
    * @param unitStreamTypes DynamicDataLoader.allUnitDerivedDataTypes this acts like a whitelist for the unit derived units ONLY!
+   * @param options
    */
   public static createUnitStreamsFromStreams(
     streams: StreamInterface[],
     activityType: ActivityTypes,
-    unitStreamTypes?: string[]
+    unitStreamTypes?: string[],
+    options: { includeDerivedTypes?: boolean; includeUnitVariants?: boolean } = {
+      includeDerivedTypes: true,
+      includeUnitVariants: true
+    }
   ): StreamInterface[] {
     // @todo perhaps check input to be unitStreamTypesStrictly
     const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
     let baseUnitStreams: StreamInterface[] = [];
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
     if (speedStream) {
-      baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(speedStream, activityType));
+      if (options.includeDerivedTypes) {
+        baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(speedStream, activityType));
+      } else {
+        baseUnitStreams.push(speedStream);
+      }
     }
     const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
     if (gradeAdjustedSpeedStream) {
-      baseUnitStreams = baseUnitStreams.concat(
-        this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType)
-      );
+      if (options.includeDerivedTypes) {
+        baseUnitStreams = baseUnitStreams.concat(
+          this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType)
+        );
+      } else {
+        baseUnitStreams.push(gradeAdjustedSpeedStream);
+      }
     }
     const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
     if (verticalSpeedStream) {
@@ -976,6 +990,11 @@ export class ActivityUtilities {
       baseUnitStream =>
         unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1
     );
+
+    if (options.includeUnitVariants === false) {
+      return startWith;
+    }
+
     return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
       const baseStream = baseUnitStreams.find(stream => stream.type === baseDataType);
       if (!baseStream) {

@@ -17,6 +17,8 @@ import { DataTime } from '../../data/data.time';
 import { FileType } from '../adapters/file-type.enum';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { ActivityInterface } from '../../activities/activity.interface';
+import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
+import { DataSpeedKilometersPerHour } from '../../data/data.speed';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -324,6 +326,68 @@ describe('Activity Utilities', () => {
       expect(activity.getStreamData(DataAltitude.type)).toEqual(expectedAltitudes);
       expect(activity.getStreamData(DataHeartRate.type)).toEqual(expectedHeartRates);
       done();
+    });
+  });
+
+  describe('createUnitStreamsFromStreams', () => {
+    it('should include derived types and unit variants by default', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running);
+
+      const paceStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
+      const kmhStream = result.find(s => s.type === DataSpeedKilometersPerHour.type);
+
+      expect(paceStream).toBeDefined();
+      expect(kmhStream).toBeDefined();
+    });
+
+    it('should exclude derived types when includeDerivedTypes is false', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(
+        streams,
+        ActivityTypes.Running,
+        undefined,
+        { includeDerivedTypes: false, includeUnitVariants: true }
+      );
+
+      const paceStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
+      const kmhStream = result.find(s => s.type === DataSpeedKilometersPerHour.type);
+
+      expect(paceStream).toBeUndefined();
+      expect(kmhStream).toBeDefined();
+    });
+
+    it('should exclude unit variants when includeUnitVariants is false', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20])];
+      // We pass DataPace.type in unitStreamTypes so we can check if the derived base stream is present
+      const result = ActivityUtilities.createUnitStreamsFromStreams(
+        streams,
+        ActivityTypes.Running,
+        [DataPace.type],
+        { includeDerivedTypes: true, includeUnitVariants: false }
+      );
+
+      const paceStream = result.find(s => s.type === DataPace.type);
+      const paceUnitStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
+
+      expect(paceStream).toBeDefined(); // Derived type should be there
+      expect(paceUnitStream).toBeUndefined(); // Unit variant should be gone
+    });
+
+    it('should exclude both derived types and unit variants', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(
+        streams,
+        ActivityTypes.Running,
+        [DataPace.type],
+        { includeDerivedTypes: false, includeUnitVariants: false }
+      );
+
+      const paceStream = result.find(s => s.type === DataPace.type);
+      const paceUnitStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
+
+      expect(paceStream).toBeUndefined();
+      expect(paceUnitStream).toBeUndefined();
     });
   });
 });

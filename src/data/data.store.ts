@@ -847,7 +847,8 @@ export class DynamicDataLoader {
    */
   static getUnitBasedDataTypesFromDataTypes(
     dataTypes: string[],
-    userUnitSettings?: UserUnitSettingsInterface
+    userUnitSettings?: UserUnitSettingsInterface,
+    options: { includeDerivedTypes?: boolean } = { includeDerivedTypes: true }
   ): string[] {
     let unitBasedDataTypes: any[] = [];
     if (!userUnitSettings) {
@@ -855,12 +856,16 @@ export class DynamicDataLoader {
     }
     if (dataTypes.indexOf(DataSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.speedUnits);
-      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.swimPaceUnits);
-      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.paceUnits);
+      if (options.includeDerivedTypes) {
+        unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.swimPaceUnits);
+        unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.paceUnits);
+      }
     }
     if (dataTypes.indexOf(DataGradeAdjustedSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.gradeAdjustedSpeedUnits);
-      unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.gradeAdjustedPaceUnits);
+      if (options.includeDerivedTypes) {
+        unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.gradeAdjustedPaceUnits);
+      }
     }
     if (dataTypes.indexOf(DataVerticalSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.verticalSpeedUnits);

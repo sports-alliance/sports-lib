@@ -4,7 +4,8 @@ import {
   DataSpeedKilometersPerHour,
   DataSpeedKnots,
   DataSpeedMetersPerMinute,
-  DataSpeedMilesPerHour
+  DataSpeedMilesPerHour,
+  DataSpeed
 } from './data.speed';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
 import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
@@ -61,5 +62,49 @@ describe('DataStore', () => {
   it('should get the correct unitbased datatypes', () => {
     // @todo here we should think
     expect(DynamicDataLoader.allUnitDerivedDataTypes.sort()).toEqual(unitDerivedDataTypes.sort());
+  });
+
+  describe('getUnitBasedDataTypesFromDataTypes', () => {
+    it('should include derived types by default', () => {
+      const types = [DataSpeedKilometersPerHour.type, DataPace.type];
+      const settings: any = {
+        speedUnits: [DataSpeedKilometersPerHour.type],
+        swimPaceUnits: [],
+        paceUnits: [DataPaceMinutesPerMile.type],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: [],
+        elevationUnits: [],
+        temperatureUnits: [],
+        weightUnits: []
+      };
+
+      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataSpeed.type], settings);
+      expect(result).toContain(DataPaceMinutesPerMile.type);
+    });
+
+    it('should exclude derived types when includeDerivedTypes is false', () => {
+      const settings: any = {
+        speedUnits: [DataSpeedKilometersPerHour.type],
+        swimPaceUnits: [],
+        paceUnits: [DataPaceMinutesPerMile.type],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: [],
+        elevationUnits: [],
+        temperatureUnits: [],
+        weightUnits: []
+      };
+
+      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
+        [DataSpeed.type],
+        settings,
+        { includeDerivedTypes: false }
+      );
+      expect(result).toContain(DataSpeedKilometersPerHour.type);
+      expect(result).not.toContain(DataPaceMinutesPerMile.type);
+    });
   });
 });

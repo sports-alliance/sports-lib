@@ -501,5 +501,24 @@ describe('Activity Utilities', () => {
       // But base Distance should still be there (it was added manually)
       expect(activity.hasStreamData(DataDistance.type)).toBe(true);
     });
+
+    it('should generate unit streams for Mountain Biking using DataSpeed', () => {
+      const speedData = [10, 20, 30]; // m/s
+      const speedStream = new Stream(DataSpeed.type, speedData);
+      // Mountain Biking (defaults to Cycling group)
+      const unitStreams = ActivityUtilities.createUnitStreamsFromStreams(
+        [speedStream],
+        ActivityTypes.MountainBiking,
+        undefined, // Auto-detect all known unit types
+        { includeDerivedTypes: true, includeUnitVariants: true }
+      );
+
+      const kmhStream = unitStreams.find(s => s.type === 'Speed in kilometers per hour');
+      expect(kmhStream).toBeDefined();
+      if (kmhStream) {
+        expect(kmhStream.getData()[0]).toBeCloseTo(36, 1); // 10 m/s = 36 km/h
+      }
+    });
   });
+
 });

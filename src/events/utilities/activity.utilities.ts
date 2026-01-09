@@ -489,9 +489,16 @@ export class ActivityUtilities {
   public static generateMissingStreams(activity: ActivityInterface): void {
     // Compute missing streams
     this.generateMissingStreamsForActivity(activity);
-    if (!activity.parseOptions || activity.parseOptions.generateUnitStreams) {
-      activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
-    }
+
+    // Always include derived base streams (like Pace), but conditionally include unit variants
+    const includeUnitVariants = !activity.parseOptions || activity.parseOptions.generateUnitStreams;
+
+    activity.addStreams(
+      this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type, undefined, {
+        includeDerivedTypes: true, // Always include derived base types (Pace etc)
+        includeUnitVariants
+      })
+    );
   }
 
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
@@ -960,7 +967,10 @@ export class ActivityUtilities {
     }
   ): StreamInterface[] {
     // @todo perhaps check input to be unitStreamTypesStrictly
-    const unitStreamTypesToCreate = unitStreamTypes || DynamicDataLoader.allUnitDerivedDataTypes;
+    const unitStreamTypesToCreate = unitStreamTypes || [
+      ...DynamicDataLoader.allUnitDerivedDataTypes,
+      ...DynamicDataLoader.speedDerivedDataTypes
+    ];
     let baseUnitStreams: StreamInterface[] = [];
     const speedStream = streams.find(stream => stream.type === DataSpeed.type);
     if (speedStream) {
@@ -987,9 +997,8 @@ export class ActivityUtilities {
         ? baseUnitStreams.concat(verticalSpeedStream)
         : baseUnitStreams;
     }
-    // @todo add distance ?
     const startWith = baseUnitStreams.filter(
-      baseUnitStream =>
+      (baseUnitStream) =>
         unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1
     );
 
@@ -1192,7 +1201,10 @@ export class ActivityUtilities {
     }
 
     // If left stance time stream available, then add the right balance stream too
-    if (activity.hasStreamData(DataStanceTimeBalanceLeft.type) && !activity.hasStreamData(DataStanceTimeBalanceRight.type)) {
+    if (
+      activity.hasStreamData(DataStanceTimeBalanceLeft.type) &&
+      !activity.hasStreamData(DataStanceTimeBalanceRight.type)
+    ) {
       const rightStanceBalanceTimeStream = activity.createStream(DataStanceTimeBalanceRight.type);
       const leftStanceBalanceTimeStream = activity.getStreamData(DataStanceTimeBalanceLeft.type);
 

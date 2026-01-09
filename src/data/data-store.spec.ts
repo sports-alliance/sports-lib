@@ -98,11 +98,9 @@ describe('DataStore', () => {
         weightUnits: []
       };
 
-      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
-        [DataSpeed.type],
-        settings,
-        { includeDerivedTypes: false }
-      );
+      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataSpeed.type], settings, {
+        includeDerivedTypes: false
+      });
       expect(result).toContain(DataSpeedKilometersPerHour.type);
       expect(result).not.toContain(DataPaceMinutesPerMile.type);
     });

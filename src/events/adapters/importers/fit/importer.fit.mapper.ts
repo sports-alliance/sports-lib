@@ -55,7 +55,7 @@ export const FITSampleMapper: {
   {
     dataType: DataDistance.type,
     getSampleValue: (sample: any) => {
-      return sample.distance;
+      return isNumber(sample.distance) ? sample.distance : sample.Distance;
     }
   },
   {
@@ -67,13 +67,19 @@ export const FITSampleMapper: {
   {
     dataType: DataAltitude.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.enhanced_altitude)
-        ? Math.round(sample.enhanced_altitude * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) /
-            Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)
+      const altitude = isNumber(sample.enhanced_altitude)
+        ? sample.enhanced_altitude
+        : isNumber(sample.EnhancedAltitude)
+        ? sample.EnhancedAltitude
         : isNumber(sample.altitude)
-        ? Math.round(sample.altitude * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) /
-          Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)
-        : sample.altitude;
+        ? sample.altitude
+        : isNumber(sample.Altitude)
+        ? sample.Altitude
+        : null;
+      return isNumber(altitude)
+        ? Math.round(altitude * Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)) /
+            Math.pow(10, ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES)
+        : altitude;
     }
   },
   {
@@ -110,12 +116,20 @@ export const FITSampleMapper: {
   {
     dataType: DataSpeed.type,
     getSampleValue: (sample: any) => {
-      if (Number.isFinite(sample.enhanced_speed)) {
+      if (isNumber(sample.enhanced_speed)) {
         return sample.enhanced_speed;
       }
 
-      if (Number.isFinite(sample.speed)) {
+      if (isNumber(sample.EnhancedSpeed)) {
+        return sample.EnhancedSpeed;
+      }
+
+      if (isNumber(sample.speed)) {
         return sample.speed;
+      }
+
+      if (isNumber(sample.Speed)) {
+        return sample.Speed;
       }
 
       return null;

@@ -283,8 +283,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject)
             : fitDataObject.records.filter((record: any) => {
-                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-              });
+              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+            });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -722,11 +722,23 @@ export class EventImporterFIT {
     const pause = elapsedTime > movingTime && movingTime > 0 ? Math.round((elapsedTime - movingTime) * 100) / 100 : 0;
     stats.push(new DataPause(pause));
 
-    // Assign is active lap status
-    stats.push(new DataActiveLap(!!(object.total_distance || object.avg_speed)));
+    const getStatValue = (obj: any, keys: string[]): any => {
+      for (const key of keys) {
+        if (isNumberOrString(obj[key])) {
+          return obj[key];
+        }
+      }
+      return null;
+    };
 
-    if (isNumberOrString(object.total_distance)) {
-      stats.push(new DataDistance(object.total_distance));
+    const avgSpeed = getStatValue(object, ['enhanced_avg_speed', 'EnhancedAvgSpeed', 'avg_speed', 'AvgSpeed']);
+    const totalDistance = getStatValue(object, ['total_distance', 'TotalDistance']);
+
+    // Assign is active lap status
+    stats.push(new DataActiveLap(!!(totalDistance || avgSpeed)));
+
+    if (totalDistance !== null) {
+      stats.push(new DataDistance(totalDistance));
     } else {
       stats.push(new DataDistance(0));
     }
@@ -794,24 +806,16 @@ export class EventImporterFIT {
     }
 
     // Speed
-    if (isNumberOrString(object.avg_speed)) {
-      stats.push(new DataSpeedAvg(object.avg_speed));
+    if (avgSpeed !== null) {
+      stats.push(new DataSpeedAvg(avgSpeed));
     }
-    if (isNumberOrString(object.min_speed)) {
-      stats.push(new DataSpeedMin(object.min_speed));
+    const minSpeed = getStatValue(object, ['enhanced_min_speed', 'EnhancedMinSpeed', 'min_speed', 'MinSpeed']);
+    if (minSpeed !== null) {
+      stats.push(new DataSpeedMin(minSpeed));
     }
-    if (isNumberOrString(object.max_speed)) {
-      stats.push(new DataSpeedMax(object.max_speed));
-    }
-    // Keep latest , enhanced @todo this can create a bug
-    if (isNumberOrString(object.enhanced_avg_speed)) {
-      stats.push(new DataSpeedAvg(object.enhanced_avg_speed));
-    }
-    if (isNumberOrString(object.enhanced_min_speed)) {
-      stats.push(new DataSpeedMin(object.enhanced_min_speed));
-    }
-    if (isNumberOrString(object.enhanced_max_speed)) {
-      stats.push(new DataSpeedMax(object.enhanced_max_speed));
+    const maxSpeed = getStatValue(object, ['enhanced_max_speed', 'EnhancedMaxSpeed', 'max_speed', 'MaxSpeed']);
+    if (maxSpeed !== null) {
+      stats.push(new DataSpeedMax(maxSpeed));
     }
     // Temperature
     if (isNumberOrString(object.avg_temperature)) {
@@ -824,12 +828,14 @@ export class EventImporterFIT {
       stats.push(new DataTemperatureMax(object.max_temperature));
     }
     // Ascent
-    if (isNumberOrString(object.total_ascent)) {
-      stats.push(new DataAscent(object.total_ascent));
+    const ascent = getStatValue(object, ['total_ascent', 'TotalAscent']);
+    if (ascent !== null) {
+      stats.push(new DataAscent(ascent));
     }
     // Descent
-    if (isNumberOrString(object.total_descent)) {
-      stats.push(new DataDescent(object.total_descent));
+    const descent = getStatValue(object, ['total_descent', 'TotalDescent']);
+    if (descent !== null) {
+      stats.push(new DataDescent(descent));
     }
     // Calories
     if (isNumberOrString(object.total_calories)) {

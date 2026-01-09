@@ -345,12 +345,10 @@ describe('Activity Utilities', () => {
 
     it('should exclude derived types when includeDerivedTypes is false', () => {
       const streams = [new Stream(DataSpeed.type, [10, 20])];
-      const result = ActivityUtilities.createUnitStreamsFromStreams(
-        streams,
-        ActivityTypes.Running,
-        undefined,
-        { includeDerivedTypes: false, includeUnitVariants: true }
-      );
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running, undefined, {
+        includeDerivedTypes: false,
+        includeUnitVariants: true
+      });
 
       const paceStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
       const kmhStream = result.find(s => s.type === DataSpeedKilometersPerHour.type);
@@ -362,12 +360,10 @@ describe('Activity Utilities', () => {
     it('should exclude unit variants when includeUnitVariants is false', () => {
       const streams = [new Stream(DataSpeed.type, [10, 20])];
       // We pass DataPace.type in unitStreamTypes so we can check if the derived base stream is present
-      const result = ActivityUtilities.createUnitStreamsFromStreams(
-        streams,
-        ActivityTypes.Running,
-        [DataPace.type],
-        { includeDerivedTypes: true, includeUnitVariants: false }
-      );
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running, [DataPace.type], {
+        includeDerivedTypes: true,
+        includeUnitVariants: false
+      });
 
       const paceStream = result.find(s => s.type === DataPace.type);
       const paceUnitStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
@@ -378,12 +374,10 @@ describe('Activity Utilities', () => {
 
     it('should exclude both derived types and unit variants', () => {
       const streams = [new Stream(DataSpeed.type, [10, 20])];
-      const result = ActivityUtilities.createUnitStreamsFromStreams(
-        streams,
-        ActivityTypes.Running,
-        [DataPace.type],
-        { includeDerivedTypes: false, includeUnitVariants: false }
-      );
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running, [DataPace.type], {
+        includeDerivedTypes: false,
+        includeUnitVariants: false
+      });
 
       const paceStream = result.find(s => s.type === DataPace.type);
       const paceUnitStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
@@ -412,7 +406,7 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false,
+        generateUnitStreams: false
       };
 
       // Add a speed stream
@@ -434,7 +428,7 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false, // DISABLE streams
+        generateUnitStreams: false // DISABLE streams
       };
 
       // Add a speed stream [10 m/s, 20 m/s]
@@ -443,17 +437,14 @@ describe('Activity Utilities', () => {
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-      // 1. Verify Streams are missing (as requested)
+      // 1. Verify Unit Streams are missing (as requested)
       expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
 
-      // 1. Verify Streams are missing (as requested)
-      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
+      // 2. Verify Derived Base Streams are PRESENT (The fix)
+      expect(activity.hasStreamData(DataPace.type)).toBe(true);
 
-      // 2. Verify Stats are PRESENT (Safety Check)
+      // 3. Verify Stats are PRESENT (Safety Check)
       // 20 m/s = 72 km/h
-      // We check for the stat by its string type if we can't import the constant easily, or iterate.
-      // Based on activity.utilities.ts it uses: DataSpeedMaxKilometersPerHour
-
       const allStats = Array.from(activity.getStats().values());
       const speedMaxKmh = allStats.find(s => s.getType() === DataSpeedMaxKilometersPerHour.type);
 

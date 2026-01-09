@@ -59,6 +59,7 @@ export class SportsLib {
 }
 
 export * from './activities/activity.interface';
+export * from './activities/activity-parsing-options';
 export * from './activities/activity.json.interface';
 export * from './activities/activity.types';
 export * from './constants/constants';

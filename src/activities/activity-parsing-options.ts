@@ -23,9 +23,12 @@ export class ActivityParsingOptions {
   public maxActivityDurationDays: number;
   public generateUnitStreams: boolean;
 
-  constructor(options: ActivityParsingOptions) {
-    this.streams = options.streams;
-    this.maxActivityDurationDays = options.maxActivityDurationDays;
+  constructor(options: Partial<ActivityParsingOptions>) {
+    this.streams = options.streams ?? {
+      smooth: { altitudeSmooth: true, grade: true, gradeSmooth: true },
+      fixAbnormal: { speed: false }
+    };
+    this.maxActivityDurationDays = options.maxActivityDurationDays ?? 14;
     this.generateUnitStreams = options.generateUnitStreams ?? true;
   }
 }

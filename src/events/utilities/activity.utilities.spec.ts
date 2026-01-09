@@ -4,7 +4,7 @@ import { DataSpeedMaxKilometersPerHour } from '../../data/data.speed-max';
 import { Activity } from '../../activities/activity';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataAltitude } from '../../data/data.altitude';
-import { DataDistance } from '../../data/data.distance';
+import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
 import { DataDuration } from '../../data/data.duration';
 import { EventInterface } from '../event.interface';
 import { Creator } from '../../creators/creator';
@@ -21,6 +21,7 @@ import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
 import { DataSpeedKilometersPerHour } from '../../data/data.speed';
+import { DataSwimPace } from '../../data/data.swim-pace';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -450,6 +451,55 @@ describe('Activity Utilities', () => {
 
       expect(speedMaxKmh).toBeDefined();
       expect(speedMaxKmh?.getValue()).toBe(72);
+    });
+
+    it('should generate DataSwimPace when generateUnitStreams = false for swimming', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Swimming, new Creator('test'));
+      activity.parseOptions = {
+        streams: { smooth: {}, fixAbnormal: {} },
+        maxActivityDurationDays: 14,
+        generateUnitStreams: false
+      };
+
+      activity.addStream(new Stream(DataSpeed.type, [1, 2])); // m/s
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      // Verify Unit Streams missing
+      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
+
+      // Verify Derived Base Stream (Swim Pace) IS present
+      expect(activity.hasStreamData(DataSwimPace.type)).toBe(true);
+    });
+
+    it('should generate DataDistanceMiles when generateUnitStreams = true (Default)', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      // Default options (generateUnitStreams = true)
+
+      activity.addStream(new Stream(DataDistance.type, [1000, 2000]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      // Should generate miles
+      expect(activity.hasStreamData(DataDistanceMiles.type)).toBe(true);
+    });
+
+    it('should NOT generate DataDistanceMiles when generateUnitStreams = false', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.parseOptions = {
+        streams: { smooth: {}, fixAbnormal: {} },
+        maxActivityDurationDays: 14,
+        generateUnitStreams: false
+      };
+
+      activity.addStream(new Stream(DataDistance.type, [1000, 2000]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      // Should NOT generate miles
+      expect(activity.hasStreamData(DataDistanceMiles.type)).toBe(false);
+      // But base Distance should still be there (it was added manually)
+      expect(activity.hasStreamData(DataDistance.type)).toBe(true);
     });
   });
 });

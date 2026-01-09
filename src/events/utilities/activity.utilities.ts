@@ -971,34 +971,44 @@ export class ActivityUtilities {
       ...DynamicDataLoader.allUnitDerivedDataTypes,
       ...DynamicDataLoader.speedDerivedDataTypes
     ];
+
     let baseUnitStreams: StreamInterface[] = [];
-    const speedStream = streams.find(stream => stream.type === DataSpeed.type);
-    if (speedStream) {
-      if (options.includeDerivedTypes) {
-        baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(speedStream, activityType));
-      } else {
-        baseUnitStreams.push(speedStream);
+
+    // Iterate over all possible base types that can have unit variants
+    // This allows us to dynamically include ALL base streams (like Distance, Power, etc.) that need unit conversion
+    Object.keys(DynamicDataLoader.dataTypeUnitGroups).forEach(baseDataType => {
+      const stream = streams.find(s => s.type === baseDataType);
+      if (!stream) {
+        return;
       }
-    }
-    const gradeAdjustedSpeedStream = streams.find(stream => stream.type === DataGradeAdjustedSpeed.type);
-    if (gradeAdjustedSpeedStream) {
-      if (options.includeDerivedTypes) {
+
+      // Special handling for derived types (Pace from Speed, etc.)
+      if (baseDataType === DataSpeed.type && options.includeDerivedTypes) {
+        baseUnitStreams = baseUnitStreams.concat(this.createByActivityTypeSpeedBasedStreams(stream, activityType));
+        return;
+      }
+
+      if (baseDataType === DataGradeAdjustedSpeed.type && options.includeDerivedTypes) {
         baseUnitStreams = baseUnitStreams.concat(
-          this.createByActivityTypeAltiDistanceSpeedBasedStreams(gradeAdjustedSpeedStream, activityType)
+          this.createByActivityTypeAltiDistanceSpeedBasedStreams(stream, activityType)
         );
-      } else {
-        baseUnitStreams.push(gradeAdjustedSpeedStream);
+        return;
       }
-    }
-    const verticalSpeedStream = streams.find(stream => stream.type === DataVerticalSpeed.type);
-    if (verticalSpeedStream) {
-      // For vertical speed (yet) we dont need a seperate function so just add the base that is the "derived" one
-      baseUnitStreams = ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType).length
-        ? baseUnitStreams.concat(verticalSpeedStream)
-        : baseUnitStreams;
-    }
+
+      if (baseDataType === DataVerticalSpeed.type) {
+        // Vertical speed handling
+        if (ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType).length) {
+          baseUnitStreams.push(stream);
+        }
+        return;
+      }
+
+      // For everything else (like Distance), just add the base stream so it can be used for unit generation
+      baseUnitStreams.push(stream);
+    });
+
     const startWith = baseUnitStreams.filter(
-      (baseUnitStream) =>
+      baseUnitStream =>
         unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1
     );
 

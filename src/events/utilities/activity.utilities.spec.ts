@@ -2,6 +2,7 @@ import { Event } from '../event';
 import { DataSpeedMaxKilometersPerHour } from '../../data/data.speed-max';
 
 import { Activity } from '../../activities/activity';
+import { ActivityParsingOptions } from '../../activities/activity-parsing-options';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataAltitude } from '../../data/data.altitude';
 import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
@@ -389,8 +390,14 @@ describe('Activity Utilities', () => {
   });
 
   describe('generateMissingStreams', () => {
-    it('should generate unit streams by default (generateUnitStreams = true)', () => {
-      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+    it('should generate unit streams when generateUnitStreams = true', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.Running,
+        new Creator('test'),
+        new ActivityParsingOptions({ generateUnitStreams: true })
+      );
       // Add a speed stream
       activity.addStream(new Stream(DataSpeed.type, [10, 20]));
 
@@ -472,9 +479,14 @@ describe('Activity Utilities', () => {
       expect(activity.hasStreamData(DataSwimPace.type)).toBe(true);
     });
 
-    it('should generate DataDistanceMiles when generateUnitStreams = true (Default)', () => {
-      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
-      // Default options (generateUnitStreams = true)
+    it('should generate DataDistanceMiles when generateUnitStreams = true', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.Running,
+        new Creator('test'),
+        new ActivityParsingOptions({ generateUnitStreams: true })
+      );
 
       activity.addStream(new Stream(DataDistance.type, [1000, 2000]));
 

@@ -18,5 +18,6 @@ module.exports = {
     'ts-jest': {
       babelConfig: true
     }
-  }
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts']
 };

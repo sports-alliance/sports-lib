@@ -1,4 +1,6 @@
 import { Event } from '../event';
+import { DataSpeedMaxKilometersPerHour } from '../../data/data.speed-max';
+
 import { Activity } from '../../activities/activity';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataAltitude } from '../../data/data.altitude';
@@ -388,6 +390,75 @@ describe('Activity Utilities', () => {
 
       expect(paceStream).toBeUndefined();
       expect(paceUnitStream).toBeUndefined();
+    });
+  });
+
+  describe('generateMissingStreams', () => {
+    it('should generate unit streams by default (generateUnitStreams = true)', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      // Add a speed stream
+      activity.addStream(new Stream(DataSpeed.type, [10, 20]));
+
+      ActivityUtilities.generateMissingStreams(activity);
+
+      // Should have generated "sister" types (e.g. Pace) and unit variants (e.g. Speed km/h)
+      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(true);
+      expect(activity.hasStreamData(DataPaceMinutesPerMile.type)).toBe(true);
+    });
+
+    it('should NOT generate unit streams when generateUnitStreams = false', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      // Mock parsing options
+      activity.parseOptions = {
+        streams: { smooth: {}, fixAbnormal: {} },
+        maxActivityDurationDays: 14,
+        generateUnitStreams: false,
+      };
+
+      // Add a speed stream
+      activity.addStream(new Stream(DataSpeed.type, [10, 20]));
+
+      ActivityUtilities.generateMissingStreams(activity);
+
+      // Should NOT have generated unit variants
+      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
+      // It might still generate some "derived" streams depending on other flags, but our specific unit loop should be skipped
+      // The Pace stream comes from createUnitStreamsFromStreams too, so it should also be missing
+      expect(activity.hasStreamData(DataPaceMinutesPerMile.type)).toBe(false);
+    });
+  });
+
+  describe('generateMissingStreamsAndStatsForActivity', () => {
+    it('should generate unit STATS even if unit STREAMS are disabled', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.parseOptions = {
+        streams: { smooth: {}, fixAbnormal: {} },
+        maxActivityDurationDays: 14,
+        generateUnitStreams: false, // DISABLE streams
+      };
+
+      // Add a speed stream [10 m/s, 20 m/s]
+      // Max speed = 20 m/s
+      activity.addStream(new Stream(DataSpeed.type, [10, 20]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      // 1. Verify Streams are missing (as requested)
+      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
+
+      // 1. Verify Streams are missing (as requested)
+      expect(activity.hasStreamData(DataSpeedKilometersPerHour.type)).toBe(false);
+
+      // 2. Verify Stats are PRESENT (Safety Check)
+      // 20 m/s = 72 km/h
+      // We check for the stat by its string type if we can't import the constant easily, or iterate.
+      // Based on activity.utilities.ts it uses: DataSpeedMaxKilometersPerHour
+
+      const allStats = Array.from(activity.getStats().values());
+      const speedMaxKmh = allStats.find(s => s.getType() === DataSpeedMaxKilometersPerHour.type);
+
+      expect(speedMaxKmh).toBeDefined();
+      expect(speedMaxKmh?.getValue()).toBe(72);
     });
   });
 });

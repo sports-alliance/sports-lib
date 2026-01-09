@@ -4,7 +4,8 @@ export class ActivityParsingOptions {
       smooth: { altitudeSmooth: true, grade: true, gradeSmooth: true },
       fixAbnormal: { speed: false }
     },
-    maxActivityDurationDays: 14
+    maxActivityDurationDays: 14,
+    generateUnitStreams: true
   });
 
   /**
@@ -20,9 +21,11 @@ export class ActivityParsingOptions {
   };
 
   public maxActivityDurationDays: number;
+  public generateUnitStreams: boolean;
 
   constructor(options: ActivityParsingOptions) {
     this.streams = options.streams;
     this.maxActivityDurationDays = options.maxActivityDurationDays;
+    this.generateUnitStreams = options.generateUnitStreams ?? true;
   }
 }

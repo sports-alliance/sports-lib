@@ -489,7 +489,9 @@ export class ActivityUtilities {
   public static generateMissingStreams(activity: ActivityInterface): void {
     // Compute missing streams
     this.generateMissingStreamsForActivity(activity);
-    activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
+    if (!activity.parseOptions || activity.parseOptions.generateUnitStreams) {
+      activity.addStreams(this.createUnitStreamsFromStreams(activity.getAllStreams(), activity.type));
+    }
   }
 
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {

@@ -37,7 +37,7 @@
     "clean": "rimraf ./lib/",
     "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",
     "lint:fix": "eslint . --ext ts --fix",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "prettier:fix": "prettier --write .",
     "prepare": "husky install"

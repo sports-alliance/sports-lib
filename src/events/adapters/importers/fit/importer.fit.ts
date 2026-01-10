@@ -107,7 +107,7 @@ import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
-
+import { Buffer } from 'buffer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // @ts-ignore
 import FitFileParser from 'fit-file-parser';
@@ -117,7 +117,7 @@ const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 
 export class EventImporterFIT {
   static async getFromArrayBuffer(
-    arrayBuffer: ArrayBuffer,
+    arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {

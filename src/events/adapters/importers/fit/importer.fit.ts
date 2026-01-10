@@ -281,7 +281,7 @@ export class EventImporterFIT {
           const isLengthsBased = this.isLengthsBased(sessionObject);
 
           const samples = isLengthsBased
-            ? this.generateSamplesFromLengths(sessionObject)
+            ? this.generateSamplesFromLengths(sessionObject, options)
             : fitDataObject.records.filter((record: any) => {
               return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
             });
@@ -378,9 +378,10 @@ export class EventImporterFIT {
    * Generate streams samples based on lengths on an activity
    * When based on lengths, an activity do not provides sample under records object
    * @param sessionObject
+   * @param options
    * @private
    */
-  private static generateSamplesFromLengths(sessionObject: any): any[] {
+  private static generateSamplesFromLengths(sessionObject: any, options: ActivityParsingOptions): any[] {
     if (!this.isLengthsBased(sessionObject)) {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
     }
@@ -399,16 +400,23 @@ export class EventImporterFIT {
         lap.lengths.forEach((length: any) => {
           // Resolve start/end date of current length
           const lengthStartDate: Date = length.start_time;
+          const lengthDuration = (length.total_timer_time || length.total_elapsed_time || 0);
           const lengthEndDate = new Date(
-            lengthStartDate.getTime() + (length.total_timer_time || length.total_elapsed_time || 0) * 1000
+            lengthStartDate.getTime() + lengthDuration * 1000
           );
+
+          // We check if length is valid comparing to max activity duration
+          if (lengthDuration > options.maxActivityDurationDays * 24 * 60 * 60) {
+            return;
+          }
 
           if (lengthEndDate.getTime() <= lengthStartDate.getTime()) {
             return;
           }
 
           // Generate a stream from length start date to end date filled by null values
-          let lengthStream = Array(ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate)).fill(null);
+          const streamLength = ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate);
+          let lengthStream = Array(streamLength).fill(null);
 
           // Define distance step to be used for distance stream
           const lengthStepSize = lengthMeters / (lengthStream.length - 1);

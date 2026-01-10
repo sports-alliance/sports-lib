@@ -82,7 +82,8 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   createStream(type: string): StreamInterface {
-    return new Stream(type, Array(ActivityUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
+    const stream = new Stream(type, Array(ActivityUtilities.getDataLength(this.startDate, this.endDate)).fill(null));
+    return stream;
   }
 
   addDataToStream(type: string, date: Date, value: number): this {
@@ -92,7 +93,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   addStream(stream: StreamInterface): this {
     if (this.streams.find(activityStream => activityStream.type === stream.type)) {
-      throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()}`);
+      throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()} `);
     }
     this.streams.push(stream);
     return this;
@@ -156,7 +157,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   getStream(streamType: string): StreamInterface {
     const find = this.streams.find(stream => stream.type === streamType);
     if (!find) {
-      throw Error(`No stream found with type ${streamType}`);
+      throw Error(`No stream found with type ${streamType} `);
     }
     return find;
   }

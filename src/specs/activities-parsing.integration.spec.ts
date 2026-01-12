@@ -164,7 +164,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming pool FIT file (2)', done => {
@@ -205,7 +205,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming pool FIT file (3)', done => {
@@ -249,7 +249,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming pool FIT file (4)', done => {
@@ -273,7 +273,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
           expect(activity.getLaps().length).toEqual(6);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming open water FIT file (1)', done => {
@@ -314,7 +314,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -359,7 +359,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming pool TCX file (2)', done => {
@@ -397,7 +397,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -444,7 +444,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse swimming open water GPX file (2)', done => {
@@ -483,7 +483,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
   });
@@ -531,7 +531,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '47:04');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (2)', done => {
@@ -577,7 +577,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '01:23:09');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Suunto export) (3)', done => {
@@ -623,7 +623,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '36:36');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Suunto export) (4)', done => {
@@ -667,7 +667,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '02:40:02');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Suunto export) (5)', done => {
@@ -709,7 +709,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '05:40:19');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Suunto export) (6)', done => {
@@ -747,7 +747,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '21:04');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Coros export) (7)', done => {
@@ -801,7 +801,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '48:42');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running FIT file (Coros export) (8)', done => {
@@ -842,7 +842,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '02:41:39');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running treadmill FIT file (1)', done => {
@@ -891,7 +891,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '01:02:44');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -938,7 +938,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running TCX file (2)', done => {
@@ -986,7 +986,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running TCX file (3)', done => {
@@ -1031,7 +1031,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running TCX file (4)', done => {
@@ -1067,7 +1067,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running treadmill TCX file (3)', done => {
@@ -1103,7 +1103,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -1150,7 +1150,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '47:04');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running GPX file (2)', done => {
@@ -1194,7 +1194,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '01:23:09');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running GPX file (3)', done => {
@@ -1240,7 +1240,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running GPX file (4)', done => {
@@ -1271,7 +1271,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running GPX file (5)', done => {
@@ -1320,7 +1320,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse running GPX file (6)', done => {
@@ -1364,7 +1364,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
   });
@@ -1428,7 +1428,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (2)', done => {
@@ -1466,7 +1466,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '06:07:08');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (3)', done => {
@@ -1492,7 +1492,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '07:04:31');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (4)', done => {
@@ -1517,7 +1517,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '07:26:55');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (5)', done => {
@@ -1557,7 +1557,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             0
           );
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (6)', done => {
@@ -1585,7 +1585,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(417);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (7)', done => {
@@ -1617,7 +1617,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (8)', done => {
@@ -1635,7 +1635,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.creator.manufacturer).toEqual('wahoo_fitness');
           expect(activity.creator.isRecognized).toBeTruthy();
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling FIT file (9)', done => {
@@ -1652,7 +1652,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.startDate.toISOString()).toEqual('2020-07-26T15:28:41.000Z');
           expect(activity.endDate.toISOString()).toEqual('2020-07-26T16:31:26.063Z');
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse virtual cycling FIT file (1)', done => {
@@ -1710,7 +1710,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -1753,7 +1753,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling TCX file (2)', done => {
@@ -1794,7 +1794,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling TCX file (3)', done => {
@@ -1827,7 +1827,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse virtual cycling TCX file (1)', done => {
@@ -1872,7 +1872,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
 
@@ -1912,7 +1912,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '02:04:36');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling GPX file (2)', done => {
@@ -1949,7 +1949,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '06:07:13');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling GPX file (3)', done => {
@@ -1986,7 +1986,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertNearEqualTime(elapsedTime, '01:49:20');
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse cycling GPX file (4)', done => {
@@ -2018,7 +2018,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
 
       it('should parse virtual cycling GPX file (1)', done => {
@@ -2059,7 +2059,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
   });
@@ -2172,7 +2172,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
           done();
-        });
+        }).catch((e) => done(e));
       });
     });
   });

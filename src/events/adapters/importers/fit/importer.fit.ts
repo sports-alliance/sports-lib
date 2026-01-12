@@ -144,6 +144,30 @@ export class EventImporterFIT {
           return;
         }
 
+        // Check if we have length data at the top level (new parser behavior or missing mapping)
+        if (fitDataObject.lengths && fitDataObject.lengths.length > 0) {
+          fitDataObject.sessions?.forEach((session: any) => {
+            const sessionStartTime = new Date(session.start_time).getTime();
+            const sessionEndTime = sessionStartTime + (session.total_elapsed_time || 0) * 1000;
+
+            session.lengths = fitDataObject.lengths.filter((length: any) => {
+              const lengthTime = new Date(length.timestamp || length.start_time).getTime();
+              return lengthTime >= sessionStartTime && lengthTime < sessionEndTime;
+            });
+
+            // Also distribute to laps
+            session.laps?.forEach((lap: any) => {
+              const lapStartTime = new Date(lap.start_time).getTime();
+              const lapEndTime = lapStartTime + (lap.total_elapsed_time || 0) * 1000;
+
+              lap.lengths = fitDataObject.lengths.filter((length: any) => {
+                const lengthTime = new Date(length.timestamp || length.start_time).getTime();
+                return lengthTime >= lapStartTime && lengthTime < lapEndTime;
+              });
+            });
+          });
+        }
+
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
           // Get the activity from the sessionObject
@@ -322,7 +346,6 @@ export class EventImporterFIT {
           reject(new EmptyEventLibError());
           return;
         }
-
         // Get the HRV to IBI if exist
         if (fitDataObject.hrv && fitDataObject.hrv.length) {
           activities.forEach((activity: ActivityInterface) => {

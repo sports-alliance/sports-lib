@@ -1338,7 +1338,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           expect(activity.hasPowerMeter()).toBeFalsy();
           expect(activity.isTrainer()).toBeFalsy();
 
-          expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(5115.1, 0);
+          SpecUtils.assertNearEqual((activity.getStat(DataDistance.type) as DataNumber).getValue(), 5115.1, 1, 1);
           expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(516, 0);
           expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(68);
           expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(124);

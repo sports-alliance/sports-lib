@@ -547,8 +547,8 @@ export class EventImporterTCX {
       if (
         isActiveLap &&
         (activityType === ActivityTypes.Swimming || activityType === ActivityTypes.OpenWaterSwimming) &&
-        (lap.getStat(DataCadenceAvg.type) as DataInterface)?.getValue() > 0 &&
-        (lap.getStat(DataSpeedAvg.type) as DataInterface)?.getValue() > 0
+        ((lap.getStat(DataCadenceAvg.type) as DataInterface)?.getValue() as number) > 0 &&
+        ((lap.getStat(DataSpeedAvg.type) as DataInterface)?.getValue() as number) > 0
       ) {
         const avgCadence = (lap.getStat(DataCadenceAvg.type) as DataInterface).getValue() as number;
         const avgSpeed = (lap.getStat(DataSpeedAvg.type) as DataInterface).getValue() as number;

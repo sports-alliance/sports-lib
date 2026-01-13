@@ -107,7 +107,7 @@ import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
-
+import { Buffer } from 'buffer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // @ts-ignore
 import FitFileParser from 'fit-file-parser';
@@ -117,7 +117,7 @@ const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 
 export class EventImporterFIT {
   static async getFromArrayBuffer(
-    arrayBuffer: ArrayBuffer,
+    arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
@@ -142,6 +142,30 @@ export class EventImporterFIT {
         if (!fitDataObject || !fitDataObject.sessions) {
           reject(new EmptyEventLibError());
           return;
+        }
+
+        // Check if we have length data at the top level (new parser behavior or missing mapping)
+        if (fitDataObject.lengths && fitDataObject.lengths.length > 0) {
+          fitDataObject.sessions?.forEach((session: any) => {
+            const sessionStartTime = new Date(session.start_time).getTime();
+            const sessionEndTime = sessionStartTime + (session.total_elapsed_time || 0) * 1000;
+
+            session.lengths = fitDataObject.lengths.filter((length: any) => {
+              const lengthTime = new Date(length.timestamp || length.start_time).getTime();
+              return lengthTime >= sessionStartTime && lengthTime < sessionEndTime;
+            });
+
+            // Also distribute to laps
+            session.laps?.forEach((lap: any) => {
+              const lapStartTime = new Date(lap.start_time).getTime();
+              const lapEndTime = lapStartTime + (lap.total_elapsed_time || 0) * 1000;
+
+              lap.lengths = fitDataObject.lengths.filter((length: any) => {
+                const lengthTime = new Date(length.timestamp || length.start_time).getTime();
+                return lengthTime >= lapStartTime && lengthTime < lapEndTime;
+              });
+            });
+          });
         }
 
         // Iterate over the sessions and create their activities
@@ -322,7 +346,6 @@ export class EventImporterFIT {
           reject(new EmptyEventLibError());
           return;
         }
-
         // Get the HRV to IBI if exist
         if (fitDataObject.hrv && fitDataObject.hrv.length) {
           activities.forEach((activity: ActivityInterface) => {

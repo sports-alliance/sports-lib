@@ -1,19 +1,19 @@
 import {
   COROSAPIEventMetaDataInterface,
-  GarminHealthAPIEventMetaDataInterface,
+  GarminAPIEventMetaDataInterface,
   ServiceNames,
   SuuntoAppEventMetaDataInterface
 } from './event-meta-data.interface';
 import {
   COROSAPIEventMetaDataJsonInterface,
-  GarminHealthAPIEventMetaDataJsonInterface,
+  GarminAPIEventMetaDataJsonInterface,
   SuuntoAppEventMetaDataJsonInterface
 } from './meta-data.json.interface';
 
 export class SuuntoAppEventMetaData implements SuuntoAppEventMetaDataInterface {
   serviceName = ServiceNames.SuuntoApp;
 
-  constructor(public serviceWorkoutID: string, public serviceUserName: string, public date: Date) {}
+  constructor(public serviceWorkoutID: string, public serviceUserName: string, public date: Date) { }
 
   toJSON(): SuuntoAppEventMetaDataJsonInterface {
     return {
@@ -33,7 +33,7 @@ export class COROSAPIEventMetaData implements COROSAPIEventMetaDataInterface {
     public serviceOpenId: string,
     public serviceFITFileURI: string,
     public date: Date
-  ) {}
+  ) { }
 
   toJSON(): COROSAPIEventMetaDataJsonInterface {
     return {
@@ -46,8 +46,8 @@ export class COROSAPIEventMetaData implements COROSAPIEventMetaDataInterface {
   }
 }
 
-export class GarminHealthAPIEventMetaData implements GarminHealthAPIEventMetaDataInterface {
-  serviceName = ServiceNames.GarminHealthAPI;
+export class GarminAPIEventMetaData implements GarminAPIEventMetaDataInterface {
+  serviceName = ServiceNames.GarminAPI;
 
   constructor(
     public serviceUserID: string,
@@ -56,9 +56,9 @@ export class GarminHealthAPIEventMetaData implements GarminHealthAPIEventMetaDat
     public serviceManual: boolean,
     public serviceStartTimeInSeconds: number,
     public date: Date
-  ) {}
+  ) { }
 
-  toJSON(): GarminHealthAPIEventMetaDataJsonInterface {
+  toJSON(): GarminAPIEventMetaDataJsonInterface {
     return {
       serviceUserID: this.serviceUserID,
       serviceName: this.serviceName,

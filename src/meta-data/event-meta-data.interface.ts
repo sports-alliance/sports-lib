@@ -2,7 +2,7 @@ import { SerializableClassInterface } from '../serializable/serializable.class.i
 import {
   COROSAPIEventMetaDataJsonInterface,
   EventMetaDataJsonInterface,
-  GarminHealthAPIEventMetaDataJsonInterface,
+  GarminAPIEventMetaDataJsonInterface as GarminAPIEventMetaDataJsonInterface,
   SuuntoAppEventMetaDataJsonInterface
 } from './meta-data.json.interface';
 
@@ -26,18 +26,18 @@ export interface COROSAPIEventMetaDataInterface extends EventMetaDataInterface {
   toJSON(): COROSAPIEventMetaDataJsonInterface;
 }
 
-export interface GarminHealthAPIEventMetaDataInterface extends EventMetaDataInterface {
+export interface GarminAPIEventMetaDataInterface extends EventMetaDataInterface {
   serviceUserID: string;
   serviceActivityFileID: string;
   serviceActivityFileType: 'FIT' | 'TCX' | 'GPX';
   serviceStartTimeInSeconds: number;
   serviceManual: boolean;
 
-  toJSON(): GarminHealthAPIEventMetaDataJsonInterface;
+  toJSON(): GarminAPIEventMetaDataJsonInterface;
 }
 
 export enum ServiceNames {
   SuuntoApp = 'Suunto app',
-  GarminHealthAPI = 'Garmin Health API',
+  GarminAPI = 'Garmin API',
   COROSAPI = 'COROS API'
 }

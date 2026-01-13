@@ -16,7 +16,7 @@ export interface COROSAPIEventMetaDataJsonInterface extends EventMetaDataJsonInt
   serviceFITFileURI: string;
 }
 
-export interface GarminHealthAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
+export interface GarminAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
   serviceUserID: string;
   serviceActivityFileID: string;
   serviceActivityFileType: 'FIT' | 'TCX' | 'GPX';

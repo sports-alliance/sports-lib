@@ -46,4 +46,24 @@ describe('importer.gpx', () => {
     const result = await EventImporterGPX.getFromString(gpxString, xmldom.DOMParser);
     expect(result.getFirstActivity().name).toEqual('Meylan Road Cycling');
   });
+  it('parses route.gpx from samples', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const samplesDir = path.resolve(__dirname, '../../../../../samples/gpx');
+    const filePath = path.join(samplesDir, 'route.gpx');
+    const fileString = fs.readFileSync(filePath, 'utf-8');
+
+    const result = await EventImporterGPX.getFromString(fileString, xmldom.DOMParser);
+    expect(result.getActivities().length).toBeGreaterThan(0);
+    const activity = result.getFirstActivity();
+    expect(activity.type).toEqual('Route');
+
+    const distance = activity.getStat('Distance');
+    expect(distance).toBeDefined();
+    expect(distance!.getValue()).toBeGreaterThan(0);
+
+    // Check if the number of samples matches the number of points in the GPX
+    const latStream = activity.getStream('Latitude');
+    expect(latStream.getData().length).toBe(2987); // I counted 2987 rtept earlier
+  });
 });

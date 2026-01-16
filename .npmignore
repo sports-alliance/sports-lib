@@ -9,5 +9,5 @@ samples
 coverage
 jest.config.js
 .travis.yml
-*.json
+tsconfig*.json
 .codebeatignore

@@ -1,13 +1,7 @@
-.idea/
-.prettier*
-.eslint*
-.editorconfig
-*.md
 src
-docs
 samples
 coverage
-jest.config.js
 .travis.yml
-tsconfig*.json
+tsconfig.json
+tslint.json
 .codebeatignore

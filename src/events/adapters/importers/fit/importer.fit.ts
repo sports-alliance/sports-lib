@@ -469,6 +469,7 @@ export class EventImporterFIT {
       device.index = deviceInfo.device_index;
       device.name = ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] || deviceInfo.ant_device_number;
       device.batteryStatus = deviceInfo.battery_status;
+      device.batteryLevel = deviceInfo.battery_level;
       device.batteryVoltage = deviceInfo.battery_voltage;
       device.manufacturer = deviceInfo.manufacturer;
       device.serialNumber = deviceInfo.serial_number;

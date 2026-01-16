@@ -82,6 +82,9 @@ export class EventImporterJSON {
     if (json.batteryStatus) {
       device.batteryStatus = json.batteryStatus;
     }
+    if (json.batteryLevel) {
+      device.batteryLevel = json.batteryLevel;
+    }
     if (json.batteryVoltage) {
       device.batteryVoltage = json.batteryVoltage;
     }

@@ -5,6 +5,7 @@ export interface DeviceInterface extends SerializableClassInterface {
   name?: string;
   index?: number;
   batteryStatus?: string;
+  batteryLevel?: number;
   batteryVoltage?: number;
   manufacturer?: string;
   serialNumber?: string;

@@ -3,6 +3,7 @@ export interface DeviceJsonInterface {
   name: string | null;
   index: number | null;
   batteryStatus: string | null;
+  batteryLevel: number | null;
   batteryVoltage: number | null;
   manufacturer: string | null;
   serialNumber: string | null;

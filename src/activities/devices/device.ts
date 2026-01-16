@@ -7,6 +7,7 @@ export class Device implements DeviceInterface {
   name?: string;
   index?: number;
   batteryStatus?: string;
+  batteryLevel?: number;
   batteryVoltage?: number;
   manufacturer?: string;
   serialNumber?: string;
@@ -28,6 +29,7 @@ export class Device implements DeviceInterface {
       type: this.type,
       index: isNumber(this.index) ? this.index || null : null,
       batteryStatus: this.batteryStatus || null,
+      batteryLevel: this.batteryLevel || null,
       name: this.name || null,
       batteryVoltage: this.batteryVoltage || null,
       manufacturer: this.manufacturer || null,

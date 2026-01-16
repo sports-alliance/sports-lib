@@ -65,7 +65,7 @@ export class EventImporterGPX {
         // @todo for routes add a separate parser
         const endDate = isActivity
           ? new Date(samples[samples.length - 1].time[0])
-          : new Date(startDate.getTime() + samples.length * 1000);
+          : new Date(startDate.getTime() + (samples.length > 0 ? samples.length - 1 : 0) * 1000);
 
         let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
         if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {

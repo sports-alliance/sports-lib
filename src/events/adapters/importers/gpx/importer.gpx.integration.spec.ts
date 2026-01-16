@@ -29,19 +29,6 @@ describe('EventImporterGPX Integration', () => {
       try {
         // Pass DOMParser constructor as 2nd argument
         const event = await EventImporterGPX.getFromString(fileString, DOMParser, undefined, file);
-        console.log(`DEBUG: ${file} activities: ${event.getActivities().length}`);
-        if (file === 'route.gpx') {
-          console.log(`DEBUG: route.gpx first activity name: ${event.getFirstActivity().name}`);
-          console.log(`DEBUG: route.gpx first activity type: ${event.getFirstActivity().type}`);
-          console.log(`DEBUG: route.gpx first activity streams: ${event.getFirstActivity().getAllStreams().length}`);
-          event.getFirstActivity().getAllStreams().forEach(stream => {
-            console.log(`DEBUG: stream ${stream.type} has ${stream.getData().length} points`);
-          });
-          const totalDistance = event.getFirstActivity().getStat('Distance');
-          console.log(`DEBUG: route.gpx total distance: ${totalDistance?.getValue()} ${totalDistance?.getUnit()}`);
-          const movingTime = event.getFirstActivity().getStat('Duration');
-          console.log(`DEBUG: route.gpx moving time: ${movingTime?.getValue()} ${movingTime?.getUnit()}`);
-        }
         expect(event).toBeDefined();
         expect(event.getActivities().length).toBeGreaterThan(0);
         console.log(`✅ Successfully parsed ${file}`);

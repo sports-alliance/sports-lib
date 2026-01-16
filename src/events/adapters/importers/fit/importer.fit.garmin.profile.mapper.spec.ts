@@ -28,5 +28,12 @@ describe('GarminProfileMapper', () => {
             // Checking ID 6 which is 'indoor_cycling' (was 'indoorCycling' in raw SDK)
             expect(GarminProfileMapper.getSubSportName(6)).toBe('indoor_cycling');
         });
+
+        it('should correctly map Enduro and Downhill MTB (IDs 153/154)', () => {
+            // ID 153 = mountain_enduro
+            expect(GarminProfileMapper.getSubSportName(153)).toBe('mountain_enduro');
+            // ID 154 = mountain_downhill
+            expect(GarminProfileMapper.getSubSportName(154)).toBe('mountain_downhill');
+        });
     });
 });

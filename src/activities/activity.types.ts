@@ -254,7 +254,14 @@ export enum ActivityTypes {
   'cycling_cyclocross' = 'Mountain Biking',
   'mountain' = 'Mountain Biking', // @todo this feels hacky but exists and indeed it's MTB
   'Mountain biking' = 'Mountain Biking',
+
+  // Enduro
+  'cycling_mountain_enduro' = 'Enduro MTB',
+  'Enduro MTB' = 'Enduro MTB',
+
+  // Downhill
   'cycling_downhill' = 'Downhill Cycling',
+  'cycling_mountain_downhill' = 'Downhill Cycling',
   'DownhillCycling' = 'Downhill Cycling',
   'Downhill Cycling' = 'Downhill Cycling',
   /**

@@ -36,7 +36,7 @@ export class SportsLib {
    * @param arrayBuffer
    * @param options
    */
-  public static importFromFit(arrayBuffer: ArrayBuffer, options?: ActivityParsingOptions): Promise<EventInterface> {
+  public static importFromFit(arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>, options?: ActivityParsingOptions): Promise<EventInterface> {
     return EventImporterFIT.getFromArrayBuffer(arrayBuffer, options);
   }
 

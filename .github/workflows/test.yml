@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [ "master", "develop" ]
+    branches: [ "master" ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [ "master", "develop" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

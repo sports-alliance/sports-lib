@@ -1065,9 +1065,9 @@ export class ActivityUtilities {
             return prevPosition;
           }
           if (prevPosition && position) {
-            distance += this.round(this.geoLibAdapter.getDistance([prevPosition, position]), 2);
+            distance += this.geoLibAdapter.getDistance([prevPosition, position]);
           }
-          streamData[index] = distance;
+          streamData[index] = this.round(distance, 2);
           return position;
         });
 

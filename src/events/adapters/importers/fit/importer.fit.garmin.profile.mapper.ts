@@ -1,6 +1,7 @@
 import { GarminManufacturers, GarminProducts, GarminSports, GarminSubSports } from './importer.fit.garmin.profile.data';
 
 export class GarminProfileMapper {
+
   /**
    * Translates a Garmin Product ID to a readable device name
    */

@@ -3,14 +3,14 @@ import { DataJSONInterface } from './data.json.interface';
 import { DataPositionInterface } from './data.position.interface';
 import { isNumber } from '../events/utilities/helpers';
 
-export abstract class Data implements DataInterface {
+export abstract class Data<T extends number | string | boolean | string[] | DataPositionInterface = number | string | boolean | string[] | DataPositionInterface> implements DataInterface {
   static type: string;
   static unit: string;
   static displayType?: string;
   static unitSystem = UnitSystem.Metric;
-  protected value: number | string | boolean | string[] | DataPositionInterface;
+  protected value: T;
 
-  protected constructor(value: string | number | boolean | string[] | DataPositionInterface) {
+  protected constructor(value: T) {
     if (!this.getType()) {
       throw new Error('Type not set');
     }
@@ -20,15 +20,15 @@ export abstract class Data implements DataInterface {
     this.value = value;
   }
 
-  setValue(value: string | number | boolean | string[] | DataPositionInterface): this {
+  setValue(value: number | string | boolean | string[] | DataPositionInterface): this {
     if (!this.isValueTypeValid(value)) {
       throw new Error('Value is not boolean or number or string or Date or position');
     }
-    this.value = value;
+    this.value = value as T;
     return this;
   }
 
-  getValue(formatForDataType?: string): string | number | boolean | string[] | DataPositionInterface {
+  getValue(formatForDataType?: string): T {
     return this.value;
   }
 

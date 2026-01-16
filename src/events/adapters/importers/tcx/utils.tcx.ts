@@ -16,7 +16,10 @@ export const findChildNodeValue = (
     childNode.nodeName === childNodeName || childNode.nodeName.match(childNodeName) !== null;
   let value = Array.from(fromNodeList).find(predicate)?.firstChild?.nodeValue;
   value = value !== undefined ? value : null;
-  return value === null ? value : Number(value);
+  if (value === null) {
+    return null;
+  }
+  return Number(value);
 };
 
 // Fetch activity track point extensions according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema

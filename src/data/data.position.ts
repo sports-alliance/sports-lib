@@ -2,16 +2,14 @@ import { DataBare } from './data.bare';
 import { DataPositionInterface } from './data.position.interface';
 import { isNumber } from '../events/utilities/helpers';
 
-export class DataPosition extends DataBare {
+export class DataPosition extends DataBare<DataPositionInterface> {
   static type = 'Position';
-  protected value: DataPositionInterface;
-
   constructor(value: DataPositionInterface) {
     super(value);
     this.value = value;
   }
 
-  getValue(): DataPositionInterface {
+  getValue(formatForDataType?: string): DataPositionInterface {
     return this.value;
   }
 

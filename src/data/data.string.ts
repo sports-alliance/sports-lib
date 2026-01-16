@@ -1,14 +1,12 @@
 import { DataBare } from './data.bare';
 
-export abstract class DataString extends DataBare {
-  protected value: string;
-
+export abstract class DataString extends DataBare<string> {
   constructor(value: string) {
     super(value);
     this.value = value;
   }
 
-  getValue(): string {
+  getValue(formatForDataType?: string): string {
     return this.value;
   }
 

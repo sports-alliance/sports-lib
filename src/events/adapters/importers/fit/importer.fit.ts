@@ -467,9 +467,9 @@ export class EventImporterFIT {
     return deviceInfos.map((deviceInfo: any) => {
       const device = new Device(deviceInfo.device_type);
       device.index = deviceInfo.device_index;
-      device.name = ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] || deviceInfo.ant_device_number;
+      device.name = deviceInfo.product_name || ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] || deviceInfo.ant_device_number;
       device.batteryStatus = deviceInfo.battery_status;
-      device.batteryLevel = deviceInfo.battery_level;
+      device.batteryLevel = isNumber(deviceInfo.battery_level) ? deviceInfo.battery_level : deviceInfo.battery_soc;
       device.batteryVoltage = deviceInfo.battery_voltage;
       device.manufacturer = deviceInfo.manufacturer;
       device.serialNumber = deviceInfo.serial_number;

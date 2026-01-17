@@ -214,7 +214,8 @@ import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 
-const KalmanFilter = require('kalmanjs');
+// @ts-ignore
+import KalmanFilter from 'kalmanjs';
 
 /* Configure filtering values */
 // Altitude stream

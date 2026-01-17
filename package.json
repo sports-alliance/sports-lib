@@ -32,7 +32,7 @@
     }
   },
   "scripts": {
-    "build": "npm run clean && tsc --emitDeclarationOnly --outDir lib/esm --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && esbuild src/index.ts --bundle --format=esm --outfile=lib/esm/index.js --platform=node --external:fast-xml-parser --external:fit-file-parser --external:geolib --external:gpx-builder --external:kalmanjs --external:lowpassf --external:moving-median --external:xmldom --external:tslib --external:@garmin/fitsdk && echo '{\"type\": \"commonjs\"}' > lib/cjs/package.json && echo '{\"type\": \"module\"}' > lib/esm/package.json",
+    "build": "npm run clean && tsc --emitDeclarationOnly --outDir lib/esm --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && esbuild src/index.ts --bundle --format=esm --outfile=lib/esm/index.js --platform=node --packages=external && echo '{\"type\": \"commonjs\"}' > lib/cjs/package.json && echo '{\"type\": \"module\"}' > lib/esm/package.json",
     "watch": "npm run build -- --watch",
     "clean": "rimraf ./lib/",
     "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",

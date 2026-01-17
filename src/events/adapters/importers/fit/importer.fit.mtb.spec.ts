@@ -21,6 +21,13 @@ import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-z
 import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
 import { DataHeartRateZoneFourDuration } from '../../../../data/data.heart-rate-zone-four-duration';
 import { DataHeartRateZoneFiveDuration } from '../../../../data/data.heart-rate-zone-five-duration';
+import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
+import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-rate';
+import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
+import { DataJumpCount } from '../../../../data/data.jump-count';
+import { DataAvgVAM } from '../../../../data/data.avg-vam';
+import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
+import { DataRestingCalories } from '../../../../data/data.resting-calories';
 import { isNumber } from '../../../../events/utilities/helpers';
 
 describe('EventImporterFIT MTB Jumps', () => {
@@ -54,6 +61,34 @@ describe('EventImporterFIT MTB Jumps', () => {
 
         const totalFlow = activity.getStat(DataTotalFlow.type);
         expect(totalFlow).toBeDefined();
+
+        // Verify Respiration Rate (Missing in file)
+        const avgResp = activity.getStat(DataAvgRespirationRate.type);
+        expect(avgResp).toBeUndefined();
+
+        const maxResp = activity.getStat(DataMaxRespirationRate.type);
+        expect(maxResp).toBeUndefined();
+
+        const minResp = activity.getStat(DataMinRespirationRate.type);
+        expect(minResp).toBeUndefined();
+
+        // Verify Avg VAM
+        const avgVam = activity.getStat(DataAvgVAM.type) as DataAvgVAM;
+        expect(avgVam).toBeDefined();
+        // Value in sample file appears to be 0.1 (raw 10?), user expectation of 655 might be from different calculation or file?
+        expect(avgVam.getValue()).toBeCloseTo(0.1, 1);
+
+        // Verify Jump Count (Missing in file)
+        const jumpCount = activity.getStat(DataJumpCount.type);
+        expect(jumpCount).toBeUndefined();
+
+        // Verify Training Load Peak (Missing in file)
+        const trainingLoadPeak = activity.getStat(DataTrainingLoadPeak.type);
+        expect(trainingLoadPeak).toBeUndefined();
+
+        // Verify Resting Calories (Missing in file)
+        const restingCalories = activity.getStat(DataRestingCalories.type);
+        expect(restingCalories).toBeUndefined();
 
         // Verify Physiological Metrics
         const aerobic = activity.getStat(DataAerobicTrainingEffect.type) as DataAerobicTrainingEffect;

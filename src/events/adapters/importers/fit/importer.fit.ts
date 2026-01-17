@@ -98,6 +98,13 @@ import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-tra
 import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
 import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
 import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
+import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
+import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-rate';
+import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
+import { DataJumpCount } from '../../../../data/data.jump-count';
+import { DataAvgVAM } from '../../../../data/data.avg-vam';
+import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
+import { DataRestingCalories } from '../../../../data/data.resting-calories';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.device.names';
 import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names';
@@ -812,8 +819,8 @@ export class EventImporterFIT {
   }
 
   // @todo move this to a mapper
-  private static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
-    const stats = [];
+  public static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
+    const stats: DataInterface[] = [];
 
     // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
     // Just invert fields if that's the case
@@ -1118,6 +1125,43 @@ export class EventImporterFIT {
     if (Number.isFinite(object.avg_step_length)) {
       const avgStrideLengthMeters = object.avg_step_length / 1000;
       stats.push(new DataAvgStrideLength(Math.round(avgStrideLengthMeters * 100) / 100));
+    }
+
+    // Respiration Rate
+    if (isNumberOrString(object.avg_respiration_rate) || isNumberOrString(object.enhanced_avg_respiration_rate)) {
+      stats.push(
+        new DataAvgRespirationRate(object.enhanced_avg_respiration_rate || object.avg_respiration_rate)
+      );
+    }
+    if (isNumberOrString(object.max_respiration_rate) || isNumberOrString(object.enhanced_max_respiration_rate)) {
+      stats.push(
+        new DataMaxRespirationRate(object.enhanced_max_respiration_rate || object.max_respiration_rate)
+      );
+    }
+    if (isNumberOrString(object.min_respiration_rate) || isNumberOrString(object.enhanced_min_respiration_rate)) {
+      stats.push(
+        new DataMinRespirationRate(object.enhanced_min_respiration_rate || object.min_respiration_rate)
+      );
+    }
+
+    // Jump Count
+    if (isNumberOrString(object.jump_count)) {
+      stats.push(new DataJumpCount(object.jump_count));
+    }
+
+    // Avg VAM
+    if (isNumberOrString(object.avg_vam)) {
+      stats.push(new DataAvgVAM(object.avg_vam));
+    }
+
+    // Training Load Peak
+    if (isNumberOrString(object.training_load_peak)) {
+      stats.push(new DataTrainingLoadPeak(object.training_load_peak));
+    }
+
+    // Resting Calories
+    if (isNumberOrString(object.resting_calories)) {
+      stats.push(new DataRestingCalories(object.resting_calories));
     }
 
     return stats;

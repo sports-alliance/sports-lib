@@ -287,6 +287,10 @@ import { DataAvgStrideLength } from './data.avg-stride-length';
 import { DataCyclingSeatedTime } from './data.cycling-seated-time';
 import { DataCyclingStandingTime } from './data.cycling-standing-time';
 import { DataGradeSmooth } from './data.grade-smooth';
+import { DataWeight } from './data.weight';
+import { DataHeight } from './data.height';
+import { DataAge } from './data.age';
+import { DataGender } from './data.gender';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -560,7 +564,11 @@ export const DataStore: any = {
   DataTargetSpeedZone,
   DataTargetDistance,
   DataTargetTime,
-  DataTotalTrainingEffectLegacy
+  DataTotalTrainingEffectLegacy,
+  DataWeight,
+  DataHeight,
+  DataAge,
+  DataGender
 };
 
 export class DynamicDataLoader {
@@ -578,7 +586,11 @@ export class DynamicDataLoader {
     DataPace.type,
     DataGradeAdjustedSpeed.type,
     DataGradeAdjustedPace.type,
-    DataSpeed.type
+    DataSpeed.type,
+    DataWeight.type,
+    DataHeight.type,
+    DataAge.type,
+    DataGender.type
   ];
 
   static advancedDataTypes = [

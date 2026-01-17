@@ -108,6 +108,10 @@ import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
 import { DataTotalGrit } from '../../../../data/data.total-grit';
+import { DataWeight } from '../../../../data/data.weight';
+import { DataHeight } from '../../../../data/data.height';
+import { DataAge } from '../../../../data/data.age';
+import { DataGender } from '../../../../data/data.gender';
 import { DataTotalFlow } from '../../../../data/data.total-flow';
 import { DataAvgGrit } from '../../../../data/data.avg-grit';
 import { DataAvgFlow } from '../../../../data/data.avg-flow';
@@ -664,6 +668,100 @@ export class EventImporterFIT {
         const jumpWithMets = fitDataObject.jumps.find((j: any) => j.enhanced_mets);
         if (jumpWithMets) {
           activity.addStat(new DataVO2Max(jumpWithMets.enhanced_mets * 3.5));
+        }
+      }
+
+      // Check for User Profile
+      if (fitDataObject.user_profile) {
+        const userProfile = fitDataObject.user_profile;
+        if (isNumberOrString(userProfile.weight)) {
+          activity.addStat(new DataWeight(userProfile.weight));
+        }
+        if (isNumberOrString(userProfile.height)) {
+          activity.addStat(new DataHeight(userProfile.height));
+        }
+        if (isNumberOrString(userProfile.age)) {
+          activity.addStat(new DataAge(userProfile.age));
+        }
+        if (userProfile.gender) {
+          activity.addStat(new DataGender(userProfile.gender));
+        }
+      }
+
+      // Check for HR zone durations from time_in_zone messages
+      // This is an alternative source when sessionObject.time_in_hr_zone is not available
+      if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
+        // Find session-level time_in_zone message (reference_mesg = 18 for session, reference_index = 0 for first session)
+        const sessionTimeInZone = fitDataObject.time_in_zone.find(
+          (z: any) => z.reference_mesg === 18 && (z.reference_index === 0 || z.reference_index === undefined)
+        );
+        if (sessionTimeInZone && sessionTimeInZone.time_in_hr_zone && Array.isArray(sessionTimeInZone.time_in_hr_zone)) {
+          const hrZones = sessionTimeInZone.time_in_hr_zone;
+          const hrZoneBoundaries = sessionTimeInZone.hr_zone_high_boundary;
+
+          // Only add zone duration stats if not already set from sessionObject.time_in_hr_zone
+          if (!activity.getStat(DataHeartRateZoneOneDuration.type)) {
+            if (hrZones[0] !== undefined && hrZones[0] !== null) {
+              activity.addStat(new DataHeartRateZoneOneDuration(hrZones[0]));
+            }
+            if (hrZones[1] !== undefined && hrZones[1] !== null) {
+              activity.addStat(new DataHeartRateZoneTwoDuration(hrZones[1]));
+            }
+            if (hrZones[2] !== undefined && hrZones[2] !== null) {
+              activity.addStat(new DataHeartRateZoneThreeDuration(hrZones[2]));
+            }
+            if (hrZones[3] !== undefined && hrZones[3] !== null) {
+              activity.addStat(new DataHeartRateZoneFourDuration(hrZones[3]));
+            }
+            if (hrZones[4] !== undefined && hrZones[4] !== null) {
+              activity.addStat(new DataHeartRateZoneFiveDuration(hrZones[4]));
+            }
+          }
+
+          // Check if IntensityZones for HR is already set, if not create one with boundaries
+          const existingHrZones = activity.intensityZones.find(iz => iz.type === DataHeartRate.type);
+          if (!existingHrZones && Array.isArray(hrZoneBoundaries) && hrZoneBoundaries.length > 0) {
+            // Create IntensityZones with boundaries
+            const hrIntensityZones = new IntensityZones(DataHeartRate.type);
+            hrIntensityZones.zone1Duration = hrZones[0] || 0;
+            hrIntensityZones.zone2Duration = hrZones[1] || 0;
+            hrIntensityZones.zone3Duration = hrZones[2] || 0;
+            hrIntensityZones.zone4Duration = hrZones[3] || 0;
+            hrIntensityZones.zone5Duration = hrZones[4] || 0;
+
+            // hr_zone_high_boundary[n] is the upper limit of zone n+1
+            // Zone 2 lower limit = Zone 1 high boundary = hrZoneBoundaries[0]
+            // Zone 3 lower limit = Zone 2 high boundary = hrZoneBoundaries[1]
+            // etc.
+            if (isNumber(hrZoneBoundaries[0]) && hrZoneBoundaries[0] !== 255) {
+              hrIntensityZones.zone2LowerLimit = hrZoneBoundaries[0];
+            }
+            if (isNumber(hrZoneBoundaries[1]) && hrZoneBoundaries[1] !== 255) {
+              hrIntensityZones.zone3LowerLimit = hrZoneBoundaries[1];
+            }
+            if (isNumber(hrZoneBoundaries[2]) && hrZoneBoundaries[2] !== 255) {
+              hrIntensityZones.zone4LowerLimit = hrZoneBoundaries[2];
+            }
+            if (isNumber(hrZoneBoundaries[3]) && hrZoneBoundaries[3] !== 255) {
+              hrIntensityZones.zone5LowerLimit = hrZoneBoundaries[3];
+            }
+
+            activity.intensityZones.push(hrIntensityZones);
+          } else if (existingHrZones && Array.isArray(hrZoneBoundaries) && hrZoneBoundaries.length > 0) {
+            // Update existing IntensityZones with boundary data if not set
+            if (!existingHrZones.zone2LowerLimit && isNumber(hrZoneBoundaries[0]) && hrZoneBoundaries[0] !== 255) {
+              existingHrZones.zone2LowerLimit = hrZoneBoundaries[0];
+            }
+            if (!existingHrZones.zone3LowerLimit && isNumber(hrZoneBoundaries[1]) && hrZoneBoundaries[1] !== 255) {
+              existingHrZones.zone3LowerLimit = hrZoneBoundaries[1];
+            }
+            if (!existingHrZones.zone4LowerLimit && isNumber(hrZoneBoundaries[2]) && hrZoneBoundaries[2] !== 255) {
+              existingHrZones.zone4LowerLimit = hrZoneBoundaries[2];
+            }
+            if (!existingHrZones.zone5LowerLimit && isNumber(hrZoneBoundaries[3]) && hrZoneBoundaries[3] !== 255) {
+              existingHrZones.zone5LowerLimit = hrZoneBoundaries[3];
+            }
+          }
         }
       }
       return activity;

@@ -12,6 +12,15 @@ import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-trainin
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
+import { DataWeight } from '../../../../data/data.weight';
+import { DataHeight } from '../../../../data/data.height';
+import { DataAge } from '../../../../data/data.age';
+import { DataGender } from '../../../../data/data.gender';
+import { DataHeartRateZoneOneDuration } from '../../../../data/data.heart-rate-zone-one-duration';
+import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-zone-two-duration';
+import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
+import { DataHeartRateZoneFourDuration } from '../../../../data/data.heart-rate-zone-four-duration';
+import { DataHeartRateZoneFiveDuration } from '../../../../data/data.heart-rate-zone-five-duration';
 import { isNumber } from '../../../../events/utilities/helpers';
 
 describe('EventImporterFIT MTB Jumps', () => {
@@ -63,6 +72,58 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(vo2Max.getValue()).toBeCloseTo(57.0633, 4);
 
         expect(activity.getStat(DataRecoveryTime.type)).toBeUndefined();
+
+        // User Profile
+        const weight = activity.getStat(DataWeight.type) as DataWeight;
+        expect(weight).toBeDefined();
+        expect(weight.getValue()).toBe(64.7);
+
+        const height = activity.getStat(DataHeight.type) as DataHeight;
+        expect(height).toBeDefined();
+        expect(height.getValue()).toBe(1.78);
+
+        const age = activity.getStat(DataAge.type) as DataAge;
+        expect(age).toBeDefined();
+        expect(age.getValue()).toBe(42);
+
+        const gender = activity.getStat(DataGender.type) as DataGender;
+        expect(gender).toBeDefined();
+        expect(gender.getValue()).toBe('male');
+
+        // HR Zone Durations from time_in_zone (session-level message 216)
+        const zone1 = activity.getStat(DataHeartRateZoneOneDuration.type) as DataHeartRateZoneOneDuration;
+        expect(zone1).toBeDefined();
+        expect(zone1.getValue()).toBeCloseTo(346.004, 0); // ~346 seconds in zone 1
+
+        const zone2 = activity.getStat(DataHeartRateZoneTwoDuration.type) as DataHeartRateZoneTwoDuration;
+        expect(zone2).toBeDefined();
+        expect(zone2.getValue()).toBeCloseTo(1831.986, 0); // ~1832 seconds in zone 2
+
+        const zone3 = activity.getStat(DataHeartRateZoneThreeDuration.type) as DataHeartRateZoneThreeDuration;
+        expect(zone3).toBeDefined();
+        expect(zone3.getValue()).toBeCloseTo(2412.306, 0); // ~2412 seconds in zone 3
+
+        const zone4 = activity.getStat(DataHeartRateZoneFourDuration.type) as DataHeartRateZoneFourDuration;
+        expect(zone4).toBeDefined();
+        expect(zone4.getValue()).toBeCloseTo(2160.994, 0); // ~2161 seconds in zone 4
+
+        const zone5 = activity.getStat(DataHeartRateZoneFiveDuration.type) as DataHeartRateZoneFiveDuration;
+        expect(zone5).toBeDefined();
+        expect(zone5.getValue()).toBeCloseTo(450.999, 0); // ~451 seconds in zone 5
+
+        // Check IntensityZones with boundaries
+        const hrIntensityZones = activity.intensityZones.find(iz => iz.type === 'Heart Rate');
+        expect(hrIntensityZones).toBeDefined();
+        if (hrIntensityZones) {
+            expect(hrIntensityZones.zone1Duration).toBeCloseTo(346.004, 0);
+            expect(hrIntensityZones.zone2Duration).toBeCloseTo(1831.986, 0);
+            // Zone boundaries: hr_zone_high_boundary = [93, 111, 130, 148, 167, 185] (from image)
+            // zone2LowerLimit = 93, zone3LowerLimit = 111, zone4LowerLimit = 130, zone5LowerLimit = 148
+            expect(hrIntensityZones.zone2LowerLimit).toBe(93);
+            expect(hrIntensityZones.zone3LowerLimit).toBe(111);
+            expect(hrIntensityZones.zone4LowerLimit).toBe(130);
+            expect(hrIntensityZones.zone5LowerLimit).toBe(148);
+        }
 
         // Check Jumps
         const jumpEvents = activity.getAllEvents().filter((e: any) => e.getType() === DataJumpEvent.type);

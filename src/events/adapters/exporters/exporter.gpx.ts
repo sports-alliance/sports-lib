@@ -11,7 +11,10 @@ import { DataSpeed } from '../../../data/data.speed';
 import { DataLongitudeDegrees } from '../../../data/data.longitude-degrees';
 import { DataTime } from '../../../data/data.time';
 
-const { buildGPX, GarminBuilder } = require('gpx-builder');
+// @ts-ignore
+import { buildGPX as _buildGPX, GarminBuilder as _GarminBuilder } from 'gpx-builder';
+const buildGPX = _buildGPX as any;
+const GarminBuilder = _GarminBuilder as any;
 const { Point, Metadata, Person, Copyright, Link, Track, Segment } = GarminBuilder.MODELS;
 
 export class EventExporterGPX implements EventExporter {
@@ -65,6 +68,7 @@ export class EventExporterGPX implements EventExporter {
         // @todo it should make an activity copy
         activity.removeStream(timeStream);
       });
+
 
       const builder = new GarminBuilder();
       builder.setTracks(tracks);

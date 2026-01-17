@@ -1,8 +1,6 @@
 import { DataBare } from './data.bare';
 
-export abstract class DataNumber extends DataBare {
-  protected value: number;
-
+export abstract class DataNumber extends DataBare<number> {
   constructor(value: number) {
     super(value);
     this.value = value;

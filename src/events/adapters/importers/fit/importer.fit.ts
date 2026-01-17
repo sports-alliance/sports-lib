@@ -107,6 +107,11 @@ import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
+import { DataTotalGrit } from '../../../../data/data.total-grit';
+import { DataTotalFlow } from '../../../../data/data.total-flow';
+import { DataAvgGrit } from '../../../../data/data.avg-grit';
+import { DataAvgFlow } from '../../../../data/data.avg-flow';
+import { DataJumpEvent } from '../../../../data/data.jump-event';
 import { Buffer } from 'buffer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // @ts-ignore
@@ -297,6 +302,26 @@ export class EventImporterFIT {
                 }
               }
             });
+
+          // Add jumps
+          if (fitDataObject.jumps && fitDataObject.jumps.length) {
+            fitDataObject.jumps
+              .filter((jump: any) => {
+                const timestamp = new Date(jump.timestamp);
+                // Relaxed check for jumps as they might be recorded slightly outside session stats or have timezone offsets
+                const margin = 24 * 60 * 60 * 1000; // 24 hours
+                return timestamp.getTime() >= activity.startDate.getTime() - margin && timestamp.getTime() <= activity.endDate.getTime() + margin;
+              })
+              .forEach((jump: any) => {
+                activity.addEvent(
+                  new DataJumpEvent(activity.getDateIndex(jump.timestamp), {
+                    distance: jump.distance,
+                    height: jump.height,
+                    score: jump.score
+                  })
+                );
+              });
+          }
 
           // Get the samples..
           // Test if activity is lengths based
@@ -633,6 +658,14 @@ export class EventImporterFIT {
       );
       // Set the activity stats
       this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
+
+      // Check for VO2 Max in jumps
+      if (fitDataObject.jumps && fitDataObject.jumps.length) {
+        const jumpWithMets = fitDataObject.jumps.find((j: any) => j.enhanced_mets);
+        if (jumpWithMets) {
+          activity.addStat(new DataVO2Max(jumpWithMets.enhanced_mets * 3.5));
+        }
+      }
       return activity;
     }
   }
@@ -785,6 +818,9 @@ export class EventImporterFIT {
       stats.push(new DataHeartRateMax(object.max_heart_rate));
     }
     // Cadence
+    if (object.vo2_max_cycling && object.vo2_max_cycling > 10) {
+      stats.push(new DataVO2Max(object.vo2_max_cycling));
+    }
     if (isNumberOrString(object.avg_cadence)) {
       stats.push(new DataCadenceAvg(object.avg_cadence));
     }
@@ -797,6 +833,19 @@ export class EventImporterFIT {
     // Power
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));
+    }
+    // Grit & Flow
+    if (isNumberOrString(object.total_grit)) {
+      stats.push(new DataTotalGrit(object.total_grit));
+    }
+    if (isNumberOrString(object.total_flow)) {
+      stats.push(new DataTotalFlow(object.total_flow));
+    }
+    if (isNumberOrString(object.avg_grit)) {
+      stats.push(new DataAvgGrit(object.avg_grit));
+    }
+    if (isNumberOrString(object.avg_flow)) {
+      stats.push(new DataAvgFlow(object.avg_flow));
     }
     if (isNumberOrString(object.min_power)) {
       stats.push(new DataPowerMin(object.min_power));

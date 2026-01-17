@@ -1,0 +1,6 @@
+import { DataNumber } from './data.number';
+
+export class DataTotalFlow extends DataNumber {
+    static type = 'Total Flow';
+    static unit = '';
+}

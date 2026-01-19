@@ -1,33 +1,40 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventImporterFIT } from './importer.fit';
-import { DataTotalGrit } from '../../../../data/data.total-grit';
-import { DataTotalFlow } from '../../../../data/data.total-flow';
-import { DataJumpEvent } from '../../../../data/data.jump-event';
-import { DataGrit } from '../../../../data/data.grit';
-import { DataFlow } from '../../../../data/data.flow';
-import { DataAvgGrit } from '../../../../data/data.avg-grit';
-import { DataAvgFlow } from '../../../../data/data.avg-flow';
+
 import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
-import { DataWeight } from '../../../../data/data.weight';
-import { DataHeight } from '../../../../data/data.height';
 import { DataAge } from '../../../../data/data.age';
-import { DataGender } from '../../../../data/data.gender';
-import { DataHeartRateZoneOneDuration } from '../../../../data/data.heart-rate-zone-one-duration';
-import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-zone-two-duration';
-import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
-import { DataHeartRateZoneFourDuration } from '../../../../data/data.heart-rate-zone-four-duration';
-import { DataHeartRateZoneFiveDuration } from '../../../../data/data.heart-rate-zone-five-duration';
 import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
+import { DataGender } from '../../../../data/data.gender';
+import { DataHeartRateZoneFiveDuration } from '../../../../data/data.heart-rate-zone-five-duration';
+import { DataHeartRateZoneFourDuration } from '../../../../data/data.heart-rate-zone-four-duration';
+import { DataHeartRateZoneOneDuration } from '../../../../data/data.heart-rate-zone-one-duration';
+import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
+import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-zone-two-duration';
+import { DataHeight } from '../../../../data/data.height';
+import { DataJumpCount } from '../../../../data/data.jump-count';
 import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-rate';
 import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
-import { DataJumpCount } from '../../../../data/data.jump-count';
-import { DataAvgVAM } from '../../../../data/data.avg-vam';
+import { DataWeight } from '../../../../data/data.weight';
 import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
 import { DataRestingCalories } from '../../../../data/data.resting-calories';
+import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
+import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
+import { DataSportProfileName } from '../../../../data/data.sport-profile-name';
+import { DataTotalGrit } from '../../../../data/data.total-grit';
+import { DataTotalFlow } from '../../../../data/data.total-flow';
+import { DataAvgGrit } from '../../../../data/data.avg-grit';
+import { DataAvgFlow } from '../../../../data/data.avg-flow';
+import { DataJumpEvent } from '../../../../data/data.jump-event';
+import { DataAvgVAM } from '../../../../data/data.avg-vam';
+import { DataTemperatureMax } from '../../../../data/data.temperature-max';
+import { DataTemperatureMin } from '../../../../data/data.temperature-min';
+import { DataStartPosition } from '../../../../data/data.start-position';
+import { DataEndPosition } from '../../../../data/data.end-position';
+import { DataEnergy } from '../../../../data/data.energy';
 import { isNumber } from '../../../../events/utilities/helpers';
 
 describe('EventImporterFIT MTB Jumps', () => {
@@ -56,39 +63,61 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(activity).toBeDefined();
 
         // Check Stats
-        const totalGrit = activity.getStat(DataTotalGrit.type);
+        const totalGrit = activity.getStat(DataTotalGrit.type) as DataTotalGrit;
         expect(totalGrit).toBeDefined();
+        expect(totalGrit.getValue()).toBeCloseTo(38.4, 1);
 
-        const totalFlow = activity.getStat(DataTotalFlow.type);
-        expect(totalFlow).toBeDefined();
+        const avgFlow = activity.getStat(DataAvgFlow.type) as DataAvgFlow;
+        expect(avgFlow).toBeDefined();
+        expect(avgFlow.getValue()).toBeCloseTo(6.13, 2);
 
-        // Verify Respiration Rate (Missing in file)
-        const avgResp = activity.getStat(DataAvgRespirationRate.type);
-        expect(avgResp).toBeUndefined();
+        // Verify Respiration Rate
+        const avgResp = activity.getStat(DataAvgRespirationRate.type) as DataAvgRespirationRate;
+        expect(avgResp).toBeDefined();
+        expect(avgResp.getValue()).toBeCloseTo(27.56, 1);
 
-        const maxResp = activity.getStat(DataMaxRespirationRate.type);
-        expect(maxResp).toBeUndefined();
+        const maxResp = activity.getStat(DataMaxRespirationRate.type) as DataMaxRespirationRate;
+        expect(maxResp).toBeDefined();
+        expect(maxResp.getValue()).toBeCloseTo(41.43, 2);
 
-        const minResp = activity.getStat(DataMinRespirationRate.type);
-        expect(minResp).toBeUndefined();
+        const minResp = activity.getStat(DataMinRespirationRate.type) as DataMinRespirationRate;
+        expect(minResp).toBeDefined();
+        expect(minResp.getValue()).toBeCloseTo(15.77, 2);
 
         // Verify Avg VAM
         const avgVam = activity.getStat(DataAvgVAM.type) as DataAvgVAM;
         expect(avgVam).toBeDefined();
-        // Value in sample file appears to be 0.1 (raw 10?), user expectation of 655 might be from different calculation or file?
-        expect(avgVam.getValue()).toBeCloseTo(0.1, 1);
+        expect(avgVam.getValue()).toBeCloseTo(100, 1);
 
-        // Verify Jump Count (Missing in file)
-        const jumpCount = activity.getStat(DataJumpCount.type);
-        expect(jumpCount).toBeUndefined();
+        // Verify Jump Count
+        const jumpCount = activity.getStat(DataJumpCount.type) as DataJumpCount;
+        expect(jumpCount).toBeDefined();
+        expect(jumpCount.getValue()).toBe(11);
 
-        // Verify Training Load Peak (Missing in file)
-        const trainingLoadPeak = activity.getStat(DataTrainingLoadPeak.type);
-        expect(trainingLoadPeak).toBeUndefined();
+        // Verify Training Load Peak
+        const trainingLoadPeak = activity.getStat(DataTrainingLoadPeak.type) as DataTrainingLoadPeak;
+        expect(trainingLoadPeak).toBeDefined();
+        expect(trainingLoadPeak.getValue()).toBe(6079174);
 
-        // Verify Resting Calories (Missing in file)
-        const restingCalories = activity.getStat(DataRestingCalories.type);
-        expect(restingCalories).toBeUndefined();
+        // Verify Resting Calories
+        const restingCalories = activity.getStat(DataRestingCalories.type) as DataRestingCalories;
+        expect(restingCalories).toBeDefined();
+        expect(restingCalories.getValue()).toBe(159);
+
+        // Verify Est Sweat Loss
+        const sweatLoss = activity.getStat(DataEstSweatLoss.type) as DataEstSweatLoss;
+        expect(sweatLoss).toBeDefined();
+        expect(sweatLoss.getValue()).toBe(790);
+
+        // Verify Primary Benefit
+        const primaryBenefit = activity.getStat(DataPrimaryBenefit.type) as DataPrimaryBenefit;
+        expect(primaryBenefit).toBeDefined();
+        expect(primaryBenefit.getValue()).toBe(2);
+
+        // Verify Sport Profile Name
+        const sportProfileName = activity.getStat(DataSportProfileName.type) as DataSportProfileName;
+        expect(sportProfileName).toBeDefined();
+        expect(sportProfileName.getValue()).toBe('MOUNTAIN');
 
         // Verify Physiological Metrics
         const aerobic = activity.getStat(DataAerobicTrainingEffect.type) as DataAerobicTrainingEffect;
@@ -99,31 +128,34 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(anaerobic).toBeDefined();
         expect(anaerobic.getValue()).toBe(2);
 
-        // VO2 Max & Recovery - Not in this file's Session msg
-        // VO2 Max & Recovery
+        // VO2 Max
         const vo2Max = activity.getStat(DataVO2Max.type) as DataVO2Max;
         expect(vo2Max).toBeDefined();
-        // 1068485 / 65536 * 3.5 = 57.06325...
         expect(vo2Max.getValue()).toBeCloseTo(57.0633, 4);
+
+        expect((activity.getStat(DataTemperatureMax.type) as DataTemperatureMax).getValue()).toBe(19);
+        expect((activity.getStat(DataTemperatureMin.type) as DataTemperatureMin).getValue()).toBe(7);
+
+        // Positions
+        const startPos = (activity.getStat(DataStartPosition.type) as DataStartPosition).getValue();
+        expect(startPos.latitudeDegrees).toBeCloseTo(39.664968, 5);
+        expect(startPos.longitudeDegrees).toBeCloseTo(20.849827, 5);
+
+        const endPos = (activity.getStat(DataEndPosition.type) as DataEndPosition).getValue();
+        expect(endPos.latitudeDegrees).toBeCloseTo(39.664946, 5);
+        expect(endPos.longitudeDegrees).toBeCloseTo(20.849807, 5);
 
         expect(activity.getStat(DataRecoveryTime.type)).toBeUndefined();
 
         // User Profile
         const weight = activity.getStat(DataWeight.type) as DataWeight;
         expect(weight).toBeDefined();
-        expect(weight.getValue()).toBe(64.7);
 
-        const height = activity.getStat(DataHeight.type) as DataHeight;
-        expect(height).toBeDefined();
-        expect(height.getValue()).toBe(1.78);
-
-        const age = activity.getStat(DataAge.type) as DataAge;
-        expect(age).toBeDefined();
-        expect(age.getValue()).toBe(42);
-
-        const gender = activity.getStat(DataGender.type) as DataGender;
-        expect(gender).toBeDefined();
-        expect(gender.getValue()).toBe('male');
+        // Resting Calories
+        expect((activity.getStat(DataRestingCalories.type) as DataRestingCalories).getValue()).toBe(159);
+        expect((activity.getStat(DataAerobicTrainingEffect.type) as DataAerobicTrainingEffect).getValue()).toBe(3);
+        expect((activity.getStat(DataAnaerobicTrainingEffect.type) as DataAnaerobicTrainingEffect).getValue()).toBe(2);
+        expect((activity.getStat(DataEnergy.type) as DataEnergy).getValue()).toBe(853);
 
         // HR Zone Durations from time_in_zone (session-level message 216)
         const zone1 = activity.getStat(DataHeartRateZoneOneDuration.type) as DataHeartRateZoneOneDuration;

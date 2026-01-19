@@ -102,9 +102,17 @@ import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-ra
 import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-rate';
 import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
 import { DataJumpCount } from '../../../../data/data.jump-count';
-import { DataAvgVAM } from '../../../../data/data.avg-vam';
-import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
+import { DataTotalGrit } from '../../../../data/data.total-grit';
+import { DataAvgFlow } from '../../../../data/data.avg-flow';
+import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
+import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
+import { DataSportProfileName } from '../../../../data/data.sport-profile-name';
 import { DataRestingCalories } from '../../../../data/data.resting-calories';
+import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
+import { DataAvgVAM } from '../../../../data/data.avg-vam';
+import { DataEndPosition } from '../../../../data/data.end-position';
+import { DataStartPosition } from '../../../../data/data.start-position';
+
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.device.names';
 import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names';
@@ -114,14 +122,14 @@ import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
 import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
-import { DataTotalGrit } from '../../../../data/data.total-grit';
+
 import { DataWeight } from '../../../../data/data.weight';
 import { DataHeight } from '../../../../data/data.height';
 import { DataAge } from '../../../../data/data.age';
 import { DataGender } from '../../../../data/data.gender';
-import { DataTotalFlow } from '../../../../data/data.total-flow';
 import { DataAvgGrit } from '../../../../data/data.avg-grit';
-import { DataAvgFlow } from '../../../../data/data.avg-flow';
+import { DataTotalFlow } from '../../../../data/data.total-flow';
+
 import { DataJumpEvent } from '../../../../data/data.jump-event';
 import { Buffer } from 'buffer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -940,11 +948,9 @@ export class EventImporterFIT {
       stats.push(new DataPowerAvg(object.avg_power));
     }
     // Grit & Flow
-    if (isNumberOrString(object.total_grit)) {
-      stats.push(new DataTotalGrit(object.total_grit));
-    }
+
     if (isNumberOrString(object.total_flow)) {
-      stats.push(new DataTotalFlow(object.total_flow));
+
     }
     if (isNumberOrString(object.avg_grit)) {
       stats.push(new DataAvgGrit(object.avg_grit));
@@ -1034,7 +1040,9 @@ export class EventImporterFIT {
     }
 
     // Total training anaerobic effect
-    if (isNumberOrString(object.total_anaerobic_effect)) {
+    if (isNumberOrString(object.total_anaerobic_training_effect)) {
+      stats.push(new DataAnaerobicTrainingEffect(object.total_anaerobic_training_effect));
+    } else if (isNumberOrString(object.total_anaerobic_effect)) {
       stats.push(new DataAnaerobicTrainingEffect(object.total_anaerobic_effect));
     }
 
@@ -1144,14 +1152,30 @@ export class EventImporterFIT {
       );
     }
 
+    // Total Grit
+    if (isNumberOrString(object.total_grit)) {
+      stats.push(new DataTotalGrit(object.total_grit));
+    }
+    // Avg Flow
+    if (isNumberOrString(object.avg_flow)) {
+      stats.push(new DataAvgFlow(object.avg_flow));
+    }
+    // Est Sweat Loss
+    if (isNumberOrString(object.est_sweat_loss)) {
+      stats.push(new DataEstSweatLoss(object.est_sweat_loss));
+    }
+    // Primary Benefit
+    if (isNumberOrString(object.primary_benefit)) {
+      stats.push(new DataPrimaryBenefit(object.primary_benefit));
+    }
+    // Sport Profile Name
+    if (object.sport_profile_name) {
+      stats.push(new DataSportProfileName(object.sport_profile_name));
+    }
+
     // Jump Count
     if (isNumberOrString(object.jump_count)) {
       stats.push(new DataJumpCount(object.jump_count));
-    }
-
-    // Avg VAM
-    if (isNumberOrString(object.avg_vam)) {
-      stats.push(new DataAvgVAM(object.avg_vam));
     }
 
     // Training Load Peak
@@ -1159,10 +1183,31 @@ export class EventImporterFIT {
       stats.push(new DataTrainingLoadPeak(object.training_load_peak));
     }
 
+    // Positions
+    if (isNumber(object.start_position_lat) && isNumber(object.start_position_long)) {
+      stats.push(new DataStartPosition({
+        latitudeDegrees: object.start_position_lat,
+        longitudeDegrees: object.start_position_long,
+      }));
+    }
+    if (isNumber(object.end_position_lat) && isNumber(object.end_position_long)) {
+      stats.push(new DataEndPosition({
+        latitudeDegrees: object.end_position_lat,
+        longitudeDegrees: object.end_position_long,
+      }));
+    }
+
     // Resting Calories
     if (isNumberOrString(object.resting_calories)) {
       stats.push(new DataRestingCalories(object.resting_calories));
     }
+
+    // Avg VAM
+    if (isNumberOrString(object.avg_vam)) {
+      stats.push(new DataAvgVAM(object.avg_vam));
+    }
+
+
 
     return stats;
   }

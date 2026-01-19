@@ -26,6 +26,10 @@ import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataAirPower } from '../../../../data/data.air-power';
 import { DataGrit } from '../../../../data/data.grit';
 import { DataFlow } from '../../../../data/data.flow';
+import { DataLeftTorqueEffectiveness } from '../../../../data/data.left-torque-effectiveness';
+import { DataRightTorqueEffectiveness } from '../../../../data/data.right-torque-effectiveness';
+import { DataLeftPedalSmoothness } from '../../../../data/data.left-pedal-smoothness';
+import { DataRightPedalSmoothness } from '../../../../data/data.right-pedal-smoothness';
 import {
   ALTITUDE_PRECISION_NUMBER_OF_DECIMAL_PLACES,
   GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES
@@ -253,6 +257,30 @@ export const FITSampleMapper: {
       dataType: DataFlow.type,
       getSampleValue: (sample: any) => {
         return sample.flow;
+      }
+    },
+    {
+      dataType: DataLeftTorqueEffectiveness.type,
+      getSampleValue: (sample: any) => {
+        return sample.left_torque_effectiveness;
+      }
+    },
+    {
+      dataType: DataRightTorqueEffectiveness.type,
+      getSampleValue: (sample: any) => {
+        return sample.right_torque_effectiveness;
+      }
+    },
+    {
+      dataType: DataLeftPedalSmoothness.type,
+      getSampleValue: (sample: any) => {
+        return sample.left_pedal_smoothness;
+      }
+    },
+    {
+      dataType: DataRightPedalSmoothness.type,
+      getSampleValue: (sample: any) => {
+        return sample.right_pedal_smoothness;
       }
     }
   ];

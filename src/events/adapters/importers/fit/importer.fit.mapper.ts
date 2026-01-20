@@ -18,8 +18,12 @@ import { DataStrydDistance } from '../../../../data/data.stryd-distance';
 import { DataStrydSpeed } from '../../../../data/data.stryd-speed';
 import { DataRightBalance } from '../../../../data/data.right-balance';
 import { DataLeftBalance } from '../../../../data/data.left-balance';
+import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
 import { DataStanceTime } from '../../../../data/data.stance-time';
 import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
+
 import { DataStepLength } from '../../../../data/data.step-length';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataGroundTime } from '../../../../data/data.ground-time';
@@ -224,17 +228,39 @@ export const FITSampleMapper: {
       }
     },
     {
+      dataType: DataGroundContactTime.type,
+      getSampleValue: (sample: any) => {
+        return sample.stance_time;
+      }
+    },
+    // Keep DataStanceTime for backward compatibility
+    {
       dataType: DataStanceTime.type,
       getSampleValue: (sample: any) => {
         return sample.stance_time;
       }
     },
+
+    {
+      dataType: DataGroundContactTimeBalanceLeft.type,
+      getSampleValue: (sample: any) => {
+        return sample.stance_time_balance; // The field sample refers to the balance on left leg
+      }
+    },
+    {
+      dataType: DataGroundContactTimeBalanceRight.type,
+      getSampleValue: (sample: any) => {
+        return isNumber(sample.stance_time_balance) ? 100 - sample.stance_time_balance : null;
+      }
+    },
+    // Keep DataStanceTimeBalanceLeft for backward compatibility
     {
       dataType: DataStanceTimeBalanceLeft.type,
       getSampleValue: (sample: any) => {
         return sample.stance_time_balance; // The field sample refers to the balance on left leg
       }
     },
+
     {
       dataType: DataStepLength.type,
       getSampleValue: (sample: any) => {

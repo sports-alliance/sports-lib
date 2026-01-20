@@ -101,6 +101,19 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
+import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
+import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
+import { DataGroundContactTimeMax } from '../../../../data/data.ground-contact-time-max';
+import { DataGroundContactTimeMin } from '../../../../data/data.ground-contact-time-min';
+import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
+import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
+import { DataVerticalOscillationMax } from '../../../../data/data.vertical-oscillation-max';
+import { DataVerticalOscillationMin } from '../../../../data/data.vertical-oscillation-min';
+import { DataFitnessAge } from '../../../../data/data.fitness-age';
+import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
+
+import { DataDepth } from '../../../../data/data.depth';
+import { DataDepthMax } from '../../../../data/data.depth-max';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
@@ -169,10 +182,14 @@ export class EventImporterSuuntoJSON {
       // Create the activities
       const activities: ActivityInterface[] = activityStartEventSamples.map(
         (activityStartEventSample: any, index: number): ActivityInterface => {
+          // If no stop event, use the last sample time as end date
+          const lastSampleTime = eventJSONObject.DeviceLog.Samples[eventJSONObject.DeviceLog.Samples.length - 1].TimeISO8601;
+          const fallbackEndTime = stopEventSample ? stopEventSample.TimeISO8601 : lastSampleTime;
+
           const activity = new Activity(
             new Date(activityStartEventSample.TimeISO8601),
             activityStartEventSamples.length - 1 === index
-              ? new Date(stopEventSample ? stopEventSample.TimeISO8601 : (eventJSONObject.DeviceLog.Header.TimeISO8601 || eventJSONObject.DeviceLog.Header.DateTime))
+              ? new Date(fallbackEndTime)
               : new Date(activityStartEventSamples[index + 1].TimeISO8601),
             ActivityTypes[
             <keyof typeof ActivityTypes>(
@@ -346,10 +363,7 @@ export class EventImporterSuuntoJSON {
       // @todo check if start and end date can derive from the json
       const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate, FileType.SUUNTO);
       activities.forEach(activity => event.addActivity(activity));
-      // Populate the event stats from the Header Object // @todo maybe remove
-      this.getStats(eventJSONObject.DeviceLog.Header).forEach(stat => {
-        event.addStat(stat);
-      });
+
 
       // Get the settings and add it to all activities as it's logical
       if (eventJSONObject.DeviceLog.Header.Settings) {
@@ -369,9 +383,14 @@ export class EventImporterSuuntoJSON {
         stats.forEach(stat => activities[0].addStat(stat));
       }
 
-      // @todo see how we can have those event stats persisted as the below generation wipes those off.
+
       // Generate stats
       EventUtilities.generateStatsForAll(event);
+
+      // Populate the event stats from the Header Object
+      this.getStats(eventJSONObject.DeviceLog.Header).forEach(stat => {
+        event.addStat(stat);
+      });
 
       resolve(event);
     });
@@ -453,8 +472,12 @@ export class EventImporterSuuntoJSON {
   }
 
   private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {
+    // console.log(`Setting streams for activity with ${samples.length} samples`);
     SuuntoSampleMapper.forEach(sampleMapping => {
       const subjectSamples = <any[]>samples.filter(sample => isNumberOrString(sample[sampleMapping.sampleField]));
+      // if (sampleMapping.sampleField === 'GroundContactTime') {
+      //    console.log(`GCT Samples found: ${subjectSamples.length}`);
+      // }
       if (subjectSamples.length) {
         activity.addStream(activity.createStream(sampleMapping.dataType));
         subjectSamples.forEach(subjectSample => {
@@ -648,6 +671,59 @@ export class EventImporterSuuntoJSON {
         }
       }
     }
+
+    // Ground Contact Time (Running Dynamics)
+    if (object.hasOwnProperty('GroundContactTime')) {
+      if (Array.isArray(object.GroundContactTime)) {
+        if (isNumber(object.GroundContactTime[0].Avg)) {
+          stats.push(new DataGroundContactTimeAvg(object.GroundContactTime[0].Avg * 1000)); // Convert s to ms
+        }
+        if (isNumber(object.GroundContactTime[0].Max)) {
+          stats.push(new DataGroundContactTimeMax(object.GroundContactTime[0].Max * 1000));
+        }
+        if (isNumber(object.GroundContactTime[0].Min)) {
+          stats.push(new DataGroundContactTimeMin(object.GroundContactTime[0].Min * 1000));
+        }
+      }
+    }
+
+    // Vertical Oscillation (Running Dynamics)
+    if (object.hasOwnProperty('VerticalOscillation')) {
+      if (Array.isArray(object.VerticalOscillation)) {
+        if (isNumber(object.VerticalOscillation[0].Avg)) {
+          stats.push(new DataVerticalOscillationAvg(object.VerticalOscillation[0].Avg * 1000)); // Convert m to mm
+        }
+        if (isNumber(object.VerticalOscillation[0].Max)) {
+          stats.push(new DataVerticalOscillationMax(object.VerticalOscillation[0].Max * 1000));
+        }
+        if (isNumber(object.VerticalOscillation[0].Min)) {
+          stats.push(new DataVerticalOscillationMin(object.VerticalOscillation[0].Min * 1000));
+        }
+      }
+    }
+
+    // Fitness Age
+    if (isNumber(object.FitnessAge)) {
+      stats.push(new DataFitnessAge(object.FitnessAge));
+    }
+
+    // Personal MaxHR
+    if (object.Personal && isNumber(object.Personal.MaxHR)) {
+      stats.push(new DataMaxHRSetting(object.Personal.MaxHR * 60)); // Convert from Hz to bpm
+
+    }
+
+    // Depth (Diving)
+    if (object.hasOwnProperty('Depth')) {
+      if (Array.isArray(object.Depth)) {
+        if (isNumber(object.Depth[0].Max) && object.Depth[0].Max > 0) {
+          stats.push(new DataDepthMax(object.Depth[0].Max));
+        }
+      } else if (isNumber(object.Depth.Max) && object.Depth.Max > 0) {
+        stats.push(new DataDepthMax(object.Depth.Max));
+      }
+    }
+
     return stats;
   }
 }
@@ -845,6 +921,21 @@ export const SuuntoSampleMapper: {
     {
       dataType: DataBatteryVoltage.type,
       sampleField: 'BatteryVoltage',
+      convertSampleValue: (value: number) => Number(value)
+    },
+    {
+      dataType: DataVerticalOscillation.type,
+      sampleField: 'VerticalOscillation',
+      convertSampleValue: (value: number) => Number(value * 1000) // Convert m to mm
+    },
+    {
+      dataType: DataGroundContactTime.type,
+      sampleField: 'GroundContactTime',
+      convertSampleValue: (value: number) => Number(value * 1000) // Convert s to ms
+    },
+    {
+      dataType: DataDepth.type,
+      sampleField: 'Depth',
       convertSampleValue: (value: number) => Number(value)
     }
   ];

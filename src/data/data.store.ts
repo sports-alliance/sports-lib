@@ -168,6 +168,8 @@ import { DataPowerRight } from './data.power-right';
 import { DataPowerLeft } from './data.power-left';
 import { DataStanceTime } from './data.stance-time';
 import { DataStanceTimeBalanceLeft } from './data-stance-time-balance-left';
+import { DataGroundContactTimeBalanceLeft } from './data-ground-contact-time-balance-left';
+
 import { DataStepLength } from './data.step-length';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataDescription } from './data.description';
@@ -279,6 +281,9 @@ import { DataTargetSpeedZone } from './data.target-speed-zone';
 import { DataTargetDistance } from './data.target-distance';
 import { DataTargetTime } from './data.target-time';
 import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
+import { DataGroundContactTimeBalanceRight } from './data-ground-contact-time-balance-right';
+import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
+
 import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
 import { DataSportProfileName } from './data.sport-profile-name';
 import { DataBalance } from './data.balance';
@@ -311,6 +316,18 @@ import { DataRightTorqueEffectiveness } from './data.right-torque-effectiveness'
 import { DataTotalFlow } from './data.total-flow';
 import { DataTotalGrit } from './data.total-grit';
 import { DataTrainingLoadPeak } from './data.training-load-peak';
+import { DataGroundContactTime } from './data.ground-contact-time';
+import { DataGroundContactTimeAvg } from './data.ground-contact-time-avg';
+import { DataGroundContactTimeMax } from './data.ground-contact-time-max';
+import { DataGroundContactTimeMin } from './data.ground-contact-time-min';
+import { DataVerticalOscillationAvg } from './data.vertical-oscillation-avg';
+import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
+import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
+import { DataFitnessAge } from './data.fitness-age';
+import { DataMaxHRSetting } from './data.max-hr-setting';
+
+import { DataDepth } from './data.depth';
+import { DataDepthMax } from './data.depth-max';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -608,8 +625,23 @@ export const DataStore: any = {
   DataRightTorqueEffectiveness,
   DataTotalFlow,
   DataTotalGrit,
-  DataTrainingLoadPeak
+  DataTrainingLoadPeak,
+  DataGroundContactTime,
+  DataGroundContactTimeAvg,
+  DataGroundContactTimeMax,
+  DataGroundContactTimeMin,
+  DataGroundContactTimeBalance,
+  DataGroundContactTimeBalanceLeft,
+  DataGroundContactTimeBalanceRight,
+  DataVerticalOscillationAvg,
+  DataVerticalOscillationMax,
+  DataVerticalOscillationMin,
+  DataFitnessAge,
+  DataMaxHRSetting,
+  DataDepth,
+  DataDepthMax
 };
+
 
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types

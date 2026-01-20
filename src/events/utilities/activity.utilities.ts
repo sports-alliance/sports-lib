@@ -148,6 +148,20 @@ import { DataSpeedZoneTwoDuration } from '../../data/data.speed-zone-two-duratio
 import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-duration';
+import { DataGroundContactTime } from '../../data/data.ground-contact-time';
+import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-avg';
+import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
+import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
+import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
+import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
+import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
+import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
+import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
+import { DataStanceTime } from '../../data/data.stance-time';
+import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
+import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
+
 import { DynamicDataLoader } from '../../data/data.store';
 import { DataStartPosition } from '../../data/data.start-position';
 import { DataEndPosition } from '../../data/data.end-position';
@@ -207,8 +221,7 @@ import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
 import { DataGradeSmooth } from '../../data/data.grade-smooth';
 import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
-import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
-import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
+
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
@@ -1795,11 +1808,41 @@ export class ActivityUtilities {
     }
 
     // Assign L/R balance stance time from streams if exists
+    if (!activity.getStat(DataGroundContactTimeBalanceLeft.type) && activity.hasStreamData(DataGroundContactTimeBalanceLeft.type)) {
+      const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataGroundContactTimeBalanceLeft.type), 2);
+      activity.addStat(new DataGroundContactTimeBalanceLeft(avgStanceTimeLeftBalance));
+      activity.addStat(new DataGroundContactTimeBalanceRight(100 - avgStanceTimeLeftBalance));
+    }
+
+    // Backward compatibility for Stance Time Balance
     if (!activity.getStat(DataStanceTimeBalanceLeft.type) && activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
       const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataStanceTimeBalanceLeft.type), 2);
       activity.addStat(new DataStanceTimeBalanceLeft(avgStanceTimeLeftBalance));
       activity.addStat(new DataStanceTimeBalanceRight(100 - avgStanceTimeLeftBalance));
     }
+
+    // Ground Contact Time
+    if (!activity.getStat(DataGroundContactTimeMax.type) && activity.hasStreamData(DataGroundContactTime.type)) {
+      activity.addStat(new DataGroundContactTimeMax(this.getDataTypeMax(activity, DataGroundContactTime.type)));
+    }
+    if (!activity.getStat(DataGroundContactTimeMin.type) && activity.hasStreamData(DataGroundContactTime.type)) {
+      activity.addStat(new DataGroundContactTimeMin(this.getDataTypeMin(activity, DataGroundContactTime.type)));
+    }
+    if (!activity.getStat(DataGroundContactTimeAvg.type) && activity.hasStreamData(DataGroundContactTime.type)) {
+      activity.addStat(new DataGroundContactTimeAvg(this.getDataTypeAvg(activity, DataGroundContactTime.type)));
+    }
+
+    // Vertical Oscillation
+    if (!activity.getStat(DataVerticalOscillationMax.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
+      activity.addStat(new DataVerticalOscillationMax(this.getDataTypeMax(activity, DataVerticalOscillation.type)));
+    }
+    if (!activity.getStat(DataVerticalOscillationMin.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
+      activity.addStat(new DataVerticalOscillationMin(this.getDataTypeMin(activity, DataVerticalOscillation.type)));
+    }
+    if (!activity.getStat(DataVerticalOscillationAvg.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
+      activity.addStat(new DataVerticalOscillationAvg(this.getDataTypeAvg(activity, DataVerticalOscillation.type)));
+    }
+
   }
 
   private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {

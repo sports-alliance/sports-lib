@@ -90,7 +90,9 @@ import { DataCyclingStandingTime } from '../../../../data/data.cycling-standing-
 import { DataCyclingSeatedTime } from '../../../../data/data.cycling-seated-time';
 import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
+import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataStanceTime } from '../../../../data/data.stance-time';
+
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
@@ -1120,9 +1122,14 @@ export class EventImporterFIT {
     }
 
     // Running dynamics
+    // Stance Time
     if (Number.isFinite(object.avg_stance_time)) {
+      stats.push(new DataGroundContactTimeAvg(object.avg_stance_time));
+      // Keep DataStanceTime for backward compatibility (if needed, though logically it's an Avg)
+      // The original code mapped avg_stance_time to DataStanceTime, which was arguably incorrect naming or type usage
       stats.push(new DataStanceTime(object.avg_stance_time));
     }
+
 
     if (Number.isFinite(object.avg_vertical_oscillation)) {
       stats.push(new DataVerticalOscillation(object.avg_vertical_oscillation));

@@ -6,8 +6,7 @@ module.exports = {
   transformIgnorePatterns: ['node_modules/(?!fit-file-parser|@garmin/fitsdk)'],
   testPathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/node_modules/'],
   moduleNameMapper: {
-    '^node:buffer$': '<rootDir>/node_modules/buffer/index.js',
-    '^fit-file-parser$': '<rootDir>/node_modules/fit-file-parser/dist/cjs/fit-parser.js'
+    '^node:buffer$': '<rootDir>/node_modules/buffer/index.js'
   },
   testTimeout: 960000, // Allow 480s for integrations tests
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',

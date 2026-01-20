@@ -132,9 +132,6 @@ import { DataTotalFlow } from '../../../../data/data.total-flow';
 
 import { DataJumpEvent } from '../../../../data/data.jump-event';
 import { Buffer } from 'buffer';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// @ts-ignore
-import FitFileParser from 'fit-file-parser';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -145,6 +142,7 @@ export class EventImporterFIT {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
+    const { default: FitFileParser } = await import('fit-file-parser');
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,

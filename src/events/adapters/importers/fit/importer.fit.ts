@@ -134,7 +134,7 @@ import { DataJumpEvent } from '../../../../data/data.jump-event';
 import { Buffer } from 'buffer';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // @ts-ignore
-import FitFileParser from 'fit-file-parser';
+const FitFileParser = require('fit-file-parser').default;
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;

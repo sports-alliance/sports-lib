@@ -877,7 +877,17 @@ export class DynamicDataLoader {
   ];
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
+    // Redirect legacy Stance Time types to Ground Contact Time
+    if (dataType === DataStanceTime.type) {
+      dataType = DataGroundContactTime.type;
+    } else if (dataType === DataStanceTimeBalanceLeft.type) {
+      dataType = DataGroundContactTimeBalanceLeft.type;
+    } else if (dataType === DataStanceTimeBalanceRight.type) {
+      dataType = DataGroundContactTimeBalanceRight.type;
+    }
+
     const className = Object.keys(DataStore).find(dataClass => {
+
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {

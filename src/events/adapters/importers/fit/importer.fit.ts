@@ -524,6 +524,9 @@ export class EventImporterFIT {
       device.antTransmissionType = deviceInfo.ant_transmission_type;
       device.antNetwork = deviceInfo.ant_network;
       device.sourceType = deviceInfo.source_type;
+      if (deviceInfo.ant_id) {
+        device.antId = deviceInfo.ant_id;
+      }
       device.cumOperatingTime = deviceInfo.cum_operating_time;
       return device;
     });

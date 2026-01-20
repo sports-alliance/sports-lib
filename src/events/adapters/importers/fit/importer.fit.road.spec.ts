@@ -44,5 +44,27 @@ describe('EventImporterFIT Road with Power', () => {
         expect(rightPSStream).toBeDefined();
         // Just check we have data points
         expect(rightPSStream.length).toBeGreaterThan(0);
+
+        // Check for Device Infos
+        const devices = activity.creator.devices;
+        expect(devices).toBeDefined();
+        expect(devices.length).toBeGreaterThan(0);
+
+        // Find Stages Cycling (Index 4)
+        const stages = devices.find(d => d.index === 4);
+        expect(stages).toBeDefined();
+        expect(stages?.manufacturer).toBe('stages_cycling');
+        expect(stages?.antId).toBe('0-5-0B-31CD');
+
+        // Find Lezyne Bike Light (Index 5)
+        const lezyneLight = devices.find(d => d.index === 5);
+        expect(lezyneLight).toBeDefined();
+        expect(lezyneLight?.manufacturer).toBe('lezyne');
+        expect(lezyneLight?.antId).toBe('E-1-23-B088');
+
+        // Find Lezyne Bike Radar (Index 6)
+        const lezyneRadar = devices.find(d => d.index === 6);
+        expect(lezyneRadar).toBeDefined();
+        expect(lezyneRadar?.antId).toBe('E-1-28-B088');
     });
 });

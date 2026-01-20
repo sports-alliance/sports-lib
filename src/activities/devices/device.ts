@@ -18,6 +18,7 @@ export class Device implements DeviceInterface {
   antTransmissionType?: number;
   antNetwork?: string;
   sourceType?: string;
+  antId?: string;
   cumOperatingTime?: number;
 
   constructor(type: string) {
@@ -41,6 +42,7 @@ export class Device implements DeviceInterface {
       antTransmissionType: this.antTransmissionType || null,
       antNetwork: this.antNetwork || null,
       sourceType: this.sourceType || null,
+      antId: this.antId || null,
       cumOperatingTime: this.cumOperatingTime || null
     };
   }

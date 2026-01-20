@@ -16,5 +16,6 @@ export interface DeviceInterface extends SerializableClassInterface {
   antTransmissionType?: number;
   antNetwork?: string;
   sourceType?: string;
+  antId?: string;
   cumOperatingTime?: number;
 }

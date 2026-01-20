@@ -291,6 +291,26 @@ import { DataWeight } from './data.weight';
 import { DataHeight } from './data.height';
 import { DataAge } from './data.age';
 import { DataGender } from './data.gender';
+import { DataAvgFlow } from './data.avg-flow';
+import { DataAvgGrit } from './data.avg-grit';
+import { DataAvgRespirationRate } from './data.avg-respiration-rate';
+import { DataAvgVAM } from './data.avg-vam';
+import { DataEstSweatLoss } from './data.est-sweat-loss';
+import { DataFlow } from './data.flow';
+import { DataGrit } from './data.grit';
+import { DataJumpCount } from './data.jump-count';
+import { DataJumpEvent } from './data.jump-event';
+import { DataLeftPedalSmoothness } from './data.left-pedal-smoothness';
+import { DataLeftTorqueEffectiveness } from './data.left-torque-effectiveness';
+import { DataMaxRespirationRate } from './data.max-respiration-rate';
+import { DataMinRespirationRate } from './data.min-respiration-rate';
+import { DataPrimaryBenefit } from './data.primary-benefit';
+import { DataRestingCalories } from './data.resting-calories';
+import { DataRightPedalSmoothness } from './data.right-pedal-smoothness';
+import { DataRightTorqueEffectiveness } from './data.right-torque-effectiveness';
+import { DataTotalFlow } from './data.total-flow';
+import { DataTotalGrit } from './data.total-grit';
+import { DataTrainingLoadPeak } from './data.training-load-peak';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -568,7 +588,27 @@ export const DataStore: any = {
   DataWeight,
   DataHeight,
   DataAge,
-  DataGender
+  DataGender,
+  DataAvgFlow,
+  DataAvgGrit,
+  DataAvgRespirationRate,
+  DataAvgVAM,
+  DataEstSweatLoss,
+  DataFlow,
+  DataGrit,
+  DataJumpCount,
+  DataJumpEvent,
+  DataLeftPedalSmoothness,
+  DataLeftTorqueEffectiveness,
+  DataMaxRespirationRate,
+  DataMinRespirationRate,
+  DataPrimaryBenefit,
+  DataRestingCalories,
+  DataRightPedalSmoothness,
+  DataRightTorqueEffectiveness,
+  DataTotalFlow,
+  DataTotalGrit,
+  DataTrainingLoadPeak
 };
 
 export class DynamicDataLoader {

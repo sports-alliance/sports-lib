@@ -14,5 +14,6 @@ export interface DeviceJsonInterface {
   antTransmissionType: number | null;
   antNetwork: string | null;
   sourceType: string | null;
+  antId: string | null;
   cumOperatingTime: number | null;
 }

@@ -133,6 +133,27 @@ import { DataAvgGrit } from '../../../../data/data.avg-grit';
 import { DataTotalFlow } from '../../../../data/data.total-flow';
 
 import { DataJumpEvent } from '../../../../data/data.jump-event';
+
+import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
+  DataJumpHangTimeAvg,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeMin,
+  DataJumpHeightAvg,
+  DataJumpHeightMax,
+  DataJumpHeightMin,
+  DataJumpRotationsAvg,
+  DataJumpRotationsMax,
+  DataJumpRotationsMin,
+  DataJumpScoreAvg,
+  DataJumpScoreMax,
+  DataJumpScoreMin,
+  DataJumpSpeedAvg,
+  DataJumpSpeedMax,
+  DataJumpSpeedMin
+} from '../../../../data/data.jump-stats';
 import { Buffer } from 'buffer';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
@@ -189,6 +210,19 @@ export class EventImporterFIT {
                 const lengthTime = new Date(length.timestamp || length.start_time).getTime();
                 return lengthTime >= lapStartTime && lengthTime < lapEndTime;
               });
+            });
+          });
+        }
+
+        // Check for jumps data at the top level
+        if (fitDataObject.jumps && fitDataObject.jumps.length > 0) {
+          fitDataObject.sessions?.forEach((session: any) => {
+            const sessionStartTime = new Date(session.start_time).getTime();
+            const sessionEndTime = sessionStartTime + (session.total_elapsed_time || 0) * 1000;
+
+            session.jumps = fitDataObject.jumps.filter((jump: any) => {
+              const jumpTime = new Date(jump.timestamp).getTime();
+              return jumpTime >= sessionStartTime && jumpTime < sessionEndTime;
             });
           });
         }
@@ -1210,9 +1244,94 @@ export class EventImporterFIT {
       stats.push(new DataRestingCalories(object.resting_calories));
     }
 
+
     // Avg VAM
     if (isNumberOrString(object.avg_vam)) {
       stats.push(new DataAvgVAM(object.avg_vam));
+    }
+
+    // Jump Statistics
+    if (object.jumps && object.jumps.length > 0) {
+      const jumps = object.jumps;
+      let count = 0;
+      let hangTimeSum = 0, hangTimeMin = Number.MAX_VALUE, hangTimeMax = -Number.MAX_VALUE;
+      let distanceSum = 0, distanceMin = Number.MAX_VALUE, distanceMax = -Number.MAX_VALUE;
+      let speedSum = 0, speedMin = Number.MAX_VALUE, speedMax = -Number.MAX_VALUE;
+      let rotationsSum = 0, rotationsMin = Number.MAX_VALUE, rotationsMax = -Number.MAX_VALUE;
+      let scoreSum = 0, scoreMin = Number.MAX_VALUE, scoreMax = -Number.MAX_VALUE;
+      let heightSum = 0, heightMin = Number.MAX_VALUE, heightMax = -Number.MAX_VALUE;
+
+      jumps.forEach((j: any) => {
+        count++;
+
+        // Hangtime
+        if (Number.isFinite(j.hang_time)) {
+          hangTimeSum += j.hang_time;
+          hangTimeMin = Math.min(hangTimeMin, j.hang_time);
+          hangTimeMax = Math.max(hangTimeMax, j.hang_time);
+        }
+
+        // Distance
+        if (Number.isFinite(j.distance)) {
+          distanceSum += j.distance;
+          distanceMin = Math.min(distanceMin, j.distance);
+          distanceMax = Math.max(distanceMax, j.distance);
+        }
+
+        // Speed
+        if (Number.isFinite(j.speed)) {
+          speedSum += j.speed;
+          speedMin = Math.min(speedMin, j.speed);
+          speedMax = Math.max(speedMax, j.speed);
+        }
+
+        // Rotations
+        if (Number.isFinite(j.rotations)) {
+          rotationsSum += j.rotations;
+          rotationsMin = Math.min(rotationsMin, j.rotations);
+          rotationsMax = Math.max(rotationsMax, j.rotations);
+        }
+
+        // Score
+        if (Number.isFinite(j.score)) {
+          scoreSum += j.score;
+          scoreMin = Math.min(scoreMin, j.score);
+          scoreMax = Math.max(scoreMax, j.score);
+        }
+
+        // Height
+        if (Number.isFinite(j.height)) {
+          heightSum += j.height;
+          heightMin = Math.min(heightMin, j.height);
+          heightMax = Math.max(heightMax, j.height);
+        }
+      });
+
+      if (count > 0) {
+        if (hangTimeMin !== Number.MAX_VALUE) stats.push(new DataJumpHangTimeMin(hangTimeMin));
+        if (hangTimeMax !== -Number.MAX_VALUE) stats.push(new DataJumpHangTimeMax(hangTimeMax));
+        if (hangTimeSum > 0) stats.push(new DataJumpHangTimeAvg(hangTimeSum / count)); // Assuming count is correct divisor for existing values
+
+        if (distanceMin !== Number.MAX_VALUE) stats.push(new DataJumpDistanceMin(distanceMin));
+        if (distanceMax !== -Number.MAX_VALUE) stats.push(new DataJumpDistanceMax(distanceMax));
+        if (distanceSum > 0) stats.push(new DataJumpDistanceAvg(distanceSum / count));
+
+        if (speedMin !== Number.MAX_VALUE) stats.push(new DataJumpSpeedMin(speedMin));
+        if (speedMax !== -Number.MAX_VALUE) stats.push(new DataJumpSpeedMax(speedMax));
+        if (speedSum > 0) stats.push(new DataJumpSpeedAvg(speedSum / count));
+
+        if (rotationsMin !== Number.MAX_VALUE) stats.push(new DataJumpRotationsMin(rotationsMin));
+        if (rotationsMax !== -Number.MAX_VALUE) stats.push(new DataJumpRotationsMax(rotationsMax));
+        if (rotationsSum > 0) stats.push(new DataJumpRotationsAvg(rotationsSum / count));
+
+        if (scoreMin !== Number.MAX_VALUE) stats.push(new DataJumpScoreMin(scoreMin));
+        if (scoreMax !== -Number.MAX_VALUE) stats.push(new DataJumpScoreMax(scoreMax));
+        if (scoreSum > 0) stats.push(new DataJumpScoreAvg(scoreSum / count));
+
+        if (heightMin !== Number.MAX_VALUE) stats.push(new DataJumpHeightMin(heightMin));
+        if (heightMax !== -Number.MAX_VALUE) stats.push(new DataJumpHeightMax(heightMax));
+        if (heightSum > 0) stats.push(new DataJumpHeightAvg(heightSum / count));
+      }
     }
 
 

@@ -328,6 +328,26 @@ import { DataMaxHRSetting } from './data.max-hr-setting';
 
 import { DataDepth } from './data.depth';
 import { DataDepthMax } from './data.depth-max';
+import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
+  DataJumpHangTimeAvg,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeMin,
+  DataJumpHeightAvg,
+  DataJumpHeightMax,
+  DataJumpHeightMin,
+  DataJumpRotationsAvg,
+  DataJumpRotationsMax,
+  DataJumpRotationsMin,
+  DataJumpScoreAvg,
+  DataJumpScoreMax,
+  DataJumpScoreMin,
+  DataJumpSpeedAvg,
+  DataJumpSpeedMax,
+  DataJumpSpeedMin
+} from './data.jump-stats';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -639,7 +659,25 @@ export const DataStore: any = {
   DataFitnessAge,
   DataMaxHRSetting,
   DataDepth,
-  DataDepthMax
+  DataDepthMax,
+  DataJumpHangTimeMin,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeAvg,
+  DataJumpDistanceMin,
+  DataJumpDistanceMax,
+  DataJumpDistanceAvg,
+  DataJumpSpeedMin,
+  DataJumpSpeedMax,
+  DataJumpSpeedAvg,
+  DataJumpRotationsMin,
+  DataJumpRotationsMax,
+  DataJumpRotationsAvg,
+  DataJumpScoreMin,
+  DataJumpScoreMax,
+  DataJumpScoreAvg,
+  DataJumpHeightMin,
+  DataJumpHeightMax,
+  DataJumpHeightAvg
 };
 
 

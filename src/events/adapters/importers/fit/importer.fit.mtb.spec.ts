@@ -208,6 +208,48 @@ describe('EventImporterFIT MTB Jumps', () => {
         console.log(`Found ${jumpEvents.length} jumps.`);
         console.log('First jump:', jump.jumpData);
 
+
+        // Verify Jump Statistics (Min, Max, Avg)
+        const {
+            DataJumpDistanceAvg, DataJumpDistanceMax, DataJumpDistanceMin,
+            DataJumpHangTimeAvg, DataJumpHangTimeMax, DataJumpHangTimeMin,
+            DataJumpHeightAvg, DataJumpHeightMax, DataJumpHeightMin,
+            DataJumpRotationsAvg, DataJumpRotationsMax, DataJumpRotationsMin,
+            DataJumpScoreAvg, DataJumpScoreMax, DataJumpScoreMin,
+            DataJumpSpeedAvg, DataJumpSpeedMax, DataJumpSpeedMin
+        } = await import('../../../../data/data.jump-stats');
+
+
+        // Hangtime
+        expect((activity.getStat(DataJumpHangTimeMin.type) as any).getValue()).toBeCloseTo(0.36, 2);
+        expect((activity.getStat(DataJumpHangTimeMax.type) as any).getValue()).toBeCloseTo(0.696, 3);
+        expect((activity.getStat(DataJumpHangTimeAvg.type) as any).getValue()).toBeCloseTo(0.45, 2);
+
+        // Distance
+        expect((activity.getStat(DataJumpDistanceMin.type) as any).getValue()).toBeCloseTo(1.40, 2);
+        expect((activity.getStat(DataJumpDistanceMax.type) as any).getValue()).toBeCloseTo(4.68, 2);
+        expect((activity.getStat(DataJumpDistanceAvg.type) as any).getValue()).toBeCloseTo(3.02, 2);
+
+        // Speed
+        expect((activity.getStat(DataJumpSpeedMin.type) as any).getValue()).toBeCloseTo(3.88, 2);
+        expect((activity.getStat(DataJumpSpeedMax.type) as any).getValue()).toBeCloseTo(8.995, 3);
+        expect((activity.getStat(DataJumpSpeedAvg.type) as any).getValue()).toBeCloseTo(6.55, 2);
+
+        // Score
+        expect((activity.getStat(DataJumpScoreMin.type) as any).getValue()).toBeCloseTo(53.9, 1);
+        expect((activity.getStat(DataJumpScoreMax.type) as any).getValue()).toBeCloseTo(122.6, 1);
+        expect((activity.getStat(DataJumpScoreAvg.type) as any).getValue()).toBeCloseTo(81.8, 1);
+
+        // Rotations (Should be undefined for this file)
+        expect(activity.getStat(DataJumpRotationsMin.type)).toBeUndefined();
+        expect(activity.getStat(DataJumpRotationsMax.type)).toBeUndefined();
+        expect(activity.getStat(DataJumpRotationsAvg.type)).toBeUndefined();
+
+        // Height (Should be undefined for this file)
+        expect(activity.getStat(DataJumpHeightMin.type)).toBeUndefined();
+        expect(activity.getStat(DataJumpHeightMax.type)).toBeUndefined();
+        expect(activity.getStat(DataJumpHeightAvg.type)).toBeUndefined();
+
         // We can check if we can find a sample with Grit.
         // In sports-lib, samples are often accessed via activity.getStream(type) or similar, BUT
         // importer creates `DataPoint`s? Or `DataSample`s?

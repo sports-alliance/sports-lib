@@ -128,10 +128,6 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(anaerobic).toBeDefined();
         expect(anaerobic.getValue()).toBe(2);
 
-        // VO2 Max
-        const vo2Max = activity.getStat(DataVO2Max.type) as DataVO2Max;
-        expect(vo2Max).toBeDefined();
-        expect(vo2Max.getValue()).toBeCloseTo(57.0633, 4);
 
         expect((activity.getStat(DataTemperatureMax.type) as DataTemperatureMax).getValue()).toBe(19);
         expect((activity.getStat(DataTemperatureMin.type) as DataTemperatureMin).getValue()).toBe(7);
@@ -195,11 +191,19 @@ describe('EventImporterFIT MTB Jumps', () => {
         // Check Jumps
         const jumpEvents = activity.getAllEvents().filter((e: any) => e.getType() === DataJumpEvent.type);
         expect(jumpEvents.length).toBeGreaterThan(0);
+        expect(jumpEvents.length).toBe(11);
         const jump = jumpEvents[0] as DataJumpEvent;
         expect(jump.jumpData).toBeDefined();
         expect(isNumber(jump.jumpData.distance)).toBeTruthy();
-        expect(isNumber(jump.jumpData.height)).toBeTruthy();
         expect(isNumber(jump.jumpData.score)).toBeTruthy();
+
+        // Verify new jump fields with expected values
+        expect(jump.jumpData.distance).toBeCloseTo(2.069, 2);
+        expect(jump.jumpData.hang_time).toBeCloseTo(0.36, 2);
+        expect(jump.jumpData.score).toBeCloseTo(62.44, 1);
+        expect(jump.jumpData.position_lat).toBeCloseTo(39.6679, 3);
+        expect(jump.jumpData.position_long).toBeCloseTo(20.8382, 3);
+        expect(jump.jumpData.speed).toBeCloseTo(5.748, 2);
 
         console.log(`Found ${jumpEvents.length} jumps.`);
         console.log('First jump:', jump.jumpData);

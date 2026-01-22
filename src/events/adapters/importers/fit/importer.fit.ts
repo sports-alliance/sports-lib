@@ -337,7 +337,12 @@ export class EventImporterFIT {
                   new DataJumpEvent(activity.getDateIndex(jump.timestamp), {
                     distance: jump.distance,
                     height: jump.height,
-                    score: jump.score
+                    score: jump.score,
+                    hang_time: jump.hang_time,
+                    position_lat: jump.position_lat,
+                    position_long: jump.position_long,
+                    speed: jump.speed,
+                    rotations: jump.rotations
                   })
                 );
               });
@@ -682,13 +687,7 @@ export class EventImporterFIT {
       // Set the activity stats
       this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
 
-      // Check for VO2 Max in jumps
-      if (fitDataObject.jumps && fitDataObject.jumps.length) {
-        const jumpWithMets = fitDataObject.jumps.find((j: any) => j.enhanced_mets);
-        if (jumpWithMets) {
-          activity.addStat(new DataVO2Max(jumpWithMets.enhanced_mets * 3.5));
-        }
-      }
+
 
       // Check for User Profile
       if (fitDataObject.user_profile) {

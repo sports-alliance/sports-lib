@@ -2,8 +2,13 @@ import { DataEvent } from './data.event';
 
 export interface JumpEventInterface {
     distance: number;
-    height: number;
+    height?: number;
     score: number;
+    hang_time?: number;
+    position_lat?: number;
+    position_long?: number;
+    speed?: number;
+    rotations?: number;
 }
 
 export class DataJumpEvent extends DataEvent {

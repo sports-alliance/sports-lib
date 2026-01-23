@@ -96,6 +96,8 @@ export * from './data/data.heart-rate-avg';
 export * from './data/data.heart-rate-max';
 export * from './data/data.heart-rate-min';
 export * from './data/data.ibi';
+export * from './data/data.event';
+export * from './data/data.jump-event';
 export * from './data/data.interface';
 export * from './data/data.latitude-degrees';
 export * from './data/data.left-balance';

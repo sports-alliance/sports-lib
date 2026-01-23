@@ -194,16 +194,16 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(jumpEvents.length).toBe(11);
         const jump = jumpEvents[0] as DataJumpEvent;
         expect(jump.jumpData).toBeDefined();
-        expect(isNumber(jump.jumpData.distance)).toBeTruthy();
-        expect(isNumber(jump.jumpData.score)).toBeTruthy();
+        expect(isNumber(jump.jumpData.distance.getValue())).toBeTruthy();
+        expect(isNumber(jump.jumpData.score.getValue())).toBeTruthy();
 
         // Verify new jump fields with expected values
-        expect(jump.jumpData.distance).toBeCloseTo(2.069, 2);
-        expect(jump.jumpData.hang_time).toBeCloseTo(0.36, 2);
-        expect(jump.jumpData.score).toBeCloseTo(62.44, 1);
-        expect(jump.jumpData.position_lat).toBeCloseTo(39.6679, 3);
-        expect(jump.jumpData.position_long).toBeCloseTo(20.8382, 3);
-        expect(jump.jumpData.speed).toBeCloseTo(5.748, 2);
+        expect(jump.jumpData.distance.getValue()).toBeCloseTo(2.069, 2);
+        expect(jump.jumpData.hang_time!.getValue()).toBeCloseTo(0.36, 2);
+        expect(jump.jumpData.score.getValue()).toBeCloseTo(62.44, 1);
+        expect(jump.jumpData.position_lat!.getValue()).toBeCloseTo(39.6679, 3);
+        expect(jump.jumpData.position_long!.getValue()).toBeCloseTo(20.8382, 3);
+        expect(jump.jumpData.speed!.getValue()).toBeCloseTo(5.748, 2);
 
         console.log(`Found ${jumpEvents.length} jumps.`);
         console.log('First jump:', jump.jumpData);

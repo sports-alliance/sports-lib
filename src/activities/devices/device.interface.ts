@@ -18,4 +18,5 @@ export interface DeviceInterface extends SerializableClassInterface {
   sourceType?: string;
   antId?: string;
   cumOperatingTime?: number;
+  timestamp?: Date;
 }

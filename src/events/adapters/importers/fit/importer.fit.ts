@@ -568,6 +568,9 @@ export class EventImporterFIT {
         device.antId = deviceInfo.ant_id;
       }
       device.cumOperatingTime = deviceInfo.cum_operating_time;
+      if (deviceInfo.timestamp) {
+        device.timestamp = new Date(deviceInfo.timestamp);
+      }
       return device;
     });
   }

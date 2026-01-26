@@ -20,6 +20,7 @@ export class Device implements DeviceInterface {
   sourceType?: string;
   antId?: string;
   cumOperatingTime?: number;
+  timestamp?: Date;
 
   constructor(type: string) {
     this.type = type || 'Unknown';
@@ -43,7 +44,8 @@ export class Device implements DeviceInterface {
       antNetwork: this.antNetwork || null,
       sourceType: this.sourceType || null,
       antId: this.antId || null,
-      cumOperatingTime: this.cumOperatingTime || null
+      cumOperatingTime: this.cumOperatingTime || null,
+      timestamp: this.timestamp ? this.timestamp.toISOString() : null
     };
   }
 }

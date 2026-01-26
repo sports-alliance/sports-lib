@@ -16,4 +16,5 @@ export interface DeviceJsonInterface {
   sourceType: string | null;
   antId: string | null;
   cumOperatingTime: number | null;
+  timestamp: string | null;
 }

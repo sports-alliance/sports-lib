@@ -226,6 +226,7 @@ import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
+import { DataVO2Max } from '../../data/data.vo2-max';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -539,6 +540,7 @@ export class ActivityUtilities {
     let averageTemperature = 0;
     let averageFeeling = 0;
     let averageRPE = 0;
+    let averageVO2Max = 0;
 
     // Sum Duration
     activities.forEach(activity => {
@@ -751,6 +753,20 @@ export class ActivityUtilities {
     });
     if (averageRPE) {
       stats.push(new DataRPE(averageRPE));
+    }
+
+    // Avg VO2 Max
+    activities.forEach(activity => {
+      const activityVO2Max = activity.getStat(DataVO2Max.type);
+      if (activityVO2Max) {
+        // The below will fallback for 0
+        averageVO2Max = averageVO2Max
+          ? (averageVO2Max + <number>activityVO2Max.getValue()) / 2
+          : <number>activityVO2Max.getValue();
+      }
+    });
+    if (averageVO2Max) {
+      stats.push(new DataVO2Max(averageVO2Max));
     }
 
     stats.push(...this.getIntensityZonesStatsAggregated(activities));

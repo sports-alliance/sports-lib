@@ -75,7 +75,7 @@ export class EventImporterTCX {
         const laps = this.getLaps(<any>activityElement.getElementsByTagName('Lap'), activityType);
 
         // Create activity
-        const startDate = new Date(<any>activityElement.getElementsByTagName('Lap')[0].getAttribute('StartTime'));
+        const startDate = laps[0].startDate;
         const endDate = laps[laps.length - 1].endDate;
 
         let activity = new Activity(
@@ -143,6 +143,9 @@ export class EventImporterTCX {
             }
             activity.addStream(activity.createStream(sampleMapping.dataType));
             subjectTrackPointElements.forEach((subjectTrackPointElement: any) => {
+              if (!subjectTrackPointElement.getElementsByTagName('Time')[0]) {
+                return;
+              }
               activity.addDataToStream(
                 sampleMapping.dataType,
                 new Date(subjectTrackPointElement.getElementsByTagName('Time')[0].textContent),
@@ -240,7 +243,7 @@ export class EventImporterTCX {
         activity.addStat(
           new DataEnergy(
             (<DataEnergy>activity.getStat(DataEnergy.type)).getValue() +
-              (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
+            (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
           )
         );
       }
@@ -429,7 +432,17 @@ export class EventImporterTCX {
       }
 
       // Now creating the lap
-      const startDate = new Date(<string>lapElement.getAttribute('StartTime'));
+      let startDateStr = lapElement.getAttribute('StartTime');
+
+      // If no start time attribute found on lap, try to get it from first track point
+      if (!startDateStr && trackElements.length > 0) {
+        const firstTrackPoints = trackElements[0].getElementsByTagName('Trackpoint');
+        if (firstTrackPoints.length > 0) {
+          startDateStr = firstTrackPoints[0].getElementsByTagName('Time')[0]?.textContent;
+        }
+      }
+
+      const startDate = startDateStr ? new Date(<string>startDateStr) : new Date(0);
       const endDate = new Date(startDate);
       endDate.setSeconds(endDate.getSeconds() + elapsedTime);
       const lap = new Lap(startDate, endDate, lapIndex + 1, LapTypes.AutoLap);

@@ -6,17 +6,19 @@ import { EventJSONInterface } from './event.json.interface';
 import { IDClassInterface } from '../id/id.class.interface';
 import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
 import { FileType } from './adapters/file-type.enum';
+import { DataPowerCurve } from '../data/data.power-curve';
 
 export interface EventInterface
   extends StatsClassInterface,
-    DurationClassInterface,
-    PrivacyClassInterface,
-    SerializableClassInterface,
-    IDClassInterface {
+  DurationClassInterface,
+  PrivacyClassInterface,
+  SerializableClassInterface,
+  IDClassInterface {
   name: string;
   srcFileType: FileType;
   description?: string;
   isMerge: boolean;
+  powerCurve?: DataPowerCurve;
 
   addActivity(activity: ActivityInterface): void;
 

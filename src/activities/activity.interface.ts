@@ -4,6 +4,7 @@ import { LapInterface } from '../laps/lap.interface';
 import { IntensityZonesInterface } from '../intensity-zones/intensity-zones.interface';
 import { StatsClassInterface } from '../stats/stats.class.interface';
 import { DurationClassInterface } from '../duration/duration.class.interface';
+import { DataPowerCurve } from '../data/data.power-curve';
 import { ActivityTypes } from './activity.types';
 import { StreamDataItem, StreamInterface } from '../streams/stream.interface';
 import { ActivityJSONInterface } from './activity.json.interface';
@@ -18,9 +19,9 @@ import { ActivityParsingOptions } from './activity-parsing-options';
 
 export interface ActivityInterface
   extends StatsClassInterface,
-    DurationClassInterface,
-    SerializableClassInterface,
-    IDClassInterface {
+  DurationClassInterface,
+  SerializableClassInterface,
+  IDClassInterface {
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;

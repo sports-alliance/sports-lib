@@ -10,6 +10,7 @@ export interface EventJSONInterface {
   description: string | null;
   isMerge: boolean;
   privacy: Privacy;
+  powerCurve?: DataJSONInterface | null;
   startDate: number;
   endDate: number;
   stats: DataJSONInterface;

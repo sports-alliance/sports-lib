@@ -9,6 +9,7 @@ import { DataActivityTypes } from '../data/data.activity-types';
 import { DataDeviceNames } from '../data/data.device-names';
 import { ActivityJSONInterface } from '../activities/activity.json.interface';
 import { FileType } from './adapters/file-type.enum';
+import { DataPowerCurve } from '../data/data.power-curve';
 
 export class Event extends DurationClassAbstract implements EventInterface {
   public name: string;
@@ -16,6 +17,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   public description?: string;
   public privacy: Privacy = Privacy.Private;
   public isMerge: boolean;
+  public powerCurve?: DataPowerCurve;
 
   private activities: ActivityInterface[] = [];
 
@@ -88,10 +90,10 @@ export class Event extends DurationClassAbstract implements EventInterface {
     }
     return activityTypesStat.getValue().length > 1
       ? `${this.getUniqueStringWithMultiplier(
-          activityTypesStat
-            .getValue()
-            .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
-        )}`
+        activityTypesStat
+          .getValue()
+          .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
+      )}`
       : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()];
   }
 
@@ -147,6 +149,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
       stats: stats,
+      powerCurve: this.powerCurve ? this.powerCurve.toJSON() : null,
       isMerge: this.isMerge,
       activities: this.getActivities().reduce((activities: ActivityJSONInterface[], activity: ActivityInterface) => {
         const jsonActivity = activity.toJSON();

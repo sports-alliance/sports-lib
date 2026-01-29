@@ -15,6 +15,7 @@ import { Stream, StreamJSONInterface } from '../streams/stream';
 import { IntensityZonesJSONInterface } from '../intensity-zones/intensity-zones.json.interface';
 import { isNumber } from '../events/utilities/helpers';
 import { DataPower } from '../data/data.power';
+import { DataPowerCurve } from '../data/data.power-curve';
 import { DataEvent } from '../data/data.event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopEvent } from '../data/data.stop-event';
@@ -49,6 +50,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   public creator: CreatorInterface;
   public parseOptions: ActivityParsingOptions;
   public intensityZones: IntensityZonesInterface[] = []; // maybe rename
+  public powerCurve?: DataPowerCurve;
 
   private laps: LapInterface[] = [];
   private streams: StreamInterface[] = [];
@@ -351,6 +353,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       intensityZones: intensityZones,
       powerMeter: this.hasPowerMeter(),
       trainer: this.isTrainer(),
+      powerCurve: this.powerCurve ? this.powerCurve.toJSON() : null,
       stats: stats,
       streams: streams,
       events: this.getAllEvents().reduce((eventsArray: DataJSONInterface[], event) => {

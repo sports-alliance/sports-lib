@@ -13,6 +13,7 @@ export interface ActivityJSONInterface {
   type: ActivityTypes;
   powerMeter: boolean;
   trainer: boolean;
+  powerCurve?: DataJSONInterface | null;
   stats: DataJSONInterface;
   streams: StreamJSONInterface[] | { [key: string]: (number | null)[] };
   laps: LapJSONInterface[];

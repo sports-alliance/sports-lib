@@ -227,6 +227,7 @@ import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { DataVO2Max } from '../../data/data.vo2-max';
+import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -787,6 +788,57 @@ export class ActivityUtilities {
     }
     // debugger;
     return stats;
+  }
+
+  /**
+   * Calculate Mean Max Power for specified durations
+   * @param activity The activity to analyze
+   * @param durations Array of durations in seconds
+   */
+  public static calculateMeanMaxPower(activity: ActivityInterface, durations: number[]): DataPowerCurve {
+    if (!activity.hasStreamData(DataPower.type)) {
+      return new DataPowerCurve([]);
+    }
+
+    const powerData = activity.getStreamData(DataPower.type);
+    const curvePoints: DataPowerCurvePoint[] = [];
+
+    // Sort durations to ensure consistent processing order, though not strictly necessary
+    const sortedDurations = [...durations].sort((a, b) => a - b);
+
+    for (const duration of sortedDurations) {
+      if (duration <= 0 || duration > powerData.length) {
+        continue;
+      }
+
+      let maxAvgPower = 0;
+      let currentSum = 0;
+
+      // Helper to treat null as 0
+      const getValue = (val: number | null) => (typeof val === 'number' ? val : 0);
+
+      // Initial window
+      for (let i = 0; i < duration; i++) {
+        currentSum += getValue(powerData[i]);
+      }
+      maxAvgPower = currentSum / duration;
+
+      // Slide window
+      for (let i = duration; i < powerData.length; i++) {
+        currentSum = currentSum - getValue(powerData[i - duration]) + getValue(powerData[i]);
+        const currentAvg = currentSum / duration;
+        if (currentAvg > maxAvgPower) {
+          maxAvgPower = currentAvg;
+        }
+      }
+
+      curvePoints.push({
+        duration: new DataDuration(duration),
+        power: new DataPower(maxAvgPower)
+      });
+    }
+
+    return new DataPowerCurve(curvePoints);
   }
 
   public static getIntensityZonesStatsAggregated(statClassInstances: StatsClassInterface[]): DataInterface[] {

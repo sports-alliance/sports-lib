@@ -2,6 +2,7 @@ import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
 import { DataSpeed } from '../../data/data.speed';
+import { DataWeight } from '../../data/data.weight';
 import { DataVerticalSpeed } from '../../data/data.vertical-speed';
 import { DataTemperature } from '../../data/data.temperature';
 import { DataAltitude } from '../../data/data.altitude';
@@ -122,6 +123,9 @@ import { DataSwimPace } from '../../data/data.swim-pace';
 import { DataSwimPaceMin, DataSwimPaceMinMinutesPer100Yard } from '../../data/data.swim-pace-min';
 import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from '../../data/data.swim-pace-avg';
 import { DataFeeling } from '../../data/data.feeling';
+import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
+import { DataCriticalPower } from '../../data/data.critical-power';
+import { DataWPrime } from '../../data/data.w-prime';
 import { DataPowerLeft } from '../../data/data.power-left';
 import { DataRightBalance } from '../../data/data.right-balance';
 import { DataLeftBalance } from '../../data/data.left-balance';
@@ -793,15 +797,35 @@ export class ActivityUtilities {
   /**
    * Calculate Mean Max Power for specified durations
    * @param activity The activity to analyze
-   * @param durations Array of durations in seconds
+   * @param durations Array of durations in seconds. If not provided, a "Best-in-Class" high-granularity set is used.
    */
-  public static calculateMeanMaxPower(activity: ActivityInterface, durations: number[]): DataPowerCurve {
+  public static calculateMeanMaxPower(activity: ActivityInterface, durations?: number[]): DataPowerCurve {
     if (!activity.hasStreamData(DataPower.type)) {
       return new DataPowerCurve([]);
     }
 
+    // Default "Best-in-Class" granularity if no durations provided
+    if (!durations || durations.length === 0) {
+      durations = [
+        // High Resolution Sprint (1s - 10s)
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+        // Sprint Transition (12s - 50s)
+        12, 15, 18, 20, 25, 30, 35, 40, 45, 50,
+        // Anaerobic Capacity (1m - 4m)
+        60, 75, 90, 120, 150, 180, 210, 240,
+        // VO2 Max (5m - 10m)
+        300, 360, 420, 480, 540, 600,
+        // Threshold & Endurance (15m - 5h)
+        900, 1200, 1500, 1800, 2400, 3600, 5400, 7200, 10800, 14400, 18000
+      ];
+    }
+
     const powerData = activity.getStreamData(DataPower.type);
     const curvePoints: DataPowerCurvePoint[] = [];
+
+    // Get user weight for W/kg calculation
+    const weightStat = activity.getStat(DataWeight.type);
+    const weight = weightStat ? <number>weightStat.getValue() : null;
 
     // Sort durations to ensure consistent processing order, though not strictly necessary
     const sortedDurations = [...durations].sort((a, b) => a - b);
@@ -832,13 +856,84 @@ export class ActivityUtilities {
         }
       }
 
-      curvePoints.push({
+      const point: DataPowerCurvePoint = {
         duration: new DataDuration(duration),
         power: new DataPower(maxAvgPower)
-      });
+      };
+
+      if (weight && weight > 0) {
+        // Calculate W/kg, round to 2 decimal places for cleanliness
+        const wKg = Math.round((maxAvgPower / weight) * 100) / 100;
+        point.wattsPerKg = new DataPowerWattsPerKg(wKg);
+      }
+
+      curvePoints.push(point);
     }
 
     return new DataPowerCurve(curvePoints);
+  }
+
+  /**
+   * Calculate Critical Power (CP) and W' (Anaerobic Work Capacity)
+   * using the Monod & Scherrer 2-parameter model (Power vs 1/Time).
+   * @param activity 
+   */
+  public static calculateCriticalPowerAndWPrime(activity: StatsClassInterface): { cp: DataCriticalPower, wPrime: DataWPrime } | null {
+    const curveStat = activity.getStat(DataPowerCurve.type);
+    if (!curveStat || !curveStat.getValue()) {
+      return null;
+    }
+
+    const points = <DataPowerCurvePoint[]>(<unknown>curveStat.getValue());
+
+    // Filter for durations between 3 minutes (180s) and 20 minutes (1200s)
+    // This range is standard to avoid anaerobic dominance (<3m) and aerobic drift/fatigue (>20m)
+    const dataset = points.filter(p => {
+      const d = p.duration.getValue();
+      return d >= 180 && d <= 1200;
+    });
+
+    if (dataset.length < 2) {
+      return null; // Not enough data points
+    }
+
+    // Linear Regression: y = mx + c
+    // y = Power
+    // x = 1 / time
+    // m = W' (Slope)
+    // c = CP (Intercept)
+
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumXX = 0;
+    const n = dataset.length;
+
+    dataset.forEach(p => {
+      const t = p.duration.getValue();
+      const P = p.power.getValue();
+
+      const x = 1 / t;
+      const y = P;
+
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumXX += x * x;
+    });
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // Validate results - CP and W' must be positive
+    if (intercept <= 0 || slope <= 0) {
+      return null;
+    }
+
+    return {
+      cp: new DataCriticalPower(Math.round(intercept)),
+      wPrime: new DataWPrime(Math.round(slope)) // W' is in Joules
+    };
   }
 
   public static getIntensityZonesStatsAggregated(statClassInstances: StatsClassInterface[]): DataInterface[] {
@@ -1805,6 +1900,25 @@ export class ActivityUtilities {
       const powerStream = powerDurationStream.map(item => item.value) as number[];
       const normalizedPower = this.computeNormalizedPower(powerStream, timeStream);
       activity.addStat(new DataPowerNormalized(normalizedPower));
+    }
+
+    // Power Curve
+    if (!activity.getStat(DataPowerCurve.type) && activity.hasStreamData(DataPower.type)) {
+      const powerCurve = this.calculateMeanMaxPower(activity);
+      if (powerCurve) {
+        activity.addStat(<any>powerCurve);
+        activity.powerCurve = powerCurve;
+      }
+    }
+
+    // Critical Power & W'
+    // calculateCriticalPowerAndWPrime requires DataPowerCurve to be present (which we just added if missing)
+    if ((!activity.getStat(DataCriticalPower.type) || !activity.getStat(DataWPrime.type)) && activity.getStat(DataPowerCurve.type)) {
+      const cpWPrime = this.calculateCriticalPowerAndWPrime(activity);
+      if (cpWPrime) {
+        activity.addStat(cpWPrime.cp);
+        activity.addStat(cpWPrime.wPrime);
+      }
     }
 
     // Air AirPower Max

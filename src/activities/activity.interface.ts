@@ -28,6 +28,7 @@ export interface ActivityInterface
   parseOptions: ActivityParsingOptions;
   // Probably kill intensity zones and use the stats
   intensityZones: IntensityZonesInterface[];
+  powerCurve?: DataPowerCurve;
 
   /**
    * Checks if there are data for that stream type

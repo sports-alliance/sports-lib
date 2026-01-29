@@ -8,10 +8,14 @@ export interface IntensityZonesInterface extends SerializableClassInterface {
   zone3Duration: number;
   zone4Duration: number;
   zone5Duration: number;
+  zone6Duration?: number;
+  zone7Duration?: number;
   zone2LowerLimit?: number;
   zone3LowerLimit?: number;
   zone4LowerLimit?: number;
   zone5LowerLimit?: number;
+  zone6LowerLimit?: number;
+  zone7LowerLimit?: number;
 
   toJSON(): IntensityZonesJSONInterface;
 }

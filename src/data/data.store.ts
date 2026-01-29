@@ -193,8 +193,10 @@ import { DataSpeedZoneFiveDuration } from './data.speed-zone-five-duration';
 import { DataPowerZoneOneDuration } from './data.power-zone-one-duration';
 import { DataPowerZoneTwoDuration } from './data.power-zone-two-duration';
 import { DataPowerZoneThreeDuration } from './data.power-zone-three-duration';
-import { DataPowerZoneFiveDuration } from './data.power-zone-five-duration';
 import { DataPowerZoneFourDuration } from './data.power-zone-four-duration';
+import { DataPowerZoneFiveDuration } from './data.power-zone-five-duration';
+import { DataPowerZoneSixDuration } from './data.power-zone-six-duration';
+import { DataPowerZoneSevenDuration } from './data.power-zone-seven-duration';
 import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
@@ -578,6 +580,8 @@ export const DataStore: any = {
   DataPowerZoneThreeDuration,
   DataPowerZoneFourDuration,
   DataPowerZoneFiveDuration,
+  DataPowerZoneSixDuration,
+  DataPowerZoneSevenDuration,
   DataSpeedZoneOneDuration,
   DataSpeedZoneTwoDuration,
   DataSpeedZoneThreeDuration,

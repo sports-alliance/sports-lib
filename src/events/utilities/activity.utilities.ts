@@ -147,6 +147,8 @@ import { DataPowerZoneTwoDuration } from '../../data/data.power-zone-two-duratio
 import { DataPowerZoneThreeDuration } from '../../data/data.power-zone-three-duration';
 import { DataPowerZoneFourDuration } from '../../data/data.power-zone-four-duration';
 import { DataPowerZoneFiveDuration } from '../../data/data.power-zone-five-duration';
+import { DataPowerZoneSixDuration } from '../../data/data.power-zone-six-duration';
+import { DataPowerZoneSevenDuration } from '../../data/data.power-zone-seven-duration';
 import { DataSpeedZoneOneDuration } from '../../data/data.speed-zone-one-duration';
 import { DataSpeedZoneTwoDuration } from '../../data/data.speed-zone-two-duration';
 import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-duration';
@@ -948,6 +950,8 @@ export class ActivityUtilities {
       DataPowerZoneThreeDuration.type,
       DataPowerZoneFourDuration.type,
       DataPowerZoneFiveDuration.type,
+      DataPowerZoneSixDuration.type,
+      DataPowerZoneSevenDuration.type,
       DataSpeedZoneOneDuration.type,
       DataSpeedZoneTwoDuration.type,
       DataSpeedZoneThreeDuration.type,

@@ -9,10 +9,14 @@ export class IntensityZones implements IntensityZonesInterface {
   zone3Duration!: number;
   zone4Duration!: number;
   zone5Duration!: number;
+  zone6Duration?: number;
+  zone7Duration?: number;
   zone2LowerLimit?: number;
   zone3LowerLimit?: number;
   zone4LowerLimit?: number;
   zone5LowerLimit?: number;
+  zone6LowerLimit?: number;
+  zone7LowerLimit?: number;
 
   constructor(type: string) {
     this.type = type;
@@ -27,6 +31,12 @@ export class IntensityZones implements IntensityZonesInterface {
       zone4Duration: this.zone4Duration,
       zone5Duration: this.zone5Duration
     };
+    if (isNumber(this.zone6Duration)) {
+      json.zone6Duration = this.zone6Duration;
+    }
+    if (isNumber(this.zone7Duration)) {
+      json.zone7Duration = this.zone7Duration;
+    }
     if (isNumber(this.zone2LowerLimit)) {
       json.zone2LowerLimit = this.zone2LowerLimit;
     }
@@ -38,6 +48,12 @@ export class IntensityZones implements IntensityZonesInterface {
     }
     if (isNumber(this.zone5LowerLimit)) {
       json.zone5LowerLimit = this.zone5LowerLimit;
+    }
+    if (isNumber(this.zone6LowerLimit)) {
+      json.zone6LowerLimit = this.zone6LowerLimit;
+    }
+    if (isNumber(this.zone7LowerLimit)) {
+      json.zone7LowerLimit = this.zone7LowerLimit;
     }
     return json;
   }

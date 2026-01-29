@@ -743,6 +743,42 @@ export class EventImporterFIT {
         }
       }
 
+      // Check for Activity Metrics (VO2Max etc)
+      if (fitDataObject.activity_metrics && fitDataObject.activity_metrics.length > 0) {
+        // Try to find matching sport or use the first one if only one session
+        const activityMetric =
+          fitDataObject.activity_metrics.find(
+            (am: any) => am.sport === sessionObject.sport || am.sport === activity.type
+          ) || fitDataObject.activity_metrics[0];
+
+        if (activityMetric) {
+          if (isNumberOrString(activityMetric.vo2_max) && !activity.getStat(DataVO2Max.type)) {
+            activity.addStat(new DataVO2Max(activityMetric.vo2_max));
+          } else if (isNumberOrString(activityMetric.first_vo2_max) && !activity.getStat(DataVO2Max.type)) {
+            activity.addStat(new DataVO2Max(activityMetric.first_vo2_max));
+          }
+
+          if (isNumberOrString(activityMetric.recovery_time) && !activity.getStat(DataRecoveryTime.type)) {
+            activity.addStat(new DataRecoveryTime(activityMetric.recovery_time));
+          }
+
+          if (
+            isNumberOrString(activityMetric.anaerobic_training_effect) &&
+            !activity.getStat(DataAnaerobicTrainingEffect.type)
+          ) {
+            activity.addStat(new DataAnaerobicTrainingEffect(activityMetric.anaerobic_training_effect));
+          }
+
+          if (
+            isNumberOrString(activityMetric.aerobic_training_effect) &&
+            !activity.getStat(DataAerobicTrainingEffect.type)
+          ) {
+            activity.addStat(new DataAerobicTrainingEffect(activityMetric.aerobic_training_effect));
+          }
+        }
+      }
+
+
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {

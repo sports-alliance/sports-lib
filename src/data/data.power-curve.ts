@@ -15,19 +15,4 @@ export class DataPowerCurve extends DataBare<DataPowerCurvePoint[]> {
     constructor(value: DataPowerCurvePoint[]) {
         super(value);
     }
-
-    toJSON(): any {
-        return {
-            [DataPowerCurve.type]: this.value.map(point => {
-                const json: any = {
-                    duration: point.duration.getValue(),
-                    power: point.power.getValue(),
-                };
-                if (point.wattsPerKg) {
-                    json.wattsPerKg = point.wattsPerKg.getValue();
-                }
-                return json;
-            })
-        };
-    }
 }

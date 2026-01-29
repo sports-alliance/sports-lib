@@ -285,6 +285,10 @@ import { DataTargetTime } from './data.target-time';
 import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
 import { DataGroundContactTimeBalanceRight } from './data-ground-contact-time-balance-right';
 import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
+import { DataCriticalPower } from './data.critical-power';
+import { DataPowerCurve } from './data.power-curve';
+import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
+import { DataWPrime } from './data.w-prime';
 
 import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
 import { DataSportProfileName } from './data.sport-profile-name';
@@ -367,6 +371,10 @@ export const DataStore: any = {
   DataSeaLevelPressure,
   DataSatellite5BestSNR,
   DataPower,
+  DataCriticalPower,
+  DataPowerCurve,
+  DataPowerWattsPerKg,
+  DataWPrime,
   DataNumberOfSatellites,
   DataLongitudeDegrees,
   DataLatitudeDegrees,
@@ -915,7 +923,9 @@ export class DynamicDataLoader {
         DataPowerZoneTwoDuration.type,
         DataPowerZoneThreeDuration.type,
         DataPowerZoneFourDuration.type,
-        DataPowerZoneFiveDuration.type
+        DataPowerZoneFiveDuration.type,
+        DataPowerZoneSixDuration.type,
+        DataPowerZoneSevenDuration.type
       ]
     }
   ];

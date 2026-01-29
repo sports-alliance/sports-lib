@@ -57,6 +57,7 @@ describe('Event', () => {
       name: 'Test',
       description: 'Test',
       isMerge: false,
+      powerCurve: null,
       privacy: 'private',
       srcFileType: FileType.FIT,
       stats: {},

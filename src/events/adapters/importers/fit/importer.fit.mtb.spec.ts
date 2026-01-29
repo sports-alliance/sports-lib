@@ -141,7 +141,9 @@ describe('EventImporterFIT MTB Jumps', () => {
         expect(endPos.latitudeDegrees).toBeCloseTo(39.664946, 5);
         expect(endPos.longitudeDegrees).toBeCloseTo(20.849807, 5);
 
-        expect(activity.getStat(DataRecoveryTime.type)).toBeUndefined();
+        const recoveryTime = activity.getStat(DataRecoveryTime.type) as DataRecoveryTime;
+        expect(recoveryTime).toBeDefined();
+        expect(recoveryTime.getValue()).toBe(1164);
 
         // User Profile
         const weight = activity.getStat(DataWeight.type) as DataWeight;

@@ -185,11 +185,15 @@ import { DataHeartRateZoneTwoDuration } from './data.heart-rate-zone-two-duratio
 import { DataHeartRateZoneThreeDuration } from './data.heart-rate-zone-three-duration';
 import { DataHeartRateZoneFourDuration } from './data.heart-rate-zone-four-duration';
 import { DataHeartRateZoneFiveDuration } from './data.heart-rate-zone-five-duration';
+import { DataHeartRateZoneSixDuration } from './data.heart-rate-zone-six-duration';
+import { DataHeartRateZoneSevenDuration } from './data.heart-rate-zone-seven-duration';
 import { DataSpeedZoneOneDuration } from './data.speed-zone-one-duration';
 import { DataSpeedZoneTwoDuration } from './data.speed-zone-two-duration';
 import { DataSpeedZoneThreeDuration } from './data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from './data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from './data.speed-zone-five-duration';
+import { DataSpeedZoneSixDuration } from './data.speed-zone-six-duration';
+import { DataSpeedZoneSevenDuration } from './data.speed-zone-seven-duration';
 import { DataPowerZoneOneDuration } from './data.power-zone-one-duration';
 import { DataPowerZoneTwoDuration } from './data.power-zone-two-duration';
 import { DataPowerZoneThreeDuration } from './data.power-zone-three-duration';
@@ -583,6 +587,8 @@ export const DataStore: any = {
   DataHeartRateZoneThreeDuration,
   DataHeartRateZoneFourDuration,
   DataHeartRateZoneFiveDuration,
+  DataHeartRateZoneSixDuration,
+  DataHeartRateZoneSevenDuration,
   DataPowerZoneOneDuration,
   DataPowerZoneTwoDuration,
   DataPowerZoneThreeDuration,
@@ -595,6 +601,8 @@ export const DataStore: any = {
   DataSpeedZoneThreeDuration,
   DataSpeedZoneFourDuration,
   DataSpeedZoneFiveDuration,
+  DataSpeedZoneSixDuration,
+  DataSpeedZoneSevenDuration,
   DataPosition,
   DataStartPosition,
   DataEndPosition,
@@ -903,7 +911,9 @@ export class DynamicDataLoader {
         DataHeartRateZoneTwoDuration.type,
         DataHeartRateZoneThreeDuration.type,
         DataHeartRateZoneFourDuration.type,
-        DataHeartRateZoneFiveDuration.type
+        DataHeartRateZoneFiveDuration.type,
+        DataHeartRateZoneSixDuration.type,
+        DataHeartRateZoneSevenDuration.type,
       ]
     },
     {
@@ -913,7 +923,9 @@ export class DynamicDataLoader {
         DataSpeedZoneTwoDuration.type,
         DataSpeedZoneThreeDuration.type,
         DataSpeedZoneFourDuration.type,
-        DataSpeedZoneFiveDuration.type
+        DataSpeedZoneFiveDuration.type,
+        DataSpeedZoneSixDuration.type,
+        DataSpeedZoneSevenDuration.type,
       ]
     },
     {

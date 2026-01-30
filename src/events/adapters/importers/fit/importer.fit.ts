@@ -55,6 +55,8 @@ import { DataHeartRateZoneTwoDuration } from '../../../../data/data.heart-rate-z
 import { DataHeartRateZoneThreeDuration } from '../../../../data/data.heart-rate-zone-three-duration';
 import { DataHeartRateZoneFourDuration } from '../../../../data/data.heart-rate-zone-four-duration';
 import { DataHeartRateZoneFiveDuration } from '../../../../data/data.heart-rate-zone-five-duration';
+import { DataHeartRateZoneSixDuration } from '../../../../data/data.heart-rate-zone-six-duration';
+import { DataHeartRateZoneSevenDuration } from '../../../../data/data.heart-rate-zone-seven-duration';
 import { DataPowerZoneOneDuration } from '../../../../data/data.power-zone-one-duration';
 import { DataPowerZoneTwoDuration } from '../../../../data/data.power-zone-two-duration';
 import { DataPowerZoneThreeDuration } from '../../../../data/data.power-zone-three-duration';
@@ -67,6 +69,8 @@ import { DataSpeedZoneTwoDuration } from '../../../../data/data.speed-zone-two-d
 import { DataSpeedZoneThreeDuration } from '../../../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../../../data/data.speed-zone-five-duration';
+import { DataSpeedZoneSixDuration } from '../../../../data/data.speed-zone-six-duration';
+import { DataSpeedZoneSevenDuration } from '../../../../data/data.speed-zone-seven-duration';
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
 import { DataStartEvent } from '../../../../data/data.start-event';
 import { DataStopEvent } from '../../../../data/data.stop-event';
@@ -238,66 +242,77 @@ export class EventImporterFIT {
             activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index));
           });
 
+          const manufacturer = (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
+          const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
+
           // Go over the hr zone info
           if (sessionObject.time_in_hr_zone && sessionObject.time_in_hr_zone.length) {
             // Add the stats
-            if (isNumber(sessionObject.time_in_hr_zone[0])) {
-              activity.addStat(new DataHeartRateZoneOneDuration(sessionObject.time_in_hr_zone[0]));
+            if (isNumber(sessionObject.time_in_hr_zone[0 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneOneDuration(sessionObject.time_in_hr_zone[0 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_hr_zone[1])) {
-              activity.addStat(new DataHeartRateZoneTwoDuration(sessionObject.time_in_hr_zone[1]));
+            if (isNumber(sessionObject.time_in_hr_zone[1 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneTwoDuration(sessionObject.time_in_hr_zone[1 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_hr_zone[2])) {
-              activity.addStat(new DataHeartRateZoneThreeDuration(sessionObject.time_in_hr_zone[2]));
+            if (isNumber(sessionObject.time_in_hr_zone[2 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneThreeDuration(sessionObject.time_in_hr_zone[2 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_hr_zone[3])) {
-              activity.addStat(new DataHeartRateZoneFourDuration(sessionObject.time_in_hr_zone[3]));
+            if (isNumber(sessionObject.time_in_hr_zone[3 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneFourDuration(sessionObject.time_in_hr_zone[3 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_hr_zone[4])) {
-              activity.addStat(new DataHeartRateZoneFiveDuration(sessionObject.time_in_hr_zone[4]));
+            if (isNumber(sessionObject.time_in_hr_zone[4 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneFiveDuration(sessionObject.time_in_hr_zone[4 + zoneIndexOffset]));
+            }
+            if (isNumber(sessionObject.time_in_hr_zone[5 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneSixDuration(sessionObject.time_in_hr_zone[5 + zoneIndexOffset]));
+            }
+            if (isNumber(sessionObject.time_in_hr_zone[6 + zoneIndexOffset])) {
+              activity.addStat(new DataHeartRateZoneSevenDuration(sessionObject.time_in_hr_zone[6 + zoneIndexOffset]));
             }
 
             const hrIntensityZones = new IntensityZones(DataHeartRate.type);
-            hrIntensityZones.zone1Duration = sessionObject.time_in_hr_zone[0] || 0;
-            hrIntensityZones.zone2Duration = sessionObject.time_in_hr_zone[1] || 0;
-            hrIntensityZones.zone3Duration = sessionObject.time_in_hr_zone[2] || 0;
-            hrIntensityZones.zone4Duration = sessionObject.time_in_hr_zone[3] || 0;
-            hrIntensityZones.zone5Duration = sessionObject.time_in_hr_zone[4] || 0;
+            hrIntensityZones.zone1Duration = sessionObject.time_in_hr_zone[0 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone2Duration = sessionObject.time_in_hr_zone[1 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone3Duration = sessionObject.time_in_hr_zone[2 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone4Duration = sessionObject.time_in_hr_zone[3 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone5Duration = sessionObject.time_in_hr_zone[4 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone6Duration = sessionObject.time_in_hr_zone[5 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone7Duration = sessionObject.time_in_hr_zone[6 + zoneIndexOffset] || 0;
             activity.intensityZones.push(hrIntensityZones);
           }
 
           // Go over the power zone info
           if (sessionObject.time_in_power_zone && sessionObject.time_in_power_zone.length) {
-            if (isNumber(sessionObject.time_in_power_zone[0])) {
-              activity.addStat(new DataPowerZoneOneDuration(sessionObject.time_in_power_zone[0]));
+            if (isNumber(sessionObject.time_in_power_zone[0 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneOneDuration(sessionObject.time_in_power_zone[0 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[1])) {
-              activity.addStat(new DataPowerZoneTwoDuration(sessionObject.time_in_power_zone[1]));
+            if (isNumber(sessionObject.time_in_power_zone[1 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneTwoDuration(sessionObject.time_in_power_zone[1 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[2])) {
-              activity.addStat(new DataPowerZoneThreeDuration(sessionObject.time_in_power_zone[2]));
+            if (isNumber(sessionObject.time_in_power_zone[2 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneThreeDuration(sessionObject.time_in_power_zone[2 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[3])) {
-              activity.addStat(new DataPowerZoneFourDuration(sessionObject.time_in_power_zone[3]));
+            if (isNumber(sessionObject.time_in_power_zone[3 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneFourDuration(sessionObject.time_in_power_zone[3 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[4])) {
-              activity.addStat(new DataPowerZoneFiveDuration(sessionObject.time_in_power_zone[4]));
+            if (isNumber(sessionObject.time_in_power_zone[4 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneFiveDuration(sessionObject.time_in_power_zone[4 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[5])) {
-              activity.addStat(new DataPowerZoneSixDuration(sessionObject.time_in_power_zone[5]));
+            if (isNumber(sessionObject.time_in_power_zone[5 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneSixDuration(sessionObject.time_in_power_zone[5 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_power_zone[6])) {
-              activity.addStat(new DataPowerZoneSevenDuration(sessionObject.time_in_power_zone[6]));
+            if (isNumber(sessionObject.time_in_power_zone[6 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneSevenDuration(sessionObject.time_in_power_zone[6 + zoneIndexOffset]));
             }
 
             const powerIntensityZones = new IntensityZones(DataPower.type);
-            powerIntensityZones.zone1Duration = sessionObject.time_in_power_zone[0] || 0;
-            powerIntensityZones.zone2Duration = sessionObject.time_in_power_zone[1] || 0;
-            powerIntensityZones.zone3Duration = sessionObject.time_in_power_zone[2] || 0;
-            powerIntensityZones.zone4Duration = sessionObject.time_in_power_zone[3] || 0;
-            powerIntensityZones.zone5Duration = sessionObject.time_in_power_zone[4] || 0;
-            powerIntensityZones.zone6Duration = sessionObject.time_in_power_zone[5] || 0;
-            powerIntensityZones.zone7Duration = sessionObject.time_in_power_zone[6] || 0;
+            powerIntensityZones.zone1Duration = sessionObject.time_in_power_zone[0 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone2Duration = sessionObject.time_in_power_zone[1 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone3Duration = sessionObject.time_in_power_zone[2 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone4Duration = sessionObject.time_in_power_zone[3 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone5Duration = sessionObject.time_in_power_zone[4 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone6Duration = sessionObject.time_in_power_zone[5 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone7Duration = sessionObject.time_in_power_zone[6 + zoneIndexOffset] || 0;
 
             if (
               Array.isArray(sessionObject.power_zone_high_boundary) &&
@@ -327,28 +342,36 @@ export class EventImporterFIT {
 
           // Go over the speed zone info
           if (sessionObject.time_in_speed_zone && sessionObject.time_in_speed_zone.length) {
-            if (isNumber(sessionObject.time_in_speed_zone[0])) {
-              activity.addStat(new DataSpeedZoneOneDuration(sessionObject.time_in_speed_zone[0]));
+            if (isNumber(sessionObject.time_in_speed_zone[0 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneOneDuration(sessionObject.time_in_speed_zone[0 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_speed_zone[1])) {
-              activity.addStat(new DataSpeedZoneTwoDuration(sessionObject.time_in_speed_zone[1]));
+            if (isNumber(sessionObject.time_in_speed_zone[1 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneTwoDuration(sessionObject.time_in_speed_zone[1 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_speed_zone[2])) {
-              activity.addStat(new DataSpeedZoneThreeDuration(sessionObject.time_in_speed_zone[2]));
+            if (isNumber(sessionObject.time_in_speed_zone[2 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneThreeDuration(sessionObject.time_in_speed_zone[2 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_speed_zone[3])) {
-              activity.addStat(new DataSpeedZoneFourDuration(sessionObject.time_in_speed_zone[3]));
+            if (isNumber(sessionObject.time_in_speed_zone[3 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneFourDuration(sessionObject.time_in_speed_zone[3 + zoneIndexOffset]));
             }
-            if (isNumber(sessionObject.time_in_speed_zone[4])) {
-              activity.addStat(new DataSpeedZoneFiveDuration(sessionObject.time_in_speed_zone[4]));
+            if (isNumber(sessionObject.time_in_speed_zone[4 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneFiveDuration(sessionObject.time_in_speed_zone[4 + zoneIndexOffset]));
+            }
+            if (isNumber(sessionObject.time_in_speed_zone[5 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneSixDuration(sessionObject.time_in_speed_zone[5 + zoneIndexOffset]));
+            }
+            if (isNumber(sessionObject.time_in_speed_zone[6 + zoneIndexOffset])) {
+              activity.addStat(new DataSpeedZoneSevenDuration(sessionObject.time_in_speed_zone[6 + zoneIndexOffset]));
             }
 
             const speedIntensityZones = new IntensityZones(DataSpeed.type);
-            speedIntensityZones.zone1Duration = sessionObject.time_in_speed_zone[0] || 0;
-            speedIntensityZones.zone2Duration = sessionObject.time_in_speed_zone[1] || 0;
-            speedIntensityZones.zone3Duration = sessionObject.time_in_speed_zone[2] || 0;
-            speedIntensityZones.zone4Duration = sessionObject.time_in_speed_zone[3] || 0;
-            speedIntensityZones.zone5Duration = sessionObject.time_in_speed_zone[4] || 0;
+            speedIntensityZones.zone1Duration = sessionObject.time_in_speed_zone[0 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone2Duration = sessionObject.time_in_speed_zone[1 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone3Duration = sessionObject.time_in_speed_zone[2 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone4Duration = sessionObject.time_in_speed_zone[3 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone5Duration = sessionObject.time_in_speed_zone[4 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone6Duration = sessionObject.time_in_speed_zone[5 + zoneIndexOffset] || 0;
+            speedIntensityZones.zone7Duration = sessionObject.time_in_speed_zone[6 + zoneIndexOffset] || 0;
             activity.intensityZones.push(speedIntensityZones);
           }
 
@@ -817,6 +840,8 @@ export class EventImporterFIT {
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
         // Find session-level time_in_zone message (reference_mesg = 18 for session, reference_index = 0 for first session)
+        const manufacturer = (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
+        const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
         const sessionTimeInZone = fitDataObject.time_in_zone.find(
           (z: any) => z.reference_mesg === 18 && (z.reference_index === 0 || z.reference_index === undefined)
         );
@@ -826,20 +851,26 @@ export class EventImporterFIT {
 
           // Only add zone duration stats if not already set from sessionObject.time_in_hr_zone
           if (!activity.getStat(DataHeartRateZoneOneDuration.type)) {
-            if (hrZones[0] !== undefined && hrZones[0] !== null) {
-              activity.addStat(new DataHeartRateZoneOneDuration(hrZones[0]));
+            if (hrZones[0 + zoneIndexOffset] !== undefined && hrZones[0 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneOneDuration(hrZones[0 + zoneIndexOffset]));
             }
-            if (hrZones[1] !== undefined && hrZones[1] !== null) {
-              activity.addStat(new DataHeartRateZoneTwoDuration(hrZones[1]));
+            if (hrZones[1 + zoneIndexOffset] !== undefined && hrZones[1 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneTwoDuration(hrZones[1 + zoneIndexOffset]));
             }
-            if (hrZones[2] !== undefined && hrZones[2] !== null) {
-              activity.addStat(new DataHeartRateZoneThreeDuration(hrZones[2]));
+            if (hrZones[2 + zoneIndexOffset] !== undefined && hrZones[2 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneThreeDuration(hrZones[2 + zoneIndexOffset]));
             }
-            if (hrZones[3] !== undefined && hrZones[3] !== null) {
-              activity.addStat(new DataHeartRateZoneFourDuration(hrZones[3]));
+            if (hrZones[3 + zoneIndexOffset] !== undefined && hrZones[3 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneFourDuration(hrZones[3 + zoneIndexOffset]));
             }
-            if (hrZones[4] !== undefined && hrZones[4] !== null) {
-              activity.addStat(new DataHeartRateZoneFiveDuration(hrZones[4]));
+            if (hrZones[4 + zoneIndexOffset] !== undefined && hrZones[4 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneFiveDuration(hrZones[4 + zoneIndexOffset]));
+            }
+            if (hrZones[5 + zoneIndexOffset] !== undefined && hrZones[5 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneSixDuration(hrZones[5 + zoneIndexOffset]));
+            }
+            if (hrZones[6 + zoneIndexOffset] !== undefined && hrZones[6 + zoneIndexOffset] !== null) {
+              activity.addStat(new DataHeartRateZoneSevenDuration(hrZones[6 + zoneIndexOffset]));
             }
           }
 
@@ -848,11 +879,13 @@ export class EventImporterFIT {
           if (!existingHrZones && Array.isArray(hrZoneBoundaries) && hrZoneBoundaries.length > 0) {
             // Create IntensityZones with boundaries
             const hrIntensityZones = new IntensityZones(DataHeartRate.type);
-            hrIntensityZones.zone1Duration = hrZones[0] || 0;
-            hrIntensityZones.zone2Duration = hrZones[1] || 0;
-            hrIntensityZones.zone3Duration = hrZones[2] || 0;
-            hrIntensityZones.zone4Duration = hrZones[3] || 0;
-            hrIntensityZones.zone5Duration = hrZones[4] || 0;
+            hrIntensityZones.zone1Duration = hrZones[0 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone2Duration = hrZones[1 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone3Duration = hrZones[2 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone4Duration = hrZones[3 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone5Duration = hrZones[4 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone6Duration = hrZones[5 + zoneIndexOffset] || 0;
+            hrIntensityZones.zone7Duration = hrZones[6 + zoneIndexOffset] || 0;
 
             // hr_zone_high_boundary[n] is the upper limit of zone n+1
             // Zone 2 lower limit = Zone 1 high boundary = hrZoneBoundaries[0]
@@ -899,26 +932,26 @@ export class EventImporterFIT {
 
           // Only add zone duration stats if not already set
           if (!activity.getStat(DataPowerZoneOneDuration.type)) {
-            if (isNumber(powerZones[0])) {
-              activity.addStat(new DataPowerZoneOneDuration(powerZones[0]));
+            if (isNumber(powerZones[0 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneOneDuration(powerZones[0 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[1])) {
-              activity.addStat(new DataPowerZoneTwoDuration(powerZones[1]));
+            if (isNumber(powerZones[1 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneTwoDuration(powerZones[1 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[2])) {
-              activity.addStat(new DataPowerZoneThreeDuration(powerZones[2]));
+            if (isNumber(powerZones[2 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneThreeDuration(powerZones[2 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[3])) {
-              activity.addStat(new DataPowerZoneFourDuration(powerZones[3]));
+            if (isNumber(powerZones[3 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneFourDuration(powerZones[3 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[4])) {
-              activity.addStat(new DataPowerZoneFiveDuration(powerZones[4]));
+            if (isNumber(powerZones[4 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneFiveDuration(powerZones[4 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[5])) {
-              activity.addStat(new DataPowerZoneSixDuration(powerZones[5]));
+            if (isNumber(powerZones[5 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneSixDuration(powerZones[5 + zoneIndexOffset]));
             }
-            if (isNumber(powerZones[6])) {
-              activity.addStat(new DataPowerZoneSevenDuration(powerZones[6]));
+            if (isNumber(powerZones[6 + zoneIndexOffset])) {
+              activity.addStat(new DataPowerZoneSevenDuration(powerZones[6 + zoneIndexOffset]));
             }
           }
 
@@ -927,13 +960,13 @@ export class EventImporterFIT {
           if (!existingPowerZones && Array.isArray(powerZones) && powerZones.length > 0) {
             // Create IntensityZones with boundaries
             const powerIntensityZones = new IntensityZones(DataPower.type);
-            powerIntensityZones.zone1Duration = powerZones[0] || 0;
-            powerIntensityZones.zone2Duration = powerZones[1] || 0;
-            powerIntensityZones.zone3Duration = powerZones[2] || 0;
-            powerIntensityZones.zone4Duration = powerZones[3] || 0;
-            powerIntensityZones.zone5Duration = powerZones[4] || 0;
-            powerIntensityZones.zone6Duration = powerZones[5] || 0;
-            powerIntensityZones.zone7Duration = powerZones[6] || 0;
+            powerIntensityZones.zone1Duration = powerZones[0 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone2Duration = powerZones[1 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone3Duration = powerZones[2 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone4Duration = powerZones[3 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone5Duration = powerZones[4 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone6Duration = powerZones[5 + zoneIndexOffset] || 0;
+            powerIntensityZones.zone7Duration = powerZones[6 + zoneIndexOffset] || 0;
 
             if (Array.isArray(powerZoneBoundaries) && powerZoneBoundaries.length > 0) {
               if (isNumber(powerZoneBoundaries[0]) && powerZoneBoundaries[0] !== 65535) {

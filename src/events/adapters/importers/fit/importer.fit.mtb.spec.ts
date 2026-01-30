@@ -158,30 +158,33 @@ describe('EventImporterFIT MTB Jumps', () => {
         // HR Zone Durations from time_in_zone (session-level message 216)
         const zone1 = activity.getStat(DataHeartRateZoneOneDuration.type) as DataHeartRateZoneOneDuration;
         expect(zone1).toBeDefined();
-        expect(zone1.getValue()).toBeCloseTo(346.004, 0); // ~346 seconds in zone 1
+        expect(zone1.getValue()).toBeCloseTo(1831.986, 0); // ~1832 seconds in zone 1 (index 1)
 
         const zone2 = activity.getStat(DataHeartRateZoneTwoDuration.type) as DataHeartRateZoneTwoDuration;
         expect(zone2).toBeDefined();
-        expect(zone2.getValue()).toBeCloseTo(1831.986, 0); // ~1832 seconds in zone 2
+        expect(zone2.getValue()).toBeCloseTo(2412.306, 0); // ~2412 seconds in zone 2 (index 2)
 
         const zone3 = activity.getStat(DataHeartRateZoneThreeDuration.type) as DataHeartRateZoneThreeDuration;
         expect(zone3).toBeDefined();
-        expect(zone3.getValue()).toBeCloseTo(2412.306, 0); // ~2412 seconds in zone 3
+        expect(zone3.getValue()).toBeCloseTo(2160.994, 0); // ~2161 seconds in zone 3 (index 3)
 
         const zone4 = activity.getStat(DataHeartRateZoneFourDuration.type) as DataHeartRateZoneFourDuration;
         expect(zone4).toBeDefined();
-        expect(zone4.getValue()).toBeCloseTo(2160.994, 0); // ~2161 seconds in zone 4
+        expect(zone4.getValue()).toBeCloseTo(450.999, 0); // ~451 seconds in zone 4 (index 4)
 
         const zone5 = activity.getStat(DataHeartRateZoneFiveDuration.type) as DataHeartRateZoneFiveDuration;
         expect(zone5).toBeDefined();
-        expect(zone5.getValue()).toBeCloseTo(450.999, 0); // ~451 seconds in zone 5
+        expect(zone5.getValue()).toBeCloseTo(47, 0); // ~47 seconds in zone 5 (index 5)
 
         // Check IntensityZones with boundaries
         const hrIntensityZones = activity.intensityZones.find(iz => iz.type === 'Heart Rate');
         expect(hrIntensityZones).toBeDefined();
         if (hrIntensityZones) {
-            expect(hrIntensityZones.zone1Duration).toBeCloseTo(346.004, 0);
-            expect(hrIntensityZones.zone2Duration).toBeCloseTo(1831.986, 0);
+            expect(hrIntensityZones.zone1Duration).toBeCloseTo(1831.986, 0);
+            expect(hrIntensityZones.zone2Duration).toBeCloseTo(2412.306, 0);
+            expect(hrIntensityZones.zone3Duration).toBeCloseTo(2160.994, 0);
+            expect(hrIntensityZones.zone4Duration).toBeCloseTo(450.999, 0);
+            expect(hrIntensityZones.zone5Duration).toBeCloseTo(47, 0);
             // Zone boundaries: hr_zone_high_boundary = [93, 111, 130, 148, 167, 185] (from image)
             // zone2LowerLimit = 93, zone3LowerLimit = 111, zone4LowerLimit = 130, zone5LowerLimit = 148
             expect(hrIntensityZones.zone2LowerLimit).toBe(93);

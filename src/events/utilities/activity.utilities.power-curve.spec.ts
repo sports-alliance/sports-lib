@@ -100,13 +100,12 @@ describe('ActivityUtilities Power Curve', () => {
         expect(points[0]).toHaveProperty('duration');
         expect(points[0]).toHaveProperty('power');
 
-        // Check that they are instances of Data classes
-        // toJSON returns the raw Value structure. DataPowerCurve's value is DataPowerCurvePoint[], 
-        // which contains DataDuration and DataPower instances.
-        expect(points[0].duration).toBeInstanceOf(DataDuration);
-        expect(points[0].power).toBeInstanceOf(DataPower);
-        expect(points[0].duration.getValue()).toBe(1);
-        expect(points[0].power.getValue()).toBe(300);
+        // Check that they are primitive values (numbers), not Data class instances
+        // toJSON now returns the raw plain object structure for Firestore compatibility.
+        expect(typeof points[0].duration).toBe('number');
+        expect(typeof points[0].power).toBe('number');
+        expect(points[0].duration).toBe(1);
+        expect(points[0].power).toBe(300);
     });
 
     it('should use default "Best-in-Class" granularity when no durations are provided', () => {

@@ -2178,7 +2178,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
   });
 
   describe('Others', () => {
-    it('should reject parsing of broken fit file (empty activities)', done => {
+    it('should reject parsing of broken fit file (empty activities)', async () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-activities.fit';
       const buffer = fs.readFileSync(path);
@@ -2186,25 +2186,19 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const expectedErrorClassName = 'EmptyEventLibError';
       const expectedCode = 'EVENT_EMPTY_ERROR';
 
-      // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
-
-      // Then
-      eventInterfacePromise.then(
-        () => {
-          throw new Error('Should not be resolved...');
-        },
-        (err: EventLibError) => {
-          expect(err.constructor.name).toEqual(expectedErrorClassName);
-          expect(err.message).toEqual(expectedErrorMessage);
-          expect(err.code).toEqual(expectedCode);
-          expect(err.event).toBeNull();
-          done();
-        }
-      );
+      // When & Then
+      try {
+        await SportsLib.importFromFit(buffer);
+        throw new Error('Should not be resolved...');
+      } catch (err: any) {
+        expect(err.constructor.name).toEqual(expectedErrorClassName);
+        expect(err.message).toEqual(expectedErrorMessage);
+        expect(err.code).toEqual(expectedCode);
+        expect(err.event).toBeNull();
+      }
     });
 
-    it('should reject parsing of broken fit file (empty sessions)', done => {
+    it('should reject parsing of broken fit file (empty sessions)', async () => {
       // Given
       const path = __dirname + '/fixtures/others/empty-sessions.fit';
       const buffer = fs.readFileSync(path);
@@ -2212,60 +2206,48 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const expectedErrorClassName = 'EmptyEventLibError';
       const expectedCode = 'EVENT_EMPTY_ERROR';
 
-      // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
-
-      // Then
-      eventInterfacePromise.then(
-        () => {
-          throw new Error('Should not be resolved...');
-        },
-        (err: EventLibError) => {
-          expect(err.constructor.name).toEqual(expectedErrorClassName);
-          expect(err.message).toEqual(expectedErrorMessage);
-          expect(err.code).toEqual(expectedCode);
-          expect(err.event).toBeNull();
-          done();
-        }
-      );
+      // When & Then
+      try {
+        await SportsLib.importFromFit(buffer);
+        throw new Error('Should not be resolved...');
+      } catch (err: any) {
+        expect(err.constructor.name).toEqual(expectedErrorClassName);
+        expect(err.message).toEqual(expectedErrorMessage);
+        expect(err.code).toEqual(expectedCode);
+        expect(err.event).toBeNull();
+      }
     });
 
-    it('should parse fit file with broken sessionObject.start_time date', done => {
+    it('should parse fit file with broken sessionObject.start_time date', async () => {
       // Given
       const path = __dirname + '/fixtures/others/broken-dates.fit';
       const buffer = fs.readFileSync(path);
 
       // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+      const event = await SportsLib.importFromFit(buffer);
 
       // Then
-      eventInterfacePromise.then(event => {
-        expect(event.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
-        expect(event.endDate.toISOString()).toEqual('2017-03-20T19:20:26.083Z');
-        done();
-      });
+      expect(event.startDate.toISOString()).toEqual('2017-03-20T19:09:28.000Z');
+      expect(event.endDate.toISOString()).toEqual('2017-03-20T19:20:26.083Z');
     });
 
-    it('should handle activity with broken start lat/lng', done => {
+    it('should handle activity with broken start lat/lng', async () => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7606651718 OR https://www.strava.com/activities/6066984530
       const path = __dirname + '/fixtures/others/broken-start-latlng.fit';
       const buffer = fs.readFileSync(path);
 
       // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+      const event = await SportsLib.importFromFit(buffer);
 
       // Then
-      eventInterfacePromise.then((event: EventInterface) => {
-        const activity = event.getFirstActivity();
-        const longStream = activity.getSquashedStreamData(DataLongitudeDegrees.type);
-        const latStream = activity.getSquashedStreamData(DataLatitudeDegrees.type);
-        expect(longStream[0]).not.toEqual(0);
-        expect(latStream[0]).not.toEqual(0);
-        done();
-      });
+      const activity = event.getFirstActivity();
+      const longStream = activity.getSquashedStreamData(DataLongitudeDegrees.type);
+      const latStream = activity.getSquashedStreamData(DataLatitudeDegrees.type);
+      expect(longStream[0]).not.toEqual(0);
+      expect(latStream[0]).not.toEqual(0);
     });
 
-    it('should reject parsing of a too long activity (31 days)', done => {
+    it('should reject parsing of a too long activity (31 days)', async () => {
       // Given
       const path = __dirname + '/fixtures/others/31-days-activity.fit';
       const buffer = fs.readFileSync(path);
@@ -2273,47 +2255,38 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const expectedErrorClassName = 'DurationExceededEventLibError';
       const expectedCode = 'DURATION_EXCEEDED_EVENT_ERROR';
 
-      // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
-
-      // Then
-      eventInterfacePromise.then(
-        () => {
-          throw new Error('Should not be resolved...');
-        },
-        (err: EventLibError) => {
-          expect(err.constructor.name).toEqual(expectedErrorClassName);
-          expect(err.message).toEqual(expectedErrorMessage);
-          expect(err.code).toEqual(expectedCode);
-          expect(err.event).toBeNull();
-          done();
-        }
-      );
+      // When & Then
+      try {
+        await SportsLib.importFromFit(buffer);
+        throw new Error('Should not be resolved...');
+      } catch (err: any) {
+        expect(err.constructor.name).toEqual(expectedErrorClassName);
+        expect(err.message).toEqual(expectedErrorMessage);
+        expect(err.code).toEqual(expectedCode);
+        expect(err.event).toBeNull();
+      }
     });
 
-    it('should handle inverted elapsed and timer time', done => {
+    it('should handle inverted elapsed and timer time', async () => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7852903753 OR https://www.strava.com/activities/6288405028
       const path = __dirname + '/fixtures/others/inverted-times.fit';
       const buffer = fs.readFileSync(path);
 
       // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer);
+      const event = await SportsLib.importFromFit(buffer);
 
       // Then
-      eventInterfacePromise.then((event: EventInterface) => {
-        const activity = event.getFirstActivity();
-        // Verifying time data
-        const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
-        const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
-        const elapsedTime = activity.getDuration().getValue();
-        SpecUtils.assertNearEqualTime(movingTime, '47:20', 1);
-        SpecUtils.assertNearEqualTime(timerTime, '47:20');
-        SpecUtils.assertNearEqualTime(elapsedTime, '06:01:20');
-        done();
-      });
+      const activity = event.getFirstActivity();
+      // Verifying time data
+      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+      const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+      const elapsedTime = activity.getDuration().getValue();
+      SpecUtils.assertNearEqualTime(movingTime, '47:20', 1);
+      SpecUtils.assertNearEqualTime(timerTime, '47:20');
+      SpecUtils.assertNearEqualTime(elapsedTime, '06:01:20');
     });
 
-    it('should handle calculation on a ultra long activity (27 days) with acceptable human time', done => {
+    it('should handle calculation on a ultra long activity (27 days) with acceptable human time', async () => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7769719668 OR https://www.strava.com/activities/6197356353
       const path = __dirname + '/fixtures/others/27-days-activity.fit';
       const buffer = fs.readFileSync(path);
@@ -2322,22 +2295,19 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       const expectedSamplesLength = 3699;
 
       // When
-      const eventInterfacePromise = SportsLib.importFromFit(buffer, options);
+      const event = await SportsLib.importFromFit(buffer, options);
 
       // Then
-      eventInterfacePromise.then((event: EventInterface) => {
-        const activity = event.getFirstActivity();
+      const activity = event.getFirstActivity();
 
-        expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
-        expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
-        expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
-        expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-        expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
-        done();
-      });
+      expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
+      expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+      expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
+      expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
+      expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
     });
 
-    it('should handle and detect an activity with broken speed data', done => {
+    it('should handle and detect an activity with broken speed data', async () => {
       // Given TCX Source: (unable to upload on garmin connect) OR https://www.strava.com/activities/3197023890
       const path = __dirname + '/fixtures/others/broken-speed-activity.tcx';
       const doc = domParser.parseFromString(fs.readFileSync(path).toString(), 'application/xml');
@@ -2345,22 +2315,19 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       options.streams.fixAbnormal.speed = true;
 
       // When
-      const eventInterfacePromise = SportsLib.importFromTCX(doc);
+      const event = await SportsLib.importFromTCX(doc);
 
       // Then
-      eventInterfacePromise.then((event: EventInterface) => {
-        const activity = event.getFirstActivity();
-        const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
-        expect(speedStdDev).toBeCloseTo(0.55, 2);
-        // Verifying time data
-        const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
-        const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
-        const elapsedTime = activity.getDuration().getValue();
-        SpecUtils.assertNearEqualTime(movingTime, '05:04:20');
-        SpecUtils.assertNearEqualTime(timerTime, '5:07:54');
-        SpecUtils.assertNearEqualTime(elapsedTime, '5:07:54');
-        done();
-      });
+      const activity = event.getFirstActivity();
+      const speedStdDev = standardDeviation(activity.getSquashedStreamData(DataSpeed.type));
+      expect(speedStdDev).toBeCloseTo(0.55, 2);
+      // Verifying time data
+      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
+      const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
+      const elapsedTime = activity.getDuration().getValue();
+      SpecUtils.assertNearEqualTime(movingTime, '05:04:20');
+      SpecUtils.assertNearEqualTime(timerTime, '5:07:54');
+      SpecUtils.assertNearEqualTime(elapsedTime, '5:07:54');
     });
   });
 });

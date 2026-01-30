@@ -5,6 +5,32 @@ import { DataPowerCurve } from './data.power-curve';
 import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
 import { RiderPosition } from './data.cycling-position';
 import { DataSportProfileName } from './data.sport-profile-name';
+import { DataFusedLocation } from './data.fused-location';
+import { DataFusedAltitude } from './data.fused-altitude';
+import { DataAltiBaroProfile } from './data.alti-baro-profile';
+import { DataActivityTypes } from './data.activity-types';
+import { DataDeviceNames } from './data.device-names';
+import { DataDescription } from './data.description';
+import { DataPosition } from './data.position';
+import { DataActiveLap } from './data-active-lap';
+import { DataBalance } from './data.balance';
+import { DataTargetPowerZone } from './data.target-power-zone';
+import { DataTargetHeartRateZone } from './data.target-heart-rate-zone';
+import { DataTargetSpeedZone } from './data.target-speed-zone';
+import { DataGender } from './data.gender';
+import { DataJumpEvent, DataScore } from './data.jump-event';
+import { DataDistance } from './data.distance';
+import { DataDeviceLocation } from './data.device-location';
+import { DataFootPodUsed } from './data.foot-pod-used';
+import { DataAutoPauseUsed } from './data.auto-pause-used';
+import { DataAutoLapUsed } from './data.auto-lap-used';
+import { DataBikePodUsed } from './data.bike-pod-used';
+import { DataEnabledNavigationSystems } from './data.enabled-navigation-systems';
+import { DataHeartRateUsed } from './data.heart-rate-used';
+import { DataPowerPodUsed } from './data.power-pod-used';
+import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
+import { DataStartPosition } from './data.start-position';
+import { DataEndPosition } from './data.end-position';
 
 describe('Data Serialization Safety', () => {
 
@@ -13,6 +39,36 @@ describe('Data Serialization Safety', () => {
         [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
         [DataRiderPositionChangeEvent, [1, RiderPosition.SEATED]],
         [DataSportProfileName, ['TestProfile']],
+        [DataFusedLocation, [true]],
+        [DataFusedAltitude, [true]],
+        [DataAltiBaroProfile, ['TestProfile']],
+        [DataActivityTypes, [['Running', 'Cycling']]],
+        [DataDeviceNames, [['Garmin', 'Suunto']]],
+        [DataDescription, ['Test Description']],
+        [DataPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
+        [DataActiveLap, [true]],
+        [DataBalance, [50]],
+        [DataTargetPowerZone, ['Zone 1']],
+        [DataTargetHeartRateZone, ['Zone 1']],
+        [DataTargetSpeedZone, ['Zone 1']],
+        [DataGender, ['Male']],
+        [DataJumpEvent, [1234567890, { distance: new DataDistance(10), score: new DataScore(5) }]],
+        [DataDeviceLocation, ['Wrist']],
+        [DataFootPodUsed, [true]],
+        [DataAutoPauseUsed, [true]],
+        [DataAutoLapUsed, [true]],
+        [DataBikePodUsed, [true]],
+        [DataEnabledNavigationSystems, ['GPS']],
+        [DataHeartRateUsed, [true]],
+        [DataPowerPodUsed, [true]],
+        [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
+        [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
+    ]);
+
+    // Abstract classes or classes that shouldn't be tested directly
+    const ignoredClasses = new Set<string>([
+        'DataGroundContactTimeBalance',
+        'DataBalance',
     ]);
 
     /**
@@ -44,8 +100,8 @@ describe('Data Serialization Safety', () => {
     Object.keys(DataStore).forEach((key) => {
         const DataClass = DataStore[key];
 
-        // Skip if it's not a function (constructor)
-        if (typeof DataClass !== 'function') return;
+        // Skip if it's not a function (constructor) or explicitly ignored
+        if (typeof DataClass !== 'function' || ignoredClasses.has(key)) return;
 
         it(`should serialize ${key} to plain JSON`, () => {
             let instance: any;

@@ -532,5 +532,4 @@ describe('Activity Utilities', () => {
       }
     });
   });
-
 });

@@ -1,7 +1,14 @@
 import { Data } from './data';
 import { DataPositionInterface } from './data.position.interface';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export abstract class DataBare<T extends number | string | boolean | string[] | DataPositionInterface | any[] = number | string | boolean | string[] | DataPositionInterface | any[]> extends Data<T> {
+export abstract class DataBare<
+  T extends number | string | boolean | string[] | DataPositionInterface | any[] =
+    | number
+    | string
+    | boolean
+    | string[]
+    | DataPositionInterface
+    | any[]
+> extends Data<T> {
   static unit = ''; // Bare data have no unit but empty string
 }

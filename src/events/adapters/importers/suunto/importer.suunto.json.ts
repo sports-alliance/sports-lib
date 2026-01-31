@@ -122,7 +122,7 @@ export class EventImporterSuuntoJSON {
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
   ): Promise<EventInterface> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const eventJSONObject = JSON.parse(jsonString);
       // debugger;
       // Create a creator and pass it to all activities (later)
@@ -183,7 +183,8 @@ export class EventImporterSuuntoJSON {
       const activities: ActivityInterface[] = activityStartEventSamples.map(
         (activityStartEventSample: any, index: number): ActivityInterface => {
           // If no stop event, use the last sample time as end date
-          const lastSampleTime = eventJSONObject.DeviceLog.Samples[eventJSONObject.DeviceLog.Samples.length - 1].TimeISO8601;
+          const lastSampleTime =
+            eventJSONObject.DeviceLog.Samples[eventJSONObject.DeviceLog.Samples.length - 1].TimeISO8601;
           const fallbackEndTime = stopEventSample ? stopEventSample.TimeISO8601 : lastSampleTime;
 
           const activity = new Activity(
@@ -199,7 +200,6 @@ export class EventImporterSuuntoJSON {
             creator,
             options
           );
-
 
           // Set the end date to the stop event time if the activity is the last or the only one else set it on the next itery time
           // Create the stats these are a 1:1 ref arrays
@@ -364,7 +364,6 @@ export class EventImporterSuuntoJSON {
       const event = new Event('', activities[0].startDate, activities[activities.length - 1].endDate, FileType.SUUNTO);
       activities.forEach(activity => event.addActivity(activity));
 
-
       // Get the settings and add it to all activities as it's logical
       if (eventJSONObject.DeviceLog.Header.Settings) {
         this.getSettings(eventJSONObject.DeviceLog.Header.Settings).forEach(stat => {
@@ -382,7 +381,6 @@ export class EventImporterSuuntoJSON {
         );
         stats.forEach(stat => activities[0].addStat(stat));
       }
-
 
       // Generate stats
       EventUtilities.generateStatsForAll(event);
@@ -462,7 +460,7 @@ export class EventImporterSuuntoJSON {
       .movingMedianFilter()
       .lowPassFilter()
       .getAsBPM()
-      .forEach((value, key, map) => {
+      .forEach((value, key, _map) => {
         samples.push({
           TimeISO8601: new Date(activity.startDate.getTime() + key).toISOString(),
           HR: value / 60
@@ -653,7 +651,7 @@ export class EventImporterSuuntoJSON {
       }
     }
 
-    if (object.hasOwnProperty('VerticalSpeed')) {
+    if (Object.prototype.hasOwnProperty.call(object, 'VerticalSpeed')) {
       // Double action here
       if (Array.isArray(object.VerticalSpeed)) {
         if (isNumber(object.VerticalSpeed[0].Avg)) {
@@ -673,7 +671,7 @@ export class EventImporterSuuntoJSON {
     }
 
     // Ground Contact Time (Running Dynamics)
-    if (object.hasOwnProperty('GroundContactTime')) {
+    if (Object.prototype.hasOwnProperty.call(object, 'GroundContactTime')) {
       if (Array.isArray(object.GroundContactTime)) {
         if (isNumber(object.GroundContactTime[0].Avg)) {
           stats.push(new DataGroundContactTimeAvg(object.GroundContactTime[0].Avg * 1000)); // Convert s to ms
@@ -688,7 +686,7 @@ export class EventImporterSuuntoJSON {
     }
 
     // Vertical Oscillation (Running Dynamics)
-    if (object.hasOwnProperty('VerticalOscillation')) {
+    if (Object.prototype.hasOwnProperty.call(object, 'VerticalOscillation')) {
       if (Array.isArray(object.VerticalOscillation)) {
         if (isNumber(object.VerticalOscillation[0].Avg)) {
           stats.push(new DataVerticalOscillationAvg(object.VerticalOscillation[0].Avg * 1000)); // Convert m to mm
@@ -710,11 +708,10 @@ export class EventImporterSuuntoJSON {
     // Personal MaxHR
     if (object.Personal && isNumber(object.Personal.MaxHR)) {
       stats.push(new DataMaxHRSetting(object.Personal.MaxHR * 60)); // Convert from Hz to bpm
-
     }
 
     // Depth (Diving)
-    if (object.hasOwnProperty('Depth')) {
+    if (Object.prototype.hasOwnProperty.call(object, 'Depth')) {
       if (Array.isArray(object.Depth)) {
         if (isNumber(object.Depth[0].Max) && object.Depth[0].Max > 0) {
           stats.push(new DataDepthMax(object.Depth[0].Max));

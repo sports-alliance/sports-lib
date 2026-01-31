@@ -83,7 +83,7 @@ function getSizeWithOptionalFormat(obj: any, format = true): string | number {
   let size;
   try {
     size = new Blob([obj]).size;
-  } catch (e) {
+  } catch {
     size = Buffer.from(obj).length;
   }
 

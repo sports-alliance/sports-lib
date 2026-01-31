@@ -5,7 +5,7 @@ import { DataPositionInterface } from '../../data/data.position.interface';
 export class GeoLibAdapter implements GeoLibAdapterInterface {
   findNearest = findNearest;
 
-  constructor() { }
+  constructor() {}
 
   getDistance(positionArray: DataPositionInterface[], precise = false, accuracy = 0.1): number {
     let distance = 0;

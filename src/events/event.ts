@@ -90,10 +90,10 @@ export class Event extends DurationClassAbstract implements EventInterface {
     }
     return activityTypesStat.getValue().length > 1
       ? `${this.getUniqueStringWithMultiplier(
-        activityTypesStat
-          .getValue()
-          .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
-      )}`
+          activityTypesStat
+            .getValue()
+            .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
+        )}`
       : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()];
   }
 
@@ -112,7 +112,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
   }
 
   private getUniqueStringWithMultiplier(arrayOfStrings: string[]) {
-    const uniqueObject = arrayOfStrings.reduce((uniqueObj: any, type, index) => {
+    const uniqueObject = arrayOfStrings.reduce((uniqueObj: any, type) => {
       if (!uniqueObj[type]) {
         uniqueObj[type] = 1;
       } else {
@@ -121,7 +121,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
       return uniqueObj;
     }, {});
     return Object.keys(uniqueObject)
-      .reduce((uniqueArray: any[], key, index, object) => {
+      .reduce((uniqueArray: any[], key) => {
         if (uniqueObject[key] === 1) {
           uniqueArray.push(key);
         } else {
@@ -138,7 +138,7 @@ export class Event extends DurationClassAbstract implements EventInterface {
 
   toJSON(): EventJSONInterface {
     const stats = {};
-    this.stats.forEach((value: DataInterface, key: string) => {
+    this.stats.forEach((value: DataInterface) => {
       Object.assign(stats, value.toJSON());
     });
     return {

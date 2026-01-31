@@ -1,7 +1,7 @@
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 describe('ActivityTypes', () => {
-  beforeEach(() => {});
+  beforeEach(() => { });
 
   it('get the correct activity group', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.Running);
@@ -28,5 +28,9 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Workout)).toBe(
       ActivityTypeGroups.Unspecified
     );
+  });
+
+  it('map alpine_skiing_downhill to Alpine Skiing', () => {
+    expect(ActivityTypes['alpine_skiing_downhill' as keyof typeof ActivityTypes]).toBe(ActivityTypes.AlpineSkiing);
   });
 });

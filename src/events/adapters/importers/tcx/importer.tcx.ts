@@ -62,7 +62,7 @@ export class EventImporterTCX {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       // Activities
       const activities: ActivityInterface[] = Array.from(
         xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity')
@@ -243,7 +243,7 @@ export class EventImporterTCX {
         activity.addStat(
           new DataEnergy(
             (<DataEnergy>activity.getStat(DataEnergy.type)).getValue() +
-            (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
+              (<DataEnergy>lap.getStat(DataEnergy.type)).getValue()
           )
         );
       }

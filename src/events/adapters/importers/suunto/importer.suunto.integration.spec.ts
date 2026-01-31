@@ -12,7 +12,6 @@ import { DataVerticalOscillationMin } from '../../../../data/data.vertical-oscil
 import { DataFitnessAge } from '../../../../data/data.fitness-age';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
 
-
 describe('EventImporterSuuntoJSON Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/suunto -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/suunto');
@@ -30,8 +29,6 @@ describe('EventImporterSuuntoJSON Integration', () => {
       return;
     }
 
-
-
     for (const file of files) {
       const filePath = path.join(samplesDir, file);
       const fileString = fs.readFileSync(filePath, 'utf-8');
@@ -41,7 +38,6 @@ describe('EventImporterSuuntoJSON Integration', () => {
         const event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
         expect(event).toBeDefined();
         expect(event.getActivities().length).toBeGreaterThan(0);
-
       } catch (error) {
         console.error(`❌ Failed to parse ${file}:`, error);
         throw error;
@@ -62,23 +58,18 @@ describe('EventImporterSuuntoJSON Integration', () => {
       const fileString = fs.readFileSync(filePath, 'utf-8');
       event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
 
-
-
-
-
-      // DEBUG: print one sample's date from the source file just blindly 
+      // DEBUG: print one sample's date from the source file just blindly
       // (we can't easily access json here again without parsing, but we can infer from activity)
 
       // Find the main running activity (longest duration)
-      activity = event.getActivities().reduce((prev, current) =>
-        (prev.getDuration().getValue() > current.getDuration().getValue()) ? prev : current
-      );
-
+      activity = event
+        .getActivities()
+        .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
     });
 
     it('should parse Ground Contact Time stream', () => {
       if (!activity) return;
-      // Depending on the file structure, GCT might be in the first or second activity. 
+      // Depending on the file structure, GCT might be in the first or second activity.
       // We selected the longest one.
       const hasStream = activity.hasStreamData(DataGroundContactTime.type);
       expect(hasStream).toBe(true);
@@ -141,9 +132,5 @@ describe('EventImporterSuuntoJSON Integration', () => {
       expect(stat).toBeDefined();
       expect(stat?.getValue()).toBe(171);
     });
-
-
   });
 });
-
-

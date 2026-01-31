@@ -18,10 +18,7 @@ import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change
 import { ActivityParsingOptions } from './activity-parsing-options';
 
 export interface ActivityInterface
-  extends StatsClassInterface,
-  DurationClassInterface,
-  SerializableClassInterface,
-  IDClassInterface {
+  extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   name: string;
   type: ActivityTypes;
   creator: CreatorInterface;

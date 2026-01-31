@@ -2,8 +2,16 @@ import { DataInterface, UnitSystem } from './data.interface';
 import { DataJSONInterface } from './data.json.interface';
 import { DataPositionInterface } from './data.position.interface';
 import { isNumber } from '../events/utilities/helpers';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export abstract class Data<T extends number | string | boolean | string[] | DataPositionInterface | any[] = number | string | boolean | string[] | DataPositionInterface | any[]> implements DataInterface {
+
+export abstract class Data<
+  T extends number | string | boolean | string[] | DataPositionInterface | any[] =
+    | number
+    | string
+    | boolean
+    | string[]
+    | DataPositionInterface
+    | any[]
+> implements DataInterface {
   static type: string;
   static unit: string;
   static displayType?: string;

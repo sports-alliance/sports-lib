@@ -45,7 +45,7 @@ export class EventExporterGPX implements EventExporter {
               DataAltitude.type,
               DataSpeed.type
             ])
-            .reduce((pointsArray: typeof Point[], data, index, array) => {
+            .reduce((pointsArray: (typeof Point)[], data, index, array) => {
               pointsArray.push(
                 new Point(<number>data[DataLatitudeDegrees.type], <number>data[DataLongitudeDegrees.type], {
                   ele: data[DataAltitude.type] || undefined,
@@ -68,7 +68,6 @@ export class EventExporterGPX implements EventExporter {
         // @todo it should make an activity copy
         activity.removeStream(timeStream);
       });
-
 
       const builder = new GarminBuilder();
       builder.setTracks(tracks);

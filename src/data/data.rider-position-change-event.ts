@@ -6,7 +6,7 @@ export class DataRiderPositionChangeEvent extends DataEvent {
 
   positionChange: RiderPosition;
 
-  constructor(indexOrObj: number | { index: number, positionChange: RiderPosition }, positionChange?: RiderPosition) {
+  constructor(indexOrObj: number | { index: number; positionChange: RiderPosition }, positionChange?: RiderPosition) {
     if (typeof indexOrObj === 'object') {
       super(indexOrObj.index);
       this.positionChange = indexOrObj.positionChange;

@@ -57,11 +57,9 @@ export class EventUtilities {
     // If only one
     if (event.getActivities().length === 1) {
       const firstActivity = event.getFirstActivity();
-      firstActivity
-        .getStats()
-        .forEach(stat => {
-          event.addStat(stat);
-        });
+      firstActivity.getStats().forEach(stat => {
+        event.addStat(stat);
+      });
 
       if (firstActivity.powerCurve) {
         event.powerCurve = firstActivity.powerCurve;
@@ -96,7 +94,7 @@ export class EventUtilities {
     if (activities.length <= 1) return; // Already handled by single activity logic or no need to merge
 
     // Map duration (seconds) -> { maxPower: number, maxWKg: number }
-    const mergedCurve = new Map<number, { maxPower: number, maxWKg: number }>();
+    const mergedCurve = new Map<number, { maxPower: number; maxWKg: number }>();
 
     activities.forEach(activity => {
       const curveStat = activity.getStat(DataPowerCurve.type);
@@ -113,7 +111,7 @@ export class EventUtilities {
             const current = mergedCurve.get(duration)!;
             if (power > current.maxPower) {
               current.maxPower = power;
-              // Usually max power implies max W/kg, but if weight changed mid-event, we take the W/kg associated with this power or just max W/kg? 
+              // Usually max power implies max W/kg, but if weight changed mid-event, we take the W/kg associated with this power or just max W/kg?
               // Let's take max W/kg independently to be safe/best-effort.
             }
             if (wKg > current.maxWKg) {

@@ -4,30 +4,30 @@ import { DataPower } from './data.power';
 import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
 
 export interface DataPowerCurvePoint {
-    duration: DataDuration;
-    power: DataPower;
-    wattsPerKg?: DataPowerWattsPerKg;
+  duration: DataDuration;
+  power: DataPower;
+  wattsPerKg?: DataPowerWattsPerKg;
 }
 
 export class DataPowerCurve extends DataBare<DataPowerCurvePoint[]> {
-    static type = 'PowerCurve';
+  static type = 'PowerCurve';
 
-    constructor(value: DataPowerCurvePoint[]) {
-        super(value);
-    }
+  constructor(value: DataPowerCurvePoint[]) {
+    super(value);
+  }
 
-    toJSON(): any {
-        return {
-            [DataPowerCurve.type]: this.value.map(point => {
-                const json: any = {
-                    duration: point.duration.getValue(),
-                    power: point.power.getValue(),
-                };
-                if (point.wattsPerKg) {
-                    json.wattsPerKg = point.wattsPerKg.getValue();
-                }
-                return json;
-            })
+  toJSON(): any {
+    return {
+      [DataPowerCurve.type]: this.value.map(point => {
+        const json: any = {
+          duration: point.duration.getValue(),
+          power: point.power.getValue()
         };
-    }
+        if (point.wattsPerKg) {
+          json.wattsPerKg = point.wattsPerKg.getValue();
+        }
+        return json;
+      })
+    };
+  }
 }

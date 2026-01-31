@@ -33,100 +33,100 @@ import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 
 describe('Data Serialization Safety', () => {
+  // Map of classes that require specific constructor arguments or complex data
+  const knownProviders = new Map<any, any[]>([
+    [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
+    [DataRiderPositionChangeEvent, [1, RiderPosition.SEATED]],
+    [DataSportProfileName, ['TestProfile']],
+    [DataFusedLocation, [true]],
+    [DataFusedAltitude, [true]],
+    [DataAltiBaroProfile, ['TestProfile']],
+    [DataActivityTypes, [['Running', 'Cycling']]],
+    [DataDeviceNames, [['Garmin', 'Suunto']]],
+    [DataDescription, ['Test Description']],
+    [DataPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
+    [DataActiveLap, [true]],
+    [DataBalance, [50]],
+    [DataTargetPowerZone, ['Zone 1']],
+    [DataTargetHeartRateZone, ['Zone 1']],
+    [DataTargetSpeedZone, ['Zone 1']],
+    [DataGender, ['Male']],
+    [DataJumpEvent, [1234567890, { distance: new DataDistance(10), score: new DataScore(5) }]],
+    [DataDeviceLocation, ['Wrist']],
+    [DataFootPodUsed, [true]],
+    [DataAutoPauseUsed, [true]],
+    [DataAutoLapUsed, [true]],
+    [DataBikePodUsed, [true]],
+    [DataEnabledNavigationSystems, ['GPS']],
+    [DataHeartRateUsed, [true]],
+    [DataPowerPodUsed, [true]],
+    [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
+    [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]]
+  ]);
 
-    // Map of classes that require specific constructor arguments or complex data
-    const knownProviders = new Map<any, any[]>([
-        [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
-        [DataRiderPositionChangeEvent, [1, RiderPosition.SEATED]],
-        [DataSportProfileName, ['TestProfile']],
-        [DataFusedLocation, [true]],
-        [DataFusedAltitude, [true]],
-        [DataAltiBaroProfile, ['TestProfile']],
-        [DataActivityTypes, [['Running', 'Cycling']]],
-        [DataDeviceNames, [['Garmin', 'Suunto']]],
-        [DataDescription, ['Test Description']],
-        [DataPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
-        [DataActiveLap, [true]],
-        [DataBalance, [50]],
-        [DataTargetPowerZone, ['Zone 1']],
-        [DataTargetHeartRateZone, ['Zone 1']],
-        [DataTargetSpeedZone, ['Zone 1']],
-        [DataGender, ['Male']],
-        [DataJumpEvent, [1234567890, { distance: new DataDistance(10), score: new DataScore(5) }]],
-        [DataDeviceLocation, ['Wrist']],
-        [DataFootPodUsed, [true]],
-        [DataAutoPauseUsed, [true]],
-        [DataAutoLapUsed, [true]],
-        [DataBikePodUsed, [true]],
-        [DataEnabledNavigationSystems, ['GPS']],
-        [DataHeartRateUsed, [true]],
-        [DataPowerPodUsed, [true]],
-        [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
-        [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
-    ]);
+  // Abstract classes or classes that shouldn't be tested directly
+  const ignoredClasses = new Set<string>(['DataGroundContactTimeBalance', 'DataBalance']);
 
-    // Abstract classes or classes that shouldn't be tested directly
-    const ignoredClasses = new Set<string>([
-        'DataGroundContactTimeBalance',
-        'DataBalance',
-    ]);
+  /**
+   * Recursively checks an object for any values that are custom class instances
+   * (i.e. not plain Objects, Arrays, or primitives).
+   * Returns a list of error strings describing the location of custom objects.
+   */
+  const checkForCustomObjects = (obj: any, path: string = ''): string[] => {
+    const errors: string[] = [];
+    if (obj === null || typeof obj !== 'object') {
+      return errors;
+    }
 
-    /**
-     * Recursively checks an object for any values that are custom class instances
-     * (i.e. not plain Objects, Arrays, or primitives).
-     * Returns a list of error strings describing the location of custom objects.
-     */
-    const checkForCustomObjects = (obj: any, path: string = ''): string[] => {
-        const errors: string[] = [];
-        if (obj === null || typeof obj !== 'object') {
-            return errors;
-        }
+    // Check the constructor of the object itself
+    if (obj.constructor && obj.constructor.name !== 'Object' && obj.constructor.name !== 'Array') {
+      errors.push(
+        `Found custom object at path '${path}': ${obj.constructor.name}. Data classes must serialize to plain JSON objects.`
+      );
+    }
 
-        // Check the constructor of the object itself
-        if (obj.constructor && obj.constructor.name !== 'Object' && obj.constructor.name !== 'Array') {
-            errors.push(`Found custom object at path '${path}': ${obj.constructor.name}. Data classes must serialize to plain JSON objects.`);
-        }
+    // Recursively check properties
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        errors.push(...checkForCustomObjects(obj[key], path ? `${path}.${key}` : key));
+      }
+    }
+    return errors;
+  };
 
-        // Recursively check properties
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                errors.push(...checkForCustomObjects(obj[key], path ? `${path}.${key}` : key));
-            }
-        }
-        return errors;
-    };
+  // Iterate over all data classes registered in the DataStore
+  Object.keys(DataStore).forEach(key => {
+    const DataClass = DataStore[key];
 
-    // Iterate over all data classes registered in the DataStore
-    Object.keys(DataStore).forEach((key) => {
-        const DataClass = DataStore[key];
+    // Skip if it's not a function (constructor) or explicitly ignored
+    if (typeof DataClass !== 'function' || ignoredClasses.has(key)) return;
 
-        // Skip if it's not a function (constructor) or explicitly ignored
-        if (typeof DataClass !== 'function' || ignoredClasses.has(key)) return;
+    it(`should serialize ${key} to plain JSON`, () => {
+      let instance: any;
+      try {
+        // Use provided args or default to [123] for most simple data classes
+        const args = knownProviders.get(DataClass) || [123];
+        instance = new DataClass(...args);
+      } catch (e) {
+        console.warn(`Failed to instantiate ${key} with default args. Error: ${(e as Error).message}`);
+        // We intentionally fail the test if we can't instantiate it,
+        // so the developer adds a provider for the new class.
+        throw new Error(
+          `Could not instantiate ${key}. Please add a provider to 'knownProviders' in src/data/data.serialization.spec.ts`
+        );
+      }
 
-        it(`should serialize ${key} to plain JSON`, () => {
-            let instance: any;
-            try {
-                // Use provided args or default to [123] for most simple data classes
-                const args = knownProviders.get(DataClass) || [123];
-                instance = new DataClass(...args);
-            } catch (e) {
-                console.warn(`Failed to instantiate ${key} with default args. Error: ${(e as Error).message}`);
-                // We intentionally fail the test if we can't instantiate it, 
-                // so the developer adds a provider for the new class.
-                throw new Error(`Could not instantiate ${key}. Please add a provider to 'knownProviders' in src/data/data.serialization.spec.ts`);
-            }
+      const json = instance.toJSON();
 
-            const json = instance.toJSON();
+      // 1. Check that toJSON returns something
+      expect(json).toBeDefined();
 
-            // 1. Check that toJSON returns something
-            expect(json).toBeDefined();
+      // 2. Check for custom objects in the serialized output
+      const errors = checkForCustomObjects(json);
 
-            // 2. Check for custom objects in the serialized output
-            const errors = checkForCustomObjects(json);
-
-            if (errors.length > 0) {
-                fail(`${key}.toJSON() returned invalid JSON structure:\n${errors.join('\n')}`);
-            }
-        });
+      if (errors.length > 0) {
+        fail(`${key}.toJSON() returned invalid JSON structure:\n${errors.join('\n')}`);
+      }
     });
+  });
 });

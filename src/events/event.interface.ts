@@ -9,11 +9,12 @@ import { FileType } from './adapters/file-type.enum';
 import { DataPowerCurve } from '../data/data.power-curve';
 
 export interface EventInterface
-  extends StatsClassInterface,
-  DurationClassInterface,
-  PrivacyClassInterface,
-  SerializableClassInterface,
-  IDClassInterface {
+  extends
+    StatsClassInterface,
+    DurationClassInterface,
+    PrivacyClassInterface,
+    SerializableClassInterface,
+    IDClassInterface {
   name: string;
   srcFileType: FileType;
   description?: string;

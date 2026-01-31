@@ -1,0 +1,719 @@
+
+> @sports-alliance/sports-lib@8.0.3 lint
+> eslint .
+
+
+/Users/dimitrios/Projects/sports-lib/babel.config.js
+  1:1  error  'module' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/check_zones_sdk.mjs
+  13:9   error  'console' is not defined  no-undef
+  15:13  error  'console' is not defined  no-undef
+  20:5   error  'console' is not defined  no-undef
+  26:21  error  'console' is not defined  no-undef
+  33:5   error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/deep_parse.mjs
+  33:17  error  'console' is not defined  no-undef
+  46:17  error  'console' is not defined  no-undef
+  54:21  error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/find_def.mjs
+   6:10  error  'findDefinitions' is defined but never used  no-unused-vars
+   7:5   error  'console' is not defined                     no-undef
+  22:17  error  'console' is not defined                     no-undef
+  23:17  error  'console' is not defined                     no-undef
+  32:17  error  'console' is not defined                     no-undef
+  64:22  error  'localId' is defined but never used          no-unused-vars
+  64:31  error  'defs' is defined but never used             no-unused-vars
+  73:13  error  'console' is not defined                     no-undef
+  75:13  error  'console' is not defined                     no-undef
+  80:17  error  'console' is not defined                     no-undef
+
+/Users/dimitrios/Projects/sports-lib/inspect-devices.js
+  16:9  error  'console' is not defined  no-undef
+  18:9  error  'console' is not defined  no-undef
+  19:9  error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/inspect-session.js
+   1:12  error  'require' is not defined  no-undef
+   2:19  error  'require' is not defined  no-undef
+  13:9   error  'console' is not defined  no-undef
+  16:13  error  'console' is not defined  no-undef
+  17:13  error  'console' is not defined  no-undef
+  19:13  error  'console' is not defined  no-undef
+  24:13  error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/inspect_jump_raw.js
+   1:12  error  'require' is not defined  no-undef
+   2:19  error  'require' is not defined  no-undef
+   9:9   error  'console' is not defined  no-undef
+  12:5   error  'console' is not defined  no-undef
+  13:5   error  'console' is not defined  no-undef
+  16:9   error  'console' is not defined  no-undef
+  17:9   error  'console' is not defined  no-undef
+  21:9   error  'console' is not defined  no-undef
+  22:9   error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/jest.config.js
+  1:1  error  'module' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/search_value.mjs
+   8:1   error  'console' is not defined  no-undef
+  11:15  error  'Buffer' is not defined   no-undef
+  13:1   error  'console' is not defined  no-undef
+  15:17  error  'console' is not defined  no-undef
+  18:15  error  'Buffer' is not defined   no-undef
+  20:1   error  'console' is not defined  no-undef
+  22:17  error  'console' is not defined  no-undef
+  27:19  error  'Buffer' is not defined   no-undef
+  29:5   error  'console' is not defined  no-undef
+  35:13  error  'console' is not defined  no-undef
+
+/Users/dimitrios/Projects/sports-lib/src/activities/activity.ts
+  138:14   error    'e' is defined but never used                                               @typescript-eslint/no-unused-vars
+  206:102  error    'array' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  260:11   error    'activity' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  305:77   warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  330:47   error    'key' is defined but never used. Allowed unused args must match /^_/u       @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/activities/activity.types.ts
+  138:3  error  Duplicate enum member value Unknown Sport         @typescript-eslint/no-duplicate-enum-values
+  139:3  error  Duplicate enum member value Unknown Sport         @typescript-eslint/no-duplicate-enum-values
+  140:3  error  Duplicate enum member value Unknown Sport         @typescript-eslint/no-duplicate-enum-values
+  141:3  error  Duplicate enum member value Unknown Sport         @typescript-eslint/no-duplicate-enum-values
+  142:3  error  Duplicate enum member value Unknown Sport         @typescript-eslint/no-duplicate-enum-values
+  151:3  error  Duplicate enum member value Generic               @typescript-eslint/no-duplicate-enum-values
+  152:3  error  Duplicate enum member value Generic               @typescript-eslint/no-duplicate-enum-values
+  153:3  error  Duplicate enum member value Generic               @typescript-eslint/no-duplicate-enum-values
+  158:3  error  Duplicate enum member value Transition            @typescript-eslint/no-duplicate-enum-values
+  163:3  error  Duplicate enum member value Fitness Equipment     @typescript-eslint/no-duplicate-enum-values
+  164:3  error  Duplicate enum member value Fitness Equipment     @typescript-eslint/no-duplicate-enum-values
+  170:3  error  Duplicate enum member value Multisport            @typescript-eslint/no-duplicate-enum-values
+  171:3  error  Duplicate enum member value Multisport            @typescript-eslint/no-duplicate-enum-values
+  177:3  error  Duplicate enum member value Virtual Running       @typescript-eslint/no-duplicate-enum-values
+  178:3  error  Duplicate enum member value Virtual Running       @typescript-eslint/no-duplicate-enum-values
+  179:3  error  Duplicate enum member value Virtual Running       @typescript-eslint/no-duplicate-enum-values
+  180:3  error  Duplicate enum member value Virtual Running       @typescript-eslint/no-duplicate-enum-values
+  185:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  186:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  188:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  189:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  190:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  191:3  error  Duplicate enum member value Running               @typescript-eslint/no-duplicate-enum-values
+  195:3  error  Duplicate enum member value Trail Running         @typescript-eslint/no-duplicate-enum-values
+  196:3  error  Duplicate enum member value Trail Running         @typescript-eslint/no-duplicate-enum-values
+  197:3  error  Duplicate enum member value Trail Running         @typescript-eslint/no-duplicate-enum-values
+  198:3  error  Duplicate enum member value Trail Running         @typescript-eslint/no-duplicate-enum-values
+  203:3  error  Duplicate enum member value Indoor Running        @typescript-eslint/no-duplicate-enum-values
+  204:3  error  Duplicate enum member value Indoor Running        @typescript-eslint/no-duplicate-enum-values
+  205:3  error  Duplicate enum member value Indoor Running        @typescript-eslint/no-duplicate-enum-values
+  206:3  error  Duplicate enum member value Indoor Running        @typescript-eslint/no-duplicate-enum-values
+  207:3  error  Duplicate enum member value Indoor Running        @typescript-eslint/no-duplicate-enum-values
+  212:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  213:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  214:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  215:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  216:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  217:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  218:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  219:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  220:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  221:3  error  Duplicate enum member value Cycling               @typescript-eslint/no-duplicate-enum-values
+  226:3  error  Duplicate enum member value Indoor Cycling        @typescript-eslint/no-duplicate-enum-values
+  227:3  error  Duplicate enum member value Indoor Cycling        @typescript-eslint/no-duplicate-enum-values
+  228:3  error  Duplicate enum member value Indoor Cycling        @typescript-eslint/no-duplicate-enum-values
+  229:3  error  Duplicate enum member value Indoor Cycling        @typescript-eslint/no-duplicate-enum-values
+  230:3  error  Duplicate enum member value Indoor Cycling        @typescript-eslint/no-duplicate-enum-values
+  235:3  error  Duplicate enum member value Virtual Cycling       @typescript-eslint/no-duplicate-enum-values
+  236:3  error  Duplicate enum member value Virtual Cycling       @typescript-eslint/no-duplicate-enum-values
+  237:3  error  Duplicate enum member value Virtual Cycling       @typescript-eslint/no-duplicate-enum-values
+  243:3  error  Duplicate enum member value E-Biking              @typescript-eslint/no-duplicate-enum-values
+  244:3  error  Duplicate enum member value E-Biking              @typescript-eslint/no-duplicate-enum-values
+  245:3  error  Duplicate enum member value E-Biking              @typescript-eslint/no-duplicate-enum-values
+  246:3  error  Duplicate enum member value E-Biking              @typescript-eslint/no-duplicate-enum-values
+  247:3  error  Duplicate enum member value E-Biking              @typescript-eslint/no-duplicate-enum-values
+  252:3  error  Duplicate enum member value Mountain Biking       @typescript-eslint/no-duplicate-enum-values
+  253:3  error  Duplicate enum member value Mountain Biking       @typescript-eslint/no-duplicate-enum-values
+  254:3  error  Duplicate enum member value Mountain Biking       @typescript-eslint/no-duplicate-enum-values
+  255:3  error  Duplicate enum member value Mountain Biking       @typescript-eslint/no-duplicate-enum-values
+  256:3  error  Duplicate enum member value Mountain Biking       @typescript-eslint/no-duplicate-enum-values
+  260:3  error  Duplicate enum member value Enduro MTB            @typescript-eslint/no-duplicate-enum-values
+  264:3  error  Duplicate enum member value Downhill Cycling      @typescript-eslint/no-duplicate-enum-values
+  265:3  error  Duplicate enum member value Downhill Cycling      @typescript-eslint/no-duplicate-enum-values
+  266:3  error  Duplicate enum member value Downhill Cycling      @typescript-eslint/no-duplicate-enum-values
+  271:3  error  Duplicate enum member value Motorcycling          @typescript-eslint/no-duplicate-enum-values
+  276:3  error  Duplicate enum member value Boating               @typescript-eslint/no-duplicate-enum-values
+  281:3  error  Duplicate enum member value Driving               @typescript-eslint/no-duplicate-enum-values
+  286:3  error  Duplicate enum member value Circuit Training      @typescript-eslint/no-duplicate-enum-values
+  291:3  error  Duplicate enum member value Swimming              @typescript-eslint/no-duplicate-enum-values
+  292:3  error  Duplicate enum member value Swimming              @typescript-eslint/no-duplicate-enum-values
+  293:3  error  Duplicate enum member value Swimming              @typescript-eslint/no-duplicate-enum-values
+  294:3  error  Duplicate enum member value Swimming              @typescript-eslint/no-duplicate-enum-values
+  299:3  error  Duplicate enum member value Open Water Swimming   @typescript-eslint/no-duplicate-enum-values
+  300:3  error  Duplicate enum member value Open Water Swimming   @typescript-eslint/no-duplicate-enum-values
+  301:3  error  Duplicate enum member value Open Water Swimming   @typescript-eslint/no-duplicate-enum-values
+  302:3  error  Duplicate enum member value Open Water Swimming   @typescript-eslint/no-duplicate-enum-values
+  303:3  error  Duplicate enum member value Open Water Swimming   @typescript-eslint/no-duplicate-enum-values
+  312:3  error  Duplicate enum member value Soccer                @typescript-eslint/no-duplicate-enum-values
+  317:3  error  Duplicate enum member value American Football     @typescript-eslint/no-duplicate-enum-values
+  318:3  error  Duplicate enum member value American Football     @typescript-eslint/no-duplicate-enum-values
+  319:3  error  Duplicate enum member value American Football     @typescript-eslint/no-duplicate-enum-values
+  332:3  error  Duplicate enum member value Yoga                  @typescript-eslint/no-duplicate-enum-values
+  333:3  error  Duplicate enum member value Yoga                  @typescript-eslint/no-duplicate-enum-values
+  334:3  error  Duplicate enum member value Yoga                  @typescript-eslint/no-duplicate-enum-values
+  340:3  error  Duplicate enum member value Pilates               @typescript-eslint/no-duplicate-enum-values
+  341:3  error  Duplicate enum member value Pilates               @typescript-eslint/no-duplicate-enum-values
+  346:3  error  Duplicate enum member value Trekking              @typescript-eslint/no-duplicate-enum-values
+  351:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  352:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  353:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  354:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  355:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  356:3  error  Duplicate enum member value Walking               @typescript-eslint/no-duplicate-enum-values
+  361:3  error  Duplicate enum member value Sailing               @typescript-eslint/no-duplicate-enum-values
+  366:3  error  Duplicate enum member value Kayaking              @typescript-eslint/no-duplicate-enum-values
+  371:3  error  Duplicate enum member value Rafting               @typescript-eslint/no-duplicate-enum-values
+  376:3  error  Duplicate enum member value Rowing                @typescript-eslint/no-duplicate-enum-values
+  381:3  error  Duplicate enum member value Indoor Rowing         @typescript-eslint/no-duplicate-enum-values
+  382:3  error  Duplicate enum member value Indoor Rowing         @typescript-eslint/no-duplicate-enum-values
+  383:3  error  Duplicate enum member value Indoor Rowing         @typescript-eslint/no-duplicate-enum-values
+  384:3  error  Duplicate enum member value Indoor Rowing         @typescript-eslint/no-duplicate-enum-values
+  385:3  error  Duplicate enum member value Indoor Rowing         @typescript-eslint/no-duplicate-enum-values
+  407:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  408:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  409:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  410:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  411:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  412:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  413:3  error  Duplicate enum member value Alpine Skiing         @typescript-eslint/no-duplicate-enum-values
+  420:3  error  Duplicate enum member value Crosscountry Skiing   @typescript-eslint/no-duplicate-enum-values
+  421:3  error  Duplicate enum member value Crosscountry Skiing   @typescript-eslint/no-duplicate-enum-values
+  422:3  error  Duplicate enum member value Crosscountry Skiing   @typescript-eslint/no-duplicate-enum-values
+  423:3  error  Duplicate enum member value Crosscountry Skiing   @typescript-eslint/no-duplicate-enum-values
+  424:3  error  Duplicate enum member value Crosscountry Skiing   @typescript-eslint/no-duplicate-enum-values
+  430:3  error  Duplicate enum member value Nordic Skiing         @typescript-eslint/no-duplicate-enum-values
+  431:3  error  Duplicate enum member value Nordic Skiing         @typescript-eslint/no-duplicate-enum-values
+  437:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  438:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  439:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  440:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  441:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  442:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  443:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  444:3  error  Duplicate enum member value Backcountry Skiing    @typescript-eslint/no-duplicate-enum-values
+  450:3  error  Duplicate enum member value Ski Touring           @typescript-eslint/no-duplicate-enum-values
+  455:3  error  Duplicate enum member value Telemark Skiing       @typescript-eslint/no-duplicate-enum-values
+  456:3  error  Duplicate enum member value Telemark Skiing       @typescript-eslint/no-duplicate-enum-values
+  457:3  error  Duplicate enum member value Telemark Skiing       @typescript-eslint/no-duplicate-enum-values
+  458:3  error  Duplicate enum member value Telemark Skiing       @typescript-eslint/no-duplicate-enum-values
+  463:3  error  Duplicate enum member value Roller Skiing         @typescript-eslint/no-duplicate-enum-values
+  464:3  error  Duplicate enum member value Roller Skiing         @typescript-eslint/no-duplicate-enum-values
+  469:3  error  Duplicate enum member value Snowboarding          @typescript-eslint/no-duplicate-enum-values
+  470:3  error  Duplicate enum member value Snowboarding          @typescript-eslint/no-duplicate-enum-values
+  475:3  error  Duplicate enum member value Weight Training       @typescript-eslint/no-duplicate-enum-values
+  476:3  error  Duplicate enum member value Weight Training       @typescript-eslint/no-duplicate-enum-values
+  480:3  error  Duplicate enum member value Basketball            @typescript-eslint/no-duplicate-enum-values
+  485:3  error  Duplicate enum member value Ice Hockey            @typescript-eslint/no-duplicate-enum-values
+  514:3  error  Duplicate enum member value Tennis                @typescript-eslint/no-duplicate-enum-values
+  515:3  error  Duplicate enum member value Tennis                @typescript-eslint/no-duplicate-enum-values
+  524:3  error  Duplicate enum member value Table Tennis          @typescript-eslint/no-duplicate-enum-values
+  525:3  error  Duplicate enum member value Table Tennis          @typescript-eslint/no-duplicate-enum-values
+  530:3  error  Duplicate enum member value Racquet Ball          @typescript-eslint/no-duplicate-enum-values
+  531:3  error  Duplicate enum member value Racquet Ball          @typescript-eslint/no-duplicate-enum-values
+  532:3  error  Duplicate enum member value Racquet Ball          @typescript-eslint/no-duplicate-enum-values
+  533:3  error  Duplicate enum member value Racquet Ball          @typescript-eslint/no-duplicate-enum-values
+  542:3  error  Duplicate enum member value Combat                @typescript-eslint/no-duplicate-enum-values
+  555:3  error  Duplicate enum member value Scuba Diving          @typescript-eslint/no-duplicate-enum-values
+  556:3  error  Duplicate enum member value Scuba Diving          @typescript-eslint/no-duplicate-enum-values
+  561:3  error  Duplicate enum member value Free Diving           @typescript-eslint/no-duplicate-enum-values
+  562:3  error  Duplicate enum member value Free Diving           @typescript-eslint/no-duplicate-enum-values
+  567:3  error  Duplicate enum member value Diving                @typescript-eslint/no-duplicate-enum-values
+  568:3  error  Duplicate enum member value Diving                @typescript-eslint/no-duplicate-enum-values
+  601:3  error  Duplicate enum member value Golf                  @typescript-eslint/no-duplicate-enum-values
+  606:3  error  Duplicate enum member value Hang Gliding          @typescript-eslint/no-duplicate-enum-values
+  607:3  error  Duplicate enum member value Hang Gliding          @typescript-eslint/no-duplicate-enum-values
+  608:3  error  Duplicate enum member value Hang Gliding          @typescript-eslint/no-duplicate-enum-values
+  614:3  error  Duplicate enum member value Horseback Riding      @typescript-eslint/no-duplicate-enum-values
+  615:3  error  Duplicate enum member value Horseback Riding      @typescript-eslint/no-duplicate-enum-values
+  616:3  error  Duplicate enum member value Horseback Riding      @typescript-eslint/no-duplicate-enum-values
+  625:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  626:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  627:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  628:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  629:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  630:3  error  Duplicate enum member value Ice Skating           @typescript-eslint/no-duplicate-enum-values
+  643:3  error  Duplicate enum member value Mountaineering        @typescript-eslint/no-duplicate-enum-values
+  648:3  error  Duplicate enum member value Orienteering          @typescript-eslint/no-duplicate-enum-values
+  649:3  error  Duplicate enum member value Orienteering          @typescript-eslint/no-duplicate-enum-values
+  662:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  663:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  664:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  665:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  666:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  667:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  668:3  error  Duplicate enum member value Strength Training     @typescript-eslint/no-duplicate-enum-values
+  673:3  error  Duplicate enum member value Track and Field       @typescript-eslint/no-duplicate-enum-values
+  678:3  error  Duplicate enum member value Nordic Walking        @typescript-eslint/no-duplicate-enum-values
+  679:3  error  Duplicate enum member value Nordic Walking        @typescript-eslint/no-duplicate-enum-values
+  688:3  error  Duplicate enum member value Windsurfing           @typescript-eslint/no-duplicate-enum-values
+  689:3  error  Duplicate enum member value Windsurfing           @typescript-eslint/no-duplicate-enum-values
+  690:3  error  Duplicate enum member value Windsurfing           @typescript-eslint/no-duplicate-enum-values
+  699:3  error  Duplicate enum member value Paddling              @typescript-eslint/no-duplicate-enum-values
+  704:3  error  Duplicate enum member value Flying                @typescript-eslint/no-duplicate-enum-values
+  709:3  error  Duplicate enum member value Crossfit              @typescript-eslint/no-duplicate-enum-values
+  710:3  error  Duplicate enum member value Crossfit              @typescript-eslint/no-duplicate-enum-values
+  711:3  error  Duplicate enum member value Crossfit              @typescript-eslint/no-duplicate-enum-values
+  716:3  error  Duplicate enum member value Kitesurfing           @typescript-eslint/no-duplicate-enum-values
+  717:3  error  Duplicate enum member value Kitesurfing           @typescript-eslint/no-duplicate-enum-values
+  718:3  error  Duplicate enum member value Kitesurfing           @typescript-eslint/no-duplicate-enum-values
+  723:3  error  Duplicate enum member value Tactical              @typescript-eslint/no-duplicate-enum-values
+  728:3  error  Duplicate enum member value Jumpmaster            @typescript-eslint/no-duplicate-enum-values
+  732:3  error  Duplicate enum member value Boxing                @typescript-eslint/no-duplicate-enum-values
+  737:3  error  Duplicate enum member value Floor Climbing        @typescript-eslint/no-duplicate-enum-values
+  738:3  error  Duplicate enum member value Floor Climbing        @typescript-eslint/no-duplicate-enum-values
+  739:3  error  Duplicate enum member value Floor Climbing        @typescript-eslint/no-duplicate-enum-values
+  748:3  error  Duplicate enum member value Treadmill             @typescript-eslint/no-duplicate-enum-values
+  749:3  error  Duplicate enum member value Treadmill             @typescript-eslint/no-duplicate-enum-values
+  750:3  error  Duplicate enum member value Treadmill             @typescript-eslint/no-duplicate-enum-values
+  759:3  error  Duplicate enum member value Indoor Training       @typescript-eslint/no-duplicate-enum-values
+  760:3  error  Duplicate enum member value Indoor Training       @typescript-eslint/no-duplicate-enum-values
+  765:3  error  Duplicate enum member value Hiking                @typescript-eslint/no-duplicate-enum-values
+  766:3  error  Duplicate enum member value Hiking                @typescript-eslint/no-duplicate-enum-values
+  767:3  error  Duplicate enum member value Hiking                @typescript-eslint/no-duplicate-enum-values
+  768:3  error  Duplicate enum member value Hiking                @typescript-eslint/no-duplicate-enum-values
+  774:3  error  Duplicate enum member value Canyoning             @typescript-eslint/no-duplicate-enum-values
+  780:3  error  Duplicate enum member value Via Ferrata           @typescript-eslint/no-duplicate-enum-values
+  781:3  error  Duplicate enum member value Via Ferrata           @typescript-eslint/no-duplicate-enum-values
+  782:3  error  Duplicate enum member value Via Ferrata           @typescript-eslint/no-duplicate-enum-values
+  787:3  error  Duplicate enum member value Fishing               @typescript-eslint/no-duplicate-enum-values
+  792:3  error  Duplicate enum member value Hunting               @typescript-eslint/no-duplicate-enum-values
+  797:3  error  Duplicate enum member value Route                 @typescript-eslint/no-duplicate-enum-values
+  802:3  error  Duplicate enum member value Inline Skating        @typescript-eslint/no-duplicate-enum-values
+  803:3  error  Duplicate enum member value Inline Skating        @typescript-eslint/no-duplicate-enum-values
+  804:3  error  Duplicate enum member value Inline Skating        @typescript-eslint/no-duplicate-enum-values
+  805:3  error  Duplicate enum member value Inline Skating        @typescript-eslint/no-duplicate-enum-values
+  810:3  error  Duplicate enum member value Rock Climbing         @typescript-eslint/no-duplicate-enum-values
+  811:3  error  Duplicate enum member value Rock Climbing         @typescript-eslint/no-duplicate-enum-values
+  812:3  error  Duplicate enum member value Rock Climbing         @typescript-eslint/no-duplicate-enum-values
+  817:3  error  Duplicate enum member value Sky Diving            @typescript-eslint/no-duplicate-enum-values
+  818:3  error  Duplicate enum member value Sky Diving            @typescript-eslint/no-duplicate-enum-values
+  819:3  error  Duplicate enum member value Sky Diving            @typescript-eslint/no-duplicate-enum-values
+  820:3  error  Duplicate enum member value Sky Diving            @typescript-eslint/no-duplicate-enum-values
+  824:3  error  Duplicate enum member value Snowshoeing           @typescript-eslint/no-duplicate-enum-values
+  825:3  error  Duplicate enum member value Snowshoeing           @typescript-eslint/no-duplicate-enum-values
+  826:3  error  Duplicate enum member value Snowshoeing           @typescript-eslint/no-duplicate-enum-values
+  831:3  error  Duplicate enum member value Snowmobiling          @typescript-eslint/no-duplicate-enum-values
+  836:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  837:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  838:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  839:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  840:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  841:3  error  Duplicate enum member value Stand Up Paddling     @typescript-eslint/no-duplicate-enum-values
+  846:3  error  Duplicate enum member value Surfing               @typescript-eslint/no-duplicate-enum-values
+  851:3  error  Duplicate enum member value Wakeboarding          @typescript-eslint/no-duplicate-enum-values
+  856:3  error  Duplicate enum member value Water Skiing          @typescript-eslint/no-duplicate-enum-values
+  857:3  error  Duplicate enum member value Water Skiing          @typescript-eslint/no-duplicate-enum-values
+  858:3  error  Duplicate enum member value Water Skiing          @typescript-eslint/no-duplicate-enum-values
+  863:3  error  Duplicate enum member value Flexibility Training  @typescript-eslint/no-duplicate-enum-values
+  864:3  error  Duplicate enum member value Flexibility Training  @typescript-eslint/no-duplicate-enum-values
+  865:3  error  Duplicate enum member value Flexibility Training  @typescript-eslint/no-duplicate-enum-values
+  866:3  error  Duplicate enum member value Flexibility Training  @typescript-eslint/no-duplicate-enum-values
+  871:3  error  Duplicate enum member value Training              @typescript-eslint/no-duplicate-enum-values
+  876:3  error  Duplicate enum member value Cardio Training       @typescript-eslint/no-duplicate-enum-values
+  877:3  error  Duplicate enum member value Cardio Training       @typescript-eslint/no-duplicate-enum-values
+  878:3  error  Duplicate enum member value Cardio Training       @typescript-eslint/no-duplicate-enum-values
+  879:3  error  Duplicate enum member value Cardio Training       @typescript-eslint/no-duplicate-enum-values
+  884:3  error  Duplicate enum member value Elliptical Trainer    @typescript-eslint/no-duplicate-enum-values
+  885:3  error  Duplicate enum member value Elliptical Trainer    @typescript-eslint/no-duplicate-enum-values
+  886:3  error  Duplicate enum member value Elliptical Trainer    @typescript-eslint/no-duplicate-enum-values
+  887:3  error  Duplicate enum member value Elliptical Trainer    @typescript-eslint/no-duplicate-enum-values
+  892:3  error  Duplicate enum member value Hand Cycle            @typescript-eslint/no-duplicate-enum-values
+  893:3  error  Duplicate enum member value Hand Cycle            @typescript-eslint/no-duplicate-enum-values
+  898:3  error  Duplicate enum member value Stair Stepper         @typescript-eslint/no-duplicate-enum-values
+  907:3  error  Duplicate enum member value Wheel Chair           @typescript-eslint/no-duplicate-enum-values
+  908:3  error  Duplicate enum member value Wheel Chair           @typescript-eslint/no-duplicate-enum-values
+  912:3  error  Duplicate enum member value Match                 @typescript-eslint/no-duplicate-enum-values
+  918:3  error  Duplicate enum member value Trail Running         @typescript-eslint/no-duplicate-enum-values
+  923:3  error  Duplicate enum member value Indoor Sports         @typescript-eslint/no-duplicate-enum-values
+  925:3  error  Duplicate enum member value Outdoor Adventures    @typescript-eslint/no-duplicate-enum-values
+  927:3  error  Duplicate enum member value Winter Sports         @typescript-eslint/no-duplicate-enum-values
+  929:3  error  Duplicate enum member value Water Sports          @typescript-eslint/no-duplicate-enum-values
+  932:3  error  Duplicate enum member value Team Racket           @typescript-eslint/no-duplicate-enum-values
+
+/Users/dimitrios/Projects/sports-lib/src/creators/creator.ts
+  54:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data-store.spec.ts
+  30:10  error    'DataStore' is defined but never used                       @typescript-eslint/no-unused-vars
+  60:9   error    'speedDerivedDataTypes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  69:13  error    'types' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  70:23  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  88:23  warning  Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.array.ts
+   9:12  error    'formatForDataType' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  13:27  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.bare.ts
+   5:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.boolean.ts
+  8:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.interface.ts
+  22:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.json.interface.ts
+  4:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.jump-event.spec.ts
+  75:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.jump-event.ts
+  32:71  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  32:89  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  42:25  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  75:13  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  76:11  error    'json' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.number.ts
+   9:12  error    'formatForDataType' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  13:27  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.position.ts
+  12:12  error    'formatForDataType' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  20:27  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.power-curve.ts
+  19:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.serialization.spec.ts
+   31:10  error    'DataGroundContactTimeBalance' is defined but never used  @typescript-eslint/no-unused-vars
+   37:34  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+   37:39  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+   75:39  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  105:21  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.store.export.spec.ts
+  46:30  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.store.ts
+   370:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   944:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1011:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.string.ts
+   9:12  error    'formatForDataType' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  13:27  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.swim-pace.ts
+  2:10  error  'DataDuration' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/data/data.ts
+   7:76  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  13:7   warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+  39:12  error    'formatForDataType' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  74:27  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/ibi/data.ibi.filters.ts
+  5:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  8:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/data/ibi/data.ibi.ts
+   57:42  error    'map' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   65:37  error    'key' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   65:42  error    'map' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  108:13  warning  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/exporters/exporter.gpx.ts
+  16:31  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  17:41  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  18:26  error    'Person' is assigned a value but never used                               @typescript-eslint/no-unused-vars
+  25:34  error    'reject' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  48:59  error    'index' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  48:66  error    'array' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/exporters/exporter.json.ts
+  21:15  error  'event' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  22:34  error  'reject' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/fit/importer.fit.garmin.profile.mapper.spec.ts
+  2:10  error  'ActivityTypes' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/fit/importer.fit.mapper.ts
+   45:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   49:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  196:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  202:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  221:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  239:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  246:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  252:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  259:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  266:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  272:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  278:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  284:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  290:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  296:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  302:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  308:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/fit/importer.fit.mtb.spec.ts
+    7:10  error    'DataVO2Max' is defined but never used     @typescript-eslint/no-unused-vars
+    9:10  error    'DataAge' is defined but never used        @typescript-eslint/no-unused-vars
+   11:10  error    'DataGender' is defined but never used     @typescript-eslint/no-unused-vars
+   17:10  error    'DataHeight' is defined but never used     @typescript-eslint/no-unused-vars
+   28:10  error    'DataTotalFlow' is defined but never used  @typescript-eslint/no-unused-vars
+   29:10  error    'DataAvgGrit' is defined but never used    @typescript-eslint/no-unused-vars
+  196:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  238:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  239:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  240:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  243:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  244:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  245:59  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  248:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  249:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  250:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  253:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  254:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  255:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/fit/importer.fit.spec.ts
+  10:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/fit/importer.fit.ts
+   185:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   185:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   200:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   204:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   210:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   214:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   224:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   228:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   236:92  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   240:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   420:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   429:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   453:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   459:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   468:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   469:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   498:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   499:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   540:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   541:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   551:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   551:99  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   556:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   559:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   567:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   608:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   609:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   640:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   676:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   677:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   683:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   683:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   810:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   848:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1054:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1067:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1086:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1094:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1134:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1141:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1167:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1167:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1216:46  error    Empty block statement                     no-empty
+  1498:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1574:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/gpx/gx-parser.ts
+   2:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/gpx/importer.gpx.mapper.ts
+   17:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/gpx/importer.gpx.ts
+  20:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:24   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:108  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:61   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:76   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:34   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:48   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  92:69   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:35   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  98:37   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/json/importer.json.ts
+   40:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/suunto/importer.suunto.integration.spec.ts
+  3:35  error  'SuuntoSampleMapper' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/suunto/importer.suunto.json.ts
+  125:34  error    'reject' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  138:91  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  143:91  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  148:81  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  159:79  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  170:64  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  172:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  177:64  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  179:30  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  184:36  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  250:37  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  250:58  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  264:52  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  323:20  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  332:65  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  397:42  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  401:73  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  456:20  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  463:29  error    'map' is defined but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  472:78  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  475:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  492:40  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  505:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  654:16  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  674:16  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  689:16  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  714:16  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  731:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  737:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  746:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  755:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  764:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  770:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  776:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  788:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  794:26  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/suunto/importer.suunto.sml.ts
+   12:5    error    'name' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   22:27   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   22:74   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   36:69   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   41:44   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   41:86   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+   59:45   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  101:46   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  102:18   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  106:14   error    'e' is defined but never used                                                    @typescript-eslint/no-unused-vars
+  107:46   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  107:109  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  115:44   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  116:25   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  119:40   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  123:14   error    'e' is defined but never used                                                    @typescript-eslint/no-unused-vars
+  125:44   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  126:25   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+  129:40   warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/adapters/importers/tcx/importer.tcx.ts
+   75:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/event.ts
+  115:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/activity.utilities.power-curve.spec.ts
+  18:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:83  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  96:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/activity.utilities.ts
+  1914:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/event.utilities.aggregation.spec.ts
+  15:99  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  96:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/event.utilities.ts
+  143:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/helpers.ts
+   1:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   5:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  78:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/events/utilities/power-analytics.integration.spec.ts
+   29:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:44   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:92   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:92   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  154:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/index.ts
+  19:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/serializable/serializable.class.interface.ts
+  2:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/specs/activities-parsing.integration.spec.ts
+  2294:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  2314:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  2363:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/specs/strava-streams-compliance.spec.ts
+    25:21  warning  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+   538:13  error    'tolerance' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   552:15  error    '_commonCount' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   677:13  error    'tolerance' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   813:13  error    'tolerance' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   949:15  error    'tolerance' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  1085:15  error    'tolerance' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  1086:15  error    'toleranceDelta' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/dimitrios/Projects/sports-lib/src/streams/compressed.stream.interface.ts
+  5:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/dimitrios/Projects/sports-lib/src/streams/stream.ts
+  93:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 594 problems (361 errors, 233 warnings)
+

@@ -164,7 +164,6 @@ import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
 import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
-import { DataStanceTime } from '../../data/data.stance-time';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 
@@ -878,9 +877,11 @@ export class ActivityUtilities {
   /**
    * Calculate Critical Power (CP) and W' (Anaerobic Work Capacity)
    * using the Monod & Scherrer 2-parameter model (Power vs 1/Time).
-   * @param activity 
+   * @param activity
    */
-  public static calculateCriticalPowerAndWPrime(activity: StatsClassInterface): { cp: DataCriticalPower, wPrime: DataWPrime } | null {
+  public static calculateCriticalPowerAndWPrime(
+    activity: StatsClassInterface
+  ): { cp: DataCriticalPower; wPrime: DataWPrime } | null {
     const curveStat = activity.getStat(DataPowerCurve.type);
     if (!curveStat || !curveStat.getValue()) {
       return null;
@@ -1701,7 +1702,7 @@ export class ActivityUtilities {
       activity.addStat(
         new DataGNSSDistance(
           activity.getSquashedStreamData(DataGNSSDistance.type)[
-          activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
           ]
         )
       );
@@ -1917,7 +1918,10 @@ export class ActivityUtilities {
 
     // Critical Power & W'
     // calculateCriticalPowerAndWPrime requires DataPowerCurve to be present (which we just added if missing)
-    if ((!activity.getStat(DataCriticalPower.type) || !activity.getStat(DataWPrime.type)) && activity.getStat(DataPowerCurve.type)) {
+    if (
+      (!activity.getStat(DataCriticalPower.type) || !activity.getStat(DataWPrime.type)) &&
+      activity.getStat(DataPowerCurve.type)
+    ) {
       const cpWPrime = this.calculateCriticalPowerAndWPrime(activity);
       if (cpWPrime) {
         activity.addStat(cpWPrime.cp);
@@ -1994,8 +1998,14 @@ export class ActivityUtilities {
     }
 
     // Assign L/R balance stance time from streams if exists
-    if (!activity.getStat(DataGroundContactTimeBalanceLeft.type) && activity.hasStreamData(DataGroundContactTimeBalanceLeft.type)) {
-      const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataGroundContactTimeBalanceLeft.type), 2);
+    if (
+      !activity.getStat(DataGroundContactTimeBalanceLeft.type) &&
+      activity.hasStreamData(DataGroundContactTimeBalanceLeft.type)
+    ) {
+      const avgStanceTimeLeftBalance = this.round(
+        this.getDataTypeAvg(activity, DataGroundContactTimeBalanceLeft.type),
+        2
+      );
       activity.addStat(new DataGroundContactTimeBalanceLeft(avgStanceTimeLeftBalance));
       activity.addStat(new DataGroundContactTimeBalanceRight(100 - avgStanceTimeLeftBalance));
     }
@@ -2028,7 +2038,6 @@ export class ActivityUtilities {
     if (!activity.getStat(DataVerticalOscillationAvg.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
       activity.addStat(new DataVerticalOscillationAvg(this.getDataTypeAvg(activity, DataVerticalOscillation.type)));
     }
-
   }
 
   private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {

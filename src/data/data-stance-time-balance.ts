@@ -1,4 +1,4 @@
 import { DataPercent } from './data.percent';
 
 /** @deprecated Use DataGroundContactTimeBalance instead */
-export abstract class DataStanceTimeBalance extends DataPercent { }
+export abstract class DataStanceTimeBalance extends DataPercent {}

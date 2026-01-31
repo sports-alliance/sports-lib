@@ -702,7 +702,6 @@ export const DataStore: any = {
   DataJumpHeightAvg
 };
 
-
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types
 
@@ -913,7 +912,7 @@ export class DynamicDataLoader {
         DataHeartRateZoneFourDuration.type,
         DataHeartRateZoneFiveDuration.type,
         DataHeartRateZoneSixDuration.type,
-        DataHeartRateZoneSevenDuration.type,
+        DataHeartRateZoneSevenDuration.type
       ]
     },
     {
@@ -925,7 +924,7 @@ export class DynamicDataLoader {
         DataSpeedZoneFourDuration.type,
         DataSpeedZoneFiveDuration.type,
         DataSpeedZoneSixDuration.type,
-        DataSpeedZoneSevenDuration.type,
+        DataSpeedZoneSevenDuration.type
       ]
     },
     {
@@ -953,7 +952,6 @@ export class DynamicDataLoader {
     }
 
     const className = Object.keys(DataStore).find(dataClass => {
-
       return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
     });
     if (!className || !DataStore[className]) {

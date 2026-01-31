@@ -1,4 +1,3 @@
-
 import { ActivityParsingOptions } from './src/activities/activity-parsing-options';
 
 // Disable unit stream generation by default for tests to improve performance

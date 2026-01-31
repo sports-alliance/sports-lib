@@ -535,7 +535,7 @@ describe('Strava stream compliance', () => {
 
     it.skip(`should match distance with x% error max`, done => {
       // Given
-      const tolerance = 0.6; // percent
+      const _tolerance = 0.6; // percent
 
       const stravaDistanceStream = clone(strava_2709634581.distance);
 
@@ -549,7 +549,7 @@ describe('Strava stream compliance', () => {
           .getSquashedStreamData(DataDistance.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
         // expect(stravaDistanceStream.length).toEqual(streamData.length);
-        const commonCount = stravaDistanceStream.filter(
+        const _commonCount = stravaDistanceStream.filter(
           (value: number | null) => streamData.indexOf(value) !== -1
         ).length;
         // expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
@@ -674,7 +674,7 @@ describe('Strava stream compliance', () => {
 
     it(`should match distance`, done => {
       // Given
-      const tolerance = 0.6; // percent
+      const _tolerance = 0.6; // percent
 
       const stravaDistanceStream = clone(strava_3183465494.distance);
 
@@ -810,7 +810,7 @@ describe('Strava stream compliance', () => {
 
     it.skip(`should match distance`, done => {
       // Given
-      const tolerance = 0.6; // percent
+      const _tolerance = 0.6; // percent
 
       const stravaDistanceStream = clone(strava_3183490558.distance);
 

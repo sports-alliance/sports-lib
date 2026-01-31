@@ -9,7 +9,7 @@ export class EventImporterSuuntoSML {
   static getFromXML(
     contents: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
-    name = 'New Event'
+    _name = 'New Event'
   ): Promise<EventInterface> {
     const parser = new XMLParser();
     const json = parser.parse(contents).sml;
@@ -103,7 +103,7 @@ export class EventImporterSuuntoSML {
           return Object.assign({ TimeISO8601: sample.TimeISO8601 }, JSON.parse(sample.Attributes)['suunto/sml'].Sample);
         }
       );
-    } catch (e) {
+    } catch (_e) {
       samples = json.Samples.filter((sample: any) => !!sample.Attributes['suunto/sml'].Sample).map((sample: any) => {
         return Object.assign({ TimeISO8601: sample.TimeISO8601 }, sample.Attributes['suunto/sml'].Sample);
       });
@@ -120,7 +120,7 @@ export class EventImporterSuuntoSML {
             return accu.concat(rrSample.Data.split(',').map((dataString: string) => Number(dataString)));
           }, [])
       };
-    } catch (e) {
+    } catch (_e) {
       rr = {
         Data: json.Samples.filter((sample: any) => !!sample.Attributes['suunto/sml']['R-R'])
           .map((sample: any) => {

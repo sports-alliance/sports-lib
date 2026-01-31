@@ -136,7 +136,6 @@ import { DataHeight } from '../../../../data/data.height';
 import { DataAge } from '../../../../data/data.age';
 import { DataGender } from '../../../../data/data.gender';
 import { DataAvgGrit } from '../../../../data/data.avg-grit';
-import { DataTotalFlow } from '../../../../data/data.total-flow';
 
 import { DataJumpEvent } from '../../../../data/data.jump-event';
 
@@ -242,7 +241,8 @@ export class EventImporterFIT {
             activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index));
           });
 
-          const manufacturer = (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
+          const manufacturer =
+            (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
           const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
 
           // Go over the hr zone info
@@ -421,7 +421,10 @@ export class EventImporterFIT {
                 const timestamp = new Date(jump.timestamp);
                 // Relaxed check for jumps as they might be recorded slightly outside session stats or have timezone offsets
                 const margin = 24 * 60 * 60 * 1000; // 24 hours
-                return timestamp.getTime() >= activity.startDate.getTime() - margin && timestamp.getTime() <= activity.endDate.getTime() + margin;
+                return (
+                  timestamp.getTime() >= activity.startDate.getTime() - margin &&
+                  timestamp.getTime() <= activity.endDate.getTime() + margin
+                );
               })
               .forEach((jump: any) => {
                 activity.addEvent(
@@ -448,8 +451,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject, options)
             : fitDataObject.records.filter((record: any) => {
-              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-            });
+                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+              });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -492,7 +495,7 @@ export class EventImporterFIT {
           activities.forEach((activity: ActivityInterface) => {
             let timeSum = 0;
             const ibiData = fitDataObject.hrv
-              .reduce((ibiArray: any, hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
+              .reduce((ibiArray: number[], hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
               .map((ibi: any) => ibi * 1000)
               .filter((ibi: number) => {
                 // debugger;
@@ -564,10 +567,8 @@ export class EventImporterFIT {
         lap.lengths.forEach((length: any) => {
           // Resolve start/end date of current length
           const lengthStartDate: Date = length.start_time;
-          const lengthDuration = (length.total_timer_time || length.total_elapsed_time || 0);
-          const lengthEndDate = new Date(
-            lengthStartDate.getTime() + lengthDuration * 1000
-          );
+          const lengthDuration = length.total_timer_time || length.total_elapsed_time || 0;
+          const lengthEndDate = new Date(lengthStartDate.getTime() + lengthDuration * 1000);
 
           // We check if length is valid comparing to max activity duration
           if (lengthDuration > options.maxActivityDurationDays * 24 * 60 * 60) {
@@ -608,7 +609,10 @@ export class EventImporterFIT {
     return deviceInfos.map((deviceInfo: any) => {
       const device = new Device(deviceInfo.device_type);
       device.index = deviceInfo.device_index;
-      device.name = deviceInfo.product_name || ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] || deviceInfo.ant_device_number;
+      device.name =
+        deviceInfo.product_name ||
+        ImporterFitAntPlusDeviceNames[deviceInfo.ant_device_number] ||
+        deviceInfo.ant_device_number;
       device.batteryStatus = deviceInfo.battery_status;
       device.batteryLevel = isNumber(deviceInfo.battery_level) ? deviceInfo.battery_level : deviceInfo.battery_soc;
       device.batteryVoltage = deviceInfo.battery_voltage;
@@ -781,8 +785,6 @@ export class EventImporterFIT {
       // Set the activity stats
       this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
 
-
-
       // Check for User Profile
       if (fitDataObject.user_profile) {
         const userProfile = fitDataObject.user_profile;
@@ -835,17 +837,21 @@ export class EventImporterFIT {
         }
       }
 
-
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
         // Find session-level time_in_zone message (reference_mesg = 18 for session, reference_index = 0 for first session)
-        const manufacturer = (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
+        const manufacturer =
+          (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
         const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
         const sessionTimeInZone = fitDataObject.time_in_zone.find(
           (z: any) => z.reference_mesg === 18 && (z.reference_index === 0 || z.reference_index === undefined)
         );
-        if (sessionTimeInZone && sessionTimeInZone.time_in_hr_zone && Array.isArray(sessionTimeInZone.time_in_hr_zone)) {
+        if (
+          sessionTimeInZone &&
+          sessionTimeInZone.time_in_hr_zone &&
+          Array.isArray(sessionTimeInZone.time_in_hr_zone)
+        ) {
           const hrZones = sessionTimeInZone.time_in_hr_zone;
           const hrZoneBoundaries = sessionTimeInZone.hr_zone_high_boundary;
 
@@ -992,22 +998,46 @@ export class EventImporterFIT {
             activity.intensityZones.push(powerIntensityZones);
           } else if (existingPowerZones && Array.isArray(powerZoneBoundaries) && powerZoneBoundaries.length > 0) {
             // Update existing IntensityZones with boundary data if not set
-            if (!existingPowerZones.zone2LowerLimit && isNumber(powerZoneBoundaries[0]) && powerZoneBoundaries[0] !== 65535) {
+            if (
+              !existingPowerZones.zone2LowerLimit &&
+              isNumber(powerZoneBoundaries[0]) &&
+              powerZoneBoundaries[0] !== 65535
+            ) {
               existingPowerZones.zone2LowerLimit = powerZoneBoundaries[0];
             }
-            if (!existingPowerZones.zone3LowerLimit && isNumber(powerZoneBoundaries[1]) && powerZoneBoundaries[1] !== 65535) {
+            if (
+              !existingPowerZones.zone3LowerLimit &&
+              isNumber(powerZoneBoundaries[1]) &&
+              powerZoneBoundaries[1] !== 65535
+            ) {
               existingPowerZones.zone3LowerLimit = powerZoneBoundaries[1];
             }
-            if (!existingPowerZones.zone4LowerLimit && isNumber(powerZoneBoundaries[2]) && powerZoneBoundaries[2] !== 65535) {
+            if (
+              !existingPowerZones.zone4LowerLimit &&
+              isNumber(powerZoneBoundaries[2]) &&
+              powerZoneBoundaries[2] !== 65535
+            ) {
               existingPowerZones.zone4LowerLimit = powerZoneBoundaries[2];
             }
-            if (!existingPowerZones.zone5LowerLimit && isNumber(powerZoneBoundaries[3]) && powerZoneBoundaries[3] !== 65535) {
+            if (
+              !existingPowerZones.zone5LowerLimit &&
+              isNumber(powerZoneBoundaries[3]) &&
+              powerZoneBoundaries[3] !== 65535
+            ) {
               existingPowerZones.zone5LowerLimit = powerZoneBoundaries[3];
             }
-            if (!existingPowerZones.zone6LowerLimit && isNumber(powerZoneBoundaries[4]) && powerZoneBoundaries[4] !== 65535) {
+            if (
+              !existingPowerZones.zone6LowerLimit &&
+              isNumber(powerZoneBoundaries[4]) &&
+              powerZoneBoundaries[4] !== 65535
+            ) {
               existingPowerZones.zone6LowerLimit = powerZoneBoundaries[4];
             }
-            if (!existingPowerZones.zone7LowerLimit && isNumber(powerZoneBoundaries[5]) && powerZoneBoundaries[5] !== 65535) {
+            if (
+              !existingPowerZones.zone7LowerLimit &&
+              isNumber(powerZoneBoundaries[5]) &&
+              powerZoneBoundaries[5] !== 65535
+            ) {
               existingPowerZones.zone7LowerLimit = powerZoneBoundaries[5];
             }
           }
@@ -1184,7 +1214,6 @@ export class EventImporterFIT {
     // Grit & Flow
 
     if (isNumberOrString(object.total_flow)) {
-
     }
     if (isNumberOrString(object.avg_grit)) {
       stats.push(new DataAvgGrit(object.avg_grit));
@@ -1360,7 +1389,6 @@ export class EventImporterFIT {
       stats.push(new DataStanceTime(object.avg_stance_time));
     }
 
-
     if (Number.isFinite(object.avg_vertical_oscillation)) {
       stats.push(new DataVerticalOscillation(object.avg_vertical_oscillation));
     }
@@ -1376,19 +1404,13 @@ export class EventImporterFIT {
 
     // Respiration Rate
     if (isNumberOrString(object.avg_respiration_rate) || isNumberOrString(object.enhanced_avg_respiration_rate)) {
-      stats.push(
-        new DataAvgRespirationRate(object.enhanced_avg_respiration_rate || object.avg_respiration_rate)
-      );
+      stats.push(new DataAvgRespirationRate(object.enhanced_avg_respiration_rate || object.avg_respiration_rate));
     }
     if (isNumberOrString(object.max_respiration_rate) || isNumberOrString(object.enhanced_max_respiration_rate)) {
-      stats.push(
-        new DataMaxRespirationRate(object.enhanced_max_respiration_rate || object.max_respiration_rate)
-      );
+      stats.push(new DataMaxRespirationRate(object.enhanced_max_respiration_rate || object.max_respiration_rate));
     }
     if (isNumberOrString(object.min_respiration_rate) || isNumberOrString(object.enhanced_min_respiration_rate)) {
-      stats.push(
-        new DataMinRespirationRate(object.enhanced_min_respiration_rate || object.min_respiration_rate)
-      );
+      stats.push(new DataMinRespirationRate(object.enhanced_min_respiration_rate || object.min_respiration_rate));
     }
 
     // Total Grit
@@ -1424,23 +1446,26 @@ export class EventImporterFIT {
 
     // Positions
     if (isNumber(object.start_position_lat) && isNumber(object.start_position_long)) {
-      stats.push(new DataStartPosition({
-        latitudeDegrees: object.start_position_lat,
-        longitudeDegrees: object.start_position_long,
-      }));
+      stats.push(
+        new DataStartPosition({
+          latitudeDegrees: object.start_position_lat,
+          longitudeDegrees: object.start_position_long
+        })
+      );
     }
     if (isNumber(object.end_position_lat) && isNumber(object.end_position_long)) {
-      stats.push(new DataEndPosition({
-        latitudeDegrees: object.end_position_lat,
-        longitudeDegrees: object.end_position_long,
-      }));
+      stats.push(
+        new DataEndPosition({
+          latitudeDegrees: object.end_position_lat,
+          longitudeDegrees: object.end_position_long
+        })
+      );
     }
 
     // Resting Calories
     if (isNumberOrString(object.resting_calories)) {
       stats.push(new DataRestingCalories(object.resting_calories));
     }
-
 
     // Avg VAM
     if (isNumberOrString(object.avg_vam)) {
@@ -1451,12 +1476,24 @@ export class EventImporterFIT {
     if (object.jumps && object.jumps.length > 0) {
       const jumps = object.jumps;
       let count = 0;
-      let hangTimeSum = 0, hangTimeMin = Number.MAX_VALUE, hangTimeMax = -Number.MAX_VALUE;
-      let distanceSum = 0, distanceMin = Number.MAX_VALUE, distanceMax = -Number.MAX_VALUE;
-      let speedSum = 0, speedMin = Number.MAX_VALUE, speedMax = -Number.MAX_VALUE;
-      let rotationsSum = 0, rotationsMin = Number.MAX_VALUE, rotationsMax = -Number.MAX_VALUE;
-      let scoreSum = 0, scoreMin = Number.MAX_VALUE, scoreMax = -Number.MAX_VALUE;
-      let heightSum = 0, heightMin = Number.MAX_VALUE, heightMax = -Number.MAX_VALUE;
+      let hangTimeSum = 0,
+        hangTimeMin = Number.MAX_VALUE,
+        hangTimeMax = -Number.MAX_VALUE;
+      let distanceSum = 0,
+        distanceMin = Number.MAX_VALUE,
+        distanceMax = -Number.MAX_VALUE;
+      let speedSum = 0,
+        speedMin = Number.MAX_VALUE,
+        speedMax = -Number.MAX_VALUE;
+      let rotationsSum = 0,
+        rotationsMin = Number.MAX_VALUE,
+        rotationsMax = -Number.MAX_VALUE;
+      let scoreSum = 0,
+        scoreMin = Number.MAX_VALUE,
+        scoreMax = -Number.MAX_VALUE;
+      let heightSum = 0,
+        heightMin = Number.MAX_VALUE,
+        heightMax = -Number.MAX_VALUE;
 
       jumps.forEach((j: any) => {
         count++;
@@ -1530,8 +1567,6 @@ export class EventImporterFIT {
         if (heightSum > 0) stats.push(new DataJumpHeightAvg(heightSum / count));
       }
     }
-
-
 
     return stats;
   }

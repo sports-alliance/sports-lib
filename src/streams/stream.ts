@@ -44,29 +44,35 @@ export class Stream implements StreamInterface {
   }
 
   getStreamDataByTime(startDate: Date, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
-    return this.getData().reduce((accu, dataItem, index) => {
-      if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
+    return this.getData().reduce(
+      (accu, dataItem, index) => {
+        if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
+          return accu;
+        }
+        accu.push({
+          time: startDate.getTime() + index * 1000,
+          value: dataItem
+        });
         return accu;
-      }
-      accu.push({
-        time: startDate.getTime() + index * 1000,
-        value: dataItem
-      });
-      return accu;
-    }, <StreamDataItem[]>[]);
+      },
+      <StreamDataItem[]>[]
+    );
   }
 
   getStreamDataByDuration(offset = 0, onlyNumeric = false, filterInfinity = false): StreamDataItem[] {
-    return this.getData().reduce((accu, dataItem, index) => {
-      if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
+    return this.getData().reduce(
+      (accu, dataItem, index) => {
+        if (this.shouldDataBeFiltered(dataItem, onlyNumeric, filterInfinity)) {
+          return accu;
+        }
+        accu.push({
+          time: index * 1000 + (offset || 0),
+          value: dataItem
+        });
         return accu;
-      }
-      accu.push({
-        time: index * 1000 + (offset || 0),
-        value: dataItem
-      });
-      return accu;
-    }, <StreamDataItem[]>[]);
+      },
+      <StreamDataItem[]>[]
+    );
   }
 
   isExportable(): boolean {

@@ -1,7 +1,7 @@
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 describe('ActivityTypes', () => {
-  beforeEach(() => { });
+  beforeEach(() => {});
 
   it('get the correct activity group', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.Running);
@@ -65,6 +65,39 @@ describe('ActivityTypes', () => {
     });
     it('should return false for BackcountrySkiing', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.BackcountrySkiing)).toBe(false);
+    });
+    it('should return false for Kitesurfing', () => {
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Kitesurfing)).toBe(false);
+    });
+  });
+
+  describe('shouldExcludeDescent', () => {
+    it('should return false for AlpineSkiing', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.AlpineSkiing)).toBe(false);
+    });
+    it('should return false for Snowboarding', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Snowboarding)).toBe(false);
+    });
+    it('should return false for DownhillCycling', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.DownhillCycling)).toBe(false);
+    });
+    it('should return true for Sailing', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Sailing)).toBe(true);
+    });
+    it('should return true for Swimming', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Swimming)).toBe(true);
+    });
+    it('should return true for OpenWaterSwimming', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.OpenWaterSwimming)).toBe(true);
+    });
+    it('should return false for ScubaDiving', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.ScubaDiving)).toBe(false);
+    });
+    it('should return false for Running', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Running)).toBe(false);
+    });
+    it('should return false for Kitesurfing', () => {
+      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Kitesurfing)).toBe(false);
     });
   });
 });

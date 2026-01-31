@@ -106,6 +106,22 @@ export class ActivityTypesHelper {
    * Identifies activities where ascent should be ignored/excluded (e.g. assisted ascent)
    * @param activityType
    */
+  static shouldExcludeDescent(activityType: ActivityTypes): boolean {
+    const typesToExclude = [
+      ActivityTypes.Sailing,
+      ActivityTypes.Rowing,
+      ActivityTypes.Windsurfing,
+      ActivityTypes.Paddling,
+      ActivityTypes.Surfing,
+      ActivityTypes.StandUpPaddling,
+      ActivityTypes.WaterSkiing,
+      ActivityTypes.Wakeboarding,
+      ActivityTypes.Swimming,
+      ActivityTypes.OpenWaterSwimming
+    ];
+    return typesToExclude.includes(activityType);
+  }
+
   static shouldExcludeAscent(activityType: ActivityTypes): boolean {
     const typesToExclude = [
       ActivityTypes.AlpineSkiing,
@@ -114,7 +130,6 @@ export class ActivityTypesHelper {
       ActivityTypes.Sailing,
       ActivityTypes.Rowing,
       ActivityTypes.Windsurfing,
-      ActivityTypes.Kitesurfing,
       ActivityTypes.Paddling,
       ActivityTypes.Surfing,
       ActivityTypes.StandUpPaddling,
@@ -124,7 +139,7 @@ export class ActivityTypesHelper {
       ActivityTypes.OpenWaterSwimming,
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
-      ActivityTypes.FreeDiving,
+      ActivityTypes.FreeDiving
     ];
     return typesToExclude.includes(activityType);
   }

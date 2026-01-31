@@ -117,7 +117,7 @@ export function fillMissingValuesLinear(array: (number | null)[]): number[] {
       continue;
     }
     j = i;
-    // eslint-disable-next-line no-empty
+
     while (array[++j] === null) {}
     // @ts-ignore
     delta = (array[j] - array[i - 1]) / (j - i + 1);

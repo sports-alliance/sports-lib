@@ -1710,6 +1710,7 @@ export class ActivityUtilities {
 
     // Ascent (altitude gain)
     if (
+      !ActivityTypesHelper.shouldExcludeAscent(activity.type) &&
       !activity.getStat(DataAscent.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
@@ -1723,6 +1724,7 @@ export class ActivityUtilities {
     }
     // Descent (altitude loss)
     if (
+      !ActivityTypesHelper.shouldExcludeDescent(activity.type) &&
       !activity.getStat(DataDescent.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {

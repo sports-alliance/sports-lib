@@ -23,6 +23,8 @@ import { ActivityInterface } from '../../activities/activity.interface';
 import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
 import { DataSpeedKilometersPerHour } from '../../data/data.speed';
 import { DataSwimPace } from '../../data/data.swim-pace';
+import { DataAscent } from '../../data/data.ascent';
+import { DataDescent } from '../../data/data.descent';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -530,6 +532,105 @@ describe('Activity Utilities', () => {
       if (kmhStream) {
         expect(kmhStream.getData()[0]).toBeCloseTo(36, 1); // 10 m/s = 36 km/h
       }
+    });
+
+    it('should NOT generate ascent but SHOULD generate descent for AlpineSkiing', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.AlpineSkiing,
+        new Creator('test'),
+        new ActivityParsingOptions({
+          streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} }
+        })
+      );
+      activity.addStream(new Stream(DataAltitude.type, [100, 200, 300, 200, 100])); // 200m gain, 200m loss
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeUndefined();
+      expect(activity.getStat(DataDescent.type)).toBeDefined();
+      expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(200);
+    });
+
+    it('should generate ascent/descent for Running (NOT excluded)', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.Running,
+        new Creator('test'),
+        new ActivityParsingOptions({
+          streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} }
+        })
+      );
+      activity.addStream(new Stream(DataAltitude.type, [100, 150, 200, 150, 100])); // 100m gain, 100m loss
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeDefined();
+      expect(activity.getStat(DataDescent.type)).toBeDefined();
+      expect((activity.getStat(DataAscent.type) as DataAscent).getValue()).toBe(100);
+      expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(100);
+    });
+
+    it('should generate ascent/descent for Kayaking (specifically NOT excluded)', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Kayaking, new Creator('test'));
+      activity.addStream(new Stream(DataAltitude.type, [100, 150, 200, 150, 100]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeDefined();
+      expect(activity.getStat(DataDescent.type)).toBeDefined();
+    });
+
+    it('should NOT generate ascent OR descent for Swimming (excluded)', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Swimming, new Creator('test'));
+      activity.addStream(new Stream(DataAltitude.type, [100, 150, 200, 150, 100]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeUndefined();
+      expect(activity.getStat(DataDescent.type)).toBeUndefined();
+    });
+
+    it('should NOT generate ascent but SHOULD generate descent for Diving', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.Diving,
+        new Creator('test'),
+        new ActivityParsingOptions({
+          streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} }
+        })
+      );
+      // Diving 10m down (alt 0 to -10)
+      activity.addStream(new Stream(DataAltitude.type, [0, -2, -5, -8, -10]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeUndefined();
+      expect(activity.getStat(DataDescent.type)).toBeDefined();
+      expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(10);
+    });
+    it('should generate BOTH ascent and descent for Kitesurfing', () => {
+      const activity = new Activity(
+        new Date(),
+        new Date(),
+        ActivityTypes.Kitesurfing,
+        new Creator('test'),
+        new ActivityParsingOptions({
+          streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} }
+        })
+      );
+      // Up 10m then down 10m
+      activity.addStream(new Stream(DataAltitude.type, [0, 5, 10, 5, 0]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataAscent.type)).toBeDefined();
+      expect((activity.getStat(DataAscent.type) as DataAscent).getValue()).toBe(10);
+      expect(activity.getStat(DataDescent.type)).toBeDefined();
+      expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(10);
     });
   });
 });

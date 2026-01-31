@@ -107,41 +107,11 @@ export class ActivityTypesHelper {
    * @param activityType
    */
   static shouldExcludeDescent(activityType: ActivityTypes): boolean {
-    const typesToExclude = [
-      ActivityTypes.Sailing,
-      ActivityTypes.Rowing,
-      ActivityTypes.Windsurfing,
-      ActivityTypes.Paddling,
-      ActivityTypes.Surfing,
-      ActivityTypes.StandUpPaddling,
-      ActivityTypes.WaterSkiing,
-      ActivityTypes.Wakeboarding,
-      ActivityTypes.Swimming,
-      ActivityTypes.OpenWaterSwimming
-    ];
-    return typesToExclude.includes(activityType);
+    return ACTIVITIES_EXCLUDED_FROM_DESCENT.includes(activityType);
   }
 
   static shouldExcludeAscent(activityType: ActivityTypes): boolean {
-    const typesToExclude = [
-      ActivityTypes.AlpineSkiing,
-      ActivityTypes.Snowboarding,
-      ActivityTypes.DownhillCycling,
-      ActivityTypes.Sailing,
-      ActivityTypes.Rowing,
-      ActivityTypes.Windsurfing,
-      ActivityTypes.Paddling,
-      ActivityTypes.Surfing,
-      ActivityTypes.StandUpPaddling,
-      ActivityTypes.WaterSkiing,
-      ActivityTypes.Wakeboarding,
-      ActivityTypes.Swimming,
-      ActivityTypes.OpenWaterSwimming,
-      ActivityTypes.Diving,
-      ActivityTypes.ScubaDiving,
-      ActivityTypes.FreeDiving
-    ];
-    return typesToExclude.includes(activityType);
+    return ACTIVITIES_EXCLUDED_FROM_ASCENT.includes(activityType);
   }
 
   /**
@@ -954,6 +924,38 @@ export enum ActivityTypes {
   'generic_match' = 'Match',
   'Match' = 'Match'
 }
+
+export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
+  ActivityTypes.Sailing,
+  ActivityTypes.Rowing,
+  ActivityTypes.Windsurfing,
+  ActivityTypes.Paddling,
+  ActivityTypes.Surfing,
+  ActivityTypes.StandUpPaddling,
+  ActivityTypes.WaterSkiing,
+  ActivityTypes.Wakeboarding,
+  ActivityTypes.Swimming,
+  ActivityTypes.OpenWaterSwimming
+];
+
+export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
+  ActivityTypes.AlpineSkiing,
+  ActivityTypes.Snowboarding,
+  ActivityTypes.DownhillCycling,
+  ActivityTypes.Sailing,
+  ActivityTypes.Rowing,
+  ActivityTypes.Windsurfing,
+  ActivityTypes.Paddling,
+  ActivityTypes.Surfing,
+  ActivityTypes.StandUpPaddling,
+  ActivityTypes.WaterSkiing,
+  ActivityTypes.Wakeboarding,
+  ActivityTypes.Swimming,
+  ActivityTypes.OpenWaterSwimming,
+  ActivityTypes.Diving,
+  ActivityTypes.ScubaDiving,
+  ActivityTypes.FreeDiving
+];
 
 export enum ActivityTypeGroups {
   'Running' = 'Running',

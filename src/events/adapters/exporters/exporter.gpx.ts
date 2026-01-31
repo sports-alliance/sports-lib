@@ -15,14 +15,14 @@ import { DataTime } from '../../../data/data.time';
 import { buildGPX as _buildGPX, GarminBuilder as _GarminBuilder } from 'gpx-builder';
 const buildGPX = _buildGPX as any;
 const GarminBuilder = _GarminBuilder as any;
-const { Point, Metadata, Person, Copyright, Link, Track, Segment } = GarminBuilder.MODELS;
+const { Point, Metadata, Person: _Person, Copyright, Link, Track, Segment } = GarminBuilder.MODELS;
 
 export class EventExporterGPX implements EventExporter {
   fileType = 'application/gpx+xml';
   fileExtension = 'gpx';
 
   getAsString(event: EventInterface): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const tracks: typeof Track = [];
       event.getActivities().forEach(activity => {
         // We cannot export activities with no positional data!
@@ -45,7 +45,7 @@ export class EventExporterGPX implements EventExporter {
               DataAltitude.type,
               DataSpeed.type
             ])
-            .reduce((pointsArray: (typeof Point)[], data, index, array) => {
+            .reduce((pointsArray: (typeof Point)[], data, _index, _array) => {
               pointsArray.push(
                 new Point(<number>data[DataLatitudeDegrees.type], <number>data[DataLongitudeDegrees.type], {
                   ele: data[DataAltitude.type] || undefined,

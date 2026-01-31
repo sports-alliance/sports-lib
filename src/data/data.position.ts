@@ -9,7 +9,7 @@ export class DataPosition extends DataBare<DataPositionInterface> {
     this.value = value;
   }
 
-  getValue(formatForDataType?: string): DataPositionInterface {
+  getValue(_formatForDataType?: string): DataPositionInterface {
     return this.value;
   }
 

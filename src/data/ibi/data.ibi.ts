@@ -54,7 +54,7 @@ export class IBIData implements SerializableClassInterface {
    */
   public getAsBPM(): Map<number, number> {
     const hrDataMap = new Map();
-    this.ibiDataMap.forEach((value, key, map) => {
+    this.ibiDataMap.forEach((value, key, _map) => {
       hrDataMap.set(key, Math.round(60000 / value));
     });
     return hrDataMap;
@@ -62,7 +62,7 @@ export class IBIData implements SerializableClassInterface {
 
   getAsArray(): number[] {
     const ibi: number[] = [];
-    this.ibiDataMap.forEach((value, key, map) => {
+    this.ibiDataMap.forEach((value, _key, _map) => {
       ibi.push(value);
     });
     return ibi;

@@ -946,7 +946,7 @@ describe('Strava stream compliance', () => {
 
       it(`should match distance with x% error max`, done => {
         // Given
-        const tolerance = 0.0; // percent
+        const _tolerance = 0.0; // percent
 
         const stravaDistanceStream = clone(strava_343080886.distance);
 
@@ -1082,8 +1082,8 @@ describe('Strava stream compliance', () => {
 
       it(`should match distance with x% error max`, done => {
         // Given
-        const tolerance = 2.6; // percent
-        const toleranceDelta = 0.1;
+        const _tolerance = 2.6; // percent
+        const _toleranceDelta = 0.1;
 
         const stravaDistanceStream = clone(strava_3171487458_tcx.distance);
 

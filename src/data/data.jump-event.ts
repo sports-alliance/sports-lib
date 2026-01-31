@@ -73,7 +73,7 @@ export class DataJumpEvent extends DataEvent {
   }
 
   toJSON(): any {
-    const json = super.toJSON();
+    super.toJSON();
     return {
       [DataJumpEvent.type]: {
         timestamp: this.getValue(),

@@ -1,5 +1,4 @@
 import { convertSwimPaceToSwimPacePer100Yard } from '../events/utilities/helpers';
-import { DataDuration } from './data.duration';
 import { DataPace } from './data.pace';
 
 export class DataSwimPace extends DataPace {

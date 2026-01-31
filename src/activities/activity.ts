@@ -95,7 +95,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   addStream(stream: StreamInterface): this {
     if (this.streams.find(activityStream => activityStream.type === stream.type)) {
-      throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()} `);
+      throw new Error(`Duplicate type of stream when adding ${stream.type} to activity ${this.getID()}`);
     }
     this.streams.push(stream);
     return this;
@@ -135,7 +135,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   hasStreamData(streamType: string | StreamInterface, startDate?: Date, endDate?: Date): boolean {
     try {
       this.getStreamData(streamType, startDate, endDate);
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
     return true;
@@ -159,7 +159,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   getStream(streamType: string): StreamInterface {
     const find = this.streams.find(stream => stream.type === streamType);
     if (!find) {
-      throw Error(`No stream found with type ${streamType} `);
+      throw Error(`No stream found with type ${streamType}`);
     }
     return find;
   }
@@ -173,16 +173,16 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     if (startDate && endDate) {
       return stream
         .getData()
-        .filter((value, index) => new Date(this.startDate.getTime() + index * 1000) <= endDate)
-        .filter((value, index) => new Date(this.startDate.getTime() + index * 1000) >= startDate);
+        .filter((_value, index) => new Date(this.startDate.getTime() + index * 1000) <= endDate)
+        .filter((_value, index) => new Date(this.startDate.getTime() + index * 1000) >= startDate);
     }
 
     if (startDate) {
-      return stream.getData().filter((value, index) => new Date(this.startDate.getTime() + index * 1000) > startDate);
+      return stream.getData().filter((_value, index) => new Date(this.startDate.getTime() + index * 1000) > startDate);
     }
 
     if (endDate) {
-      return stream.getData().filter((value, index) => new Date(this.startDate.getTime() + index * 1000) < endDate);
+      return stream.getData().filter((_value, index) => new Date(this.startDate.getTime() + index * 1000) < endDate);
     }
 
     return [];
@@ -203,7 +203,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   getPositionData(startDate?: Date, endDate?: Date): (DataPositionInterface | null)[] {
     const latitudeStreamData = this.getStreamData(DataLatitudeDegrees.type, startDate, endDate);
     const longitudeStreamData = this.getStreamData(DataLongitudeDegrees.type, startDate, endDate);
-    return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], value, index, array) => {
+    return latitudeStreamData.reduce((positionArray: (DataPositionInterface | null)[], _value, index, _array) => {
       const currentLatitude = latitudeStreamData[index];
       const currentLongitude = longitudeStreamData[index];
       if (!isNumber(currentLatitude) || !isNumber(currentLongitude)) {
@@ -257,7 +257,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
-  getLaps(activity?: ActivityInterface): LapInterface[] {
+  getLaps(_activity?: ActivityInterface): LapInterface[] {
     return this.laps;
   }
 
@@ -302,7 +302,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1);
     }
     streams.forEach(stream => {
-      this.getStreamDataByDuration(stream.type, true, false).forEach((data: any) => {
+      this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
         timeStream.getData()[data.time / 1000] = data.time / 1000;
       });
     });
@@ -327,7 +327,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       intensityZones.push(value.toJSON());
     });
     const stats = {};
-    this.stats.forEach((value: DataInterface, key: string) => {
+    this.stats.forEach((value: DataInterface, _key: string) => {
       Object.assign(stats, value.toJSON());
     });
 

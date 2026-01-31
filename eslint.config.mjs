@@ -6,34 +6,44 @@ import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default [
-    eslint.configs.recommended,
-    {
-        files: ['**/*.ts'],
-        languageOptions: {
-            parser: tseslintParser,
-            globals: {
-                ...globals.node,
-                ...globals.jest,
-                ...globals.browser,
-            },
-        },
-        plugins: {
-            '@typescript-eslint': tseslintPlugin,
-            prettier: prettierPlugin,
-        },
-        rules: {
-            ...tseslintPlugin.configs.recommended.rules,
-            'prettier/prettier': 'error',
-            'no-undef': 'off', // TypeScript handles this better
-            'no-redeclare': 'off',
-            '@typescript-eslint/no-redeclare': 'off',
-            '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-            '@typescript-eslint/ban-ts-comment': 'off',
-        },
+  eslint.configs.recommended,
+  {
+    files: ['**/*.{js,mjs,ts}'],
+    languageOptions: {
+      parser: tseslintParser,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+        ...globals.browser
+      }
     },
-    {
-        ignores: ['docs/**', 'lib/**', 'node_modules/**', 'samples/**'],
+    plugins: {
+      '@typescript-eslint': tseslintPlugin,
+      prettier: prettierPlugin
     },
-    prettierConfig,
+    rules: {
+      ...eslint.configs.recommended.rules,
+      ...tseslintPlugin.configs.recommended.rules,
+      'prettier/prettier': 'error',
+      'no-undef': 'off', // TypeScript/Node handles this, and many scripts use globals
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_'
+        }
+      ],
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-empty': 'off'
+    }
+  },
+  {
+    ignores: ['docs/**', 'lib/**', 'node_modules/**', 'samples/**']
+  },
+  prettierConfig
 ];

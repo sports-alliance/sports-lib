@@ -36,7 +36,7 @@ export abstract class Data<
     return this;
   }
 
-  getValue(formatForDataType?: string): T {
+  getValue(_formatForDataType?: string): T {
     return this.value;
   }
 

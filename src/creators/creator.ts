@@ -51,9 +51,9 @@ export class Creator implements CreatorInterface {
       serialNumber: this.serialNumber ? this.serialNumber : null,
       swInfo: this.swInfo ? this.swInfo : null,
       hwInfo: this.hwInfo ? this.hwInfo : null,
-      devices: this.devices.reduce((devicesArray: any[], device: DeviceInterface) => {
-        devicesArray.push(device.toJSON());
-        return devicesArray;
+      devices: this.devices.reduce((acc: any[], device: DeviceInterface, _index: number, _array: DeviceInterface[]) => {
+        acc.push(device.toJSON());
+        return acc;
       }, [])
     };
   }

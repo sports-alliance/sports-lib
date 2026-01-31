@@ -27,7 +27,7 @@ import {
   DataVerticalSpeedMetersPerMinute,
   DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
-import { DataStore, DynamicDataLoader } from './data.store';
+import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistanceMiles } from './data.distance';
 
 describe('DataStore', () => {
@@ -57,7 +57,7 @@ describe('DataStore', () => {
     DataDistanceMiles.type
   ];
 
-  const speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
+  const _speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
 
   it('should get the correct unitbased datatypes', () => {
     // @todo here we should think
@@ -66,7 +66,7 @@ describe('DataStore', () => {
 
   describe('getUnitBasedDataTypesFromDataTypes', () => {
     it('should include derived types by default', () => {
-      const types = [DataSpeedKilometersPerHour.type, DataPace.type];
+      const _types = [DataSpeedKilometersPerHour.type, DataPace.type];
       const settings: any = {
         speedUnits: [DataSpeedKilometersPerHour.type],
         swimPaceUnits: [],

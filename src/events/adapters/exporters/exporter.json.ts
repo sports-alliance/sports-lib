@@ -19,8 +19,8 @@ export class EventExporterJSON implements EventExporter {
   }
 
   getAsString(event: EventInterface): Promise<string> {
-    return new Promise((resolve, reject) => {
-      resolve(JSON.stringify(this.export));
+    return new Promise((resolve, _reject) => {
+      resolve(JSON.stringify(this.export(event)));
     });
   }
 }

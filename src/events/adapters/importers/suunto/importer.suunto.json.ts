@@ -128,7 +128,7 @@ export class EventImporterSuuntoJSON {
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
         ImporterSuuntoDeviceNames[eventJSONObject.DeviceLog.Device.Name] || // Try to get a listed name
-        eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
+          eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
       );
       creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
       creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
@@ -168,15 +168,15 @@ export class EventImporterSuuntoJSON {
       // Get the activity windows
       const activityWindows = eventJSONObject.DeviceLog.Windows
         ? eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
-          return windowObj.Window.Type === 'Activity';
-        }).map((activityWindow: any) => activityWindow.Window)
+            return windowObj.Window.Type === 'Activity';
+          }).map((activityWindow: any) => activityWindow.Window)
         : [];
 
       // Get the lap windows
       const lapWindows = eventJSONObject.DeviceLog.Windows
         ? eventJSONObject.DeviceLog.Windows.filter((windowObj: any) => {
-          return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
-        }).map((lapWindow: any) => lapWindow.Window)
+            return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
+          }).map((lapWindow: any) => lapWindow.Window)
         : [];
 
       // Create the activities
@@ -193,9 +193,9 @@ export class EventImporterSuuntoJSON {
               ? new Date(fallbackEndTime)
               : new Date(activityStartEventSamples[index + 1].TimeISO8601),
             ActivityTypes[
-            <keyof typeof ActivityTypes>(
-              ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]
-            )
+              <keyof typeof ActivityTypes>(
+                ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]
+              )
             ],
             creator,
             options
@@ -236,7 +236,7 @@ export class EventImporterSuuntoJSON {
             new Date(eventJSONObject.DeviceLog.Header.DateTime),
             new Date(
               new Date(eventJSONObject.DeviceLog.Header.DateTime).getTime() +
-              eventJSONObject.DeviceLog.Header.Duration * 1000
+                eventJSONObject.DeviceLog.Header.Duration * 1000
             ),
             ActivityTypes.unknown,
             creator,
@@ -820,119 +820,119 @@ export const SuuntoSampleMapper: {
   sampleField: string;
   convertSampleValue(value: number): number;
 }[] = [
-    {
-      dataType: DataLatitudeDegrees.type,
-      sampleField: 'Latitude',
-      convertSampleValue: (value: number) => Number(value * (180 / Math.PI))
-    },
-    {
-      dataType: DataLongitudeDegrees.type,
-      sampleField: 'Longitude',
-      convertSampleValue: (value: number) => Number(value * (180 / Math.PI))
-    },
-    {
-      dataType: DataHeartRate.type,
-      sampleField: 'HR',
-      convertSampleValue: (value: number) => Number(value * 60)
-    },
-    {
-      dataType: DataDistance.type,
-      sampleField: 'Distance',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataAbsolutePressure.type,
-      sampleField: 'AbsPressure',
-      convertSampleValue: (value: number) => Number(value / 100)
-    },
-    {
-      dataType: DataSeaLevelPressure.type,
-      sampleField: 'SeaLevelPressure',
-      convertSampleValue: (value: number) => Number(value / 100)
-    },
-    {
-      dataType: DataGPSAltitude.type,
-      sampleField: 'GPSAltitude',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataAltitude.type,
-      sampleField: 'Altitude',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataCadence.type,
-      sampleField: 'Cadence',
-      convertSampleValue: (value: number) => Number(value * 60)
-    },
-    {
-      dataType: DataPower.type,
-      sampleField: 'Power',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataSpeed.type,
-      sampleField: 'Speed',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataTemperature.type,
-      sampleField: 'Temperature',
-      convertSampleValue: (value: number) => Number(value - 273.15)
-    },
-    {
-      dataType: DataVerticalSpeed.type,
-      sampleField: 'VerticalSpeed',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataEHPE.type,
-      sampleField: 'EHPE',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataEVPE.type,
-      sampleField: 'EVPE',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataNumberOfSatellites.type,
-      sampleField: 'NumberOfSatellites',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataSatellite5BestSNR.type,
-      sampleField: 'Satellite5BestSNR',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataBatteryCharge.type,
-      sampleField: 'BatteryCharge',
-      convertSampleValue: (value: number) => Number(value * 100)
-    },
-    {
-      dataType: DataBatteryCurrent.type,
-      sampleField: 'BatteryCurrent',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataBatteryVoltage.type,
-      sampleField: 'BatteryVoltage',
-      convertSampleValue: (value: number) => Number(value)
-    },
-    {
-      dataType: DataVerticalOscillation.type,
-      sampleField: 'VerticalOscillation',
-      convertSampleValue: (value: number) => Number(value * 1000) // Convert m to mm
-    },
-    {
-      dataType: DataGroundContactTime.type,
-      sampleField: 'GroundContactTime',
-      convertSampleValue: (value: number) => Number(value * 1000) // Convert s to ms
-    },
-    {
-      dataType: DataDepth.type,
-      sampleField: 'Depth',
-      convertSampleValue: (value: number) => Number(value)
-    }
-  ];
+  {
+    dataType: DataLatitudeDegrees.type,
+    sampleField: 'Latitude',
+    convertSampleValue: (value: number) => Number(value * (180 / Math.PI))
+  },
+  {
+    dataType: DataLongitudeDegrees.type,
+    sampleField: 'Longitude',
+    convertSampleValue: (value: number) => Number(value * (180 / Math.PI))
+  },
+  {
+    dataType: DataHeartRate.type,
+    sampleField: 'HR',
+    convertSampleValue: (value: number) => Number(value * 60)
+  },
+  {
+    dataType: DataDistance.type,
+    sampleField: 'Distance',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataAbsolutePressure.type,
+    sampleField: 'AbsPressure',
+    convertSampleValue: (value: number) => Number(value / 100)
+  },
+  {
+    dataType: DataSeaLevelPressure.type,
+    sampleField: 'SeaLevelPressure',
+    convertSampleValue: (value: number) => Number(value / 100)
+  },
+  {
+    dataType: DataGPSAltitude.type,
+    sampleField: 'GPSAltitude',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataAltitude.type,
+    sampleField: 'Altitude',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataCadence.type,
+    sampleField: 'Cadence',
+    convertSampleValue: (value: number) => Number(value * 60)
+  },
+  {
+    dataType: DataPower.type,
+    sampleField: 'Power',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataSpeed.type,
+    sampleField: 'Speed',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataTemperature.type,
+    sampleField: 'Temperature',
+    convertSampleValue: (value: number) => Number(value - 273.15)
+  },
+  {
+    dataType: DataVerticalSpeed.type,
+    sampleField: 'VerticalSpeed',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataEHPE.type,
+    sampleField: 'EHPE',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataEVPE.type,
+    sampleField: 'EVPE',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataNumberOfSatellites.type,
+    sampleField: 'NumberOfSatellites',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataSatellite5BestSNR.type,
+    sampleField: 'Satellite5BestSNR',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataBatteryCharge.type,
+    sampleField: 'BatteryCharge',
+    convertSampleValue: (value: number) => Number(value * 100)
+  },
+  {
+    dataType: DataBatteryCurrent.type,
+    sampleField: 'BatteryCurrent',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataBatteryVoltage.type,
+    sampleField: 'BatteryVoltage',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataVerticalOscillation.type,
+    sampleField: 'VerticalOscillation',
+    convertSampleValue: (value: number) => Number(value * 1000) // Convert m to mm
+  },
+  {
+    dataType: DataGroundContactTime.type,
+    sampleField: 'GroundContactTime',
+    convertSampleValue: (value: number) => Number(value * 1000) // Convert s to ms
+  },
+  {
+    dataType: DataDepth.type,
+    sampleField: 'Depth',
+    convertSampleValue: (value: number) => Number(value)
+  }
+];

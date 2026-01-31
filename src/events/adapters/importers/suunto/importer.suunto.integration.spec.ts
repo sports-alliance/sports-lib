@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { EventImporterSuuntoJSON, SuuntoSampleMapper } from './importer.suunto.json';
+import { EventImporterSuuntoJSON } from './importer.suunto.json';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../../../data/data.ground-contact-time-max';

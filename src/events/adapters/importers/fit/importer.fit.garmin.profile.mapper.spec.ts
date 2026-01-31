@@ -1,5 +1,4 @@
 import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
-import { ActivityTypes } from '../../../../activities/activity.types';
 
 describe('GarminProfileMapper', () => {
   describe('getSportName', () => {

@@ -6,7 +6,7 @@ export abstract class DataString extends DataBare<string> {
     this.value = value;
   }
 
-  getValue(formatForDataType?: string): string {
+  getValue(_formatForDataType?: string): string {
     return this.value;
   }
 

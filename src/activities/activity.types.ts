@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
@@ -99,6 +100,28 @@ export class ActivityTypesHelper {
       default:
         return [];
     }
+  }
+
+  /**
+   * Identifies activities where ascent should be ignored/excluded (e.g. assisted ascent)
+   * @param activityType
+   */
+  static shouldExcludeAscent(activityType: ActivityTypes): boolean {
+    const typesToExclude = [
+      ActivityTypes.AlpineSkiing,
+      ActivityTypes.Snowboarding,
+      ActivityTypes.DownhillCycling,
+      ActivityTypes.Sailing,
+      ActivityTypes.Rowing,
+      ActivityTypes.Windsurfing,
+      ActivityTypes.Kitesurfing,
+      ActivityTypes.Paddling,
+      ActivityTypes.Surfing,
+      ActivityTypes.StandUpPaddling,
+      ActivityTypes.WaterSkiing,
+      ActivityTypes.Wakeboarding,
+    ];
+    return typesToExclude.includes(activityType);
   }
 
   /**

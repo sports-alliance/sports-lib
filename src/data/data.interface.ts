@@ -5,7 +5,7 @@ import { DataPositionInterface } from './data.position.interface';
 export interface DataInterface extends SerializableClassInterface {
   setValue(value: number | string | string[] | DataPositionInterface): this;
 
-  getValue(formatForDataType?: string): number | string | boolean | string[] | DataPositionInterface;
+  getValue(_formatForDataType?: string): number | string | boolean | string[] | DataPositionInterface;
 
   getDisplayValue(): number | string | boolean | string[] | DataPositionInterface;
 

@@ -48,6 +48,15 @@ describe('ActivityTypes', () => {
     it('should return true for Sailing', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Sailing)).toBe(true);
     });
+    it('should return true for Swimming', () => {
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Swimming)).toBe(true);
+    });
+    it('should return true for OpenWaterSwimming', () => {
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.OpenWaterSwimming)).toBe(true);
+    });
+    it('should return true for ScubaDiving', () => {
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.ScubaDiving)).toBe(true);
+    });
     it('should return false for Kayaking', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Kayaking)).toBe(false);
     });

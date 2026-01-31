@@ -120,6 +120,11 @@ export class ActivityTypesHelper {
       ActivityTypes.StandUpPaddling,
       ActivityTypes.WaterSkiing,
       ActivityTypes.Wakeboarding,
+      ActivityTypes.Swimming,
+      ActivityTypes.OpenWaterSwimming,
+      ActivityTypes.Diving,
+      ActivityTypes.ScubaDiving,
+      ActivityTypes.FreeDiving,
     ];
     return typesToExclude.includes(activityType);
   }

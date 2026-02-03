@@ -6,9 +6,9 @@ import { DataBatteryLifeEstimation } from '../../../../data/data.battery-life-es
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 describe('EventImporterFIT Battery Stats', () => {
-  const fitFilePath = path.join(__dirname, '../../../../../samples/battery/batt.fit');
+  const fitFilePath = path.join(__dirname, '../../../../../samples/fit/suunto-bat.fit');
 
-  it('should parse batt.fit and extract battery consumption and life estimation', async () => {
+  it('should parse suunto-bat.fit and extract battery consumption and life estimation', async () => {
     const fileContent = fs.readFileSync(fitFilePath);
     const arrayBuffer = fileContent.buffer.slice(
       fileContent.byteOffset,
@@ -27,21 +27,19 @@ describe('EventImporterFIT Battery Stats', () => {
     const consumptionStat = activity.getStat(DataBatteryConsumption.type);
     expect(consumptionStat).toBeDefined();
     if (consumptionStat) {
-      // 94% -> 90% = 4% drop
-      expect(consumptionStat.getValue()).toBe(4);
+      // Expect 5% drop based on suunto-bat.fit data
+      expect(consumptionStat.getValue()).toBe(5);
     }
 
     // Check for Battery Life Estimation
     const lifeEstStat = activity.getStat(DataBatteryLifeEstimation.type);
     expect(lifeEstStat).toBeDefined();
     if (lifeEstStat) {
-      // Duration ~2h 11m (7884s)
-      // Consumption 4%
-      // 4% IN 7884s => 100% IN 197100s (~54.75h)
+      // Duration and consumption imply approx 25h (90180s)
       // Allow some margin for exact timestamp differences
       const val = lifeEstStat.getValue();
-      expect(val).toBeGreaterThan(190000);
-      expect(val).toBeLessThan(205000);
+      expect(val).toBeGreaterThan(90000);
+      expect(val).toBeLessThan(90500);
     }
   });
 });

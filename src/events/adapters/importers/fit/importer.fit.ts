@@ -138,6 +138,8 @@ import { DataGender } from '../../../../data/data.gender';
 import { DataAvgGrit } from '../../../../data/data.avg-grit';
 
 import { DataJumpEvent } from '../../../../data/data.jump-event';
+import { DataBatteryConsumption } from '../../../../data/data.battery-consumption';
+import { DataBatteryLifeEstimation } from '../../../../data/data.battery-life-estimation';
 
 import {
   DataJumpDistanceAvg,
@@ -517,6 +519,59 @@ export class EventImporterFIT {
         if (fitDataObject.device_infos && fitDataObject.device_infos.length) {
           activities.forEach(activity => {
             activity.creator.devices = this.getDeviceInfos(fitDataObject.device_infos);
+
+            // Compute battery consumption & estimation
+            // We focus on the device that has recorded the activity (usually index 0 or source_type 'local')
+            // Filter device infos to find those relevant to this activity's timeframe
+            const activityDeviceInfos = fitDataObject.device_infos
+              .filter((di: any) => {
+                const timestamp = new Date(di.timestamp).getTime();
+                // Allow a small margin (e.g. 1 minute) before/after activity
+                return (
+                  timestamp >= activity.startDate.getTime() - 60000 && timestamp <= activity.endDate.getTime() + 60000
+                );
+              })
+              .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+            // Group by device index to track individual devices
+            const deviceGroups = new Map<number, any[]>();
+            activityDeviceInfos.forEach((di: any) => {
+              // Default to index 0 if undefined
+              const index = di.device_index !== undefined ? di.device_index : 0;
+              if (!deviceGroups.has(index)) {
+                deviceGroups.set(index, []);
+              }
+              deviceGroups.get(index)?.push(di);
+            });
+
+            // Iterate over devices to find the one with battery data drain
+            // We prioritize device index 0 (main unit) but will look at others if 0 has no data
+            // or if it's the only one with significant data.
+            // For now, let's look for the main recording device (index 0).
+            const mainDeviceInfos = deviceGroups.get(0) || deviceGroups.get(1); // Sometimes 1? usually 0.
+
+            if (mainDeviceInfos && mainDeviceInfos.length >= 2) {
+              const startInfo = mainDeviceInfos[0];
+              const endInfo = mainDeviceInfos[mainDeviceInfos.length - 1];
+
+              const getLevel = (d: any) =>
+                isNumber(d.battery_level) ? d.battery_level : isNumber(d.battery_soc) ? d.battery_soc : null;
+
+              const startLevel = getLevel(startInfo);
+              const endLevel = getLevel(endInfo);
+
+              if (startLevel !== null && endLevel !== null && startLevel > endLevel) {
+                const consumption = startLevel - endLevel;
+                activity.addStat(new DataBatteryConsumption(consumption));
+
+                const duration =
+                  (new Date(endInfo.timestamp).getTime() - new Date(startInfo.timestamp).getTime()) / 1000;
+                if (duration > 0 && consumption > 0) {
+                  const estimatedTotalLife = (duration / consumption) * 100;
+                  activity.addStat(new DataBatteryLifeEstimation(Math.round(estimatedTotalLife)));
+                }
+              }
+            }
           });
         }
 

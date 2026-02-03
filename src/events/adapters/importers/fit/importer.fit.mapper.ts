@@ -25,6 +25,7 @@ import { DataStanceTime } from '../../../../data/data.stance-time';
 import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
 
 import { DataStepLength } from '../../../../data/data.step-length';
+import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataAirPower } from '../../../../data/data.air-power';
@@ -265,6 +266,12 @@ export const FITSampleMapper: {
     dataType: DataStepLength.type,
     getSampleValue: (sample: any) => {
       return sample.step_length / 1000;
+    }
+  },
+  {
+    dataType: DataEffortPace.type,
+    getSampleValue: (sample: any) => {
+      return sample['Effort Pace'];
     }
   },
   {

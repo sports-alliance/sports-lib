@@ -171,6 +171,7 @@ import { DataStanceTimeBalanceLeft } from './data-stance-time-balance-left';
 import { DataGroundContactTimeBalanceLeft } from './data-ground-contact-time-balance-left';
 
 import { DataStepLength } from './data.step-length';
+import { DataEffortPace } from './data.effort-pace';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataDescription } from './data.description';
 import { UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
@@ -574,6 +575,7 @@ export const DataStore: any = {
   DataStanceTimeBalanceRight,
   DataStanceTimeBalanceLeft,
   DataStepLength,
+  DataEffortPace,
   DataVerticalRatio,
   DataDescription,
   DataGroundTime,
@@ -759,6 +761,7 @@ export class DynamicDataLoader {
     DataStanceTime.type,
     DataStanceTimeBalanceLeft.type,
     DataStepLength.type,
+    DataEffortPace.type,
     DataVerticalRatio.type,
     DataGroundTime.type,
     DataAirPower.type,

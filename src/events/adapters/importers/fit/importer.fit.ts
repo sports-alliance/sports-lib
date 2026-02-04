@@ -453,8 +453,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject, options)
             : fitDataObject.records.filter((record: any) => {
-                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-              });
+              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+            });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -1459,13 +1459,13 @@ export class EventImporterFIT {
 
     // Respiration Rate
     if (isNumberOrString(object.avg_respiration_rate) || isNumberOrString(object.enhanced_avg_respiration_rate)) {
-      stats.push(new DataAvgRespirationRate(object.enhanced_avg_respiration_rate || object.avg_respiration_rate));
+      stats.push(new DataAvgRespirationRate(object.enhanced_avg_respiration_rate ?? object.avg_respiration_rate));
     }
     if (isNumberOrString(object.max_respiration_rate) || isNumberOrString(object.enhanced_max_respiration_rate)) {
-      stats.push(new DataMaxRespirationRate(object.enhanced_max_respiration_rate || object.max_respiration_rate));
+      stats.push(new DataMaxRespirationRate(object.enhanced_max_respiration_rate ?? object.max_respiration_rate));
     }
     if (isNumberOrString(object.min_respiration_rate) || isNumberOrString(object.enhanced_min_respiration_rate)) {
-      stats.push(new DataMinRespirationRate(object.enhanced_min_respiration_rate || object.min_respiration_rate));
+      stats.push(new DataMinRespirationRate(object.enhanced_min_respiration_rate ?? object.min_respiration_rate));
     }
 
     // Total Grit

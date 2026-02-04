@@ -1,4 +1,5 @@
 import { DataJumpEvent, DataScore, DataRotations, JumpEventInterface } from './data.jump-event';
+import { DataJumpDistance } from './data.jump-distance';
 import { DataDistance } from './data.distance';
 import { DataSpeed } from './data.speed';
 import { DataDuration } from './data.duration';
@@ -9,7 +10,7 @@ describe('DataJumpEvent', () => {
   const timestamp = 1234567890;
   // Manual creation requires Data objects
   const jumpData: JumpEventInterface = {
-    distance: new DataDistance(5.5),
+    distance: new DataJumpDistance(5.5),
     height: new DataDistance(1.2),
     score: new DataScore(85),
     hang_time: new DataDuration(0.8),
@@ -78,7 +79,7 @@ describe('DataJumpEvent', () => {
     expect(jumpEvent.getValue()).toBe(timestamp);
 
     // Assertions check if properties are converted to Data objects
-    expect(jumpEvent.jumpData.distance).toBeInstanceOf(DataDistance);
+    expect(jumpEvent.jumpData.distance).toBeInstanceOf(DataJumpDistance);
     expect(jumpEvent.jumpData.distance.getValue()).toBe(5.5);
     expect(jumpEvent.jumpData.score).toBeInstanceOf(DataScore);
     expect(jumpEvent.jumpData.score.getValue()).toBe(85);

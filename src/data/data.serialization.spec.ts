@@ -19,7 +19,6 @@ import { DataTargetHeartRateZone } from './data.target-heart-rate-zone';
 import { DataTargetSpeedZone } from './data.target-speed-zone';
 import { DataGender } from './data.gender';
 import { DataJumpEvent, DataScore } from './data.jump-event';
-import { DataDistance } from './data.distance';
 import { DataDeviceLocation } from './data.device-location';
 import { DataFootPodUsed } from './data.foot-pod-used';
 import { DataAutoPauseUsed } from './data.auto-pause-used';
@@ -31,6 +30,7 @@ import { DataPowerPodUsed } from './data.power-pod-used';
 import { DataGroundContactTimeBalance as _DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
+import { DataJumpDistance } from './data.jump-distance';
 
 describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
@@ -51,7 +51,7 @@ describe('Data Serialization Safety', () => {
     [DataTargetHeartRateZone, ['Zone 1']],
     [DataTargetSpeedZone, ['Zone 1']],
     [DataGender, ['Male']],
-    [DataJumpEvent, [1234567890, { distance: new DataDistance(10), score: new DataScore(5) }]],
+    [DataJumpEvent, [1234567890, { distance: new DataJumpDistance(10), score: new DataScore(5) }]],
     [DataDeviceLocation, ['Wrist']],
     [DataFootPodUsed, [true]],
     [DataAutoPauseUsed, [true]],

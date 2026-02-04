@@ -359,6 +359,7 @@ import {
   DataJumpSpeedMax,
   DataJumpSpeedMin
 } from './data.jump-stats';
+import { DataJumpDistance } from './data.jump-distance';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -701,7 +702,8 @@ export const DataStore: any = {
   DataJumpScoreAvg,
   DataJumpHeightMin,
   DataJumpHeightMax,
-  DataJumpHeightAvg
+  DataJumpHeightAvg,
+  DataJumpDistance
 };
 
 export class DynamicDataLoader {

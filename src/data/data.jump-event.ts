@@ -5,6 +5,7 @@ import { DataDuration } from './data.duration';
 import { DataNumber } from './data.number';
 import { DataLatitudeDegrees } from './data.latitude-degrees';
 import { DataLongitudeDegrees } from './data.longitude-degrees';
+import { DataJumpDistance } from './data.jump-distance';
 
 export class DataScore extends DataNumber {
   static type = 'Score';
@@ -15,7 +16,7 @@ export class DataRotations extends DataNumber {
 }
 
 export interface JumpEventInterface {
-  distance: DataDistance;
+  distance: DataJumpDistance;
   height?: DataDistance;
   score: DataScore;
   hang_time?: DataDuration;
@@ -41,7 +42,8 @@ export class DataJumpEvent extends DataEvent {
 
   private hydrate(data: any): JumpEventInterface {
     return {
-      distance: data.distance instanceof DataDistance ? data.distance : new DataDistance(data.distance),
+      distance:
+        data.distance instanceof DataJumpDistance ? data.distance : new DataJumpDistance(data.distance),
       height: data.height
         ? data.height instanceof DataDistance
           ? data.height
@@ -63,7 +65,11 @@ export class DataJumpEvent extends DataEvent {
           ? data.position_long
           : new DataLongitudeDegrees(data.position_long)
         : undefined,
-      speed: data.speed ? (data.speed instanceof DataSpeed ? data.speed : new DataSpeed(data.speed)) : undefined,
+      speed: data.speed
+        ? data.speed instanceof DataSpeed
+          ? data.speed
+          : new DataSpeed(data.speed)
+        : undefined,
       rotations: data.rotations
         ? data.rotations instanceof DataRotations
           ? data.rotations

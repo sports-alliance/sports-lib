@@ -1,4 +1,5 @@
 import { DataStore } from './data.store';
+import { Data } from './data';
 import { DataDuration } from './data.duration';
 import { DataPower } from './data.power';
 import { DataPowerCurve } from './data.power-curve';
@@ -34,7 +35,7 @@ import { DataJumpDistance } from './data.jump-distance';
 
 describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
-  const knownProviders = new Map<any, any[]>([
+  const knownProviders = new Map<typeof Data | any, any[]>([
     [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
     [DataRiderPositionChangeEvent, [1, RiderPosition.SEATED]],
     [DataSportProfileName, ['TestProfile']],
@@ -127,6 +128,14 @@ describe('Data Serialization Safety', () => {
       if (errors.length > 0) {
         fail(`${key}.toJSON() returned invalid JSON structure:\n${errors.join('\n')}`);
       }
+
+      // 3. Round-trip validation: verify that we can re-hydrate from this JSON
+      // This is crucial to ensure Dynamic DataLoader works correctly.
+      const type = instance.getType();
+      const dataValue = (json as Record<string, any>)[type];
+      const secondInstance = new (DataClass as any)(dataValue);
+      const secondJson = secondInstance.toJSON();
+      expect(secondJson).toEqual(json);
     });
   });
 });

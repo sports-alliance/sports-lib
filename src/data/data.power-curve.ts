@@ -13,13 +13,25 @@ export class DataPowerCurve extends DataBare<DataPowerCurvePoint[]> {
   static type = 'PowerCurve';
 
   constructor(value: DataPowerCurvePoint[]) {
-    super(value);
+    super(DataPowerCurve.hydrate(value));
   }
 
-  toJSON(): any {
+  static hydrate(value: (DataPowerCurvePoint | any)[]): DataPowerCurvePoint[] {
+    return (value || []).map(point => ({
+      duration: point.duration instanceof DataDuration ? point.duration : new DataDuration(point.duration),
+      power: point.power instanceof DataPower ? point.power : new DataPower(point.power),
+      wattsPerKg: point.wattsPerKg
+        ? point.wattsPerKg instanceof DataPowerWattsPerKg
+          ? point.wattsPerKg
+          : new DataPowerWattsPerKg(point.wattsPerKg)
+        : undefined
+    }));
+  }
+
+  toJSON(): { [key: string]: any[] } {
     return {
       [DataPowerCurve.type]: this.value.map(point => {
-        const json: any = {
+        const json: { duration: number; power: number; wattsPerKg?: number } = {
           duration: point.duration.getValue(),
           power: point.power.getValue()
         };

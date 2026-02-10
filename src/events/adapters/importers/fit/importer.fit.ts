@@ -88,6 +88,7 @@ import { DataPowerTorqueEffectivenessLeft } from '../../../../data/data.power-to
 import { DataPowerTorqueEffectivenessRight } from '../../../../data/data.power-torque-effectiveness-right';
 import { DataPowerPedalSmoothnessLeft } from '../../../../data/data.power-pedal-smoothness-left';
 import { DataPowerPedalSmoothnessRight } from '../../../../data/data.power-pedal-smoothness-right';
+import { DataFTP } from '../../../../data/data.ftp';
 import { DataPowerNormalized } from '../../../../data/data.power-normalized';
 import { DataPowerIntensityFactor } from '../../../../data/data.power-intensity-factor';
 import { DataPowerTrainingStressScore } from '../../../../data/data.power-training-stress-score';
@@ -837,8 +838,15 @@ export class EventImporterFIT {
         this.getCreatorFromFitDataObject(fitDataObject),
         options
       );
+      const normalizedSessionObject = {
+        ...sessionObject,
+        threshold_power:
+          isNumberOrString(sessionObject?.threshold_power) || !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
+            ? sessionObject?.threshold_power
+            : fitDataObject.zones_target.functional_threshold_power
+      };
       // Set the activity stats
-      this.getStatsFromObject(sessionObject, activity, false).forEach(stat => activity.addStat(stat));
+      this.getStatsFromObject(normalizedSessionObject, activity, false).forEach(stat => activity.addStat(stat));
 
       // Check for User Profile
       if (fitDataObject.user_profile) {
@@ -1322,6 +1330,13 @@ export class EventImporterFIT {
 
     if (Number.isFinite(object.total_work)) {
       stats.push(new DataPowerWork(Math.round(object.total_work / 1000)));
+    }
+
+    if (!isLap && isNumberOrString(object.threshold_power)) {
+      const importedFTP = Number(object.threshold_power);
+      if (Number.isFinite(importedFTP) && importedFTP > 0) {
+        stats.push(new DataFTP(importedFTP));
+      }
     }
 
     if (Number.isFinite(object.avg_left_torque_effectiveness)) {

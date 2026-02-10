@@ -233,6 +233,9 @@ import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerWork } from '../../data/data.power-work';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { DataVO2Max } from '../../data/data.vo2-max';
+import { DataTotalGrit } from '../../data/data.total-grit';
+import { DataTotalFlow } from '../../data/data.total-flow';
+import { DataJumpCount } from '../../data/data.jump-count';
 import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve';
 
 // @ts-ignore
@@ -549,7 +552,7 @@ export class ActivityUtilities {
     let averageTemperature = 0;
     let averageFeeling = 0;
     let averageRPE = 0;
-    let averageVO2Max = 0;
+
 
     // Sum Duration
     activities.forEach(activity => {
@@ -752,7 +755,7 @@ export class ActivityUtilities {
 
     // Avg RPE
     activities.forEach(activity => {
-      const activityAvgRPE = activity.getStat(DataFeeling.type);
+      const activityAvgRPE = activity.getStat(DataRPE.type);
       if (activityAvgRPE) {
         // The below will fallback for 0
         averageRPE = averageRPE
@@ -764,18 +767,228 @@ export class ActivityUtilities {
       stats.push(new DataRPE(averageRPE));
     }
 
-    // Avg VO2 Max
+    // Max VO2 Max
+    let maxVO2Max = 0;
     activities.forEach(activity => {
       const activityVO2Max = activity.getStat(DataVO2Max.type);
       if (activityVO2Max) {
-        // The below will fallback for 0
-        averageVO2Max = averageVO2Max
-          ? (averageVO2Max + <number>activityVO2Max.getValue()) / 2
-          : <number>activityVO2Max.getValue();
+        maxVO2Max = Math.max(maxVO2Max, <number>activityVO2Max.getValue());
       }
     });
-    if (averageVO2Max) {
-      stats.push(new DataVO2Max(averageVO2Max));
+    if (maxVO2Max) {
+      stats.push(new DataVO2Max(maxVO2Max));
+    }
+
+    // Sum Moving Time
+    let movingTime = 0;
+    activities.forEach(activity => {
+      const activityMovingTime = activity.getStat(DataMovingTime.type);
+      if (activityMovingTime) {
+        movingTime += <number>activityMovingTime.getValue();
+      }
+    });
+    if (movingTime) {
+      stats.push(new DataMovingTime(movingTime));
+    }
+
+    // Sum Total Grit
+    let totalGrit = 0;
+    activities.forEach(activity => {
+      const activityTotalGrit = activity.getStat(DataTotalGrit.type);
+      if (activityTotalGrit) {
+        totalGrit += <number>activityTotalGrit.getValue();
+      }
+    });
+    if (totalGrit) {
+      stats.push(new DataTotalGrit(totalGrit));
+    }
+
+    // Sum Total Flow
+    let totalFlow = 0;
+    activities.forEach(activity => {
+      const activityTotalFlow = activity.getStat(DataTotalFlow.type);
+      if (activityTotalFlow) {
+        totalFlow += <number>activityTotalFlow.getValue();
+      }
+    });
+    if (totalFlow) {
+      stats.push(new DataTotalFlow(totalFlow));
+    }
+
+    // Sum Jump Count
+    let jumpCount = 0;
+    activities.forEach(activity => {
+      const activityJumpCount = activity.getStat(DataJumpCount.type);
+      if (activityJumpCount) {
+        jumpCount += <number>activityJumpCount.getValue();
+      }
+    });
+    if (jumpCount) {
+      stats.push(new DataJumpCount(jumpCount));
+    }
+
+    // Max Heart Rate
+    let maxHeartRate = 0;
+    activities.forEach(activity => {
+      const activityMaxHeartRate = activity.getStat(DataHeartRateMax.type);
+      if (activityMaxHeartRate) {
+        maxHeartRate = Math.max(maxHeartRate, <number>activityMaxHeartRate.getValue());
+      }
+    });
+    if (maxHeartRate) {
+      stats.push(new DataHeartRateMax(maxHeartRate));
+    }
+
+    // Min Heart Rate
+    let minHeartRate: number | null = null;
+    activities.forEach(activity => {
+      const activityMinHeartRate = activity.getStat(DataHeartRateMin.type);
+      if (activityMinHeartRate) {
+        const val = <number>activityMinHeartRate.getValue();
+        minHeartRate = minHeartRate === null ? val : Math.min(minHeartRate, val);
+      }
+    });
+    if (minHeartRate !== null) {
+      stats.push(new DataHeartRateMin(minHeartRate));
+    }
+
+    // Max Power
+    let maxPower = 0;
+    activities.forEach(activity => {
+      const activityMaxPower = activity.getStat(DataPowerMax.type);
+      if (activityMaxPower) {
+        maxPower = Math.max(maxPower, <number>activityMaxPower.getValue());
+      }
+    });
+    if (maxPower) {
+      stats.push(new DataPowerMax(maxPower));
+    }
+
+    // Min Power
+    let minPower: number | null = null;
+    activities.forEach(activity => {
+      const activityMinPower = activity.getStat(DataPowerMin.type);
+      if (activityMinPower) {
+        const val = <number>activityMinPower.getValue();
+        minPower = minPower === null ? val : Math.min(minPower, val);
+      }
+    });
+    if (minPower !== null) {
+      stats.push(new DataPowerMin(minPower));
+    }
+
+    // Max Speed
+    let maxSpeed = 0;
+    activities.forEach(activity => {
+      const activityMaxSpeed = activity.getStat(DataSpeedMax.type);
+      if (activityMaxSpeed) {
+        maxSpeed = Math.max(maxSpeed, <number>activityMaxSpeed.getValue());
+      }
+    });
+    if (maxSpeed) {
+      stats.push(new DataSpeedMax(maxSpeed));
+    }
+
+    // Min Speed
+    let minSpeed: number | null = null;
+    activities.forEach(activity => {
+      const activityMinSpeed = activity.getStat(DataSpeedMin.type);
+      if (activityMinSpeed) {
+        const val = <number>activityMinSpeed.getValue();
+        minSpeed = minSpeed === null ? val : Math.min(minSpeed, val);
+      }
+    });
+    if (minSpeed !== null) {
+      stats.push(new DataSpeedMin(minSpeed));
+    }
+
+    // Max Cadence
+    let maxCadence = 0;
+    activities.forEach(activity => {
+      const activityMaxCadence = activity.getStat(DataCadenceMax.type);
+      if (activityMaxCadence) {
+        maxCadence = Math.max(maxCadence, <number>activityMaxCadence.getValue());
+      }
+    });
+    if (maxCadence) {
+      stats.push(new DataCadenceMax(maxCadence));
+    }
+
+    // Min Cadence
+    let minCadence: number | null = null;
+    activities.forEach(activity => {
+      const activityMinCadence = activity.getStat(DataCadenceMin.type);
+      if (activityMinCadence) {
+        const val = <number>activityMinCadence.getValue();
+        minCadence = minCadence === null ? val : Math.min(minCadence, val);
+      }
+    });
+    if (minCadence !== null) {
+      stats.push(new DataCadenceMin(minCadence));
+    }
+
+    // Max Altitude
+    let maxAltitude = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxAltitude = activity.getStat(DataAltitudeMax.type);
+      if (activityMaxAltitude) {
+        maxAltitude = Math.max(maxAltitude, <number>activityMaxAltitude.getValue());
+      }
+    });
+    if (maxAltitude !== -Infinity) {
+      stats.push(new DataAltitudeMax(maxAltitude));
+    }
+
+    // Min Altitude
+    let minAltitude = Infinity;
+    activities.forEach(activity => {
+      const activityMinAltitude = activity.getStat(DataAltitudeMin.type);
+      if (activityMinAltitude) {
+        minAltitude = Math.min(minAltitude, <number>activityMinAltitude.getValue());
+      }
+    });
+    if (minAltitude !== Infinity) {
+      stats.push(new DataAltitudeMin(minAltitude));
+    }
+
+    // Max Temperature
+    let maxTemperature = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxTemperature = activity.getStat(DataTemperatureMax.type);
+      if (activityMaxTemperature) {
+        maxTemperature = Math.max(maxTemperature, <number>activityMaxTemperature.getValue());
+      }
+    });
+    if (maxTemperature !== -Infinity) {
+      stats.push(new DataTemperatureMax(maxTemperature));
+    }
+
+    // Avg Ground Contact Time
+    let averageGroundContactTime = 0;
+    activities.forEach(activity => {
+      const activityGCT = activity.getStat(DataGroundContactTimeAvg.type);
+      if (activityGCT) {
+        averageGroundContactTime = averageGroundContactTime
+          ? (averageGroundContactTime + <number>activityGCT.getValue()) / 2
+          : <number>activityGCT.getValue();
+      }
+    });
+    if (averageGroundContactTime) {
+      stats.push(new DataGroundContactTimeAvg(averageGroundContactTime));
+    }
+
+    // Avg Vertical Oscillation
+    let averageVerticalOscillation = 0;
+    activities.forEach(activity => {
+      const activityVerticalOscillation = activity.getStat(DataVerticalOscillationAvg.type);
+      if (activityVerticalOscillation) {
+        averageVerticalOscillation = averageVerticalOscillation
+          ? (averageVerticalOscillation + <number>activityVerticalOscillation.getValue()) / 2
+          : <number>activityVerticalOscillation.getValue();
+      }
+    });
+    if (averageVerticalOscillation) {
+      stats.push(new DataVerticalOscillationAvg(averageVerticalOscillation));
     }
 
     stats.push(...this.getIntensityZonesStatsAggregated(activities));
@@ -1734,7 +1947,7 @@ export class ActivityUtilities {
       activity.addStat(
         new DataGNSSDistance(
           activity.getSquashedStreamData(DataGNSSDistance.type)[
-            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+          activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
           ]
         )
       );

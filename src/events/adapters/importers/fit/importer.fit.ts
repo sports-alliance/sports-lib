@@ -1657,13 +1657,14 @@ export class EventImporterFIT {
     };
 
     const formatDeviceName = (
-      manufacturer: string | null,
+      manufacturer: string | number | null,
       productName: string | null,
       recognizedName: string | null,
       recognizedBrand: string | null,
       isDevelopment = false
     ) => {
       let name = '';
+      const manufacturerString = isNumberOrString(manufacturer) ? String(manufacturer) : null;
 
       if (recognizedBrand && recognizedName) {
         name = `${toStartCase(recognizedBrand)} ${recognizedName}`;
@@ -1674,8 +1675,8 @@ export class EventImporterFIT {
         name = `${toStartCase(recognizedBrand)} ${productName}`;
       } else if (recognizedBrand && !recognizedName && !productName) {
         name = `${toStartCase(recognizedBrand)}`;
-      } else if (manufacturer && !recognizedBrand && !recognizedName && !productName && !isDevelopment) {
-        const formattedManufacturer = manufacturer.replace(new RegExp('[-_]', 'gi'), ' ').trim();
+      } else if (manufacturerString && !recognizedBrand && !recognizedName && !productName && !isDevelopment) {
+        const formattedManufacturer = manufacturerString.replace(new RegExp('[-_]', 'gi'), ' ').trim();
         name = `${toStartCase(formattedManufacturer)}`;
       } else if (!recognizedBrand && recognizedName) {
         name = `${recognizedName}`;
@@ -1778,7 +1779,7 @@ export class EventImporterFIT {
           recognizedName = GarminProfileMapper.getDeviceName(productId);
         }
         creator = new Creator(
-          formatDeviceName(manufacturer, productName, recognizedName, manufacturerName === 'garmin' ? 'Garmin' : null),
+          formatDeviceName(manufacturerName, productName, recognizedName, manufacturerName === 'garmin' ? 'Garmin' : null),
           productId
         );
       }

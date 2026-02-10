@@ -416,6 +416,19 @@ describe('EventImporterFIT', () => {
           expect(creator.name).toEqual(expectedName);
           done();
         });
+
+        it('should not throw for non-zero numeric manufacturer values', done => {
+          const manufacturer = 99999;
+          const expectedName = 'Unknown';
+          const fitDataObject = generateFitDeviceDataObject(manufacturer);
+
+          const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+          expect(creator.isRecognized).toBeFalsy();
+          expect(creator.name).toEqual(expectedName);
+          expect(creator.manufacturer).toEqual(manufacturer);
+          done();
+        });
       });
     });
   });

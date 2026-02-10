@@ -1,6 +1,17 @@
 import { EventImporterFIT } from './importer.fit';
+import { ActivityTypes } from '../../../../activities/activity.types';
 
 describe('EventImporterFIT', () => {
+  describe('Activity type resolution', () => {
+    it('should map Garmin snorkeling sport id to canonical Snorkeling activity type', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 82
+      });
+
+      expect(activityType).toEqual(ActivityTypes.Snorkeling);
+    });
+  });
+
   describe('Handle device creator', () => {
     function generateFitDeviceDataObject(
       manufacturer: string | number | null = null,

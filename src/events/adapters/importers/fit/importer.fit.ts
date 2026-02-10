@@ -1119,10 +1119,35 @@ export class EventImporterFIT {
     }
   }
 
+  private static normalizeActivityTypeLookupKey(value: string): string {
+    return value.toLowerCase().replace(/[\s_-]/g, '');
+  }
+
+  private static getActivityTypeByKey(value: unknown): ActivityTypes | null {
+    if (!isNumberOrString(value)) {
+      return null;
+    }
+
+    const key = String(value);
+    const exactMatch = ActivityTypes[<keyof typeof ActivityTypes>key];
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const normalizedKey = this.normalizeActivityTypeLookupKey(key);
+    for (const enumKey of Object.keys(ActivityTypes)) {
+      if (this.normalizeActivityTypeLookupKey(enumKey) === normalizedKey) {
+        return ActivityTypes[<keyof typeof ActivityTypes>enumKey];
+      }
+    }
+
+    return null;
+  }
+
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     const activityTypeKey =
       session.sub_sport && session.sub_sport !== 'generic' ? `${session.sport}_${session.sub_sport}` : session.sport;
-    let activityType = ActivityTypes[<keyof typeof ActivityTypes>activityTypeKey];
+    let activityType = this.getActivityTypeByKey(activityTypeKey);
 
     if (!activityType || activityType === ActivityTypes.unknown) {
       // Fallback to Garmin SDK mappings
@@ -1136,8 +1161,8 @@ export class EventImporterFIT {
         // Try to find in ActivityTypes using the name from Garmin SDK
         const nameKey = subSportName ? `${sportName}_${subSportName}` : sportName;
         activityType =
-          ActivityTypes[<keyof typeof ActivityTypes>nameKey] ||
-          ActivityTypes[<keyof typeof ActivityTypes>sportName] ||
+          this.getActivityTypeByKey(nameKey) ||
+          this.getActivityTypeByKey(sportName) ||
           (nameKey as any);
       }
     }

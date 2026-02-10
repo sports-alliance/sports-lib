@@ -4,13 +4,14 @@ import { DataPower } from '../../data/data.power';
 import { DataPowerCurve } from '../../data/data.power-curve';
 import { DataCriticalPower } from '../../data/data.critical-power';
 import { DataWPrime } from '../../data/data.w-prime';
+import { DataFTP } from '../../data/data.ftp';
 import { ActivityTypes } from '../../activities/activity.types';
 import { Event } from '../event';
 import { EventUtilities } from './event.utilities';
 import { FileType } from '../adapters/file-type.enum';
 
 describe('Power Analytics Integration', () => {
-  it("should automatically generate Power Curve, Critical Power and W' when generating stats", () => {
+  it("should automatically generate Power Curve, FTP, Critical Power and W' when generating stats", () => {
     // Create an activity with ~20 mins of power data
     // 360W for 3 mins (180s)
     // 260W for remaining 17 mins (1020s)
@@ -47,20 +48,23 @@ describe('Power Analytics Integration', () => {
     expect(points.length).toBeGreaterThan(0);
 
     // Verify CP & W'
+    const ftpStat = activity.getStat(DataFTP.type);
     const cpStat = activity.getStat(DataCriticalPower.type);
     const wPrimeStat = activity.getStat(DataWPrime.type);
 
+    expect(ftpStat).not.toBeNull();
     expect(cpStat).not.toBeNull();
     expect(wPrimeStat).not.toBeNull();
 
-    if (cpStat && wPrimeStat) {
-      console.log(`Calculated CP: ${cpStat.getValue()}, W': ${wPrimeStat.getValue()}`);
+    if (ftpStat && cpStat && wPrimeStat) {
+      console.log(`Calculated FTP: ${ftpStat.getValue()}, CP: ${cpStat.getValue()}, W': ${wPrimeStat.getValue()}`);
+      expect(ftpStat.getValue()).toBe(261);
       expect(cpStat.getValue()).toBeGreaterThan(200);
       expect(wPrimeStat.getValue()).toBeGreaterThan(10000);
     }
   });
 
-  it("should serialize Power Curve, Critical Power and W' correctly in toJSON", () => {
+  it("should serialize Power Curve, FTP, Critical Power and W' correctly in toJSON", () => {
     const powerValues = new Array(1200).fill(260); // 1200 points
     for (let i = 0; i < 180; i++) {
       powerValues[i] = 360;
@@ -94,8 +98,12 @@ describe('Power Analytics Integration', () => {
 
     // Check CP and W' in stats
     expect(json.stats).toBeDefined();
+    expect(json.stats![DataFTP.type]).toBeDefined();
     expect(json.stats![DataCriticalPower.type]).toBeDefined();
     expect(json.stats![DataWPrime.type]).toBeDefined();
+
+    expect(typeof json.stats![DataFTP.type]).toBe('number');
+    expect(json.stats![DataFTP.type]).toBe(261);
 
     expect(typeof json.stats![DataCriticalPower.type]).toBe('number');
     expect(json.stats![DataCriticalPower.type]).toBeGreaterThan(200);
@@ -158,11 +166,12 @@ describe('Power Analytics Integration', () => {
     }).not.toThrow();
 
     expect(activity.getStat(DataPowerCurve.type)).toBeFalsy();
+    expect(activity.getStat(DataFTP.type)).toBeFalsy();
     expect(activity.getStat(DataCriticalPower.type)).toBeFalsy();
     expect(activity.getStat(DataWPrime.type)).toBeFalsy();
   });
 
-  it("should not calculate CP/W' if activity is too short (< 3 mins)", () => {
+  it("should not calculate FTP/CP/W' if activity is too short", () => {
     const powerValues = new Array(120).fill(300); // 2 mins
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 120000);
@@ -176,6 +185,8 @@ describe('Power Analytics Integration', () => {
 
     // Power Curve should still be generated (MMP for 1s, 2s etc)
     expect(activity.getStat(DataPowerCurve.type)).toBeDefined();
+    // FTP should NOT be generated because 20-min duration point is missing
+    expect(activity.getStat(DataFTP.type)).toBeFalsy();
     // CP/W' should NOT be generated because min duration for CP is 180s
     expect(activity.getStat(DataCriticalPower.type)).toBeFalsy();
     expect(activity.getStat(DataWPrime.type)).toBeFalsy();
@@ -194,7 +205,23 @@ describe('Power Analytics Integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     // MMP will be all zeros, CP/W' calculation will likely result in null or 0 slope/intercept
+    expect(activity.getStat(DataFTP.type)).toBeFalsy();
     expect(activity.getStat(DataCriticalPower.type)).toBeFalsy();
     expect(activity.getStat(DataWPrime.type)).toBeFalsy();
+  });
+
+  it('should calculate FTP from existing power curve when power stream is missing', () => {
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + 1200000);
+    // @ts-ignore
+    const activity = new Activity(startDate, endDate, ActivityTypes.Cycling, { toJSON: () => ({}) } as any);
+
+    activity.addStat(new DataPowerCurve([{ duration: 1200, power: 300 }] as any) as any);
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const ftpStat = activity.getStat(DataFTP.type);
+    expect(ftpStat).toBeDefined();
+    expect(ftpStat!.getValue()).toBe(285);
   });
 });

@@ -90,6 +90,7 @@ export * from './data/data.energy';
 export * from './data/data.epoc';
 export * from './data/data.evpe';
 export * from './data/data.feeling';
+export * from './data/data.ftp';
 export * from './data/data.grade-adjusted-pace';
 export * from './data/data.grade-adjusted-pace-avg';
 export * from './data/data.grade-adjusted-speed';

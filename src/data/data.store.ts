@@ -291,6 +291,7 @@ import { DataStanceTimeBalanceRight } from './data-stance-time-balance-right';
 import { DataGroundContactTimeBalanceRight } from './data-ground-contact-time-balance-right';
 import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
 import { DataCriticalPower } from './data.critical-power';
+import { DataFTP } from './data.ftp';
 import { DataPowerCurve } from './data.power-curve';
 import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
 import { DataWPrime } from './data.w-prime';
@@ -378,6 +379,7 @@ export const DataStore: any = {
   DataSatellite5BestSNR,
   DataPower,
   DataCriticalPower,
+  DataFTP,
   DataPowerCurve,
   DataPowerWattsPerKg,
   DataWPrime,

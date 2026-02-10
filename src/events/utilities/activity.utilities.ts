@@ -126,6 +126,7 @@ import { DataFeeling } from '../../data/data.feeling';
 import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
 import { DataCriticalPower } from '../../data/data.critical-power';
 import { DataWPrime } from '../../data/data.w-prime';
+import { DataFTP } from '../../data/data.ftp';
 import { DataPowerLeft } from '../../data/data.power-left';
 import { DataRightBalance } from '../../data/data.right-balance';
 import { DataLeftBalance } from '../../data/data.left-balance';
@@ -251,6 +252,8 @@ const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
 
 export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
+  private static readonly FTP_DURATION_SECONDS = 1200;
+  private static readonly FTP_FACTOR = 0.95;
 
   /**
    * Provide average from laps a given stat type
@@ -872,6 +875,35 @@ export class ActivityUtilities {
     }
 
     return new DataPowerCurve(curvePoints);
+  }
+
+  private static calculateFTP(activity: ActivityInterface): DataFTP | null {
+    let twentyMinutePower: number | undefined;
+    const isValidPower = (value: number | undefined): value is number =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0;
+    const curveStat = activity.getStat(DataPowerCurve.type);
+
+    if (curveStat && curveStat.getValue()) {
+      const points = <DataPowerCurvePoint[]>(<unknown>curveStat.getValue());
+      const point = points.find(p => p.duration.getValue() === this.FTP_DURATION_SECONDS);
+      if (point) {
+        twentyMinutePower = point.power.getValue();
+      }
+    }
+
+    if (!isValidPower(twentyMinutePower) && activity.hasStreamData(DataPower.type)) {
+      const curve = this.calculateMeanMaxPower(activity, [this.FTP_DURATION_SECONDS]);
+      const points = <DataPowerCurvePoint[]>(<unknown>curve.getValue());
+      if (points.length > 0) {
+        twentyMinutePower = points[0].power.getValue();
+      }
+    }
+
+    if (!isValidPower(twentyMinutePower)) {
+      return null;
+    }
+
+    return new DataFTP(this.round(twentyMinutePower * this.FTP_FACTOR));
   }
 
   /**
@@ -1915,6 +1947,14 @@ export class ActivityUtilities {
       if (powerCurve) {
         activity.addStat(<any>powerCurve);
         activity.powerCurve = powerCurve;
+      }
+    }
+
+    // FTP (0.95 * best 20 minute power)
+    if (!activity.getStat(DataFTP.type)) {
+      const ftp = this.calculateFTP(activity);
+      if (ftp) {
+        activity.addStat(ftp);
       }
     }
 

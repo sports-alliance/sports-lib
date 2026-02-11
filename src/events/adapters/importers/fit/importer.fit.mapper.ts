@@ -189,7 +189,7 @@ export const FITSampleMapper: {
   {
     dataType: DataGroundTime.type,
     getSampleValue: (sample: any) => {
-      return sample['Ground Time'] / 1000;
+      return sample['Ground Time'];
     }
   },
   {
@@ -231,14 +231,22 @@ export const FITSampleMapper: {
   {
     dataType: DataGroundContactTime.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time;
+      return isNumber(sample.stance_time)
+        ? sample.stance_time
+        : isNumber(sample['Ground Time'])
+          ? sample['Ground Time']
+          : null;
     }
   },
   // Keep DataStanceTime for backward compatibility
   {
     dataType: DataStanceTime.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time;
+      return isNumber(sample.stance_time)
+        ? sample.stance_time
+        : isNumber(sample['Ground Time'])
+          ? sample['Ground Time']
+          : null;
     }
   },
 

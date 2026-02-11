@@ -1,0 +1,70 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { FITSampleMapper } from './importer.fit.mapper';
+import { DataGroundTime } from '../../../../data/data.ground-time';
+import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
+import { EventImporterFIT } from './importer.fit';
+
+describe('FITSampleMapper', () => {
+  it('should map Ground Time as milliseconds without scaling', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataGroundTime.type);
+    expect(mapper).toBeDefined();
+
+    const mapped = mapper!.getSampleValue({ 'Ground Time': 1216 });
+    expect(mapped).toBe(1216);
+  });
+
+  it('should map Ground Contact Time from stance_time', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTime.type);
+    expect(mapper).toBeDefined();
+
+    const mapped = mapper!.getSampleValue({ stance_time: 296 });
+    expect(mapped).toBe(296);
+  });
+
+  it('should map Ground Contact Time from Ground Time as fallback when stance_time is missing', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTime.type);
+    expect(mapper).toBeDefined();
+
+    const mapped = mapper!.getSampleValue({ 'Ground Time': 1216 });
+    expect(mapped).toBe(1216);
+  });
+
+  it('should prefer stance_time over Ground Time when both are present', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTime.type);
+    expect(mapper).toBeDefined();
+
+    const mapped = mapper!.getSampleValue({ stance_time: 296, 'Ground Time': 1216 });
+    expect(mapped).toBe(296);
+  });
+
+  it('should keep Ground Time stream values in ms when importing a FIT file', async () => {
+    const fixturePath = path.resolve(__dirname, '../../../../specs/fixtures/runs/fit/6782987395.fit');
+    const fileBuffer = fs.readFileSync(fixturePath);
+    const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+
+    const event = await EventImporterFIT.getFromArrayBuffer(arrayBuffer);
+    const activity = event.getFirstActivity();
+    const values = activity.getStreamData(DataGroundTime.type).filter(value => Number.isFinite(value)) as number[];
+
+    expect(values.length).toBeGreaterThan(0);
+    expect(values[0]).toBe(1216);
+    expect(values[0]).toBeGreaterThan(100);
+  });
+
+  it('should populate Ground Contact Time stream from Ground Time fallback when stance_time is absent', async () => {
+    const fixturePath = path.resolve(__dirname, '../../../../specs/fixtures/runs/fit/6782987395.fit');
+    const fileBuffer = fs.readFileSync(fixturePath);
+    const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+
+    const event = await EventImporterFIT.getFromArrayBuffer(arrayBuffer);
+    const activity = event.getFirstActivity();
+    const values = activity
+      .getStreamData(DataGroundContactTime.type)
+      .filter(value => Number.isFinite(value)) as number[];
+
+    expect(values.length).toBeGreaterThan(0);
+    expect(values[0]).toBe(1216);
+    expect(values[0]).toBeGreaterThan(100);
+  });
+});

@@ -897,6 +897,7 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceMin.type,
     [DataTemperature.type]: DataTemperatureMin.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureMin.type,
+    [DataGroundContactTime.type]: DataGroundContactTimeMin.type,
     [DataGrade.type]: DataGradeMin.type,
     [DataLegStiffness.type]: DataLegStiffnessMin.type,
     [DataVerticalRatio.type]: DataVerticalRatioMin.type,
@@ -934,6 +935,7 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceMax.type,
     [DataTemperature.type]: DataTemperatureMax.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureMax.type,
+    [DataGroundContactTime.type]: DataGroundContactTimeMax.type,
     [DataGrade.type]: DataGradeMax.type,
     [DataLegStiffness.type]: DataLegStiffnessMax.type,
     [DataVerticalRatio.type]: DataVerticalRatioMax.type,
@@ -971,6 +973,7 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceAvg.type,
     [DataTemperature.type]: DataTemperatureAvg.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type,
+    [DataGroundContactTime.type]: DataGroundContactTimeAvg.type,
     [DataGrade.type]: DataGradeAvg.type,
     [DataLegStiffness.type]: DataLegStiffnessAvg.type,
     [DataVerticalRatio.type]: DataVerticalRatioAvg.type,
@@ -1032,10 +1035,22 @@ export class DynamicDataLoader {
       dataType = DataGroundContactTimeBalanceLeft.type;
     } else if (dataType === DataStanceTimeBalanceRight.type) {
       dataType = DataGroundContactTimeBalanceRight.type;
+    } else if (dataType === 'Ground Contact Time Avg') {
+      dataType = DataGroundContactTimeAvg.type;
+    } else if (dataType === 'Ground Contact Time Min') {
+      dataType = DataGroundContactTimeMin.type;
+    } else if (dataType === 'Ground Contact Time Max') {
+      dataType = DataGroundContactTimeMax.type;
     }
 
     const className = Object.keys(DataStore).find(dataClass => {
-      return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
+      if (!DataStore[dataClass] || !DataStore[dataClass].type) {
+        return false;
+      }
+      if (DataStore[dataClass].type === dataType) {
+        return true;
+      }
+      return Array.isArray(DataStore[dataClass].aliases) && DataStore[dataClass].aliases.indexOf(dataType) !== -1;
     });
     if (!className || !DataStore[className]) {
       throw new Error(`Class type of '${dataType}' is not in the store`);
@@ -1044,8 +1059,22 @@ export class DynamicDataLoader {
   }
 
   static getDataClassFromDataType(dataType: string): typeof Data {
+    if (dataType === 'Ground Contact Time Avg') {
+      dataType = DataGroundContactTimeAvg.type;
+    } else if (dataType === 'Ground Contact Time Min') {
+      dataType = DataGroundContactTimeMin.type;
+    } else if (dataType === 'Ground Contact Time Max') {
+      dataType = DataGroundContactTimeMax.type;
+    }
+
     const className = Object.keys(DataStore).find(dataClass => {
-      return DataStore[dataClass] && DataStore[dataClass].type && DataStore[dataClass].type === dataType;
+      if (!DataStore[dataClass] || !DataStore[dataClass].type) {
+        return false;
+      }
+      if (DataStore[dataClass].type === dataType) {
+        return true;
+      }
+      return Array.isArray(DataStore[dataClass].aliases) && DataStore[dataClass].aliases.indexOf(dataType) !== -1;
     });
     if (!className || !DataStore[className]) {
       throw new Error(`Class type of '${dataType}' is not in the store`);

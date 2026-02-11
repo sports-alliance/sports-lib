@@ -21,6 +21,9 @@ import {
 import { DataSeaLevelPressure } from './data.sea-level-pressure';
 import { DataSatellite5BestSNR } from './data.satellite-5-best-snr';
 import { DataAbsolutePressure } from './data.absolute-pressure';
+import { DataAbsolutePressureMin } from './data.absolute-pressure-min';
+import { DataAbsolutePressureMax } from './data.absolute-pressure-max';
+import { DataAbsolutePressureAvg } from './data.absolute-pressure-avg';
 import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
 import { DataDistance, DataDistanceMiles } from './data.distance';
@@ -301,6 +304,8 @@ import { DataSportProfileName } from './data.sport-profile-name';
 import { DataBalance } from './data.balance';
 import { DataAltitudeSmooth } from './data.altitude-smooth';
 import { DataAvgStrideLength } from './data.avg-stride-length';
+import { DataAvgStrokeDistance } from './data.avg-stroke-distance';
+import { DataAvgStrokeCount } from './data.avg-stroke-count';
 import { DataCyclingSeatedTime } from './data.cycling-seated-time';
 import { DataCyclingStandingTime } from './data.cycling-standing-time';
 import { DataGradeSmooth } from './data.grade-smooth';
@@ -395,6 +400,9 @@ export const DataStore: any = {
   DataGPSAltitude,
   DataAltitude,
   DataAbsolutePressure,
+  DataAbsolutePressureMin,
+  DataAbsolutePressureMax,
+  DataAbsolutePressureAvg,
   DataVO2Max,
   DataVerticalSpeedMin,
   DataVerticalSpeedMax,
@@ -636,6 +644,8 @@ export const DataStore: any = {
   DataBalance,
   DataAltitudeSmooth,
   DataAvgStrideLength,
+  DataAvgStrokeDistance,
+  DataAvgStrokeCount,
   DataCyclingSeatedTime,
   DataCyclingStandingTime,
   DataGradeSmooth,
@@ -843,7 +853,8 @@ export class DynamicDataLoader {
 
     [DataPower.type]: DataPowerMin.type,
     [DataCadence.type]: DataCadenceMin.type,
-    [DataTemperature.type]: DataTemperatureMin.type
+    [DataTemperature.type]: DataTemperatureMin.type,
+    [DataAbsolutePressure.type]: DataAbsolutePressureMin.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -872,7 +883,8 @@ export class DynamicDataLoader {
 
     [DataPower.type]: DataPowerMax.type,
     [DataCadence.type]: DataCadenceMax.type,
-    [DataTemperature.type]: DataTemperatureMax.type
+    [DataTemperature.type]: DataTemperatureMax.type,
+    [DataAbsolutePressure.type]: DataAbsolutePressureMax.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -901,7 +913,8 @@ export class DynamicDataLoader {
 
     [DataPower.type]: DataPowerAvg.type,
     [DataCadence.type]: DataCadenceAvg.type,
-    [DataTemperature.type]: DataTemperatureAvg.type
+    [DataTemperature.type]: DataTemperatureAvg.type,
+    [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

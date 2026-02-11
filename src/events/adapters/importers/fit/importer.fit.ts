@@ -99,6 +99,10 @@ import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataStanceTime } from '../../../../data/data.stance-time';
+import { DataDepthMax } from '../../../../data/data.depth-max';
+import { DataEffortPace } from '../../../../data/data.effort-pace';
+import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
+import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
 
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
@@ -1217,22 +1221,24 @@ export class EventImporterFIT {
     stats.push(new DataTimerTime(Math.round(timerTime * 100) / 100));
 
     // Moving TIME on Object (activity, lap...)
-    let movingTime = 0;
-    if (object.lengths && object.lengths.length > 0) {
-      object.lengths.forEach((lengthVal: any) => {
-        if (lengthVal.length_type === 'active') {
-          movingTime += lengthVal.total_timer_time;
-        }
-      });
-    } else if (object.records && object.records.length > 0) {
-      const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activity.type);
-      object.records.forEach((record: any, index: number) => {
-        if ((record.speed || record.enhanced_speed) > speedThreshold) {
-          const previousRecordTime =
-            object.records[index - 1]?.timestamp || object.start_time || object.records[0].timestamp;
-          movingTime += (record.timestamp.getTime() - previousRecordTime.getTime()) / 1000;
-        }
-      });
+    let movingTime = isNumber(object.total_moving_time) ? object.total_moving_time : 0;
+    if (!movingTime) {
+      if (object.lengths && object.lengths.length > 0) {
+        object.lengths.forEach((lengthVal: any) => {
+          if (lengthVal.length_type === 'active') {
+            movingTime += lengthVal.total_timer_time;
+          }
+        });
+      } else if (object.records && object.records.length > 0) {
+        const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activity.type);
+        object.records.forEach((record: any, index: number) => {
+          if ((record.speed || record.enhanced_speed) > speedThreshold) {
+            const previousRecordTime =
+              object.records[index - 1]?.timestamp || object.start_time || object.records[0].timestamp;
+            movingTime += (record.timestamp.getTime() - previousRecordTime.getTime()) / 1000;
+          }
+        });
+      }
     }
 
     if (isLap) {
@@ -1367,6 +1373,12 @@ export class EventImporterFIT {
     if (maxSpeed !== null) {
       stats.push(new DataSpeedMax(maxSpeed));
     }
+
+    const avgEffortPace = getStatValue(object, ['Effort Pace', 'effort_pace']);
+    if (avgEffortPace !== null) {
+      stats.push(new DataEffortPace(avgEffortPace));
+    }
+
     // Temperature
     if (isNumberOrString(object.avg_temperature)) {
       stats.push(new DataTemperatureAvg(object.avg_temperature));
@@ -1387,6 +1399,11 @@ export class EventImporterFIT {
     if (descent !== null) {
       stats.push(new DataDescent(descent));
     }
+
+    if (isNumberOrString(object.max_depth)) {
+      stats.push(new DataDepthMax(object.max_depth));
+    }
+
     // Calories
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
@@ -1449,6 +1466,14 @@ export class EventImporterFIT {
         const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
         stats.push(new DataSWOLF50m(swolf50m));
       }
+    }
+
+    if (isNumberOrString(object.avg_stroke_distance)) {
+      stats.push(new DataAvgStrokeDistance(object.avg_stroke_distance));
+    }
+
+    if (isNumberOrString(object.avg_stroke_count)) {
+      stats.push(new DataAvgStrokeCount(object.avg_stroke_count));
     }
 
     // Active lengths

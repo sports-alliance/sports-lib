@@ -5,6 +5,7 @@ import { DataSpeed } from '../../data/data.speed';
 import { DataWeight } from '../../data/data.weight';
 import { DataVerticalSpeed } from '../../data/data.vertical-speed';
 import { DataTemperature } from '../../data/data.temperature';
+import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
 import { DataAltitude } from '../../data/data.altitude';
 import { DataPower } from '../../data/data.power';
 import { DataAltitudeMax } from '../../data/data.altitude-max';
@@ -79,6 +80,9 @@ import { DataPowerAvg } from '../../data/data.power-avg';
 import { DataTemperatureMax } from '../../data/data.temperature-max';
 import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataTemperatureAvg } from '../../data/data.temperature-avg';
+import { DataAbsolutePressureMin } from '../../data/data.absolute-pressure-min';
+import { DataAbsolutePressureMax } from '../../data/data.absolute-pressure-max';
+import { DataAbsolutePressureAvg } from '../../data/data.absolute-pressure-avg';
 import { DataDistance } from '../../data/data.distance';
 import { DataDuration } from '../../data/data.duration';
 import { DataPause } from '../../data/data.pause';
@@ -550,9 +554,9 @@ export class ActivityUtilities {
     let averageGradeAdjustedPace = 0;
     let averageSwimPace = 0;
     let averageTemperature = 0;
+    let averageAbsolutePressure = 0;
     let averageFeeling = 0;
     let averageRPE = 0;
-
 
     // Sum Duration
     activities.forEach(activity => {
@@ -737,6 +741,19 @@ export class ActivityUtilities {
     });
     if (averageTemperature) {
       stats.push(new DataTemperatureAvg(averageTemperature));
+    }
+
+    // Avg Avg Absolute Pressure
+    activities.forEach(activity => {
+      const activityAvgAbsolutePressure = activity.getStat(DataAbsolutePressureAvg.type);
+      if (activityAvgAbsolutePressure) {
+        averageAbsolutePressure = averageAbsolutePressure
+          ? (averageAbsolutePressure + <number>activityAvgAbsolutePressure.getValue()) / 2
+          : <number>activityAvgAbsolutePressure.getValue();
+      }
+    });
+    if (averageAbsolutePressure) {
+      stats.push(new DataAbsolutePressureAvg(averageAbsolutePressure));
     }
 
     // Avg Feeling
@@ -961,6 +978,30 @@ export class ActivityUtilities {
     });
     if (maxTemperature !== -Infinity) {
       stats.push(new DataTemperatureMax(maxTemperature));
+    }
+
+    // Max Absolute Pressure
+    let maxAbsolutePressure = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxAbsolutePressure = activity.getStat(DataAbsolutePressureMax.type);
+      if (activityMaxAbsolutePressure) {
+        maxAbsolutePressure = Math.max(maxAbsolutePressure, <number>activityMaxAbsolutePressure.getValue());
+      }
+    });
+    if (maxAbsolutePressure !== -Infinity) {
+      stats.push(new DataAbsolutePressureMax(maxAbsolutePressure));
+    }
+
+    // Min Absolute Pressure
+    let minAbsolutePressure = Infinity;
+    activities.forEach(activity => {
+      const activityMinAbsolutePressure = activity.getStat(DataAbsolutePressureMin.type);
+      if (activityMinAbsolutePressure) {
+        minAbsolutePressure = Math.min(minAbsolutePressure, <number>activityMinAbsolutePressure.getValue());
+      }
+    });
+    if (minAbsolutePressure !== Infinity) {
+      stats.push(new DataAbsolutePressureMin(minAbsolutePressure));
     }
 
     // Avg Ground Contact Time
@@ -1947,7 +1988,7 @@ export class ActivityUtilities {
       activity.addStat(
         new DataGNSSDistance(
           activity.getSquashedStreamData(DataGNSSDistance.type)[
-          activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
+            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
           ]
         )
       );
@@ -2195,6 +2236,19 @@ export class ActivityUtilities {
     // Air AirPower AVG
     if (!activity.getStat(DataAirPowerAvg.type) && activity.hasStreamData(DataAirPower.type)) {
       activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type)));
+    }
+
+    // Absolute Pressure Max
+    if (!activity.getStat(DataAbsolutePressureMax.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
+      activity.addStat(new DataAbsolutePressureMax(this.getDataTypeMax(activity, DataAbsolutePressure.type)));
+    }
+    // Absolute Pressure Min
+    if (!activity.getStat(DataAbsolutePressureMin.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
+      activity.addStat(new DataAbsolutePressureMin(this.getDataTypeMin(activity, DataAbsolutePressure.type)));
+    }
+    // Absolute Pressure Avg
+    if (!activity.getStat(DataAbsolutePressureAvg.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
+      activity.addStat(new DataAbsolutePressureAvg(this.getDataTypeAvg(activity, DataAbsolutePressure.type)));
     }
 
     // Temperature Max

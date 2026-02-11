@@ -25,6 +25,10 @@ import { DataSpeedKilometersPerHour } from '../../data/data.speed';
 import { DataSwimPace } from '../../data/data.swim-pace';
 import { DataAscent } from '../../data/data.ascent';
 import { DataDescent } from '../../data/data.descent';
+import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
+import { DataAbsolutePressureAvg } from '../../data/data.absolute-pressure-avg';
+import { DataAbsolutePressureMax } from '../../data/data.absolute-pressure-max';
+import { DataAbsolutePressureMin } from '../../data/data.absolute-pressure-min';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -612,6 +616,21 @@ describe('Activity Utilities', () => {
       expect(activity.getStat(DataDescent.type)).toBeDefined();
       expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(10);
     });
+
+    it('should generate min/max/avg stats for Absolute Pressure when pressure stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataAbsolutePressure.type, [1000, 1007, 1003]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataAbsolutePressureMin.type) as DataAbsolutePressureMin).getValue()).toBe(1000);
+      expect((activity.getStat(DataAbsolutePressureMax.type) as DataAbsolutePressureMax).getValue()).toBe(1007);
+      expect((activity.getStat(DataAbsolutePressureAvg.type) as DataAbsolutePressureAvg).getValue()).toBeCloseTo(
+        1003.3333333333,
+        10
+      );
+    });
+
     it('should generate BOTH ascent and descent for Kitesurfing', () => {
       const activity = new Activity(
         new Date(),

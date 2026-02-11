@@ -29,6 +29,18 @@ import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
 import { DataAbsolutePressureAvg } from '../../data/data.absolute-pressure-avg';
 import { DataAbsolutePressureMax } from '../../data/data.absolute-pressure-max';
 import { DataAbsolutePressureMin } from '../../data/data.absolute-pressure-min';
+import { DataEVPE } from '../../data/data.evpe';
+import { DataEVPEMin } from '../../data/data.evpe-min';
+import { DataEVPEMax } from '../../data/data.evpe-max';
+import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
+import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
+import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
+import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
+import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
+import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
+import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
+import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DataGrade } from '../../data/data.grade';
 import { DataGradeMin } from '../../data/data.grade-min';
 import { DataGradeMax } from '../../data/data.grade-max';
@@ -652,6 +664,45 @@ describe('Activity Utilities', () => {
       expect((activity.getStat(DataGradeMin.type) as DataGradeMin).getValue()).toBe(-6);
       expect((activity.getStat(DataGradeMax.type) as DataGradeMax).getValue()).toBe(10);
       expect((activity.getStat(DataGradeAvg.type) as DataGradeAvg).getValue()).toBeCloseTo(2, 5);
+    });
+
+    it('should generate min/max/avg stats for EVPE when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataEVPE.type, [4.1, 5.3, 4.7]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataEVPEMin.type) as DataEVPEMin).getValue()).toBe(4.1);
+      expect((activity.getStat(DataEVPEMax.type) as DataEVPEMax).getValue()).toBe(5.3);
+      expect((activity.getStat(DataEVPEAvg.type) as DataEVPEAvg).getValue()).toBeCloseTo(4.7, 10);
+    });
+
+    it('should generate min/max/avg stats for Satellite 5 Best SNR when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataSatellite5BestSNR.type, [31.1, 34.5, 32.9]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataSatellite5BestSNRMin.type) as DataSatellite5BestSNRMin).getValue()).toBe(31.1);
+      expect((activity.getStat(DataSatellite5BestSNRMax.type) as DataSatellite5BestSNRMax).getValue()).toBe(34.5);
+      expect((activity.getStat(DataSatellite5BestSNRAvg.type) as DataSatellite5BestSNRAvg).getValue()).toBeCloseTo(
+        32.8333333333,
+        10
+      );
+    });
+
+    it('should generate min/max/avg stats for Number of Satellites when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataNumberOfSatellites.type, [9, 11, 10]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataNumberOfSatellitesMin.type) as DataNumberOfSatellitesMin).getValue()).toBe(9);
+      expect((activity.getStat(DataNumberOfSatellitesMax.type) as DataNumberOfSatellitesMax).getValue()).toBe(11);
+      expect((activity.getStat(DataNumberOfSatellitesAvg.type) as DataNumberOfSatellitesAvg).getValue()).toBeCloseTo(
+        10,
+        10
+      );
     });
 
     it('should generate min/max/avg stats for Leg Stiffness when stream exists', () => {

@@ -20,6 +20,9 @@ import {
 } from './data.speed';
 import { DataSeaLevelPressure } from './data.sea-level-pressure';
 import { DataSatellite5BestSNR } from './data.satellite-5-best-snr';
+import { DataSatellite5BestSNRMin } from './data.satellite-5-best-snr-min';
+import { DataSatellite5BestSNRMax } from './data.satellite-5-best-snr-max';
+import { DataSatellite5BestSNRAvg } from './data.satellite-5-best-snr-avg';
 import { DataAbsolutePressure } from './data.absolute-pressure';
 import { DataAbsolutePressureMin } from './data.absolute-pressure-min';
 import { DataAbsolutePressureMax } from './data.absolute-pressure-max';
@@ -30,10 +33,16 @@ import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataEHPE } from './data.ehpe';
 import { DataEVPE } from './data.evpe';
+import { DataEVPEMin } from './data.evpe-min';
+import { DataEVPEMax } from './data.evpe-max';
+import { DataEVPEAvg } from './data.evpe-avg';
 import { DataHeartRate } from './data.heart-rate';
 import { DataLatitudeDegrees } from './data.latitude-degrees';
 import { DataLongitudeDegrees } from './data.longitude-degrees';
 import { DataNumberOfSatellites } from './data.number-of-satellites';
+import { DataNumberOfSatellitesMin } from './data.number-of-satellites-min';
+import { DataNumberOfSatellitesMax } from './data.number-of-satellites-max';
+import { DataNumberOfSatellitesAvg } from './data.number-of-satellites-avg';
 import { DataPower } from './data.power';
 import { DataGPSAltitude } from './data.altitude-gps';
 import { DataInterface } from './data.interface';
@@ -391,6 +400,9 @@ export const DataStore: any = {
   DataGradeAdjustedSpeed,
   DataSeaLevelPressure,
   DataSatellite5BestSNR,
+  DataSatellite5BestSNRMin,
+  DataSatellite5BestSNRMax,
+  DataSatellite5BestSNRAvg,
   DataPower,
   DataCriticalPower,
   DataFTP,
@@ -398,10 +410,16 @@ export const DataStore: any = {
   DataPowerWattsPerKg,
   DataWPrime,
   DataNumberOfSatellites,
+  DataNumberOfSatellitesMin,
+  DataNumberOfSatellitesMax,
+  DataNumberOfSatellitesAvg,
   DataLongitudeDegrees,
   DataLatitudeDegrees,
   DataHeartRate,
   DataEVPE,
+  DataEVPEMin,
+  DataEVPEMax,
+  DataEVPEAvg,
   DataEHPE,
   DataDuration,
   DataDistance,
@@ -875,7 +893,10 @@ export class DynamicDataLoader {
     [DataAbsolutePressure.type]: DataAbsolutePressureMin.type,
     [DataGrade.type]: DataGradeMin.type,
     [DataLegStiffness.type]: DataLegStiffnessMin.type,
-    [DataVerticalRatio.type]: DataVerticalRatioMin.type
+    [DataVerticalRatio.type]: DataVerticalRatioMin.type,
+    [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMin.type,
+    [DataNumberOfSatellites.type]: DataNumberOfSatellitesMin.type,
+    [DataEVPE.type]: DataEVPEMin.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -908,7 +929,10 @@ export class DynamicDataLoader {
     [DataAbsolutePressure.type]: DataAbsolutePressureMax.type,
     [DataGrade.type]: DataGradeMax.type,
     [DataLegStiffness.type]: DataLegStiffnessMax.type,
-    [DataVerticalRatio.type]: DataVerticalRatioMax.type
+    [DataVerticalRatio.type]: DataVerticalRatioMax.type,
+    [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMax.type,
+    [DataNumberOfSatellites.type]: DataNumberOfSatellitesMax.type,
+    [DataEVPE.type]: DataEVPEMax.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -941,7 +965,10 @@ export class DynamicDataLoader {
     [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type,
     [DataGrade.type]: DataGradeAvg.type,
     [DataLegStiffness.type]: DataLegStiffnessAvg.type,
-    [DataVerticalRatio.type]: DataVerticalRatioAvg.type
+    [DataVerticalRatio.type]: DataVerticalRatioAvg.type,
+    [DataSatellite5BestSNR.type]: DataSatellite5BestSNRAvg.type,
+    [DataNumberOfSatellites.type]: DataNumberOfSatellitesAvg.type,
+    [DataEVPE.type]: DataEVPEAvg.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

@@ -2,6 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EventImporterFIT } from '../adapters/importers/fit/importer.fit';
 import { ActivityUtilities } from './activity.utilities';
+import { Activity } from '../../activities/activity';
+import { ActivityTypes } from '../../activities/activity.types';
+import { Creator } from '../../creators/creator';
+import { Stream } from '../../streams/stream';
 import { DataAirPowerAvg } from '../../data/data.air-power-avg';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
 import { DataAirPowerMin } from '../../data/data.air-power-min';
@@ -27,6 +31,18 @@ import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
 import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
+import { DataEVPE } from '../../data/data.evpe';
+import { DataEVPEMin } from '../../data/data.evpe-min';
+import { DataEVPEMax } from '../../data/data.evpe-max';
+import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
+import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
+import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
+import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
+import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
+import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
+import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
+import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 
 const toArrayBuffer = (filePath: string): ArrayBuffer => {
   const fileContent = fs.readFileSync(filePath);
@@ -88,6 +104,35 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(avg.getValue()).toBe(expectedAvg);
       expect(min.getValue()).toBe(expectedMin);
       expect(max.getValue()).toBe(expectedMax);
+    });
+
+    it('generates and aggregates EVPE, Satellite 5 Best SNR and Number of Satellites min/max/avg', () => {
+      const a1 = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
+      a1.addStream(new Stream(DataEVPE.type, [4.0, 4.5, 5.0]));
+      a1.addStream(new Stream(DataSatellite5BestSNR.type, [30, 32, 31]));
+      a1.addStream(new Stream(DataNumberOfSatellites.type, [8, 9, 10]));
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(a1);
+
+      const a2 = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
+      a2.addStream(new Stream(DataEVPE.type, [3.5, 4.2, 4.8]));
+      a2.addStream(new Stream(DataSatellite5BestSNR.type, [33, 34, 35]));
+      a2.addStream(new Stream(DataNumberOfSatellites.type, [10, 11, 12]));
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(a2);
+
+      const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+      const getSummary = (type: string) => stats.find(s => s.getType() === type);
+
+      expect(getSummary(DataEVPEMin.type)?.getValue()).toBe(Math.min(4.0, 3.5));
+      expect(getSummary(DataEVPEMax.type)?.getValue()).toBe(Math.max(5.0, 4.8));
+      expect(getSummary(DataEVPEAvg.type)?.getValue()).toBeCloseTo((4.5 + 4.1666666667) / 2, 10);
+
+      expect(getSummary(DataSatellite5BestSNRMin.type)?.getValue()).toBe(Math.min(30, 33));
+      expect(getSummary(DataSatellite5BestSNRMax.type)?.getValue()).toBe(Math.max(32, 35));
+      expect(getSummary(DataSatellite5BestSNRAvg.type)?.getValue()).toBeCloseTo((31 + 34) / 2, 10);
+
+      expect(getSummary(DataNumberOfSatellitesMin.type)?.getValue()).toBe(Math.min(8, 10));
+      expect(getSummary(DataNumberOfSatellitesMax.type)?.getValue()).toBe(Math.max(10, 12));
+      expect(getSummary(DataNumberOfSatellitesAvg.type)?.getValue()).toBeCloseTo((9 + 11) / 2, 10);
     });
 
     it('aggregates Vertical Speed min/max across activities', async () => {

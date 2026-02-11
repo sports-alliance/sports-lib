@@ -46,6 +46,15 @@ import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
+import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataEVPEMax } from '../../data/data.evpe-max';
+import { DataEVPEMin } from '../../data/data.evpe-min';
+import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
+import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
+import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
+import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
+import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
+import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
 
 describe('ActivityUtilities', () => {
   describe('getSummaryStatsForActivities', () => {
@@ -223,6 +232,31 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataVerticalRatioMax.type) as DataVerticalRatioMax).getValue()).toBe(9.1);
       });
 
+      it('should find Max EVPE', () => {
+        const a1 = createMockActivity({ [DataEVPEMax.type]: new DataEVPEMax(4.1) });
+        const a2 = createMockActivity({ [DataEVPEMax.type]: new DataEVPEMax(5.4) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEVPEMax.type) as DataEVPEMax).getValue()).toBe(5.4);
+      });
+
+      it('should find Max Satellite 5 Best SNR', () => {
+        const a1 = createMockActivity({ [DataSatellite5BestSNRMax.type]: new DataSatellite5BestSNRMax(32.5) });
+        const a2 = createMockActivity({ [DataSatellite5BestSNRMax.type]: new DataSatellite5BestSNRMax(34.2) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataSatellite5BestSNRMax.type) as DataSatellite5BestSNRMax).getValue()).toBe(
+          34.2
+        );
+      });
+
+      it('should find Max Number of Satellites', () => {
+        const a1 = createMockActivity({ [DataNumberOfSatellitesMax.type]: new DataNumberOfSatellitesMax(9) });
+        const a2 = createMockActivity({ [DataNumberOfSatellitesMax.type]: new DataNumberOfSatellitesMax(11) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataNumberOfSatellitesMax.type) as DataNumberOfSatellitesMax).getValue()).toBe(
+          11
+        );
+      });
+
       it('should handle missing values in max', () => {
         const a1 = createMockActivity({ [DataHeartRateMax.type]: new DataHeartRateMax(180) });
         const a2 = createMockActivity({});
@@ -373,6 +407,31 @@ describe('ActivityUtilities', () => {
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataVerticalRatioMin.type) as DataVerticalRatioMin).getValue()).toBe(7.3);
       });
+
+      it('should find Min EVPE', () => {
+        const a1 = createMockActivity({ [DataEVPEMin.type]: new DataEVPEMin(4.2) });
+        const a2 = createMockActivity({ [DataEVPEMin.type]: new DataEVPEMin(3.9) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEVPEMin.type) as DataEVPEMin).getValue()).toBe(3.9);
+      });
+
+      it('should find Min Satellite 5 Best SNR', () => {
+        const a1 = createMockActivity({ [DataSatellite5BestSNRMin.type]: new DataSatellite5BestSNRMin(30.4) });
+        const a2 = createMockActivity({ [DataSatellite5BestSNRMin.type]: new DataSatellite5BestSNRMin(31.8) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataSatellite5BestSNRMin.type) as DataSatellite5BestSNRMin).getValue()).toBe(
+          30.4
+        );
+      });
+
+      it('should find Min Number of Satellites', () => {
+        const a1 = createMockActivity({ [DataNumberOfSatellitesMin.type]: new DataNumberOfSatellitesMin(9) });
+        const a2 = createMockActivity({ [DataNumberOfSatellitesMin.type]: new DataNumberOfSatellitesMin(8) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataNumberOfSatellitesMin.type) as DataNumberOfSatellitesMin).getValue()).toBe(
+          8
+        );
+      });
     });
 
     describe('Average Aggregations', () => {
@@ -411,6 +470,31 @@ describe('ActivityUtilities', () => {
         const a2 = createMockActivity({ [DataVerticalRatioAvg.type]: new DataVerticalRatioAvg(8.5) });
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBe(8.3);
+      });
+
+      it('should average EVPE', () => {
+        const a1 = createMockActivity({ [DataEVPEAvg.type]: new DataEVPEAvg(4.4) });
+        const a2 = createMockActivity({ [DataEVPEAvg.type]: new DataEVPEAvg(4.8) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEVPEAvg.type) as DataEVPEAvg).getValue()).toBe(4.6);
+      });
+
+      it('should average Satellite 5 Best SNR', () => {
+        const a1 = createMockActivity({ [DataSatellite5BestSNRAvg.type]: new DataSatellite5BestSNRAvg(31.2) });
+        const a2 = createMockActivity({ [DataSatellite5BestSNRAvg.type]: new DataSatellite5BestSNRAvg(33.2) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataSatellite5BestSNRAvg.type) as DataSatellite5BestSNRAvg).getValue()).toBe(
+          32.2
+        );
+      });
+
+      it('should average Number of Satellites', () => {
+        const a1 = createMockActivity({ [DataNumberOfSatellitesAvg.type]: new DataNumberOfSatellitesAvg(9) });
+        const a2 = createMockActivity({ [DataNumberOfSatellitesAvg.type]: new DataNumberOfSatellitesAvg(11) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataNumberOfSatellitesAvg.type) as DataNumberOfSatellitesAvg).getValue()).toBe(
+          10
+        );
       });
 
       it('should average Ground Contact Time', () => {

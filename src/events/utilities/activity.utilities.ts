@@ -6,6 +6,18 @@ import { DataWeight } from '../../data/data.weight';
 import { DataVerticalSpeed } from '../../data/data.vertical-speed';
 import { DataTemperature } from '../../data/data.temperature';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
+import { DataEVPE } from '../../data/data.evpe';
+import { DataEVPEMin } from '../../data/data.evpe-min';
+import { DataEVPEMax } from '../../data/data.evpe-max';
+import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
+import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
+import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
+import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
+import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
+import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
+import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
+import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DataAltitude } from '../../data/data.altitude';
 import { DataPower } from '../../data/data.power';
 import { DataAltitudeMax } from '../../data/data.altitude-max';
@@ -566,6 +578,12 @@ export class ActivityUtilities {
     let averageSwimPace = 0;
     let averageTemperature = 0;
     let averageAbsolutePressure = 0;
+    let averageEVPE = 0;
+    let hasAverageEVPE = false;
+    let averageSatellite5BestSNR = 0;
+    let hasAverageSatellite5BestSNR = false;
+    let averageNumberOfSatellites = 0;
+    let hasAverageNumberOfSatellites = false;
     let averageGrade = 0;
     let hasAverageGrade = false;
     let averageAirPower = 0;
@@ -774,6 +792,48 @@ export class ActivityUtilities {
     });
     if (averageAbsolutePressure) {
       stats.push(new DataAbsolutePressureAvg(averageAbsolutePressure));
+    }
+
+    // Avg Avg EVPE
+    activities.forEach(activity => {
+      const activityAvgEVPE = activity.getStat(DataEVPEAvg.type);
+      if (activityAvgEVPE) {
+        averageEVPE = hasAverageEVPE
+          ? (averageEVPE + <number>activityAvgEVPE.getValue()) / 2
+          : <number>activityAvgEVPE.getValue();
+        hasAverageEVPE = true;
+      }
+    });
+    if (hasAverageEVPE) {
+      stats.push(new DataEVPEAvg(averageEVPE));
+    }
+
+    // Avg Avg Satellite 5 Best SNR
+    activities.forEach(activity => {
+      const activityAvgSatellite5BestSNR = activity.getStat(DataSatellite5BestSNRAvg.type);
+      if (activityAvgSatellite5BestSNR) {
+        averageSatellite5BestSNR = hasAverageSatellite5BestSNR
+          ? (averageSatellite5BestSNR + <number>activityAvgSatellite5BestSNR.getValue()) / 2
+          : <number>activityAvgSatellite5BestSNR.getValue();
+        hasAverageSatellite5BestSNR = true;
+      }
+    });
+    if (hasAverageSatellite5BestSNR) {
+      stats.push(new DataSatellite5BestSNRAvg(averageSatellite5BestSNR));
+    }
+
+    // Avg Avg Number of Satellites
+    activities.forEach(activity => {
+      const activityAvgNumberOfSatellites = activity.getStat(DataNumberOfSatellitesAvg.type);
+      if (activityAvgNumberOfSatellites) {
+        averageNumberOfSatellites = hasAverageNumberOfSatellites
+          ? (averageNumberOfSatellites + <number>activityAvgNumberOfSatellites.getValue()) / 2
+          : <number>activityAvgNumberOfSatellites.getValue();
+        hasAverageNumberOfSatellites = true;
+      }
+    });
+    if (hasAverageNumberOfSatellites) {
+      stats.push(new DataNumberOfSatellitesAvg(averageNumberOfSatellites));
     }
 
     // Avg Grade
@@ -1379,6 +1439,78 @@ export class ActivityUtilities {
     });
     if (minAbsolutePressure !== Infinity) {
       stats.push(new DataAbsolutePressureMin(minAbsolutePressure));
+    }
+
+    // Max EVPE
+    let maxEVPE = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxEVPE = activity.getStat(DataEVPEMax.type);
+      if (activityMaxEVPE) {
+        maxEVPE = Math.max(maxEVPE, <number>activityMaxEVPE.getValue());
+      }
+    });
+    if (maxEVPE !== -Infinity) {
+      stats.push(new DataEVPEMax(maxEVPE));
+    }
+
+    // Min EVPE
+    let minEVPE = Infinity;
+    activities.forEach(activity => {
+      const activityMinEVPE = activity.getStat(DataEVPEMin.type);
+      if (activityMinEVPE) {
+        minEVPE = Math.min(minEVPE, <number>activityMinEVPE.getValue());
+      }
+    });
+    if (minEVPE !== Infinity) {
+      stats.push(new DataEVPEMin(minEVPE));
+    }
+
+    // Max Satellite 5 Best SNR
+    let maxSatellite5BestSNR = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxSatellite5BestSNR = activity.getStat(DataSatellite5BestSNRMax.type);
+      if (activityMaxSatellite5BestSNR) {
+        maxSatellite5BestSNR = Math.max(maxSatellite5BestSNR, <number>activityMaxSatellite5BestSNR.getValue());
+      }
+    });
+    if (maxSatellite5BestSNR !== -Infinity) {
+      stats.push(new DataSatellite5BestSNRMax(maxSatellite5BestSNR));
+    }
+
+    // Min Satellite 5 Best SNR
+    let minSatellite5BestSNR = Infinity;
+    activities.forEach(activity => {
+      const activityMinSatellite5BestSNR = activity.getStat(DataSatellite5BestSNRMin.type);
+      if (activityMinSatellite5BestSNR) {
+        minSatellite5BestSNR = Math.min(minSatellite5BestSNR, <number>activityMinSatellite5BestSNR.getValue());
+      }
+    });
+    if (minSatellite5BestSNR !== Infinity) {
+      stats.push(new DataSatellite5BestSNRMin(minSatellite5BestSNR));
+    }
+
+    // Max Number of Satellites
+    let maxNumberOfSatellites = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxNumberOfSatellites = activity.getStat(DataNumberOfSatellitesMax.type);
+      if (activityMaxNumberOfSatellites) {
+        maxNumberOfSatellites = Math.max(maxNumberOfSatellites, <number>activityMaxNumberOfSatellites.getValue());
+      }
+    });
+    if (maxNumberOfSatellites !== -Infinity) {
+      stats.push(new DataNumberOfSatellitesMax(maxNumberOfSatellites));
+    }
+
+    // Min Number of Satellites
+    let minNumberOfSatellites = Infinity;
+    activities.forEach(activity => {
+      const activityMinNumberOfSatellites = activity.getStat(DataNumberOfSatellitesMin.type);
+      if (activityMinNumberOfSatellites) {
+        minNumberOfSatellites = Math.min(minNumberOfSatellites, <number>activityMinNumberOfSatellites.getValue());
+      }
+    });
+    if (minNumberOfSatellites !== Infinity) {
+      stats.push(new DataNumberOfSatellitesMin(minNumberOfSatellites));
     }
 
     // Avg Ground Contact Time
@@ -2644,6 +2776,45 @@ export class ActivityUtilities {
     // Absolute Pressure Avg
     if (!activity.getStat(DataAbsolutePressureAvg.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
       activity.addStat(new DataAbsolutePressureAvg(this.getDataTypeAvg(activity, DataAbsolutePressure.type)));
+    }
+
+    // EVPE Max
+    if (!activity.getStat(DataEVPEMax.type) && activity.hasStreamData(DataEVPE.type)) {
+      activity.addStat(new DataEVPEMax(this.getDataTypeMax(activity, DataEVPE.type)));
+    }
+    // EVPE Min
+    if (!activity.getStat(DataEVPEMin.type) && activity.hasStreamData(DataEVPE.type)) {
+      activity.addStat(new DataEVPEMin(this.getDataTypeMin(activity, DataEVPE.type)));
+    }
+    // EVPE Avg
+    if (!activity.getStat(DataEVPEAvg.type) && activity.hasStreamData(DataEVPE.type)) {
+      activity.addStat(new DataEVPEAvg(this.getDataTypeAvg(activity, DataEVPE.type)));
+    }
+
+    // Satellite 5 Best SNR Max
+    if (!activity.getStat(DataSatellite5BestSNRMax.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
+      activity.addStat(new DataSatellite5BestSNRMax(this.getDataTypeMax(activity, DataSatellite5BestSNR.type)));
+    }
+    // Satellite 5 Best SNR Min
+    if (!activity.getStat(DataSatellite5BestSNRMin.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
+      activity.addStat(new DataSatellite5BestSNRMin(this.getDataTypeMin(activity, DataSatellite5BestSNR.type)));
+    }
+    // Satellite 5 Best SNR Avg
+    if (!activity.getStat(DataSatellite5BestSNRAvg.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
+      activity.addStat(new DataSatellite5BestSNRAvg(this.getDataTypeAvg(activity, DataSatellite5BestSNR.type)));
+    }
+
+    // Number of Satellites Max
+    if (!activity.getStat(DataNumberOfSatellitesMax.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
+      activity.addStat(new DataNumberOfSatellitesMax(this.getDataTypeMax(activity, DataNumberOfSatellites.type)));
+    }
+    // Number of Satellites Min
+    if (!activity.getStat(DataNumberOfSatellitesMin.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
+      activity.addStat(new DataNumberOfSatellitesMin(this.getDataTypeMin(activity, DataNumberOfSatellites.type)));
+    }
+    // Number of Satellites Avg
+    if (!activity.getStat(DataNumberOfSatellitesAvg.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
+      activity.addStat(new DataNumberOfSatellitesAvg(this.getDataTypeAvg(activity, DataNumberOfSatellites.type)));
     }
 
     // Temperature Max

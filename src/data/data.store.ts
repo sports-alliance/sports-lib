@@ -626,7 +626,6 @@ export const DataStore: any = {
   DataPosition,
   DataStartPosition,
   DataEndPosition,
-  DataGrade,
   DataStartEvent,
   DataStopEvent,
   DataStopAllEvent,

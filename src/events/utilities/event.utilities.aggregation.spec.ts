@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { EventUtilities } from './event.utilities';
 import { Event } from '../event';
 import { Activity } from '../../activities/activity';
@@ -6,6 +8,24 @@ import { DataPowerCurve } from '../../data/data.power-curve';
 // @ts-ignore
 import { ActivityTypes } from '../../activities/activity.types';
 import { ActivityUtilities } from './activity.utilities';
+import { EventImporterFIT } from '../adapters/importers/fit/importer.fit';
+import { DataAirPowerAvg } from '../../data/data.air-power-avg';
+import { DataAirPowerMin } from '../../data/data.air-power-min';
+import { DataAirPowerMax } from '../../data/data.air-power-max';
+import { DataVerticalSpeedMin } from '../../data/data.vertical-speed-min';
+import { DataVerticalSpeedMax } from '../../data/data.vertical-speed-max';
+import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
+import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
+import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
+import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
+import { DataGradeAdjustedPaceMin } from '../../data/data.grade-adjusted-pace-min';
+import { DataGradeAdjustedPaceMax } from '../../data/data.grade-adjusted-pace-max';
+import { DataPaceMin } from '../../data/data.pace-min';
+import { DataPaceMax } from '../../data/data.pace-max';
+import { DataTemperatureMin } from '../../data/data.temperature-min';
+import { DataAltitudeAvg } from '../../data/data.altitude-avg';
+import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
+import { DataPace } from '../../data/data.pace';
 
 describe('EventUtilities Power Curve Aggregation', () => {
   const createMockActivity = (powerValues: number[], weight?: number): Activity => {
@@ -98,5 +118,110 @@ describe('EventUtilities Power Curve Aggregation', () => {
 
     expect(point10s.wattsPerKg).toBeDefined();
     expect(point10s.wattsPerKg.getValue()).toBe(4.0); // Should take the higher W/kg
+  });
+
+  describe('mergeEvents summary stats integration', () => {
+    const toArrayBuffer = (filePath: string): ArrayBuffer => {
+      const fileContent = fs.readFileSync(filePath);
+      return fileContent.buffer.slice(fileContent.byteOffset, fileContent.byteOffset + fileContent.byteLength);
+    };
+
+    const loadEventFromFixture = async (relativePath: string) => {
+      const fitPath = path.join(__dirname, '..', '..', 'specs', 'fixtures', relativePath);
+      const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitPath));
+      // Precompute activity stats so merge logic has them
+      event.getActivities().forEach(activity => ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity));
+      return event;
+    };
+
+    const ensureMinStatFromStream = (activity: any, statType: string, streamType: string, StatCtor: new (value: number) => any) => {
+      const stat = activity.getStat(statType);
+      if (stat && stat.getValue() !== Infinity) return;
+      if (!activity.hasStreamData(streamType)) return;
+      const stream = activity.getStreamData(streamType) as Array<number | null | undefined> | undefined;
+      if (!stream || stream.length === 0) return;
+      const finite = stream.filter((v): v is number => Number.isFinite(v));
+      if (!finite.length) return;
+      activity.addStat(new StatCtor(Math.min(...finite)));
+    };
+
+    it('propagates new min/max/avg stats into merged event', async () => {
+      // 6860622783.fit carries Air Power, Ground Contact Time, Vertical Oscillation
+      const eventA = await loadEventFromFixture(path.join('runs', 'fit', '6860622783.fit'));
+      // 6909950168.fit carries Vertical Speed, Pace, Grade Adjusted Pace, Temperature
+      const eventB = await loadEventFromFixture(path.join('runs', 'fit', '6909950168.fit'));
+
+      // Ensure min pace and grade-adjusted pace stats exist when not set by importer
+      eventA.getActivities().forEach(activity => {
+        ensureMinStatFromStream(activity, DataPaceMin.type, DataPace.type, DataPaceMin);
+        ensureMinStatFromStream(activity, DataGradeAdjustedPaceMin.type, DataGradeAdjustedPace.type, DataGradeAdjustedPaceMin);
+      });
+      eventB.getActivities().forEach(activity => {
+        ensureMinStatFromStream(activity, DataPaceMin.type, DataPace.type, DataPaceMin);
+        ensureMinStatFromStream(activity, DataGradeAdjustedPaceMin.type, DataGradeAdjustedPace.type, DataGradeAdjustedPaceMin);
+      });
+
+      const merged = EventUtilities.mergeEvents([eventA, eventB]);
+      const getStat = (type: string) => merged.getStat(type)!;
+
+      const aActivity = eventA.getFirstActivity();
+      const bActivity = eventB.getFirstActivity();
+
+      // Air Power (only present in eventA)
+      expect(getStat(DataAirPowerAvg.type).getValue()).toBe(aActivity.getStat(DataAirPowerAvg.type)!.getValue());
+      expect(getStat(DataAirPowerMin.type).getValue()).toBe(aActivity.getStat(DataAirPowerMin.type)!.getValue());
+      expect(getStat(DataAirPowerMax.type).getValue()).toBe(aActivity.getStat(DataAirPowerMax.type)!.getValue());
+
+      // Vertical Speed (only present in eventB)
+      expect(getStat(DataVerticalSpeedMin.type).getValue()).toBe(bActivity.getStat(DataVerticalSpeedMin.type)!.getValue());
+      expect(getStat(DataVerticalSpeedMax.type).getValue()).toBe(bActivity.getStat(DataVerticalSpeedMax.type)!.getValue());
+
+      // Ground Contact Time (present in eventA)
+      expect(getStat(DataGroundContactTimeMin.type).getValue()).toBe(aActivity.getStat(DataGroundContactTimeMin.type)!.getValue());
+      expect(getStat(DataGroundContactTimeMax.type).getValue()).toBe(aActivity.getStat(DataGroundContactTimeMax.type)!.getValue());
+
+      // Vertical Oscillation (present in eventA)
+      expect(getStat(DataVerticalOscillationMin.type).getValue()).toBe(aActivity.getStat(DataVerticalOscillationMin.type)!.getValue());
+      expect(getStat(DataVerticalOscillationMax.type).getValue()).toBe(aActivity.getStat(DataVerticalOscillationMax.type)!.getValue());
+
+      // Grade Adjusted Pace (present in eventB)
+      const gapMinExpected = Math.min(
+        Number(aActivity.getStat(DataGradeAdjustedPaceMin.type)?.getValue() ?? Infinity),
+        Number(bActivity.getStat(DataGradeAdjustedPaceMin.type)?.getValue() ?? Infinity)
+      );
+      const gapMaxExpected = Math.max(
+        Number(aActivity.getStat(DataGradeAdjustedPaceMax.type)?.getValue() ?? -Infinity),
+        Number(bActivity.getStat(DataGradeAdjustedPaceMax.type)?.getValue() ?? -Infinity)
+      );
+      expect(getStat(DataGradeAdjustedPaceMin.type).getValue()).toBe(gapMinExpected);
+      expect(getStat(DataGradeAdjustedPaceMax.type).getValue()).toBe(gapMaxExpected);
+
+      // Pace (present in eventB)
+      const paceMinExpected = Math.min(
+        Number(aActivity.getStat(DataPaceMin.type)?.getValue() ?? Infinity),
+        Number(bActivity.getStat(DataPaceMin.type)?.getValue() ?? Infinity)
+      );
+      const paceMaxExpected = Math.max(
+        Number(aActivity.getStat(DataPaceMax.type)?.getValue() ?? -Infinity),
+        Number(bActivity.getStat(DataPaceMax.type)?.getValue() ?? -Infinity)
+      );
+      expect(getStat(DataPaceMin.type).getValue()).toBe(paceMinExpected);
+      expect(getStat(DataPaceMax.type).getValue()).toBe(paceMaxExpected);
+
+      // Temperature min across activities
+      const expectedTempMin = Math.min(
+        Number(aActivity.getStat(DataTemperatureMin.type)?.getValue() ?? Infinity),
+        Number(bActivity.getStat(DataTemperatureMin.type)?.getValue() ?? Infinity)
+      );
+      expect(getStat(DataTemperatureMin.type).getValue()).toBe(expectedTempMin);
+
+      // Altitude average across activities
+      const altitudeVals = [
+        Number(aActivity.getStat(DataAltitudeAvg.type)?.getValue()),
+        Number(bActivity.getStat(DataAltitudeAvg.type)?.getValue())
+      ].filter(v => Number.isFinite(v));
+      const expectedAltAvg = altitudeVals.reduce((sum, v) => sum + v, 0) / altitudeVals.length;
+      expect(getStat(DataAltitudeAvg.type).getValue()).toBe(expectedAltAvg);
+    });
   });
 });

@@ -133,6 +133,9 @@ import { DataBatteryConsumption } from './data.battery-consumption';
 import { DataBatteryLifeEstimation } from './data.battery-life-estimation';
 import { DataFormPower } from './data.form-power';
 import { DataLegStiffness, DataLegSpringStiffness } from './data.leg-stiffness';
+import { DataLegStiffnessMin } from './data.leg-stiffness-min';
+import { DataLegStiffnessMax } from './data.leg-stiffness-max';
+import { DataLegStiffnessAvg } from './data.leg-stiffness-avg';
 import { DataVerticalOscillation } from './data.vertical-oscillation';
 import { DataAerobicTrainingEffect } from './data-aerobic-training-effect';
 import { DataNumberOfSamples } from './data.number-of.samples';
@@ -176,6 +179,9 @@ import { DataGroundContactTimeBalanceLeft } from './data-ground-contact-time-bal
 import { DataStepLength } from './data.step-length';
 import { DataEffortPace } from './data.effort-pace';
 import { DataVerticalRatio } from './data.vertical-ratio';
+import { DataVerticalRatioMin } from './data.vertical-ratio-min';
+import { DataVerticalRatioMax } from './data.vertical-ratio-max';
+import { DataVerticalRatioAvg } from './data.vertical-ratio-avg';
 import { DataDescription } from './data.description';
 import { UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
@@ -467,6 +473,9 @@ export const DataStore: any = {
   DataBatteryLifeEstimation,
   DataFormPower,
   DataLegStiffness,
+  DataLegStiffnessMin,
+  DataLegStiffnessMax,
+  DataLegStiffnessAvg,
   DataLegSpringStiffness,
   DataVerticalOscillation,
   DataAerobicTrainingEffect,
@@ -595,6 +604,9 @@ export const DataStore: any = {
   DataStepLength,
   DataEffortPace,
   DataVerticalRatio,
+  DataVerticalRatioMin,
+  DataVerticalRatioMax,
+  DataVerticalRatioAvg,
   DataDescription,
   DataGroundTime,
   DataAirPower,
@@ -861,7 +873,9 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceMin.type,
     [DataTemperature.type]: DataTemperatureMin.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureMin.type,
-    [DataGrade.type]: DataGradeMin.type
+    [DataGrade.type]: DataGradeMin.type,
+    [DataLegStiffness.type]: DataLegStiffnessMin.type,
+    [DataVerticalRatio.type]: DataVerticalRatioMin.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -892,7 +906,9 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceMax.type,
     [DataTemperature.type]: DataTemperatureMax.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureMax.type,
-    [DataGrade.type]: DataGradeMax.type
+    [DataGrade.type]: DataGradeMax.type,
+    [DataLegStiffness.type]: DataLegStiffnessMax.type,
+    [DataVerticalRatio.type]: DataVerticalRatioMax.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -923,7 +939,9 @@ export class DynamicDataLoader {
     [DataCadence.type]: DataCadenceAvg.type,
     [DataTemperature.type]: DataTemperatureAvg.type,
     [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type,
-    [DataGrade.type]: DataGradeAvg.type
+    [DataGrade.type]: DataGradeAvg.type,
+    [DataLegStiffness.type]: DataLegStiffnessAvg.type,
+    [DataVerticalRatio.type]: DataVerticalRatioAvg.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

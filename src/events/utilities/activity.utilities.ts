@@ -139,6 +139,10 @@ import { DataAirPowerMin } from '../../data/data.air-power-min';
 import { DataAirPower } from '../../data/data.air-power';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
 import { DataAirPowerAvg } from '../../data/data.air-power-avg';
+import { DataLegStiffness } from '../../data/data.leg-stiffness';
+import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
+import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
+import { DataLegStiffnessAvg } from '../../data/data.leg-stiffness-avg';
 import { DataInterface } from '../../data/data.interface';
 import { DataRPE } from '../../data/data.rpe';
 import { DataGNSSDistance } from '../../data/data.gnss-distance';
@@ -169,6 +173,10 @@ import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
 import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
+import { DataVerticalRatio } from '../../data/data.vertical-ratio';
+import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
+import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
+import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 
@@ -563,6 +571,10 @@ export class ActivityUtilities {
     let averageAirPower = 0;
     let averageVerticalSpeed = 0;
     let averageAltitude = 0;
+    let averageLegStiffness = 0;
+    let hasAverageLegStiffness = false;
+    let averageVerticalRatio = 0;
+    let hasAverageVerticalRatio = false;
     let averageFeeling = 0;
     let averageRPE = 0;
 
@@ -815,6 +827,34 @@ export class ActivityUtilities {
     });
     if (averageAltitude) {
       stats.push(new DataAltitudeAvg(averageAltitude));
+    }
+
+    // Avg Avg Leg Stiffness
+    activities.forEach(activity => {
+      const activityAvgLegStiffness = activity.getStat(DataLegStiffnessAvg.type);
+      if (activityAvgLegStiffness) {
+        averageLegStiffness = hasAverageLegStiffness
+          ? (averageLegStiffness + <number>activityAvgLegStiffness.getValue()) / 2
+          : <number>activityAvgLegStiffness.getValue();
+        hasAverageLegStiffness = true;
+      }
+    });
+    if (hasAverageLegStiffness) {
+      stats.push(new DataLegStiffnessAvg(averageLegStiffness));
+    }
+
+    // Avg Avg Vertical Ratio
+    activities.forEach(activity => {
+      const activityAvgVerticalRatio = activity.getStat(DataVerticalRatioAvg.type);
+      if (activityAvgVerticalRatio) {
+        averageVerticalRatio = hasAverageVerticalRatio
+          ? (averageVerticalRatio + <number>activityAvgVerticalRatio.getValue()) / 2
+          : <number>activityAvgVerticalRatio.getValue();
+        hasAverageVerticalRatio = true;
+      }
+    });
+    if (hasAverageVerticalRatio) {
+      stats.push(new DataVerticalRatioAvg(averageVerticalRatio));
     }
 
     // Avg Feeling
@@ -1147,6 +1187,54 @@ export class ActivityUtilities {
     });
     if (minVerticalOscillation !== Infinity) {
       stats.push(new DataVerticalOscillationMin(minVerticalOscillation));
+    }
+
+    // Max Leg Stiffness
+    let maxLegStiffness = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxLegStiffness = activity.getStat(DataLegStiffnessMax.type);
+      if (activityMaxLegStiffness) {
+        maxLegStiffness = Math.max(maxLegStiffness, <number>activityMaxLegStiffness.getValue());
+      }
+    });
+    if (maxLegStiffness !== -Infinity) {
+      stats.push(new DataLegStiffnessMax(maxLegStiffness));
+    }
+
+    // Min Leg Stiffness
+    let minLegStiffness = Infinity;
+    activities.forEach(activity => {
+      const activityMinLegStiffness = activity.getStat(DataLegStiffnessMin.type);
+      if (activityMinLegStiffness) {
+        minLegStiffness = Math.min(minLegStiffness, <number>activityMinLegStiffness.getValue());
+      }
+    });
+    if (minLegStiffness !== Infinity) {
+      stats.push(new DataLegStiffnessMin(minLegStiffness));
+    }
+
+    // Max Vertical Ratio
+    let maxVerticalRatio = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxVerticalRatio = activity.getStat(DataVerticalRatioMax.type);
+      if (activityMaxVerticalRatio) {
+        maxVerticalRatio = Math.max(maxVerticalRatio, <number>activityMaxVerticalRatio.getValue());
+      }
+    });
+    if (maxVerticalRatio !== -Infinity) {
+      stats.push(new DataVerticalRatioMax(maxVerticalRatio));
+    }
+
+    // Min Vertical Ratio
+    let minVerticalRatio = Infinity;
+    activities.forEach(activity => {
+      const activityMinVerticalRatio = activity.getStat(DataVerticalRatioMin.type);
+      if (activityMinVerticalRatio) {
+        minVerticalRatio = Math.min(minVerticalRatio, <number>activityMinVerticalRatio.getValue());
+      }
+    });
+    if (minVerticalRatio !== Infinity) {
+      stats.push(new DataVerticalRatioMin(minVerticalRatio));
     }
 
     // Max Pace
@@ -2644,6 +2732,17 @@ export class ActivityUtilities {
       activity.addStat(new DataGroundContactTimeAvg(this.getDataTypeAvg(activity, DataGroundContactTime.type)));
     }
 
+    // Leg Stiffness
+    if (!activity.getStat(DataLegStiffnessMax.type) && activity.hasStreamData(DataLegStiffness.type)) {
+      activity.addStat(new DataLegStiffnessMax(this.getDataTypeMax(activity, DataLegStiffness.type)));
+    }
+    if (!activity.getStat(DataLegStiffnessMin.type) && activity.hasStreamData(DataLegStiffness.type)) {
+      activity.addStat(new DataLegStiffnessMin(this.getDataTypeMin(activity, DataLegStiffness.type)));
+    }
+    if (!activity.getStat(DataLegStiffnessAvg.type) && activity.hasStreamData(DataLegStiffness.type)) {
+      activity.addStat(new DataLegStiffnessAvg(this.getDataTypeAvg(activity, DataLegStiffness.type)));
+    }
+
     // Vertical Oscillation
     if (!activity.getStat(DataVerticalOscillationMax.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
       activity.addStat(new DataVerticalOscillationMax(this.getDataTypeMax(activity, DataVerticalOscillation.type)));
@@ -2653,6 +2752,17 @@ export class ActivityUtilities {
     }
     if (!activity.getStat(DataVerticalOscillationAvg.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
       activity.addStat(new DataVerticalOscillationAvg(this.getDataTypeAvg(activity, DataVerticalOscillation.type)));
+    }
+
+    // Vertical Ratio
+    if (!activity.getStat(DataVerticalRatioMax.type) && activity.hasStreamData(DataVerticalRatio.type)) {
+      activity.addStat(new DataVerticalRatioMax(this.getDataTypeMax(activity, DataVerticalRatio.type)));
+    }
+    if (!activity.getStat(DataVerticalRatioMin.type) && activity.hasStreamData(DataVerticalRatio.type)) {
+      activity.addStat(new DataVerticalRatioMin(this.getDataTypeMin(activity, DataVerticalRatio.type)));
+    }
+    if (!activity.getStat(DataVerticalRatioAvg.type) && activity.hasStreamData(DataVerticalRatio.type)) {
+      activity.addStat(new DataVerticalRatioAvg(this.getDataTypeAvg(activity, DataVerticalRatio.type)));
     }
   }
 

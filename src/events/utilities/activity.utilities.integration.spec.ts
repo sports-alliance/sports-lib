@@ -23,6 +23,10 @@ import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
+import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
+import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
+import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
+import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 
 const toArrayBuffer = (filePath: string): ArrayBuffer => {
   const fileContent = fs.readFileSync(filePath);
@@ -126,6 +130,34 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(max).toBeDefined();
       expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataVerticalOscillationMin.type), getStatValue(a2, DataVerticalOscillationMin.type)));
       expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataVerticalOscillationMax.type), getStatValue(a2, DataVerticalOscillationMax.type)));
+    });
+
+    it('aggregates Leg Stiffness min/max across activities', async () => {
+      const a1 = await loadActivity('../../specs/fixtures/runs/fit/6782987395.fit');
+      const a2 = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');
+
+      const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+      const min = stats.find(s => s.getType() === DataLegStiffnessMin.type) as DataLegStiffnessMin;
+      const max = stats.find(s => s.getType() === DataLegStiffnessMax.type) as DataLegStiffnessMax;
+
+      expect(min).toBeDefined();
+      expect(max).toBeDefined();
+      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataLegStiffnessMin.type), getStatValue(a2, DataLegStiffnessMin.type)));
+      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataLegStiffnessMax.type), getStatValue(a2, DataLegStiffnessMax.type)));
+    });
+
+    it('aggregates Vertical Ratio min/max across activities', async () => {
+      const a1 = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');
+      const a2 = await loadActivity('../../specs/fixtures/runs/fit/6916663933.fit');
+
+      const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+      const min = stats.find(s => s.getType() === DataVerticalRatioMin.type) as DataVerticalRatioMin;
+      const max = stats.find(s => s.getType() === DataVerticalRatioMax.type) as DataVerticalRatioMax;
+
+      expect(min).toBeDefined();
+      expect(max).toBeDefined();
+      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataVerticalRatioMin.type), getStatValue(a2, DataVerticalRatioMin.type)));
+      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataVerticalRatioMax.type), getStatValue(a2, DataVerticalRatioMax.type)));
     });
 
     it('aggregates Grade Adjusted Pace min/max across activities', async () => {

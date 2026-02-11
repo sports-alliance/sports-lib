@@ -105,7 +105,9 @@ import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance
 import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
 
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
+import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
 import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
+import { DataVerticalRatioAvg } from '../../../../data/data.vertical-ratio-avg';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
@@ -145,6 +147,9 @@ import { DataAvgGrit } from '../../../../data/data.avg-grit';
 import { DataJumpEvent } from '../../../../data/data.jump-event';
 import { DataBatteryConsumption } from '../../../../data/data.battery-consumption';
 import { DataBatteryLifeEstimation } from '../../../../data/data.battery-life-estimation';
+import { DataGradeAvg } from '../../../../data/data.grade-avg';
+import { DataGradeMin } from '../../../../data/data.grade-min';
+import { DataGradeMax } from '../../../../data/data.grade-max';
 
 import {
   DataJumpDistanceAvg,
@@ -1501,20 +1506,31 @@ export class EventImporterFIT {
     }
 
     // Running dynamics
-    // Stance Time
-    if (Number.isFinite(object.avg_stance_time)) {
+    if (isNumberOrString(object.avg_stance_time)) {
       stats.push(new DataGroundContactTimeAvg(object.avg_stance_time));
-      // Keep DataStanceTime for backward compatibility (if needed, though logically it's an Avg)
-      // The original code mapped avg_stance_time to DataStanceTime, which was arguably incorrect naming or type usage
+      // Keep DataStanceTime for backward compatibility with previous mapping.
       stats.push(new DataStanceTime(object.avg_stance_time));
     }
 
-    if (Number.isFinite(object.avg_vertical_oscillation)) {
+    if (isNumberOrString(object.avg_vertical_oscillation)) {
       stats.push(new DataVerticalOscillation(object.avg_vertical_oscillation));
+      stats.push(new DataVerticalOscillationAvg(object.avg_vertical_oscillation));
     }
 
-    if (Number.isFinite(object.avg_vertical_ratio)) {
+    if (isNumberOrString(object.avg_vertical_ratio)) {
       stats.push(new DataVerticalRatio(object.avg_vertical_ratio));
+      stats.push(new DataVerticalRatioAvg(object.avg_vertical_ratio));
+    }
+
+    // Grade summary from session stats (if available)
+    if (isNumberOrString(object.avg_grade)) {
+      stats.push(new DataGradeAvg(object.avg_grade));
+    }
+    if (isNumberOrString(object.max_pos_grade)) {
+      stats.push(new DataGradeMax(object.max_pos_grade));
+    }
+    if (isNumberOrString(object.max_neg_grade)) {
+      stats.push(new DataGradeMin(object.max_neg_grade));
     }
 
     if (Number.isFinite(object.avg_step_length)) {

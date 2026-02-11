@@ -33,6 +33,14 @@ import { DataGrade } from '../../data/data.grade';
 import { DataGradeMin } from '../../data/data.grade-min';
 import { DataGradeMax } from '../../data/data.grade-max';
 import { DataGradeAvg } from '../../data/data.grade-avg';
+import { DataLegStiffness } from '../../data/data.leg-stiffness';
+import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
+import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
+import { DataLegStiffnessAvg } from '../../data/data.leg-stiffness-avg';
+import { DataVerticalRatio } from '../../data/data.vertical-ratio';
+import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
+import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
+import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -644,6 +652,28 @@ describe('Activity Utilities', () => {
       expect((activity.getStat(DataGradeMin.type) as DataGradeMin).getValue()).toBe(-6);
       expect((activity.getStat(DataGradeMax.type) as DataGradeMax).getValue()).toBe(10);
       expect((activity.getStat(DataGradeAvg.type) as DataGradeAvg).getValue()).toBeCloseTo(2, 5);
+    });
+
+    it('should generate min/max/avg stats for Leg Stiffness when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataLegStiffness.type, [8.2, 9.1, 8.7]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataLegStiffnessMin.type) as DataLegStiffnessMin).getValue()).toBe(8.2);
+      expect((activity.getStat(DataLegStiffnessMax.type) as DataLegStiffnessMax).getValue()).toBe(9.1);
+      expect((activity.getStat(DataLegStiffnessAvg.type) as DataLegStiffnessAvg).getValue()).toBeCloseTo(8.6666666667, 10);
+    });
+
+    it('should generate min/max/avg stats for Vertical Ratio when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataVerticalRatio.type, [7.5, 8.1, 7.9]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataVerticalRatioMin.type) as DataVerticalRatioMin).getValue()).toBe(7.5);
+      expect((activity.getStat(DataVerticalRatioMax.type) as DataVerticalRatioMax).getValue()).toBe(8.1);
+      expect((activity.getStat(DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBeCloseTo(7.8333333333, 10);
     });
 
     it('should generate BOTH ascent and descent for Kitesurfing', () => {

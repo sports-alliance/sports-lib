@@ -40,6 +40,12 @@ import { DataSwimPaceMax } from '../../data/data.swim-pace-max';
 import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataGradeAdjustedSpeedMax } from '../../data/data.grade-adjusted-speed-max';
 import { DataGradeAdjustedSpeedMin } from '../../data/data.grade-adjusted-speed-min';
+import { DataLegStiffnessAvg } from '../../data/data.leg-stiffness-avg';
+import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
+import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
+import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
+import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
+import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 
 describe('ActivityUtilities', () => {
   describe('getSummaryStatsForActivities', () => {
@@ -203,6 +209,20 @@ describe('ActivityUtilities', () => {
         ).toBe(5.1);
       });
 
+      it('should find Max Leg Stiffness', () => {
+        const a1 = createMockActivity({ [DataLegStiffnessMax.type]: new DataLegStiffnessMax(8.8) });
+        const a2 = createMockActivity({ [DataLegStiffnessMax.type]: new DataLegStiffnessMax(9.2) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataLegStiffnessMax.type) as DataLegStiffnessMax).getValue()).toBe(9.2);
+      });
+
+      it('should find Max Vertical Ratio', () => {
+        const a1 = createMockActivity({ [DataVerticalRatioMax.type]: new DataVerticalRatioMax(8.2) });
+        const a2 = createMockActivity({ [DataVerticalRatioMax.type]: new DataVerticalRatioMax(9.1) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataVerticalRatioMax.type) as DataVerticalRatioMax).getValue()).toBe(9.1);
+      });
+
       it('should handle missing values in max', () => {
         const a1 = createMockActivity({ [DataHeartRateMax.type]: new DataHeartRateMax(180) });
         const a2 = createMockActivity({});
@@ -339,6 +359,20 @@ describe('ActivityUtilities', () => {
           (stats.find(s => s.getType() === DataGradeAdjustedSpeedMin.type) as DataGradeAdjustedSpeedMin).getValue()
         ).toBe(2.4);
       });
+
+      it('should find Min Leg Stiffness', () => {
+        const a1 = createMockActivity({ [DataLegStiffnessMin.type]: new DataLegStiffnessMin(7.5) });
+        const a2 = createMockActivity({ [DataLegStiffnessMin.type]: new DataLegStiffnessMin(7.1) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataLegStiffnessMin.type) as DataLegStiffnessMin).getValue()).toBe(7.1);
+      });
+
+      it('should find Min Vertical Ratio', () => {
+        const a1 = createMockActivity({ [DataVerticalRatioMin.type]: new DataVerticalRatioMin(7.8) });
+        const a2 = createMockActivity({ [DataVerticalRatioMin.type]: new DataVerticalRatioMin(7.3) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataVerticalRatioMin.type) as DataVerticalRatioMin).getValue()).toBe(7.3);
+      });
     });
 
     describe('Average Aggregations', () => {
@@ -363,6 +397,20 @@ describe('ActivityUtilities', () => {
         const a2 = createMockActivity({ [DataAltitudeAvg.type]: new DataAltitudeAvg(1200) });
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataAltitudeAvg.type) as DataAltitudeAvg).getValue()).toBe(1100);
+      });
+
+      it('should average Leg Stiffness', () => {
+        const a1 = createMockActivity({ [DataLegStiffnessAvg.type]: new DataLegStiffnessAvg(8.2) });
+        const a2 = createMockActivity({ [DataLegStiffnessAvg.type]: new DataLegStiffnessAvg(8.8) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataLegStiffnessAvg.type) as DataLegStiffnessAvg).getValue()).toBe(8.5);
+      });
+
+      it('should average Vertical Ratio', () => {
+        const a1 = createMockActivity({ [DataVerticalRatioAvg.type]: new DataVerticalRatioAvg(8.1) });
+        const a2 = createMockActivity({ [DataVerticalRatioAvg.type]: new DataVerticalRatioAvg(8.5) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBe(8.3);
       });
 
       it('should average Ground Contact Time', () => {

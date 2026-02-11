@@ -33,6 +33,10 @@ import { DataEVPE } from '../../data/data.evpe';
 import { DataEVPEMin } from '../../data/data.evpe-min';
 import { DataEVPEMax } from '../../data/data.evpe-max';
 import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataEHPE } from '../../data/data.ehpe';
+import { DataEHPEMin } from '../../data/data.ehpe-min';
+import { DataEHPEMax } from '../../data/data.ehpe-max';
+import { DataEHPEAvg } from '../../data/data.ehpe-avg';
 import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
@@ -675,6 +679,17 @@ describe('Activity Utilities', () => {
       expect((activity.getStat(DataEVPEMin.type) as DataEVPEMin).getValue()).toBe(4.1);
       expect((activity.getStat(DataEVPEMax.type) as DataEVPEMax).getValue()).toBe(5.3);
       expect((activity.getStat(DataEVPEAvg.type) as DataEVPEAvg).getValue()).toBeCloseTo(4.7, 10);
+    });
+
+    it('should generate min/max/avg stats for EHPE when stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataEHPE.type, [3.2, 4.1, 3.7]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataEHPEMin.type) as DataEHPEMin).getValue()).toBe(3.2);
+      expect((activity.getStat(DataEHPEMax.type) as DataEHPEMax).getValue()).toBe(4.1);
+      expect((activity.getStat(DataEHPEAvg.type) as DataEHPEAvg).getValue()).toBeCloseTo(3.6666666667, 10);
     });
 
     it('should generate min/max/avg stats for Satellite 5 Best SNR when stream exists', () => {

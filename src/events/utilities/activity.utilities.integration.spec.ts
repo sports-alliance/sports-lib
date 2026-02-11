@@ -35,6 +35,10 @@ import { DataEVPE } from '../../data/data.evpe';
 import { DataEVPEMin } from '../../data/data.evpe-min';
 import { DataEVPEMax } from '../../data/data.evpe-max';
 import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataEHPE } from '../../data/data.ehpe';
+import { DataEHPEMin } from '../../data/data.ehpe-min';
+import { DataEHPEMax } from '../../data/data.ehpe-max';
+import { DataEHPEAvg } from '../../data/data.ehpe-avg';
 import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
@@ -109,12 +113,14 @@ describe('ActivityUtilities summary aggregation integration', () => {
     it('generates and aggregates EVPE, Satellite 5 Best SNR and Number of Satellites min/max/avg', () => {
       const a1 = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
       a1.addStream(new Stream(DataEVPE.type, [4.0, 4.5, 5.0]));
+      a1.addStream(new Stream(DataEHPE.type, [3.0, 3.6, 4.2]));
       a1.addStream(new Stream(DataSatellite5BestSNR.type, [30, 32, 31]));
       a1.addStream(new Stream(DataNumberOfSatellites.type, [8, 9, 10]));
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(a1);
 
       const a2 = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
       a2.addStream(new Stream(DataEVPE.type, [3.5, 4.2, 4.8]));
+      a2.addStream(new Stream(DataEHPE.type, [2.8, 3.2, 3.8]));
       a2.addStream(new Stream(DataSatellite5BestSNR.type, [33, 34, 35]));
       a2.addStream(new Stream(DataNumberOfSatellites.type, [10, 11, 12]));
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(a2);
@@ -125,6 +131,9 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(getSummary(DataEVPEMin.type)?.getValue()).toBe(Math.min(4.0, 3.5));
       expect(getSummary(DataEVPEMax.type)?.getValue()).toBe(Math.max(5.0, 4.8));
       expect(getSummary(DataEVPEAvg.type)?.getValue()).toBeCloseTo((4.5 + 4.1666666667) / 2, 10);
+      expect(getSummary(DataEHPEMin.type)?.getValue()).toBe(Math.min(3.0, 2.8));
+      expect(getSummary(DataEHPEMax.type)?.getValue()).toBe(Math.max(4.2, 3.8));
+      expect(getSummary(DataEHPEAvg.type)?.getValue()).toBeCloseTo((3.6 + 3.2666666667) / 2, 10);
 
       expect(getSummary(DataSatellite5BestSNRMin.type)?.getValue()).toBe(Math.min(30, 33));
       expect(getSummary(DataSatellite5BestSNRMax.type)?.getValue()).toBe(Math.max(32, 35));

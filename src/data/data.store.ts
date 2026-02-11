@@ -384,6 +384,9 @@ import {
   DataJumpSpeedMin
 } from './data.jump-stats';
 import { DataJumpDistance } from './data.jump-distance';
+import { DataEHPEMin } from './data.ehpe-min';
+import { DataEHPEMax } from './data.ehpe-max';
+import { DataEHPEAvg } from './data.ehpe-avg';
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -421,6 +424,9 @@ export const DataStore: any = {
   DataEVPEMax,
   DataEVPEAvg,
   DataEHPE,
+  DataEHPEMin,
+  DataEHPEMax,
+  DataEHPEAvg,
   DataDuration,
   DataDistance,
   DataCadence,
@@ -896,7 +902,8 @@ export class DynamicDataLoader {
     [DataVerticalRatio.type]: DataVerticalRatioMin.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMin.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMin.type,
-    [DataEVPE.type]: DataEVPEMin.type
+    [DataEVPE.type]: DataEVPEMin.type,
+    [DataEHPE.type]: DataEHPEMin.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -932,7 +939,8 @@ export class DynamicDataLoader {
     [DataVerticalRatio.type]: DataVerticalRatioMax.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMax.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMax.type,
-    [DataEVPE.type]: DataEVPEMax.type
+    [DataEVPE.type]: DataEVPEMax.type,
+    [DataEHPE.type]: DataEHPEMax.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -968,7 +976,8 @@ export class DynamicDataLoader {
     [DataVerticalRatio.type]: DataVerticalRatioAvg.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRAvg.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesAvg.type,
-    [DataEVPE.type]: DataEVPEAvg.type
+    [DataEVPE.type]: DataEVPEAvg.type,
+    [DataEHPE.type]: DataEHPEAvg.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

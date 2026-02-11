@@ -10,6 +10,10 @@ import { DataEVPE } from '../../data/data.evpe';
 import { DataEVPEMin } from '../../data/data.evpe-min';
 import { DataEVPEMax } from '../../data/data.evpe-max';
 import { DataEVPEAvg } from '../../data/data.evpe-avg';
+import { DataEHPE } from '../../data/data.ehpe';
+import { DataEHPEMin } from '../../data/data.ehpe-min';
+import { DataEHPEMax } from '../../data/data.ehpe-max';
+import { DataEHPEAvg } from '../../data/data.ehpe-avg';
 import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
@@ -580,6 +584,8 @@ export class ActivityUtilities {
     let averageAbsolutePressure = 0;
     let averageEVPE = 0;
     let hasAverageEVPE = false;
+    let averageEHPE = 0;
+    let hasAverageEHPE = false;
     let averageSatellite5BestSNR = 0;
     let hasAverageSatellite5BestSNR = false;
     let averageNumberOfSatellites = 0;
@@ -806,6 +812,18 @@ export class ActivityUtilities {
     });
     if (hasAverageEVPE) {
       stats.push(new DataEVPEAvg(averageEVPE));
+    }
+
+    // Avg Avg EHPE
+    activities.forEach(activity => {
+      const activityAvgEHPE = activity.getStat(DataEHPEAvg.type);
+      if (activityAvgEHPE) {
+        averageEHPE = hasAverageEHPE ? (averageEHPE + <number>activityAvgEHPE.getValue()) / 2 : <number>activityAvgEHPE.getValue();
+        hasAverageEHPE = true;
+      }
+    });
+    if (hasAverageEHPE) {
+      stats.push(new DataEHPEAvg(averageEHPE));
     }
 
     // Avg Avg Satellite 5 Best SNR
@@ -1463,6 +1481,30 @@ export class ActivityUtilities {
     });
     if (minEVPE !== Infinity) {
       stats.push(new DataEVPEMin(minEVPE));
+    }
+
+    // Max EHPE
+    let maxEHPE = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxEHPE = activity.getStat(DataEHPEMax.type);
+      if (activityMaxEHPE) {
+        maxEHPE = Math.max(maxEHPE, <number>activityMaxEHPE.getValue());
+      }
+    });
+    if (maxEHPE !== -Infinity) {
+      stats.push(new DataEHPEMax(maxEHPE));
+    }
+
+    // Min EHPE
+    let minEHPE = Infinity;
+    activities.forEach(activity => {
+      const activityMinEHPE = activity.getStat(DataEHPEMin.type);
+      if (activityMinEHPE) {
+        minEHPE = Math.min(minEHPE, <number>activityMinEHPE.getValue());
+      }
+    });
+    if (minEHPE !== Infinity) {
+      stats.push(new DataEHPEMin(minEHPE));
     }
 
     // Max Satellite 5 Best SNR
@@ -2789,6 +2831,19 @@ export class ActivityUtilities {
     // EVPE Avg
     if (!activity.getStat(DataEVPEAvg.type) && activity.hasStreamData(DataEVPE.type)) {
       activity.addStat(new DataEVPEAvg(this.getDataTypeAvg(activity, DataEVPE.type)));
+    }
+
+    // EHPE Max
+    if (!activity.getStat(DataEHPEMax.type) && activity.hasStreamData(DataEHPE.type)) {
+      activity.addStat(new DataEHPEMax(this.getDataTypeMax(activity, DataEHPE.type)));
+    }
+    // EHPE Min
+    if (!activity.getStat(DataEHPEMin.type) && activity.hasStreamData(DataEHPE.type)) {
+      activity.addStat(new DataEHPEMin(this.getDataTypeMin(activity, DataEHPE.type)));
+    }
+    // EHPE Avg
+    if (!activity.getStat(DataEHPEAvg.type) && activity.hasStreamData(DataEHPE.type)) {
+      activity.addStat(new DataEHPEAvg(this.getDataTypeAvg(activity, DataEHPE.type)));
     }
 
     // Satellite 5 Best SNR Max

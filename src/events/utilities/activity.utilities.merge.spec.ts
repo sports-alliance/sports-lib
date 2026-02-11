@@ -49,6 +49,9 @@ import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataEVPEAvg } from '../../data/data.evpe-avg';
 import { DataEVPEMax } from '../../data/data.evpe-max';
 import { DataEVPEMin } from '../../data/data.evpe-min';
+import { DataEHPEAvg } from '../../data/data.ehpe-avg';
+import { DataEHPEMax } from '../../data/data.ehpe-max';
+import { DataEHPEMin } from '../../data/data.ehpe-min';
 import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
@@ -239,6 +242,13 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataEVPEMax.type) as DataEVPEMax).getValue()).toBe(5.4);
       });
 
+      it('should find Max EHPE', () => {
+        const a1 = createMockActivity({ [DataEHPEMax.type]: new DataEHPEMax(3.7) });
+        const a2 = createMockActivity({ [DataEHPEMax.type]: new DataEHPEMax(4.2) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEHPEMax.type) as DataEHPEMax).getValue()).toBe(4.2);
+      });
+
       it('should find Max Satellite 5 Best SNR', () => {
         const a1 = createMockActivity({ [DataSatellite5BestSNRMax.type]: new DataSatellite5BestSNRMax(32.5) });
         const a2 = createMockActivity({ [DataSatellite5BestSNRMax.type]: new DataSatellite5BestSNRMax(34.2) });
@@ -415,6 +425,13 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataEVPEMin.type) as DataEVPEMin).getValue()).toBe(3.9);
       });
 
+      it('should find Min EHPE', () => {
+        const a1 = createMockActivity({ [DataEHPEMin.type]: new DataEHPEMin(3.1) });
+        const a2 = createMockActivity({ [DataEHPEMin.type]: new DataEHPEMin(3.4) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEHPEMin.type) as DataEHPEMin).getValue()).toBe(3.1);
+      });
+
       it('should find Min Satellite 5 Best SNR', () => {
         const a1 = createMockActivity({ [DataSatellite5BestSNRMin.type]: new DataSatellite5BestSNRMin(30.4) });
         const a2 = createMockActivity({ [DataSatellite5BestSNRMin.type]: new DataSatellite5BestSNRMin(31.8) });
@@ -477,6 +494,13 @@ describe('ActivityUtilities', () => {
         const a2 = createMockActivity({ [DataEVPEAvg.type]: new DataEVPEAvg(4.8) });
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataEVPEAvg.type) as DataEVPEAvg).getValue()).toBe(4.6);
+      });
+
+      it('should average EHPE', () => {
+        const a1 = createMockActivity({ [DataEHPEAvg.type]: new DataEHPEAvg(3.5) });
+        const a2 = createMockActivity({ [DataEHPEAvg.type]: new DataEHPEAvg(4.1) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataEHPEAvg.type) as DataEHPEAvg).getValue()).toBe(3.8);
       });
 
       it('should average Satellite 5 Best SNR', () => {

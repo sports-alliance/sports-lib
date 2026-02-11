@@ -555,6 +555,9 @@ export class ActivityUtilities {
     let averageSwimPace = 0;
     let averageTemperature = 0;
     let averageAbsolutePressure = 0;
+    let averageAirPower = 0;
+    let averageVerticalSpeed = 0;
+    let averageAltitude = 0;
     let averageFeeling = 0;
     let averageRPE = 0;
 
@@ -754,6 +757,45 @@ export class ActivityUtilities {
     });
     if (averageAbsolutePressure) {
       stats.push(new DataAbsolutePressureAvg(averageAbsolutePressure));
+    }
+
+    // Avg Avg Air Power
+    activities.forEach(activity => {
+      const activityAvgAirPower = activity.getStat(DataAirPowerAvg.type);
+      if (activityAvgAirPower) {
+        averageAirPower = averageAirPower
+          ? (averageAirPower + <number>activityAvgAirPower.getValue()) / 2
+          : <number>activityAvgAirPower.getValue();
+      }
+    });
+    if (averageAirPower) {
+      stats.push(new DataAirPowerAvg(averageAirPower));
+    }
+
+    // Avg Avg Vertical Speed
+    activities.forEach(activity => {
+      const activityAvgVerticalSpeed = activity.getStat(DataVerticalSpeedAvg.type);
+      if (activityAvgVerticalSpeed) {
+        averageVerticalSpeed = averageVerticalSpeed
+          ? (averageVerticalSpeed + <number>activityAvgVerticalSpeed.getValue()) / 2
+          : <number>activityAvgVerticalSpeed.getValue();
+      }
+    });
+    if (averageVerticalSpeed) {
+      stats.push(new DataVerticalSpeedAvg(averageVerticalSpeed));
+    }
+
+    // Avg Avg Altitude
+    activities.forEach(activity => {
+      const activityAvgAltitude = activity.getStat(DataAltitudeAvg.type);
+      if (activityAvgAltitude) {
+        averageAltitude = averageAltitude
+          ? (averageAltitude + <number>activityAvgAltitude.getValue()) / 2
+          : <number>activityAvgAltitude.getValue();
+      }
+    });
+    if (averageAltitude) {
+      stats.push(new DataAltitudeAvg(averageAltitude));
     }
 
     // Avg Feeling
@@ -978,6 +1020,210 @@ export class ActivityUtilities {
     });
     if (maxTemperature !== -Infinity) {
       stats.push(new DataTemperatureMax(maxTemperature));
+    }
+
+    // Min Temperature
+    let minTemperature = Infinity;
+    activities.forEach(activity => {
+      const activityMinTemperature = activity.getStat(DataTemperatureMin.type);
+      if (activityMinTemperature) {
+        minTemperature = Math.min(minTemperature, <number>activityMinTemperature.getValue());
+      }
+    });
+    if (minTemperature !== Infinity) {
+      stats.push(new DataTemperatureMin(minTemperature));
+    }
+
+    // Max Air Power
+    let maxAirPower = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxAirPower = activity.getStat(DataAirPowerMax.type);
+      if (activityMaxAirPower) {
+        maxAirPower = Math.max(maxAirPower, <number>activityMaxAirPower.getValue());
+      }
+    });
+    if (maxAirPower !== -Infinity) {
+      stats.push(new DataAirPowerMax(maxAirPower));
+    }
+
+    // Min Air Power
+    let minAirPower = Infinity;
+    activities.forEach(activity => {
+      const activityMinAirPower = activity.getStat(DataAirPowerMin.type);
+      if (activityMinAirPower) {
+        minAirPower = Math.min(minAirPower, <number>activityMinAirPower.getValue());
+      }
+    });
+    if (minAirPower !== Infinity) {
+      stats.push(new DataAirPowerMin(minAirPower));
+    }
+
+    // Max Vertical Speed
+    let maxVerticalSpeed = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxVerticalSpeed = activity.getStat(DataVerticalSpeedMax.type);
+      if (activityMaxVerticalSpeed) {
+        maxVerticalSpeed = Math.max(maxVerticalSpeed, <number>activityMaxVerticalSpeed.getValue());
+      }
+    });
+    if (maxVerticalSpeed !== -Infinity) {
+      stats.push(new DataVerticalSpeedMax(maxVerticalSpeed));
+    }
+
+    // Min Vertical Speed
+    let minVerticalSpeed = Infinity;
+    activities.forEach(activity => {
+      const activityMinVerticalSpeed = activity.getStat(DataVerticalSpeedMin.type);
+      if (activityMinVerticalSpeed) {
+        minVerticalSpeed = Math.min(minVerticalSpeed, <number>activityMinVerticalSpeed.getValue());
+      }
+    });
+    if (minVerticalSpeed !== Infinity) {
+      stats.push(new DataVerticalSpeedMin(minVerticalSpeed));
+    }
+
+    // Max Ground Contact Time
+    let maxGroundContactTime = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxGroundContactTime = activity.getStat(DataGroundContactTimeMax.type);
+      if (activityMaxGroundContactTime) {
+        maxGroundContactTime = Math.max(maxGroundContactTime, <number>activityMaxGroundContactTime.getValue());
+      }
+    });
+    if (maxGroundContactTime !== -Infinity) {
+      stats.push(new DataGroundContactTimeMax(maxGroundContactTime));
+    }
+
+    // Min Ground Contact Time
+    let minGroundContactTime = Infinity;
+    activities.forEach(activity => {
+      const activityMinGroundContactTime = activity.getStat(DataGroundContactTimeMin.type);
+      if (activityMinGroundContactTime) {
+        minGroundContactTime = Math.min(minGroundContactTime, <number>activityMinGroundContactTime.getValue());
+      }
+    });
+    if (minGroundContactTime !== Infinity) {
+      stats.push(new DataGroundContactTimeMin(minGroundContactTime));
+    }
+
+    // Max Vertical Oscillation
+    let maxVerticalOscillation = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxVerticalOscillation = activity.getStat(DataVerticalOscillationMax.type);
+      if (activityMaxVerticalOscillation) {
+        maxVerticalOscillation = Math.max(maxVerticalOscillation, <number>activityMaxVerticalOscillation.getValue());
+      }
+    });
+    if (maxVerticalOscillation !== -Infinity) {
+      stats.push(new DataVerticalOscillationMax(maxVerticalOscillation));
+    }
+
+    // Min Vertical Oscillation
+    let minVerticalOscillation = Infinity;
+    activities.forEach(activity => {
+      const activityMinVerticalOscillation = activity.getStat(DataVerticalOscillationMin.type);
+      if (activityMinVerticalOscillation) {
+        minVerticalOscillation = Math.min(minVerticalOscillation, <number>activityMinVerticalOscillation.getValue());
+      }
+    });
+    if (minVerticalOscillation !== Infinity) {
+      stats.push(new DataVerticalOscillationMin(minVerticalOscillation));
+    }
+
+    // Max Pace
+    let maxPace = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxPace = activity.getStat(DataPaceMax.type);
+      if (activityMaxPace) {
+        maxPace = Math.max(maxPace, <number>activityMaxPace.getValue());
+      }
+    });
+    if (maxPace !== -Infinity) {
+      stats.push(new DataPaceMax(maxPace));
+    }
+
+    // Min Pace
+    let minPace = Infinity;
+    activities.forEach(activity => {
+      const activityMinPace = activity.getStat(DataPaceMin.type);
+      if (activityMinPace) {
+        minPace = Math.min(minPace, <number>activityMinPace.getValue());
+      }
+    });
+    if (minPace !== Infinity) {
+      stats.push(new DataPaceMin(minPace));
+    }
+
+    // Max Grade Adjusted Pace
+    let maxGradeAdjustedPace = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxGradeAdjustedPace = activity.getStat(DataGradeAdjustedPaceMax.type);
+      if (activityMaxGradeAdjustedPace) {
+        maxGradeAdjustedPace = Math.max(maxGradeAdjustedPace, <number>activityMaxGradeAdjustedPace.getValue());
+      }
+    });
+    if (maxGradeAdjustedPace !== -Infinity) {
+      stats.push(new DataGradeAdjustedPaceMax(maxGradeAdjustedPace));
+    }
+
+    // Min Grade Adjusted Pace
+    let minGradeAdjustedPace = Infinity;
+    activities.forEach(activity => {
+      const activityMinGradeAdjustedPace = activity.getStat(DataGradeAdjustedPaceMin.type);
+      if (activityMinGradeAdjustedPace) {
+        minGradeAdjustedPace = Math.min(minGradeAdjustedPace, <number>activityMinGradeAdjustedPace.getValue());
+      }
+    });
+    if (minGradeAdjustedPace !== Infinity) {
+      stats.push(new DataGradeAdjustedPaceMin(minGradeAdjustedPace));
+    }
+
+    // Max Swim Pace
+    let maxSwimPace = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxSwimPace = activity.getStat(DataSwimPaceMax.type);
+      if (activityMaxSwimPace) {
+        maxSwimPace = Math.max(maxSwimPace, <number>activityMaxSwimPace.getValue());
+      }
+    });
+    if (maxSwimPace !== -Infinity) {
+      stats.push(new DataSwimPaceMax(maxSwimPace));
+    }
+
+    // Min Swim Pace
+    let minSwimPace = Infinity;
+    activities.forEach(activity => {
+      const activityMinSwimPace = activity.getStat(DataSwimPaceMin.type);
+      if (activityMinSwimPace) {
+        minSwimPace = Math.min(minSwimPace, <number>activityMinSwimPace.getValue());
+      }
+    });
+    if (minSwimPace !== Infinity) {
+      stats.push(new DataSwimPaceMin(minSwimPace));
+    }
+
+    // Max Grade Adjusted Speed
+    let maxGradeAdjustedSpeed = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxGradeAdjustedSpeed = activity.getStat(DataGradeAdjustedSpeedMax.type);
+      if (activityMaxGradeAdjustedSpeed) {
+        maxGradeAdjustedSpeed = Math.max(maxGradeAdjustedSpeed, <number>activityMaxGradeAdjustedSpeed.getValue());
+      }
+    });
+    if (maxGradeAdjustedSpeed !== -Infinity) {
+      stats.push(new DataGradeAdjustedSpeedMax(maxGradeAdjustedSpeed));
+    }
+
+    // Min Grade Adjusted Speed
+    let minGradeAdjustedSpeed = Infinity;
+    activities.forEach(activity => {
+      const activityMinGradeAdjustedSpeed = activity.getStat(DataGradeAdjustedSpeedMin.type);
+      if (activityMinGradeAdjustedSpeed) {
+        minGradeAdjustedSpeed = Math.min(minGradeAdjustedSpeed, <number>activityMinGradeAdjustedSpeed.getValue());
+      }
+    });
+    if (minGradeAdjustedSpeed !== Infinity) {
+      stats.push(new DataGradeAdjustedSpeedMin(minGradeAdjustedSpeed));
     }
 
     // Max Absolute Pressure

@@ -15,11 +15,31 @@ import { DataCadenceMax } from '../../data/data.cadence-max';
 import { DataCadenceMin } from '../../data/data.cadence-min';
 import { DataAltitudeMax } from '../../data/data.altitude-max';
 import { DataAltitudeMin } from '../../data/data.altitude-min';
+import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataTemperatureMax } from '../../data/data.temperature-max';
+import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataJumpCount } from '../../data/data.jump-count';
 import { DataTotalFlow } from '../../data/data.total-flow';
+import { DataAirPowerAvg } from '../../data/data.air-power-avg';
+import { DataAirPowerMax } from '../../data/data.air-power-max';
+import { DataAirPowerMin } from '../../data/data.air-power-min';
+import { DataVerticalSpeedAvg } from '../../data/data.vertical-speed-avg';
+import { DataVerticalSpeedMax } from '../../data/data.vertical-speed-max';
+import { DataVerticalSpeedMin } from '../../data/data.vertical-speed-min';
 import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-avg';
+import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
+import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
+import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
+import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
+import { DataPaceMax } from '../../data/data.pace-max';
+import { DataPaceMin } from '../../data/data.pace-min';
+import { DataGradeAdjustedPaceMax } from '../../data/data.grade-adjusted-pace-max';
+import { DataGradeAdjustedPaceMin } from '../../data/data.grade-adjusted-pace-min';
+import { DataSwimPaceMax } from '../../data/data.swim-pace-max';
+import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
+import { DataGradeAdjustedSpeedMax } from '../../data/data.grade-adjusted-speed-max';
+import { DataGradeAdjustedSpeedMin } from '../../data/data.grade-adjusted-speed-min';
 
 describe('ActivityUtilities', () => {
   describe('getSummaryStatsForActivities', () => {
@@ -117,6 +137,72 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataTemperatureMax.type) as DataTemperatureMax).getValue()).toBe(30);
       });
 
+      it('should find Max Air Power', () => {
+        const a1 = createMockActivity({ [DataAirPowerMax.type]: new DataAirPowerMax(120) });
+        const a2 = createMockActivity({ [DataAirPowerMax.type]: new DataAirPowerMax(140) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataAirPowerMax.type) as DataAirPowerMax).getValue()).toBe(140);
+      });
+
+      it('should find Max Vertical Speed', () => {
+        const a1 = createMockActivity({ [DataVerticalSpeedMax.type]: new DataVerticalSpeedMax(2.8) });
+        const a2 = createMockActivity({ [DataVerticalSpeedMax.type]: new DataVerticalSpeedMax(3.1) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataVerticalSpeedMax.type) as DataVerticalSpeedMax).getValue()).toBe(
+          3.1
+        );
+      });
+
+      it('should find Max Ground Contact Time', () => {
+        const a1 = createMockActivity({ [DataGroundContactTimeMax.type]: new DataGroundContactTimeMax(280) });
+        const a2 = createMockActivity({ [DataGroundContactTimeMax.type]: new DataGroundContactTimeMax(320) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGroundContactTimeMax.type) as DataGroundContactTimeMax).getValue()
+        ).toBe(320);
+      });
+
+      it('should find Max Vertical Oscillation', () => {
+        const a1 = createMockActivity({ [DataVerticalOscillationMax.type]: new DataVerticalOscillationMax(8) });
+        const a2 = createMockActivity({ [DataVerticalOscillationMax.type]: new DataVerticalOscillationMax(10) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataVerticalOscillationMax.type) as DataVerticalOscillationMax).getValue()
+        ).toBe(10);
+      });
+
+      it('should find Max Pace', () => {
+        const a1 = createMockActivity({ [DataPaceMax.type]: new DataPaceMax(250) });
+        const a2 = createMockActivity({ [DataPaceMax.type]: new DataPaceMax(260) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataPaceMax.type) as DataPaceMax).getValue()).toBe(260);
+      });
+
+      it('should find Max Grade Adjusted Pace', () => {
+        const a1 = createMockActivity({ [DataGradeAdjustedPaceMax.type]: new DataGradeAdjustedPaceMax(240) });
+        const a2 = createMockActivity({ [DataGradeAdjustedPaceMax.type]: new DataGradeAdjustedPaceMax(265) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGradeAdjustedPaceMax.type) as DataGradeAdjustedPaceMax).getValue()
+        ).toBe(265);
+      });
+
+      it('should find Max Swim Pace', () => {
+        const a1 = createMockActivity({ [DataSwimPaceMax.type]: new DataSwimPaceMax(130) });
+        const a2 = createMockActivity({ [DataSwimPaceMax.type]: new DataSwimPaceMax(145) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataSwimPaceMax.type) as DataSwimPaceMax).getValue()).toBe(145);
+      });
+
+      it('should find Max Grade Adjusted Speed', () => {
+        const a1 = createMockActivity({ [DataGradeAdjustedSpeedMax.type]: new DataGradeAdjustedSpeedMax(4.5) });
+        const a2 = createMockActivity({ [DataGradeAdjustedSpeedMax.type]: new DataGradeAdjustedSpeedMax(5.1) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGradeAdjustedSpeedMax.type) as DataGradeAdjustedSpeedMax).getValue()
+        ).toBe(5.1);
+      });
+
       it('should handle missing values in max', () => {
         const a1 = createMockActivity({ [DataHeartRateMax.type]: new DataHeartRateMax(180) });
         const a2 = createMockActivity({});
@@ -180,9 +266,105 @@ describe('ActivityUtilities', () => {
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataHeartRateMin.type) as DataHeartRateMin).getValue()).toBe(50);
       });
+
+      it('should find Min Temperature', () => {
+        const a1 = createMockActivity({ [DataTemperatureMin.type]: new DataTemperatureMin(14) });
+        const a2 = createMockActivity({ [DataTemperatureMin.type]: new DataTemperatureMin(10) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataTemperatureMin.type) as DataTemperatureMin).getValue()).toBe(10);
+      });
+
+      it('should find Min Air Power', () => {
+        const a1 = createMockActivity({ [DataAirPowerMin.type]: new DataAirPowerMin(80) });
+        const a2 = createMockActivity({ [DataAirPowerMin.type]: new DataAirPowerMin(72) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataAirPowerMin.type) as DataAirPowerMin).getValue()).toBe(72);
+      });
+
+      it('should find Min Vertical Speed', () => {
+        const a1 = createMockActivity({ [DataVerticalSpeedMin.type]: new DataVerticalSpeedMin(-1.8) });
+        const a2 = createMockActivity({ [DataVerticalSpeedMin.type]: new DataVerticalSpeedMin(-2.4) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataVerticalSpeedMin.type) as DataVerticalSpeedMin).getValue()).toBe(
+          -2.4
+        );
+      });
+
+      it('should find Min Ground Contact Time', () => {
+        const a1 = createMockActivity({ [DataGroundContactTimeMin.type]: new DataGroundContactTimeMin(260) });
+        const a2 = createMockActivity({ [DataGroundContactTimeMin.type]: new DataGroundContactTimeMin(240) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGroundContactTimeMin.type) as DataGroundContactTimeMin).getValue()
+        ).toBe(240);
+      });
+
+      it('should find Min Vertical Oscillation', () => {
+        const a1 = createMockActivity({ [DataVerticalOscillationMin.type]: new DataVerticalOscillationMin(6) });
+        const a2 = createMockActivity({ [DataVerticalOscillationMin.type]: new DataVerticalOscillationMin(5) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataVerticalOscillationMin.type) as DataVerticalOscillationMin).getValue()
+        ).toBe(5);
+      });
+
+      it('should find Min Pace', () => {
+        const a1 = createMockActivity({ [DataPaceMin.type]: new DataPaceMin(320) });
+        const a2 = createMockActivity({ [DataPaceMin.type]: new DataPaceMin(305) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataPaceMin.type) as DataPaceMin).getValue()).toBe(305);
+      });
+
+      it('should find Min Grade Adjusted Pace', () => {
+        const a1 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(315) });
+        const a2 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(298) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGradeAdjustedPaceMin.type) as DataGradeAdjustedPaceMin).getValue()
+        ).toBe(298);
+      });
+
+      it('should find Min Swim Pace', () => {
+        const a1 = createMockActivity({ [DataSwimPaceMin.type]: new DataSwimPaceMin(125) });
+        const a2 = createMockActivity({ [DataSwimPaceMin.type]: new DataSwimPaceMin(118) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataSwimPaceMin.type) as DataSwimPaceMin).getValue()).toBe(118);
+      });
+
+      it('should find Min Grade Adjusted Speed', () => {
+        const a1 = createMockActivity({ [DataGradeAdjustedSpeedMin.type]: new DataGradeAdjustedSpeedMin(2.7) });
+        const a2 = createMockActivity({ [DataGradeAdjustedSpeedMin.type]: new DataGradeAdjustedSpeedMin(2.4) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGradeAdjustedSpeedMin.type) as DataGradeAdjustedSpeedMin).getValue()
+        ).toBe(2.4);
+      });
     });
 
     describe('Average Aggregations', () => {
+      it('should average Air Power', () => {
+        const a1 = createMockActivity({ [DataAirPowerAvg.type]: new DataAirPowerAvg(90) });
+        const a2 = createMockActivity({ [DataAirPowerAvg.type]: new DataAirPowerAvg(110) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataAirPowerAvg.type) as DataAirPowerAvg).getValue()).toBe(100);
+      });
+
+      it('should average Vertical Speed', () => {
+        const a1 = createMockActivity({ [DataVerticalSpeedAvg.type]: new DataVerticalSpeedAvg(0.4) });
+        const a2 = createMockActivity({ [DataVerticalSpeedAvg.type]: new DataVerticalSpeedAvg(0.8) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataVerticalSpeedAvg.type) as DataVerticalSpeedAvg).getValue()
+        ).toBeCloseTo(0.6, 5);
+      });
+
+      it('should average Altitude', () => {
+        const a1 = createMockActivity({ [DataAltitudeAvg.type]: new DataAltitudeAvg(1000) });
+        const a2 = createMockActivity({ [DataAltitudeAvg.type]: new DataAltitudeAvg(1200) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataAltitudeAvg.type) as DataAltitudeAvg).getValue()).toBe(1100);
+      });
+
       it('should average Ground Contact Time', () => {
         const a1 = createMockActivity({ [DataGroundContactTimeAvg.type]: new DataGroundContactTimeAvg(250) });
         const a2 = createMockActivity({ [DataGroundContactTimeAvg.type]: new DataGroundContactTimeAvg(300) });

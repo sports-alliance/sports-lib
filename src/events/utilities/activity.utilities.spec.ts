@@ -29,6 +29,10 @@ import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
 import { DataAbsolutePressureAvg } from '../../data/data.absolute-pressure-avg';
 import { DataAbsolutePressureMax } from '../../data/data.absolute-pressure-max';
 import { DataAbsolutePressureMin } from '../../data/data.absolute-pressure-min';
+import { DataGrade } from '../../data/data.grade';
+import { DataGradeMin } from '../../data/data.grade-min';
+import { DataGradeMax } from '../../data/data.grade-max';
+import { DataGradeAvg } from '../../data/data.grade-avg';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -629,6 +633,17 @@ describe('Activity Utilities', () => {
         1003.3333333333,
         10
       );
+    });
+
+    it('should generate min/max/avg stats for Grade when grade stream exists', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataGrade.type, [-6, 0, 4, 10]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataGradeMin.type) as DataGradeMin).getValue()).toBe(-6);
+      expect((activity.getStat(DataGradeMax.type) as DataGradeMax).getValue()).toBe(10);
+      expect((activity.getStat(DataGradeAvg.type) as DataGradeAvg).getValue()).toBeCloseTo(2, 5);
     });
 
     it('should generate BOTH ascent and descent for Kitesurfing', () => {

@@ -217,6 +217,9 @@ import {
   DataGradeAdjustedPaceMinMinutesPerMile
 } from '../../data/data.grade-adjusted-pace-min';
 import { DataGrade } from '../../data/data.grade';
+import { DataGradeMin } from '../../data/data.grade-min';
+import { DataGradeMax } from '../../data/data.grade-max';
+import { DataGradeAvg } from '../../data/data.grade-avg';
 import {
   ActivityTypeGroups,
   ActivityTypes,
@@ -555,6 +558,8 @@ export class ActivityUtilities {
     let averageSwimPace = 0;
     let averageTemperature = 0;
     let averageAbsolutePressure = 0;
+    let averageGrade = 0;
+    let hasAverageGrade = false;
     let averageAirPower = 0;
     let averageVerticalSpeed = 0;
     let averageAltitude = 0;
@@ -757,6 +762,20 @@ export class ActivityUtilities {
     });
     if (averageAbsolutePressure) {
       stats.push(new DataAbsolutePressureAvg(averageAbsolutePressure));
+    }
+
+    // Avg Grade
+    activities.forEach(activity => {
+      const activityAvgGrade = activity.getStat(DataGradeAvg.type);
+      if (activityAvgGrade) {
+        averageGrade = hasAverageGrade
+          ? (averageGrade + <number>activityAvgGrade.getValue()) / 2
+          : <number>activityAvgGrade.getValue();
+        hasAverageGrade = true;
+      }
+    });
+    if (hasAverageGrade) {
+      stats.push(new DataGradeAvg(averageGrade));
     }
 
     // Avg Avg Air Power
@@ -1224,6 +1243,30 @@ export class ActivityUtilities {
     });
     if (minGradeAdjustedSpeed !== Infinity) {
       stats.push(new DataGradeAdjustedSpeedMin(minGradeAdjustedSpeed));
+    }
+
+    // Max Grade
+    let maxGrade = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxGrade = activity.getStat(DataGradeMax.type);
+      if (activityMaxGrade) {
+        maxGrade = Math.max(maxGrade, <number>activityMaxGrade.getValue());
+      }
+    });
+    if (maxGrade !== -Infinity) {
+      stats.push(new DataGradeMax(maxGrade));
+    }
+
+    // Min Grade
+    let minGrade = Infinity;
+    activities.forEach(activity => {
+      const activityMinGrade = activity.getStat(DataGradeMin.type);
+      if (activityMinGrade) {
+        minGrade = Math.min(minGrade, <number>activityMinGrade.getValue());
+      }
+    });
+    if (minGrade !== Infinity) {
+      stats.push(new DataGradeMin(minGrade));
     }
 
     // Max Absolute Pressure
@@ -2405,6 +2448,24 @@ export class ActivityUtilities {
     // Grade Adjusted Speed Avg
     if (!activity.getStat(DataGradeAdjustedSpeedAvg.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
       activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type)));
+    }
+
+    // Grade Max/Min/Avg (prefer smoothed grade when available)
+    const gradeStreamType = activity.hasStreamData(DataGradeSmooth.type)
+      ? DataGradeSmooth.type
+      : activity.hasStreamData(DataGrade.type)
+        ? DataGrade.type
+        : null;
+    if (gradeStreamType) {
+      if (!activity.getStat(DataGradeMax.type)) {
+        activity.addStat(new DataGradeMax(this.getDataTypeMax(activity, gradeStreamType)));
+      }
+      if (!activity.getStat(DataGradeMin.type)) {
+        activity.addStat(new DataGradeMin(this.getDataTypeMin(activity, gradeStreamType)));
+      }
+      if (!activity.getStat(DataGradeAvg.type)) {
+        activity.addStat(new DataGradeAvg(this.getDataTypeAvg(activity, gradeStreamType)));
+      }
     }
 
     // Vertical Speed Max

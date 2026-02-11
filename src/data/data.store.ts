@@ -209,6 +209,9 @@ import { DataPosition } from './data.position';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 import { DataGrade } from './data.grade';
+import { DataGradeMin } from './data.grade-min';
+import { DataGradeMax } from './data.grade-max';
+import { DataGradeAvg } from './data.grade-avg';
 import {
   DataGradeAdjustedSpeed,
   DataGradeAdjustedSpeedFeetPerMinute,
@@ -416,6 +419,10 @@ export const DataStore: any = {
   DataGradeAdjustedSpeedMin,
   DataGradeAdjustedSpeedMax,
   DataGradeAdjustedSpeedAvg,
+  DataGrade,
+  DataGradeMin,
+  DataGradeMax,
+  DataGradeAvg,
   DataRecoveryTime,
   DataPowerMin,
   DataPowerMax,
@@ -854,7 +861,8 @@ export class DynamicDataLoader {
     [DataPower.type]: DataPowerMin.type,
     [DataCadence.type]: DataCadenceMin.type,
     [DataTemperature.type]: DataTemperatureMin.type,
-    [DataAbsolutePressure.type]: DataAbsolutePressureMin.type
+    [DataAbsolutePressure.type]: DataAbsolutePressureMin.type,
+    [DataGrade.type]: DataGradeMin.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -884,7 +892,8 @@ export class DynamicDataLoader {
     [DataPower.type]: DataPowerMax.type,
     [DataCadence.type]: DataCadenceMax.type,
     [DataTemperature.type]: DataTemperatureMax.type,
-    [DataAbsolutePressure.type]: DataAbsolutePressureMax.type
+    [DataAbsolutePressure.type]: DataAbsolutePressureMax.type,
+    [DataGrade.type]: DataGradeMax.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -914,7 +923,8 @@ export class DynamicDataLoader {
     [DataPower.type]: DataPowerAvg.type,
     [DataCadence.type]: DataCadenceAvg.type,
     [DataTemperature.type]: DataTemperatureAvg.type,
-    [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type
+    [DataAbsolutePressure.type]: DataAbsolutePressureAvg.type,
+    [DataGrade.type]: DataGradeAvg.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

@@ -1,6 +1,7 @@
 import { DataNumber } from './data.number';
 
 export class DataMaxHRSetting extends DataNumber {
-  static type = 'Max HR Setting';
+  static type = 'Maximum HR Setting';
+  static aliases = ['Max HR Setting'];
   static unit = 'bpm';
 }

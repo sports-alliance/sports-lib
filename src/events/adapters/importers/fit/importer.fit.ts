@@ -118,6 +118,7 @@ import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-ra
 import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
 import { DataJumpCount } from '../../../../data/data.jump-count';
 import { DataTotalGrit } from '../../../../data/data.total-grit';
+import { DataTotalFlow } from '../../../../data/data.total-flow';
 import { DataAvgFlow } from '../../../../data/data.avg-flow';
 import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
 import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
@@ -1319,6 +1320,7 @@ export class EventImporterFIT {
     // Grit & Flow
 
     if (isNumberOrString(object.total_flow)) {
+      stats.push(new DataTotalFlow(object.total_flow));
     }
     if (isNumberOrString(object.avg_grit)) {
       stats.push(new DataAvgGrit(object.avg_grit));

@@ -27,6 +27,27 @@ import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
+import { DataJumpEvent } from '../../data/data.jump-event';
+import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
+  DataJumpHangTimeAvg,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeMin,
+  DataJumpHeightAvg,
+  DataJumpHeightMax,
+  DataJumpHeightMin,
+  DataJumpRotationsAvg,
+  DataJumpRotationsMax,
+  DataJumpRotationsMin,
+  DataJumpScoreAvg,
+  DataJumpScoreMax,
+  DataJumpScoreMin,
+  DataJumpSpeedAvg,
+  DataJumpSpeedMax,
+  DataJumpSpeedMin
+} from '../../data/data.jump-stats';
 import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
 import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
@@ -297,6 +318,75 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(avg).toBeDefined();
       const expectedAvg = (getStatValue(a1, DataAltitudeAvg.type) + getStatValue(a2, DataAltitudeAvg.type)) / 2;
       expect(avg.getValue()).toBe(expectedAvg);
+    });
+  });
+
+  describe('generateMissingStreamsAndStatsForActivity', () => {
+    const createJumpEvent = (
+      timestamp: number,
+      values: {
+        distance?: number;
+        height?: number;
+        score?: number;
+        hang_time?: number;
+        speed?: number;
+        rotations?: number;
+      }
+    ): DataJumpEvent => {
+      return new DataJumpEvent(timestamp, {
+        distance: values.distance ?? 0,
+        height: values.height,
+        score: values.score ?? 0,
+        hang_time: values.hang_time,
+        speed: values.speed,
+        rotations: values.rotations
+      });
+    };
+
+    it('derives missing jump min/max/avg stats from jump events', () => {
+      const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
+      activity.addEvent(createJumpEvent(1, { distance: 2, hang_time: 0.4, speed: 6, rotations: 1, score: 50, height: 0.8 }));
+      activity.addEvent(createJumpEvent(2, { distance: 4, hang_time: 0.6, speed: 8, rotations: 0, score: 70, height: 1.2 }));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataJumpDistanceMin.type) as DataJumpDistanceMin).getValue()).toBe(2);
+      expect((activity.getStat(DataJumpDistanceMax.type) as DataJumpDistanceMax).getValue()).toBe(4);
+      expect((activity.getStat(DataJumpDistanceAvg.type) as DataJumpDistanceAvg).getValue()).toBeCloseTo(3, 10);
+
+      expect((activity.getStat(DataJumpHangTimeMin.type) as DataJumpHangTimeMin).getValue()).toBeCloseTo(0.4, 10);
+      expect((activity.getStat(DataJumpHangTimeMax.type) as DataJumpHangTimeMax).getValue()).toBeCloseTo(0.6, 10);
+      expect((activity.getStat(DataJumpHangTimeAvg.type) as DataJumpHangTimeAvg).getValue()).toBeCloseTo(0.5, 10);
+
+      expect((activity.getStat(DataJumpSpeedMin.type) as DataJumpSpeedMin).getValue()).toBe(6);
+      expect((activity.getStat(DataJumpSpeedMax.type) as DataJumpSpeedMax).getValue()).toBe(8);
+      expect((activity.getStat(DataJumpSpeedAvg.type) as DataJumpSpeedAvg).getValue()).toBeCloseTo(7, 10);
+
+      expect((activity.getStat(DataJumpRotationsMin.type) as DataJumpRotationsMin).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpRotationsMax.type) as DataJumpRotationsMax).getValue()).toBe(1);
+      expect((activity.getStat(DataJumpRotationsAvg.type) as DataJumpRotationsAvg).getValue()).toBeCloseTo(0.5, 10);
+
+      expect((activity.getStat(DataJumpScoreMin.type) as DataJumpScoreMin).getValue()).toBe(50);
+      expect((activity.getStat(DataJumpScoreMax.type) as DataJumpScoreMax).getValue()).toBe(70);
+      expect((activity.getStat(DataJumpScoreAvg.type) as DataJumpScoreAvg).getValue()).toBeCloseTo(60, 10);
+
+      expect((activity.getStat(DataJumpHeightMin.type) as DataJumpHeightMin).getValue()).toBeCloseTo(0.8, 10);
+      expect((activity.getStat(DataJumpHeightMax.type) as DataJumpHeightMax).getValue()).toBeCloseTo(1.2, 10);
+      expect((activity.getStat(DataJumpHeightAvg.type) as DataJumpHeightAvg).getValue()).toBeCloseTo(1, 10);
+    });
+
+    it('emits jump averages with zero values when count is greater than zero', () => {
+      const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
+      activity.addEvent(createJumpEvent(1, { distance: 0, hang_time: 0, speed: 0, rotations: 0, score: 0, height: 0 }));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataJumpDistanceAvg.type) as DataJumpDistanceAvg).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpHangTimeAvg.type) as DataJumpHangTimeAvg).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpSpeedAvg.type) as DataJumpSpeedAvg).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpRotationsAvg.type) as DataJumpRotationsAvg).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpScoreAvg.type) as DataJumpScoreAvg).getValue()).toBe(0);
+      expect((activity.getStat(DataJumpHeightAvg.type) as DataJumpHeightAvg).getValue()).toBe(0);
     });
   });
 });

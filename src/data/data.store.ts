@@ -900,11 +900,14 @@ export class DynamicDataLoader {
     [DataGroundContactTime.type]: DataGroundContactTimeMin.type,
     [DataGrade.type]: DataGradeMin.type,
     [DataLegStiffness.type]: DataLegStiffnessMin.type,
+    [DataVerticalOscillation.type]: DataVerticalOscillationMin.type,
     [DataVerticalRatio.type]: DataVerticalRatioMin.type,
+    [DataJumpDistance.type]: DataJumpDistanceMin.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMin.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMin.type,
     [DataEVPE.type]: DataEVPEMin.type,
-    [DataEHPE.type]: DataEHPEMin.type
+    [DataEHPE.type]: DataEHPEMin.type,
+    'Respiration Rate': DataMinRespirationRate.type
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -938,11 +941,14 @@ export class DynamicDataLoader {
     [DataGroundContactTime.type]: DataGroundContactTimeMax.type,
     [DataGrade.type]: DataGradeMax.type,
     [DataLegStiffness.type]: DataLegStiffnessMax.type,
+    [DataVerticalOscillation.type]: DataVerticalOscillationMax.type,
     [DataVerticalRatio.type]: DataVerticalRatioMax.type,
+    [DataJumpDistance.type]: DataJumpDistanceMax.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMax.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMax.type,
     [DataEVPE.type]: DataEVPEMax.type,
-    [DataEHPE.type]: DataEHPEMax.type
+    [DataEHPE.type]: DataEHPEMax.type,
+    'Respiration Rate': DataMaxRespirationRate.type
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -976,11 +982,16 @@ export class DynamicDataLoader {
     [DataGroundContactTime.type]: DataGroundContactTimeAvg.type,
     [DataGrade.type]: DataGradeAvg.type,
     [DataLegStiffness.type]: DataLegStiffnessAvg.type,
+    [DataVerticalOscillation.type]: DataVerticalOscillationAvg.type,
     [DataVerticalRatio.type]: DataVerticalRatioAvg.type,
+    [DataJumpDistance.type]: DataJumpDistanceAvg.type,
+    [DataFlow.type]: DataAvgFlow.type,
+    [DataGrit.type]: DataAvgGrit.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRAvg.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesAvg.type,
     [DataEVPE.type]: DataEVPEAvg.type,
-    [DataEHPE.type]: DataEHPEAvg.type
+    [DataEHPE.type]: DataEHPEAvg.type,
+    'Respiration Rate': DataAvgRespirationRate.type
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

@@ -1619,96 +1619,74 @@ export class EventImporterFIT {
     // Jump Statistics
     if (object.jumps && object.jumps.length > 0) {
       const jumps = object.jumps;
-      let count = 0;
-      let hangTimeSum = 0,
-        hangTimeMin = Number.MAX_VALUE,
-        hangTimeMax = -Number.MAX_VALUE;
-      let distanceSum = 0,
-        distanceMin = Number.MAX_VALUE,
-        distanceMax = -Number.MAX_VALUE;
-      let speedSum = 0,
-        speedMin = Number.MAX_VALUE,
-        speedMax = -Number.MAX_VALUE;
-      let rotationsSum = 0,
-        rotationsMin = Number.MAX_VALUE,
-        rotationsMax = -Number.MAX_VALUE;
-      let scoreSum = 0,
-        scoreMin = Number.MAX_VALUE,
-        scoreMax = -Number.MAX_VALUE;
-      let heightSum = 0,
-        heightMin = Number.MAX_VALUE,
-        heightMax = -Number.MAX_VALUE;
+      const createJumpAggregate = () => ({
+        sum: 0,
+        min: Number.MAX_VALUE,
+        max: -Number.MAX_VALUE,
+        count: 0
+      });
+      const accumulateJumpValue = (
+        aggregate: { sum: number; min: number; max: number; count: number },
+        value: unknown
+      ) => {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          aggregate.sum += value;
+          aggregate.min = Math.min(aggregate.min, value);
+          aggregate.max = Math.max(aggregate.max, value);
+          aggregate.count += 1;
+        }
+      };
+
+      const hangTimeAggregate = createJumpAggregate();
+      const distanceAggregate = createJumpAggregate();
+      const speedAggregate = createJumpAggregate();
+      const rotationsAggregate = createJumpAggregate();
+      const scoreAggregate = createJumpAggregate();
+      const heightAggregate = createJumpAggregate();
 
       jumps.forEach((j: any) => {
-        count++;
-
-        // Hangtime
-        if (Number.isFinite(j.hang_time)) {
-          hangTimeSum += j.hang_time;
-          hangTimeMin = Math.min(hangTimeMin, j.hang_time);
-          hangTimeMax = Math.max(hangTimeMax, j.hang_time);
-        }
-
-        // Distance
-        if (Number.isFinite(j.distance)) {
-          distanceSum += j.distance;
-          distanceMin = Math.min(distanceMin, j.distance);
-          distanceMax = Math.max(distanceMax, j.distance);
-        }
-
-        // Speed
-        if (Number.isFinite(j.speed)) {
-          speedSum += j.speed;
-          speedMin = Math.min(speedMin, j.speed);
-          speedMax = Math.max(speedMax, j.speed);
-        }
-
-        // Rotations
-        if (Number.isFinite(j.rotations)) {
-          rotationsSum += j.rotations;
-          rotationsMin = Math.min(rotationsMin, j.rotations);
-          rotationsMax = Math.max(rotationsMax, j.rotations);
-        }
-
-        // Score
-        if (Number.isFinite(j.score)) {
-          scoreSum += j.score;
-          scoreMin = Math.min(scoreMin, j.score);
-          scoreMax = Math.max(scoreMax, j.score);
-        }
-
-        // Height
-        if (Number.isFinite(j.height)) {
-          heightSum += j.height;
-          heightMin = Math.min(heightMin, j.height);
-          heightMax = Math.max(heightMax, j.height);
-        }
+        accumulateJumpValue(hangTimeAggregate, j.hang_time);
+        accumulateJumpValue(distanceAggregate, j.distance);
+        accumulateJumpValue(speedAggregate, j.speed);
+        accumulateJumpValue(rotationsAggregate, j.rotations);
+        accumulateJumpValue(scoreAggregate, j.score);
+        accumulateJumpValue(heightAggregate, j.height);
       });
 
-      if (count > 0) {
-        if (hangTimeMin !== Number.MAX_VALUE) stats.push(new DataJumpHangTimeMin(hangTimeMin));
-        if (hangTimeMax !== -Number.MAX_VALUE) stats.push(new DataJumpHangTimeMax(hangTimeMax));
-        if (hangTimeSum > 0) stats.push(new DataJumpHangTimeAvg(hangTimeSum / count)); // Assuming count is correct divisor for existing values
+      if (hangTimeAggregate.count > 0) {
+        stats.push(new DataJumpHangTimeMin(hangTimeAggregate.min));
+        stats.push(new DataJumpHangTimeMax(hangTimeAggregate.max));
+        stats.push(new DataJumpHangTimeAvg(hangTimeAggregate.sum / hangTimeAggregate.count));
+      }
 
-        if (distanceMin !== Number.MAX_VALUE) stats.push(new DataJumpDistanceMin(distanceMin));
-        if (distanceMax !== -Number.MAX_VALUE) stats.push(new DataJumpDistanceMax(distanceMax));
-        if (distanceSum > 0) stats.push(new DataJumpDistanceAvg(distanceSum / count));
+      if (distanceAggregate.count > 0) {
+        stats.push(new DataJumpDistanceMin(distanceAggregate.min));
+        stats.push(new DataJumpDistanceMax(distanceAggregate.max));
+        stats.push(new DataJumpDistanceAvg(distanceAggregate.sum / distanceAggregate.count));
+      }
 
-        if (speedMin !== Number.MAX_VALUE) stats.push(new DataJumpSpeedMin(speedMin));
-        if (speedMax !== -Number.MAX_VALUE) stats.push(new DataJumpSpeedMax(speedMax));
-        if (speedSum > 0) stats.push(new DataJumpSpeedAvg(speedSum / count));
+      if (speedAggregate.count > 0) {
+        stats.push(new DataJumpSpeedMin(speedAggregate.min));
+        stats.push(new DataJumpSpeedMax(speedAggregate.max));
+        stats.push(new DataJumpSpeedAvg(speedAggregate.sum / speedAggregate.count));
+      }
 
-        if (rotationsMin !== Number.MAX_VALUE) stats.push(new DataJumpRotationsMin(rotationsMin));
-        if (rotationsMax !== -Number.MAX_VALUE) stats.push(new DataJumpRotationsMax(rotationsMax));
-        if (rotationsSum > 0) stats.push(new DataJumpRotationsAvg(rotationsSum / count));
+      if (rotationsAggregate.count > 0) {
+        stats.push(new DataJumpRotationsMin(rotationsAggregate.min));
+        stats.push(new DataJumpRotationsMax(rotationsAggregate.max));
+        stats.push(new DataJumpRotationsAvg(rotationsAggregate.sum / rotationsAggregate.count));
+      }
 
-        if (scoreMin !== Number.MAX_VALUE) stats.push(new DataJumpScoreMin(scoreMin));
-        if (scoreMax !== -Number.MAX_VALUE) stats.push(new DataJumpScoreMax(scoreMax));
-        if (scoreSum > 0) stats.push(new DataJumpScoreAvg(scoreSum / count));
+      if (scoreAggregate.count > 0) {
+        stats.push(new DataJumpScoreMin(scoreAggregate.min));
+        stats.push(new DataJumpScoreMax(scoreAggregate.max));
+        stats.push(new DataJumpScoreAvg(scoreAggregate.sum / scoreAggregate.count));
+      }
 
-        if (heightMin !== Number.MAX_VALUE) stats.push(new DataJumpHeightMin(heightMin));
-        if (heightMax !== -Number.MAX_VALUE) stats.push(new DataJumpHeightMax(heightMax));
-        if (heightSum > 0) stats.push(new DataJumpHeightAvg(heightSum / count));
+      if (heightAggregate.count > 0) {
+        stats.push(new DataJumpHeightMin(heightAggregate.min));
+        stats.push(new DataJumpHeightMax(heightAggregate.max));
+        stats.push(new DataJumpHeightAvg(heightAggregate.sum / heightAggregate.count));
       }
     }
 

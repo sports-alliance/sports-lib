@@ -19,4 +19,10 @@ describe('Respiration Rate naming compatibility', () => {
     expect(DynamicDataLoader.getDataClassFromDataType('Max Respiration Rate')).toBe(DataMaxRespirationRate);
     expect(DynamicDataLoader.getDataClassFromDataType('Min Respiration Rate')).toBe(DataMinRespirationRate);
   });
+
+  it('maps Respiration Rate family in DynamicDataLoader', () => {
+    expect(DynamicDataLoader.dataTypeAvgDataType['Respiration Rate']).toBe(DataAvgRespirationRate.type);
+    expect(DynamicDataLoader.dataTypeMinDataType['Respiration Rate']).toBe(DataMinRespirationRate.type);
+    expect(DynamicDataLoader.dataTypeMaxDataType['Respiration Rate']).toBe(DataMaxRespirationRate.type);
+  });
 });

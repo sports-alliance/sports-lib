@@ -267,6 +267,27 @@ import { DataVO2Max } from '../../data/data.vo2-max';
 import { DataTotalGrit } from '../../data/data.total-grit';
 import { DataTotalFlow } from '../../data/data.total-flow';
 import { DataJumpCount } from '../../data/data.jump-count';
+import { DataJumpEvent } from '../../data/data.jump-event';
+import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
+  DataJumpHangTimeAvg,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeMin,
+  DataJumpHeightAvg,
+  DataJumpHeightMax,
+  DataJumpHeightMin,
+  DataJumpRotationsAvg,
+  DataJumpRotationsMax,
+  DataJumpRotationsMin,
+  DataJumpScoreAvg,
+  DataJumpScoreMax,
+  DataJumpScoreMin,
+  DataJumpSpeedAvg,
+  DataJumpSpeedMax,
+  DataJumpSpeedMin
+} from '../../data/data.jump-stats';
 import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve';
 
 // @ts-ignore
@@ -288,6 +309,77 @@ export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
+  private static readonly jumpStatFamilies: Array<{
+    key: string;
+    minType: string;
+    maxType: string;
+    avgType: string;
+    createMin: (value: number) => DataInterface;
+    createMax: (value: number) => DataInterface;
+    createAvg: (value: number) => DataInterface;
+    getEventValue: (jumpEvent: DataJumpEvent) => number | undefined;
+  }> = [
+    {
+      key: 'hang_time',
+      minType: DataJumpHangTimeMin.type,
+      maxType: DataJumpHangTimeMax.type,
+      avgType: DataJumpHangTimeAvg.type,
+      createMin: (value: number) => new DataJumpHangTimeMin(value),
+      createMax: (value: number) => new DataJumpHangTimeMax(value),
+      createAvg: (value: number) => new DataJumpHangTimeAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.hang_time?.getValue()
+    },
+    {
+      key: 'distance',
+      minType: DataJumpDistanceMin.type,
+      maxType: DataJumpDistanceMax.type,
+      avgType: DataJumpDistanceAvg.type,
+      createMin: (value: number) => new DataJumpDistanceMin(value),
+      createMax: (value: number) => new DataJumpDistanceMax(value),
+      createAvg: (value: number) => new DataJumpDistanceAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.distance?.getValue()
+    },
+    {
+      key: 'speed',
+      minType: DataJumpSpeedMin.type,
+      maxType: DataJumpSpeedMax.type,
+      avgType: DataJumpSpeedAvg.type,
+      createMin: (value: number) => new DataJumpSpeedMin(value),
+      createMax: (value: number) => new DataJumpSpeedMax(value),
+      createAvg: (value: number) => new DataJumpSpeedAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.speed?.getValue()
+    },
+    {
+      key: 'rotations',
+      minType: DataJumpRotationsMin.type,
+      maxType: DataJumpRotationsMax.type,
+      avgType: DataJumpRotationsAvg.type,
+      createMin: (value: number) => new DataJumpRotationsMin(value),
+      createMax: (value: number) => new DataJumpRotationsMax(value),
+      createAvg: (value: number) => new DataJumpRotationsAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.rotations?.getValue()
+    },
+    {
+      key: 'score',
+      minType: DataJumpScoreMin.type,
+      maxType: DataJumpScoreMax.type,
+      avgType: DataJumpScoreAvg.type,
+      createMin: (value: number) => new DataJumpScoreMin(value),
+      createMax: (value: number) => new DataJumpScoreMax(value),
+      createAvg: (value: number) => new DataJumpScoreAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.score?.getValue()
+    },
+    {
+      key: 'height',
+      minType: DataJumpHeightMin.type,
+      maxType: DataJumpHeightMax.type,
+      avgType: DataJumpHeightAvg.type,
+      createMin: (value: number) => new DataJumpHeightMin(value),
+      createMax: (value: number) => new DataJumpHeightMax(value),
+      createAvg: (value: number) => new DataJumpHeightAvg(value),
+      getEventValue: (jumpEvent: DataJumpEvent) => jumpEvent.jumpData?.height?.getValue()
+    }
+  ];
 
   /**
    * Provide average from laps a given stat type
@@ -501,6 +593,159 @@ export class ActivityUtilities {
 
   public static getDataLength(startDate: Date, endDate: Date): number {
     return Math.ceil((+endDate - +startDate) / 1000) + 1;
+  }
+
+  private static createJumpAggregate(): { min: number; max: number; sum: number; count: number } {
+    return {
+      min: Infinity,
+      max: -Infinity,
+      sum: 0,
+      count: 0
+    };
+  }
+
+  private static getJumpEvents(activity: ActivityInterface): DataJumpEvent[] {
+    const maybeGetAllEvents = (activity as ActivityInterface & { getAllEvents?: () => unknown[] }).getAllEvents;
+    if (typeof maybeGetAllEvents !== 'function') {
+      return [];
+    }
+
+    return maybeGetAllEvents
+      .call(activity)
+      .filter((event: unknown) => {
+        if (!event || typeof (event as { getType?: () => string }).getType !== 'function') {
+          return false;
+        }
+        if (event instanceof DataJumpEvent) {
+          return true;
+        }
+        const typedEvent = event as { getType: () => string; jumpData?: unknown };
+        return typedEvent.getType() === DataJumpEvent.type && typedEvent.jumpData !== undefined;
+      })
+      .map(event => event as DataJumpEvent);
+  }
+
+  private static getFiniteStatValue(activity: ActivityInterface, statType: string): number | null {
+    const stat = activity.getStat(statType);
+    if (!stat) {
+      return null;
+    }
+    const value = stat.getValue();
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private static getJumpAggregatesFromEvents(jumpEvents: DataJumpEvent[]): Map<string, { min: number; max: number; sum: number; count: number }> {
+    const aggregates = new Map<string, { min: number; max: number; sum: number; count: number }>(
+      this.jumpStatFamilies.map(family => [family.key, this.createJumpAggregate()])
+    );
+
+    jumpEvents.forEach(jumpEvent => {
+      this.jumpStatFamilies.forEach(family => {
+        const value = family.getEventValue(jumpEvent);
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          const aggregate = aggregates.get(family.key)!;
+          aggregate.min = Math.min(aggregate.min, value);
+          aggregate.max = Math.max(aggregate.max, value);
+          aggregate.sum += value;
+          aggregate.count += 1;
+        }
+      });
+    });
+
+    return aggregates;
+  }
+
+  private static addMissingJumpStatsFromEvents(activity: ActivityInterface): void {
+    const jumpEvents = this.getJumpEvents(activity);
+    if (!jumpEvents.length) {
+      return;
+    }
+
+    const aggregates = this.getJumpAggregatesFromEvents(jumpEvents);
+
+    this.jumpStatFamilies.forEach(family => {
+      const aggregate = aggregates.get(family.key)!;
+      if (aggregate.count <= 0) {
+        return;
+      }
+
+      if (!activity.getStat(family.minType)) {
+        activity.addStat(family.createMin(aggregate.min));
+      }
+      if (!activity.getStat(family.maxType)) {
+        activity.addStat(family.createMax(aggregate.max));
+      }
+      if (!activity.getStat(family.avgType)) {
+        activity.addStat(family.createAvg(aggregate.sum / aggregate.count));
+      }
+    });
+  }
+
+  private static getSummaryJumpStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
+    const summaryAggregates = new Map<string, { min: number; max: number; sum: number; count: number }>(
+      this.jumpStatFamilies.map(family => [family.key, this.createJumpAggregate()])
+    );
+
+    activities.forEach(activity => {
+      const jumpEvents = this.getJumpEvents(activity);
+
+      if (jumpEvents.length > 0) {
+        const eventAggregates = this.getJumpAggregatesFromEvents(jumpEvents);
+        this.jumpStatFamilies.forEach(family => {
+          const eventAggregate = eventAggregates.get(family.key)!;
+          if (eventAggregate.count <= 0) {
+            return;
+          }
+
+          const summaryAggregate = summaryAggregates.get(family.key)!;
+          summaryAggregate.min = Math.min(summaryAggregate.min, eventAggregate.min);
+          summaryAggregate.max = Math.max(summaryAggregate.max, eventAggregate.max);
+          summaryAggregate.sum += eventAggregate.sum;
+          summaryAggregate.count += eventAggregate.count;
+        });
+        return;
+      }
+
+      const jumpCount = this.getFiniteStatValue(activity, DataJumpCount.type);
+      this.jumpStatFamilies.forEach(family => {
+        const summaryAggregate = summaryAggregates.get(family.key)!;
+
+        const minValue = this.getFiniteStatValue(activity, family.minType);
+        if (minValue !== null) {
+          summaryAggregate.min = Math.min(summaryAggregate.min, minValue);
+        }
+
+        const maxValue = this.getFiniteStatValue(activity, family.maxType);
+        if (maxValue !== null) {
+          summaryAggregate.max = Math.max(summaryAggregate.max, maxValue);
+        }
+
+        const avgValue = this.getFiniteStatValue(activity, family.avgType);
+        if (avgValue !== null) {
+          const weight = jumpCount !== null ? Math.max(0, jumpCount) : 1;
+          summaryAggregate.sum += avgValue * weight;
+          summaryAggregate.count += weight;
+        }
+      });
+    });
+
+    const stats: DataInterface[] = [];
+
+    this.jumpStatFamilies.forEach(family => {
+      const aggregate = summaryAggregates.get(family.key)!;
+
+      if (aggregate.min !== Infinity) {
+        stats.push(family.createMin(aggregate.min));
+      }
+      if (aggregate.max !== -Infinity) {
+        stats.push(family.createMax(aggregate.max));
+      }
+      if (aggregate.count > 0) {
+        stats.push(family.createAvg(aggregate.sum / aggregate.count));
+      }
+    });
+
+    return stats;
   }
 
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
@@ -1022,6 +1267,8 @@ export class ActivityUtilities {
     if (jumpCount) {
       stats.push(new DataJumpCount(jumpCount));
     }
+
+    this.getSummaryJumpStatsForActivities(activities).forEach(stat => stats.push(stat));
 
     // Max Heart Rate
     let maxHeartRate = 0;
@@ -2991,6 +3238,8 @@ export class ActivityUtilities {
     if (!activity.getStat(DataVerticalRatioAvg.type) && activity.hasStreamData(DataVerticalRatio.type)) {
       activity.addStat(new DataVerticalRatioAvg(this.getDataTypeAvg(activity, DataVerticalRatio.type)));
     }
+
+    this.addMissingJumpStatsFromEvents(activity);
   }
 
   private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {

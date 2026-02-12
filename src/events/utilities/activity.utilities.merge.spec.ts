@@ -19,6 +19,27 @@ import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataTemperatureMax } from '../../data/data.temperature-max';
 import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataJumpCount } from '../../data/data.jump-count';
+import { DataJumpEvent } from '../../data/data.jump-event';
+import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
+  DataJumpHangTimeAvg,
+  DataJumpHangTimeMax,
+  DataJumpHangTimeMin,
+  DataJumpHeightAvg,
+  DataJumpHeightMax,
+  DataJumpHeightMin,
+  DataJumpRotationsAvg,
+  DataJumpRotationsMax,
+  DataJumpRotationsMin,
+  DataJumpScoreAvg,
+  DataJumpScoreMax,
+  DataJumpScoreMin,
+  DataJumpSpeedAvg,
+  DataJumpSpeedMax,
+  DataJumpSpeedMin
+} from '../../data/data.jump-stats';
 import { DataTotalFlow } from '../../data/data.total-flow';
 import { DataAirPowerAvg } from '../../data/data.air-power-avg';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
@@ -62,17 +83,43 @@ import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-
 describe('ActivityUtilities', () => {
   describe('getSummaryStatsForActivities', () => {
     // Helper to create a mock activity
-    const createMockActivity = (stats: any): ActivityInterface => {
+    const createMockActivity = (stats: any, events: DataJumpEvent[] = []): ActivityInterface => {
       return {
         getDuration: () => ({ getValue: () => 100 }),
         getPause: () => ({ getValue: () => 0 }),
         getDistance: () => ({ getValue: () => 1000 }),
+        getAllEvents: () => events,
         getStatsAsArray: () => [],
         getStat: (type: string) => {
           if (stats[type]) return stats[type];
           return null;
         }
       } as unknown as ActivityInterface;
+    };
+
+    const createJumpEvent = (
+      timestamp: number,
+      values: {
+        distance?: number;
+        height?: number;
+        score?: number;
+        hang_time?: number;
+        speed?: number;
+        rotations?: number;
+      }
+    ): DataJumpEvent => {
+      return new DataJumpEvent(timestamp, {
+        distance: values.distance ?? 0,
+        height: values.height,
+        score: values.score ?? 0,
+        hang_time: values.hang_time,
+        speed: values.speed,
+        rotations: values.rotations
+      });
+    };
+
+    const getSummaryValue = (stats: any[], type: string): number => {
+      return (stats.find(s => s.getType() === type) as any).getValue();
     };
 
     describe('Sum Aggregations', () => {
@@ -109,6 +156,136 @@ describe('ActivityUtilities', () => {
         const a2 = createMockActivity({}); // Missing
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataMovingTime.type) as DataMovingTime).getValue()).toBe(100);
+      });
+    });
+
+    describe('Jump Aggregations', () => {
+      it('recomputes jump min/max/avg from raw jump events for all families', () => {
+        const a1 = createMockActivity(
+          {
+            [DataJumpCount.type]: new DataJumpCount(10),
+            [DataJumpDistanceAvg.type]: new DataJumpDistanceAvg(999)
+          },
+          [
+            createJumpEvent(1, { distance: 2, hang_time: 0.4, speed: 6, rotations: 1, score: 50, height: 0.8 }),
+            createJumpEvent(2, { distance: 4, hang_time: 0.6, speed: 8, rotations: 0, score: 70, height: 1.2 })
+          ]
+        );
+        const a2 = createMockActivity(
+          {
+            [DataJumpCount.type]: new DataJumpCount(1),
+            [DataJumpDistanceAvg.type]: new DataJumpDistanceAvg(123)
+          },
+          [createJumpEvent(3, { distance: 3, hang_time: 0.5, speed: 7, rotations: 2, score: 80, height: 1 })]
+        );
+
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+
+        expect(getSummaryValue(stats, DataJumpDistanceMin.type)).toBe(2);
+        expect(getSummaryValue(stats, DataJumpDistanceMax.type)).toBe(4);
+        expect(getSummaryValue(stats, DataJumpDistanceAvg.type)).toBeCloseTo(3, 10);
+
+        expect(getSummaryValue(stats, DataJumpHangTimeMin.type)).toBeCloseTo(0.4, 10);
+        expect(getSummaryValue(stats, DataJumpHangTimeMax.type)).toBeCloseTo(0.6, 10);
+        expect(getSummaryValue(stats, DataJumpHangTimeAvg.type)).toBeCloseTo(0.5, 10);
+
+        expect(getSummaryValue(stats, DataJumpSpeedMin.type)).toBe(6);
+        expect(getSummaryValue(stats, DataJumpSpeedMax.type)).toBe(8);
+        expect(getSummaryValue(stats, DataJumpSpeedAvg.type)).toBeCloseTo(7, 10);
+
+        expect(getSummaryValue(stats, DataJumpRotationsMin.type)).toBe(0);
+        expect(getSummaryValue(stats, DataJumpRotationsMax.type)).toBe(2);
+        expect(getSummaryValue(stats, DataJumpRotationsAvg.type)).toBeCloseTo(1, 10);
+
+        expect(getSummaryValue(stats, DataJumpScoreMin.type)).toBe(50);
+        expect(getSummaryValue(stats, DataJumpScoreMax.type)).toBe(80);
+        expect(getSummaryValue(stats, DataJumpScoreAvg.type)).toBeCloseTo(200 / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpHeightMin.type)).toBeCloseTo(0.8, 10);
+        expect(getSummaryValue(stats, DataJumpHeightMax.type)).toBeCloseTo(1.2, 10);
+        expect(getSummaryValue(stats, DataJumpHeightAvg.type)).toBeCloseTo(1, 10);
+      });
+
+      it('falls back to activity jump stats and weights averages by jump count', () => {
+        const a1 = createMockActivity({
+          [DataJumpCount.type]: new DataJumpCount(2),
+          [DataJumpDistanceMin.type]: new DataJumpDistanceMin(2),
+          [DataJumpDistanceMax.type]: new DataJumpDistanceMax(4),
+          [DataJumpDistanceAvg.type]: new DataJumpDistanceAvg(3),
+          [DataJumpHangTimeMin.type]: new DataJumpHangTimeMin(0.3),
+          [DataJumpHangTimeMax.type]: new DataJumpHangTimeMax(0.5),
+          [DataJumpHangTimeAvg.type]: new DataJumpHangTimeAvg(0.4),
+          [DataJumpSpeedMin.type]: new DataJumpSpeedMin(5),
+          [DataJumpSpeedMax.type]: new DataJumpSpeedMax(9),
+          [DataJumpSpeedAvg.type]: new DataJumpSpeedAvg(7),
+          [DataJumpRotationsMin.type]: new DataJumpRotationsMin(0),
+          [DataJumpRotationsMax.type]: new DataJumpRotationsMax(2),
+          [DataJumpRotationsAvg.type]: new DataJumpRotationsAvg(1),
+          [DataJumpScoreMin.type]: new DataJumpScoreMin(40),
+          [DataJumpScoreMax.type]: new DataJumpScoreMax(80),
+          [DataJumpScoreAvg.type]: new DataJumpScoreAvg(60),
+          [DataJumpHeightMin.type]: new DataJumpHeightMin(0.8),
+          [DataJumpHeightMax.type]: new DataJumpHeightMax(1.2),
+          [DataJumpHeightAvg.type]: new DataJumpHeightAvg(1)
+        });
+
+        const a2 = createMockActivity({
+          [DataJumpCount.type]: new DataJumpCount(1),
+          [DataJumpDistanceMin.type]: new DataJumpDistanceMin(1),
+          [DataJumpDistanceMax.type]: new DataJumpDistanceMax(1),
+          [DataJumpDistanceAvg.type]: new DataJumpDistanceAvg(1),
+          [DataJumpHangTimeMin.type]: new DataJumpHangTimeMin(0.6),
+          [DataJumpHangTimeMax.type]: new DataJumpHangTimeMax(0.6),
+          [DataJumpHangTimeAvg.type]: new DataJumpHangTimeAvg(0.6),
+          [DataJumpSpeedMin.type]: new DataJumpSpeedMin(4),
+          [DataJumpSpeedMax.type]: new DataJumpSpeedMax(4),
+          [DataJumpSpeedAvg.type]: new DataJumpSpeedAvg(4),
+          [DataJumpRotationsMin.type]: new DataJumpRotationsMin(3),
+          [DataJumpRotationsMax.type]: new DataJumpRotationsMax(3),
+          [DataJumpRotationsAvg.type]: new DataJumpRotationsAvg(3),
+          [DataJumpScoreMin.type]: new DataJumpScoreMin(30),
+          [DataJumpScoreMax.type]: new DataJumpScoreMax(30),
+          [DataJumpScoreAvg.type]: new DataJumpScoreAvg(30),
+          [DataJumpHeightMin.type]: new DataJumpHeightMin(0.5),
+          [DataJumpHeightMax.type]: new DataJumpHeightMax(0.5),
+          [DataJumpHeightAvg.type]: new DataJumpHeightAvg(0.5)
+        });
+
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+
+        expect(getSummaryValue(stats, DataJumpDistanceMin.type)).toBe(1);
+        expect(getSummaryValue(stats, DataJumpDistanceMax.type)).toBe(4);
+        expect(getSummaryValue(stats, DataJumpDistanceAvg.type)).toBeCloseTo((3 * 2 + 1 * 1) / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpHangTimeMin.type)).toBeCloseTo(0.3, 10);
+        expect(getSummaryValue(stats, DataJumpHangTimeMax.type)).toBeCloseTo(0.6, 10);
+        expect(getSummaryValue(stats, DataJumpHangTimeAvg.type)).toBeCloseTo((0.4 * 2 + 0.6 * 1) / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpSpeedMin.type)).toBe(4);
+        expect(getSummaryValue(stats, DataJumpSpeedMax.type)).toBe(9);
+        expect(getSummaryValue(stats, DataJumpSpeedAvg.type)).toBeCloseTo((7 * 2 + 4 * 1) / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpRotationsMin.type)).toBe(0);
+        expect(getSummaryValue(stats, DataJumpRotationsMax.type)).toBe(3);
+        expect(getSummaryValue(stats, DataJumpRotationsAvg.type)).toBeCloseTo((1 * 2 + 3 * 1) / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpScoreMin.type)).toBe(30);
+        expect(getSummaryValue(stats, DataJumpScoreMax.type)).toBe(80);
+        expect(getSummaryValue(stats, DataJumpScoreAvg.type)).toBeCloseTo((60 * 2 + 30 * 1) / 3, 10);
+
+        expect(getSummaryValue(stats, DataJumpHeightMin.type)).toBeCloseTo(0.5, 10);
+        expect(getSummaryValue(stats, DataJumpHeightMax.type)).toBeCloseTo(1.2, 10);
+        expect(getSummaryValue(stats, DataJumpHeightAvg.type)).toBeCloseTo((1 * 2 + 0.5 * 1) / 3, 10);
+      });
+
+      it('emits zero jump averages when effective sample count is greater than zero', () => {
+        const a1 = createMockActivity({}, [createJumpEvent(1, { distance: 2, score: 40, rotations: 0, hang_time: 0 })]);
+        const a2 = createMockActivity({}, [createJumpEvent(2, { distance: 3, score: 50, rotations: 0, hang_time: 0 })]);
+
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+
+        expect(getSummaryValue(stats, DataJumpRotationsAvg.type)).toBe(0);
+        expect(getSummaryValue(stats, DataJumpHangTimeAvg.type)).toBe(0);
       });
     });
 

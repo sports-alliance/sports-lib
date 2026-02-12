@@ -86,4 +86,29 @@ describe('DataJumpEvent', () => {
     expect(jumpEvent.jumpData.speed).toBeInstanceOf(DataSpeed);
     expect(jumpEvent.jumpData.speed!.getValue()).toBe(15.2);
   });
+
+  it('should preserve optional zero values during hydration', () => {
+    const jsonValue = {
+      timestamp,
+      jumpData: {
+        distance: 1.5,
+        height: 0,
+        score: 0,
+        hang_time: 0,
+        position_lat: 0,
+        position_long: 0,
+        speed: 0,
+        rotations: 0
+      }
+    };
+
+    const jumpEvent = new DataJumpEvent(jsonValue as any);
+
+    expect(jumpEvent.jumpData.height?.getValue()).toBe(0);
+    expect(jumpEvent.jumpData.hang_time?.getValue()).toBe(0);
+    expect(jumpEvent.jumpData.position_lat?.getValue()).toBe(0);
+    expect(jumpEvent.jumpData.position_long?.getValue()).toBe(0);
+    expect(jumpEvent.jumpData.speed?.getValue()).toBe(0);
+    expect(jumpEvent.jumpData.rotations?.getValue()).toBe(0);
+  });
 });

@@ -41,40 +41,50 @@ export class DataJumpEvent extends DataEvent {
   }
 
   private hydrate(data: any): JumpEventInterface {
+    const isFiniteNumber = (value: unknown): value is number => {
+      return typeof value === 'number' && Number.isFinite(value);
+    };
+
     return {
       distance:
         data.distance instanceof DataJumpDistance ? data.distance : new DataJumpDistance(data.distance),
-      height: data.height
-        ? data.height instanceof DataDistance
+      height:
+        data.height instanceof DataDistance
           ? data.height
-          : new DataDistance(data.height)
-        : undefined,
+          : isFiniteNumber(data.height)
+            ? new DataDistance(data.height)
+            : undefined,
       score: data.score instanceof DataScore ? data.score : new DataScore(data.score),
-      hang_time: data.hang_time
-        ? data.hang_time instanceof DataDuration
+      hang_time:
+        data.hang_time instanceof DataDuration
           ? data.hang_time
-          : new DataDuration(data.hang_time)
-        : undefined,
-      position_lat: data.position_lat
-        ? data.position_lat instanceof DataLatitudeDegrees
+          : isFiniteNumber(data.hang_time)
+            ? new DataDuration(data.hang_time)
+            : undefined,
+      position_lat:
+        data.position_lat instanceof DataLatitudeDegrees
           ? data.position_lat
-          : new DataLatitudeDegrees(data.position_lat)
-        : undefined,
-      position_long: data.position_long
-        ? data.position_long instanceof DataLongitudeDegrees
+          : isFiniteNumber(data.position_lat)
+            ? new DataLatitudeDegrees(data.position_lat)
+            : undefined,
+      position_long:
+        data.position_long instanceof DataLongitudeDegrees
           ? data.position_long
-          : new DataLongitudeDegrees(data.position_long)
-        : undefined,
-      speed: data.speed
-        ? data.speed instanceof DataSpeed
+          : isFiniteNumber(data.position_long)
+            ? new DataLongitudeDegrees(data.position_long)
+            : undefined,
+      speed:
+        data.speed instanceof DataSpeed
           ? data.speed
-          : new DataSpeed(data.speed)
-        : undefined,
-      rotations: data.rotations
-        ? data.rotations instanceof DataRotations
+          : isFiniteNumber(data.speed)
+            ? new DataSpeed(data.speed)
+            : undefined,
+      rotations:
+        data.rotations instanceof DataRotations
           ? data.rotations
-          : new DataRotations(data.rotations)
-        : undefined
+          : isFiniteNumber(data.rotations)
+            ? new DataRotations(data.rotations)
+            : undefined
     };
   }
 

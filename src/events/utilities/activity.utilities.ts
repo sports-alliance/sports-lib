@@ -2164,10 +2164,11 @@ export class ActivityUtilities {
       }
     }
 
-    // Get a grade adjusted speed (the model applies to running only)
+    // Get a grade adjusted speed (applies to running and cycling activity groups)
     if (
       (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running ||
-        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning) &&
+        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning ||
+        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
       activity.hasStreamData(DataGradeSmooth.type) &&
       activity.hasStreamData(DataSpeed.type)

@@ -32,6 +32,7 @@ import { DataTemperatureAvg } from '../data/data.temperature-avg';
 import { DataMovingTime } from '../data/data.moving-time';
 import xmldom from '@xmldom/xmldom';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
+import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
 import { DataActiveLap } from '../data/data-active-lap';
 import { DataSWOLF25m } from '../data/data.swolf-25m';
 import { DataSWOLF50m } from '../data/data.swolf-50m';
@@ -1789,6 +1790,24 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             SpecUtils.assertNearEqualTime(elapsedTime, '01:03:42');
             SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
 
+            done();
+          })
+          .catch(e => done(e));
+      });
+
+      it('should generate grade adjusted speed for a cycling FIT file (samples)', done => {
+        const path = __dirname + '/../../samples/fit/2026-02-10_14-28.fit';
+        const buffer = fs.readFileSync(path);
+
+        const eventInterfacePromise = SportsLib.importFromFit(buffer);
+
+        eventInterfacePromise
+          .then((event: EventInterface) => {
+            const activity = event.getFirstActivity();
+            expect(activity.type).toEqual(ActivityTypes.Cycling);
+            expect(activity.hasStreamData(DataSpeed.type)).toBeTruthy();
+            expect(activity.hasStreamData(DataGradeAdjustedSpeed.type)).toBeTruthy();
+            expect(activity.getStat(DataGradeAdjustedPaceAvg.type)).toBeDefined();
             done();
           })
           .catch(e => done(e));

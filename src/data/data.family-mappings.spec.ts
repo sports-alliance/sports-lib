@@ -28,6 +28,12 @@ import {
   DataJumpScoreMin,
   DataJumpScoreMax
 } from './data.jump-stats';
+import {
+  DataSpeedFeetPerSecond,
+  DataSpeedKilometersPerHour,
+  DataSpeedKnots,
+  DataSpeedMilesPerHour
+} from './data.speed';
 
 describe('DynamicDataLoader family mappings', () => {
   it('maps Flow and Grit to average families', () => {
@@ -91,6 +97,18 @@ describe('DynamicDataLoader family mappings', () => {
       expect(DynamicDataLoader.dataTypeAvgDataType[base]).toBe(avg);
       expect(DynamicDataLoader.dataTypeMinDataType[base]).toBe(min);
       expect(DynamicDataLoader.dataTypeMaxDataType[base]).toBe(max);
+    });
+  });
+
+  it('maps jump speed families in unit groups to standard speed unit targets', () => {
+    const jumpSpeedFamilyTypes = [DataJumpSpeedMin.type, DataJumpSpeedMax.type, DataJumpSpeedAvg.type];
+
+    jumpSpeedFamilyTypes.forEach(jumpSpeedType => {
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedKilometersPerHour.type]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedMilesPerHour.type]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedFeetPerSecond.type]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedKnots.type]).toBeDefined();
     });
   });
 });

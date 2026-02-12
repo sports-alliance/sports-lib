@@ -763,10 +763,7 @@ export const DataStore: any = {
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types
 
-  private static readonly dataTypeFamilyTriplets: Record<
-    string,
-    { min: string; max: string; avg: string }
-  > = {
+  private static readonly dataTypeFamilyTriplets: Record<string, { min: string; max: string; avg: string }> = {
     'Respiration Rate': {
       min: DataMinRespirationRate.type,
       max: DataMaxRespirationRate.type,
@@ -901,6 +898,30 @@ export class DynamicDataLoader {
       [DataVerticalSpeedFeetPerHour.type]: convertSpeedToSpeedInFeetPerHour,
       [DataVerticalSpeedKilometerPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
       [DataVerticalSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour
+    },
+    [DataJumpSpeedMin.type]: {
+      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
+    },
+    [DataJumpSpeedMax.type]: {
+      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
+    },
+    [DataJumpSpeedAvg.type]: {
+      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
     },
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
@@ -1053,9 +1074,13 @@ export class DynamicDataLoader {
     )
   };
 
-  static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(
-    (accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])),
-    []
+  static allUnitDerivedDataTypes = Array.from(
+    new Set(
+      Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(
+        (accu: string[], key) => accu.concat(Object.keys(DynamicDataLoader.dataTypeUnitGroups[key])),
+        []
+      )
+    )
   );
 
   static zoneStatsTypeMap: { type: string; stats: string[] }[] = [

@@ -1,27 +1,44 @@
 import { DataNumber } from './data.number';
+import { DataSpeed } from './data.speed';
+import { DataDuration } from './data.duration';
 
-export class DataJumpHangTimeMin extends DataNumber {
+abstract class DataJumpHangTimeStat extends DataDuration {
+  getDisplayValue(): string {
+    return `${Math.round(this.getValue() * 1000)}`;
+  }
+
+  getDisplayUnit(): string {
+    return 'ms';
+  }
+}
+
+abstract class DataJumpScoreStat extends DataNumber {
+  static unit = '';
+
+  getDisplayValue(): string {
+    return this.getValue().toFixed(1);
+  }
+}
+
+export class DataJumpHangTimeMin extends DataJumpHangTimeStat {
   static type = 'Minimum Jump Hang Time';
   static aliases = ['Jump Hang Time Min'];
-  static unit = 's';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpHangTimeMax extends DataNumber {
+export class DataJumpHangTimeMax extends DataJumpHangTimeStat {
   static type = 'Maximum Jump Hang Time';
   static aliases = ['Jump Hang Time Max'];
-  static unit = 's';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpHangTimeAvg extends DataNumber {
+export class DataJumpHangTimeAvg extends DataJumpHangTimeStat {
   static type = 'Average Jump Hang Time';
   static aliases = ['Jump Hang Time Avg'];
-  static unit = 's';
   constructor(value: number) {
     super(value);
   }
@@ -54,28 +71,25 @@ export class DataJumpDistanceAvg extends DataNumber {
   }
 }
 
-export class DataJumpSpeedMin extends DataNumber {
+export class DataJumpSpeedMin extends DataSpeed {
   static type = 'Minimum Jump Speed';
   static aliases = ['Jump Speed Min'];
-  static unit = 'm/s';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpSpeedMax extends DataNumber {
+export class DataJumpSpeedMax extends DataSpeed {
   static type = 'Maximum Jump Speed';
   static aliases = ['Jump Speed Max'];
-  static unit = 'm/s';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpSpeedAvg extends DataNumber {
+export class DataJumpSpeedAvg extends DataSpeed {
   static type = 'Average Jump Speed';
   static aliases = ['Jump Speed Avg'];
-  static unit = 'm/s';
   constructor(value: number) {
     super(value);
   }
@@ -108,28 +122,25 @@ export class DataJumpRotationsAvg extends DataNumber {
   }
 }
 
-export class DataJumpScoreMin extends DataNumber {
+export class DataJumpScoreMin extends DataJumpScoreStat {
   static type = 'Minimum Jump Score';
   static aliases = ['Jump Score Min'];
-  static unit = '';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpScoreMax extends DataNumber {
+export class DataJumpScoreMax extends DataJumpScoreStat {
   static type = 'Maximum Jump Score';
   static aliases = ['Jump Score Max'];
-  static unit = '';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpScoreAvg extends DataNumber {
+export class DataJumpScoreAvg extends DataJumpScoreStat {
   static type = 'Average Jump Score';
   static aliases = ['Jump Score Avg'];
-  static unit = '';
   constructor(value: number) {
     super(value);
   }

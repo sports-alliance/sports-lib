@@ -763,6 +763,47 @@ export const DataStore: any = {
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types
 
+  private static readonly dataTypeFamilyTriplets: Record<
+    string,
+    { min: string; max: string; avg: string }
+  > = {
+    'Respiration Rate': {
+      min: DataMinRespirationRate.type,
+      max: DataMaxRespirationRate.type,
+      avg: DataAvgRespirationRate.type
+    },
+    [DataJumpDistance.type]: {
+      min: DataJumpDistanceMin.type,
+      max: DataJumpDistanceMax.type,
+      avg: DataJumpDistanceAvg.type
+    },
+    'Jump Hang Time': {
+      min: DataJumpHangTimeMin.type,
+      max: DataJumpHangTimeMax.type,
+      avg: DataJumpHangTimeAvg.type
+    },
+    'Jump Height': {
+      min: DataJumpHeightMin.type,
+      max: DataJumpHeightMax.type,
+      avg: DataJumpHeightAvg.type
+    },
+    'Jump Speed': {
+      min: DataJumpSpeedMin.type,
+      max: DataJumpSpeedMax.type,
+      avg: DataJumpSpeedAvg.type
+    },
+    'Jump Rotations': {
+      min: DataJumpRotationsMin.type,
+      max: DataJumpRotationsMax.type,
+      avg: DataJumpRotationsAvg.type
+    },
+    'Jump Score': {
+      min: DataJumpScoreMin.type,
+      max: DataJumpScoreMax.type,
+      avg: DataJumpScoreAvg.type
+    }
+  };
+
   static positionalDataTypes = [DataLatitudeDegrees.type, DataLongitudeDegrees.type];
 
   static baseDataTypes = [DataSpeed.type, DataDistance.type];
@@ -907,7 +948,13 @@ export class DynamicDataLoader {
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMin.type,
     [DataEVPE.type]: DataEVPEMin.type,
     [DataEHPE.type]: DataEHPEMin.type,
-    'Respiration Rate': DataMinRespirationRate.type
+    ...Object.keys(DynamicDataLoader.dataTypeFamilyTriplets).reduce(
+      (accu: Record<string, string>, dataType: string) => {
+        accu[dataType] = DynamicDataLoader.dataTypeFamilyTriplets[dataType].min;
+        return accu;
+      },
+      {}
+    )
   };
 
   static dataTypeMaxDataType: { [type: string]: string } = {
@@ -948,7 +995,13 @@ export class DynamicDataLoader {
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMax.type,
     [DataEVPE.type]: DataEVPEMax.type,
     [DataEHPE.type]: DataEHPEMax.type,
-    'Respiration Rate': DataMaxRespirationRate.type
+    ...Object.keys(DynamicDataLoader.dataTypeFamilyTriplets).reduce(
+      (accu: Record<string, string>, dataType: string) => {
+        accu[dataType] = DynamicDataLoader.dataTypeFamilyTriplets[dataType].max;
+        return accu;
+      },
+      {}
+    )
   };
 
   static dataTypeAvgDataType: { [type: string]: string } = {
@@ -991,7 +1044,13 @@ export class DynamicDataLoader {
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesAvg.type,
     [DataEVPE.type]: DataEVPEAvg.type,
     [DataEHPE.type]: DataEHPEAvg.type,
-    'Respiration Rate': DataAvgRespirationRate.type
+    ...Object.keys(DynamicDataLoader.dataTypeFamilyTriplets).reduce(
+      (accu: Record<string, string>, dataType: string) => {
+        accu[dataType] = DynamicDataLoader.dataTypeFamilyTriplets[dataType].avg;
+        return accu;
+      },
+      {}
+    )
   };
 
   static allUnitDerivedDataTypes = Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce(

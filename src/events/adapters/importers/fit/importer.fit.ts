@@ -1184,6 +1184,12 @@ export class EventImporterFIT {
       }
     }
 
+    if ((!activityType || activityType === ActivityTypes.unknown) && isNumberOrString(session.sport_profile_name)) {
+      activityType =
+        this.getActivityTypeByKey(session.sport_profile_name) ||
+        this.getActivityTypeByKey(`${session.sport}_${session.sport_profile_name}`);
+    }
+
     return activityType || session.sport || ActivityTypes.unknown;
   }
 

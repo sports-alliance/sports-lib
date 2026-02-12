@@ -10,6 +10,16 @@ describe('EventImporterFIT', () => {
 
       expect(activityType).toEqual(ActivityTypes.Snorkeling);
     });
+
+    it('should map sport profile name ENDURO MTB to canonical Enduro MTB activity type', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 'cycling',
+        sub_sport: 123,
+        sport_profile_name: 'ENDURO MTB'
+      });
+
+      expect(activityType).toEqual(ActivityTypes['Enduro MTB']);
+    });
   });
 
   describe('Handle device creator', () => {

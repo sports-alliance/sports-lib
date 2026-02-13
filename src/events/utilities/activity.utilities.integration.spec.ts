@@ -45,6 +45,7 @@ import {
   DataJumpScoreMax,
   DataJumpScoreMin,
   DataJumpSpeedAvg,
+  DataJumpSpeedAvgMilesPerHour,
   DataJumpSpeedMax,
   DataJumpSpeedMin
 } from '../../data/data.jump-stats';
@@ -73,7 +74,6 @@ import { DynamicDataLoader } from '../../data/data.store';
 import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from './helpers';
 import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
 import { DataSpeedMilesPerHour } from '../../data/data.speed';
-import { DataSpeedAvgMilesPerHour } from '../../data/data.speed-avg';
 
 const toArrayBuffer = (filePath: string): ArrayBuffer => {
   const fileContent = fs.readFileSync(filePath);
@@ -206,7 +206,7 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpSpeedAvg, mphSpeedSettings);
       expect(converted).toHaveLength(1);
-      expect(converted[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(converted[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
       expect(converted[0].getDisplayUnit()).toBe('mph');
       expect(converted[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(jumpSpeedAvg.getValue()), 10);
     });

@@ -1,7 +1,7 @@
-import { DataNumber } from './data.number';
+import { DataGroundContactTime } from './data.ground-contact-time';
 
 /** @deprecated Use DataGroundContactTime instead */
-export class DataStanceTime extends DataNumber {
+export class DataStanceTime extends DataGroundContactTime {
   static type = 'Stance Time';
   static unit = 'ms';
 }

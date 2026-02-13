@@ -8,6 +8,7 @@ import { DataVerticalOscillationAvg } from './data.vertical-oscillation-avg';
 import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
 import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
 import { DataJumpDistance } from './data.jump-distance';
+import { DataDistanceMiles } from './data.distance';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMin,
@@ -109,6 +110,20 @@ describe('DynamicDataLoader family mappings', () => {
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedMilesPerHour.type]).toBeDefined();
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedFeetPerSecond.type]).toBeDefined();
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedKnots.type]).toBeDefined();
+    });
+  });
+
+  it('maps jump distance family in unit groups to distance conversion targets', () => {
+    const jumpDistanceFamilyTypes = [
+      DataJumpDistance.type,
+      DataJumpDistanceMin.type,
+      DataJumpDistanceMax.type,
+      DataJumpDistanceAvg.type
+    ];
+
+    jumpDistanceFamilyTypes.forEach(jumpDistanceType => {
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType][DataDistanceMiles.type]).toBeDefined();
     });
   });
 });

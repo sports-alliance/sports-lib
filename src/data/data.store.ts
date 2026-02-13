@@ -923,6 +923,18 @@ export class DynamicDataLoader {
       [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
       [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
     },
+    [DataJumpDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataJumpDistanceMin.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataJumpDistanceMax.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataJumpDistanceAvg.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
     }

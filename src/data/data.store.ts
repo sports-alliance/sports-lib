@@ -134,22 +134,10 @@ import { DataPaceMin, DataPaceMinMinutesPerMile } from './data.pace-min';
 import { DataPaceMax, DataPaceMaxMinutesPerMile } from './data.pace-max';
 import { DataPaceAvg, DataPaceAvgMinutesPerMile } from './data.pace-avg';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
-import {
-  DataEffortPace,
-  DataEffortPaceMinutesPerMile
-} from './data.effort-pace';
-import {
-  DataEffortPaceAvg,
-  DataEffortPaceAvgMinutesPerMile
-} from './data.effort-pace-avg';
-import {
-  DataEffortPaceMin,
-  DataEffortPaceMinMinutesPerMile
-} from './data.effort-pace-min';
-import {
-  DataEffortPaceMax,
-  DataEffortPaceMaxMinutesPerMile
-} from './data.effort-pace-max';
+import { DataEffortPace, DataEffortPaceMinutesPerMile } from './data.effort-pace';
+import { DataEffortPaceAvg, DataEffortPaceAvgMinutesPerMile } from './data.effort-pace-avg';
+import { DataEffortPaceMin, DataEffortPaceMinMinutesPerMile } from './data.effort-pace-min';
+import { DataEffortPaceMax, DataEffortPaceMaxMinutesPerMile } from './data.effort-pace-max';
 import { DataFusedAltitude } from './data.fused-altitude';
 import { DataBatteryCharge } from './data.battery-charge';
 import { DataBatteryCurrent } from './data.battery-current';

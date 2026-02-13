@@ -140,7 +140,12 @@ describe('EventUtilities Power Curve Aggregation', () => {
       return event;
     };
 
-    const ensureMinStatFromStream = (activity: any, statType: string, streamType: string, StatCtor: new (value: number) => any) => {
+    const ensureMinStatFromStream = (
+      activity: any,
+      statType: string,
+      streamType: string,
+      StatCtor: new (value: number) => any
+    ) => {
       const stat = activity.getStat(statType);
       if (stat && stat.getValue() !== Infinity) return;
       if (!activity.hasStreamData(streamType)) return;
@@ -160,11 +165,21 @@ describe('EventUtilities Power Curve Aggregation', () => {
       // Ensure min pace and grade-adjusted pace stats exist when not set by importer
       eventA.getActivities().forEach(activity => {
         ensureMinStatFromStream(activity, DataPaceMin.type, DataPace.type, DataPaceMin);
-        ensureMinStatFromStream(activity, DataGradeAdjustedPaceMin.type, DataGradeAdjustedPace.type, DataGradeAdjustedPaceMin);
+        ensureMinStatFromStream(
+          activity,
+          DataGradeAdjustedPaceMin.type,
+          DataGradeAdjustedPace.type,
+          DataGradeAdjustedPaceMin
+        );
       });
       eventB.getActivities().forEach(activity => {
         ensureMinStatFromStream(activity, DataPaceMin.type, DataPace.type, DataPaceMin);
-        ensureMinStatFromStream(activity, DataGradeAdjustedPaceMin.type, DataGradeAdjustedPace.type, DataGradeAdjustedPaceMin);
+        ensureMinStatFromStream(
+          activity,
+          DataGradeAdjustedPaceMin.type,
+          DataGradeAdjustedPace.type,
+          DataGradeAdjustedPaceMin
+        );
       });
 
       const merged = EventUtilities.mergeEvents([eventA, eventB]);
@@ -179,16 +194,28 @@ describe('EventUtilities Power Curve Aggregation', () => {
       expect(getStat(DataAirPowerMax.type).getValue()).toBe(aActivity.getStat(DataAirPowerMax.type)!.getValue());
 
       // Vertical Speed (only present in eventB)
-      expect(getStat(DataVerticalSpeedMin.type).getValue()).toBe(bActivity.getStat(DataVerticalSpeedMin.type)!.getValue());
-      expect(getStat(DataVerticalSpeedMax.type).getValue()).toBe(bActivity.getStat(DataVerticalSpeedMax.type)!.getValue());
+      expect(getStat(DataVerticalSpeedMin.type).getValue()).toBe(
+        bActivity.getStat(DataVerticalSpeedMin.type)!.getValue()
+      );
+      expect(getStat(DataVerticalSpeedMax.type).getValue()).toBe(
+        bActivity.getStat(DataVerticalSpeedMax.type)!.getValue()
+      );
 
       // Ground Contact Time (present in eventA)
-      expect(getStat(DataGroundContactTimeMin.type).getValue()).toBe(aActivity.getStat(DataGroundContactTimeMin.type)!.getValue());
-      expect(getStat(DataGroundContactTimeMax.type).getValue()).toBe(aActivity.getStat(DataGroundContactTimeMax.type)!.getValue());
+      expect(getStat(DataGroundContactTimeMin.type).getValue()).toBe(
+        aActivity.getStat(DataGroundContactTimeMin.type)!.getValue()
+      );
+      expect(getStat(DataGroundContactTimeMax.type).getValue()).toBe(
+        aActivity.getStat(DataGroundContactTimeMax.type)!.getValue()
+      );
 
       // Vertical Oscillation (present in eventA)
-      expect(getStat(DataVerticalOscillationMin.type).getValue()).toBe(aActivity.getStat(DataVerticalOscillationMin.type)!.getValue());
-      expect(getStat(DataVerticalOscillationMax.type).getValue()).toBe(aActivity.getStat(DataVerticalOscillationMax.type)!.getValue());
+      expect(getStat(DataVerticalOscillationMin.type).getValue()).toBe(
+        aActivity.getStat(DataVerticalOscillationMin.type)!.getValue()
+      );
+      expect(getStat(DataVerticalOscillationMax.type).getValue()).toBe(
+        aActivity.getStat(DataVerticalOscillationMax.type)!.getValue()
+      );
 
       // Grade Adjusted Pace (present in eventB)
       const gapMinExpected = Math.min(
@@ -239,7 +266,12 @@ describe('EventUtilities Power Curve Aggregation', () => {
         maxEffortPace: number
       ): Activity => {
         // @ts-ignore
-        const activity = new Activity(startDate, new Date(startDate.getTime() + 3600 * 1000), ActivityTypes.Running, creator);
+        const activity = new Activity(
+          startDate,
+          new Date(startDate.getTime() + 3600 * 1000),
+          ActivityTypes.Running,
+          creator
+        );
         activity.addStat(new DataDuration(3600));
         activity.addStat(new DataPause(0));
         activity.addStat(new DataDistance(10000));

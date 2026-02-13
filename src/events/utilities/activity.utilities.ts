@@ -638,7 +638,9 @@ export class ActivityUtilities {
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
   }
 
-  private static getJumpAggregatesFromEvents(jumpEvents: DataJumpEvent[]): Map<string, { min: number; max: number; sum: number; count: number }> {
+  private static getJumpAggregatesFromEvents(
+    jumpEvents: DataJumpEvent[]
+  ): Map<string, { min: number; max: number; sum: number; count: number }> {
     const aggregates = new Map<string, { min: number; max: number; sum: number; count: number }>(
       this.jumpStatFamilies.map(family => [family.key, this.createJumpAggregate()])
     );
@@ -1082,7 +1084,9 @@ export class ActivityUtilities {
     activities.forEach(activity => {
       const activityAvgEHPE = activity.getStat(DataEHPEAvg.type);
       if (activityAvgEHPE) {
-        averageEHPE = hasAverageEHPE ? (averageEHPE + <number>activityAvgEHPE.getValue()) / 2 : <number>activityAvgEHPE.getValue();
+        averageEHPE = hasAverageEHPE
+          ? (averageEHPE + <number>activityAvgEHPE.getValue()) / 2
+          : <number>activityAvgEHPE.getValue();
         hasAverageEHPE = true;
       }
     });
@@ -3342,21 +3346,15 @@ export class ActivityUtilities {
 
     // GAP pace follows the same inverse rule as pace.
     if (gradeAdjustedSpeedMin !== null && !activity.getStat(DataGradeAdjustedPaceMax.type)) {
-      const targetAdjustedSpeed = speedMin !== null
-        ? Math.min(speedMin, gradeAdjustedSpeedMin)
-        : gradeAdjustedSpeedMin;
+      const targetAdjustedSpeed = speedMin !== null ? Math.min(speedMin, gradeAdjustedSpeedMin) : gradeAdjustedSpeedMin;
       activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(targetAdjustedSpeed)));
     }
     if (gradeAdjustedSpeedMax !== null && !activity.getStat(DataGradeAdjustedPaceMin.type)) {
-      const targetAdjustedSpeed = speedMax !== null
-        ? Math.max(speedMax, gradeAdjustedSpeedMax)
-        : gradeAdjustedSpeedMax;
+      const targetAdjustedSpeed = speedMax !== null ? Math.max(speedMax, gradeAdjustedSpeedMax) : gradeAdjustedSpeedMax;
       activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(targetAdjustedSpeed)));
     }
     if (gradeAdjustedSpeedAvg !== null && !activity.getStat(DataGradeAdjustedPaceAvg.type)) {
-      const targetAdjustedSpeed = speedAvg !== null
-        ? Math.max(speedAvg, gradeAdjustedSpeedAvg)
-        : gradeAdjustedSpeedAvg;
+      const targetAdjustedSpeed = speedAvg !== null ? Math.max(speedAvg, gradeAdjustedSpeedAvg) : gradeAdjustedSpeedAvg;
       activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(targetAdjustedSpeed)));
     }
 

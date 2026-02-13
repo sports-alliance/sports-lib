@@ -464,8 +464,8 @@ export class EventImporterFIT {
           const samples = isLengthsBased
             ? this.generateSamplesFromLengths(sessionObject, options)
             : fitDataObject.records.filter((record: any) => {
-              return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-            });
+                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
+              });
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -851,7 +851,8 @@ export class EventImporterFIT {
       const normalizedSessionObject = {
         ...sessionObject,
         threshold_power:
-          isNumberOrString(sessionObject?.threshold_power) || !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
+          isNumberOrString(sessionObject?.threshold_power) ||
+          !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
             ? sessionObject?.threshold_power
             : fitDataObject.zones_target.functional_threshold_power
       };
@@ -1178,10 +1179,7 @@ export class EventImporterFIT {
       if (sportName || subSportName) {
         // Try to find in ActivityTypes using the name from Garmin SDK
         const nameKey = subSportName ? `${sportName}_${subSportName}` : sportName;
-        activityType =
-          this.getActivityTypeByKey(nameKey) ||
-          this.getActivityTypeByKey(sportName) ||
-          (nameKey as any);
+        activityType = this.getActivityTypeByKey(nameKey) || this.getActivityTypeByKey(sportName) || (nameKey as any);
       }
     }
 
@@ -1824,7 +1822,12 @@ export class EventImporterFIT {
           recognizedName = GarminProfileMapper.getDeviceName(productId);
         }
         creator = new Creator(
-          formatDeviceName(manufacturerName, productName, recognizedName, manufacturerName === 'garmin' ? 'Garmin' : null),
+          formatDeviceName(
+            manufacturerName,
+            productName,
+            recognizedName,
+            manufacturerName === 'garmin' ? 'Garmin' : null
+          ),
           productId
         );
       }

@@ -60,6 +60,7 @@ import { DataEHPE } from '../../data/data.ehpe';
 import { DataEHPEMin } from '../../data/data.ehpe-min';
 import { DataEHPEMax } from '../../data/data.ehpe-max';
 import { DataEHPEAvg } from '../../data/data.ehpe-avg';
+import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
 import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
@@ -68,6 +69,9 @@ import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
 import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
+import { DynamicDataLoader } from '../../data/data.store';
+import { convertMetersToMiles } from './helpers';
+import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
 
 const toArrayBuffer = (filePath: string): ArrayBuffer => {
   const fileContent = fs.readFileSync(filePath);
@@ -106,7 +110,72 @@ const ensureMinStatFromStream = (
   return newStat;
 };
 
+const imperialDistanceSettings: any = {
+  speedUnits: [],
+  swimPaceUnits: [],
+  paceUnits: [],
+  gradeAdjustedSpeedUnits: [],
+  gradeAdjustedPaceUnits: [],
+  verticalSpeedUnits: [],
+  distanceUnits: DistanceUnits.Imperial
+};
+
+const metricDistanceSettings: any = {
+  speedUnits: [],
+  swimPaceUnits: [],
+  paceUnits: [],
+  gradeAdjustedSpeedUnits: [],
+  gradeAdjustedPaceUnits: [],
+  verticalSpeedUnits: [],
+  distanceUnits: DistanceUnits.Metric
+};
+
 describe('ActivityUtilities summary aggregation integration', () => {
+  describe('distance unit conversion integration', () => {
+    it('converts parsed total distance stat to miles when distanceUnits is imperial', async () => {
+      const activity = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');
+      const distance = activity.getStat(DataDistance.type) as DataDistance;
+
+      expect(distance).toBeDefined();
+
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distance, imperialDistanceSettings);
+      expect(converted).toHaveLength(1);
+      expect(converted[0].getType()).toBe(DataDistanceMiles.type);
+      expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(distance.getValue()), 10);
+      expect(converted[0].getDisplayUnit()).toBe('mi');
+    });
+
+    it('converts jump distance summary stats to miles only in imperial mode', () => {
+      const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
+      const activityB = new Activity(new Date(20_000), new Date(30_000), ActivityTypes.MountainBiking, new Creator('test'));
+
+      activityA.addEvent(new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 }));
+      activityA.addEvent(new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 }));
+      activityB.addEvent(new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 }));
+      activityB.addEvent(new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 }));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityA);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityB);
+
+      const summaryStats = ActivityUtilities.getSummaryStatsForActivities([activityA, activityB]);
+      const jumpDistanceAvg = summaryStats.find(s => s.getType() === DataJumpDistanceAvg.type) as DataJumpDistanceAvg;
+
+      expect(jumpDistanceAvg).toBeDefined();
+
+      const imperialConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        jumpDistanceAvg,
+        imperialDistanceSettings
+      );
+      expect(imperialConverted).toHaveLength(1);
+      expect(imperialConverted[0].getType()).toBe(DataDistanceMiles.type);
+      expect(imperialConverted[0].getValue()).toBeCloseTo(convertMetersToMiles(jumpDistanceAvg.getValue()), 10);
+
+      const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpDistanceAvg, metricDistanceSettings);
+      expect(metricConverted).toHaveLength(1);
+      expect(metricConverted[0].getType()).toBe(DataJumpDistanceAvg.type);
+    });
+  });
+
   describe('getSummaryStatsForActivities', () => {
     it('aggregates Air Power stats when only one activity has the stream', async () => {
       const activityWithAir = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');

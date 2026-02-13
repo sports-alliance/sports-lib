@@ -5,7 +5,13 @@ export interface UserUnitSettingsInterface {
   paceUnits: PaceUnits[];
   gradeAdjustedPaceUnits: GradeAdjustedPaceUnits[];
   swimPaceUnits: SwimPaceUnits[];
+  distanceUnits?: DistanceUnits;
   startOfTheWeek: DaysOfTheWeek;
+}
+
+export enum DistanceUnits {
+  Metric = 'Metric',
+  Imperial = 'Imperial'
 }
 
 export enum SpeedUnits {

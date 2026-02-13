@@ -8,7 +8,14 @@ import { DataVerticalOscillationAvg } from './data.vertical-oscillation-avg';
 import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
 import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
 import { DataJumpDistance } from './data.jump-distance';
-import { DataDistanceMiles } from './data.distance';
+import { DataDistance, DataDistanceMiles } from './data.distance';
+import { DataGNSSDistance } from './data.gnss-distance';
+import { DataAutoLapDistance } from './data.auto-lap-distance';
+import { DataAvgStrokeDistance } from './data.avg-stroke-distance';
+import { DataAvgStrideLength } from './data.avg-stride-length';
+import { DataStepLength } from './data.step-length';
+import { DataTargetDistance } from './data.target-distance';
+import { DataStrydDistance } from './data.stryd-distance';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMin,
@@ -124,6 +131,24 @@ describe('DynamicDataLoader family mappings', () => {
     jumpDistanceFamilyTypes.forEach(jumpDistanceType => {
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType]).toBeDefined();
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType][DataDistanceMiles.type]).toBeDefined();
+    });
+  });
+
+  it('maps all distance-derived families in unit groups to miles conversion targets', () => {
+    const mappedDistanceTypes = [
+      DataDistance.type,
+      DataGNSSDistance.type,
+      DataAutoLapDistance.type,
+      DataAvgStrokeDistance.type,
+      DataAvgStrideLength.type,
+      DataStepLength.type,
+      DataTargetDistance.type,
+      DataStrydDistance.type
+    ];
+
+    mappedDistanceTypes.forEach(distanceType => {
+      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][DataDistanceMiles.type]).toBeDefined();
     });
   });
 });

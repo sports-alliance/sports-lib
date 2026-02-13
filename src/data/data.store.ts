@@ -192,7 +192,7 @@ import { DataVerticalRatioMin } from './data.vertical-ratio-min';
 import { DataVerticalRatioMax } from './data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from './data.vertical-ratio-avg';
 import { DataDescription } from './data.description';
-import { UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
+import { DistanceUnits, UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
 import { DataAirPowerMax } from './data.air-power-max';
@@ -937,6 +937,27 @@ export class DynamicDataLoader {
     },
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataGNSSDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataAutoLapDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataAvgStrokeDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataAvgStrideLength.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataStepLength.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataTargetDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataStrydDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
     }
   };
 
@@ -1201,6 +1222,21 @@ export class DynamicDataLoader {
     return [DataGNSSDistance.type, DataTime.type].indexOf(dataType) !== -1;
   }
 
+  private static getDistanceUnits(userUnitSettings?: UserUnitSettingsInterface): DistanceUnits {
+    return userUnitSettings?.distanceUnits || DistanceUnits.Metric;
+  }
+
+  private static getDistanceDerivedDataType(
+    dataType: string,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): string | null {
+    const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
+    if (!unitGroup || !unitGroup[DataDistanceMiles.type]) {
+      return null;
+    }
+    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Imperial ? DataDistanceMiles.type : dataType;
+  }
+
   /**
    * This get's the basic data types for the charts depending or not on the user datatype settings
    * There are no unit specific datatypes here so if the user has selected pace it implies metric
@@ -1247,6 +1283,16 @@ export class DynamicDataLoader {
     if (dataTypes.indexOf(DataVerticalSpeed.type) !== -1) {
       unitBasedDataTypes = unitBasedDataTypes.concat(userUnitSettings.verticalSpeedUnits);
     }
+    unitBasedDataTypes = unitBasedDataTypes.concat(
+      dataTypes.reduce((accu: string[], dataType: string) => {
+        const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
+        if (!distanceDataType || accu.indexOf(distanceDataType) !== -1) {
+          return accu;
+        }
+        accu.push(distanceDataType);
+        return accu;
+      }, [])
+    );
     return unitBasedDataTypes;
   }
 
@@ -1258,6 +1304,10 @@ export class DynamicDataLoader {
   static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
     if (!userUnitSettings) {
       return [dataType];
+    }
+    const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
+    if (distanceDataType) {
+      return [distanceDataType];
     }
     if (dataType === DataSpeed.type) {
       return userUnitSettings.speedUnits;
@@ -1293,6 +1343,20 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface
   ): DataInterface[] {
     if (!userUnitSettings) {
+      return [data];
+    }
+    const dataType = data.getType();
+    const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
+    const distanceUnitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
+    if (distanceDataType && distanceUnitGroup && distanceUnitGroup[DataDistanceMiles.type]) {
+      if (distanceDataType === DataDistanceMiles.type) {
+        return [
+          this.getDataInstanceFromDataType(
+            DataDistanceMiles.type,
+            distanceUnitGroup[DataDistanceMiles.type](<number>data.getValue())
+          )
+        ];
+      }
       return [data];
     }
     switch (data.getType()) {

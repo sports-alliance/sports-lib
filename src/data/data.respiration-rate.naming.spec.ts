@@ -28,4 +28,16 @@ describe('Respiration Rate naming compatibility', () => {
     expect(DynamicDataLoader.dataTypeMinDataType['Respiration Rate']).toBe(DataMinRespirationRate.type);
     expect(DynamicDataLoader.dataTypeMaxDataType['Respiration Rate']).toBe(DataMaxRespirationRate.type);
   });
+
+  it('creates canonical instances from postfix aliases', () => {
+    expect(DynamicDataLoader.getDataInstanceFromDataType('Respiration Rate Avg', 16).getType()).toBe(
+      DataAvgRespirationRate.type
+    );
+    expect(DynamicDataLoader.getDataInstanceFromDataType('Respiration Rate Min', 12).getType()).toBe(
+      DataMinRespirationRate.type
+    );
+    expect(DynamicDataLoader.getDataInstanceFromDataType('Respiration Rate Max', 21).getType()).toBe(
+      DataMaxRespirationRate.type
+    );
+  });
 });

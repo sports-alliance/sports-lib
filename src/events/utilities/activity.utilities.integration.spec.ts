@@ -46,6 +46,8 @@ import {
   DataJumpScoreMin,
   DataJumpSpeedAvg,
   DataJumpSpeedAvgMilesPerHour,
+  DataJumpSpeedMaxMilesPerHour,
+  DataJumpSpeedMinMilesPerHour,
   DataJumpSpeedMax,
   DataJumpSpeedMin
 } from '../../data/data.jump-stats';
@@ -159,12 +161,25 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
     it('converts jump distance summary stats to miles only in imperial mode', () => {
       const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
-      const activityB = new Activity(new Date(20_000), new Date(30_000), ActivityTypes.MountainBiking, new Creator('test'));
+      const activityB = new Activity(
+        new Date(20_000),
+        new Date(30_000),
+        ActivityTypes.MountainBiking,
+        new Creator('test')
+      );
 
-      activityA.addEvent(new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 }));
-      activityA.addEvent(new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 }));
-      activityB.addEvent(new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 }));
-      activityB.addEvent(new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 }));
+      activityA.addEvent(
+        new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 })
+      );
+      activityA.addEvent(
+        new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 })
+      );
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityA);
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityB);
@@ -182,19 +197,35 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(imperialConverted[0].getType()).toBe(DataDistanceMiles.type);
       expect(imperialConverted[0].getValue()).toBeCloseTo(convertMetersToMiles(jumpDistanceAvg.getValue()), 10);
 
-      const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpDistanceAvg, metricDistanceSettings);
+      const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        jumpDistanceAvg,
+        metricDistanceSettings
+      );
       expect(metricConverted).toHaveLength(1);
       expect(metricConverted[0].getType()).toBe(DataJumpDistanceAvg.type);
     });
 
     it('converts jump speed summary stats to selected speed unit display variants', () => {
       const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
-      const activityB = new Activity(new Date(20_000), new Date(30_000), ActivityTypes.MountainBiking, new Creator('test'));
+      const activityB = new Activity(
+        new Date(20_000),
+        new Date(30_000),
+        ActivityTypes.MountainBiking,
+        new Creator('test')
+      );
 
-      activityA.addEvent(new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 }));
-      activityA.addEvent(new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 }));
-      activityB.addEvent(new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 }));
-      activityB.addEvent(new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 }));
+      activityA.addEvent(
+        new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 })
+      );
+      activityA.addEvent(
+        new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 })
+      );
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityA);
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityB);
@@ -209,6 +240,52 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(converted[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
       expect(converted[0].getDisplayUnit()).toBe('mph');
       expect(converted[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(jumpSpeedAvg.getValue()), 10);
+    });
+
+    it('converts jump speed min and max summary stats to jump-specific speed unit variants', () => {
+      const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
+      const activityB = new Activity(
+        new Date(20_000),
+        new Date(30_000),
+        ActivityTypes.MountainBiking,
+        new Creator('test')
+      );
+
+      activityA.addEvent(
+        new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 })
+      );
+      activityA.addEvent(
+        new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 })
+      );
+      activityB.addEvent(
+        new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 })
+      );
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityA);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityB);
+
+      const summaryStats = ActivityUtilities.getSummaryStatsForActivities([activityA, activityB]);
+      const jumpSpeedMin = summaryStats.find(s => s.getType() === DataJumpSpeedMin.type) as DataJumpSpeedMin;
+      const jumpSpeedMax = summaryStats.find(s => s.getType() === DataJumpSpeedMax.type) as DataJumpSpeedMax;
+
+      expect(jumpSpeedMin).toBeDefined();
+      expect(jumpSpeedMax).toBeDefined();
+
+      const convertedMin = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpSpeedMin, mphSpeedSettings);
+      const convertedMax = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpSpeedMax, mphSpeedSettings);
+
+      expect(convertedMin).toHaveLength(1);
+      expect(convertedMin[0].getType()).toBe(DataJumpSpeedMinMilesPerHour.type);
+      expect(convertedMin[0].getDisplayUnit()).toBe('mph');
+      expect(convertedMin[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(jumpSpeedMin.getValue()), 10);
+
+      expect(convertedMax).toHaveLength(1);
+      expect(convertedMax[0].getType()).toBe(DataJumpSpeedMaxMilesPerHour.type);
+      expect(convertedMax[0].getDisplayUnit()).toBe('mph');
+      expect(convertedMax[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(jumpSpeedMax.getValue()), 10);
     });
   });
 
@@ -280,8 +357,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataVerticalSpeedMin.type), getStatValue(a2, DataVerticalSpeedMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataVerticalSpeedMax.type), getStatValue(a2, DataVerticalSpeedMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataVerticalSpeedMin.type), getStatValue(a2, DataVerticalSpeedMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataVerticalSpeedMax.type), getStatValue(a2, DataVerticalSpeedMax.type))
+      );
     });
 
     it('aggregates Ground Contact Time min/max across activities', async () => {
@@ -294,8 +375,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataGroundContactTimeMin.type), getStatValue(a2, DataGroundContactTimeMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataGroundContactTimeMax.type), getStatValue(a2, DataGroundContactTimeMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataGroundContactTimeMin.type), getStatValue(a2, DataGroundContactTimeMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataGroundContactTimeMax.type), getStatValue(a2, DataGroundContactTimeMax.type))
+      );
     });
 
     it('aggregates Vertical Oscillation min/max across activities', async () => {
@@ -308,8 +393,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataVerticalOscillationMin.type), getStatValue(a2, DataVerticalOscillationMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataVerticalOscillationMax.type), getStatValue(a2, DataVerticalOscillationMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataVerticalOscillationMin.type), getStatValue(a2, DataVerticalOscillationMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataVerticalOscillationMax.type), getStatValue(a2, DataVerticalOscillationMax.type))
+      );
     });
 
     it('aggregates Leg Stiffness min/max across activities', async () => {
@@ -322,8 +411,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataLegStiffnessMin.type), getStatValue(a2, DataLegStiffnessMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataLegStiffnessMax.type), getStatValue(a2, DataLegStiffnessMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataLegStiffnessMin.type), getStatValue(a2, DataLegStiffnessMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataLegStiffnessMax.type), getStatValue(a2, DataLegStiffnessMax.type))
+      );
     });
 
     it('aggregates Vertical Ratio min/max across activities', async () => {
@@ -336,8 +429,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataVerticalRatioMin.type), getStatValue(a2, DataVerticalRatioMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataVerticalRatioMax.type), getStatValue(a2, DataVerticalRatioMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataVerticalRatioMin.type), getStatValue(a2, DataVerticalRatioMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataVerticalRatioMax.type), getStatValue(a2, DataVerticalRatioMax.type))
+      );
     });
 
     it('aggregates Grade Adjusted Pace min/max across activities', async () => {
@@ -353,8 +450,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataGradeAdjustedPaceMin.type), getStatValue(a2, DataGradeAdjustedPaceMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataGradeAdjustedPaceMax.type), getStatValue(a2, DataGradeAdjustedPaceMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataGradeAdjustedPaceMin.type), getStatValue(a2, DataGradeAdjustedPaceMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataGradeAdjustedPaceMax.type), getStatValue(a2, DataGradeAdjustedPaceMax.type))
+      );
     });
 
     it('aggregates Grade Adjusted Speed min/max across activities', async () => {
@@ -367,8 +468,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataGradeAdjustedSpeedMin.type), getStatValue(a2, DataGradeAdjustedSpeedMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataGradeAdjustedSpeedMax.type), getStatValue(a2, DataGradeAdjustedSpeedMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataGradeAdjustedSpeedMin.type), getStatValue(a2, DataGradeAdjustedSpeedMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataGradeAdjustedSpeedMax.type), getStatValue(a2, DataGradeAdjustedSpeedMax.type))
+      );
     });
 
     it('aggregates Pace min/max across activities', async () => {
@@ -398,8 +503,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(min).toBeDefined();
       expect(max).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataSwimPaceMin.type), getStatValue(a2, DataSwimPaceMin.type)));
-      expect(max.getValue()).toBe(Math.max(getStatValue(a1, DataSwimPaceMax.type), getStatValue(a2, DataSwimPaceMax.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataSwimPaceMin.type), getStatValue(a2, DataSwimPaceMin.type))
+      );
+      expect(max.getValue()).toBe(
+        Math.max(getStatValue(a1, DataSwimPaceMax.type), getStatValue(a2, DataSwimPaceMax.type))
+      );
     });
 
     it('aggregates Temperature min across activities', async () => {
@@ -410,7 +519,9 @@ describe('ActivityUtilities summary aggregation integration', () => {
       const min = stats.find(s => s.getType() === DataTemperatureMin.type) as DataTemperatureMin;
 
       expect(min).toBeDefined();
-      expect(min.getValue()).toBe(Math.min(getStatValue(a1, DataTemperatureMin.type), getStatValue(a2, DataTemperatureMin.type)));
+      expect(min.getValue()).toBe(
+        Math.min(getStatValue(a1, DataTemperatureMin.type), getStatValue(a2, DataTemperatureMin.type))
+      );
     });
 
     it('aggregates Altitude average across activities', async () => {
@@ -450,8 +561,12 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
     it('derives missing jump min/max/avg stats from jump events', () => {
       const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
-      activity.addEvent(createJumpEvent(1, { distance: 2, hang_time: 0.4, speed: 6, rotations: 1, score: 50, height: 0.8 }));
-      activity.addEvent(createJumpEvent(2, { distance: 4, hang_time: 0.6, speed: 8, rotations: 0, score: 70, height: 1.2 }));
+      activity.addEvent(
+        createJumpEvent(1, { distance: 2, hang_time: 0.4, speed: 6, rotations: 1, score: 50, height: 0.8 })
+      );
+      activity.addEvent(
+        createJumpEvent(2, { distance: 4, hang_time: 0.6, speed: 8, rotations: 0, score: 70, height: 1.2 })
+      );
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 

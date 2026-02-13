@@ -57,6 +57,7 @@ import { DataGNSSDistance } from './data.gnss-distance';
 import { DataStepLength } from './data.step-length';
 import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
+import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -398,6 +399,36 @@ describe('DataStore', () => {
       expect(convertedAvg[1].getType()).toBe(DataJumpSpeedAvgKilometersPerHour.type);
       expect(convertedAvg[0].getDisplayUnit()).toBe('mph');
       expect(convertedAvg[1].getDisplayUnit()).toBe('km/h');
+    });
+
+    it('keeps jump speed derived variants distinct from regular speed derived variants', () => {
+      const regularSpeedConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        new DataSpeedAvg(5),
+        mphSettings
+      );
+      const jumpSpeedConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        new DataJumpSpeedAvg(5),
+        mphSettings
+      );
+
+      expect(regularSpeedConverted).toHaveLength(1);
+      expect(jumpSpeedConverted).toHaveLength(1);
+
+      expect(regularSpeedConverted[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(jumpSpeedConverted[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
+      expect(regularSpeedConverted[0].getType()).not.toBe(jumpSpeedConverted[0].getType());
+    });
+
+    it('resolves jump speed unit-derived aliases to canonical unit types', () => {
+      expect(DynamicDataLoader.getDataInstanceFromDataType('Jump Speed Avg in miles per hour', 5).getType()).toBe(
+        DataJumpSpeedAvgMilesPerHour.type
+      );
+      expect(DynamicDataLoader.getDataInstanceFromDataType('Jump Speed Min in miles per hour', 5).getType()).toBe(
+        DataJumpSpeedMinMilesPerHour.type
+      );
+      expect(DynamicDataLoader.getDataInstanceFromDataType('Jump Speed Max in miles per hour', 5).getType()).toBe(
+        DataJumpSpeedMaxMilesPerHour.type
+      );
     });
   });
 });

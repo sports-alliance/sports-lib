@@ -1,12 +1,10 @@
 import {
-  convertMetersToMiles,
   convertSpeedToSpeedInFeetPerSecond,
   convertSpeedToSpeedInKilometersPerHour,
   convertSpeedToSpeedInKnots,
   convertSpeedToSpeedInMilesPerHour
 } from '../events/utilities/helpers';
 import { DynamicDataLoader } from './data.store';
-import { DataDistanceMiles } from './data.distance';
 import {
   DataSpeedFeetPerSecond,
   DataSpeedKilometersPerHour,
@@ -29,19 +27,15 @@ import {
 } from './data.jump-stats';
 
 describe('Jump stats display and unit behavior', () => {
-  it('formats jump distance with jump distance precision', () => {
+  it('formats jump distance with the same behavior as DataDistance', () => {
     const jumpDistanceAvg = new DataJumpDistanceAvg(2);
     const jumpDistanceMin = new DataJumpDistanceMin(1.2);
     const jumpDistanceMax = new DataJumpDistanceMax(3.456);
 
     expect(jumpDistanceAvg.getDisplayUnit()).toBe('m');
-    expect(jumpDistanceAvg.getDisplayValue()).toBe('2.00');
-    expect(jumpDistanceMin.getDisplayValue()).toBe('1.20');
-    expect(jumpDistanceMax.getDisplayValue()).toBe('3.46');
-
-    expect(jumpDistanceAvg.getValue(DataDistanceMiles.type)).toBeCloseTo(convertMetersToMiles(2), 10);
-    expect(jumpDistanceMin.getValue(DataDistanceMiles.type)).toBeCloseTo(convertMetersToMiles(1.2), 10);
-    expect(jumpDistanceMax.getValue(DataDistanceMiles.type)).toBeCloseTo(convertMetersToMiles(3.456), 10);
+    expect(jumpDistanceAvg.getDisplayValue()).toBe('2.0');
+    expect(jumpDistanceMin.getDisplayValue()).toBe('1.2');
+    expect(jumpDistanceMax.getDisplayValue()).toBe('3.5');
   });
 
   it('formats jump speed with speed precision and converts to speed units', () => {

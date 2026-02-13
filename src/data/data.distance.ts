@@ -15,5 +15,13 @@ export class DataDistance extends DataNumber {
 
 export class DataDistanceMiles extends DataDistance {
   static type = 'Distance in miles';
-  static unit = 'M';
+  static unit = 'mi';
+
+  getDisplayValue(): string {
+    return this.getValue().toFixed(2);
+  }
+
+  getDisplayUnit(): string {
+    return 'mi';
+  }
 }

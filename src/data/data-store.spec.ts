@@ -29,6 +29,9 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistanceMiles } from './data.distance';
+import { DataJumpDistanceAvg } from './data.jump-stats';
+import { DataJumpDistance } from './data.jump-distance';
+import { convertMetersToMiles } from '../events/utilities/helpers';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -103,6 +106,64 @@ describe('DataStore', () => {
       });
       expect(result).toContain(DataSpeedKilometersPerHour.type);
       expect(result).not.toContain(DataPaceMinutesPerMile.type);
+    });
+  });
+
+  describe('jump distance unit-based conversion', () => {
+    const imperialSettings: any = {
+      speedUnits: [DataSpeedMilesPerHour.type],
+      swimPaceUnits: [],
+      paceUnits: [],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: [],
+      elevationUnits: [],
+      temperatureUnits: [],
+      weightUnits: []
+    };
+
+    const metricSettings: any = {
+      speedUnits: [DataSpeed.type],
+      swimPaceUnits: [],
+      paceUnits: [],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: [],
+      elevationUnits: [],
+      temperatureUnits: [],
+      weightUnits: []
+    };
+
+    it('returns miles unit type for jump distance family when user uses imperial speed units', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistance.type, imperialSettings)).toEqual([
+        DataDistanceMiles.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistanceAvg.type, imperialSettings)).toEqual([
+        DataDistanceMiles.type
+      ]);
+    });
+
+    it('returns metric jump distance type when user uses metric speed units', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistance.type, metricSettings)).toEqual([
+        DataJumpDistance.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistanceAvg.type, metricSettings)).toEqual([
+        DataJumpDistanceAvg.type
+      ]);
+    });
+
+    it('returns unit-converted data instance for jump distance family in imperial mode', () => {
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        new DataJumpDistanceAvg(1609.344),
+        imperialSettings
+      );
+
+      expect(converted).toHaveLength(1);
+      expect(converted[0].getType()).toBe(DataDistanceMiles.type);
+      expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(1609.344), 10);
+      expect(converted[0].getDisplayUnit()).toBe('mi');
     });
   });
 });

@@ -29,15 +29,9 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistance, DataDistanceMiles } from './data.distance';
-import { DataJumpDistanceAvg, DataJumpDistanceMax, DataJumpDistanceMin } from './data.jump-stats';
-import { DataJumpDistance } from './data.jump-distance';
+import { DataJumpDistanceAvg } from './data.jump-stats';
 import { DataGNSSDistance } from './data.gnss-distance';
-import { DataAutoLapDistance } from './data.auto-lap-distance';
-import { DataAvgStrokeDistance } from './data.avg-stroke-distance';
-import { DataAvgStrideLength } from './data.avg-stride-length';
 import { DataStepLength } from './data.step-length';
-import { DataTargetDistance } from './data.target-distance';
-import { DataStrydDistance } from './data.stryd-distance';
 import { convertMetersToMiles } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
 
@@ -73,6 +67,12 @@ describe('DataStore', () => {
   it('should get the correct unitbased datatypes', () => {
     // @todo here we should think
     expect(DynamicDataLoader.allUnitDerivedDataTypes.sort()).toEqual(unitDerivedDataTypes.sort());
+  });
+
+  it('keeps GNSS distance blacklisted for stream-generation only', () => {
+    expect(DynamicDataLoader.isBlackListedStream(DataGNSSDistance.type)).toBe(true);
+    expect(DynamicDataLoader.isBlackListedStream(DataDistance.type)).toBe(false);
+    expect(DynamicDataLoader.isBlackListedStream(DataStepLength.type)).toBe(false);
   });
 
   describe('getUnitBasedDataTypesFromDataTypes', () => {
@@ -156,20 +156,19 @@ describe('DataStore', () => {
       weightUnits: []
     };
 
-    const allDistanceTypes = [
-      DataDistance.type,
-      DataJumpDistance.type,
-      DataJumpDistanceAvg.type,
-      DataJumpDistanceMin.type,
-      DataJumpDistanceMax.type,
-      DataGNSSDistance.type,
-      DataAutoLapDistance.type,
-      DataAvgStrokeDistance.type,
-      DataAvgStrideLength.type,
-      DataStepLength.type,
-      DataTargetDistance.type,
-      DataStrydDistance.type
-    ];
+    const allDistanceTypes = Object.values(_DataStore)
+      .filter((DataClass: any) => typeof DataClass === 'function')
+      .filter((DataClass: any) => DataClass === DataDistance || DataClass.prototype instanceof DataDistance)
+      .map((DataClass: any) => DataClass.type as string)
+      .filter((dataType: string) => dataType !== DataDistanceMiles.type);
+
+    it('has miles mappings for every DataStore class extending DataDistance (except DataDistanceMiles)', () => {
+      expect(allDistanceTypes.length).toBeGreaterThan(0);
+      allDistanceTypes.forEach(dataType => {
+        expect(DynamicDataLoader.dataTypeUnitGroups[dataType]).toBeDefined();
+        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][DataDistanceMiles.type]).toBeDefined();
+      });
+    });
 
     it('returns miles unit type for all mapped distance-capable data types in imperial mode', () => {
       allDistanceTypes.forEach(dataType => {
@@ -213,17 +212,9 @@ describe('DataStore', () => {
     });
 
     it('returns converted miles data instances for all mapped distance classes in imperial mode', () => {
-      const distanceInstances = [
-        new DataDistance(1609.344),
-        new DataJumpDistanceAvg(1609.344),
-        new DataGNSSDistance(1609.344),
-        new DataAutoLapDistance(1609.344),
-        new DataAvgStrokeDistance(1609.344),
-        new DataAvgStrideLength(1609.344),
-        new DataStepLength(1609.344),
-        new DataTargetDistance(1609.344),
-        new DataStrydDistance(1609.344)
-      ];
+      const distanceInstances = allDistanceTypes.map(dataType =>
+        DynamicDataLoader.getDataInstanceFromDataType(dataType, 1609.344)
+      );
 
       distanceInstances.forEach(distanceInstance => {
         const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distanceInstance, imperialSettings);
@@ -235,17 +226,9 @@ describe('DataStore', () => {
     });
 
     it('returns original metric data instances in metric mode and missing-distanceUnits fallback', () => {
-      const metricInstances = [
-        new DataDistance(1609.344),
-        new DataJumpDistanceAvg(1609.344),
-        new DataGNSSDistance(1609.344),
-        new DataAutoLapDistance(1609.344),
-        new DataAvgStrokeDistance(1609.344),
-        new DataAvgStrideLength(1609.344),
-        new DataStepLength(1609.344),
-        new DataTargetDistance(1609.344),
-        new DataStrydDistance(1609.344)
-      ];
+      const metricInstances = allDistanceTypes.map(dataType =>
+        DynamicDataLoader.getDataInstanceFromDataType(dataType, 1609.344)
+      );
 
       metricInstances.forEach(instance => {
         const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(instance, metricSettings);

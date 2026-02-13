@@ -801,6 +801,36 @@ export class DynamicDataLoader {
     }
   };
 
+  private static readonly jumpSpeedUnitVariantTypes: Record<string, Record<string, string>> = {
+    [DataJumpSpeedAvg.type]: {
+      [DataSpeed.type]: DataJumpSpeedAvg.type,
+      [DataSpeedKilometersPerHour.type]: DataSpeedAvgKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataSpeedAvgMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataSpeedAvgFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataSpeedAvgMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataSpeedAvgFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataSpeedAvgKnots.type
+    },
+    [DataJumpSpeedMin.type]: {
+      [DataSpeed.type]: DataJumpSpeedMin.type,
+      [DataSpeedKilometersPerHour.type]: DataSpeedMinKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataSpeedMinMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataSpeedMinFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataSpeedMinMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataSpeedMinFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataSpeedMinKnots.type
+    },
+    [DataJumpSpeedMax.type]: {
+      [DataSpeed.type]: DataJumpSpeedMax.type,
+      [DataSpeedKilometersPerHour.type]: DataSpeedMaxKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataSpeedMaxMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataSpeedMaxFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataSpeedMaxMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataSpeedMaxFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataSpeedMaxKnots.type
+    }
+  };
+
   static positionalDataTypes = [DataLatitudeDegrees.type, DataLongitudeDegrees.type];
 
   static baseDataTypes = [DataSpeed.type, DataDistance.type];
@@ -1237,6 +1267,48 @@ export class DynamicDataLoader {
     return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Imperial ? DataDistanceMiles.type : dataType;
   }
 
+  private static getJumpSpeedUnitMappings(
+    dataType: string,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): { targetDataType: string; sourceUnitType: string }[] {
+    if (!userUnitSettings) {
+      return [];
+    }
+    const jumpSpeedUnitMap = DynamicDataLoader.jumpSpeedUnitVariantTypes[dataType];
+    if (!jumpSpeedUnitMap) {
+      return [];
+    }
+    return userUnitSettings.speedUnits.reduce((accu: { targetDataType: string; sourceUnitType: string }[], unit) => {
+      const targetDataType = jumpSpeedUnitMap[unit];
+      if (!targetDataType) {
+        return accu;
+      }
+      accu.push({ targetDataType, sourceUnitType: unit });
+      return accu;
+    }, []);
+  }
+
+  private static getJumpSpeedUnitDataTypes(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] | null {
+    const mappings = this.getJumpSpeedUnitMappings(dataType, userUnitSettings);
+    if (!mappings.length) {
+      return null;
+    }
+    return mappings.map(mapping => mapping.targetDataType);
+  }
+
+  private static getJumpSpeedUnitDataFromDataInstance(
+    data: DataInterface,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): DataInterface[] | null {
+    const mappings = this.getJumpSpeedUnitMappings(data.getType(), userUnitSettings);
+    if (!mappings.length) {
+      return null;
+    }
+    return mappings.map(mapping =>
+      this.getDataInstanceFromDataType(mapping.targetDataType, data.getValue(mapping.sourceUnitType))
+    );
+  }
+
   /**
    * This get's the basic data types for the charts depending or not on the user datatype settings
    * There are no unit specific datatypes here so if the user has selected pace it implies metric
@@ -1285,6 +1357,20 @@ export class DynamicDataLoader {
     }
     unitBasedDataTypes = unitBasedDataTypes.concat(
       dataTypes.reduce((accu: string[], dataType: string) => {
+        const jumpSpeedDataTypes = this.getJumpSpeedUnitDataTypes(dataType, userUnitSettings);
+        if (!jumpSpeedDataTypes) {
+          return accu;
+        }
+        jumpSpeedDataTypes.forEach(jumpSpeedDataType => {
+          if (accu.indexOf(jumpSpeedDataType) === -1) {
+            accu.push(jumpSpeedDataType);
+          }
+        });
+        return accu;
+      }, [])
+    );
+    unitBasedDataTypes = unitBasedDataTypes.concat(
+      dataTypes.reduce((accu: string[], dataType: string) => {
         const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
         if (!distanceDataType || accu.indexOf(distanceDataType) !== -1) {
           return accu;
@@ -1308,6 +1394,10 @@ export class DynamicDataLoader {
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
     if (distanceDataType) {
       return [distanceDataType];
+    }
+    const jumpSpeedDataTypes = this.getJumpSpeedUnitDataTypes(dataType, userUnitSettings);
+    if (jumpSpeedDataTypes) {
+      return jumpSpeedDataTypes;
     }
     if (dataType === DataSpeed.type) {
       return userUnitSettings.speedUnits;
@@ -1358,6 +1448,10 @@ export class DynamicDataLoader {
         ];
       }
       return [data];
+    }
+    const jumpSpeedData = this.getJumpSpeedUnitDataFromDataInstance(data, userUnitSettings);
+    if (jumpSpeedData) {
+      return jumpSpeedData;
     }
     switch (data.getType()) {
       // Speed

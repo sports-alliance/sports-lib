@@ -29,11 +29,14 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistance, DataDistanceMiles } from './data.distance';
-import { DataJumpDistanceAvg } from './data.jump-stats';
+import { DataJumpDistanceAvg, DataJumpSpeedAvg, DataJumpSpeedMax, DataJumpSpeedMin } from './data.jump-stats';
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataStepLength } from './data.step-length';
-import { convertMetersToMiles } from '../events/utilities/helpers';
+import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
+import { DataSpeedAvgKilometersPerHour, DataSpeedAvgMilesPerHour } from './data.speed-avg';
+import { DataSpeedMaxKilometersPerHour, DataSpeedMaxMilesPerHour } from './data.speed-max';
+import { DataSpeedMinKilometersPerHour, DataSpeedMinMilesPerHour } from './data.speed-min';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -114,6 +117,35 @@ describe('DataStore', () => {
       });
       expect(result).toContain(DataSpeedKilometersPerHour.type);
       expect(result).not.toContain(DataPaceMinutesPerMile.type);
+    });
+
+    it('should include jump speed unit variant data types for selected speed units', () => {
+      const settings: any = {
+        speedUnits: [DataSpeedMilesPerHour.type, DataSpeedKilometersPerHour.type],
+        swimPaceUnits: [],
+        paceUnits: [],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: DistanceUnits.Metric,
+        elevationUnits: [],
+        temperatureUnits: [],
+        weightUnits: []
+      };
+
+      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
+        [DataJumpSpeedAvg.type, DataJumpSpeedMin.type, DataJumpSpeedMax.type],
+        settings
+      );
+
+      expect(result).toEqual([
+        DataSpeedAvgMilesPerHour.type,
+        DataSpeedAvgKilometersPerHour.type,
+        DataSpeedMinMilesPerHour.type,
+        DataSpeedMinKilometersPerHour.type,
+        DataSpeedMaxMilesPerHour.type,
+        DataSpeedMaxKilometersPerHour.type
+      ]);
     });
   });
 
@@ -239,6 +271,85 @@ describe('DataStore', () => {
         expect(fallbackConverted).toHaveLength(1);
         expect(fallbackConverted[0].getType()).toBe(instance.getType());
       });
+    });
+  });
+
+  describe('jump speed unit conversion', () => {
+    const mphSettings: any = {
+      speedUnits: [DataSpeedMilesPerHour.type],
+      swimPaceUnits: [],
+      paceUnits: [],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: DistanceUnits.Metric,
+      elevationUnits: [],
+      temperatureUnits: [],
+      weightUnits: []
+    };
+
+    const metricSpeedSettings: any = {
+      ...mphSettings,
+      speedUnits: [DataSpeed.type]
+    };
+
+    it('maps jump speed avg/min/max to speed unit variant types for selected speed units', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, mphSettings)).toEqual([
+        DataSpeedAvgMilesPerHour.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, mphSettings)).toEqual([
+        DataSpeedMinMilesPerHour.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, mphSettings)).toEqual([
+        DataSpeedMaxMilesPerHour.type
+      ]);
+    });
+
+    it('keeps jump speed canonical types when selected speed unit is metric m/s', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, metricSpeedSettings)).toEqual([
+        DataJumpSpeedAvg.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, metricSpeedSettings)).toEqual([
+        DataJumpSpeedMin.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, metricSpeedSettings)).toEqual([
+        DataJumpSpeedMax.type
+      ]);
+    });
+
+    it('returns converted jump speed data instances with selected speed unit display variants', () => {
+      const convertedAvg = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedAvg(5), mphSettings);
+      const convertedMin = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedMin(5), mphSettings);
+      const convertedMax = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedMax(5), mphSettings);
+
+      expect(convertedAvg).toHaveLength(1);
+      expect(convertedAvg[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(convertedAvg[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
+      expect(convertedAvg[0].getDisplayUnit()).toBe('mph');
+
+      expect(convertedMin).toHaveLength(1);
+      expect(convertedMin[0].getType()).toBe(DataSpeedMinMilesPerHour.type);
+      expect(convertedMin[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
+      expect(convertedMin[0].getDisplayUnit()).toBe('mph');
+
+      expect(convertedMax).toHaveLength(1);
+      expect(convertedMax[0].getType()).toBe(DataSpeedMaxMilesPerHour.type);
+      expect(convertedMax[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
+      expect(convertedMax[0].getDisplayUnit()).toBe('mph');
+    });
+
+    it('returns jump speed data instances for multiple selected speed units in order', () => {
+      const multiSpeedSettings: any = {
+        ...mphSettings,
+        speedUnits: [DataSpeedMilesPerHour.type, DataSpeedKilometersPerHour.type]
+      };
+
+      const convertedAvg = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedAvg(5), multiSpeedSettings);
+      expect(convertedAvg).toHaveLength(2);
+      expect(convertedAvg[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(convertedAvg[1].getType()).toBe(DataSpeedAvgKilometersPerHour.type);
+      expect(convertedAvg[0].getDisplayUnit()).toBe('mph');
+      expect(convertedAvg[1].getDisplayUnit()).toBe('km/h');
     });
   });
 });

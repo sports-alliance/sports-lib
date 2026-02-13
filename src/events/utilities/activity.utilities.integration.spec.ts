@@ -70,8 +70,10 @@ import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DynamicDataLoader } from '../../data/data.store';
-import { convertMetersToMiles } from './helpers';
+import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from './helpers';
 import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
+import { DataSpeedMilesPerHour } from '../../data/data.speed';
+import { DataSpeedAvgMilesPerHour } from '../../data/data.speed-avg';
 
 const toArrayBuffer = (filePath: string): ArrayBuffer => {
   const fileContent = fs.readFileSync(filePath);
@@ -130,6 +132,16 @@ const metricDistanceSettings: any = {
   distanceUnits: DistanceUnits.Metric
 };
 
+const mphSpeedSettings: any = {
+  speedUnits: [DataSpeedMilesPerHour.type],
+  swimPaceUnits: [],
+  paceUnits: [],
+  gradeAdjustedSpeedUnits: [],
+  gradeAdjustedPaceUnits: [],
+  verticalSpeedUnits: [],
+  distanceUnits: DistanceUnits.Metric
+};
+
 describe('ActivityUtilities summary aggregation integration', () => {
   describe('distance unit conversion integration', () => {
     it('converts parsed total distance stat to miles when distanceUnits is imperial', async () => {
@@ -173,6 +185,30 @@ describe('ActivityUtilities summary aggregation integration', () => {
       const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpDistanceAvg, metricDistanceSettings);
       expect(metricConverted).toHaveLength(1);
       expect(metricConverted[0].getType()).toBe(DataJumpDistanceAvg.type);
+    });
+
+    it('converts jump speed summary stats to selected speed unit display variants', () => {
+      const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
+      const activityB = new Activity(new Date(20_000), new Date(30_000), ActivityTypes.MountainBiking, new Creator('test'));
+
+      activityA.addEvent(new DataJumpEvent(1, { distance: 2, height: 0.5, score: 10, hang_time: 0.2, speed: 5, rotations: 0 }));
+      activityA.addEvent(new DataJumpEvent(2, { distance: 4, height: 0.7, score: 12, hang_time: 0.3, speed: 6, rotations: 1 }));
+      activityB.addEvent(new DataJumpEvent(3, { distance: 6, height: 0.8, score: 14, hang_time: 0.4, speed: 7, rotations: 1 }));
+      activityB.addEvent(new DataJumpEvent(4, { distance: 8, height: 1.0, score: 16, hang_time: 0.5, speed: 8, rotations: 2 }));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityA);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activityB);
+
+      const summaryStats = ActivityUtilities.getSummaryStatsForActivities([activityA, activityB]);
+      const jumpSpeedAvg = summaryStats.find(s => s.getType() === DataJumpSpeedAvg.type) as DataJumpSpeedAvg;
+
+      expect(jumpSpeedAvg).toBeDefined();
+
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(jumpSpeedAvg, mphSpeedSettings);
+      expect(converted).toHaveLength(1);
+      expect(converted[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(converted[0].getDisplayUnit()).toBe('mph');
+      expect(converted[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(jumpSpeedAvg.getValue()), 10);
     });
   });
 

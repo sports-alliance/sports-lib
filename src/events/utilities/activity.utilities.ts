@@ -834,6 +834,8 @@ export class ActivityUtilities {
     let pauseTime = 0;
     let averageHeartRate = 0;
     let averagePower = 0;
+    let averagePowerNormalized = 0;
+    let hasAveragePowerNormalized = false;
     let averageCadence = 0;
     let averageSpeed = 0;
     let averageGradeAdjustedSpeed = 0;
@@ -860,6 +862,8 @@ export class ActivityUtilities {
     let hasAverageLegStiffness = false;
     let averageVerticalRatio = 0;
     let hasAverageVerticalRatio = false;
+    let averageVerticalOscillation = 0;
+    let hasAverageVerticalOscillation = false;
     let averageFeeling = 0;
     let averageRPE = 0;
 
@@ -948,6 +952,20 @@ export class ActivityUtilities {
     });
     if (averagePower) {
       stats.push(new DataPowerAvg(averagePower));
+    }
+
+    // Avg Normalized Power
+    activities.forEach(activity => {
+      const activityPowerNormalized = activity.getStat(DataPowerNormalized.type);
+      if (activityPowerNormalized) {
+        averagePowerNormalized = hasAveragePowerNormalized
+          ? (averagePowerNormalized + <number>activityPowerNormalized.getValue()) / 2
+          : <number>activityPowerNormalized.getValue();
+        hasAveragePowerNormalized = true;
+      }
+    });
+    if (hasAveragePowerNormalized) {
+      stats.push(new DataPowerNormalized(averagePowerNormalized));
     }
 
     // Avg Avg Cadence
@@ -1885,16 +1903,16 @@ export class ActivityUtilities {
     }
 
     // Avg Vertical Oscillation
-    let averageVerticalOscillation = 0;
     activities.forEach(activity => {
       const activityVerticalOscillation = activity.getStat(DataVerticalOscillationAvg.type);
       if (activityVerticalOscillation) {
-        averageVerticalOscillation = averageVerticalOscillation
+        averageVerticalOscillation = hasAverageVerticalOscillation
           ? (averageVerticalOscillation + <number>activityVerticalOscillation.getValue()) / 2
           : <number>activityVerticalOscillation.getValue();
+        hasAverageVerticalOscillation = true;
       }
     });
-    if (averageVerticalOscillation) {
+    if (hasAverageVerticalOscillation) {
       stats.push(new DataVerticalOscillationAvg(averageVerticalOscillation));
     }
 

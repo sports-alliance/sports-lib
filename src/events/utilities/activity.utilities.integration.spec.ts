@@ -30,6 +30,8 @@ import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
 import { DataJumpEvent } from '../../data/data.jump-event';
+import { DataDuration } from '../../data/data.duration';
+import { DataPause } from '../../data/data.pause';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMax,
@@ -74,6 +76,7 @@ import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
 import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
+import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DynamicDataLoader } from '../../data/data.store';
 import { convertMetersToMiles, convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMilesPerHour } from './helpers';
 import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
@@ -292,6 +295,26 @@ describe('ActivityUtilities summary aggregation integration', () => {
   });
 
   describe('getSummaryStatsForActivities', () => {
+    it('aggregates Power Normalized across selected activities', () => {
+      const a1 = new Activity(new Date(0), new Date(10_000), ActivityTypes.Cycling, new Creator('test'));
+      a1.addStat(new DataDuration(10_000));
+      a1.addStat(new DataPause(0));
+      a1.addStat(new DataDistance(1000));
+      a1.addStat(new DataPowerNormalized(210));
+
+      const a2 = new Activity(new Date(0), new Date(15_000), ActivityTypes.Cycling, new Creator('test'));
+      a2.addStat(new DataDuration(15_000));
+      a2.addStat(new DataPause(0));
+      a2.addStat(new DataDistance(1500));
+      a2.addStat(new DataPowerNormalized(190));
+
+      const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+      const normalizedPower = stats.find(s => s.getType() === DataPowerNormalized.type) as DataPowerNormalized;
+
+      expect(normalizedPower).toBeDefined();
+      expect(normalizedPower.getValue()).toBe(200);
+    });
+
     it('aggregates Air Power stats when only one activity has the stream', async () => {
       const activityWithAir = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');
       const activityWithoutAir = await loadActivity('../../specs/fixtures/runs/fit/2067489619.fit');

@@ -732,6 +732,17 @@ describe('ActivityUtilities', () => {
         ).toBe(11);
       });
 
+      it('should keep Vertical Oscillation average when value is zero', () => {
+        const a1 = createMockActivity({ [DataVerticalOscillationAvg.type]: new DataVerticalOscillationAvg(0) });
+        const a2 = createMockActivity({});
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        const verticalOscillation = stats.find(s => s.getType() === DataVerticalOscillationAvg.type) as
+          | DataVerticalOscillationAvg
+          | undefined;
+        expect(verticalOscillation).toBeDefined();
+        expect(verticalOscillation?.getValue()).toBe(0);
+      });
+
       it('should correctly aggregate RPE (Subjective)', () => {
         const a1 = createMockActivity({ [DataRPE.type]: new DataRPE(5) });
         const a2 = createMockActivity({ [DataRPE.type]: new DataRPE(7) });

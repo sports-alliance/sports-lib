@@ -29,14 +29,34 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistance, DataDistanceMiles } from './data.distance';
-import { DataJumpDistanceAvg, DataJumpSpeedAvg, DataJumpSpeedMax, DataJumpSpeedMin } from './data.jump-stats';
+import {
+  DataJumpDistanceAvg,
+  DataJumpSpeedAvg,
+  DataJumpSpeedAvgFeetPerMinute,
+  DataJumpSpeedAvgFeetPerSecond,
+  DataJumpSpeedAvgKilometersPerHour,
+  DataJumpSpeedAvgKnots,
+  DataJumpSpeedAvgMetersPerMinute,
+  DataJumpSpeedAvgMilesPerHour,
+  DataJumpSpeedMax,
+  DataJumpSpeedMaxFeetPerMinute,
+  DataJumpSpeedMaxFeetPerSecond,
+  DataJumpSpeedMaxKilometersPerHour,
+  DataJumpSpeedMaxKnots,
+  DataJumpSpeedMaxMetersPerMinute,
+  DataJumpSpeedMaxMilesPerHour,
+  DataJumpSpeedMin,
+  DataJumpSpeedMinFeetPerMinute,
+  DataJumpSpeedMinFeetPerSecond,
+  DataJumpSpeedMinKilometersPerHour,
+  DataJumpSpeedMinKnots,
+  DataJumpSpeedMinMetersPerMinute,
+  DataJumpSpeedMinMilesPerHour
+} from './data.jump-stats';
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataStepLength } from './data.step-length';
 import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
-import { DataSpeedAvgKilometersPerHour, DataSpeedAvgMilesPerHour } from './data.speed-avg';
-import { DataSpeedMaxKilometersPerHour, DataSpeedMaxMilesPerHour } from './data.speed-max';
-import { DataSpeedMinKilometersPerHour, DataSpeedMinMilesPerHour } from './data.speed-min';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -62,6 +82,24 @@ describe('DataStore', () => {
     DataVerticalSpeedFeetPerHour.type,
     DataVerticalSpeedKilometerPerHour.type,
     DataVerticalSpeedMilesPerHour.type,
+    DataJumpSpeedAvgKilometersPerHour.type,
+    DataJumpSpeedAvgMilesPerHour.type,
+    DataJumpSpeedAvgFeetPerSecond.type,
+    DataJumpSpeedAvgMetersPerMinute.type,
+    DataJumpSpeedAvgFeetPerMinute.type,
+    DataJumpSpeedAvgKnots.type,
+    DataJumpSpeedMinKilometersPerHour.type,
+    DataJumpSpeedMinMilesPerHour.type,
+    DataJumpSpeedMinFeetPerSecond.type,
+    DataJumpSpeedMinMetersPerMinute.type,
+    DataJumpSpeedMinFeetPerMinute.type,
+    DataJumpSpeedMinKnots.type,
+    DataJumpSpeedMaxKilometersPerHour.type,
+    DataJumpSpeedMaxMilesPerHour.type,
+    DataJumpSpeedMaxFeetPerSecond.type,
+    DataJumpSpeedMaxMetersPerMinute.type,
+    DataJumpSpeedMaxFeetPerMinute.type,
+    DataJumpSpeedMaxKnots.type,
     DataDistanceMiles.type
   ];
 
@@ -139,12 +177,12 @@ describe('DataStore', () => {
       );
 
       expect(result).toEqual([
-        DataSpeedAvgMilesPerHour.type,
-        DataSpeedAvgKilometersPerHour.type,
-        DataSpeedMinMilesPerHour.type,
-        DataSpeedMinKilometersPerHour.type,
-        DataSpeedMaxMilesPerHour.type,
-        DataSpeedMaxKilometersPerHour.type
+        DataJumpSpeedAvgMilesPerHour.type,
+        DataJumpSpeedAvgKilometersPerHour.type,
+        DataJumpSpeedMinMilesPerHour.type,
+        DataJumpSpeedMinKilometersPerHour.type,
+        DataJumpSpeedMaxMilesPerHour.type,
+        DataJumpSpeedMaxKilometersPerHour.type
       ]);
     });
   });
@@ -220,12 +258,12 @@ describe('DataStore', () => {
       expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataDistance.type, missingDistanceSettings)).toEqual([
         DataDistance.type
       ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistanceAvg.type, missingDistanceSettings)).toEqual([
-        DataJumpDistanceAvg.type
-      ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataGNSSDistance.type, missingDistanceSettings)).toEqual([
-        DataGNSSDistance.type
-      ]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpDistanceAvg.type, missingDistanceSettings)
+      ).toEqual([DataJumpDistanceAvg.type]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataGNSSDistance.type, missingDistanceSettings)
+      ).toEqual([DataGNSSDistance.type]);
     });
 
     it('includes distance-derived types from getUnitBasedDataTypesFromDataTypes based on distanceUnits', () => {
@@ -240,7 +278,14 @@ describe('DataStore', () => {
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
           metricSettings
         )
-      ).toEqual(expect.arrayContaining([DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type]));
+      ).toEqual(
+        expect.arrayContaining([
+          DataDistance.type,
+          DataJumpDistanceAvg.type,
+          DataGNSSDistance.type,
+          DataStepLength.type
+        ])
+      );
     });
 
     it('returns converted miles data instances for all mapped distance classes in imperial mode', () => {
@@ -295,13 +340,13 @@ describe('DataStore', () => {
 
     it('maps jump speed avg/min/max to speed unit variant types for selected speed units', () => {
       expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, mphSettings)).toEqual([
-        DataSpeedAvgMilesPerHour.type
+        DataJumpSpeedAvgMilesPerHour.type
       ]);
       expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, mphSettings)).toEqual([
-        DataSpeedMinMilesPerHour.type
+        DataJumpSpeedMinMilesPerHour.type
       ]);
       expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, mphSettings)).toEqual([
-        DataSpeedMaxMilesPerHour.type
+        DataJumpSpeedMaxMilesPerHour.type
       ]);
     });
 
@@ -323,17 +368,17 @@ describe('DataStore', () => {
       const convertedMax = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedMax(5), mphSettings);
 
       expect(convertedAvg).toHaveLength(1);
-      expect(convertedAvg[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
+      expect(convertedAvg[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
       expect(convertedAvg[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
       expect(convertedAvg[0].getDisplayUnit()).toBe('mph');
 
       expect(convertedMin).toHaveLength(1);
-      expect(convertedMin[0].getType()).toBe(DataSpeedMinMilesPerHour.type);
+      expect(convertedMin[0].getType()).toBe(DataJumpSpeedMinMilesPerHour.type);
       expect(convertedMin[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
       expect(convertedMin[0].getDisplayUnit()).toBe('mph');
 
       expect(convertedMax).toHaveLength(1);
-      expect(convertedMax[0].getType()).toBe(DataSpeedMaxMilesPerHour.type);
+      expect(convertedMax[0].getType()).toBe(DataJumpSpeedMaxMilesPerHour.type);
       expect(convertedMax[0].getValue()).toBeCloseTo(convertSpeedToSpeedInMilesPerHour(5), 10);
       expect(convertedMax[0].getDisplayUnit()).toBe('mph');
     });
@@ -344,10 +389,13 @@ describe('DataStore', () => {
         speedUnits: [DataSpeedMilesPerHour.type, DataSpeedKilometersPerHour.type]
       };
 
-      const convertedAvg = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedAvg(5), multiSpeedSettings);
+      const convertedAvg = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        new DataJumpSpeedAvg(5),
+        multiSpeedSettings
+      );
       expect(convertedAvg).toHaveLength(2);
-      expect(convertedAvg[0].getType()).toBe(DataSpeedAvgMilesPerHour.type);
-      expect(convertedAvg[1].getType()).toBe(DataSpeedAvgKilometersPerHour.type);
+      expect(convertedAvg[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
+      expect(convertedAvg[1].getType()).toBe(DataJumpSpeedAvgKilometersPerHour.type);
       expect(convertedAvg[0].getDisplayUnit()).toBe('mph');
       expect(convertedAvg[1].getDisplayUnit()).toBe('km/h');
     });

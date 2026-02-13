@@ -380,13 +380,40 @@ import {
   DataJumpScoreMax,
   DataJumpScoreMin,
   DataJumpSpeedAvg,
+  DataJumpSpeedAvgFeetPerMinute,
+  DataJumpSpeedAvgFeetPerSecond,
+  DataJumpSpeedAvgKilometersPerHour,
+  DataJumpSpeedAvgKnots,
+  DataJumpSpeedAvgMetersPerMinute,
+  DataJumpSpeedAvgMilesPerHour,
   DataJumpSpeedMax,
-  DataJumpSpeedMin
+  DataJumpSpeedMaxFeetPerMinute,
+  DataJumpSpeedMaxFeetPerSecond,
+  DataJumpSpeedMaxKilometersPerHour,
+  DataJumpSpeedMaxKnots,
+  DataJumpSpeedMaxMetersPerMinute,
+  DataJumpSpeedMaxMilesPerHour,
+  DataJumpSpeedMin,
+  DataJumpSpeedMinFeetPerMinute,
+  DataJumpSpeedMinFeetPerSecond,
+  DataJumpSpeedMinKilometersPerHour,
+  DataJumpSpeedMinKnots,
+  DataJumpSpeedMinMetersPerMinute,
+  DataJumpSpeedMinMilesPerHour
 } from './data.jump-stats';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataEHPEMin } from './data.ehpe-min';
 import { DataEHPEMax } from './data.ehpe-max';
 import { DataEHPEAvg } from './data.ehpe-avg';
+
+const getBaseTypeFromStatType = (type: string): string => type.replace(/^(Average|Minimum|Maximum)\s+/i, '');
+
+const JUMP_SPEED_KILOMETERS_PER_HOUR_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgKilometersPerHour.type);
+const JUMP_SPEED_MILES_PER_HOUR_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgMilesPerHour.type);
+const JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgFeetPerSecond.type);
+const JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgMetersPerMinute.type);
+const JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgFeetPerMinute.type);
+const JUMP_SPEED_KNOTS_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgKnots.type);
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -748,6 +775,24 @@ export const DataStore: any = {
   DataJumpSpeedMin,
   DataJumpSpeedMax,
   DataJumpSpeedAvg,
+  DataJumpSpeedMinKilometersPerHour,
+  DataJumpSpeedMinMilesPerHour,
+  DataJumpSpeedMinFeetPerSecond,
+  DataJumpSpeedMinMetersPerMinute,
+  DataJumpSpeedMinFeetPerMinute,
+  DataJumpSpeedMinKnots,
+  DataJumpSpeedMaxKilometersPerHour,
+  DataJumpSpeedMaxMilesPerHour,
+  DataJumpSpeedMaxFeetPerSecond,
+  DataJumpSpeedMaxMetersPerMinute,
+  DataJumpSpeedMaxFeetPerMinute,
+  DataJumpSpeedMaxKnots,
+  DataJumpSpeedAvgKilometersPerHour,
+  DataJumpSpeedAvgMilesPerHour,
+  DataJumpSpeedAvgFeetPerSecond,
+  DataJumpSpeedAvgMetersPerMinute,
+  DataJumpSpeedAvgFeetPerMinute,
+  DataJumpSpeedAvgKnots,
   DataJumpRotationsMin,
   DataJumpRotationsMax,
   DataJumpRotationsAvg,
@@ -804,30 +849,30 @@ export class DynamicDataLoader {
   private static readonly jumpSpeedUnitVariantTypes: Record<string, Record<string, string>> = {
     [DataJumpSpeedAvg.type]: {
       [DataSpeed.type]: DataJumpSpeedAvg.type,
-      [DataSpeedKilometersPerHour.type]: DataSpeedAvgKilometersPerHour.type,
-      [DataSpeedMilesPerHour.type]: DataSpeedAvgMilesPerHour.type,
-      [DataSpeedFeetPerSecond.type]: DataSpeedAvgFeetPerSecond.type,
-      [DataSpeedMetersPerMinute.type]: DataSpeedAvgMetersPerMinute.type,
-      [DataSpeedFeetPerMinute.type]: DataSpeedAvgFeetPerMinute.type,
-      [DataSpeedKnots.type]: DataSpeedAvgKnots.type
+      [DataSpeedKilometersPerHour.type]: DataJumpSpeedAvgKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataJumpSpeedAvgMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataJumpSpeedAvgFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataJumpSpeedAvgMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataJumpSpeedAvgFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataJumpSpeedAvgKnots.type
     },
     [DataJumpSpeedMin.type]: {
       [DataSpeed.type]: DataJumpSpeedMin.type,
-      [DataSpeedKilometersPerHour.type]: DataSpeedMinKilometersPerHour.type,
-      [DataSpeedMilesPerHour.type]: DataSpeedMinMilesPerHour.type,
-      [DataSpeedFeetPerSecond.type]: DataSpeedMinFeetPerSecond.type,
-      [DataSpeedMetersPerMinute.type]: DataSpeedMinMetersPerMinute.type,
-      [DataSpeedFeetPerMinute.type]: DataSpeedMinFeetPerMinute.type,
-      [DataSpeedKnots.type]: DataSpeedMinKnots.type
+      [DataSpeedKilometersPerHour.type]: DataJumpSpeedMinKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataJumpSpeedMinMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataJumpSpeedMinFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataJumpSpeedMinMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataJumpSpeedMinFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataJumpSpeedMinKnots.type
     },
     [DataJumpSpeedMax.type]: {
       [DataSpeed.type]: DataJumpSpeedMax.type,
-      [DataSpeedKilometersPerHour.type]: DataSpeedMaxKilometersPerHour.type,
-      [DataSpeedMilesPerHour.type]: DataSpeedMaxMilesPerHour.type,
-      [DataSpeedFeetPerSecond.type]: DataSpeedMaxFeetPerSecond.type,
-      [DataSpeedMetersPerMinute.type]: DataSpeedMaxMetersPerMinute.type,
-      [DataSpeedFeetPerMinute.type]: DataSpeedMaxFeetPerMinute.type,
-      [DataSpeedKnots.type]: DataSpeedMaxKnots.type
+      [DataSpeedKilometersPerHour.type]: DataJumpSpeedMaxKilometersPerHour.type,
+      [DataSpeedMilesPerHour.type]: DataJumpSpeedMaxMilesPerHour.type,
+      [DataSpeedFeetPerSecond.type]: DataJumpSpeedMaxFeetPerSecond.type,
+      [DataSpeedMetersPerMinute.type]: DataJumpSpeedMaxMetersPerMinute.type,
+      [DataSpeedFeetPerMinute.type]: DataJumpSpeedMaxFeetPerMinute.type,
+      [DataSpeedKnots.type]: DataJumpSpeedMaxKnots.type
     }
   };
 
@@ -930,28 +975,28 @@ export class DynamicDataLoader {
       [DataVerticalSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour
     },
     [DataJumpSpeedMin.type]: {
-      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
-      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
-      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
-      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
-      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
-      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
+      [DataJumpSpeedMinKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataJumpSpeedMinMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataJumpSpeedMinFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataJumpSpeedMinMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataJumpSpeedMinFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataJumpSpeedMinKnots.type]: convertSpeedToSpeedInKnots
     },
     [DataJumpSpeedMax.type]: {
-      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
-      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
-      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
-      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
-      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
-      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
+      [DataJumpSpeedMaxKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataJumpSpeedMaxMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataJumpSpeedMaxFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataJumpSpeedMaxMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataJumpSpeedMaxFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataJumpSpeedMaxKnots.type]: convertSpeedToSpeedInKnots
     },
     [DataJumpSpeedAvg.type]: {
-      [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
-      [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
-      [DataSpeedFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
-      [DataSpeedMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
-      [DataSpeedFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
-      [DataSpeedKnots.type]: convertSpeedToSpeedInKnots
+      [DataJumpSpeedAvgKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
+      [DataJumpSpeedAvgMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
+      [DataJumpSpeedAvgFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond,
+      [DataJumpSpeedAvgMetersPerMinute.type]: convertSpeedToSpeedInMetersPerMinute,
+      [DataJumpSpeedAvgFeetPerMinute.type]: convertSpeedToSpeedInFeetPerMinute,
+      [DataJumpSpeedAvgKnots.type]: convertSpeedToSpeedInKnots
     },
     [DataJumpDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
@@ -1028,6 +1073,12 @@ export class DynamicDataLoader {
     [DataVerticalOscillation.type]: DataVerticalOscillationMin.type,
     [DataVerticalRatio.type]: DataVerticalRatioMin.type,
     [DataJumpDistance.type]: DataJumpDistanceMin.type,
+    [JUMP_SPEED_KILOMETERS_PER_HOUR_BASE_TYPE]: DataJumpSpeedMinKilometersPerHour.type,
+    [JUMP_SPEED_MILES_PER_HOUR_BASE_TYPE]: DataJumpSpeedMinMilesPerHour.type,
+    [JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE]: DataJumpSpeedMinFeetPerSecond.type,
+    [JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE]: DataJumpSpeedMinMetersPerMinute.type,
+    [JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE]: DataJumpSpeedMinFeetPerMinute.type,
+    [JUMP_SPEED_KNOTS_BASE_TYPE]: DataJumpSpeedMinKnots.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMin.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMin.type,
     [DataEVPE.type]: DataEVPEMin.type,
@@ -1075,6 +1126,12 @@ export class DynamicDataLoader {
     [DataVerticalOscillation.type]: DataVerticalOscillationMax.type,
     [DataVerticalRatio.type]: DataVerticalRatioMax.type,
     [DataJumpDistance.type]: DataJumpDistanceMax.type,
+    [JUMP_SPEED_KILOMETERS_PER_HOUR_BASE_TYPE]: DataJumpSpeedMaxKilometersPerHour.type,
+    [JUMP_SPEED_MILES_PER_HOUR_BASE_TYPE]: DataJumpSpeedMaxMilesPerHour.type,
+    [JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE]: DataJumpSpeedMaxFeetPerSecond.type,
+    [JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE]: DataJumpSpeedMaxMetersPerMinute.type,
+    [JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE]: DataJumpSpeedMaxFeetPerMinute.type,
+    [JUMP_SPEED_KNOTS_BASE_TYPE]: DataJumpSpeedMaxKnots.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRMax.type,
     [DataNumberOfSatellites.type]: DataNumberOfSatellitesMax.type,
     [DataEVPE.type]: DataEVPEMax.type,
@@ -1122,6 +1179,12 @@ export class DynamicDataLoader {
     [DataVerticalOscillation.type]: DataVerticalOscillationAvg.type,
     [DataVerticalRatio.type]: DataVerticalRatioAvg.type,
     [DataJumpDistance.type]: DataJumpDistanceAvg.type,
+    [JUMP_SPEED_KILOMETERS_PER_HOUR_BASE_TYPE]: DataJumpSpeedAvgKilometersPerHour.type,
+    [JUMP_SPEED_MILES_PER_HOUR_BASE_TYPE]: DataJumpSpeedAvgMilesPerHour.type,
+    [JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE]: DataJumpSpeedAvgFeetPerSecond.type,
+    [JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE]: DataJumpSpeedAvgMetersPerMinute.type,
+    [JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE]: DataJumpSpeedAvgFeetPerMinute.type,
+    [JUMP_SPEED_KNOTS_BASE_TYPE]: DataJumpSpeedAvgKnots.type,
     [DataFlow.type]: DataAvgFlow.type,
     [DataGrit.type]: DataAvgGrit.type,
     [DataSatellite5BestSNR.type]: DataSatellite5BestSNRAvg.type,
@@ -1288,7 +1351,10 @@ export class DynamicDataLoader {
     }, []);
   }
 
-  private static getJumpSpeedUnitDataTypes(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] | null {
+  private static getJumpSpeedUnitDataTypes(
+    dataType: string,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): string[] | null {
     const mappings = this.getJumpSpeedUnitMappings(dataType, userUnitSettings);
     if (!mappings.length) {
       return null;

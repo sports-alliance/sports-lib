@@ -22,6 +22,8 @@ import {
   DataJumpScoreMax,
   DataJumpScoreMin,
   DataJumpSpeedAvg,
+  DataJumpSpeedAvgKilometersPerHour,
+  DataJumpSpeedAvgMilesPerHour,
   DataJumpSpeedMax,
   DataJumpSpeedMin
 } from './data.jump-stats';
@@ -77,6 +79,25 @@ describe('Jump stats display and unit behavior', () => {
     expect(new DataJumpScoreAvg(12).getDisplayValue()).toBe('12.0');
     expect(new DataJumpScoreMin(8.04).getDisplayValue()).toBe('8.0');
     expect(new DataJumpScoreMax(8.06).getDisplayValue()).toBe('8.1');
+  });
+
+  it('keeps jump speed identity for derived unit instances', () => {
+    const mphSettings: any = {
+      speedUnits: [DataSpeedMilesPerHour.type, DataSpeedKilometersPerHour.type],
+      swimPaceUnits: [],
+      paceUnits: [],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: 'metric'
+    };
+
+    const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedAvg(5), mphSettings);
+    expect(converted).toHaveLength(2);
+    expect(converted[0].getType()).toBe(DataJumpSpeedAvgMilesPerHour.type);
+    expect(converted[1].getType()).toBe(DataJumpSpeedAvgKilometersPerHour.type);
+    expect(converted[0].getDisplayUnit()).toBe('mph');
+    expect(converted[1].getDisplayUnit()).toBe('km/h');
   });
 
   it('keeps canonical jump type names and legacy aliases compatible', () => {

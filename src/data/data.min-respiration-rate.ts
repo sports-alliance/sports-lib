@@ -2,6 +2,6 @@ import { DataNumber } from './data.number';
 
 export class DataMinRespirationRate extends DataNumber {
   static type = 'Minimum Respiration Rate';
-  static aliases = ['Min Respiration Rate'];
+  static aliases = ['Min Respiration Rate', 'Respiration Rate Min'];
   static unit = 'br/min';
 }

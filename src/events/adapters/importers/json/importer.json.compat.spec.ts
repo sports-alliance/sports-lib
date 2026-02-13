@@ -3,6 +3,7 @@ import { ActivityTypes } from '../../../../activities/activity.types';
 import { DataAvgVAM } from '../../../../data/data.avg-vam';
 import { DataJumpHeightAvg } from '../../../../data/data.jump-stats';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
+import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
 
 describe('EventImporterJSON legacy type compatibility', () => {
   it('maps legacy stat keys to canonical types via DynamicDataLoader aliases', () => {
@@ -16,7 +17,8 @@ describe('EventImporterJSON legacy type compatibility', () => {
       stats: {
         'Avg VAM': 123,
         'Jump Height Avg': 1.5,
-        'Max HR Setting': 190
+        'Max HR Setting': 190,
+        'Respiration Rate Avg': 16
       },
       streams: [],
       laps: [],
@@ -28,5 +30,6 @@ describe('EventImporterJSON legacy type compatibility', () => {
     expect(activity.getStat(DataAvgVAM.type)?.getValue()).toBe(123);
     expect(activity.getStat(DataJumpHeightAvg.type)?.getValue()).toBe(1.5);
     expect(activity.getStat(DataMaxHRSetting.type)?.getValue()).toBe(190);
+    expect(activity.getStat(DataAvgRespirationRate.type)?.getValue()).toBe(16);
   });
 });

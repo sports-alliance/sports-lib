@@ -27,8 +27,20 @@ import {
   DataJumpHeightMin,
   DataJumpHeightMax,
   DataJumpSpeedAvg,
+  DataJumpSpeedAvgFeetPerSecond,
+  DataJumpSpeedAvgKilometersPerHour,
+  DataJumpSpeedAvgKnots,
+  DataJumpSpeedAvgMilesPerHour,
   DataJumpSpeedMin,
+  DataJumpSpeedMinFeetPerSecond,
+  DataJumpSpeedMinKilometersPerHour,
+  DataJumpSpeedMinKnots,
+  DataJumpSpeedMinMilesPerHour,
   DataJumpSpeedMax,
+  DataJumpSpeedMaxFeetPerSecond,
+  DataJumpSpeedMaxKilometersPerHour,
+  DataJumpSpeedMaxKnots,
+  DataJumpSpeedMaxMilesPerHour,
   DataJumpRotationsAvg,
   DataJumpRotationsMin,
   DataJumpRotationsMax,
@@ -36,12 +48,8 @@ import {
   DataJumpScoreMin,
   DataJumpScoreMax
 } from './data.jump-stats';
-import {
-  DataSpeedFeetPerSecond,
-  DataSpeedKilometersPerHour,
-  DataSpeedKnots,
-  DataSpeedMilesPerHour
-} from './data.speed';
+
+const getBaseTypeFromStatType = (type: string): string => type.replace(/^(Average|Minimum|Maximum)\s+/i, '');
 
 describe('DynamicDataLoader family mappings', () => {
   it('maps Flow and Grit to average families', () => {
@@ -108,16 +116,52 @@ describe('DynamicDataLoader family mappings', () => {
     });
   });
 
-  it('maps jump speed families in unit groups to standard speed unit targets', () => {
-    const jumpSpeedFamilyTypes = [DataJumpSpeedMin.type, DataJumpSpeedMax.type, DataJumpSpeedAvg.type];
+  it('maps jump speed families in unit groups to jump-specific unit targets', () => {
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedAvg.type][DataJumpSpeedAvgKilometersPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedAvg.type][DataJumpSpeedAvgMilesPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedAvg.type][DataJumpSpeedAvgFeetPerSecond.type]
+    ).toBeDefined();
+    expect(DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedAvg.type][DataJumpSpeedAvgKnots.type]).toBeDefined();
 
-    jumpSpeedFamilyTypes.forEach(jumpSpeedType => {
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedKilometersPerHour.type]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedMilesPerHour.type]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedFeetPerSecond.type]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpSpeedType][DataSpeedKnots.type]).toBeDefined();
-    });
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMin.type][DataJumpSpeedMinKilometersPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMin.type][DataJumpSpeedMinMilesPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMin.type][DataJumpSpeedMinFeetPerSecond.type]
+    ).toBeDefined();
+    expect(DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMin.type][DataJumpSpeedMinKnots.type]).toBeDefined();
+
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMax.type][DataJumpSpeedMaxKilometersPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMax.type][DataJumpSpeedMaxMilesPerHour.type]
+    ).toBeDefined();
+    expect(
+      DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMax.type][DataJumpSpeedMaxFeetPerSecond.type]
+    ).toBeDefined();
+    expect(DynamicDataLoader.dataTypeUnitGroups[DataJumpSpeedMax.type][DataJumpSpeedMaxKnots.type]).toBeDefined();
+  });
+
+  it('maps jump speed unit-derived families to jump-specific avg/min/max variants', () => {
+    const jumpSpeedMphBaseType = getBaseTypeFromStatType(DataJumpSpeedAvgMilesPerHour.type);
+    const jumpSpeedKphBaseType = getBaseTypeFromStatType(DataJumpSpeedAvgKilometersPerHour.type);
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[jumpSpeedMphBaseType]).toBe(DataJumpSpeedAvgMilesPerHour.type);
+    expect(DynamicDataLoader.dataTypeMinDataType[jumpSpeedMphBaseType]).toBe(DataJumpSpeedMinMilesPerHour.type);
+    expect(DynamicDataLoader.dataTypeMaxDataType[jumpSpeedMphBaseType]).toBe(DataJumpSpeedMaxMilesPerHour.type);
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[jumpSpeedKphBaseType]).toBe(DataJumpSpeedAvgKilometersPerHour.type);
+    expect(DynamicDataLoader.dataTypeMinDataType[jumpSpeedKphBaseType]).toBe(DataJumpSpeedMinKilometersPerHour.type);
+    expect(DynamicDataLoader.dataTypeMaxDataType[jumpSpeedKphBaseType]).toBe(DataJumpSpeedMaxKilometersPerHour.type);
   });
 
   it('maps jump distance family in unit groups to distance conversion targets', () => {

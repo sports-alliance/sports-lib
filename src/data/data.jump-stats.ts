@@ -1,5 +1,13 @@
 import { DataNumber } from './data.number';
-import { DataSpeed } from './data.speed';
+import {
+  DataSpeed,
+  DataSpeedFeetPerMinute,
+  DataSpeedFeetPerSecond,
+  DataSpeedKilometersPerHour,
+  DataSpeedKnots,
+  DataSpeedMetersPerMinute,
+  DataSpeedMilesPerHour
+} from './data.speed';
 import { DataDuration } from './data.duration';
 import { DataJumpDistance } from './data.jump-distance';
 
@@ -90,6 +98,186 @@ export class DataJumpSpeedAvg extends DataSpeed {
   static aliases = ['Jump Speed Avg'];
   constructor(value: number) {
     super(value);
+  }
+}
+
+export class DataJumpSpeedAvgKilometersPerHour extends DataSpeedKilometersPerHour {
+  static type = 'Average jump speed in kilometers per hour';
+  static aliases = ['Jump Speed Avg in kilometers per hour'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedAvgMilesPerHour extends DataSpeedMilesPerHour {
+  static type = 'Average jump speed in miles per hour';
+  static aliases = ['Jump Speed Avg in miles per hour'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedAvgFeetPerSecond extends DataSpeedFeetPerSecond {
+  static type = 'Average jump speed in feet per second';
+  static aliases = ['Jump Speed Avg in feet per second'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedAvgMetersPerMinute extends DataSpeedMetersPerMinute {
+  static type = 'Average jump speed in meters per minute';
+  static aliases = ['Jump Speed Avg in meters per minute'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedAvgFeetPerMinute extends DataSpeedFeetPerMinute {
+  static type = 'Average jump speed in feet per minute';
+  static aliases = ['Jump Speed Avg in feet per minute'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedAvgKnots extends DataSpeedKnots {
+  static type = 'Average jump speed in knots';
+  static aliases = ['Jump Speed Avg in knots'];
+  static displayType = DataJumpSpeedAvg.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinKilometersPerHour extends DataSpeedKilometersPerHour {
+  static type = 'Minimum jump speed in kilometers per hour';
+  static aliases = ['Jump Speed Min in kilometers per hour'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinMilesPerHour extends DataSpeedMilesPerHour {
+  static type = 'Minimum jump speed in miles per hour';
+  static aliases = ['Jump Speed Min in miles per hour'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinFeetPerSecond extends DataSpeedFeetPerSecond {
+  static type = 'Minimum jump speed in feet per second';
+  static aliases = ['Jump Speed Min in feet per second'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinMetersPerMinute extends DataSpeedMetersPerMinute {
+  static type = 'Minimum jump speed in meters per minute';
+  static aliases = ['Jump Speed Min in meters per minute'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinFeetPerMinute extends DataSpeedFeetPerMinute {
+  static type = 'Minimum jump speed in feet per minute';
+  static aliases = ['Jump Speed Min in feet per minute'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMinKnots extends DataSpeedKnots {
+  static type = 'Minimum jump speed in knots';
+  static aliases = ['Jump Speed Min in knots'];
+  static displayType = DataJumpSpeedMin.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxKilometersPerHour extends DataSpeedKilometersPerHour {
+  static type = 'Maximum jump speed in kilometers per hour';
+  static aliases = ['Jump Speed Max in kilometers per hour'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxMilesPerHour extends DataSpeedMilesPerHour {
+  static type = 'Maximum jump speed in miles per hour';
+  static aliases = ['Jump Speed Max in miles per hour'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxFeetPerSecond extends DataSpeedFeetPerSecond {
+  static type = 'Maximum jump speed in feet per second';
+  static aliases = ['Jump Speed Max in feet per second'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxMetersPerMinute extends DataSpeedMetersPerMinute {
+  static type = 'Maximum jump speed in meters per minute';
+  static aliases = ['Jump Speed Max in meters per minute'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxFeetPerMinute extends DataSpeedFeetPerMinute {
+  static type = 'Maximum jump speed in feet per minute';
+  static aliases = ['Jump Speed Max in feet per minute'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
+  }
+}
+
+export class DataJumpSpeedMaxKnots extends DataSpeedKnots {
+  static type = 'Maximum jump speed in knots';
+  static aliases = ['Jump Speed Max in knots'];
+  static displayType = DataJumpSpeedMax.type;
+
+  getDisplayType(): string {
+    return super.getDisplayType();
   }
 }
 

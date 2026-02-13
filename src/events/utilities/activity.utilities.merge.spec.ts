@@ -556,8 +556,24 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataPaceMin.type) as DataPaceMin).getValue()).toBe(305);
       });
 
+      it('should ignore non-finite Min Pace values', () => {
+        const a1 = createMockActivity({ [DataPaceMin.type]: new DataPaceMin(Infinity) });
+        const a2 = createMockActivity({ [DataPaceMin.type]: new DataPaceMin(305) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect((stats.find(s => s.getType() === DataPaceMin.type) as DataPaceMin).getValue()).toBe(305);
+      });
+
       it('should find Min Grade Adjusted Pace', () => {
         const a1 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(315) });
+        const a2 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(298) });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataGradeAdjustedPaceMin.type) as DataGradeAdjustedPaceMin).getValue()
+        ).toBe(298);
+      });
+
+      it('should ignore non-finite Min Grade Adjusted Pace values', () => {
+        const a1 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(Infinity) });
         const a2 = createMockActivity({ [DataGradeAdjustedPaceMin.type]: new DataGradeAdjustedPaceMin(298) });
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect(

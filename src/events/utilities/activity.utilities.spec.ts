@@ -21,8 +21,14 @@ import { FileType } from '../adapters/file-type.enum';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
+import { DataPaceMax } from '../../data/data.pace-max';
+import { DataPaceMin } from '../../data/data.pace-min';
 import { DataSpeedKilometersPerHour } from '../../data/data.speed';
 import { DataSwimPace } from '../../data/data.swim-pace';
+import { DataSwimPaceMax } from '../../data/data.swim-pace-max';
+import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
+import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
+import { DataGradeAdjustedPaceMin } from '../../data/data.grade-adjusted-pace-min';
 import { DataAscent } from '../../data/data.ascent';
 import { DataDescent } from '../../data/data.descent';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
@@ -511,6 +517,31 @@ describe('Activity Utilities', () => {
 
       // Verify Derived Base Stream (Swim Pace) IS present
       expect(activity.hasStreamData(DataSwimPace.type)).toBe(true);
+    });
+
+    it('should derive finite pace minimums from maximum speed even when minimum speed is zero', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataSpeed.type, [0, 3]));
+      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, [0, 4]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      const paceMin = activity.getStat(DataPaceMin.type) as DataPaceMin;
+      const paceMax = activity.getStat(DataPaceMax.type) as DataPaceMax;
+      const swimPaceMin = activity.getStat(DataSwimPaceMin.type) as DataSwimPaceMin;
+      const swimPaceMax = activity.getStat(DataSwimPaceMax.type) as DataSwimPaceMax;
+      const gapPaceMin = activity.getStat(DataGradeAdjustedPaceMin.type) as DataGradeAdjustedPaceMin;
+
+      expect(Number.isFinite(paceMin.getValue())).toBe(true);
+      expect(paceMin.getValue()).toBeCloseTo(333.3333333333, 8);
+      expect(paceMax.getValue()).toBe(Infinity);
+
+      expect(Number.isFinite(swimPaceMin.getValue())).toBe(true);
+      expect(swimPaceMin.getValue()).toBeCloseTo(33.3333333333, 8);
+      expect(swimPaceMax.getValue()).toBe(Infinity);
+
+      expect(Number.isFinite(gapPaceMin.getValue())).toBe(true);
+      expect(gapPaceMin.getValue()).toBeCloseTo(250, 8);
     });
 
     it('should generate DataDistanceMiles when generateUnitStreams = true', () => {

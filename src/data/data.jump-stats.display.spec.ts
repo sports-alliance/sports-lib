@@ -12,6 +12,9 @@ import {
   DataSpeedMilesPerHour
 } from './data.speed';
 import {
+  DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
   DataJumpHangTimeAvg,
   DataJumpHangTimeMax,
   DataJumpHangTimeMin,
@@ -24,6 +27,17 @@ import {
 } from './data.jump-stats';
 
 describe('Jump stats display and unit behavior', () => {
+  it('formats jump distance with jump distance precision', () => {
+    const jumpDistanceAvg = new DataJumpDistanceAvg(2);
+    const jumpDistanceMin = new DataJumpDistanceMin(1.2);
+    const jumpDistanceMax = new DataJumpDistanceMax(3.456);
+
+    expect(jumpDistanceAvg.getDisplayUnit()).toBe('m');
+    expect(jumpDistanceAvg.getDisplayValue()).toBe('2.00');
+    expect(jumpDistanceMin.getDisplayValue()).toBe('1.20');
+    expect(jumpDistanceMax.getDisplayValue()).toBe('3.46');
+  });
+
   it('formats jump speed with speed precision and converts to speed units', () => {
     const jumpSpeedAvg = new DataJumpSpeedAvg(6.2);
     const jumpSpeedMin = new DataJumpSpeedMin(5.4);

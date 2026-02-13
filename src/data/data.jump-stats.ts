@@ -1,6 +1,7 @@
 import { DataNumber } from './data.number';
 import { DataSpeed } from './data.speed';
 import { DataDuration } from './data.duration';
+import { DataJumpDistance } from './data.jump-distance';
 
 abstract class DataJumpHangTimeStat extends DataDuration {
   getDisplayValue(): string {
@@ -44,28 +45,25 @@ export class DataJumpHangTimeAvg extends DataJumpHangTimeStat {
   }
 }
 
-export class DataJumpDistanceMin extends DataNumber {
+export class DataJumpDistanceMin extends DataJumpDistance {
   static type = 'Minimum Jump Distance';
   static aliases = ['Jump Distance Min'];
-  static unit = 'm';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpDistanceMax extends DataNumber {
+export class DataJumpDistanceMax extends DataJumpDistance {
   static type = 'Maximum Jump Distance';
   static aliases = ['Jump Distance Max'];
-  static unit = 'm';
   constructor(value: number) {
     super(value);
   }
 }
 
-export class DataJumpDistanceAvg extends DataNumber {
+export class DataJumpDistanceAvg extends DataJumpDistance {
   static type = 'Average Jump Distance';
   static aliases = ['Jump Distance Avg'];
-  static unit = 'm';
   constructor(value: number) {
     super(value);
   }

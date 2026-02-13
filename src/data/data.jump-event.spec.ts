@@ -1,4 +1,4 @@
-import { DataJumpEvent, DataScore, DataRotations, JumpEventInterface } from './data.jump-event';
+import { DataJumpEvent, DataJumpScore, DataScore, DataRotations, JumpEventInterface } from './data.jump-event';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataDistance } from './data.distance';
 import { DataSpeed } from './data.speed';
@@ -12,7 +12,7 @@ describe('DataJumpEvent', () => {
   const jumpData: JumpEventInterface = {
     distance: new DataJumpDistance(5.5),
     height: new DataDistance(1.2),
-    score: new DataScore(85),
+    score: new DataJumpScore(85),
     hang_time: new DataDuration(0.8),
     position_lat: new DataLatitudeDegrees(40.7128),
     position_long: new DataLongitudeDegrees(-74.006),
@@ -81,7 +81,7 @@ describe('DataJumpEvent', () => {
     // Assertions check if properties are converted to Data objects
     expect(jumpEvent.jumpData.distance).toBeInstanceOf(DataJumpDistance);
     expect(jumpEvent.jumpData.distance.getValue()).toBe(5.5);
-    expect(jumpEvent.jumpData.score).toBeInstanceOf(DataScore);
+    expect(jumpEvent.jumpData.score).toBeInstanceOf(DataJumpScore);
     expect(jumpEvent.jumpData.score.getValue()).toBe(85);
     expect(jumpEvent.jumpData.speed).toBeInstanceOf(DataSpeed);
     expect(jumpEvent.jumpData.speed!.getValue()).toBe(15.2);
@@ -110,5 +110,20 @@ describe('DataJumpEvent', () => {
     expect(jumpEvent.jumpData.position_long?.getValue()).toBe(0);
     expect(jumpEvent.jumpData.speed?.getValue()).toBe(0);
     expect(jumpEvent.jumpData.rotations?.getValue()).toBe(0);
+  });
+
+  it('should format jump-event score with one decimal', () => {
+    const jumpEvent = new DataJumpEvent(timestamp, jumpData);
+
+    expect(jumpEvent.jumpData.score.getDisplayValue()).toBe('85.0');
+  });
+
+  it('should keep DataScore alias compatible with DataJumpScore', () => {
+    const scoreFromAlias = new DataScore(6.28);
+
+    expect(scoreFromAlias).toBeInstanceOf(DataJumpScore);
+    expect(scoreFromAlias.getDisplayValue()).toBe('6.3');
+    expect(DataScore).toBe(DataJumpScore);
+    expect(DataJumpScore.type).toBe('Jump Score');
   });
 });

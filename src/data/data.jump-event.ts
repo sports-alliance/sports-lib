@@ -7,9 +7,18 @@ import { DataLatitudeDegrees } from './data.latitude-degrees';
 import { DataLongitudeDegrees } from './data.longitude-degrees';
 import { DataJumpDistance } from './data.jump-distance';
 
-export class DataScore extends DataNumber {
-  static type = 'Score';
+export class DataJumpScore extends DataNumber {
+  static type = 'Jump Score';
+  static unit = '';
+  static aliases = ['Score'];
+
+  getDisplayValue(): string {
+    return this.getValue().toFixed(1);
+  }
 }
+
+/** @deprecated Use DataJumpScore instead. */
+export const DataScore = DataJumpScore;
 
 export class DataRotations extends DataNumber {
   static type = 'Rotations';
@@ -18,7 +27,7 @@ export class DataRotations extends DataNumber {
 export interface JumpEventInterface {
   distance: DataJumpDistance;
   height?: DataDistance;
-  score: DataScore;
+  score: DataJumpScore;
   hang_time?: DataDuration;
   position_lat?: DataLatitudeDegrees;
   position_long?: DataLongitudeDegrees;
@@ -54,7 +63,10 @@ export class DataJumpEvent extends DataEvent {
           : isFiniteNumber(data.height)
             ? new DataDistance(data.height)
             : undefined,
-      score: data.score instanceof DataScore ? data.score : new DataScore(data.score),
+      score:
+        data.score instanceof DataJumpScore
+          ? data.score
+          : new DataJumpScore(data.score),
       hang_time:
         data.hang_time instanceof DataDuration
           ? data.hang_time

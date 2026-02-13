@@ -339,7 +339,7 @@ import { DataEstSweatLoss } from './data.est-sweat-loss';
 import { DataFlow } from './data.flow';
 import { DataGrit } from './data.grit';
 import { DataJumpCount } from './data.jump-count';
-import { DataJumpEvent, DataScore, DataRotations } from './data.jump-event';
+import { DataJumpEvent, DataJumpScore, DataScore, DataRotations } from './data.jump-event';
 import { DataLeftPedalSmoothness } from './data.left-pedal-smoothness';
 import { DataLeftTorqueEffectiveness } from './data.left-torque-effectiveness';
 import { DataMaxRespirationRate } from './data.max-respiration-rate';
@@ -739,6 +739,7 @@ export const DataStore: any = {
   DataGrit,
   DataJumpCount,
   DataJumpEvent,
+  DataJumpScore,
   DataScore,
   DataRotations,
   DataLeftPedalSmoothness,

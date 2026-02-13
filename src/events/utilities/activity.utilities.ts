@@ -1567,10 +1567,7 @@ export class ActivityUtilities {
     activities.forEach(activity => {
       const activityMaxPace = activity.getStat(DataPaceMax.type);
       if (activityMaxPace) {
-        const value = Number(activityMaxPace.getValue());
-        if (Number.isFinite(value)) {
-          maxPace = Math.max(maxPace, value);
-        }
+        maxPace = Math.max(maxPace, <number>activityMaxPace.getValue());
       }
     });
     if (maxPace !== -Infinity) {
@@ -1597,10 +1594,7 @@ export class ActivityUtilities {
     activities.forEach(activity => {
       const activityMaxGradeAdjustedPace = activity.getStat(DataGradeAdjustedPaceMax.type);
       if (activityMaxGradeAdjustedPace) {
-        const value = Number(activityMaxGradeAdjustedPace.getValue());
-        if (Number.isFinite(value)) {
-          maxGradeAdjustedPace = Math.max(maxGradeAdjustedPace, value);
-        }
+        maxGradeAdjustedPace = Math.max(maxGradeAdjustedPace, <number>activityMaxGradeAdjustedPace.getValue());
       }
     });
     if (maxGradeAdjustedPace !== -Infinity) {
@@ -1627,10 +1621,7 @@ export class ActivityUtilities {
     activities.forEach(activity => {
       const activityMaxSwimPace = activity.getStat(DataSwimPaceMax.type);
       if (activityMaxSwimPace) {
-        const value = Number(activityMaxSwimPace.getValue());
-        if (Number.isFinite(value)) {
-          maxSwimPace = Math.max(maxSwimPace, value);
-        }
+        maxSwimPace = Math.max(maxSwimPace, <number>activityMaxSwimPace.getValue());
       }
     });
     if (maxSwimPace !== -Infinity) {

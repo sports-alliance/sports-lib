@@ -134,6 +134,22 @@ import { DataPaceMin, DataPaceMinMinutesPerMile } from './data.pace-min';
 import { DataPaceMax, DataPaceMaxMinutesPerMile } from './data.pace-max';
 import { DataPaceAvg, DataPaceAvgMinutesPerMile } from './data.pace-avg';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
+import {
+  DataEffortPace,
+  DataEffortPaceMinutesPerMile
+} from './data.effort-pace';
+import {
+  DataEffortPaceAvg,
+  DataEffortPaceAvgMinutesPerMile
+} from './data.effort-pace-avg';
+import {
+  DataEffortPaceMin,
+  DataEffortPaceMinMinutesPerMile
+} from './data.effort-pace-min';
+import {
+  DataEffortPaceMax,
+  DataEffortPaceMaxMinutesPerMile
+} from './data.effort-pace-max';
 import { DataFusedAltitude } from './data.fused-altitude';
 import { DataBatteryCharge } from './data.battery-charge';
 import { DataBatteryCurrent } from './data.battery-current';
@@ -186,7 +202,6 @@ import { DataStanceTimeBalanceLeft } from './data-stance-time-balance-left';
 import { DataGroundContactTimeBalanceLeft } from './data-ground-contact-time-balance-left';
 
 import { DataStepLength } from './data.step-length';
-import { DataEffortPace } from './data.effort-pace';
 import { DataVerticalRatio } from './data.vertical-ratio';
 import { DataVerticalRatioMin } from './data.vertical-ratio-min';
 import { DataVerticalRatioMax } from './data.vertical-ratio-max';
@@ -508,6 +523,10 @@ export const DataStore: any = {
   DataPaceMin,
   DataPaceMax,
   DataPaceAvg,
+  DataEffortPace,
+  DataEffortPaceMin,
+  DataEffortPaceMax,
+  DataEffortPaceAvg,
   DataGradeAdjustedPace,
   DataGradeAdjustedPaceMin,
   DataGradeAdjustedPaceMax,
@@ -592,6 +611,10 @@ export const DataStore: any = {
   DataPaceAvgMinutesPerMile,
   DataPaceMinMinutesPerMile,
   DataPaceMaxMinutesPerMile,
+  DataEffortPaceMinutesPerMile,
+  DataEffortPaceAvgMinutesPerMile,
+  DataEffortPaceMinMinutesPerMile,
+  DataEffortPaceMaxMinutesPerMile,
   DataGradeAdjustedPaceMinutesPerMile,
   DataGradeAdjustedPaceAvgMinutesPerMile,
   DataGradeAdjustedPaceMinMinutesPerMile,
@@ -653,7 +676,6 @@ export const DataStore: any = {
   DataStanceTimeBalanceRight,
   DataStanceTimeBalanceLeft,
   DataStepLength,
-  DataEffortPace,
   DataVerticalRatio,
   DataVerticalRatioMin,
   DataVerticalRatioMax,
@@ -815,6 +837,11 @@ export class DynamicDataLoader {
       max: DataMaxRespirationRate.type,
       avg: DataAvgRespirationRate.type
     },
+    [DataEffortPace.type]: {
+      min: DataEffortPaceMin.type,
+      max: DataEffortPaceMax.type,
+      avg: DataEffortPaceAvg.type
+    },
     [DataJumpDistance.type]: {
       min: DataJumpDistanceMin.type,
       max: DataJumpDistanceMax.type,
@@ -874,6 +901,25 @@ export class DynamicDataLoader {
       [DataSpeedMetersPerMinute.type]: DataJumpSpeedMaxMetersPerMinute.type,
       [DataSpeedFeetPerMinute.type]: DataJumpSpeedMaxFeetPerMinute.type,
       [DataSpeedKnots.type]: DataJumpSpeedMaxKnots.type
+    }
+  };
+
+  private static readonly effortPaceUnitVariantTypes: Record<string, Record<string, string>> = {
+    [DataEffortPace.type]: {
+      [DataPace.type]: DataEffortPace.type,
+      [DataPaceMinutesPerMile.type]: DataEffortPaceMinutesPerMile.type
+    },
+    [DataEffortPaceAvg.type]: {
+      [DataPace.type]: DataEffortPaceAvg.type,
+      [DataPaceMinutesPerMile.type]: DataEffortPaceAvgMinutesPerMile.type
+    },
+    [DataEffortPaceMin.type]: {
+      [DataPace.type]: DataEffortPaceMin.type,
+      [DataPaceMinutesPerMile.type]: DataEffortPaceMinMinutesPerMile.type
+    },
+    [DataEffortPaceMax.type]: {
+      [DataPace.type]: DataEffortPaceMax.type,
+      [DataPaceMinutesPerMile.type]: DataEffortPaceMaxMinutesPerMile.type
     }
   };
 
@@ -959,6 +1005,18 @@ export class DynamicDataLoader {
     },
     [DataPace.type]: {
       [DataPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataEffortPace.type]: {
+      [DataEffortPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataEffortPaceAvg.type]: {
+      [DataEffortPaceAvgMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataEffortPaceMin.type]: {
+      [DataEffortPaceMinMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
+    },
+    [DataEffortPaceMax.type]: {
+      [DataEffortPaceMaxMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
     },
     [DataGradeAdjustedPace.type]: {
       [DataGradeAdjustedPaceMinutesPerMile.type]: convertPaceToPaceInMinutesPerMile
@@ -1060,6 +1118,8 @@ export class DynamicDataLoader {
 
     [DataPace.type]: DataPaceMin.type,
     [DataPaceMinutesPerMile.type]: DataPaceMinMinutesPerMile.type,
+    [DataEffortPace.type]: DataEffortPaceMin.type,
+    [DataEffortPaceMinutesPerMile.type]: DataEffortPaceMinMinutesPerMile.type,
 
     [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceMin.type,
     [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceMinMinutesPerMile.type,
@@ -1113,6 +1173,8 @@ export class DynamicDataLoader {
 
     [DataPace.type]: DataPaceMax.type,
     [DataPaceMinutesPerMile.type]: DataPaceMaxMinutesPerMile.type,
+    [DataEffortPace.type]: DataEffortPaceMax.type,
+    [DataEffortPaceMinutesPerMile.type]: DataEffortPaceMaxMinutesPerMile.type,
 
     [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceMax.type,
     [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceMaxMinutesPerMile.type,
@@ -1166,6 +1228,8 @@ export class DynamicDataLoader {
 
     [DataPace.type]: DataPaceAvg.type,
     [DataPaceMinutesPerMile.type]: DataPaceAvgMinutesPerMile.type,
+    [DataEffortPace.type]: DataEffortPaceAvg.type,
+    [DataEffortPaceMinutesPerMile.type]: DataEffortPaceAvgMinutesPerMile.type,
 
     [DataGradeAdjustedPace.type]: DataGradeAdjustedPaceAvg.type,
     [DataGradeAdjustedPaceMinutesPerMile.type]: DataGradeAdjustedPaceAvgMinutesPerMile.type,
@@ -1376,6 +1440,51 @@ export class DynamicDataLoader {
     );
   }
 
+  private static getEffortPaceUnitMappings(
+    dataType: string,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): { targetDataType: string; sourceUnitType: string }[] {
+    if (!userUnitSettings) {
+      return [];
+    }
+    const effortPaceUnitMap = DynamicDataLoader.effortPaceUnitVariantTypes[dataType];
+    if (!effortPaceUnitMap) {
+      return [];
+    }
+    return userUnitSettings.paceUnits.reduce((accu: { targetDataType: string; sourceUnitType: string }[], unit) => {
+      const targetDataType = effortPaceUnitMap[unit];
+      if (!targetDataType) {
+        return accu;
+      }
+      accu.push({ targetDataType, sourceUnitType: unit });
+      return accu;
+    }, []);
+  }
+
+  private static getEffortPaceUnitDataTypes(
+    dataType: string,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): string[] | null {
+    const mappings = this.getEffortPaceUnitMappings(dataType, userUnitSettings);
+    if (!mappings.length) {
+      return null;
+    }
+    return mappings.map(mapping => mapping.targetDataType);
+  }
+
+  private static getEffortPaceUnitDataFromDataInstance(
+    data: DataInterface,
+    userUnitSettings?: UserUnitSettingsInterface
+  ): DataInterface[] | null {
+    const mappings = this.getEffortPaceUnitMappings(data.getType(), userUnitSettings);
+    if (!mappings.length) {
+      return null;
+    }
+    return mappings.map(mapping =>
+      this.getDataInstanceFromDataType(mapping.targetDataType, data.getValue(mapping.sourceUnitType))
+    );
+  }
+
   /**
    * This get's the basic data types for the charts depending or not on the user datatype settings
    * There are no unit specific datatypes here so if the user has selected pace it implies metric
@@ -1438,6 +1547,20 @@ export class DynamicDataLoader {
     );
     unitBasedDataTypes = unitBasedDataTypes.concat(
       dataTypes.reduce((accu: string[], dataType: string) => {
+        const effortPaceDataTypes = this.getEffortPaceUnitDataTypes(dataType, userUnitSettings);
+        if (!effortPaceDataTypes) {
+          return accu;
+        }
+        effortPaceDataTypes.forEach(effortPaceDataType => {
+          if (accu.indexOf(effortPaceDataType) === -1) {
+            accu.push(effortPaceDataType);
+          }
+        });
+        return accu;
+      }, [])
+    );
+    unitBasedDataTypes = unitBasedDataTypes.concat(
+      dataTypes.reduce((accu: string[], dataType: string) => {
         const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
         if (!distanceDataType || accu.indexOf(distanceDataType) !== -1) {
           return accu;
@@ -1465,6 +1588,10 @@ export class DynamicDataLoader {
     const jumpSpeedDataTypes = this.getJumpSpeedUnitDataTypes(dataType, userUnitSettings);
     if (jumpSpeedDataTypes) {
       return jumpSpeedDataTypes;
+    }
+    const effortPaceDataTypes = this.getEffortPaceUnitDataTypes(dataType, userUnitSettings);
+    if (effortPaceDataTypes) {
+      return effortPaceDataTypes;
     }
     if (dataType === DataSpeed.type) {
       return userUnitSettings.speedUnits;
@@ -1519,6 +1646,10 @@ export class DynamicDataLoader {
     const jumpSpeedData = this.getJumpSpeedUnitDataFromDataInstance(data, userUnitSettings);
     if (jumpSpeedData) {
       return jumpSpeedData;
+    }
+    const effortPaceData = this.getEffortPaceUnitDataFromDataInstance(data, userUnitSettings);
+    if (effortPaceData) {
+      return effortPaceData;
     }
     switch (data.getType()) {
       // Speed

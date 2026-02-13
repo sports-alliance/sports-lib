@@ -109,6 +109,10 @@ import { DataPaceMax, DataPaceMaxMinutesPerMile } from '../../data/data.pace-max
 import { DataPace } from '../../data/data.pace';
 import { DataPaceMin, DataPaceMinMinutesPerMile } from '../../data/data.pace-min';
 import { DataPaceAvg, DataPaceAvgMinutesPerMile } from '../../data/data.pace-avg';
+import { DataEffortPace } from '../../data/data.effort-pace';
+import { DataEffortPaceAvg, DataEffortPaceAvgMinutesPerMile } from '../../data/data.effort-pace-avg';
+import { DataEffortPaceMin, DataEffortPaceMinMinutesPerMile } from '../../data/data.effort-pace-min';
+import { DataEffortPaceMax, DataEffortPaceMaxMinutesPerMile } from '../../data/data.effort-pace-max';
 import { DataBatteryCharge } from '../../data/data.battery-charge';
 import { DataBatteryConsumption } from '../../data/data.battery-consumption';
 import { DataBatteryLifeEstimation } from '../../data/data.battery-life-estimation';
@@ -823,6 +827,7 @@ export class ActivityUtilities {
     let averageSpeed = 0;
     let averageGradeAdjustedSpeed = 0;
     let averagePace = 0;
+    let averageEffortPace = 0;
     let averageGradeAdjustedPace = 0;
     let averageSwimPace = 0;
     let averageTemperature = 0;
@@ -988,6 +993,20 @@ export class ActivityUtilities {
     });
     if (averagePace) {
       stats.push(new DataPaceAvg(averagePace));
+    }
+
+    // Avg Avg Effort Pace
+    activities.forEach(activity => {
+      const activityAvgEffortPace = activity.getStat(DataEffortPaceAvg.type);
+      if (activityAvgEffortPace) {
+        // The below will fallback for 0
+        averageEffortPace = averageEffortPace
+          ? (averageEffortPace + <number>activityAvgEffortPace.getValue()) / 2
+          : <number>activityAvgEffortPace.getValue();
+      }
+    });
+    if (averageEffortPace) {
+      stats.push(new DataEffortPaceAvg(averageEffortPace));
     }
 
     // Avg Avg GAP Pace
@@ -1587,6 +1606,33 @@ export class ActivityUtilities {
     });
     if (minPace !== Infinity) {
       stats.push(new DataPaceMin(minPace));
+    }
+
+    // Max Effort Pace
+    let maxEffortPace = -Infinity;
+    activities.forEach(activity => {
+      const activityMaxEffortPace = activity.getStat(DataEffortPaceMax.type);
+      if (activityMaxEffortPace) {
+        maxEffortPace = Math.max(maxEffortPace, <number>activityMaxEffortPace.getValue());
+      }
+    });
+    if (maxEffortPace !== -Infinity) {
+      stats.push(new DataEffortPaceMax(maxEffortPace));
+    }
+
+    // Min Effort Pace
+    let minEffortPace = Infinity;
+    activities.forEach(activity => {
+      const activityMinEffortPace = activity.getStat(DataEffortPaceMin.type);
+      if (activityMinEffortPace) {
+        const value = Number(activityMinEffortPace.getValue());
+        if (Number.isFinite(value)) {
+          minEffortPace = Math.min(minEffortPace, value);
+        }
+      }
+    });
+    if (minEffortPace !== Infinity) {
+      stats.push(new DataEffortPaceMin(minEffortPace));
     }
 
     // Max Grade Adjusted Pace
@@ -2956,6 +3002,19 @@ export class ActivityUtilities {
       activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type)));
     }
 
+    // Effort Pace Max
+    if (!activity.getStat(DataEffortPaceMax.type) && activity.hasStreamData(DataEffortPace.type)) {
+      activity.addStat(new DataEffortPaceMax(this.getDataTypeMax(activity, DataEffortPace.type)));
+    }
+    // Effort Pace Min
+    if (!activity.getStat(DataEffortPaceMin.type) && activity.hasStreamData(DataEffortPace.type)) {
+      activity.addStat(new DataEffortPaceMin(this.getDataTypeMin(activity, DataEffortPace.type)));
+    }
+    // Effort Pace Avg
+    if (!activity.getStat(DataEffortPaceAvg.type) && activity.hasStreamData(DataEffortPace.type)) {
+      activity.addStat(new DataEffortPaceAvg(this.getDataTypeAvg(activity, DataEffortPace.type)));
+    }
+
     // Grade Adjusted Speed Max
     if (!activity.getStat(DataGradeAdjustedSpeedMax.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
       activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type)));
@@ -3332,6 +3391,31 @@ export class ActivityUtilities {
       const paceAvg = activity.getStat(DataPaceAvg.type);
       if (paceAvg) {
         activity.addStat(new DataPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>paceAvg.getValue())));
+      }
+    }
+    // Effort Pace
+    if (!activity.getStat(DataEffortPaceMaxMinutesPerMile.type)) {
+      const effortPaceMax = activity.getStat(DataEffortPaceMax.type);
+      if (effortPaceMax) {
+        activity.addStat(
+          new DataEffortPaceMaxMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>effortPaceMax.getValue()))
+        );
+      }
+    }
+    if (!activity.getStat(DataEffortPaceMinMinutesPerMile.type)) {
+      const effortPaceMin = activity.getStat(DataEffortPaceMin.type);
+      if (effortPaceMin) {
+        activity.addStat(
+          new DataEffortPaceMinMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>effortPaceMin.getValue()))
+        );
+      }
+    }
+    if (!activity.getStat(DataEffortPaceAvgMinutesPerMile.type)) {
+      const effortPaceAvg = activity.getStat(DataEffortPaceAvg.type);
+      if (effortPaceAvg) {
+        activity.addStat(
+          new DataEffortPaceAvgMinutesPerMile(convertPaceToPaceInMinutesPerMile(<number>effortPaceAvg.getValue()))
+        );
       }
     }
     // Grade Adjusted Pace

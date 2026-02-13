@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EventImporterFIT } from './importer.fit';
 import { DataMovingTime } from '../../../../data/data.moving-time';
+import { DataEffortPaceAvg } from '../../../../data/data.effort-pace-avg';
+import { DataEffortPaceMin } from '../../../../data/data.effort-pace-min';
+import { DataEffortPaceMax } from '../../../../data/data.effort-pace-max';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataDepthMax } from '../../../../data/data.depth-max';
 import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
@@ -15,6 +18,7 @@ import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-t
 import { DataGradeAvg } from '../../../../data/data.grade-avg';
 import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataGradeMax } from '../../../../data/data.grade-max';
+import { convertSpeedToPace } from '../../../utilities/helpers';
 
 describe('EventImporterFIT session stats mapping', () => {
   const toArrayBuffer = (filePath: string): ArrayBuffer => {
@@ -42,9 +46,43 @@ describe('EventImporterFIT session stats mapping', () => {
     const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitFilePath));
     const activity = event.getFirstActivity();
 
-    const effortPace = activity.getStat(DataEffortPace.type);
+    const effortPace = activity.getStat(DataEffortPaceAvg.type);
     expect(effortPace).toBeDefined();
-    expect(effortPace!.getValue()).toBeCloseTo(3.412, 3);
+    expect(effortPace!.getValue()).toBeCloseTo(convertSpeedToPace(3.412), 3);
+  });
+
+  it('should parse Effort Pace stream and stats for 2026-01-31_10-51_2.fit', async () => {
+    const fitFilePath = path.join(__dirname, '../../../../../samples/fit/2026-01-31_10-51_2.fit');
+    if (!fs.existsSync(fitFilePath)) {
+      console.warn(`Sample file not found at ${fitFilePath}. Skipping test.`);
+      return;
+    }
+
+    const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitFilePath));
+    const activity = event.getFirstActivity();
+
+    const effortPaceStream = activity
+      .getStreamData(DataEffortPace.type)
+      .filter((value): value is number => Number.isFinite(value));
+
+    const effortPaceAvg = activity.getStat(DataEffortPaceAvg.type);
+    const effortPaceMin = activity.getStat(DataEffortPaceMin.type);
+    const effortPaceMax = activity.getStat(DataEffortPaceMax.type);
+
+    expect(effortPaceStream.length).toBeGreaterThan(3000);
+    expect(effortPaceAvg).toBeDefined();
+    expect(effortPaceMin).toBeDefined();
+    expect(effortPaceMax).toBeDefined();
+
+    const minValue = Number(effortPaceMin!.getValue());
+    const avgValue = Number(effortPaceAvg!.getValue());
+    const maxValue = Number(effortPaceMax!.getValue());
+
+    expect(Number.isFinite(minValue)).toBe(true);
+    expect(Number.isFinite(avgValue)).toBe(true);
+    expect(Number.isFinite(maxValue)).toBe(true);
+    expect(minValue).toBeLessThanOrEqual(avgValue);
+    expect(avgValue).toBeLessThanOrEqual(maxValue);
   });
 
   it('should map session max_depth to Maximum Depth stat', async () => {

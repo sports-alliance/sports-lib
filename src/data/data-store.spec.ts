@@ -8,6 +8,10 @@ import {
   DataSpeed
 } from './data.speed';
 import { DataPace, DataPaceMinutesPerMile } from './data.pace';
+import { DataEffortPace, DataEffortPaceMinutesPerMile } from './data.effort-pace';
+import { DataEffortPaceAvg, DataEffortPaceAvgMinutesPerMile } from './data.effort-pace-avg';
+import { DataEffortPaceMin, DataEffortPaceMinMinutesPerMile } from './data.effort-pace-min';
+import { DataEffortPaceMax, DataEffortPaceMaxMinutesPerMile } from './data.effort-pace-max';
 import { DataSwimPace, DataSwimPaceMinutesPer100Yard } from './data.swim-pace';
 import {
   DataGradeAdjustedSpeedFeetPerMinute,
@@ -68,6 +72,10 @@ describe('DataStore', () => {
     DataSpeedMetersPerMinute.type,
     DataSpeedKnots.type,
     DataPaceMinutesPerMile.type,
+    DataEffortPaceMinutesPerMile.type,
+    DataEffortPaceAvgMinutesPerMile.type,
+    DataEffortPaceMinMinutesPerMile.type,
+    DataEffortPaceMaxMinutesPerMile.type,
     DataSwimPaceMinutesPer100Yard.type,
     DataGradeAdjustedSpeedKilometersPerHour.type,
     DataGradeAdjustedSpeedMilesPerHour.type,
@@ -184,6 +192,37 @@ describe('DataStore', () => {
         DataJumpSpeedMinKilometersPerHour.type,
         DataJumpSpeedMaxMilesPerHour.type,
         DataJumpSpeedMaxKilometersPerHour.type
+      ]);
+    });
+
+    it('should include effort pace unit variant data types from paceUnits', () => {
+      const settings: any = {
+        speedUnits: [],
+        swimPaceUnits: [],
+        paceUnits: [DataPace.type, DataPaceMinutesPerMile.type],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: DistanceUnits.Metric,
+        elevationUnits: [],
+        temperatureUnits: [],
+        weightUnits: []
+      };
+
+      const result = DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
+        [DataEffortPace.type, DataEffortPaceAvg.type, DataEffortPaceMin.type, DataEffortPaceMax.type],
+        settings
+      );
+
+      expect(result).toEqual([
+        DataEffortPace.type,
+        DataEffortPaceMinutesPerMile.type,
+        DataEffortPaceAvg.type,
+        DataEffortPaceAvgMinutesPerMile.type,
+        DataEffortPaceMin.type,
+        DataEffortPaceMinMinutesPerMile.type,
+        DataEffortPaceMax.type,
+        DataEffortPaceMaxMinutesPerMile.type
       ]);
     });
   });
@@ -429,6 +468,50 @@ describe('DataStore', () => {
       expect(DynamicDataLoader.getDataInstanceFromDataType('Jump Speed Max in miles per hour', 5).getType()).toBe(
         DataJumpSpeedMaxMilesPerHour.type
       );
+    });
+  });
+
+  describe('effort pace unit conversion', () => {
+    const paceSettings: any = {
+      speedUnits: [],
+      swimPaceUnits: [],
+      paceUnits: [DataPace.type, DataPaceMinutesPerMile.type],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: DistanceUnits.Metric,
+      elevationUnits: [],
+      temperatureUnits: [],
+      weightUnits: []
+    };
+
+    it('maps effort pace family to pace-based unit variants', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataEffortPace.type, paceSettings)).toEqual([
+        DataEffortPace.type,
+        DataEffortPaceMinutesPerMile.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataEffortPaceAvg.type, paceSettings)).toEqual([
+        DataEffortPaceAvg.type,
+        DataEffortPaceAvgMinutesPerMile.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataEffortPaceMin.type, paceSettings)).toEqual([
+        DataEffortPaceMin.type,
+        DataEffortPaceMinMinutesPerMile.type
+      ]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataEffortPaceMax.type, paceSettings)).toEqual([
+        DataEffortPaceMax.type,
+        DataEffortPaceMaxMinutesPerMile.type
+      ]);
+    });
+
+    it('returns effort pace avg unit-based data instances using paceUnits', () => {
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataEffortPaceAvg(300), paceSettings);
+
+      expect(converted).toHaveLength(2);
+      expect(converted[0].getType()).toBe(DataEffortPaceAvg.type);
+      expect(converted[1].getType()).toBe(DataEffortPaceAvgMinutesPerMile.type);
+      expect(converted[0].getDisplayUnit()).toBe('min/km');
+      expect(converted[1].getDisplayUnit()).toBe('min/m');
     });
   });
 });

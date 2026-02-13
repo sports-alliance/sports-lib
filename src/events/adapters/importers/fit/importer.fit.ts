@@ -29,7 +29,7 @@ import { DataHeartRateMin } from '../../../../data/data.heart-rate-min';
 import { DataPowerMin } from '../../../../data/data.power-min';
 import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { FITSampleMapper } from './importer.fit.mapper';
-import { isNumber, isNumberOrString } from '../../../utilities/helpers';
+import { convertSpeedToPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
@@ -100,7 +100,7 @@ import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-positi
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataStanceTime } from '../../../../data/data.stance-time';
 import { DataDepthMax } from '../../../../data/data.depth-max';
-import { DataEffortPace } from '../../../../data/data.effort-pace';
+import { DataEffortPaceAvg } from '../../../../data/data.effort-pace-avg';
 import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
 import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
 
@@ -1387,9 +1387,12 @@ export class EventImporterFIT {
       stats.push(new DataSpeedMax(maxSpeed));
     }
 
-    const avgEffortPace = getStatValue(object, ['Effort Pace', 'effort_pace']);
-    if (avgEffortPace !== null) {
-      stats.push(new DataEffortPace(avgEffortPace));
+    const avgEffortSpeed = getStatValue(object, ['Effort Pace', 'effort_pace']);
+    if (avgEffortSpeed !== null && avgEffortSpeed > 0) {
+      const avgEffortPace = convertSpeedToPace(avgEffortSpeed);
+      if (Number.isFinite(avgEffortPace)) {
+        stats.push(new DataEffortPaceAvg(avgEffortPace));
+      }
     }
 
     // Temperature

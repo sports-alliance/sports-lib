@@ -11,7 +11,7 @@ import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { DataFormPower } from '../../../../data/data.form-power';
 import { DataLegStiffness } from '../../../../data/data.leg-stiffness';
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
-import { isNumber } from '../../../utilities/helpers';
+import { convertSpeedToPace, isNumber } from '../../../utilities/helpers';
 import { DataAccumulatedPower } from '../../../../data/data.accumulated-power';
 import { DataStrydAltitude } from '../../../../data/data.stryd-altitude';
 import { DataStrydDistance } from '../../../../data/data.stryd-distance';
@@ -279,7 +279,12 @@ export const FITSampleMapper: {
   {
     dataType: DataEffortPace.type,
     getSampleValue: (sample: any) => {
-      return sample['Effort Pace'];
+      if (!isNumber(sample['Effort Pace']) || sample['Effort Pace'] <= 0) {
+        return null;
+      }
+
+      const effortPace = convertSpeedToPace(sample['Effort Pace']);
+      return Number.isFinite(effortPace) ? effortPace : null;
     }
   },
   {

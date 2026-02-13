@@ -3,7 +3,9 @@ import * as path from 'path';
 import { FITSampleMapper } from './importer.fit.mapper';
 import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
+import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { EventImporterFIT } from './importer.fit';
+import { convertSpeedToPace } from '../../../utilities/helpers';
 
 describe('FITSampleMapper', () => {
   it('should map Ground Time as milliseconds without scaling', () => {
@@ -66,5 +68,21 @@ describe('FITSampleMapper', () => {
     expect(values.length).toBeGreaterThan(0);
     expect(values[0]).toBe(1216);
     expect(values[0]).toBeGreaterThan(100);
+  });
+
+  it('should map Effort Pace from speed (m/s) to pace (min/km)', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataEffortPace.type);
+    expect(mapper).toBeDefined();
+
+    const mapped = mapper!.getSampleValue({ 'Effort Pace': 3.412 });
+    expect(mapped).toBeCloseTo(convertSpeedToPace(3.412), 6);
+  });
+
+  it('should map non-positive Effort Pace speed values to null', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataEffortPace.type);
+    expect(mapper).toBeDefined();
+
+    expect(mapper!.getSampleValue({ 'Effort Pace': 0 })).toBeNull();
+    expect(mapper!.getSampleValue({ 'Effort Pace': -1 })).toBeNull();
   });
 });

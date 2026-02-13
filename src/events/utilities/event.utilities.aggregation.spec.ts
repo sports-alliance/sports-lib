@@ -26,6 +26,12 @@ import { DataTemperatureMin } from '../../data/data.temperature-min';
 import { DataAltitudeAvg } from '../../data/data.altitude-avg';
 import { DataGradeAdjustedPace } from '../../data/data.grade-adjusted-pace';
 import { DataPace } from '../../data/data.pace';
+import { DataDuration } from '../../data/data.duration';
+import { DataPause } from '../../data/data.pause';
+import { DataDistance } from '../../data/data.distance';
+import { DataEffortPaceAvg } from '../../data/data.effort-pace-avg';
+import { DataEffortPaceMin } from '../../data/data.effort-pace-min';
+import { DataEffortPaceMax } from '../../data/data.effort-pace-max';
 
 describe('EventUtilities Power Curve Aggregation', () => {
   const createMockActivity = (powerValues: number[], weight?: number): Activity => {
@@ -222,6 +228,42 @@ describe('EventUtilities Power Curve Aggregation', () => {
       ].filter(v => Number.isFinite(v));
       const expectedAltAvg = altitudeVals.reduce((sum, v) => sum + v, 0) / altitudeVals.length;
       expect(getStat(DataAltitudeAvg.type).getValue()).toBe(expectedAltAvg);
+    });
+
+    it('aggregates effort pace min/max/avg into merged events', () => {
+      const creator = { toJSON: () => ({}) } as any;
+      const createActivity = (
+        startDate: Date,
+        avgEffortPace: number,
+        minEffortPace: number,
+        maxEffortPace: number
+      ): Activity => {
+        // @ts-ignore
+        const activity = new Activity(startDate, new Date(startDate.getTime() + 3600 * 1000), ActivityTypes.Running, creator);
+        activity.addStat(new DataDuration(3600));
+        activity.addStat(new DataPause(0));
+        activity.addStat(new DataDistance(10000));
+        activity.addStat(new DataEffortPaceAvg(avgEffortPace));
+        activity.addStat(new DataEffortPaceMin(minEffortPace));
+        activity.addStat(new DataEffortPaceMax(maxEffortPace));
+        return activity;
+      };
+
+      const activityA = createActivity(new Date('2026-01-01T10:00:00.000Z'), 300, 270, 340);
+      const activityB = createActivity(new Date('2026-01-01T12:00:00.000Z'), 330, 290, 360);
+
+      // @ts-ignore
+      const eventA = new Event('Event A', activityA.startDate, activityA.endDate, 'fit', 0, 'a', true);
+      // @ts-ignore
+      const eventB = new Event('Event B', activityB.startDate, activityB.endDate, 'fit', 0, 'b', true);
+      eventA.addActivities([activityA]);
+      eventB.addActivities([activityB]);
+
+      const merged = EventUtilities.mergeEvents([eventA, eventB]);
+
+      expect(merged.getStat(DataEffortPaceAvg.type)?.getValue()).toBe(315);
+      expect(merged.getStat(DataEffortPaceMin.type)?.getValue()).toBe(270);
+      expect(merged.getStat(DataEffortPaceMax.type)?.getValue()).toBe(360);
     });
   });
 });

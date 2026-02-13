@@ -7,6 +7,46 @@ import { DataVerticalOscillation } from './data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from './data.vertical-oscillation-avg';
 import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
 import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
+import {
+  DataVerticalSpeed,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMilesPerHour
+} from './data.vertical-speed';
+import {
+  DataVerticalSpeedAvg,
+  DataVerticalSpeedAvgFeetPerSecond,
+  DataVerticalSpeedAvgMetersPerMinute,
+  DataVerticalSpeedAvgFeetPerMinute,
+  DataVerticalSpeedAvgMetersPerHour,
+  DataVerticalSpeedAvgFeetPerHour,
+  DataVerticalSpeedAvgKilometerPerHour,
+  DataVerticalSpeedAvgMilesPerHour
+} from './data.vertical-speed-avg';
+import {
+  DataVerticalSpeedMin,
+  DataVerticalSpeedMinFeetPerSecond,
+  DataVerticalSpeedMinMetersPerMinute,
+  DataVerticalSpeedMinFeetPerMinute,
+  DataVerticalSpeedMinMetersPerHour,
+  DataVerticalSpeedMinFeetPerHour,
+  DataVerticalSpeedMinKilometerPerHour,
+  DataVerticalSpeedMinMilesPerHour
+} from './data.vertical-speed-min';
+import {
+  DataVerticalSpeedMax,
+  DataVerticalSpeedMaxFeetPerSecond,
+  DataVerticalSpeedMaxMetersPerMinute,
+  DataVerticalSpeedMaxFeetPerMinute,
+  DataVerticalSpeedMaxMetersPerHour,
+  DataVerticalSpeedMaxFeetPerHour,
+  DataVerticalSpeedMaxKilometerPerHour,
+  DataVerticalSpeedMaxMilesPerHour
+} from './data.vertical-speed-max';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataGNSSDistance } from './data.gnss-distance';
@@ -61,6 +101,82 @@ describe('DynamicDataLoader family mappings', () => {
     expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalOscillation.type]).toBe(DataVerticalOscillationAvg.type);
     expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalOscillation.type]).toBe(DataVerticalOscillationMin.type);
     expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalOscillation.type]).toBe(DataVerticalOscillationMax.type);
+  });
+
+  it('maps Vertical Speed family and unit-derived variants to avg/min/max canonical names', () => {
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeed.type]).toBe(DataVerticalSpeedAvg.type);
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeed.type]).toBe(DataVerticalSpeedMin.type);
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeed.type]).toBe(DataVerticalSpeedMax.type);
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedFeetPerSecond.type]).toBe(
+      DataVerticalSpeedAvgFeetPerSecond.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedFeetPerSecond.type]).toBe(
+      DataVerticalSpeedMinFeetPerSecond.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedFeetPerSecond.type]).toBe(
+      DataVerticalSpeedMaxFeetPerSecond.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedMetersPerMinute.type]).toBe(
+      DataVerticalSpeedAvgMetersPerMinute.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedMetersPerMinute.type]).toBe(
+      DataVerticalSpeedMinMetersPerMinute.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedMetersPerMinute.type]).toBe(
+      DataVerticalSpeedMaxMetersPerMinute.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedFeetPerMinute.type]).toBe(
+      DataVerticalSpeedAvgFeetPerMinute.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedFeetPerMinute.type]).toBe(
+      DataVerticalSpeedMinFeetPerMinute.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedFeetPerMinute.type]).toBe(
+      DataVerticalSpeedMaxFeetPerMinute.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedMetersPerHour.type]).toBe(
+      DataVerticalSpeedAvgMetersPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedMetersPerHour.type]).toBe(
+      DataVerticalSpeedMinMetersPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedMetersPerHour.type]).toBe(
+      DataVerticalSpeedMaxMetersPerHour.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedFeetPerHour.type]).toBe(
+      DataVerticalSpeedAvgFeetPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedFeetPerHour.type]).toBe(
+      DataVerticalSpeedMinFeetPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedFeetPerHour.type]).toBe(
+      DataVerticalSpeedMaxFeetPerHour.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedKilometerPerHour.type]).toBe(
+      DataVerticalSpeedAvgKilometerPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedKilometerPerHour.type]).toBe(
+      DataVerticalSpeedMinKilometerPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedKilometerPerHour.type]).toBe(
+      DataVerticalSpeedMaxKilometerPerHour.type
+    );
+
+    expect(DynamicDataLoader.dataTypeAvgDataType[DataVerticalSpeedMilesPerHour.type]).toBe(
+      DataVerticalSpeedAvgMilesPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMinDataType[DataVerticalSpeedMilesPerHour.type]).toBe(
+      DataVerticalSpeedMinMilesPerHour.type
+    );
+    expect(DynamicDataLoader.dataTypeMaxDataType[DataVerticalSpeedMilesPerHour.type]).toBe(
+      DataVerticalSpeedMaxMilesPerHour.type
+    );
   });
 
   it('maps Jump Distance family to avg/min/max canonical names', () => {

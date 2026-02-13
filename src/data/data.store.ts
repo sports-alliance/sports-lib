@@ -1097,6 +1097,15 @@ export class DynamicDataLoader {
     [DataSpeedMetersPerMinute.type]: DataSpeedMinMetersPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedMinKnots.type,
 
+    [DataVerticalSpeed.type]: DataVerticalSpeedMin.type,
+    [DataVerticalSpeedKilometerPerHour.type]: DataVerticalSpeedMinKilometerPerHour.type,
+    [DataVerticalSpeedMilesPerHour.type]: DataVerticalSpeedMinMilesPerHour.type,
+    [DataVerticalSpeedFeetPerSecond.type]: DataVerticalSpeedMinFeetPerSecond.type,
+    [DataVerticalSpeedMetersPerMinute.type]: DataVerticalSpeedMinMetersPerMinute.type,
+    [DataVerticalSpeedFeetPerMinute.type]: DataVerticalSpeedMinFeetPerMinute.type,
+    [DataVerticalSpeedFeetPerHour.type]: DataVerticalSpeedMinFeetPerHour.type,
+    [DataVerticalSpeedMetersPerHour.type]: DataVerticalSpeedMinMetersPerHour.type,
+
     [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedMin.type,
     [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedMinKilometersPerHour.type,
     [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMinMilesPerHour.type,
@@ -1152,6 +1161,15 @@ export class DynamicDataLoader {
     [DataSpeedMetersPerMinute.type]: DataSpeedMaxMetersPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedMaxKnots.type,
 
+    [DataVerticalSpeed.type]: DataVerticalSpeedMax.type,
+    [DataVerticalSpeedKilometerPerHour.type]: DataVerticalSpeedMaxKilometerPerHour.type,
+    [DataVerticalSpeedMilesPerHour.type]: DataVerticalSpeedMaxMilesPerHour.type,
+    [DataVerticalSpeedFeetPerSecond.type]: DataVerticalSpeedMaxFeetPerSecond.type,
+    [DataVerticalSpeedMetersPerMinute.type]: DataVerticalSpeedMaxMetersPerMinute.type,
+    [DataVerticalSpeedFeetPerMinute.type]: DataVerticalSpeedMaxFeetPerMinute.type,
+    [DataVerticalSpeedFeetPerHour.type]: DataVerticalSpeedMaxFeetPerHour.type,
+    [DataVerticalSpeedMetersPerHour.type]: DataVerticalSpeedMaxMetersPerHour.type,
+
     [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedMax.type,
     [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedMaxKilometersPerHour.type,
     [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMaxMilesPerHour.type,
@@ -1206,6 +1224,15 @@ export class DynamicDataLoader {
     [DataSpeedFeetPerSecond.type]: DataSpeedAvgFeetPerSecond.type,
     [DataSpeedMetersPerMinute.type]: DataSpeedAvgMetersPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedAvgKnots.type,
+
+    [DataVerticalSpeed.type]: DataVerticalSpeedAvg.type,
+    [DataVerticalSpeedKilometerPerHour.type]: DataVerticalSpeedAvgKilometerPerHour.type,
+    [DataVerticalSpeedMilesPerHour.type]: DataVerticalSpeedAvgMilesPerHour.type,
+    [DataVerticalSpeedFeetPerSecond.type]: DataVerticalSpeedAvgFeetPerSecond.type,
+    [DataVerticalSpeedMetersPerMinute.type]: DataVerticalSpeedAvgMetersPerMinute.type,
+    [DataVerticalSpeedFeetPerMinute.type]: DataVerticalSpeedAvgFeetPerMinute.type,
+    [DataVerticalSpeedFeetPerHour.type]: DataVerticalSpeedAvgFeetPerHour.type,
+    [DataVerticalSpeedMetersPerHour.type]: DataVerticalSpeedAvgMetersPerHour.type,
 
     [DataGradeAdjustedSpeed.type]: DataGradeAdjustedSpeedAvg.type,
     [DataGradeAdjustedSpeedKilometersPerHour.type]: DataGradeAdjustedSpeedAvgKilometersPerHour.type,

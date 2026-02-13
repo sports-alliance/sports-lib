@@ -3,7 +3,16 @@ import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataCadence } from '../../data/data.cadence';
 import { DataSpeed } from '../../data/data.speed';
 import { DataWeight } from '../../data/data.weight';
-import { DataVerticalSpeed } from '../../data/data.vertical-speed';
+import {
+  DataVerticalSpeed,
+  DataVerticalSpeedFeetPerHour,
+  DataVerticalSpeedFeetPerMinute,
+  DataVerticalSpeedFeetPerSecond,
+  DataVerticalSpeedKilometerPerHour,
+  DataVerticalSpeedMetersPerHour,
+  DataVerticalSpeedMetersPerMinute,
+  DataVerticalSpeedMilesPerHour
+} from '../../data/data.vertical-speed';
 import { DataTemperature } from '../../data/data.temperature';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
 import { DataEVPE } from '../../data/data.evpe';
@@ -3760,8 +3769,38 @@ export class ActivityUtilities {
     }
 
     // Vertical speed
+    const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
+    if (verticalSpeedAvg) {
+      const verticalSpeedAvgValue = <number>verticalSpeedAvg.getValue();
+      if (!activity.getStat(DataVerticalSpeed.type)) {
+        activity.addStat(new DataVerticalSpeed(verticalSpeedAvgValue));
+      }
+      if (!activity.getStat(DataVerticalSpeedFeetPerSecond.type)) {
+        activity.addStat(new DataVerticalSpeedFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(verticalSpeedAvgValue)));
+      }
+      if (!activity.getStat(DataVerticalSpeedMetersPerMinute.type)) {
+        activity.addStat(new DataVerticalSpeedMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(verticalSpeedAvgValue)));
+      }
+      if (!activity.getStat(DataVerticalSpeedFeetPerMinute.type)) {
+        activity.addStat(new DataVerticalSpeedFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(verticalSpeedAvgValue)));
+      }
+      if (!activity.getStat(DataVerticalSpeedMetersPerHour.type)) {
+        activity.addStat(new DataVerticalSpeedMetersPerHour(convertSpeedToSpeedInMetersPerHour(verticalSpeedAvgValue)));
+      }
+      if (!activity.getStat(DataVerticalSpeedFeetPerHour.type)) {
+        activity.addStat(new DataVerticalSpeedFeetPerHour(convertSpeedToSpeedInFeetPerHour(verticalSpeedAvgValue)));
+      }
+      if (!activity.getStat(DataVerticalSpeedKilometerPerHour.type)) {
+        activity.addStat(
+          new DataVerticalSpeedKilometerPerHour(convertSpeedToSpeedInKilometersPerHour(verticalSpeedAvgValue))
+        );
+      }
+      if (!activity.getStat(DataVerticalSpeedMilesPerHour.type)) {
+        activity.addStat(new DataVerticalSpeedMilesPerHour(convertSpeedToSpeedInMilesPerHour(verticalSpeedAvgValue)));
+      }
+    }
+
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerSecond.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(<number>verticalSpeedAvg.getValue()))
@@ -3770,7 +3809,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMetersPerMinute.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgMetersPerMinute(
@@ -3781,7 +3819,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerMinute.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(<number>verticalSpeedAvg.getValue()))
@@ -3790,7 +3827,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMetersPerHour.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgMetersPerHour(convertSpeedToSpeedInMetersPerHour(<number>verticalSpeedAvg.getValue()))
@@ -3799,7 +3835,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgFeetPerHour.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgFeetPerHour(convertSpeedToSpeedInFeetPerHour(<number>verticalSpeedAvg.getValue()))
@@ -3808,7 +3843,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgKilometerPerHour.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgKilometerPerHour(
@@ -3819,7 +3853,6 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataVerticalSpeedAvgMilesPerHour.type)) {
-      const verticalSpeedAvg = activity.getStat(DataVerticalSpeedAvg.type);
       if (verticalSpeedAvg) {
         activity.addStat(
           new DataVerticalSpeedAvgMilesPerHour(convertSpeedToSpeedInMilesPerHour(<number>verticalSpeedAvg.getValue()))

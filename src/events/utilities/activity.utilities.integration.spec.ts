@@ -9,6 +9,8 @@ import { Stream } from '../../streams/stream';
 import { DataAirPowerAvg } from '../../data/data.air-power-avg';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
 import { DataAirPowerMin } from '../../data/data.air-power-min';
+import { DataVerticalSpeed, DataVerticalSpeedKilometerPerHour } from '../../data/data.vertical-speed';
+import { DataVerticalSpeedAvg } from '../../data/data.vertical-speed-avg';
 import { DataVerticalSpeedMax } from '../../data/data.vertical-speed-max';
 import { DataVerticalSpeedMin } from '../../data/data.vertical-speed-min';
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
@@ -73,7 +75,7 @@ import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DynamicDataLoader } from '../../data/data.store';
-import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from './helpers';
+import { convertMetersToMiles, convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMilesPerHour } from './helpers';
 import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
 import { DataSpeedMilesPerHour } from '../../data/data.speed';
 
@@ -363,6 +365,19 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(max.getValue()).toBe(
         Math.max(getStatValue(a1, DataVerticalSpeedMax.type), getStatValue(a2, DataVerticalSpeedMax.type))
       );
+    });
+
+    it('creates base vertical-speed unit stats from average vertical speed', async () => {
+      const activity = await loadActivity('../../specs/fixtures/runs/fit/6909950168.fit');
+      const avg = activity.getStat(DataVerticalSpeedAvg.type) as DataVerticalSpeedAvg;
+      const base = activity.getStat(DataVerticalSpeed.type) as DataVerticalSpeed;
+      const kph = activity.getStat(DataVerticalSpeedKilometerPerHour.type) as DataVerticalSpeedKilometerPerHour;
+
+      expect(avg).toBeDefined();
+      expect(base).toBeDefined();
+      expect(kph).toBeDefined();
+      expect(base.getValue()).toBeCloseTo(avg.getValue(), 10);
+      expect(kph.getValue()).toBeCloseTo(convertSpeedToSpeedInKilometersPerHour(avg.getValue() as number), 10);
     });
 
     it('aggregates Ground Contact Time min/max across activities', async () => {

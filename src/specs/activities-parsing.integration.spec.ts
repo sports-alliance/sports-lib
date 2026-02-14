@@ -48,9 +48,9 @@ import { DataPowerTrainingStressScore } from '../data/data.power-training-stress
 import { DataPowerWork } from '../data/data.power-work';
 import { DataCyclingStandingTime } from '../data/data.cycling-standing-time';
 import { DataCyclingSeatedTime } from '../data/data.cycling-seated-time';
-import { DataVerticalOscillation } from '../data/data.vertical-oscillation';
-import { DataVerticalRatio } from '../data/data.vertical-ratio';
-import { DataStanceTime } from '../data/data.stance-time';
+import { DataVerticalOscillationAvg } from '../data/data.vertical-oscillation-avg';
+import { DataVerticalRatioAvg } from '../data/data.vertical-ratio-avg';
+import { DataGroundContactTimeAvg } from '../data/data.ground-contact-time-avg';
 import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
 import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
 import { DataAvgStrideLength } from '../data/data.avg-stride-length';
@@ -817,9 +817,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             expect((activity.getStat(DataStanceTimeBalanceLeft.type) as DataNumber).getValue()).toEqual(49.14);
             expect((activity.getStat(DataStanceTimeBalanceRight.type) as DataNumber).getValue()).toEqual(50.86);
-            expect((activity.getStat(DataStanceTime.type) as DataNumber).getValue()).toEqual(206);
-            expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(94);
-            expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(7.9);
+            expect((activity.getStat(DataGroundContactTimeAvg.type) as DataNumber).getValue()).toEqual(206);
+            expect((activity.getStat(DataVerticalOscillationAvg.type) as DataNumber).getValue()).toEqual(94);
+            expect((activity.getStat(DataVerticalRatioAvg.type) as DataNumber).getValue()).toEqual(7.9);
             expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.2);
 
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -904,9 +904,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             expect((activity.getStat(DataStanceTimeBalanceLeft.type) as DataNumber).getValue()).toEqual(49.91);
             expect((activity.getStat(DataStanceTimeBalanceRight.type) as DataNumber).getValue()).toEqual(50.09);
-            expect((activity.getStat(DataStanceTime.type) as DataNumber).getValue()).toEqual(271.3);
-            expect((activity.getStat(DataVerticalOscillation.type) as DataNumber).getValue()).toEqual(97.2);
-            expect((activity.getStat(DataVerticalRatio.type) as DataNumber).getValue()).toEqual(9.57);
+            expect((activity.getStat(DataGroundContactTimeAvg.type) as DataNumber).getValue()).toEqual(271.3);
+            expect((activity.getStat(DataVerticalOscillationAvg.type) as DataNumber).getValue()).toEqual(97.2);
+            expect((activity.getStat(DataVerticalRatioAvg.type) as DataNumber).getValue()).toEqual(9.57);
             expect((activity.getStat(DataAvgStrideLength.type) as DataNumber).getValue()).toEqual(1.04);
 
             expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);

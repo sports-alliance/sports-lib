@@ -98,15 +98,12 @@ import { DataCyclingSeatedTime } from '../../../../data/data.cycling-seated-time
 import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
-import { DataStanceTime } from '../../../../data/data.stance-time';
 import { DataDepthMax } from '../../../../data/data.depth-max';
 import { DataEffortPaceAvg } from '../../../../data/data.effort-pace-avg';
 import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
 import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
 
-import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
-import { DataVerticalRatio } from '../../../../data/data.vertical-ratio';
 import { DataVerticalRatioAvg } from '../../../../data/data.vertical-ratio-avg';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
@@ -1517,17 +1514,13 @@ export class EventImporterFIT {
     // Running dynamics
     if (isNumberOrString(object.avg_stance_time)) {
       stats.push(new DataGroundContactTimeAvg(object.avg_stance_time));
-      // Keep DataStanceTime for backward compatibility with previous mapping.
-      stats.push(new DataStanceTime(object.avg_stance_time));
     }
 
     if (isNumberOrString(object.avg_vertical_oscillation)) {
-      stats.push(new DataVerticalOscillation(object.avg_vertical_oscillation));
       stats.push(new DataVerticalOscillationAvg(object.avg_vertical_oscillation));
     }
 
     if (isNumberOrString(object.avg_vertical_ratio)) {
-      stats.push(new DataVerticalRatio(object.avg_vertical_ratio));
       stats.push(new DataVerticalRatioAvg(object.avg_vertical_ratio));
     }
 

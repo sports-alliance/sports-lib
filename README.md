@@ -12,6 +12,11 @@ Currently the support is limited to the main formats: GPX, TCX, FIT and JSON*
 *JSON is for specific services while GPX, TCX, FIT should be compatible with the most common services,
 such as Strava, Movescount, Garmin, Polar and any other service that supports the above formats.
 
+Release Notes
+-------
+- Breaking change (next major): `Effort Pace` now uses pace semantics (`min/km`) instead of speed semantics (`m/s`).
+  `Effort Pace` also has `Average/Minimum/Maximum` stat types and pace unit variants following `paceUnits`.
+
 Install
 -------
 
@@ -65,6 +70,28 @@ SportsLib.importFromFit(arrayBuffer).then((event)=>{
   const duration = event.getDuration();
 });
 ```
+
+FIT device_info mode
+---
+Some FIT files emit `device_info` rows every second for the same device identity, which can significantly increase payload size.
+
+`ActivityParsingOptions` exposes `deviceInfoMode`:
+- `raw` (default): keep all `device_info` rows (backwards-compatible behavior).
+- `changes`: collapse contiguous timestamp-only repeats and keep first + last item for each contiguous identical run.
+
+```typescript
+import { SportsLib, ActivityParsingOptions } from '@sports-alliance/sports-lib';
+
+const options = new ActivityParsingOptions({
+  deviceInfoMode: 'changes'
+});
+
+SportsLib.importFromFit(arrayBuffer, options).then(event => {
+  // event.getFirstActivity().creator.devices is compacted by state changes
+});
+```
+
+`summary` mode is intentionally not exposed in this version.
 
 Export
 ---

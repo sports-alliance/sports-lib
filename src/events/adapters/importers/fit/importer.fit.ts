@@ -525,13 +525,11 @@ export class EventImporterFIT {
 
         // Parse the device infos
         if (fitDataObject.device_infos && fitDataObject.device_infos.length) {
+          const fitDeviceInfos = fitDataObject.device_infos;
           activities.forEach(activity => {
-            activity.creator.devices = this.getDeviceInfos(fitDataObject.device_infos);
-
-            // Compute battery consumption & estimation
-            // We focus on the device that has recorded the activity (usually index 0 or source_type 'local')
-            // Filter device infos to find those relevant to this activity's timeframe
-            const activityDeviceInfos = fitDataObject.device_infos
+            // Filter device infos to find those relevant to this activity's timeframe.
+            // This list is used by `changes` mode compaction and battery stats.
+            const activityDeviceInfos = fitDeviceInfos
               .filter((di: any) => {
                 const timestamp = new Date(di.timestamp).getTime();
                 // Allow a small margin (e.g. 1 minute) before/after activity
@@ -541,6 +539,20 @@ export class EventImporterFIT {
               })
               .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
+            /**
+             * FIT `device_info` often repeats the same device identity every second with only timestamp changing.
+             *
+             * - `raw`: keep all rows for backwards compatibility.
+             * - `changes`: keep first+last sample for each contiguous run where all fields except timestamp match.
+             */
+            if (options.deviceInfoMode === 'changes') {
+              activity.creator.devices = this.compactDeviceInfosByRuns(this.mapDeviceInfosToDevices(activityDeviceInfos));
+            } else {
+              activity.creator.devices = this.mapDeviceInfosToDevices(fitDeviceInfos);
+            }
+
+            // Compute battery consumption & estimation
+            // We focus on the device that has recorded the activity (usually index 0 or source_type 'local')
             // Group by device index to track individual devices
             const deviceGroups = new Map<number, any[]>();
             activityDeviceInfos.forEach((di: any) => {
@@ -668,7 +680,7 @@ export class EventImporterFIT {
     return samples;
   }
 
-  private static getDeviceInfos(deviceInfos: any[]): DeviceInterface[] {
+  private static mapDeviceInfosToDevices(deviceInfos: any[]): DeviceInterface[] {
     return deviceInfos.map((deviceInfo: any) => {
       const device = new Device(deviceInfo.device_type);
       device.index = deviceInfo.device_index;
@@ -697,6 +709,69 @@ export class EventImporterFIT {
       }
       return device;
     });
+  }
+
+  private static deviceSignatureWithoutTimestamp(device: DeviceInterface): string {
+    return JSON.stringify([
+      device.type,
+      device.name,
+      device.index,
+      device.batteryStatus,
+      device.batteryLevel,
+      device.batteryVoltage,
+      device.manufacturer,
+      device.serialNumber,
+      device.product,
+      device.swInfo,
+      device.hwInfo,
+      device.antDeviceNumber,
+      device.antTransmissionType,
+      device.antNetwork,
+      device.sourceType,
+      device.antId,
+      device.cumOperatingTime
+    ]);
+  }
+
+  /**
+   * Keep first+last of each contiguous run with identical signature (all fields except timestamp).
+   * This preserves transitions while collapsing timestamp-only spam from FIT `device_info`.
+   */
+  private static compactDeviceInfosByRuns(devices: DeviceInterface[]): DeviceInterface[] {
+    if (devices.length <= 1) {
+      return devices;
+    }
+
+    const compacted: DeviceInterface[] = [];
+    let runStart = devices[0];
+    let runEnd = devices[0];
+    let runSignature = this.deviceSignatureWithoutTimestamp(devices[0]);
+
+    for (let i = 1; i < devices.length; i++) {
+      const current = devices[i];
+      const currentSignature = this.deviceSignatureWithoutTimestamp(current);
+
+      if (currentSignature === runSignature) {
+        runEnd = current;
+        continue;
+      }
+
+      compacted.push(runStart);
+      if (runEnd !== runStart) {
+        compacted.push(runEnd);
+      }
+
+      runStart = current;
+      runEnd = current;
+      runSignature = currentSignature;
+    }
+
+    compacted.push(runStart);
+    if (runEnd !== runStart) {
+      compacted.push(runEnd);
+    }
+
+    return compacted;
   }
 
   private static getLapFromSessionLapObject(

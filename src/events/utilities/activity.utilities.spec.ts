@@ -454,7 +454,8 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false
+        generateUnitStreams: false,
+        deviceInfoMode: 'raw'
       };
 
       // Add a speed stream
@@ -476,7 +477,8 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false // DISABLE streams
+        generateUnitStreams: false, // DISABLE streams
+        deviceInfoMode: 'raw'
       };
 
       // Add a speed stream [10 m/s, 20 m/s]
@@ -505,7 +507,8 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false
+        generateUnitStreams: false,
+        deviceInfoMode: 'raw'
       };
 
       activity.addStream(new Stream(DataSpeed.type, [1, 2])); // m/s
@@ -566,7 +569,8 @@ describe('Activity Utilities', () => {
       activity.parseOptions = {
         streams: { smooth: {}, fixAbnormal: {} },
         maxActivityDurationDays: 14,
-        generateUnitStreams: false
+        generateUnitStreams: false,
+        deviceInfoMode: 'raw'
       };
 
       activity.addStream(new Stream(DataDistance.type, [1000, 2000]));

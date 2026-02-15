@@ -46,6 +46,29 @@ export class EventUtilities {
     this.reGenerateStatsForEvent(event);
   }
 
+  /**
+   * Regenerates event-level stats from the current in-memory event state.
+   *
+   * Important behavior:
+   * - Clears ONLY event stats (`event.clearStats()`).
+   * - Does NOT clear activity stats.
+   * - Does NOT read the original imported file (FIT/TCX/GPX/etc.); raw source payload is not retained.
+   *
+   * Regeneration model:
+   * - Single-activity event: copies current activity stats into the event.
+   * - Multi-activity event: recomputes event summary stats from activity stats and aggregates power curves.
+   *
+   * Interaction with `generateStatsForAll(event)`:
+   * - `generateStatsForAll` calls activity generation first (`generateMissingStreamsAndStatsForActivity`),
+   *   then calls this method.
+   * - Activity generation is "fill missing", not "replace existing": existing activity stats are preserved.
+   * - If activity stats were cleared or removed by caller code before regeneration, missing stats are recomputed
+   *   from streams (for example, Average Speed from speed stream mean, Ascent from altitude gain).
+   *
+   * Distance behavior:
+   * - Event distance is rebuilt from activities during event summarization.
+   * - Activity distance is recomputed only when missing or equal to zero (in activity generation path).
+   */
   public static reGenerateStatsForEvent(event: EventInterface) {
     event.clearStats();
     event.startDate = event.getFirstActivity().startDate;

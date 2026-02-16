@@ -118,6 +118,8 @@ import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 export class EventImporterSuuntoJSON {
+  private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
+
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
@@ -346,15 +348,15 @@ export class EventImporterSuuntoJSON {
             const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
             return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
           });
-          // set the HR
-
-          // @todo perhaps create new 'types'
-          const existingHRStream = activity.getAllStreams().find(stream => stream.type === DataHeartRate.type);
-          if (existingHRStream) {
-            activity.removeStream(existingHRStream);
+          // Override HR from RR only if we get enough plausible samples after filtering.
+          const hrSamplesFromIBI = this.getHRSamplesFromIBIData(activity, ibiData);
+          if (hrSamplesFromIBI.length > this.MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE) {
+            const existingHRStream = activity.getAllStreams().find(stream => stream.type === DataHeartRate.type);
+            if (existingHRStream) {
+              activity.removeStream(existingHRStream);
+            }
+            this.setStreamsForActivity(activity, hrSamplesFromIBI);
           }
-
-          this.setStreamsForActivity(activity, this.getHRSamplesFromIBIData(activity, ibiData));
           activity.addStream(new IBIStream(ibiData));
         });
       }

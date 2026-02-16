@@ -11,6 +11,7 @@ import { DataVerticalOscillationMax } from '../../../../data/data.vertical-oscil
 import { DataVerticalOscillationMin } from '../../../../data/data.vertical-oscillation-min';
 import { DataFitnessAge } from '../../../../data/data.fitness-age';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
 
 describe('EventImporterSuuntoJSON Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/suunto -> sports-lib root
@@ -131,6 +132,32 @@ describe('EventImporterSuuntoJSON Integration', () => {
 
       expect(stat).toBeDefined();
       expect(stat?.getValue()).toBe(171);
+    });
+  });
+
+  describe('missing_hr.json', () => {
+    it('should keep direct HR stream when RR cannot produce enough valid HR samples', async () => {
+      const filePath = path.join(samplesDir, 'missing_hr.json');
+      if (!fs.existsSync(filePath)) {
+        console.warn('missing_hr.json not found. Skipping RR fallback test.');
+        return;
+      }
+
+      const fileString = fs.readFileSync(filePath, 'utf-8');
+      const event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
+      const activity = event
+        .getActivities()
+        .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+
+      expect(activity.hasStreamData(DataHeartRate.type)).toBe(true);
+
+      const hrValues = activity
+        .getStreamData(DataHeartRate.type)
+        .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+
+      expect(hrValues.length).toBeGreaterThan(1000);
+      expect(Math.min(...hrValues)).toBeGreaterThan(40);
+      expect(Math.max(...hrValues)).toBeLessThan(220);
     });
   });
 });

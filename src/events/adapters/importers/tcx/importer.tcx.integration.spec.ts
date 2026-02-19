@@ -122,18 +122,24 @@ describe('EventImporterTCX Integration', () => {
     expect(streamTypes).toEqual(new Set([DataDistance.type, DataPace.type]));
   });
 
-  it('should throw when includeTypes contains unknown stream types', async () => {
+  it('should reject when includeTypes contains unknown stream types', async () => {
     if (!fs.existsSync(sampleTcxFile)) {
       console.warn(`Sample file not found at ${sampleTcxFile}. Skipping stream includeTypes test.`);
       return;
     }
 
-    await expect(
-      parseSample(
-        new ActivityParsingOptions({
-          streams: { includeTypes: ['Not A Stream Type'] }
-        })
-      )
-    ).rejects.toThrow('Unknown stream includeTypes');
+    const parser = new DOMParser();
+    const fileString = fs.readFileSync(sampleTcxFile, 'utf-8');
+    const xmlDoc = parser.parseFromString(fileString, 'text/xml');
+    const parseResult = EventImporterTCX.getFromXML(
+      xmlDoc,
+      new ActivityParsingOptions({
+        streams: { includeTypes: ['Not A Stream Type'] }
+      }),
+      'tcx-stream-filter'
+    );
+
+    expect(parseResult).toBeInstanceOf(Promise);
+    await expect(parseResult).rejects.toThrow('Unknown stream includeTypes');
   });
 });

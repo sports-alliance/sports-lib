@@ -26,9 +26,8 @@ export class EventImporterGPX {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-    const streamSelection = getStreamSelectionFromOptions(options);
-
     return new Promise((resolve, reject) => {
+      const streamSelection = getStreamSelectionFromOptions(options);
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte;

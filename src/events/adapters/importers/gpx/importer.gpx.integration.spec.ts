@@ -116,18 +116,23 @@ describe('EventImporterGPX Integration', () => {
     expect(streamTypes).toEqual(new Set([DataDistance.type, DataPace.type]));
   });
 
-  it('should throw when includeTypes contains unknown stream types', async () => {
+  it('should reject when includeTypes contains unknown stream types', async () => {
     if (!fs.existsSync(sampleGpxFile)) {
       console.warn(`Sample file not found at ${sampleGpxFile}. Skipping stream includeTypes test.`);
       return;
     }
 
-    await expect(
-      parseSample(
-        new ActivityParsingOptions({
-          streams: { includeTypes: ['Not A Stream Type'] }
-        })
-      )
-    ).rejects.toThrow('Unknown stream includeTypes');
+    const fileString = fs.readFileSync(sampleGpxFile, 'utf-8');
+    const parseResult = EventImporterGPX.getFromString(
+      fileString,
+      DOMParser,
+      new ActivityParsingOptions({
+        streams: { includeTypes: ['Not A Stream Type'] }
+      }),
+      'gpx-stream-filter'
+    );
+
+    expect(parseResult).toBeInstanceOf(Promise);
+    await expect(parseResult).rejects.toThrow('Unknown stream includeTypes');
   });
 });

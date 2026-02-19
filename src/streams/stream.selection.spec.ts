@@ -25,6 +25,22 @@ describe('stream.selection', () => {
     ).toThrow('Unknown stream includeTypes');
   });
 
+  it('should normalize includeTypes by trimming and deduplicating', () => {
+    const selection = getStreamSelectionFromOptions(
+      new ActivityParsingOptions({
+        streams: {
+          includeTypes: [` ${DataDistance.type} `, DataDistance.type, DataPace.type, DataPace.type]
+        }
+      })
+    );
+
+    expect(selection).not.toBeNull();
+    expect(selection?.outputAllowSet).toEqual(new Set([DataDistance.type, DataPace.type]));
+    expect(selection?.importAllowSet.has(DataDistance.type)).toBe(true);
+    expect(selection?.importAllowSet.has(DataPace.type)).toBe(true);
+    expect(selection?.importAllowSet.has(DataSpeed.type)).toBe(true);
+  });
+
   it('should expand dependencies for pace requests', () => {
     const selection = getStreamSelectionFromOptions(
       new ActivityParsingOptions({ streams: { includeTypes: [DataPace.type] } })

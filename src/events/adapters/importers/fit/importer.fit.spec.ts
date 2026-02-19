@@ -510,6 +510,21 @@ describe('EventImporterFIT', () => {
       expect(streamTypes).toEqual(new Set([DataDistance.type, DataPace.type]));
     });
 
+    it('should preserve stream order after includeTypes pruning', async () => {
+      const includeTypes = [DataDistance.type, DataPace.type];
+      const baselineStreamTypes = await parseSample(new ActivityParsingOptions({ generateUnitStreams: false }));
+      const filteredStreamTypes = await parseSample(
+        new ActivityParsingOptions({
+          generateUnitStreams: false,
+          streams: { includeTypes }
+        })
+      );
+
+      const expectedOrder = baselineStreamTypes.filter(type => includeTypes.includes(type));
+      expect(filteredStreamTypes).toEqual(expectedOrder);
+      expect(filteredStreamTypes).toEqual(includeTypes);
+    });
+
     it('should throw when includeTypes contains unknown stream types', async () => {
       await expect(
         parseSample(

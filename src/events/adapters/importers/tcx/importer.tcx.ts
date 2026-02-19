@@ -67,9 +67,8 @@ export class EventImporterTCX {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-    const streamSelection = getStreamSelectionFromOptions(options);
-
     return new Promise(resolve => {
+      const streamSelection = getStreamSelectionFromOptions(options);
       // Activities
       const activities: ActivityInterface[] = Array.from(
         xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity')

@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventImporterSuuntoJSON } from './importer.suunto.json';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { DataDistance } from '../../../../data/data.distance';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../../../data/data.ground-contact-time-max';
@@ -44,6 +46,38 @@ describe('EventImporterSuuntoJSON Integration', () => {
         throw error;
       }
     }
+  });
+
+  it('should keep stream output unchanged when includeTypes is set (current scope guard)', async () => {
+    const filePath = path.join(samplesDir, 'running-with-extra-data.json');
+    if (!fs.existsSync(filePath)) {
+      console.warn('running-with-extra-data.json not found. Skipping includeTypes scope guard test.');
+      return;
+    }
+
+    const fileString = fs.readFileSync(filePath, 'utf-8');
+    const baselineEvent = await EventImporterSuuntoJSON.getFromJSONString(
+      fileString,
+      new ActivityParsingOptions({ generateUnitStreams: false })
+    );
+    const includeFilteredEvent = await EventImporterSuuntoJSON.getFromJSONString(
+      fileString,
+      new ActivityParsingOptions({
+        generateUnitStreams: false,
+        streams: { includeTypes: [DataDistance.type] }
+      })
+    );
+
+    const baselineActivity = baselineEvent
+      .getActivities()
+      .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+    const includeFilteredActivity = includeFilteredEvent
+      .getActivities()
+      .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+
+    const baselineStreamTypes = baselineActivity.getAllStreams().map(stream => stream.type);
+    const includeFilteredStreamTypes = includeFilteredActivity.getAllStreams().map(stream => stream.type);
+    expect(includeFilteredStreamTypes).toEqual(baselineStreamTypes);
   });
 
   describe('running-with-extra-data.json', () => {

@@ -148,6 +148,7 @@ import {
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
 import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
+import { canDeriveStreamType } from '../../streams/stream.derivation.registry';
 import { DataEnergy } from '../../data/data.energy';
 import { DataStartAltitude } from '../../data/data.start-altitude';
 import { DataEndAltitude } from '../../data/data.end-altitude';
@@ -2462,8 +2463,7 @@ export class ActivityUtilities {
     if (
       activity.parseOptions?.streams?.smooth?.grade &&
       !activity.hasStreamData(DataGrade.type) &&
-      activity.hasStreamData(DataDistance.type) &&
-      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
+      this.canGenerateDerivedStream(activity, DataGrade.type)
     ) {
       const distanceData = activity.getStreamData(DataDistance.type);
       const altitudeData = activity.getStreamData(
@@ -2503,8 +2503,7 @@ export class ActivityUtilities {
         ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning ||
         ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
-      activity.hasStreamData(DataGradeSmooth.type) &&
-      activity.hasStreamData(DataSpeed.type)
+      this.canGenerateDerivedStream(activity, DataGradeAdjustedSpeed.type)
     ) {
       const speedStreamData = activity.getStreamData(DataSpeed.type);
       const gradeStreamData = activity.getStreamData(DataGradeSmooth.type);
@@ -2521,11 +2520,7 @@ export class ActivityUtilities {
       activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
     }
 
-    if (
-      activity.hasStreamData(DataPower.type) &&
-      activity.hasStreamData(DataRightBalance.type) &&
-      !activity.hasStreamData(DataPowerRight.type)
-    ) {
+    if (!activity.hasStreamData(DataPowerRight.type) && this.canGenerateDerivedStream(activity, DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
@@ -2542,11 +2537,7 @@ export class ActivityUtilities {
       activity.addStream(rightPowerStream);
     }
 
-    if (
-      activity.hasStreamData(DataPower.type) &&
-      activity.hasStreamData(DataLeftBalance.type) &&
-      !activity.hasStreamData(DataPowerLeft.type)
-    ) {
+    if (!activity.hasStreamData(DataPowerLeft.type) && this.canGenerateDerivedStream(activity, DataPowerLeft.type)) {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
       const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
@@ -2565,8 +2556,8 @@ export class ActivityUtilities {
 
     // If left stance time stream available, then add the right balance stream too
     if (
-      activity.hasStreamData(DataStanceTimeBalanceLeft.type) &&
-      !activity.hasStreamData(DataStanceTimeBalanceRight.type)
+      !activity.hasStreamData(DataStanceTimeBalanceRight.type) &&
+      this.canGenerateDerivedStream(activity, DataStanceTimeBalanceRight.type)
     ) {
       const rightStanceBalanceTimeStream = activity.createStream(DataStanceTimeBalanceRight.type);
       const leftStanceBalanceTimeStream = activity.getStreamData(DataStanceTimeBalanceLeft.type);
@@ -2629,7 +2620,7 @@ export class ActivityUtilities {
   public static createDerivedStreams(activity: ActivityInterface): ActivityInterface {
     if (
       activity.parseOptions?.streams?.smooth?.altitudeSmooth &&
-      activity.hasStreamData(DataAltitude.type) &&
+      this.canGenerateDerivedStream(activity, DataAltitudeSmooth.type) &&
       !activity.hasStreamData(DataAltitudeSmooth.type)
     ) {
       // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
@@ -2644,6 +2635,10 @@ export class ActivityUtilities {
       });
     }
     return activity;
+  }
+
+  private static canGenerateDerivedStream(activity: ActivityInterface, streamType: string): boolean {
+    return canDeriveStreamType(streamType, requiredType => activity.hasStreamData(requiredType));
   }
 
   /**

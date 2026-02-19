@@ -1,52 +1,13 @@
 import { ActivityParsingOptions } from '../activities/activity-parsing-options';
 import { ActivityInterface } from '../activities/activity.interface';
-import { DataAltitude } from '../data/data.altitude';
-import { DataDistance } from '../data/data.distance';
-import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
-import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
-import { DataGrade } from '../data/data.grade';
-import { DataGradeSmooth } from '../data/data.grade-smooth';
-import { DataGNSSDistance } from '../data/data.gnss-distance';
-import { DataLatitudeDegrees } from '../data/data.latitude-degrees';
-import { DataLeftBalance } from '../data/data.left-balance';
-import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
-import { DataPace } from '../data/data.pace';
-import { DataPowerLeft } from '../data/data.power-left';
-import { DataPowerRight } from '../data/data.power-right';
-import { DataPower } from '../data/data.power';
-import { DataRightBalance } from '../data/data.right-balance';
-import { DataSpeed } from '../data/data.speed';
-import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
-import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
-import { DataSwimPace } from '../data/data.swim-pace';
 import { DynamicDataLoader } from '../data/data.store';
 import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
+import { getDependencyTypesForResolution } from './stream.derivation.registry';
 
 export interface StreamSelection {
   importAllowSet: Set<string>;
   outputAllowSet: Set<string>;
 }
-
-const EXPLICIT_DEPENDENCY_MAP: Record<string, string[]> = {
-  [DataDistance.type]: [DataLatitudeDegrees.type, DataLongitudeDegrees.type],
-  [DataGNSSDistance.type]: [DataLatitudeDegrees.type, DataLongitudeDegrees.type],
-  [DataSpeed.type]: [DataLatitudeDegrees.type, DataLongitudeDegrees.type],
-  [DataPace.type]: [DataSpeed.type],
-  [DataSwimPace.type]: [DataSpeed.type],
-  [DataGradeAdjustedPace.type]: [DataGradeAdjustedSpeed.type],
-  [DataGradeAdjustedSpeed.type]: [
-    DataSpeed.type,
-    DataGradeSmooth.type,
-    DataGrade.type,
-    DataDistance.type,
-    DataAltitude.type
-  ],
-  [DataGradeSmooth.type]: [DataGrade.type, DataDistance.type, DataAltitude.type],
-  [DataGrade.type]: [DataDistance.type, DataAltitude.type],
-  [DataPowerLeft.type]: [DataPower.type, DataLeftBalance.type],
-  [DataPowerRight.type]: [DataPower.type, DataRightBalance.type],
-  [DataStanceTimeBalanceRight.type]: [DataStanceTimeBalanceLeft.type]
-};
 
 function validateAndNormalizeRequestedTypes(requestedTypes: string[]): Set<string> {
   const normalizedTypes = new Set<string>();
@@ -84,7 +45,7 @@ function getUnitDependencyTypes(dataType: string): string[] {
 }
 
 function getDependencyTypes(dataType: string): string[] {
-  const explicitDependencies = EXPLICIT_DEPENDENCY_MAP[dataType] || [];
+  const explicitDependencies = getDependencyTypesForResolution(dataType);
   const unitDependencies = getUnitDependencyTypes(dataType);
   return Array.from(new Set([...explicitDependencies, ...unitDependencies]));
 }

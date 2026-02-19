@@ -10,14 +10,22 @@ export class DataDuration extends DataNumber {
    * @param showDays
    * @param showSeconds
    * @param showMilliseconds
+   * @param useColonFormat when true, returns compact colon-separated format e.g. `1:04:32`
    */
-  getDisplayValue(showDays = false, showSeconds = true, showMilliseconds = false) {
+  getDisplayValue(showDays = false, showSeconds = true, showMilliseconds = false, useColonFormat = false) {
     const seconds = this.getValue();
     const h = Math.floor(seconds / 3600);
     const d = Math.floor(h / 24);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor((seconds % 3600) % 60);
     const ms = (Math.round((seconds % 1) * 10) / 10).toString().substring(1);
+
+    if (useColonFormat) {
+      const msStr = showMilliseconds ? ms : '';
+      const ss = ('0' + s).slice(-2) + msStr;
+      const mm = ('0' + m).slice(-2);
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    }
 
     if (!m && !h) {
       return showSeconds

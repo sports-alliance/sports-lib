@@ -36,6 +36,11 @@ import { DataSWOLF50m } from '../../../../data/data.swolf-50m';
 import { FileType } from '../../file-type.enum';
 import { DataCadence } from '../../../../data/data.cadence';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import {
+  getStreamSelectionFromOptions,
+  isStreamTypeAllowedForImport,
+  pruneActivityStreamsBySelection
+} from '../../../../streams/stream.selection';
 
 export class EventImporterTCX {
   /**
@@ -62,6 +67,8 @@ export class EventImporterTCX {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
+    const streamSelection = getStreamSelectionFromOptions(options);
+
     return new Promise(resolve => {
       // Activities
       const activities: ActivityInterface[] = Array.from(
@@ -132,7 +139,9 @@ export class EventImporterTCX {
           ) !== -1;
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
-        TCXSampleMapper.forEach(sampleMapping => {
+        TCXSampleMapper
+          .filter(sampleMapping => isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection))
+          .forEach(sampleMapping => {
           // Should check the children
           const subjectTrackPointElements = trackPointElements.filter((element: any) => {
             return isNumber(sampleMapping.getSampleValue(element, samplesInfo));
@@ -153,7 +162,7 @@ export class EventImporterTCX {
               );
             });
           }
-        });
+          });
         return activity;
       });
 
@@ -162,6 +171,9 @@ export class EventImporterTCX {
       activities.forEach(activity => event.addActivity(activity));
 
       EventUtilities.generateStatsForAll(event);
+      event.getActivities().forEach(activity => {
+        pruneActivityStreamsBySelection(activity, streamSelection);
+      });
       resolve(event);
     });
   }

@@ -13,6 +13,11 @@ import { DataTimerTime } from '../../../../data/data.timer-time';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import {
+  getStreamSelectionFromOptions,
+  isStreamTypeAllowedForImport,
+  pruneActivityStreamsBySelection
+} from '../../../../streams/stream.selection';
 
 export class EventImporterGPX {
   static getFromString(
@@ -21,6 +26,8 @@ export class EventImporterGPX {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
+    const streamSelection = getStreamSelectionFromOptions(options);
+
     return new Promise((resolve, reject) => {
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
@@ -93,7 +100,9 @@ export class EventImporterGPX {
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
         // Match
-        GPXSampleMapper.forEach(sampleMapping => {
+        GPXSampleMapper.filter(sampleMapping =>
+          isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
+        ).forEach(sampleMapping => {
           const subjectSamples = <any[]>(
             samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
           );
@@ -129,6 +138,9 @@ export class EventImporterGPX {
 
       // generate global stats
       EventUtilities.generateStatsForAll(event);
+      event.getActivities().forEach(activity => {
+        pruneActivityStreamsBySelection(activity, streamSelection);
+      });
       resolve(event);
     });
   }

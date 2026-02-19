@@ -93,6 +93,38 @@ SportsLib.importFromFit(arrayBuffer, options).then(event => {
 
 `summary` mode is intentionally not exposed in this version.
 
+Stream includeTypes filter (FIT/TCX/GPX)
+---
+`ActivityParsingOptions` also supports stream allowlisting under `streams.includeTypes`.
+
+- `includeTypes` missing or `[]`: current behavior (no filtering).
+- `includeTypes` provided: strict final stream output for FIT/TCX/GPX importers.
+- Values must be canonical `Data*.type` strings (for example: `Distance`, `Heart Rate`, `Pace`).
+- Unknown types throw a parsing error.
+- Derived requests are supported: required internal dependencies are resolved automatically and then removed from final output unless explicitly requested.
+
+```typescript
+import { SportsLib, ActivityParsingOptions } from '@sports-alliance/sports-lib';
+
+// Raw-only request
+const rawOnlyOptions = new ActivityParsingOptions({
+  streams: { includeTypes: ['Distance', 'Heart Rate'] }
+});
+
+// Derived request (Pace): dependencies (like Speed) are handled internally
+const derivedOnlyOptions = new ActivityParsingOptions({
+  streams: { includeTypes: ['Pace'] }
+});
+
+SportsLib.importFromFit(arrayBuffer, rawOnlyOptions).then(event => {
+  // activity streams contain only Distance + Heart Rate
+});
+
+SportsLib.importFromFit(arrayBuffer, derivedOnlyOptions).then(event => {
+  // activity streams contain only Pace
+});
+```
+
 Export
 ---
 ```typescript

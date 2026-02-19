@@ -23,17 +23,17 @@ if (idx !== -1) console.log(`FOUND float32 (BE) at ${idx}`);
 
 // Check some scaled integers
 for (const scale of [10, 100, 1000, 10000]) {
-    const scaled = Math.round(expectedValue * scale);
-    const u16le = Buffer.alloc(2);
-    u16le.writeUInt16LE(scaled % 65536);
-    console.log(`uint16 (scale ${scale}, LE):`, u16le.toString('hex'));
-    idx = buffer.indexOf(u16le);
-    if (idx !== -1) {
-        // Check if it occurs multiple times
-        let pos = idx;
-        while (pos !== -1) {
-            console.log(`  POSSIBLE uint16 (scale ${scale}) at ${pos}`);
-            pos = buffer.indexOf(u16le, pos + 1);
-        }
+  const scaled = Math.round(expectedValue * scale);
+  const u16le = Buffer.alloc(2);
+  u16le.writeUInt16LE(scaled % 65536);
+  console.log(`uint16 (scale ${scale}, LE):`, u16le.toString('hex'));
+  idx = buffer.indexOf(u16le);
+  if (idx !== -1) {
+    // Check if it occurs multiple times
+    let pos = idx;
+    while (pos !== -1) {
+      console.log(`  POSSIBLE uint16 (scale ${scale}) at ${pos}`);
+      pos = buffer.indexOf(u16le, pos + 1);
     }
+  }
 }

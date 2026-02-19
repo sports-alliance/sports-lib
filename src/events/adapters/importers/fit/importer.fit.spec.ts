@@ -1,5 +1,11 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { EventImporterFIT } from './importer.fit';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ActivityTypes } from '../../../../activities/activity.types';
+import { DataDistance } from '../../../../data/data.distance';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { DataPace } from '../../../../data/data.pace';
 
 describe('EventImporterFIT', () => {
   describe('Activity type resolution', () => {
@@ -440,6 +446,78 @@ describe('EventImporterFIT', () => {
           done();
         });
       });
+    });
+  });
+
+  describe('Stream includeTypes filtering', () => {
+    const sampleFitPath = path.resolve(__dirname, '../../../../../samples/fit/garmin.fit');
+
+    function toArrayBuffer(fileBuffer: Buffer): ArrayBuffer {
+      return fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
+    }
+
+    async function parseSample(options: ActivityParsingOptions): Promise<string[]> {
+      const fileBuffer = fs.readFileSync(sampleFitPath);
+      const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fileBuffer), options, 'fit-stream-filter');
+      return event.getActivities()[0].getAllStreams().map(stream => stream.type);
+    }
+
+    it('should keep baseline behavior when includeTypes is empty', async () => {
+      const baseOptions = new ActivityParsingOptions({ generateUnitStreams: false });
+      const emptyFilterOptions = new ActivityParsingOptions({
+        generateUnitStreams: false,
+        streams: { includeTypes: [] }
+      });
+
+      const baselineTypes = new Set(await parseSample(baseOptions));
+      const emptyFilterTypes = new Set(await parseSample(emptyFilterOptions));
+      expect(emptyFilterTypes).toEqual(baselineTypes);
+    });
+
+    it('should return only requested raw streams', async () => {
+      const streamTypes = new Set(
+        await parseSample(
+          new ActivityParsingOptions({
+            streams: { includeTypes: [DataDistance.type, DataHeartRate.type] }
+          })
+        )
+      );
+
+      expect(streamTypes).toEqual(new Set([DataDistance.type, DataHeartRate.type]));
+    });
+
+    it('should return only requested derived streams', async () => {
+      const streamTypes = new Set(
+        await parseSample(
+          new ActivityParsingOptions({
+            streams: { includeTypes: [DataPace.type] }
+          })
+        )
+      );
+
+      expect(streamTypes).toEqual(new Set([DataPace.type]));
+    });
+
+    it('should return only requested mixed raw and derived streams', async () => {
+      const streamTypes = new Set(
+        await parseSample(
+          new ActivityParsingOptions({
+            streams: { includeTypes: [DataDistance.type, DataPace.type] }
+          })
+        )
+      );
+
+      expect(streamTypes).toEqual(new Set([DataDistance.type, DataPace.type]));
+    });
+
+    it('should throw when includeTypes contains unknown stream types', async () => {
+      await expect(
+        parseSample(
+          new ActivityParsingOptions({
+            streams: { includeTypes: ['Not A Stream Type'] }
+          })
+        )
+      ).rejects.toThrow('Unknown stream includeTypes');
     });
   });
 });

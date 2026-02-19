@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cycling GAS Analysis</title>
+<style>
+:root{--bg:#f4f2ed;--card:#fffdf8;--text:#1e2430;--muted:#6b7280;--border:#d8d2c8;--warn:#b45309;--bad:#b91c1c;--good:#15803d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#e8efe9,var(--bg));color:var(--text);font-family:"IBM Plex Sans","Avenir Next","Segoe UI",sans-serif}
+.wrap{max-width:1280px;margin:24px auto;padding:0 16px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;justify-content:space-between;align-items:baseline}.title{font-size:20px;font-weight:700}.meta{color:var(--muted);font-size:12px}
+.controls{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+input{border:1px solid var(--border);border-radius:8px;padding:8px 10px;width:340px;font-size:14px;background:#fff}.hint{color:var(--muted);font-size:12px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1050px}
+th,td{border-bottom:1px solid #ece7dd;padding:10px 12px;text-align:left;font-size:13px;white-space:nowrap}
+th{position:sticky;top:0;background:#faf7f1;z-index:1;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#374151;cursor:pointer}
+tr:hover td{background:#f7fbff}td.num{text-align:right;font-variant-numeric:tabular-nums}.delta-good{color:var(--good);font-weight:600}.delta-bad{color:var(--bad);font-weight:600}.delta-mid{color:var(--warn);font-weight:600}.file{max-width:560px;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card"><div class="head"><div class="title">Cycling Avg Speed vs Grade-Adjusted Speed</div><div class="meta">Generated: 2026-02-12T06:38:17.663Z | Rows: 12</div></div><div class="controls"><input id="q" placeholder="Filter by filename..." /><span class="hint">Click headers to sort</span></div><div class="table-wrap"><table id="tbl"><thead><tr><th data-key="file">File</th><th data-key="ascent">Ascent (m)</th><th data-key="descent">Descent (m)</th><th data-key="distanceKm">Distance (km)</th><th data-key="speedKmh">Avg Speed (km/h)</th><th data-key="gasKmh">Avg GAS (km/h)</th><th data-key="deltaPct">Delta (%)</th></tr></thead><tbody></tbody></table></div></div></div>
+<script>
+const rows=[{"file":"samples/fit/2026-02-10_14-28.fit","ascent":522,"descent":516,"distanceKm":32.446130000000004,"speedKmh":21.762,"gasKmh":22.19224186046517,"deltaPct":1.9770327197186341},{"file":"samples/fit/road-with-power.fit","ascent":198,"descent":195,"distanceKm":31.21781,"speedKmh":23.7132,"gasKmh":23.70217699115049,"deltaPct":-0.04648469565267024},{"file":"src/specs/fixtures/rides/fit/3939576645.fit","ascent":668,"descent":664,"distanceKm":42.220870000000005,"speedKmh":20.9232,"gasKmh":23.526487632508832,"deltaPct":12.442110348841616},{"file":"src/specs/fixtures/rides/fit/5319808632.fit","ascent":106,"descent":103,"distanceKm":25.35657,"speedKmh":24.2892,"gasKmh":23.85310694183863,"deltaPct":-1.7954196027920761},{"file":"src/specs/fixtures/rides/fit/614953343.fit","ascent":1830,"descent":1841,"distanceKm":144.2272,"speedKmh":24.408,"gasKmh":25.822108658743623,"deltaPct":5.793627739854237},{"file":"src/specs/fixtures/rides/fit/6783622686.fit","ascent":1800,"descent":1804,"distanceKm":171.37568,"speedKmh":33.3468,"gasKmh":33.72304569514976,"deltaPct":1.1282812598203011},{"file":"src/specs/fixtures/rides/fit/7386755164.fit","ascent":862,"descent":872,"distanceKm":48.43897,"speedKmh":28.238400000000002,"gasKmh":28.863939776590602,"deltaPct":2.2152097023577846},{"file":"src/specs/fixtures/rides/fit/7432332116.fit","ascent":626,"descent":607,"distanceKm":70.56003,"speedKmh":25.261200000000002,"gasKmh":25.735259862863952,"deltaPct":1.8766323961805047},{"file":"src/specs/fixtures/rides/fit/7445393868.fit","ascent":36,"descent":35,"distanceKm":23.90768,"speedKmh":26.316,"gasKmh":26.361564047691846,"deltaPct":0.17314199609304914},{"file":"src/specs/fixtures/rides/fit/7739869618.fit","ascent":539,"descent":536,"distanceKm":72.43042,"speedKmh":29.2284,"gasKmh":29.44158205912331,"deltaPct":0.7293661614159789},{"file":"src/specs/fixtures/rides/fit/828989227.fit","ascent":2052,"descent":2028,"distanceKm":141.94420000000002,"speedKmh":25.988400000000002,"gasKmh":26.93176884422113,"deltaPct":3.629961229706822},{"file":"src/specs/fixtures/rides/fit/971150603.fit","ascent":241.90999999999997,"descent":273.02,"distanceKm":32.2275,"speedKmh":30.513600000000004,"gasKmh":30.82032264844976,"deltaPct":1.0051998074620998}];
+const tbody=document.querySelector('#tbl tbody');
+const q=document.getElementById('q');
+let sortKey='deltaPct'; let sortDir=-1;
+function fmt(v,d){return Number.isFinite(v)?v.toFixed(d):'n/a';}
+function dclass(v){if(!Number.isFinite(v))return ''; if(v<0)return 'delta-bad'; if(v>5)return 'delta-mid'; return 'delta-good';}
+function esc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');}
+function render(){
+ const query=q.value.trim().toLowerCase();
+ const filtered=rows.filter(r=>!query||r.file.toLowerCase().includes(query)).sort((a,b)=>{
+   const av=a[sortKey], bv=b[sortKey];
+   const an=typeof av==='number', bn=typeof bv==='number';
+   if(an&&bn) return (av-bv)*sortDir;
+   return String(av).localeCompare(String(bv))*sortDir;
+ });
+ tbody.innerHTML=filtered.map(r=>{
+   return '<tr>'+
+     '<td class="file" title="'+esc(r.file)+'">'+esc(r.file)+'</td>'+
+     '<td class="num">'+fmt(r.ascent,0)+'</td>'+
+     '<td class="num">'+fmt(r.descent,0)+'</td>'+
+     '<td class="num">'+fmt(r.distanceKm,2)+'</td>'+
+     '<td class="num">'+fmt(r.speedKmh,2)+'</td>'+
+     '<td class="num">'+fmt(r.gasKmh,2)+'</td>'+
+     '<td class="num '+dclass(r.deltaPct)+'">'+fmt(r.deltaPct,2)+'</td>'+
+   '</tr>';
+ }).join('');
+}
+for(const th of document.querySelectorAll('th')){
+ th.addEventListener('click',()=>{ const k=th.dataset.key; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=1;} render(); });
+}
+q.addEventListener('input',render); render();
+</script>
+</body></html>

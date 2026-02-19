@@ -1,13 +1,27 @@
+export interface ActivityParsingStreamOptions {
+  smooth?: {
+    altitudeSmooth?: boolean;
+    grade?: boolean;
+    gradeSmooth?: boolean;
+  };
+  fixAbnormal?: { speed?: boolean };
+  /**
+   * Optional allowlist of stream types to include in final activity output.
+   *
+   * This is currently enforced for FIT/TCX/GPX importers.
+   */
+  includeTypes?: string[];
+}
+
+export interface ActivityParsingOptionsInput {
+  streams?: ActivityParsingStreamOptions;
+  maxActivityDurationDays?: number;
+  generateUnitStreams?: boolean;
+  deviceInfoMode?: 'raw' | 'changes';
+}
+
 export class ActivityParsingOptions {
-  public static readonly DEFAULT = new ActivityParsingOptions({
-    streams: {
-      smooth: { altitudeSmooth: true, grade: true, gradeSmooth: true },
-      fixAbnormal: { speed: false }
-    },
-    maxActivityDurationDays: 14,
-    generateUnitStreams: true,
-    deviceInfoMode: 'raw'
-  });
+  public static readonly DEFAULT = new ActivityParsingOptions();
 
   /**
    * Enable/Disable streams calculations
@@ -19,6 +33,7 @@ export class ActivityParsingOptions {
       gradeSmooth?: boolean;
     };
     fixAbnormal: { speed?: boolean };
+    includeTypes?: string[];
   };
 
   public maxActivityDurationDays: number;
@@ -37,11 +52,22 @@ export class ActivityParsingOptions {
    */
   public deviceInfoMode: 'raw' | 'changes';
 
-  constructor(options: Partial<ActivityParsingOptions>) {
-    this.streams = options.streams ?? {
-      smooth: { altitudeSmooth: true, grade: true, gradeSmooth: true },
-      fixAbnormal: { speed: false }
+  constructor(options: ActivityParsingOptionsInput = {}) {
+    this.streams = {
+      smooth: {
+        altitudeSmooth: options.streams?.smooth?.altitudeSmooth ?? true,
+        grade: options.streams?.smooth?.grade ?? true,
+        gradeSmooth: options.streams?.smooth?.gradeSmooth ?? true
+      },
+      fixAbnormal: {
+        speed: options.streams?.fixAbnormal?.speed ?? false
+      }
     };
+
+    if (options.streams?.includeTypes) {
+      this.streams.includeTypes = [...options.streams.includeTypes];
+    }
+
     this.maxActivityDurationDays = options.maxActivityDurationDays ?? 14;
     this.generateUnitStreams = options.generateUnitStreams ?? true;
     this.deviceInfoMode = options.deviceInfoMode ?? 'raw';

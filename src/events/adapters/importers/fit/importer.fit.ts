@@ -170,6 +170,11 @@ import {
   DataJumpSpeedMin
 } from '../../../../data/data.jump-stats';
 import { Buffer } from 'buffer';
+import {
+  getStreamSelectionFromOptions,
+  isStreamTypeAllowedForImport,
+  pruneActivityStreamsBySelection
+} from '../../../../streams/stream.selection';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -180,6 +185,8 @@ export class EventImporterFIT {
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
+    const streamSelection = getStreamSelectionFromOptions(options);
+
     // @ts-ignore
     const { default: FitFileParser } = await import('fit-file-parser');
     return new Promise((resolve, reject) => {
@@ -241,6 +248,10 @@ export class EventImporterFIT {
             });
           });
         }
+
+        const allowedSampleMappings = FITSampleMapper.filter(sampleMapping =>
+          isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
+        );
 
         // Iterate over the sessions and create their activities
         const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
@@ -473,7 +484,7 @@ export class EventImporterFIT {
             ) !== -1;
           const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
-          FITSampleMapper.forEach(sampleMapping => {
+          allowedSampleMappings.forEach(sampleMapping => {
             // @todo not sure if we need to check for number only ...
             const subjectSamples = <any[]>(
               samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample, samplesInfo)))
@@ -601,6 +612,9 @@ export class EventImporterFIT {
         activities.forEach(activity => event.addActivity(activity));
         // debugger;
         EventUtilities.generateStatsForAll(event);
+        event.getActivities().forEach(activity => {
+          pruneActivityStreamsBySelection(activity, streamSelection);
+        });
         // debugger;
         resolve(event);
       });

@@ -5,6 +5,7 @@ import { Creator } from '../creators/creator';
 import { ActivityTypes } from '../activities/activity.types';
 import { FileType } from './adapters/file-type.enum';
 import { EventJSONInterface } from './event.json.interface';
+import { DataActivityTypes } from '../data/data.activity-types';
 
 describe('Event', () => {
   let event: EventInterface;
@@ -65,5 +66,15 @@ describe('Event', () => {
       startDate: d1.getTime(),
       endDate: d2.getTime()
     } as EventJSONInterface);
+  });
+
+  it('should normalize single activity type aliases when formatting type string', () => {
+    event.addStat(new DataActivityTypes(['running_trail']));
+    expect(event.getActivityTypesAsString()).toBe(ActivityTypes.TrailRunning);
+  });
+
+  it('should preserve unknown single activity type strings when formatting type string', () => {
+    event.addStat(new DataActivityTypes(['mystery_sport']));
+    expect(event.getActivityTypesAsString()).toBe('mystery_sport');
   });
 });

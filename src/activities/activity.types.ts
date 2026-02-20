@@ -12,6 +12,41 @@ import { DataGradeAdjustedSpeedAvg } from '../data/data.grade-adjusted-speed-avg
 import { DataVerticalSpeed } from '../data/data.vertical-speed';
 
 export class ActivityTypesHelper {
+  private static normalizeActivityTypeLookupKey(value: string): string {
+    return value.toLowerCase().replace(/[\s_-]/g, '');
+  }
+
+  static resolveActivityType(value: unknown): ActivityTypes | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const raw = String(value).trim();
+    if (!raw) {
+      return null;
+    }
+
+    const exactMatch = ActivityTypes[raw as keyof typeof ActivityTypes];
+    if (exactMatch) {
+      return exactMatch as ActivityTypes;
+    }
+
+    const normalizedRaw = this.normalizeActivityTypeLookupKey(raw);
+    for (const enumKey of Object.keys(ActivityTypes)) {
+      if (this.normalizeActivityTypeLookupKey(enumKey) === normalizedRaw) {
+        return ActivityTypes[enumKey as keyof typeof ActivityTypes];
+      }
+    }
+
+    for (const enumValue of Object.values(ActivityTypes)) {
+      if (this.normalizeActivityTypeLookupKey(enumValue) === normalizedRaw) {
+        return enumValue as ActivityTypes;
+      }
+    }
+
+    return null;
+  }
+
   static getActivityTypesAsUniqueArray(): string[] {
     return Array.from(
       new Set(
@@ -824,6 +859,19 @@ export enum ActivityTypes {
   'Rock climbing' = 'Rock Climbing',
   'RockClimbing' = 'Rock Climbing',
   /**
+   * Indoor Climbing (Garmin sub_sport: rock_climbing + indoor_climbing)
+   */
+  'indoor_climbing' = 'Indoor Climbing',
+  'IndoorClimbing' = 'Indoor Climbing',
+  'Indoor Climbing' = 'Indoor Climbing',
+  'rock_climbing_indoor_climbing' = 'Indoor Climbing',
+  /**
+   * Bouldering (Garmin sub_sport: rock_climbing + bouldering)
+   */
+  'bouldering' = 'Bouldering',
+  'Bouldering' = 'Bouldering',
+  'rock_climbing_bouldering' = 'Bouldering',
+  /**
    * Sky Diving
    */
   'sky_diving' = 'Sky Diving',
@@ -1033,6 +1081,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
       ActivityTypes.RockClimbing,
+      ActivityTypes['Indoor Climbing'],
+      ActivityTypes.Bouldering,
       ActivityTypes.Canyoning,
       ActivityTypes.ViaFerrata
       // @todo add more

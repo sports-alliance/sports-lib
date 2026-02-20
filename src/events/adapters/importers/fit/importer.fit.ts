@@ -4,7 +4,7 @@ import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
 import { CreatorInterface } from '../../../../creators/creator.interface';
-import { ActivityTypes, ActivityTypesMoving } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from '../../../../activities/activity.types';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
@@ -12,6 +12,7 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
 import { ImporterFitSuuntoDeviceNames } from './importer.fit.suunto.device.names';
 import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
+import { GarminSports, GarminSubSports } from './importer.fit.garmin.profile.data';
 import { DataPause } from '../../../../data/data.pause';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
@@ -557,7 +558,9 @@ export class EventImporterFIT {
              * - `changes`: keep first+last sample for each contiguous run where all fields except timestamp match.
              */
             if (options.deviceInfoMode === 'changes') {
-              activity.creator.devices = this.compactDeviceInfosByRuns(this.mapDeviceInfosToDevices(activityDeviceInfos));
+              activity.creator.devices = this.compactDeviceInfosByRuns(
+                this.mapDeviceInfosToDevices(activityDeviceInfos)
+              );
             } else {
               activity.creator.devices = this.mapDeviceInfosToDevices(fitDeviceInfos);
             }
@@ -1224,55 +1227,67 @@ export class EventImporterFIT {
     }
   }
 
-  private static normalizeActivityTypeLookupKey(value: string): string {
-    return value.toLowerCase().replace(/[\s_-]/g, '');
+  private static getActivityTypeByKey(value: unknown): ActivityTypes | null {
+    return ActivityTypesHelper.resolveActivityType(value);
   }
 
-  private static getActivityTypeByKey(value: unknown): ActivityTypes | null {
+  private static resolveGarminProfileName(value: unknown, map: Record<number, string>): string | null {
     if (!isNumberOrString(value)) {
       return null;
     }
 
-    const key = String(value);
-    const exactMatch = ActivityTypes[<keyof typeof ActivityTypes>key];
-    if (exactMatch) {
-      return exactMatch;
+    if (typeof value === 'number') {
+      return map[value] || null;
     }
 
-    const normalizedKey = this.normalizeActivityTypeLookupKey(key);
-    for (const enumKey of Object.keys(ActivityTypes)) {
-      if (this.normalizeActivityTypeLookupKey(enumKey) === normalizedKey) {
-        return ActivityTypes[<keyof typeof ActivityTypes>enumKey];
-      }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
     }
 
-    return null;
+    if (/^\d+$/.test(trimmed)) {
+      return map[parseInt(trimmed, 10)] || null;
+    }
+
+    return trimmed;
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
-    const activityTypeKey =
-      session.sub_sport && session.sub_sport !== 'generic' ? `${session.sport}_${session.sub_sport}` : session.sport;
-    let activityType = this.getActivityTypeByKey(activityTypeKey);
+    // FIT sport fields can be either profile IDs (number / numeric string) or already-resolved names.
+    // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
+    const resolvedSport = this.resolveGarminProfileName(session.sport, GarminSports);
 
+    const resolvedSubSport: string | null =
+      session.sub_sport && session.sub_sport !== 'generic'
+        ? this.resolveGarminProfileName(session.sub_sport, GarminSubSports)
+        : null;
+
+    // 1. Try composite key: sport_subSport (e.g. "rock_climbing_indoor_climbing")
+    let activityType: ActivityTypes | null = null;
+    if (resolvedSport && resolvedSubSport) {
+      activityType = this.getActivityTypeByKey(`${resolvedSport}_${resolvedSubSport}`);
+    }
+
+    // 2. Try sub_sport name alone (e.g. "indoor_climbing" or "indoorClimbing")
     if (!activityType || activityType === ActivityTypes.unknown) {
-      // Fallback to Garmin SDK mappings
-      const sportName = GarminProfileMapper.getSportName(session.sport);
-      const subSportName =
-        session.sub_sport && session.sub_sport !== 'generic'
-          ? GarminProfileMapper.getSubSportName(session.sub_sport)
-          : null;
-
-      if (sportName || subSportName) {
-        // Try to find in ActivityTypes using the name from Garmin SDK
-        const nameKey = subSportName ? `${sportName}_${subSportName}` : sportName;
-        activityType = this.getActivityTypeByKey(nameKey) || this.getActivityTypeByKey(sportName) || (nameKey as any);
+      if (resolvedSubSport) {
+        activityType = this.getActivityTypeByKey(resolvedSubSport);
       }
     }
 
+    // 3. sport_profile_name (user-defined profile, most specific after composite key)
+    //    e.g. "ENDURO MTB" overrides generic "cycling" sport type.
     if ((!activityType || activityType === ActivityTypes.unknown) && isNumberOrString(session.sport_profile_name)) {
       activityType =
         this.getActivityTypeByKey(session.sport_profile_name) ||
-        this.getActivityTypeByKey(`${session.sport}_${session.sport_profile_name}`);
+        this.getActivityTypeByKey(`${resolvedSport ?? session.sport}_${session.sport_profile_name}`);
+    }
+
+    // 4. Try sport name alone as last resort (e.g. "rock_climbing" or "rockClimbing")
+    if (!activityType || activityType === ActivityTypes.unknown) {
+      if (resolvedSport) {
+        activityType = this.getActivityTypeByKey(resolvedSport);
+      }
     }
 
     return activityType || session.sport || ActivityTypes.unknown;

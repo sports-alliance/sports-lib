@@ -4,7 +4,7 @@ import { DataInterface } from '../data/data.interface';
 import { DurationClassAbstract } from '../duration/duration.class.abstract';
 import { EventJSONInterface } from './event.json.interface';
 import { Privacy } from '../privacy/privacy.class.interface';
-import { ActivityTypes } from '../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../activities/activity.types';
 import { DataActivityTypes } from '../data/data.activity-types';
 import { DataDeviceNames } from '../data/data.device-names';
 import { ActivityJSONInterface } from '../activities/activity.json.interface';
@@ -88,13 +88,16 @@ export class Event extends DurationClassAbstract implements EventInterface {
     if (!activityTypesStat) {
       throw new Error(`Event with id ${this.getID()} has no activity types`);
     }
+
+    const values = activityTypesStat.getValue();
     return activityTypesStat.getValue().length > 1
       ? `${this.getUniqueStringWithMultiplier(
           activityTypesStat
             .getValue()
             .map((activityType: string) => ActivityTypes[<keyof typeof ActivityTypes>activityType])
         )}`
-      : ActivityTypes[<keyof typeof ActivityTypes>activityTypesStat.getDisplayValue()];
+      : ActivityTypesHelper.resolveActivityType(values[0] ?? activityTypesStat.getDisplayValue()) ||
+          (values[0] ?? activityTypesStat.getDisplayValue());
   }
 
   getDeviceNamesAsString(): string {

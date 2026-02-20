@@ -26,6 +26,33 @@ describe('EventImporterFIT', () => {
 
       expect(activityType).toEqual(ActivityTypes['Enduro MTB']);
     });
+
+    it('should map rock_climbing + sub_sport id 68 to Indoor Climbing', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 'rock_climbing',
+        sub_sport: 68
+      });
+
+      expect(activityType).toEqual(ActivityTypes['Indoor Climbing']);
+    });
+
+    it('should map numeric string sport/sub_sport ids to Indoor Climbing', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: '31',
+        sub_sport: '68'
+      });
+
+      expect(activityType).toEqual(ActivityTypes['Indoor Climbing']);
+    });
+
+    it('should map rock_climbing + sub_sport id 69 to Bouldering', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 31,
+        sub_sport: 69
+      });
+
+      expect(activityType).toEqual(ActivityTypes.Bouldering);
+    });
   });
 
   describe('Handle device creator', () => {
@@ -453,13 +480,19 @@ describe('EventImporterFIT', () => {
     const sampleFitPath = path.resolve(__dirname, '../../../../../samples/fit/garmin.fit');
 
     function toArrayBuffer(fileBuffer: Buffer): ArrayBuffer {
-      return fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
+      return fileBuffer.buffer.slice(
+        fileBuffer.byteOffset,
+        fileBuffer.byteOffset + fileBuffer.byteLength
+      ) as ArrayBuffer;
     }
 
     async function parseSample(options: ActivityParsingOptions): Promise<string[]> {
       const fileBuffer = fs.readFileSync(sampleFitPath);
       const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fileBuffer), options, 'fit-stream-filter');
-      return event.getActivities()[0].getAllStreams().map(stream => stream.type);
+      return event
+        .getActivities()[0]
+        .getAllStreams()
+        .map(stream => stream.type);
     }
 
     it('should keep baseline behavior when includeTypes is empty', async () => {

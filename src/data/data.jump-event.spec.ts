@@ -112,6 +112,32 @@ describe('DataJumpEvent', () => {
     expect(jumpEvent.jumpData.rotations?.getValue()).toBe(0);
   });
 
+  it('should omit missing optional fields from hydration and JSON output', () => {
+    const jsonValue = {
+      timestamp,
+      jumpData: {
+        distance: 2.5,
+        score: 42
+      }
+    };
+
+    const jumpEvent = new DataJumpEvent(jsonValue as any);
+    const jumpData = jumpEvent.jumpData as any;
+
+    expect(jumpData.height).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(jumpData, 'height')).toBeFalsy();
+    expect(jumpData.hang_time).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(jumpData, 'hang_time')).toBeFalsy();
+
+    const serializedJumpData = jumpEvent.toJSON()['Jump Event'].jumpData;
+    expect(serializedJumpData).toEqual({
+      distance: 2.5,
+      score: 42
+    });
+    expect(Object.prototype.hasOwnProperty.call(serializedJumpData, 'height')).toBeFalsy();
+    expect(Object.prototype.hasOwnProperty.call(serializedJumpData, 'hang_time')).toBeFalsy();
+  });
+
   it('should format jump-event score with one decimal', () => {
     const jumpEvent = new DataJumpEvent(timestamp, jumpData);
 

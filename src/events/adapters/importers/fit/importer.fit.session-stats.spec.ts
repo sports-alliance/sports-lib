@@ -18,6 +18,8 @@ import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-t
 import { DataGradeAvg } from '../../../../data/data.grade-avg';
 import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataGradeMax } from '../../../../data/data.grade-max';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
+import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 
 describe('EventImporterFIT session stats mapping', () => {
@@ -98,6 +100,23 @@ describe('EventImporterFIT session stats mapping', () => {
     const maxDepth = activity.getStat(DataDepthMax.type);
     expect(maxDepth).toBeDefined();
     expect(maxDepth!.getValue()).toBeCloseTo(3.86, 2);
+  });
+
+  it('should ignore zero VO2 max and recovery time activity metrics', async () => {
+    const fitFilePath = path.join(__dirname, '../../../../../samples/fit/2025-10-17_12-26.fit');
+    if (!fs.existsSync(fitFilePath)) {
+      console.warn(`Sample file not found at ${fitFilePath}. Skipping test.`);
+      return;
+    }
+
+    const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitFilePath));
+    const activity = event.getFirstActivity();
+
+    const vo2Max = activity.getStat(DataVO2Max.type);
+    const recoveryTime = activity.getStat(DataRecoveryTime.type);
+
+    expect(vo2Max).toBeUndefined();
+    expect(recoveryTime).toBeUndefined();
   });
 
   it('should map swim session stroke summary stats', async () => {

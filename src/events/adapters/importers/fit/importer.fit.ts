@@ -974,14 +974,18 @@ export class EventImporterFIT {
           ) || fitDataObject.activity_metrics[0];
 
         if (activityMetric) {
-          if (isNumberOrString(activityMetric.vo2_max) && !activity.getStat(DataVO2Max.type)) {
-            activity.addStat(new DataVO2Max(activityMetric.vo2_max));
-          } else if (isNumberOrString(activityMetric.first_vo2_max) && !activity.getStat(DataVO2Max.type)) {
-            activity.addStat(new DataVO2Max(activityMetric.first_vo2_max));
+          const metricVO2Max = this.getPositiveNumericValue(activityMetric.vo2_max);
+          const metricFirstVO2Max = this.getPositiveNumericValue(activityMetric.first_vo2_max);
+          const metricRecoveryTime = this.getPositiveNumericValue(activityMetric.recovery_time);
+
+          if (metricVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
+            activity.addStat(new DataVO2Max(metricVO2Max));
+          } else if (metricFirstVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
+            activity.addStat(new DataVO2Max(metricFirstVO2Max));
           }
 
-          if (isNumberOrString(activityMetric.recovery_time) && !activity.getStat(DataRecoveryTime.type)) {
-            activity.addStat(new DataRecoveryTime(activityMetric.recovery_time));
+          if (metricRecoveryTime !== null && !activity.getStat(DataRecoveryTime.type)) {
+            activity.addStat(new DataRecoveryTime(metricRecoveryTime));
           }
 
           if (
@@ -1250,6 +1254,19 @@ export class EventImporterFIT {
     }
 
     return trimmed;
+  }
+
+  private static getPositiveNumericValue(value: unknown): number | null {
+    if (!isNumberOrString(value)) {
+      return null;
+    }
+
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      return null;
+    }
+
+    return numericValue;
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
@@ -1537,16 +1554,18 @@ export class EventImporterFIT {
     }
 
     // Vo2Max
-    if (isNumberOrString(object.estimated_vo2_max)) {
-      stats.push(new DataVO2Max(object.estimated_vo2_max));
+    const estimatedVO2Max = this.getPositiveNumericValue(object.estimated_vo2_max);
+    if (estimatedVO2Max !== null) {
+      stats.push(new DataVO2Max(estimatedVO2Max));
     }
     // Peak Epoc
     if (isNumberOrString(object.peak_epoc)) {
       stats.push(new DataPeakEPOC(object.peak_epoc));
     }
     // Recovery time
-    if (isNumberOrString(object.recovery_time)) {
-      stats.push(new DataRecoveryTime(object.recovery_time));
+    const recoveryTime = this.getPositiveNumericValue(object.recovery_time);
+    if (recoveryTime !== null) {
+      stats.push(new DataRecoveryTime(recoveryTime));
     }
     // Feeling
     if (isNumberOrString(object.feeling)) {

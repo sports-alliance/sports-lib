@@ -17,6 +17,32 @@ describe('EventImporterFIT', () => {
       expect(activityType).toEqual(ActivityTypes.Snorkeling);
     });
 
+    it('should map Garmin HIIT sport id 62 to canonical HIIT when sport is numeric', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 62,
+        sub_sport: 0
+      });
+
+      expect(activityType).toEqual(ActivityTypes.HIIT);
+    });
+
+    it('should not leak unresolved numeric sport ids when generic sub sport is present', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 999999,
+        sub_sport: 0
+      });
+
+      expect(activityType).toEqual(ActivityTypes.Generic);
+    });
+
+    it('should fall back to Unknown Sport when sport id is unresolved and no mapped fallback exists', () => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 999999
+      });
+
+      expect(activityType).toEqual(ActivityTypes.unknown);
+    });
+
     it('should map sport profile name ENDURO MTB to canonical Enduro MTB activity type', () => {
       const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
         sport: 'cycling',

@@ -28,11 +28,19 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Workout)).toBe(
       ActivityTypeGroups.Unspecified
     );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.HIIT)).toBe(
+      ActivityTypeGroups.Unspecified
+    );
   });
 
   it('should map alpine_skiing_downhill to AlpineSkiing', () => {
     // @ts-ignore
     expect(ActivityTypes.alpine_skiing_downhill as ActivityTypes).toBe(ActivityTypes.AlpineSkiing);
+  });
+
+  it('should resolve HIIT aliases to canonical HIIT', () => {
+    expect(ActivityTypes.hiit).toBe(ActivityTypes.HIIT);
+    expect(ActivityTypesHelper.resolveActivityType('HIIT')).toBe(ActivityTypes.HIIT);
   });
 
   describe('shouldExcludeAscent', () => {

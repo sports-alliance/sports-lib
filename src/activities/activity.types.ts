@@ -196,6 +196,8 @@ export enum ActivityTypes {
    * Generic
    */
   'generic' = 'Generic',
+  'hiit' = 'HIIT',
+  'HIIT' = 'HIIT',
   'generic_exercise' = 'Generic',
   'generic_track_me' = 'Generic',
   'Generic' = 'Generic',

@@ -1274,10 +1274,9 @@ export class EventImporterFIT {
     // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
     const resolvedSport = this.resolveGarminProfileName(session.sport, GarminSports);
 
+    const resolvedSubSportName = this.resolveGarminProfileName(session.sub_sport, GarminSubSports);
     const resolvedSubSport: string | null =
-      session.sub_sport && session.sub_sport !== 'generic'
-        ? this.resolveGarminProfileName(session.sub_sport, GarminSubSports)
-        : null;
+      resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
     // 1. Try composite key: sport_subSport (e.g. "rock_climbing_indoor_climbing")
     let activityType: ActivityTypes | null = null;
@@ -1307,7 +1306,17 @@ export class EventImporterFIT {
       }
     }
 
-    return activityType || session.sport || ActivityTypes.unknown;
+    if (activityType && activityType !== ActivityTypes.unknown) {
+      return activityType;
+    }
+
+    const fallbackType =
+      this.getActivityTypeByKey(session.sport_profile_name) ||
+      this.getActivityTypeByKey(resolvedSubSportName) ||
+      this.getActivityTypeByKey(resolvedSport) ||
+      this.getActivityTypeByKey(session.sport);
+
+    return fallbackType || ActivityTypes.unknown;
   }
 
   // @todo move this to a mapper

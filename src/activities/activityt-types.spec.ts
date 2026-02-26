@@ -6,6 +6,15 @@ describe('ActivityTypes', () => {
   it('get the correct activity group', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.Running);
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Cycling)).toBe(ActivityTypeGroups.Cycling);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.MountainBiking)).toBe(
+      ActivityTypeGroups.MountainBiking
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes['Enduro MTB'])).toBe(
+      ActivityTypeGroups.MountainBiking
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.DownhillCycling)).toBe(
+      ActivityTypeGroups.MountainBiking
+    );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Crossfit)).toBe(
       ActivityTypeGroups.Performance
     );

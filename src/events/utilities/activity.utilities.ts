@@ -316,6 +316,7 @@ const SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT = 25 / 3.6; // Kph to mps
 const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
   [ActivityTypeGroups.Running, 15 / 3.6], // kph to m/s
   [ActivityTypeGroups.Cycling, 27 / 3.6], // kph to m/s
+  [ActivityTypeGroups.MountainBiking, 27 / 3.6], // kph to m/s
   [ActivityTypeGroups.Swimming, 5 / 3.6] // kph to m/s
 ]);
 
@@ -2497,11 +2498,13 @@ export class ActivityUtilities {
       }
     }
 
-    // Get a grade adjusted speed (applies to running and cycling activity groups)
+    // Get a grade adjusted speed (applies to running and cycling-like activity groups)
+    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     if (
-      (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Running ||
-        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.TrailRunning ||
-        ActivityTypesHelper.getActivityGroupForActivityType(activity.type) === ActivityTypeGroups.Cycling) &&
+      (activityGroup === ActivityTypeGroups.Running ||
+        activityGroup === ActivityTypeGroups.TrailRunning ||
+        activityGroup === ActivityTypeGroups.Cycling ||
+        activityGroup === ActivityTypeGroups.MountainBiking) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
       this.canGenerateDerivedStream(activity, DataGradeAdjustedSpeed.type)
     ) {

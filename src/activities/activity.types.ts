@@ -129,6 +129,7 @@ export class ActivityTypesHelper {
       case ActivityTypeGroups.Running:
       case ActivityTypeGroups.TrailRunning:
       case ActivityTypeGroups.Cycling:
+      case ActivityTypeGroups.MountainBiking:
       case ActivityTypeGroups.OutdoorAdventures:
       case ActivityTypeGroups.Performance:
         return [DataVerticalSpeed.type];
@@ -1012,6 +1013,8 @@ export enum ActivityTypeGroups {
   'Trail Running' = 'Trail Running',
   'TrailRunning' = 'Trail Running',
   'Cycling' = 'Cycling',
+  'Mountain Biking' = 'Mountain Biking',
+  'MountainBiking' = 'Mountain Biking',
   'Swimming' = 'Swimming',
   'Performance' = 'Performance',
   'Indoor Sports' = 'Indoor Sports',
@@ -1044,10 +1047,14 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.Cycling]: [
       ActivityTypes.Cycling,
       ActivityTypes.IndoorCycling,
-      ActivityTypes.MountainBiking,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,
-      ActivityTypes.EBiking,
+      ActivityTypes.EBiking
+      // @todo add more
+    ],
+    [ActivityTypeGroups.MountainBiking]: [
+      ActivityTypes.MountainBiking,
+      ActivityTypes['Enduro MTB'],
       ActivityTypes.DownhillCycling
       // @todo add more
     ],
@@ -1145,6 +1152,7 @@ export class ActivityTypesMoving {
   private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
     [ActivityTypeGroups.Running, 1.5 / 3.6], // kph to m/s
     [ActivityTypeGroups.Cycling, 4 / 3.6], // kph to m/s
+    [ActivityTypeGroups.MountainBiking, 4 / 3.6], // kph to m/s
     [ActivityTypeGroups.Swimming, 0.3] // 30 cm/s
   ]);
 

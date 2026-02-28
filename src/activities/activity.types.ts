@@ -91,6 +91,8 @@ export class ActivityTypesHelper {
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
       case ActivityTypeGroups.TrailRunning:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataSpeedAvg.type, DataGradeAdjustedSpeedAvg.type];
+      case ActivityTypeGroups.OutdoorAdventures:
+        return [DataPaceAvg.type, DataSpeedAvg.type];
       case ActivityTypeGroups.WaterSports:
       case ActivityTypeGroups.Swimming:
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
@@ -104,6 +106,8 @@ export class ActivityTypesHelper {
       case ActivityTypeGroups.Running:
         return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.TrailRunning:
+        return [DataPace.type, DataSpeed.type];
+      case ActivityTypeGroups.OutdoorAdventures:
         return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.WaterSports:
       case ActivityTypeGroups.Swimming:

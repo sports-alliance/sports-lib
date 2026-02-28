@@ -1,3 +1,7 @@
+import { DataPaceAvg } from '../data/data.pace-avg';
+import { DataPace } from '../data/data.pace';
+import { DataSpeedAvg } from '../data/data.speed-avg';
+import { DataSpeed } from '../data/data.speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 describe('ActivityTypes', () => {
@@ -50,6 +54,17 @@ describe('ActivityTypes', () => {
   it('should resolve HIIT aliases to canonical HIIT', () => {
     expect(ActivityTypes.hiit).toBe(ActivityTypes.HIIT);
     expect(ActivityTypesHelper.resolveActivityType('HIIT')).toBe(ActivityTypes.HIIT);
+  });
+
+  it('should derive pace and speed for hiking activities', () => {
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Hiking)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Hiking)).toEqual([
+      DataPaceAvg.type,
+      DataSpeedAvg.type
+    ]);
   });
 
   describe('shouldExcludeAscent', () => {

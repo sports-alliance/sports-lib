@@ -385,6 +385,19 @@ describe('Activity Utilities', () => {
       expect(kmhStream).toBeDefined();
     });
 
+    it('should include pace-derived streams for hiking activities', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Hiking);
+
+      const paceStream = result.find(s => s.type === DataPace.type);
+      const paceUnitStream = result.find(s => s.type === DataPaceMinutesPerMile.type);
+      const kmhStream = result.find(s => s.type === DataSpeedKilometersPerHour.type);
+
+      expect(paceStream).toBeDefined();
+      expect(paceUnitStream).toBeDefined();
+      expect(kmhStream).toBeDefined();
+    });
+
     it('should exclude derived types when includeDerivedTypes is false', () => {
       const streams = [new Stream(DataSpeed.type, [10, 20])];
       const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running, undefined, {

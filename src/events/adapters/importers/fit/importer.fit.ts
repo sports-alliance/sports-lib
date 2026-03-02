@@ -791,22 +791,65 @@ export class EventImporterFIT {
     return compacted;
   }
 
+  private static isValidDate(value: unknown): value is Date {
+    return value instanceof Date && Number.isFinite(value.getTime());
+  }
+
+  private static getValidLapTimestamp(
+    sessionLapObject: any,
+    startDate: Date | null,
+    lastRecordTimestamp: Date | null
+  ): Date | null {
+    const timestamp = sessionLapObject?.timestamp;
+    if (!this.isValidDate(timestamp)) {
+      return null;
+    }
+
+    if (startDate && timestamp.getTime() < startDate.getTime()) {
+      return null;
+    }
+
+    if (
+      startDate &&
+      isNumber(sessionLapObject?.total_elapsed_time) &&
+      sessionLapObject.total_elapsed_time > 0 &&
+      timestamp.getTime() <= startDate.getTime()
+    ) {
+      return null;
+    }
+
+    if (lastRecordTimestamp && timestamp.getTime() < lastRecordTimestamp.getTime()) {
+      return null;
+    }
+
+    return timestamp;
+  }
+
   private static getLapFromSessionLapObject(
     sessionLapObject: any,
     activity: ActivityInterface,
     lapIndex: number
   ): LapInterface {
+    this.swapTimesIfRequired(sessionLapObject);
+
+    const firstRecordTimestamp = sessionLapObject?.records?.[0]?.timestamp || null;
+    const lastRecordTimestamp =
+      sessionLapObject?.records?.length > 0
+        ? sessionLapObject.records[sessionLapObject.records.length - 1]?.timestamp
+        : null;
+
     const startDate =
       sessionLapObject?.start_time ||
-      sessionLapObject?.records[0]?.timestamp ||
+      firstRecordTimestamp ||
       (sessionLapObject?.total_elapsed_time &&
         new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
+    const validTimestamp = this.getValidLapTimestamp(sessionLapObject, startDate, lastRecordTimestamp);
+
     const endDate =
-      sessionLapObject?.timestamp ||
-      (sessionLapObject.records?.length > 0 &&
-        sessionLapObject.records[sessionLapObject.records.length - 1]?.timestamp) ||
+      validTimestamp ||
+      lastRecordTimestamp ||
       (sessionLapObject.start_time &&
         sessionLapObject.total_elapsed_time &&
         new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000)) ||

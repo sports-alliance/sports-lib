@@ -67,6 +67,18 @@ describe('ActivityTypes', () => {
     ]);
   });
 
+  it('should provide default hidden display families for climbing activities', () => {
+    expect(ActivityTypesHelper.hiddenDisplayDataTypesToUseForActivityType(ActivityTypes.Climbing)).toEqual([
+      DataSpeed.type,
+      DataPace.type
+    ]);
+    expect(ActivityTypesHelper.hiddenDisplayDataTypesToUseForActivityType(ActivityTypes.IndoorClimbing)).toEqual([
+      DataSpeed.type,
+      DataPace.type
+    ]);
+    expect(ActivityTypesHelper.hiddenDisplayDataTypesToUseForActivityType(ActivityTypes.Hiking)).toEqual([]);
+  });
+
   describe('shouldExcludeAscent', () => {
     it('should return true for AlpineSkiing', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.AlpineSkiing)).toBe(true);

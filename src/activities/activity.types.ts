@@ -155,6 +155,18 @@ export class ActivityTypesHelper {
   }
 
   /**
+   * Returns metric display families that consumers may hide by default for a given activity type.
+   * This is a presentation hint only and must not be used to suppress imported/raw metrics.
+   */
+  static hiddenDisplayDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
+    if (ACTIVITIES_WITH_SPEED_METRICS_HIDDEN_BY_DEFAULT.includes(activityType)) {
+      return [DataSpeed.type, DataPace.type];
+    }
+
+    return [];
+  }
+
+  /**
    * Get's back the activity group an activity belongs to or returns unspecified activity group
    * @param activityType
    * This function can also be called: Fighting with a non functional language
@@ -1010,6 +1022,14 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
   ActivityTypes.FreeDiving
+];
+
+export const ACTIVITIES_WITH_SPEED_METRICS_HIDDEN_BY_DEFAULT = [
+  ActivityTypes.Climbing,
+  ActivityTypes.FloorClimbing,
+  ActivityTypes.RockClimbing,
+  ActivityTypes['Indoor Climbing'],
+  ActivityTypes.Bouldering
 ];
 
 export enum ActivityTypeGroups {

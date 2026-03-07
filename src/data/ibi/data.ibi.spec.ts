@@ -71,6 +71,39 @@ describe('Data IBI', function () {
   });
 
   it('should export correctly to JSON', function () {
-    expect(ibiData.toJSON()).toEqual([600, 700, 800, 900]);
+    expect(ibiData.toJSON()).toEqual([
+      { time: 600, ibi: 600 },
+      { time: 1300, ibi: 700 },
+      { time: 2100, ibi: 800 },
+      { time: 3000, ibi: 900 }
+    ]);
+  });
+
+  it('should round-trip filtered data without losing preserved elapsed timestamps', function () {
+    ibiData.highLimitBPMFilter(80);
+
+    const roundTripped = new IBIData(ibiData.toJSON());
+    const expectedResult = new Map<number, number>();
+    expectedResult.set(2100, 800);
+    expectedResult.set(3000, 900);
+
+    expect(roundTripped.getIBIDataMap()).toEqual(expectedResult);
+    expect(roundTripped.toJSON()).toEqual([
+      { time: 2100, ibi: 800 },
+      { time: 3000, ibi: 900 }
+    ]);
+  });
+
+  it('should hydrate correctly from timestamp-preserving JSON entries', function () {
+    const roundTripped = new IBIData([
+      { time: 2100, ibi: 800 },
+      { time: 3000, ibi: 900 }
+    ]);
+    const expectedResult = new Map<number, number>();
+    expectedResult.set(2100, 800);
+    expectedResult.set(3000, 900);
+
+    expect(roundTripped.getIBIDataMap()).toEqual(expectedResult);
+    expect(roundTripped.getAsArray()).toEqual([800, 900]);
   });
 });

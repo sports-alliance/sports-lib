@@ -1,6 +1,11 @@
 import { SerializableClassInterface } from '../../serializable/serializable.class.interface';
 import { IBIFilters } from './data.ibi.filters';
 
+export interface IBIJSONEntry {
+  time: number;
+  ibi: number;
+}
+
 export class IBIData implements SerializableClassInterface {
   static type = 'IBI'; // @todo hcakc fix
   /**
@@ -10,7 +15,7 @@ export class IBIData implements SerializableClassInterface {
    */
   private ibiDataMap: Map<number, number> = new Map<number, number>();
 
-  constructor(ibiDataArray?: Array<number>) {
+  constructor(ibiDataArray?: Array<number | IBIJSONEntry>) {
     if (ibiDataArray) {
       this.parseIBIArray(ibiDataArray);
     }
@@ -21,14 +26,28 @@ export class IBIData implements SerializableClassInterface {
    * eg: [600, 600, 100] becomes a map of {600:600, 1200: 600, 1300:100}
    * @param {Array<number>} ibiArray
    */
-  public parseIBIArray(ibiArray: Array<number>) {
-    ibiArray.reduce((totalTime, ibiData) => {
-      if (ibiData > 0) {
-        totalTime += ibiData;
-        this.ibiDataMap.set(totalTime, ibiData);
-      }
-      return totalTime;
-    }, 0);
+  public parseIBIArray(ibiArray: Array<number | IBIJSONEntry>) {
+    if (!ibiArray.length) {
+      return;
+    }
+
+    if (typeof ibiArray[0] === 'number') {
+      (<number[]>ibiArray).reduce((totalTime, ibiData) => {
+        if (ibiData > 0) {
+          totalTime += ibiData;
+          this.ibiDataMap.set(totalTime, ibiData);
+        }
+        return totalTime;
+      }, 0);
+      return;
+    }
+
+    (<IBIJSONEntry[]>ibiArray)
+      .filter(ibiData => ibiData.time > 0 && ibiData.ibi > 0)
+      .sort((a, b) => a.time - b.time)
+      .forEach(ibiData => {
+        this.ibiDataMap.set(ibiData.time, ibiData.ibi);
+      });
   }
 
   /**
@@ -105,7 +124,10 @@ export class IBIData implements SerializableClassInterface {
     return this;
   }
 
-  toJSON(): any {
-    return Array.from(this.ibiDataMap.values());
+  toJSON(): IBIJSONEntry[] {
+    return Array.from(this.ibiDataMap.entries()).map(([time, ibi]) => ({
+      time,
+      ibi
+    }));
   }
 }

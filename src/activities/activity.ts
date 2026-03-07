@@ -297,8 +297,6 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   generateTimeStream(streamTypes: string[] = []): StreamInterface {
-    const timeStream = new Stream(DataTime.type, Array(this.getTimeGridLength()).fill(null));
-    const timeStreamData = timeStream.getData();
     let streams = this.getAllStreams();
     if (streamTypes.length) {
       streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1);
@@ -306,9 +304,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       // Irregular event streams should not define the default 1 Hz occupancy grid.
       streams = streams.filter(stream => stream.type !== DataIBI.type);
     }
+    const timeStream = new Stream(DataTime.type, Array(this.getTimeGridLength(streams)).fill(null));
+    const timeStreamData = timeStream.getData();
     streams.forEach(stream => {
       this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
-        const timeIndex = stream.type === DataIBI.type ? Activity.projectMillisecondsToSecondGrid(data.time) : data.time / 1000;
+        const timeIndex =
+          stream.type === DataIBI.type ? Activity.projectMillisecondsToSecondGrid(data.time) : data.time / 1000;
         if (Number.isInteger(timeIndex) && timeIndex >= 0 && timeIndex < timeStreamData.length) {
           timeStreamData[timeIndex] = timeIndex;
         }
@@ -333,13 +334,21 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return Math.round(milliseconds / 1000);
   }
 
-  private getTimeGridLength(): number {
+  private getTimeGridLength(streams: StreamInterface[]): number {
     const activityLength = ActivityUtilities.getDataLength(this.startDate, this.endDate);
-    const duration = this.getDuration()?.getValue();
-    if (!Number.isFinite(duration)) {
-      return activityLength;
-    }
-    return Math.max(activityLength, Math.ceil(<number>duration) + 1);
+    return streams.reduce((maxLength, stream) => {
+      if (stream.type === DataIBI.type) {
+        const ibiLength = stream
+          .getStreamDataByDuration(0, true, false)
+          .reduce(
+            (maxTimeIndex, data) => Math.max(maxTimeIndex, Activity.projectMillisecondsToSecondGrid(data.time) + 1),
+            0
+          );
+        return Math.max(maxLength, ibiLength);
+      }
+
+      return Math.max(maxLength, stream.getData().length);
+    }, activityLength);
   }
 
   toJSON(): ActivityJSONInterface {

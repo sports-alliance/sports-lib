@@ -11,7 +11,6 @@ import { DataStartEvent } from '../data/data.start-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataIBI } from '../data/data.ibi';
 import { IBIStream } from '../streams/ibi-stream';
-import { DataDuration } from '../data/data.duration';
 
 describe('Activity', () => {
   let activity: ActivityInterface;
@@ -386,14 +385,13 @@ describe('Activity', () => {
     expect(activity.generateTimeStream().getData(true)).toEqual([0, 3, 6]);
   });
 
-  it('should size generated time streams to the activity duration stat when it exceeds end date', () => {
+  it('should size generated time streams to the selected stream length when it exceeds end date', () => {
     const shortActivity = new Activity(
       new Date(0),
       new Date(new Date(0).getTime() + 5000),
       ActivityTypes.Running,
       new Creator('Test')
     );
-    shortActivity.setDuration(new DataDuration(7));
     shortActivity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, null, 70]));
 
     expect(shortActivity.generateTimeStream([DataDistance.type]).getData(true)).toEqual([0, 1, 2, 3, 4, 5, 7]);

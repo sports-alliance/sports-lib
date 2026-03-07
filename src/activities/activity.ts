@@ -297,13 +297,17 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   generateTimeStream(streamTypes: string[] = []): StreamInterface {
     const timeStream = this.createStream(DataTime.type);
+    const timeStreamData = timeStream.getData();
     let streams = this.getAllStreams();
     if (streamTypes.length) {
       streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1);
     }
     streams.forEach(stream => {
       this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
-        timeStream.getData()[data.time / 1000] = data.time / 1000;
+        const timeIndex = Math.round(data.time / 1000);
+        if (timeIndex >= 0 && timeIndex < timeStreamData.length) {
+          timeStreamData[timeIndex] = timeIndex;
+        }
       });
     });
     return timeStream;

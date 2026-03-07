@@ -9,6 +9,8 @@ import { DataDistance } from '../data/data.distance';
 import { DataStopEvent } from '../data/data.stop-event';
 import { DataStartEvent } from '../data/data.start-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
+import { DataIBI } from '../data/data.ibi';
+import { IBIStream } from '../streams/ibi-stream';
 
 describe('Activity', () => {
   let activity: ActivityInterface;
@@ -316,6 +318,25 @@ describe('Activity', () => {
     expect(activity.generateTimeStream().getData()).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
     expect(activity.generateTimeStream().getData(true)).toEqual([0, 2, 3, 4, 6, 7, 8]);
     expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
+  });
+
+  it('should map IBI timestamps into valid second slots when generating a time stream', () => {
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    expect(activity.generateTimeStream([DataIBI.type]).getData()).toEqual([
+      null,
+      1,
+      2,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]);
+    expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([1, 2]);
   });
 
   it('should set the correct sample sizes', () => {

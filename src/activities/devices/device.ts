@@ -29,22 +29,22 @@ export class Device implements DeviceInterface {
   toJSON(): DeviceJsonInterface {
     return {
       type: this.type,
-      index: isNumber(this.index) ? this.index || null : null,
+      index: isNumber(this.index) ? <number>this.index : null,
       batteryStatus: this.batteryStatus || null,
-      batteryLevel: this.batteryLevel || null,
+      batteryLevel: isNumber(this.batteryLevel) ? <number>this.batteryLevel : null,
       name: this.name || null,
-      batteryVoltage: this.batteryVoltage || null,
+      batteryVoltage: isNumber(this.batteryVoltage) ? <number>this.batteryVoltage : null,
       manufacturer: this.manufacturer || null,
       serialNumber: this.serialNumber || null,
-      product: this.product || null,
+      product: isNumber(this.product) ? <number>this.product : null,
       swInfo: this.swInfo || null,
       hwInfo: this.hwInfo || null,
-      antDeviceNumber: this.antDeviceNumber || null,
-      antTransmissionType: this.antTransmissionType || null,
+      antDeviceNumber: isNumber(this.antDeviceNumber) ? <number>this.antDeviceNumber : null,
+      antTransmissionType: isNumber(this.antTransmissionType) ? <number>this.antTransmissionType : null,
       antNetwork: this.antNetwork || null,
       sourceType: this.sourceType || null,
       antId: this.antId || null,
-      cumOperatingTime: this.cumOperatingTime || null,
+      cumOperatingTime: isNumber(this.cumOperatingTime) ? <number>this.cumOperatingTime : null,
       timestamp: this.timestamp ? this.timestamp.toISOString() : null
     };
   }

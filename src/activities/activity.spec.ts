@@ -377,12 +377,30 @@ describe('Activity', () => {
     expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([0, 1]);
   });
 
+  it('should keep the default time stream empty when IBI is the only stream', () => {
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    expect(activity.generateTimeStream().getData(true)).toEqual([]);
+  });
+
   it('should ignore IBI when generating the default time stream', () => {
     activity.addStream(new Stream(DataDistance.type, [0, null, null, 30, null, null, 60]));
     activity.addStream(new IBIStream([823, 823, 823]));
 
     expect(activity.generateTimeStream().getData()).toEqual([0, null, null, 3, null, null, 6, null, null, null, null]);
     expect(activity.generateTimeStream().getData(true)).toEqual([0, 3, 6]);
+  });
+
+  it('should size explicit IBI time streams from projected beat timestamps when they exceed end date', () => {
+    const shortActivity = new Activity(
+      new Date(0),
+      new Date(new Date(0).getTime() + 1000),
+      ActivityTypes.Running,
+      new Creator('Test')
+    );
+    shortActivity.addStream(new IBIStream([823, 823, 823]));
+
+    expect(shortActivity.generateTimeStream([DataIBI.type]).getData()).toEqual([null, 1, 2]);
   });
 
   it('should size generated time streams to the selected stream length when it exceeds end date', () => {
@@ -395,6 +413,20 @@ describe('Activity', () => {
     shortActivity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, null, 70]));
 
     expect(shortActivity.generateTimeStream([DataDistance.type]).getData(true)).toEqual([0, 1, 2, 3, 4, 5, 7]);
+  });
+
+  it('should generate duration streams using the same explicit IBI projection rules', () => {
+    activity.addStream(new Stream(DataDistance.type, [0, null, null, 30]));
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    expect(activity.generateDurationStream().getData(true)).toEqual([0, 3]);
+    expect(activity.generateDurationStream([DataIBI.type]).getData(true)).toEqual([1, 2]);
+  });
+
+  it('should round date indexes onto the same second grid used for IBI projection', () => {
+    expect(activity.getDateIndex(new Date(499))).toBe(0);
+    expect(activity.getDateIndex(new Date(500))).toBe(1);
+    expect(activity.getDateIndex(new Date(501))).toBe(1);
   });
 
   it('should set the correct sample sizes', () => {

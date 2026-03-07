@@ -21,6 +21,32 @@ describe('EventImporterFIT', () => {
 
       expect(ibiData).toEqual([1000]);
     });
+
+    it('should preserve elapsed time across consecutive invalid HRV sentinel values from multiple records', () => {
+      const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
+        [{ time: [1, 65.535] }, { time: [65.535, 1] }],
+        new Date(0),
+        {
+          startDate: new Date(130000),
+          endDate: new Date(140000)
+        }
+      );
+
+      expect(ibiData).toEqual([1000]);
+    });
+
+    it('should drop trailing invalid HRV sentinel values without emitting synthetic intervals', () => {
+      const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
+        [{ time: [1, 1, 65.535] }],
+        new Date(0),
+        {
+          startDate: new Date(0),
+          endDate: new Date(100000)
+        }
+      );
+
+      expect(ibiData).toEqual([1000, 1000]);
+    });
   });
 
   describe('Activity type resolution', () => {

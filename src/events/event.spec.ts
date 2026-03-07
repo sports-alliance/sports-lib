@@ -6,6 +6,7 @@ import { ActivityTypes } from '../activities/activity.types';
 import { FileType } from './adapters/file-type.enum';
 import { EventJSONInterface } from './event.json.interface';
 import { DataActivityTypes } from '../data/data.activity-types';
+import { DataDeviceNames } from '../data/data.device-names';
 
 describe('Event', () => {
   let event: EventInterface;
@@ -76,5 +77,17 @@ describe('Event', () => {
   it('should preserve unknown single activity type strings when formatting type string', () => {
     event.addStat(new DataActivityTypes(['mystery_sport']));
     expect(event.getActivityTypesAsString()).toBe('mystery_sport');
+  });
+
+  it('should format device names with multiplicity', () => {
+    event.addStat(new DataDeviceNames(['Edge', 'HRM', 'HRM']));
+    expect(event.getDeviceNamesAsString()).toBe('Edge, 2x HRM');
+  });
+
+  it('should classify non-merged events with multiple activities as multi-sport', () => {
+    event.addActivity(new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('Run')));
+    event.addActivity(new Activity(new Date(1000), new Date(2000), ActivityTypes.Cycling, new Creator('Ride')));
+
+    expect(event.isMultiSport()).toBe(true);
   });
 });

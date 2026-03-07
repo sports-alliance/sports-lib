@@ -25,6 +25,7 @@ import { Device } from '../../../../activities/devices/device';
 import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataEvent } from '../../../../data/data.event';
 import { DataTime } from '../../../../data/data.time';
+import { DataPowerCurve } from '../../../../data/data.power-curve';
 
 export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
@@ -39,6 +40,13 @@ export class EventImporterJSON {
     );
     Object.keys(json.stats).forEach((statName: any) => {
       event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
+    });
+    if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {
+      event.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
+      event.addStat(<any>event.powerCurve);
+    }
+    json.activities.forEach(activityJSON => {
+      event.addActivity(this.getActivityFromJSON(activityJSON));
     });
     return event;
   }
@@ -73,59 +81,67 @@ export class EventImporterJSON {
 
   static getDeviceFromJSON(json: DeviceJsonInterface): DeviceInterface {
     const device = new Device(json.type);
-    if (json.index) {
+    if (json.index !== null && json.index !== undefined) {
       device.index = json.index;
     }
-    if (json.name) {
+    if (json.name !== null && json.name !== undefined) {
       device.name = json.name;
     }
-    if (json.batteryStatus) {
+    if (json.batteryStatus !== null && json.batteryStatus !== undefined) {
       device.batteryStatus = json.batteryStatus;
     }
-    if (json.batteryLevel) {
+    if (json.batteryLevel !== null && json.batteryLevel !== undefined) {
       device.batteryLevel = json.batteryLevel;
     }
-    if (json.batteryVoltage) {
+    if (json.batteryVoltage !== null && json.batteryVoltage !== undefined) {
       device.batteryVoltage = json.batteryVoltage;
     }
-    if (json.manufacturer) {
+    if (json.manufacturer !== null && json.manufacturer !== undefined) {
       device.manufacturer = json.manufacturer;
     }
 
-    if (json.serialNumber) {
+    if (json.serialNumber !== null && json.serialNumber !== undefined) {
       device.serialNumber = json.serialNumber;
     }
 
-    if (json.product) {
+    if (json.product !== null && json.product !== undefined) {
       device.product = json.product;
     }
 
-    if (json.swInfo) {
+    if (json.swInfo !== null && json.swInfo !== undefined) {
       device.swInfo = json.swInfo;
     }
 
-    if (json.hwInfo) {
+    if (json.hwInfo !== null && json.hwInfo !== undefined) {
       device.hwInfo = json.hwInfo;
     }
 
-    if (json.antDeviceNumber) {
+    if (json.antDeviceNumber !== null && json.antDeviceNumber !== undefined) {
       device.antDeviceNumber = json.antDeviceNumber;
     }
 
-    if (json.antTransmissionType) {
+    if (json.antTransmissionType !== null && json.antTransmissionType !== undefined) {
       device.antTransmissionType = json.antTransmissionType;
     }
 
-    if (json.antNetwork) {
+    if (json.antNetwork !== null && json.antNetwork !== undefined) {
       device.antNetwork = json.antNetwork;
     }
 
-    if (json.sourceType) {
+    if (json.sourceType !== null && json.sourceType !== undefined) {
       device.sourceType = json.sourceType;
     }
 
-    if (json.cumOperatingTime) {
+    if (json.antId !== null && json.antId !== undefined) {
+      device.antId = json.antId;
+    }
+
+    if (json.cumOperatingTime !== null && json.cumOperatingTime !== undefined) {
       device.cumOperatingTime = json.cumOperatingTime;
+    }
+
+    if (json.timestamp) {
+      device.timestamp = new Date(json.timestamp);
     }
 
     return device;
@@ -181,6 +197,10 @@ export class EventImporterJSON {
     Object.keys(json.stats).forEach((statName: any) => {
       activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
     });
+    if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {
+      activity.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
+      activity.addStat(<any>activity.powerCurve);
+    }
     json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
     });
@@ -194,6 +214,9 @@ export class EventImporterJSON {
       });
     } else {
       Object.keys(json.streams).forEach(streamKey => {
+        if (streamKey === DataTime.type) {
+          return;
+        }
         const streamJson: StreamJSONInterface = {
           type: streamKey,
           data: (json.streams as { [key: string]: number[] })[streamKey]

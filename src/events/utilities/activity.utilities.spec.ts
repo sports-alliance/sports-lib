@@ -64,6 +64,7 @@ import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
 import { IBIStream } from '../../streams/ibi-stream';
+import { DataIBI } from '../../data/data.ibi';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -329,6 +330,37 @@ describe('Activity Utilities', () => {
     expect(activityDeserialized.getStream(DataSpeed.type)).toEqual(activity.getStream(DataSpeed.type));
     expect(activityDeserialized.getStream(DataHeartRate.type)).toEqual(activity.getStream(DataHeartRate.type));
     expect(activityDeserialized.getStream(DataAltitude.type)).toEqual(activity.getStream(DataAltitude.type));
+    expect(activityDeserialized.hasStreamData(DataTime.type)).toBeFalsy();
+  });
+
+  it('should serialize time from the primary regular stream even when IBI is also present', () => {
+    const activity = event.getFirstActivity();
+    activity.startDate = new Date();
+    activity.endDate = new Date(activity.startDate.getTime() + 3000);
+    activity.addStream(new IBIStream([823, 823, 823]));
+    activity.addStream(new Stream(DataDistance.type, [0, 9, null, 30]));
+
+    const activitySerialized = activity.toJSON();
+    const timeStream = (activitySerialized.streams as StreamJSONInterface[]).find(s => s.type === DataTime.type);
+
+    expect(timeStream?.data).toEqual([0, 1, null, 3]);
+  });
+
+  it('should serialize projected time data when IBI is the only stream', () => {
+    const activity = new Activity(
+      new Date(0),
+      new Date(new Date(0).getTime() + 1000),
+      ActivityTypes.Running,
+      new Creator('Test')
+    );
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    const activitySerialized = activity.toJSON();
+    const timeStream = (activitySerialized.streams as StreamJSONInterface[]).find(s => s.type === DataTime.type);
+    const activityDeserialized = EventImporterJSON.getActivityFromJSON(activitySerialized);
+
+    expect(timeStream?.data).toEqual([null, 1, 2]);
+    expect(activityDeserialized.getStream(DataIBI.type)).toEqual(activity.getStream(DataIBI.type));
     expect(activityDeserialized.hasStreamData(DataTime.type)).toBeFalsy();
   });
 

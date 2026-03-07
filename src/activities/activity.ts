@@ -296,7 +296,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   generateTimeStream(streamTypes: string[] = []): StreamInterface {
-    const timeStream = this.createStream(DataTime.type);
+    const timeStream = new Stream(DataTime.type, Array(this.getTimeGridLength()).fill(null));
     const timeStreamData = timeStream.getData();
     let streams = this.getAllStreams();
     if (streamTypes.length) {
@@ -327,6 +327,15 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   private static projectMillisecondsToSecondGrid(milliseconds: number): number {
     // The library's generic stream model is 1 Hz, so irregular timestamps must be projected onto whole-second slots.
     return Math.round(milliseconds / 1000);
+  }
+
+  private getTimeGridLength(): number {
+    const activityLength = ActivityUtilities.getDataLength(this.startDate, this.endDate);
+    const duration = this.getDuration()?.getValue();
+    if (!Number.isFinite(duration)) {
+      return activityLength;
+    }
+    return Math.max(activityLength, Math.ceil(<number>duration) + 1);
   }
 
   toJSON(): ActivityJSONInterface {

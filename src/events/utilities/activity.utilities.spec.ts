@@ -63,6 +63,7 @@ import { DataVerticalRatio } from '../../data/data.vertical-ratio';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
+import { IBIStream } from '../../streams/ibi-stream';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -370,6 +371,19 @@ describe('Activity Utilities', () => {
       expect(activity.getStreamData(DataAltitude.type)).toEqual(expectedAltitudes);
       expect(activity.getStreamData(DataHeartRate.type)).toEqual(expectedHeartRates);
       done();
+    });
+
+    it('should ignore IBI occupancy when backfilling distance and altitude streams', () => {
+      const activity = createFakeActivityWithStreams(6, [
+        { type: DataDistance.type, data: [0, null, null, null, null, null, 60] },
+        { type: DataAltitude.type, data: [100, null, null, null, null, null, 160] }
+      ]);
+      activity.addStream(new IBIStream([1000, 1000, 1000, 1000, 1000]));
+
+      ActivityUtilities.addMissingDataToStreams(activity);
+
+      expect(activity.getStreamData(DataDistance.type)).toEqual([0, null, null, null, null, null, 60]);
+      expect(activity.getStreamData(DataAltitude.type)).toEqual([100, null, null, null, null, null, 160]);
     });
   });
 

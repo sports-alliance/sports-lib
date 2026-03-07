@@ -2677,7 +2677,6 @@ export class ActivityUtilities {
       DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
-    // First generate the time stream
     const timeStream = activity.generateTimeStream();
     /**
      * We do a second pass here and we add missing data on crossing time indexes

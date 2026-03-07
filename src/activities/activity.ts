@@ -22,6 +22,7 @@ import { DataStopEvent } from '../data/data.stop-event';
 import { DataJSONInterface } from '../data/data.json.interface';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataTime } from '../data/data.time';
+import { DataIBI } from '../data/data.ibi';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataDistance } from '../data/data.distance';
@@ -301,11 +302,14 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     let streams = this.getAllStreams();
     if (streamTypes.length) {
       streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1);
+    } else {
+      // Irregular event streams should not define the default 1 Hz occupancy grid.
+      streams = streams.filter(stream => stream.type !== DataIBI.type);
     }
     streams.forEach(stream => {
       this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
-        const timeIndex = Activity.projectMillisecondsToSecondGrid(data.time);
-        if (timeIndex >= 0 && timeIndex < timeStreamData.length) {
+        const timeIndex = stream.type === DataIBI.type ? Activity.projectMillisecondsToSecondGrid(data.time) : data.time / 1000;
+        if (Number.isInteger(timeIndex) && timeIndex >= 0 && timeIndex < timeStreamData.length) {
           timeStreamData[timeIndex] = timeIndex;
         }
       });

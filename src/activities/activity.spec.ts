@@ -378,6 +378,14 @@ describe('Activity', () => {
     expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([0, 1]);
   });
 
+  it('should ignore IBI when generating the default time stream', () => {
+    activity.addStream(new Stream(DataDistance.type, [0, null, null, 30, null, null, 60]));
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    expect(activity.generateTimeStream().getData()).toEqual([0, null, null, 3, null, null, 6, null, null, null, null]);
+    expect(activity.generateTimeStream().getData(true)).toEqual([0, 3, 6]);
+  });
+
   it('should size generated time streams to the activity duration stat when it exceeds end date', () => {
     const shortActivity = new Activity(
       new Date(0),

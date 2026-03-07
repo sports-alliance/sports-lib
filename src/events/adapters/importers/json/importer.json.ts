@@ -38,14 +38,14 @@ export class EventImporterJSON {
       json.description || undefined,
       json.isMerge || false
     );
-    Object.keys(json.stats).forEach((statName: any) => {
-      event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
+    Object.keys(json.stats || {}).forEach((statName: any) => {
+      event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, (json.stats || {})[statName]));
     });
     if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {
       event.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
       event.addStat(<any>event.powerCurve);
     }
-    json.activities.forEach(activityJSON => {
+    (json.activities || []).forEach(activityJSON => {
       event.addActivity(this.getActivityFromJSON(activityJSON));
     });
     return event;

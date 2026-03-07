@@ -132,4 +132,22 @@ describe('EventImporterJSON', () => {
     expect(event.isMerge).toBe(true);
     expect(event.isMultiSport()).toBe(false);
   });
+
+  it('should hydrate event JSON that omits embedded activities for Firestore-style event documents', () => {
+    const event = EventImporterJSON.getEventFromJSON({
+      name: 'firestore-event',
+      startDate: 0,
+      endDate: 2000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {},
+      activities: undefined as any
+    });
+
+    expect(event.getActivities()).toEqual([]);
+    expect(event.name).toBe('firestore-event');
+  });
 });

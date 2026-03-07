@@ -8,6 +8,21 @@ import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPace } from '../../../../data/data.pace';
 
 describe('EventImporterFIT', () => {
+  describe('HRV handling', () => {
+    it('should preserve elapsed time after invalid HRV sentinel values', () => {
+      const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
+        [{ time: [1, 65.535, 1] }],
+        new Date(0),
+        {
+          startDate: new Date(50000),
+          endDate: new Date(70000)
+        }
+      );
+
+      expect(ibiData).toEqual([1000]);
+    });
+  });
+
   describe('Activity type resolution', () => {
     it('should map Garmin snorkeling sport id to canonical Snorkeling activity type', () => {
       const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({

@@ -339,6 +339,44 @@ describe('Activity', () => {
     expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([1, 2]);
   });
 
+  it('should collapse multiple IBI beats that round into the same second slot', () => {
+    activity.addStream(new IBIStream([1100, 100, 100]));
+
+    expect(activity.generateTimeStream([DataIBI.type]).getData()).toEqual([
+      null,
+      1,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]);
+    expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([1]);
+  });
+
+  it('should round IBI timestamps on the 499 500 501ms boundary as expected', () => {
+    activity.addStream(new IBIStream([499, 1, 1]));
+
+    expect(activity.generateTimeStream([DataIBI.type]).getData()).toEqual([
+      0,
+      1,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]);
+    expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([0, 1]);
+  });
+
   it('should set the correct sample sizes', () => {
     const stream = activity.createStream(DataAltitude.type);
     expect(stream.getData().length).toBe(11);

@@ -181,6 +181,8 @@ import {
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 
 export class EventImporterFIT {
+  private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
+
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -515,21 +517,7 @@ export class EventImporterFIT {
         // Get the HRV to IBI if exist
         if (fitDataObject.hrv && fitDataObject.hrv.length) {
           activities.forEach((activity: ActivityInterface) => {
-            let timeSum = 0;
-            const ibiData = fitDataObject.hrv
-              .reduce((ibiArray: number[], hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
-              .map((ibi: any) => ibi * 1000)
-              .filter((ibi: number) => {
-                // debugger;
-                // Some Garmin devices return a record of 65.535 (65535) for some reason so exlcude those
-                if (ibi === 65535) {
-                  // timeSum += ibi;
-                  return false;
-                }
-                timeSum += ibi;
-                const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
-                return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
-              });
+            const ibiData = this.getIBIDataForActivity(fitDataObject.hrv, activities[0].startDate, activity);
             // set the IBI
             activity.addStream(new IBIStream(ibiData));
           });
@@ -631,6 +619,24 @@ export class EventImporterFIT {
    */
   private static isLengthsBased(sessionObject: any): boolean {
     return sessionObject.laps?.filter((lap: any) => lap.lengths?.length).length > 1;
+  }
+
+  private static getIBIDataForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): number[] {
+    let elapsedTime = 0;
+    return hrvRecords
+      .reduce((ibiArray: number[], hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
+      .map((ibi: any) => ibi * 1000)
+      .filter((ibi: number) => {
+        elapsedTime += ibi;
+        const ibiDataDate = new Date(eventStartDate.getTime() + elapsedTime);
+
+        // FIT uses 0xFFFF as the invalid uint16 sentinel. Some parsers surface it as 65.535s.
+        if (ibi === this.INVALID_FIT_HRV_INTERVAL_MS) {
+          return false;
+        }
+
+        return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
+      });
   }
 
   /**

@@ -304,7 +304,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }
     streams.forEach(stream => {
       this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
-        const timeIndex = Math.round(data.time / 1000);
+        const timeIndex = Activity.projectMillisecondsToSecondGrid(data.time);
         if (timeIndex >= 0 && timeIndex < timeStreamData.length) {
           timeStreamData[timeIndex] = timeIndex;
         }
@@ -321,8 +321,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   getDateIndex(date: Date): number {
-    // @todo ceil vs floor (still debatable)
-    return Math.round((+date - +this.startDate) / 1000);
+    return Activity.projectMillisecondsToSecondGrid(+date - +this.startDate);
+  }
+
+  private static projectMillisecondsToSecondGrid(milliseconds: number): number {
+    // The library's generic stream model is 1 Hz, so irregular timestamps must be projected onto whole-second slots.
+    return Math.round(milliseconds / 1000);
   }
 
   toJSON(): ActivityJSONInterface {

@@ -66,6 +66,8 @@ export const FITSampleMapper: {
   {
     dataType: DataDistance.type,
     getSampleValue: (sample: any) => {
+      // TODO(sports-lib): fix duplicate distance-family outputs at the source by reading FIT field units/metadata
+      // instead of blindly preferring `distance`/`Distance`. Some vendor exports can mix differently-scaled fields.
       return isNumber(sample.distance) ? sample.distance : sample.Distance;
     }
   },
@@ -127,6 +129,8 @@ export const FITSampleMapper: {
   {
     dataType: DataSpeed.type,
     getSampleValue: (sample: any) => {
+      // TODO(sports-lib): fix duplicate speed-family outputs at the source by normalizing vendor-specific speed keys
+      // (`enhanced_speed`, `speed`, `Speed`) with explicit unit handling. This should guarantee one canonical base stream.
       if (isNumber(sample.enhanced_speed)) {
         return sample.enhanced_speed;
       }

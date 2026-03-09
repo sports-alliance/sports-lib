@@ -91,6 +91,8 @@ export const GPXSampleMapper: {
   {
     dataType: DataDistance.type,
     getSampleValue: sample => {
+      // TODO(sports-lib): verify/normalize GPX extension distance units per vendor namespace so
+      // Distance remains canonical and does not compete with later-derived unit streams.
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }
@@ -115,6 +117,8 @@ export const GPXSampleMapper: {
   {
     dataType: DataSpeed.type,
     getSampleValue: sample => {
+      // TODO(sports-lib): verify/normalize GPX extension speed units per vendor namespace so
+      // Speed remains canonical and unit-variant generation stays deterministic.
       if (!sample.extensions || !sample.extensions.length) {
         return null;
       }

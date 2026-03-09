@@ -16,6 +16,8 @@ import {
 describe('EventImporterGPX Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/gpx -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/gpx');
+  // TODO(sports-lib): add a committed GPX regression fixture for mixed extension namespaces/units
+  // and assert canonical single-stream output for speed/distance families.
   const sampleGpxFile = path.join(samplesDir, 'garmin.gpx');
 
   async function parseGpxFile(filePath: string, options?: ActivityParsingOptions) {

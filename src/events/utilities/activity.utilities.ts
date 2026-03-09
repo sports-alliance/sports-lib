@@ -2321,6 +2321,9 @@ export class ActivityUtilities {
     }
   ): StreamInterface[] {
     // @todo perhaps check input to be unitStreamTypesStrictly
+    // TODO(sports-lib): make unit-stream generation canonical when both base and pre-existing unit streams
+    // are present (or when multiple base streams map to the same unit variant), so downstream apps never
+    // need dedupe heuristics for semantically-equivalent stream families.
     const unitStreamTypesToCreate = unitStreamTypes || [
       ...DynamicDataLoader.allUnitDerivedDataTypes,
       ...DynamicDataLoader.speedDerivedDataTypes

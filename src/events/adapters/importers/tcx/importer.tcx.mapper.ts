@@ -38,6 +38,8 @@ export const TCXSampleMapper: {
   {
     dataType: DataDistance.type,
     getSampleValue: (trackPointsElement: Element) => {
+      // TODO(sports-lib): validate TCX distance-field unit assumptions for vendor extensions/exports
+      // and keep one canonical base distance stream path.
       return findChildNodeValue(trackPointsElement.childNodes, 'DistanceMeters');
     }
   },
@@ -72,6 +74,8 @@ export const TCXSampleMapper: {
   {
     dataType: DataSpeed.type,
     getSampleValue: (trackPointsElement: Element) => {
+      // TODO(sports-lib): validate TCX speed-field unit assumptions for extension namespaces
+      // and keep one canonical base speed stream path.
       return findTrackPointExtensionValue(trackPointsElement.childNodes, 'Speed');
     }
   },

@@ -16,6 +16,8 @@ import {
 describe('EventImporterTCX Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/tcx -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/tcx');
+  // TODO(sports-lib): add a committed TCX regression fixture for extension-field unit ambiguity
+  // and assert canonical single-stream output for speed/distance families.
   const sampleTcxFile = path.join(samplesDir, 'garmin.tcx');
 
   async function parseTcxFile(filePath: string, options?: ActivityParsingOptions) {

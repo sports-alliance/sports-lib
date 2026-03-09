@@ -19,6 +19,9 @@ import {
 describe('EventImporterFIT Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/fit -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/fit');
+  // TODO(sports-lib): add a committed FIT regression fixture that previously produced duplicate
+  // speed/distance-family streams (for example the Suunto case seen in QS diagnostics) and
+  // assert canonical single-stream output directly in this suite.
   const extraSampleFits = [
     {
       filePath: path.resolve(__dirname, '../../../../../samples/coros/step-effort.fit'),

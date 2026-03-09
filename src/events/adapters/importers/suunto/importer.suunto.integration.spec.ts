@@ -26,6 +26,8 @@ import {
 describe('EventImporterSuuntoJSON Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/suunto -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/suunto');
+  // TODO(sports-lib): add explicit canonical-stream regression assertions for multi-device Suunto samples
+  // so speed/distance-family output remains single-source and deterministic.
   async function parseSuuntoFile(filePath: string, options?: ActivityParsingOptions) {
     const fileString = fs.readFileSync(filePath, 'utf-8');
     return EventImporterSuuntoJSON.getFromJSONString(fileString, options);

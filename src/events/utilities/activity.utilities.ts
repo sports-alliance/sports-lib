@@ -2325,6 +2325,8 @@ export class ActivityUtilities {
       ...DynamicDataLoader.allUnitDerivedDataTypes,
       ...DynamicDataLoader.speedDerivedDataTypes
     ];
+    const existingStreamTypes = new Set(streams.map(stream => stream.type));
+    const generatedStreamsByType = new Map<string, StreamInterface>();
 
     let baseUnitStreams: StreamInterface[] = [];
 
@@ -2360,36 +2362,50 @@ export class ActivityUtilities {
       // For everything else (like Distance), just add the base stream so it can be used for unit generation
       baseUnitStreams.push(stream);
     });
-
     const startWith = baseUnitStreams.filter(
-      baseUnitStream =>
-        unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1 && streams.indexOf(baseUnitStream) === -1
+      baseUnitStream => unitStreamTypesToCreate.indexOf(baseUnitStream.type) !== -1
     );
 
+    startWith.forEach(stream => {
+      if (existingStreamTypes.has(stream.type) || generatedStreamsByType.has(stream.type)) {
+        return;
+      }
+      generatedStreamsByType.set(stream.type, stream);
+    });
+
     if (options.includeUnitVariants === false) {
-      return startWith;
+      return Array.from(generatedStreamsByType.values());
     }
 
-    return Object.keys(DynamicDataLoader.dataTypeUnitGroups).reduce((array: StreamInterface[], baseDataType) => {
+    Object.keys(DynamicDataLoader.dataTypeUnitGroups).forEach(baseDataType => {
       const baseStream = baseUnitStreams.find(stream => stream.type === baseDataType);
       if (!baseStream) {
-        return array;
+        return;
       }
-      const unitStreams = Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
+
+      Object.keys(DynamicDataLoader.dataTypeUnitGroups[baseDataType])
         .filter(unitBasedDataType => unitStreamTypesToCreate.indexOf(unitBasedDataType) !== -1) // @todo perhaps dont filter
-        .map(unitBasedDataType => {
-          return new Stream(
+        .forEach(unitBasedDataType => {
+          if (existingStreamTypes.has(unitBasedDataType) || generatedStreamsByType.has(unitBasedDataType)) {
+            return;
+          }
+
+          generatedStreamsByType.set(
             unitBasedDataType,
-            baseStream.getData().map(dataValue => {
-              if (!isNumber(dataValue)) {
-                return null;
-              }
-              return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
-            })
+            new Stream(
+              unitBasedDataType,
+              baseStream.getData().map(dataValue => {
+                if (!isNumber(dataValue)) {
+                  return null;
+                }
+                return DynamicDataLoader.dataTypeUnitGroups[baseDataType][unitBasedDataType](<number>dataValue);
+              })
+            )
           );
         });
-      return array.concat(unitStreams);
-    }, startWith);
+    });
+
+    return Array.from(generatedStreamsByType.values());
   }
 
   /**
@@ -3794,7 +3810,9 @@ export class ActivityUtilities {
         activity.addStat(new DataVerticalSpeedFeetPerSecond(convertSpeedToSpeedInFeetPerSecond(verticalSpeedAvgValue)));
       }
       if (!activity.getStat(DataVerticalSpeedMetersPerMinute.type)) {
-        activity.addStat(new DataVerticalSpeedMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(verticalSpeedAvgValue)));
+        activity.addStat(
+          new DataVerticalSpeedMetersPerMinute(convertSpeedToSpeedInMetersPerMinute(verticalSpeedAvgValue))
+        );
       }
       if (!activity.getStat(DataVerticalSpeedFeetPerMinute.type)) {
         activity.addStat(new DataVerticalSpeedFeetPerMinute(convertSpeedToSpeedInFeetPerMinute(verticalSpeedAvgValue)));

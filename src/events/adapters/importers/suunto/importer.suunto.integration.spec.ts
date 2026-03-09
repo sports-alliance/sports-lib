@@ -14,10 +14,22 @@ import { DataVerticalOscillationMin } from '../../../../data/data.vertical-oscil
 import { DataFitnessAge } from '../../../../data/data.fitness-age';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { DataBatteryCharge } from '../../../../data/data.battery-charge';
+import { DataBatteryCurrent } from '../../../../data/data.battery-current';
+import { DataBatteryVoltage } from '../../../../data/data.battery-voltage';
+import {
+  getDuplicateStreamTypes,
+  getPrimaryActivityForStreamRegression,
+  getUniqueStreamTypes
+} from '../integration/stream-regression.helper';
 
 describe('EventImporterSuuntoJSON Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/suunto -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/suunto');
+  async function parseSuuntoFile(filePath: string, options?: ActivityParsingOptions) {
+    const fileString = fs.readFileSync(filePath, 'utf-8');
+    return EventImporterSuuntoJSON.getFromJSONString(fileString, options);
+  }
 
   it('should parse all sample suunto json files', async () => {
     if (!fs.existsSync(samplesDir)) {
@@ -34,17 +46,66 @@ describe('EventImporterSuuntoJSON Integration', () => {
 
     for (const file of files) {
       const filePath = path.join(samplesDir, file);
-      const fileString = fs.readFileSync(filePath, 'utf-8');
 
       try {
-        // Use getFromJSONString as confirmed by file analysis
-        const event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
+        const event = await parseSuuntoFile(filePath);
         expect(event).toBeDefined();
         expect(event.getActivities().length).toBeGreaterThan(0);
+        event.getActivities().forEach(activity => {
+          expect(getDuplicateStreamTypes(activity)).toEqual([]);
+          expect(getUniqueStreamTypes(activity).length).toBeGreaterThan(0);
+        });
       } catch (error) {
         console.error(`❌ Failed to parse ${file}:`, error);
         throw error;
       }
+    }
+  });
+
+  it('should preserve stream-type regression coverage for curated suunto samples', async () => {
+    const expectations: { fileName: string; requiredTypes: string[] }[] = [
+      {
+        fileName: 'running-with-extra-data.json',
+        requiredTypes: [
+          DataDistance.type,
+          DataGroundContactTime.type,
+          DataVerticalOscillation.type,
+          DataBatteryCharge.type,
+          DataBatteryCurrent.type,
+          DataBatteryVoltage.type
+        ]
+      },
+      {
+        fileName: 'missing_hr.json',
+        requiredTypes: [DataHeartRate.type, DataBatteryCharge.type, DataBatteryCurrent.type, DataBatteryVoltage.type]
+      },
+      {
+        fileName: '2026-03-06_08-14.json',
+        requiredTypes: [
+          DataGroundContactTime.type,
+          DataVerticalOscillation.type,
+          DataBatteryCharge.type,
+          DataBatteryCurrent.type,
+          DataBatteryVoltage.type
+        ]
+      }
+    ];
+
+    for (const expectation of expectations) {
+      const filePath = path.join(samplesDir, expectation.fileName);
+      if (!fs.existsSync(filePath)) {
+        console.warn(`Regression sample not found at ${filePath}. Skipping.`);
+        continue;
+      }
+
+      const event = await parseSuuntoFile(filePath);
+      const activity = getPrimaryActivityForStreamRegression(event);
+      const streamTypes = new Set(activity.getAllStreams().map(stream => stream.type));
+
+      expectation.requiredTypes.forEach(streamType => {
+        expect(streamTypes.has(streamType)).toBe(true);
+      });
+      expect(getDuplicateStreamTypes(activity)).toEqual([]);
     }
   });
 
@@ -55,13 +116,9 @@ describe('EventImporterSuuntoJSON Integration', () => {
       return;
     }
 
-    const fileString = fs.readFileSync(filePath, 'utf-8');
-    const baselineEvent = await EventImporterSuuntoJSON.getFromJSONString(
-      fileString,
-      new ActivityParsingOptions({ generateUnitStreams: false })
-    );
-    const includeFilteredEvent = await EventImporterSuuntoJSON.getFromJSONString(
-      fileString,
+    const baselineEvent = await parseSuuntoFile(filePath, new ActivityParsingOptions({ generateUnitStreams: false }));
+    const includeFilteredEvent = await parseSuuntoFile(
+      filePath,
       new ActivityParsingOptions({
         generateUnitStreams: false,
         streams: { includeTypes: [DataDistance.type] }
@@ -90,8 +147,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
         console.warn('running-with-extra-data.json not found. Skipping detailed tests.');
         return;
       }
-      const fileString = fs.readFileSync(filePath, 'utf-8');
-      event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
+      event = await parseSuuntoFile(filePath);
 
       // DEBUG: print one sample's date from the source file just blindly
       // (we can't easily access json here again without parsing, but we can infer from activity)
@@ -177,8 +233,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
         return;
       }
 
-      const fileString = fs.readFileSync(filePath, 'utf-8');
-      const event = await EventImporterSuuntoJSON.getFromJSONString(fileString);
+      const event = await parseSuuntoFile(filePath);
       const activity = event
         .getActivities()
         .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));

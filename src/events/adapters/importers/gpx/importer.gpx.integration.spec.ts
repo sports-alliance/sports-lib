@@ -4,18 +4,31 @@ import { DOMParser } from '@xmldom/xmldom';
 import { EventImporterGPX } from './importer.gpx';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { DataDistance } from '../../../../data/data.distance';
+import { DataGNSSDistanceMiles } from '../../../../data/data.gnss-distance-miles';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPace } from '../../../../data/data.pace';
+import {
+  getDuplicateStreamTypes,
+  getPrimaryActivityForStreamRegression,
+  getUniqueStreamTypes
+} from '../integration/stream-regression.helper';
 
 describe('EventImporterGPX Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/gpx -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/gpx');
   const sampleGpxFile = path.join(samplesDir, 'garmin.gpx');
 
+  async function parseGpxFile(filePath: string, options?: ActivityParsingOptions) {
+    const fileString = fs.readFileSync(filePath, 'utf-8');
+    return EventImporterGPX.getFromString(fileString, DOMParser, options, path.basename(filePath));
+  }
+
   async function parseSample(options: ActivityParsingOptions): Promise<string[]> {
-    const fileString = fs.readFileSync(sampleGpxFile, 'utf-8');
-    const event = await EventImporterGPX.getFromString(fileString, DOMParser, options, 'gpx-stream-filter');
-    return event.getActivities()[0].getAllStreams().map(stream => stream.type);
+    const event = await parseGpxFile(sampleGpxFile, options);
+    return event
+      .getActivities()[0]
+      .getAllStreams()
+      .map(stream => stream.type);
   }
 
   it('should parse all sample gpx files', async () => {
@@ -35,13 +48,15 @@ describe('EventImporterGPX Integration', () => {
 
     for (const file of files) {
       const filePath = path.join(samplesDir, file);
-      const fileString = fs.readFileSync(filePath, 'utf-8');
 
       try {
-        // Pass DOMParser constructor as 2nd argument
-        const event = await EventImporterGPX.getFromString(fileString, DOMParser, undefined, file);
+        const event = await parseGpxFile(filePath);
         expect(event).toBeDefined();
         expect(event.getActivities().length).toBeGreaterThan(0);
+        event.getActivities().forEach(activity => {
+          expect(getDuplicateStreamTypes(activity)).toEqual([]);
+          expect(getUniqueStreamTypes(activity).length).toBeGreaterThan(0);
+        });
         console.log(`✅ Successfully parsed ${file}`);
       } catch (error) {
         console.error(`❌ Failed to parse ${file}:`, error);
@@ -66,6 +81,39 @@ describe('EventImporterGPX Integration', () => {
       )
     );
     expect(emptyFilterTypes).toEqual(baselineTypes);
+  });
+
+  it('should preserve stream-type regression coverage for curated GPX samples', async () => {
+    const expectations: { fileName: string; requiredTypes: string[] }[] = [
+      {
+        fileName: 'garmin.gpx',
+        requiredTypes: [DataDistance.type, DataPace.type, DataGNSSDistanceMiles.type]
+      },
+      {
+        fileName: 'amazfit.gpx',
+        requiredTypes: [DataDistance.type, DataPace.type, DataGNSSDistanceMiles.type]
+      },
+      {
+        fileName: 'route.gpx',
+        requiredTypes: [DataDistance.type, DataGNSSDistanceMiles.type]
+      }
+    ];
+
+    for (const expectation of expectations) {
+      const filePath = path.join(samplesDir, expectation.fileName);
+      if (!fs.existsSync(filePath)) {
+        console.warn(`Regression sample not found at ${filePath}. Skipping.`);
+        continue;
+      }
+
+      const event = await parseGpxFile(filePath, new ActivityParsingOptions({ generateUnitStreams: true }));
+      const activity = getPrimaryActivityForStreamRegression(event);
+      const streamTypes = new Set(activity.getAllStreams().map(stream => stream.type));
+      expectation.requiredTypes.forEach(streamType => {
+        expect(streamTypes.has(streamType)).toBe(true);
+      });
+      expect(getDuplicateStreamTypes(activity)).toEqual([]);
+    }
   });
 
   it('should return only requested raw streams', async () => {
@@ -122,14 +170,11 @@ describe('EventImporterGPX Integration', () => {
       return;
     }
 
-    const fileString = fs.readFileSync(sampleGpxFile, 'utf-8');
-    const parseResult = EventImporterGPX.getFromString(
-      fileString,
-      DOMParser,
+    const parseResult = parseGpxFile(
+      sampleGpxFile,
       new ActivityParsingOptions({
         streams: { includeTypes: ['Not A Stream Type'] }
-      }),
-      'gpx-stream-filter'
+      })
     );
 
     expect(parseResult).toBeInstanceOf(Promise);

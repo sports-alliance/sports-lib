@@ -320,6 +320,15 @@ describe('Activity', () => {
     expect(activity.generateTimeStream().getData(false)).toEqual([0, null, 2, 3, 4, null, 6, 7, 8, null, null]);
   });
 
+  it('should ignore duplicate stream types when adding multiple streams', () => {
+    activity.addStream(new Stream(DataDistance.type, [0, 10, 20]));
+    activity.addStreams([new Stream(DataDistance.type, [0, 20, 40]), new Stream(DataAltitude.type, [100, 110, 120])]);
+
+    const allTypes = activity.getAllStreams().map(stream => stream.type);
+    expect(allTypes.filter(type => type === DataDistance.type).length).toBe(1);
+    expect(allTypes.filter(type => type === DataAltitude.type).length).toBe(1);
+  });
+
   it('should map IBI timestamps into valid second slots when generating a time stream', () => {
     activity.addStream(new IBIStream([823, 823, 823]));
 

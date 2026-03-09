@@ -4,20 +4,33 @@ import { DOMParser } from '@xmldom/xmldom';
 import { EventImporterTCX } from './importer.tcx';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { DataDistance } from '../../../../data/data.distance';
+import { DataGNSSDistanceMiles } from '../../../../data/data.gnss-distance-miles';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPace } from '../../../../data/data.pace';
+import {
+  getDuplicateStreamTypes,
+  getPrimaryActivityForStreamRegression,
+  getUniqueStreamTypes
+} from '../integration/stream-regression.helper';
 
 describe('EventImporterTCX Integration', () => {
   // Go up 5 levels from src/events/adapters/importers/tcx -> sports-lib root
   const samplesDir = path.resolve(__dirname, '../../../../../samples/tcx');
   const sampleTcxFile = path.join(samplesDir, 'garmin.tcx');
 
-  async function parseSample(options: ActivityParsingOptions): Promise<string[]> {
+  async function parseTcxFile(filePath: string, options?: ActivityParsingOptions) {
     const parser = new DOMParser();
-    const fileString = fs.readFileSync(sampleTcxFile, 'utf-8');
+    const fileString = fs.readFileSync(filePath, 'utf-8');
     const xmlDoc = parser.parseFromString(fileString, 'text/xml');
-    const event = await EventImporterTCX.getFromXML(xmlDoc, options, 'tcx-stream-filter');
-    return event.getActivities()[0].getAllStreams().map(stream => stream.type);
+    return EventImporterTCX.getFromXML(xmlDoc, options, path.basename(filePath));
+  }
+
+  async function parseSample(options: ActivityParsingOptions): Promise<string[]> {
+    const event = await parseTcxFile(sampleTcxFile, options);
+    return event
+      .getActivities()[0]
+      .getAllStreams()
+      .map(stream => stream.type);
   }
 
   it('should parse all sample tcx files', async () => {
@@ -35,18 +48,17 @@ describe('EventImporterTCX Integration', () => {
 
     console.log(`Found ${files.length} .tcx files to test:`, files);
 
-    const parser = new DOMParser();
-
     for (const file of files) {
       const filePath = path.join(samplesDir, file);
-      const fileString = fs.readFileSync(filePath, 'utf-8');
 
       try {
-        // Parse string to XML Document
-        const xmlDoc = parser.parseFromString(fileString, 'text/xml');
-        const event = await EventImporterTCX.getFromXML(xmlDoc, undefined, file);
+        const event = await parseTcxFile(filePath);
         expect(event).toBeDefined();
         expect(event.getActivities().length).toBeGreaterThan(0);
+        event.getActivities().forEach(activity => {
+          expect(getDuplicateStreamTypes(activity)).toEqual([]);
+          expect(getUniqueStreamTypes(activity).length).toBeGreaterThan(0);
+        });
         console.log(`✅ Successfully parsed ${file}`);
       } catch (error) {
         console.error(`❌ Failed to parse ${file}:`, error);
@@ -72,6 +84,38 @@ describe('EventImporterTCX Integration', () => {
     );
 
     expect(emptyFilterTypes).toEqual(baselineTypes);
+  });
+
+  it('should not produce duplicate stream types for the parsed activity', async () => {
+    if (!fs.existsSync(sampleTcxFile)) {
+      console.warn(`Sample file not found at ${sampleTcxFile}. Skipping duplicate stream test.`);
+      return;
+    }
+
+    const streamTypes = await parseSample(new ActivityParsingOptions({ generateUnitStreams: false }));
+    const paceCount = streamTypes.filter(type => type === DataPace.type).length;
+    expect(new Set(streamTypes).size).toBe(streamTypes.length);
+    expect(paceCount).toBe(1);
+  });
+
+  it('should preserve stream-type regression coverage for all TCX samples', async () => {
+    if (!fs.existsSync(samplesDir)) {
+      console.warn(`Samples directory not found at ${samplesDir}. Skipping TCX stream coverage test.`);
+      return;
+    }
+
+    const files = fs.readdirSync(samplesDir).filter(file => file.endsWith('.tcx'));
+    for (const file of files) {
+      const filePath = path.join(samplesDir, file);
+      const event = await parseTcxFile(filePath, new ActivityParsingOptions({ generateUnitStreams: true }));
+      const activity = getPrimaryActivityForStreamRegression(event);
+      const streamTypes = new Set(activity.getAllStreams().map(stream => stream.type));
+
+      expect(streamTypes.has(DataDistance.type)).toBe(true);
+      expect(streamTypes.has(DataPace.type)).toBe(true);
+      expect(streamTypes.has(DataGNSSDistanceMiles.type)).toBe(true);
+      expect(getDuplicateStreamTypes(activity)).toEqual([]);
+    }
   });
 
   it('should return only requested raw streams', async () => {
@@ -128,15 +172,11 @@ describe('EventImporterTCX Integration', () => {
       return;
     }
 
-    const parser = new DOMParser();
-    const fileString = fs.readFileSync(sampleTcxFile, 'utf-8');
-    const xmlDoc = parser.parseFromString(fileString, 'text/xml');
-    const parseResult = EventImporterTCX.getFromXML(
-      xmlDoc,
+    const parseResult = parseTcxFile(
+      sampleTcxFile,
       new ActivityParsingOptions({
         streams: { includeTypes: ['Not A Stream Type'] }
-      }),
-      'tcx-stream-filter'
+      })
     );
 
     expect(parseResult).toBeInstanceOf(Promise);

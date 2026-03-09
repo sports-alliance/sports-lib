@@ -29,6 +29,7 @@ import { DataSwimPaceMax } from '../../data/data.swim-pace-max';
 import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
 import { DataGradeAdjustedPaceMin } from '../../data/data.grade-adjusted-pace-min';
+import { DataStepLength } from '../../data/data.step-length';
 import { DataAscent } from '../../data/data.ascent';
 import { DataDescent } from '../../data/data.descent';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
@@ -486,6 +487,33 @@ describe('Activity Utilities', () => {
       expect(paceStream).toBeUndefined();
       expect(paceUnitStream).toBeUndefined();
     });
+
+    it('should not generate derived pace when pace already exists', () => {
+      const streams = [new Stream(DataSpeed.type, [10, 20]), new Stream(DataPace.type, [100, 200])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running, [DataPace.type], {
+        includeDerivedTypes: true,
+        includeUnitVariants: false
+      });
+
+      const generatedPaceStreams = result.filter(stream => stream.type === DataPace.type);
+      expect(generatedPaceStreams.length).toBe(0);
+    });
+
+    it('should generate distance miles only once when distance and step length both exist', () => {
+      const streams = [new Stream(DataDistance.type, [1000, 2000]), new Stream(DataStepLength.type, [0.8, 0.9])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(
+        streams,
+        ActivityTypes.Running,
+        [DataDistanceMiles.type],
+        {
+          includeDerivedTypes: true,
+          includeUnitVariants: true
+        }
+      );
+
+      const generatedDistanceMiles = result.filter(stream => stream.type === DataDistanceMiles.type);
+      expect(generatedDistanceMiles.length).toBe(1);
+    });
   });
 
   describe('generateMissingStreams', () => {
@@ -822,7 +850,10 @@ describe('Activity Utilities', () => {
 
       expect((activity.getStat(DataLegStiffnessMin.type) as DataLegStiffnessMin).getValue()).toBe(8.2);
       expect((activity.getStat(DataLegStiffnessMax.type) as DataLegStiffnessMax).getValue()).toBe(9.1);
-      expect((activity.getStat(DataLegStiffnessAvg.type) as DataLegStiffnessAvg).getValue()).toBeCloseTo(8.6666666667, 10);
+      expect((activity.getStat(DataLegStiffnessAvg.type) as DataLegStiffnessAvg).getValue()).toBeCloseTo(
+        8.6666666667,
+        10
+      );
     });
 
     it('should generate min/max/avg stats for Vertical Ratio when stream exists', () => {
@@ -833,7 +864,10 @@ describe('Activity Utilities', () => {
 
       expect((activity.getStat(DataVerticalRatioMin.type) as DataVerticalRatioMin).getValue()).toBe(7.5);
       expect((activity.getStat(DataVerticalRatioMax.type) as DataVerticalRatioMax).getValue()).toBe(8.1);
-      expect((activity.getStat(DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBeCloseTo(7.8333333333, 10);
+      expect((activity.getStat(DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBeCloseTo(
+        7.8333333333,
+        10
+      );
     });
 
     it('should generate BOTH ascent and descent for Kitesurfing', () => {

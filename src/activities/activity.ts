@@ -120,7 +120,14 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   }
 
   addStreams(streams: StreamInterface[]): this {
-    this.streams.push(...streams);
+    const existingTypes = new Set(this.streams.map(stream => stream.type));
+    streams.forEach(stream => {
+      if (existingTypes.has(stream.type)) {
+        return;
+      }
+      this.streams.push(stream);
+      existingTypes.add(stream.type);
+    });
     return this;
   }
 

@@ -97,6 +97,7 @@ export * from './data.ftp';
 export * from './data.fused-altitude';
 export * from './data.fused-location';
 export * from './data.gender';
+export * from './data.gnss-distance-miles';
 export * from './data.gnss-distance';
 export * from './data.grade-adjusted-pace-avg';
 export * from './data.grade-adjusted-pace-max';

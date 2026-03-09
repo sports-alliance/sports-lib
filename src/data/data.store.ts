@@ -202,6 +202,7 @@ import { DataAirPowerMax } from './data.air-power-max';
 import { DataAirPowerMin } from './data.air-power-min';
 import { DataAirPowerAvg } from './data.air-power-avg';
 import { DataGNSSDistance } from './data.gnss-distance';
+import { DataGNSSDistanceMiles } from './data.gnss-distance-miles';
 import { DataHeartRateZoneOneDuration } from './data.heart-rate-zone-one-duration';
 import { DataHeartRateZoneTwoDuration } from './data.heart-rate-zone-two-duration';
 import { DataHeartRateZoneThreeDuration } from './data.heart-rate-zone-three-duration';
@@ -704,6 +705,7 @@ export const DataStore: any = {
   DataStopAllEvent,
   DataTime,
   DataDistanceMiles,
+  DataGNSSDistanceMiles,
   DataMovingTime,
   DataTimerTime,
   DataActiveLap,
@@ -1061,7 +1063,7 @@ export class DynamicDataLoader {
       [DataDistanceMiles.type]: convertMetersToMiles
     },
     [DataGNSSDistance.type]: {
-      [DataDistanceMiles.type]: convertMetersToMiles
+      [DataGNSSDistanceMiles.type]: convertMetersToMiles
     },
     [DataAutoLapDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
@@ -1399,15 +1401,29 @@ export class DynamicDataLoader {
     return userUnitSettings?.distanceUnits || DistanceUnits.Metric;
   }
 
+  private static getDistanceImperialDataType(dataType: string): string | null {
+    const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
+    if (!unitGroup) {
+      return null;
+    }
+    if (unitGroup[DataGNSSDistanceMiles.type]) {
+      return DataGNSSDistanceMiles.type;
+    }
+    if (unitGroup[DataDistanceMiles.type]) {
+      return DataDistanceMiles.type;
+    }
+    return null;
+  }
+
   private static getDistanceDerivedDataType(
     dataType: string,
     userUnitSettings?: UserUnitSettingsInterface
   ): string | null {
-    const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
-    if (!unitGroup || !unitGroup[DataDistanceMiles.type]) {
+    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
+    if (!distanceImperialDataType) {
       return null;
     }
-    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Imperial ? DataDistanceMiles.type : dataType;
+    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Imperial ? distanceImperialDataType : dataType;
   }
 
   private static getJumpSpeedUnitMappings(
@@ -1646,13 +1662,19 @@ export class DynamicDataLoader {
     }
     const dataType = data.getType();
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
+    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
     const distanceUnitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
-    if (distanceDataType && distanceUnitGroup && distanceUnitGroup[DataDistanceMiles.type]) {
-      if (distanceDataType === DataDistanceMiles.type) {
+    if (
+      distanceDataType &&
+      distanceImperialDataType &&
+      distanceUnitGroup &&
+      distanceUnitGroup[distanceImperialDataType]
+    ) {
+      if (distanceDataType === distanceImperialDataType) {
         return [
           this.getDataInstanceFromDataType(
-            DataDistanceMiles.type,
-            distanceUnitGroup[DataDistanceMiles.type](<number>data.getValue())
+            distanceImperialDataType,
+            distanceUnitGroup[distanceImperialDataType](<number>data.getValue())
           )
         ];
       }

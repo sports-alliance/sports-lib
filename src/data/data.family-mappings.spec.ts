@@ -50,6 +50,7 @@ import {
 import { DataJumpDistance } from './data.jump-distance';
 import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataGNSSDistance } from './data.gnss-distance';
+import { DataGNSSDistanceMiles } from './data.gnss-distance-miles';
 import { DataAutoLapDistance } from './data.auto-lap-distance';
 import { DataAvgStrokeDistance } from './data.avg-stroke-distance';
 import { DataAvgStrideLength } from './data.avg-stride-length';
@@ -308,7 +309,10 @@ describe('DynamicDataLoader family mappings', () => {
 
     mappedDistanceTypes.forEach(distanceType => {
       expect(DynamicDataLoader.dataTypeUnitGroups[distanceType]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][DataDistanceMiles.type]).toBeDefined();
+      const expectedImperialDistanceType = distanceType === DataGNSSDistance.type
+        ? DataGNSSDistanceMiles.type
+        : DataDistanceMiles.type;
+      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][expectedImperialDistanceType]).toBeDefined();
     });
   });
 });

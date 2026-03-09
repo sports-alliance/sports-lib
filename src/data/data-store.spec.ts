@@ -58,6 +58,7 @@ import {
   DataJumpSpeedMinMilesPerHour
 } from './data.jump-stats';
 import { DataGNSSDistance } from './data.gnss-distance';
+import { DataGNSSDistanceMiles } from './data.gnss-distance-miles';
 import { DataStepLength } from './data.step-length';
 import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
@@ -109,7 +110,8 @@ describe('DataStore', () => {
     DataJumpSpeedMaxMetersPerMinute.type,
     DataJumpSpeedMaxFeetPerMinute.type,
     DataJumpSpeedMaxKnots.type,
-    DataDistanceMiles.type
+    DataDistanceMiles.type,
+    DataGNSSDistanceMiles.type
   ];
 
   const _speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
@@ -270,20 +272,23 @@ describe('DataStore', () => {
       .filter((DataClass: any) => typeof DataClass === 'function')
       .filter((DataClass: any) => DataClass === DataDistance || DataClass.prototype instanceof DataDistance)
       .map((DataClass: any) => DataClass.type as string)
-      .filter((dataType: string) => dataType !== DataDistanceMiles.type);
+      .filter((dataType: string) => dataType !== DataDistanceMiles.type && dataType !== DataGNSSDistanceMiles.type);
+
+    const getExpectedImperialDistanceType = (dataType: string): string =>
+      dataType === DataGNSSDistance.type ? DataGNSSDistanceMiles.type : DataDistanceMiles.type;
 
     it('has miles mappings for every DataStore class extending DataDistance (except DataDistanceMiles)', () => {
       expect(allDistanceTypes.length).toBeGreaterThan(0);
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.dataTypeUnitGroups[dataType]).toBeDefined();
-        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][DataDistanceMiles.type]).toBeDefined();
+        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedImperialDistanceType(dataType)]).toBeDefined();
       });
     });
 
     it('returns miles unit type for all mapped distance-capable data types in imperial mode', () => {
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, imperialSettings)).toEqual([
-          DataDistanceMiles.type
+          getExpectedImperialDistanceType(dataType)
         ]);
       });
     });
@@ -312,7 +317,7 @@ describe('DataStore', () => {
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
           imperialSettings
         )
-      ).toEqual(expect.arrayContaining([DataDistanceMiles.type]));
+      ).toEqual(expect.arrayContaining([DataDistanceMiles.type, DataGNSSDistanceMiles.type]));
       expect(
         DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
@@ -334,9 +339,10 @@ describe('DataStore', () => {
       );
 
       distanceInstances.forEach(distanceInstance => {
+        const expectedImperialType = getExpectedImperialDistanceType(distanceInstance.getType());
         const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distanceInstance, imperialSettings);
         expect(converted).toHaveLength(1);
-        expect(converted[0].getType()).toBe(DataDistanceMiles.type);
+        expect(converted[0].getType()).toBe(expectedImperialType);
         expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(1609.344), 10);
         expect(converted[0].getDisplayUnit()).toBe('mi');
       });

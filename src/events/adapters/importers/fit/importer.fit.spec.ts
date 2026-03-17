@@ -8,6 +8,74 @@ import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPace } from '../../../../data/data.pace';
 
 describe('EventImporterFIT', () => {
+  describe('Session normalization', () => {
+    it('should synthesize a fallback session when sessions are missing but top-level messages exist', () => {
+      const startDate = new Date('2026-03-06T08:14:19.000Z');
+      const endDate = new Date('2026-03-06T08:44:19.000Z');
+      const fitDataObject: any = {
+        sessions: [],
+        laps: [
+          {
+            start_time: startDate,
+            timestamp: endDate,
+            total_elapsed_time: 1800,
+            total_timer_time: 1700,
+            total_distance: 12345,
+            sport: 'running',
+            sub_sport: 'road',
+            records: [{ timestamp: new Date('2026-03-06T08:14:20.000Z') }]
+          }
+        ],
+        records: [
+          { timestamp: startDate, distance: 0 },
+          { timestamp: endDate, distance: 12345 }
+        ],
+        events: [{ timestamp: new Date('2026-03-06T08:14:25.000Z'), event: 'timer', event_type: 'start' }]
+      };
+
+      (EventImporterFIT as any).normalizeFitDataObjectForActivities(fitDataObject);
+
+      expect(fitDataObject.sessions).toHaveLength(1);
+      const session = fitDataObject.sessions[0];
+
+      expect(session.laps).toHaveLength(1);
+      expect(session.start_time.toISOString()).toBe(startDate.toISOString());
+      expect(session.timestamp.toISOString()).toBe(endDate.toISOString());
+      expect(session.total_elapsed_time).toBe(1800);
+      expect(session.total_timer_time).toBe(1700);
+      expect(session.total_distance).toBe(12345);
+      expect(session.sport).toBe('running');
+      expect(session.sub_sport).toBe('road');
+    });
+
+    it('should keep sessions empty when no valid time boundaries exist', () => {
+      const fitDataObject: any = {
+        sessions: [],
+        laps: [{ total_elapsed_time: 120 }],
+        records: [{ timestamp: null }],
+        events: [{ timestamp: 'not-a-date' }]
+      };
+
+      (EventImporterFIT as any).normalizeFitDataObjectForActivities(fitDataObject);
+
+      expect(fitDataObject.sessions).toEqual([]);
+    });
+
+    it('should normalize existing sessions that miss laps arrays', () => {
+      const fitDataObject: any = {
+        sessions: [{ start_time: new Date('2026-03-06T08:14:19.000Z'), timestamp: new Date('2026-03-06T08:44:19.000Z') }]
+      };
+
+      (EventImporterFIT as any).normalizeFitDataObjectForActivities(fitDataObject);
+
+      expect(Array.isArray(fitDataObject.records)).toBe(true);
+      expect(Array.isArray(fitDataObject.events)).toBe(true);
+      expect(Array.isArray(fitDataObject.laps)).toBe(true);
+      expect(Array.isArray(fitDataObject.sessions[0].laps)).toBe(true);
+      expect(fitDataObject.sessions[0].laps).toHaveLength(0);
+    });
+  });
+
   describe('HRV handling', () => {
     it('should preserve elapsed time after invalid HRV sentinel values', () => {
       const ibiData = (EventImporterFIT as any).getIBIDataForActivity(

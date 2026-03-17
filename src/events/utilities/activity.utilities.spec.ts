@@ -30,6 +30,8 @@ import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
 import { DataGradeAdjustedPaceMin } from '../../data/data.grade-adjusted-pace-min';
 import { DataStepLength } from '../../data/data.step-length';
+import { DataGNSSDistance } from '../../data/data.gnss-distance';
+import { DataGNSSDistanceMiles } from '../../data/data.gnss-distance-miles';
 import { DataAscent } from '../../data/data.ascent';
 import { DataDescent } from '../../data/data.descent';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
@@ -513,6 +515,16 @@ describe('Activity Utilities', () => {
 
       const generatedDistanceMiles = result.filter(stream => stream.type === DataDistanceMiles.type);
       expect(generatedDistanceMiles.length).toBe(1);
+    });
+
+    it('should generate GNSS-specific miles stream for GNSS distance', () => {
+      const streams = [new Stream(DataGNSSDistance.type, [0, 1000, 2000])];
+      const result = ActivityUtilities.createUnitStreamsFromStreams(streams, ActivityTypes.Running);
+
+      const generatedDistanceMiles = result.filter(stream => stream.type === DataDistanceMiles.type);
+      const generatedGNSSDistanceMiles = result.filter(stream => stream.type === DataGNSSDistanceMiles.type);
+      expect(generatedDistanceMiles.length).toBe(0);
+      expect(generatedGNSSDistanceMiles.length).toBe(1);
     });
   });
 

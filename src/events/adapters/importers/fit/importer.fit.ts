@@ -210,7 +210,14 @@ export class EventImporterFIT {
           reject(new EmptyEventLibError());
           return;
         }
-        if (!fitDataObject || !fitDataObject.sessions) {
+        if (!fitDataObject) {
+          reject(new EmptyEventLibError());
+          return;
+        }
+
+        this.normalizeFitDataObjectForActivities(fitDataObject);
+
+        if (!fitDataObject.sessions.length) {
           reject(new EmptyEventLibError());
           return;
         }
@@ -795,6 +802,189 @@ export class EventImporterFIT {
     }
 
     return compacted;
+  }
+
+  private static getNumericValue(value: unknown): number | null {
+    if (!isNumberOrString(value)) {
+      return null;
+    }
+
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+      return null;
+    }
+
+    return numericValue;
+  }
+
+  private static getDateFromValue(value: unknown): Date | null {
+    if (this.isValidDate(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      const dateValue = new Date(value);
+      if (this.isValidDate(dateValue)) {
+        return dateValue;
+      }
+    }
+
+    return null;
+  }
+
+  private static getSessionlessLapStartDate(lapObject: any): Date | null {
+    const startTime = this.getDateFromValue(lapObject?.start_time);
+    if (startTime) {
+      return startTime;
+    }
+
+    const timestamp = this.getDateFromValue(lapObject?.timestamp);
+    if (timestamp && isNumber(lapObject?.total_elapsed_time) && lapObject.total_elapsed_time > 0) {
+      return new Date(timestamp.getTime() - lapObject.total_elapsed_time * 1000);
+    }
+
+    return timestamp;
+  }
+
+  private static getSessionlessLapEndDate(lapObject: any, lapStartDate: Date | null): Date | null {
+    const timestamp = this.getDateFromValue(lapObject?.timestamp);
+    if (timestamp) {
+      return timestamp;
+    }
+
+    if (lapStartDate && isNumber(lapObject?.total_elapsed_time) && lapObject.total_elapsed_time > 0) {
+      return new Date(lapStartDate.getTime() + lapObject.total_elapsed_time * 1000);
+    }
+
+    return null;
+  }
+
+  private static buildSessionFromTopLevelMessages(fitDataObject: any): any | null {
+    const laps = Array.isArray(fitDataObject?.laps)
+      ? fitDataObject.laps.filter((lap: any) => lap && typeof lap === 'object')
+      : [];
+    const records = Array.isArray(fitDataObject?.records)
+      ? fitDataObject.records.filter((record: any) => this.getDateFromValue(record?.timestamp))
+      : [];
+    const events = Array.isArray(fitDataObject?.events)
+      ? fitDataObject.events.filter((event: any) => this.getDateFromValue(event?.timestamp))
+      : [];
+
+    if (!laps.length && !records.length && !events.length) {
+      return null;
+    }
+
+    const boundaryDates: Date[] = [];
+
+    laps.forEach((lapObject: any) => {
+      const lapStartDate = this.getSessionlessLapStartDate(lapObject);
+      const lapEndDate = this.getSessionlessLapEndDate(lapObject, lapStartDate);
+
+      if (lapStartDate) {
+        boundaryDates.push(lapStartDate);
+      }
+      if (lapEndDate) {
+        boundaryDates.push(lapEndDate);
+      }
+    });
+
+    records.forEach((record: any) => {
+      const recordTimestamp = this.getDateFromValue(record?.timestamp);
+      if (recordTimestamp) {
+        boundaryDates.push(recordTimestamp);
+      }
+    });
+
+    events.forEach((event: any) => {
+      const eventTimestamp = this.getDateFromValue(event?.timestamp);
+      if (eventTimestamp) {
+        boundaryDates.push(eventTimestamp);
+      }
+    });
+
+    if (!boundaryDates.length) {
+      return null;
+    }
+
+    boundaryDates.sort((a, b) => a.getTime() - b.getTime());
+
+    const startDate = boundaryDates[0];
+    let endDate = boundaryDates[boundaryDates.length - 1];
+
+    const lapElapsedTime = laps.reduce((total: number, lapObject: any) => {
+      const lapElapsed = this.getNumericValue(lapObject?.total_elapsed_time);
+      return lapElapsed && lapElapsed > 0 ? total + lapElapsed : total;
+    }, 0);
+
+    const lapTimerTime = laps.reduce((total: number, lapObject: any) => {
+      const lapTimer = this.getNumericValue(lapObject?.total_timer_time);
+      return lapTimer && lapTimer > 0 ? total + lapTimer : total;
+    }, 0);
+
+    const elapsedTimeFromDates = (endDate.getTime() - startDate.getTime()) / 1000;
+    const totalElapsedTime = lapElapsedTime > 0 ? lapElapsedTime : elapsedTimeFromDates > 0 ? elapsedTimeFromDates : 0;
+    const totalTimerTime = lapTimerTime > 0 ? lapTimerTime : totalElapsedTime;
+
+    if (endDate.getTime() <= startDate.getTime() && totalElapsedTime > 0) {
+      endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
+    }
+
+    if (endDate.getTime() <= startDate.getTime()) {
+      return null;
+    }
+
+    const firstLapWithSport = laps.find((lapObject: any) => {
+      return lapObject?.sport !== undefined || lapObject?.sub_sport !== undefined;
+    });
+    const lastLap = laps.length ? laps[laps.length - 1] : null;
+    const lastRecord = records.length ? records[records.length - 1] : null;
+
+    const sessionObject: any = {
+      laps,
+      start_time: startDate,
+      timestamp: endDate
+    };
+
+    if (totalElapsedTime > 0) {
+      sessionObject.total_elapsed_time = totalElapsedTime;
+    }
+    if (totalTimerTime > 0) {
+      sessionObject.total_timer_time = totalTimerTime;
+    }
+    if (firstLapWithSport?.sport !== undefined) {
+      sessionObject.sport = firstLapWithSport.sport;
+    }
+    if (firstLapWithSport?.sub_sport !== undefined) {
+      sessionObject.sub_sport = firstLapWithSport.sub_sport;
+    }
+
+    const totalDistance = this.getNumericValue(lastLap?.total_distance) ?? this.getNumericValue(lastRecord?.distance);
+    if (totalDistance !== null) {
+      sessionObject.total_distance = totalDistance;
+    }
+
+    return sessionObject;
+  }
+
+  private static normalizeFitDataObjectForActivities(fitDataObject: any): void {
+    fitDataObject.records = Array.isArray(fitDataObject.records) ? fitDataObject.records : [];
+    fitDataObject.events = Array.isArray(fitDataObject.events) ? fitDataObject.events : [];
+    fitDataObject.laps = Array.isArray(fitDataObject.laps) ? fitDataObject.laps : [];
+
+    const sessions = Array.isArray(fitDataObject.sessions)
+      ? fitDataObject.sessions.filter((session: any) => session && typeof session === 'object')
+      : [];
+
+    if (sessions.length) {
+      fitDataObject.sessions = sessions.map((session: any) => ({
+        ...session,
+        laps: Array.isArray(session?.laps) ? session.laps : []
+      }));
+      return;
+    }
+
+    const synthesizedSession = this.buildSessionFromTopLevelMessages(fitDataObject);
+    fitDataObject.sessions = synthesizedSession ? [synthesizedSession] : [];
   }
 
   private static isValidDate(value: unknown): value is Date {

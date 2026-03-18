@@ -8,42 +8,48 @@ describe('ActivityTypes', () => {
   beforeEach(() => {});
 
   it('get the correct activity group', () => {
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.Running);
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Cycling)).toBe(ActivityTypeGroups.Cycling);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.RunningGroup);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Cycling)).toBe(ActivityTypeGroups.CyclingGroup);
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.MountainBiking)).toBe(
-      ActivityTypeGroups.MountainBiking
+      ActivityTypeGroups.MountainBikingGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes['Enduro MTB'])).toBe(
-      ActivityTypeGroups.MountainBiking
+      ActivityTypeGroups.MountainBikingGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.DownhillCycling)).toBe(
-      ActivityTypeGroups.MountainBiking
+      ActivityTypeGroups.MountainBikingGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Crossfit)).toBe(
-      ActivityTypeGroups.Performance
+      ActivityTypeGroups.PerformanceGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.IndoorRowing)).toBe(
-      ActivityTypeGroups.IndoorSports
+      ActivityTypeGroups.IndoorSportsGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Climbing)).toBe(
-      ActivityTypeGroups.OutdoorAdventures
+      ActivityTypeGroups.OutdoorAdventuresGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.AlpineSkiing)).toBe(
-      ActivityTypeGroups.WinterSports
+      ActivityTypeGroups.WinterSportsGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Wakeboarding)).toBe(
-      ActivityTypeGroups.WaterSports
+      ActivityTypeGroups.WaterSportsGroup
     );
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Diving)).toBe(ActivityTypeGroups.Diving);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Diving)).toBe(ActivityTypeGroups.DivingGroup);
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Tennis)).toBe(
-      ActivityTypeGroups.TeamRacket
+      ActivityTypeGroups.TeamRacketGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Workout)).toBe(
-      ActivityTypeGroups.Unspecified
+      ActivityTypeGroups.UnspecifiedGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.HIIT)).toBe(
-      ActivityTypeGroups.Unspecified
+      ActivityTypeGroups.UnspecifiedGroup
     );
+  });
+
+  it('exposes canonical group ids and members', () => {
+    expect(ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray()).toContain(ActivityTypeGroups.WaterSportsGroup);
+    expect(ActivityTypeGroups.WaterSportsGroup).toBe('water_sports_group');
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WaterSportsGroup)).toContain(ActivityTypes.Kayaking);
   });
 
   it('should map alpine_skiing_downhill to AlpineSkiing', () => {

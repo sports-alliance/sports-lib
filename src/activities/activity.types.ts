@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
@@ -66,15 +65,12 @@ export class ActivityTypesHelper {
     });
   }
 
-  static getActivityTypeGroupsAsUniqueArray(): string[] {
-    return Array.from(
-      new Set(
-        Object.keys(ActivityTypeGroups).reduce((array: string[], key: string) => {
-          array.push(ActivityTypeGroups[<keyof typeof ActivityTypeGroups>key]); // Important get the key via the enum else it will be chaos
-          return array;
-        }, [])
-      )
-    ).sort((left, right) => {
+  static getActivityTypeGroupsAsUniqueArray(): ActivityTypeGroup[] {
+    const activityTypeGroups = Array.from(
+      new Set(Object.values(ActivityTypeGroups))
+    ) as ActivityTypeGroup[];
+
+    return activityTypeGroups.sort((left, right) => {
       if (left < right) {
         return -1;
       }
@@ -85,16 +81,20 @@ export class ActivityTypesHelper {
     });
   }
 
+  static getActivityTypesForActivityGroup(activityTypeGroup: ActivityTypeGroup): ActivityTypes[] {
+    return [...(ActivityTypesGroupMapping.map[activityTypeGroup] || [])];
+  }
+
   static averageSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
-      case ActivityTypeGroups.Running:
+      case ActivityTypeGroups.RunningGroup:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
-      case ActivityTypeGroups.TrailRunning:
+      case ActivityTypeGroups.TrailRunningGroup:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataSpeedAvg.type, DataGradeAdjustedSpeedAvg.type];
-      case ActivityTypeGroups.OutdoorAdventures:
+      case ActivityTypeGroups.OutdoorAdventuresGroup:
         return [DataPaceAvg.type, DataSpeedAvg.type];
-      case ActivityTypeGroups.WaterSports:
-      case ActivityTypeGroups.Swimming:
+      case ActivityTypeGroups.WaterSportsGroup:
+      case ActivityTypeGroups.SwimmingGroup:
         return [DataSpeedAvg.type, DataSwimPaceAvg.type];
       default:
         return [DataSpeedAvg.type];
@@ -103,14 +103,14 @@ export class ActivityTypesHelper {
 
   static speedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
-      case ActivityTypeGroups.Running:
+      case ActivityTypeGroups.RunningGroup:
         return [DataPace.type, DataSpeed.type];
-      case ActivityTypeGroups.TrailRunning:
+      case ActivityTypeGroups.TrailRunningGroup:
         return [DataPace.type, DataSpeed.type];
-      case ActivityTypeGroups.OutdoorAdventures:
+      case ActivityTypeGroups.OutdoorAdventuresGroup:
         return [DataPace.type, DataSpeed.type];
-      case ActivityTypeGroups.WaterSports:
-      case ActivityTypeGroups.Swimming:
+      case ActivityTypeGroups.WaterSportsGroup:
+      case ActivityTypeGroups.SwimmingGroup:
         return [DataSpeed.type, DataSwimPace.type];
       default:
         return [DataSpeed.type];
@@ -119,9 +119,9 @@ export class ActivityTypesHelper {
 
   static altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
-      case ActivityTypeGroups.Running:
+      case ActivityTypeGroups.RunningGroup:
         return [DataGradeAdjustedPace.type];
-      case ActivityTypeGroups.TrailRunning:
+      case ActivityTypeGroups.TrailRunningGroup:
         return [DataGradeAdjustedPace.type, DataGradeAdjustedSpeed.type];
       default:
         return [];
@@ -130,12 +130,12 @@ export class ActivityTypesHelper {
 
   static verticalSpeedDerivedDataTypesToUseForActivityType(activityType: ActivityTypes): string[] {
     switch (ActivityTypesHelper.getActivityGroupForActivityType(activityType)) {
-      case ActivityTypeGroups.Running:
-      case ActivityTypeGroups.TrailRunning:
-      case ActivityTypeGroups.Cycling:
-      case ActivityTypeGroups.MountainBiking:
-      case ActivityTypeGroups.OutdoorAdventures:
-      case ActivityTypeGroups.Performance:
+      case ActivityTypeGroups.RunningGroup:
+      case ActivityTypeGroups.TrailRunningGroup:
+      case ActivityTypeGroups.CyclingGroup:
+      case ActivityTypeGroups.MountainBikingGroup:
+      case ActivityTypeGroups.OutdoorAdventuresGroup:
+      case ActivityTypeGroups.PerformanceGroup:
         return [DataVerticalSpeed.type];
       default:
         return [];
@@ -171,17 +171,9 @@ export class ActivityTypesHelper {
    * @param activityType
    * This function can also be called: Fighting with a non functional language
    */
-  static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroups {
-    return ActivityTypeGroups[
-      <keyof typeof ActivityTypeGroups>ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray().find(
-        activityTypeGroupString => {
-          // Could also iterate over the map
-          return ActivityTypesGroupMapping.map[
-            ActivityTypeGroups[<keyof typeof ActivityTypeGroups>activityTypeGroupString]
-          ].find((groupItem: ActivityTypes) => groupItem === activityType);
-        }
-      ) || ActivityTypeGroups.Unspecified
-    ];
+  static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroup {
+    return (Object.entries(ActivityTypesGroupMapping.map) as Array<[ActivityTypeGroup, ActivityTypes[]]>)
+      .find(([, activityTypes]) => activityTypes.includes(activityType))?.[0] || ActivityTypeGroups.UnspecifiedGroup;
   }
 }
 
@@ -1032,67 +1024,60 @@ export const ACTIVITIES_WITH_SPEED_METRICS_HIDDEN_BY_DEFAULT = [
   ActivityTypes.Bouldering
 ];
 
-export enum ActivityTypeGroups {
-  'Running' = 'Running',
-  'Trail Running' = 'Trail Running',
-  'TrailRunning' = 'Trail Running',
-  'Cycling' = 'Cycling',
-  'Mountain Biking' = 'Mountain Biking',
-  'MountainBiking' = 'Mountain Biking',
-  'Swimming' = 'Swimming',
-  'Performance' = 'Performance',
-  'Indoor Sports' = 'Indoor Sports',
-  'IndoorSports' = 'Indoor Sports',
-  'Outdoor Adventures' = 'Outdoor Adventures',
-  'OutdoorAdventures' = 'Outdoor Adventures',
-  'Winter Sports' = 'Winter Sports',
-  'WinterSports' = 'Winter Sports',
-  'Water Sports' = 'Water Sports',
-  'WaterSports' = 'Water Sports',
-  'Diving' = 'Diving',
-  'Team Racket' = 'Team Racket',
-  'TeamRacket' = 'Team Racket',
-  'Unspecified' = 'Unspecified'
-}
+export const ActivityTypeGroups = {
+  RunningGroup: 'running_group',
+  TrailRunningGroup: 'trail_running_group',
+  CyclingGroup: 'cycling_group',
+  MountainBikingGroup: 'mountain_biking_group',
+  SwimmingGroup: 'swimming_group',
+  PerformanceGroup: 'performance_group',
+  IndoorSportsGroup: 'indoor_sports_group',
+  OutdoorAdventuresGroup: 'outdoor_adventures_group',
+  WinterSportsGroup: 'winter_sports_group',
+  WaterSportsGroup: 'water_sports_group',
+  DivingGroup: 'diving_group',
+  TeamRacketGroup: 'team_racket_group',
+  UnspecifiedGroup: 'unspecified_group',
+} as const;
+
+export type ActivityTypeGroup = typeof ActivityTypeGroups[keyof typeof ActivityTypeGroups];
 
 export class ActivityTypesGroupMapping {
-  public static readonly map: { [key in ActivityTypeGroups]: ActivityTypes[] } = {
-    [ActivityTypeGroups.Running]: [
+  public static readonly map: Record<ActivityTypeGroup, ActivityTypes[]> = {
+    [ActivityTypeGroups.RunningGroup]: [
       ActivityTypes.Running,
       ActivityTypes.Treadmill,
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning
-      // @todo add more
     ],
-    [ActivityTypeGroups.TrailRunning]: [
+    [ActivityTypeGroups.TrailRunningGroup]: [
       ActivityTypes.TrailRunning
-      // @todo add more
     ],
-    [ActivityTypeGroups.Cycling]: [
+    [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
       ActivityTypes.IndoorCycling,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,
       ActivityTypes.EBiking
-      // @todo add more
     ],
-    [ActivityTypeGroups.MountainBiking]: [
+    [ActivityTypeGroups.MountainBikingGroup]: [
       ActivityTypes.MountainBiking,
       ActivityTypes['Enduro MTB'],
       ActivityTypes.DownhillCycling
-      // @todo add more
     ],
-    [ActivityTypeGroups.Swimming]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
-    [ActivityTypeGroups.Performance]: [
+    [ActivityTypeGroups.SwimmingGroup]: [
+      ActivityTypes.Swimming,
+      ActivityTypes.OpenWaterSwimming
+    ],
+    [ActivityTypeGroups.PerformanceGroup]: [
       ActivityTypes.Crossfit,
       ActivityTypes.Orienteering,
       ActivityTypes.RollerSki,
       ActivityTypes.TrackAndField,
       ActivityTypes.Triathlon,
       ActivityTypes.Multisport
-      // @todo add more
     ],
-    [ActivityTypeGroups.IndoorSports]: [
+    [ActivityTypeGroups.IndoorSportsGroup]: [
       ActivityTypes.Gymnastics,
       ActivityTypes.Yoga,
       ActivityTypes.Stretching,
@@ -1105,9 +1090,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.StrengthTraining,
       ActivityTypes.Training,
       ActivityTypes.FlexibilityTraining
-      // @todo add more
     ],
-    [ActivityTypeGroups.OutdoorAdventures]: [
+    [ActivityTypeGroups.OutdoorAdventuresGroup]: [
       ActivityTypes.Walking,
       ActivityTypes.Hiking,
       ActivityTypes.NordicWalking,
@@ -1118,9 +1102,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Bouldering,
       ActivityTypes.Canyoning,
       ActivityTypes.ViaFerrata
-      // @todo add more
     ],
-    [ActivityTypeGroups.WinterSports]: [
+    [ActivityTypeGroups.WinterSportsGroup]: [
       ActivityTypes.CrosscountrySkiing,
       ActivityTypes.BackCountrySkiing,
       ActivityTypes.AlpineSkiing,
@@ -1131,9 +1114,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IceSkating,
       ActivityTypes.BackCountrySki,
       ActivityTypes.NordicSki
-      // @todo add more
     ],
-    [ActivityTypeGroups.WaterSports]: [
+    [ActivityTypeGroups.WaterSportsGroup]: [
       ActivityTypes.Rowing,
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
@@ -1143,12 +1125,14 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Kayaking,
       ActivityTypes.Paddling,
       ActivityTypes.StandUpPaddling
-      // @todo add more
     ],
-    [ActivityTypeGroups.Diving]: [ActivityTypes.Diving, ActivityTypes.ScubaDiving, ActivityTypes.FreeDiving],
-    [ActivityTypeGroups.TeamRacket]: [
+    [ActivityTypeGroups.DivingGroup]: [
+      ActivityTypes.Diving,
+      ActivityTypes.ScubaDiving,
+      ActivityTypes.FreeDiving
+    ],
+    [ActivityTypeGroups.TeamRacketGroup]: [
       ActivityTypes.Golf,
-      // ActivityTypes.Soccer,
       ActivityTypes.AmericanFootball,
       ActivityTypes.Football,
       ActivityTypes.Badminton,
@@ -1163,9 +1147,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.RacquetBall,
       ActivityTypes.TableTennis,
       ActivityTypes.Tennis
-      // @todo add more
     ],
-    [ActivityTypeGroups.Unspecified]: []
+    [ActivityTypeGroups.UnspecifiedGroup]: [],
   };
 }
 
@@ -1173,11 +1156,11 @@ export class ActivityTypesMoving {
   /**
    * Holds moving speed threshold in m/s per sport group
    */
-  private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
-    [ActivityTypeGroups.Running, 1.5 / 3.6], // kph to m/s
-    [ActivityTypeGroups.Cycling, 4 / 3.6], // kph to m/s
-    [ActivityTypeGroups.MountainBiking, 4 / 3.6], // kph to m/s
-    [ActivityTypeGroups.Swimming, 0.3] // 30 cm/s
+  private static SPORTS_MOVING_SPEED_THRESHOLD_MAP = new Map<ActivityTypeGroup, number>([
+    [ActivityTypeGroups.RunningGroup, 1.5 / 3.6], // kph to m/s
+    [ActivityTypeGroups.CyclingGroup, 4 / 3.6], // kph to m/s
+    [ActivityTypeGroups.MountainBikingGroup, 4 / 3.6], // kph to m/s
+    [ActivityTypeGroups.SwimmingGroup, 0.3] // 30 cm/s
   ]);
 
   private static DEFAULT_MOVING_SPEED_THRESHOLD = 0.3; // m/s

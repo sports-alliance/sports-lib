@@ -259,6 +259,7 @@ import { DataGradeMin } from '../../data/data.grade-min';
 import { DataGradeMax } from '../../data/data.grade-max';
 import { DataGradeAvg } from '../../data/data.grade-avg';
 import {
+  type ActivityTypeGroup,
   ActivityTypeGroups,
   ActivityTypes,
   ActivityTypesHelper,
@@ -313,11 +314,11 @@ const ALTITUDE_SPIKES_FILTER_WIN = 3;
 
 // Fix abnormal streams
 const SPEED_STREAM_STD_DEV_THRESHOLD_DEFAULT = 25 / 3.6; // Kph to mps
-const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroups, number>([
-  [ActivityTypeGroups.Running, 15 / 3.6], // kph to m/s
-  [ActivityTypeGroups.Cycling, 27 / 3.6], // kph to m/s
-  [ActivityTypeGroups.MountainBiking, 27 / 3.6], // kph to m/s
-  [ActivityTypeGroups.Swimming, 5 / 3.6] // kph to m/s
+const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroup, number>([
+  [ActivityTypeGroups.RunningGroup, 15 / 3.6], // kph to m/s
+  [ActivityTypeGroups.CyclingGroup, 27 / 3.6], // kph to m/s
+  [ActivityTypeGroups.MountainBikingGroup, 27 / 3.6], // kph to m/s
+  [ActivityTypeGroups.SwimmingGroup, 5 / 3.6] // kph to m/s
 ]);
 
 export class ActivityUtilities {
@@ -2520,10 +2521,10 @@ export class ActivityUtilities {
     // Get a grade adjusted speed (applies to running and cycling-like activity groups)
     const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     if (
-      (activityGroup === ActivityTypeGroups.Running ||
-        activityGroup === ActivityTypeGroups.TrailRunning ||
-        activityGroup === ActivityTypeGroups.Cycling ||
-        activityGroup === ActivityTypeGroups.MountainBiking) &&
+      (activityGroup === ActivityTypeGroups.RunningGroup ||
+        activityGroup === ActivityTypeGroups.TrailRunningGroup ||
+        activityGroup === ActivityTypeGroups.CyclingGroup ||
+        activityGroup === ActivityTypeGroups.MountainBikingGroup) &&
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
       this.canGenerateDerivedStream(activity, DataGradeAdjustedSpeed.type)
     ) {

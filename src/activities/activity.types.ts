@@ -175,6 +175,10 @@ export class ActivityTypesHelper {
     return (Object.entries(ActivityTypesGroupMapping.map) as Array<[ActivityTypeGroup, ActivityTypes[]]>)
       .find(([, activityTypes]) => activityTypes.includes(activityType))?.[0] || ActivityTypeGroups.UnspecifiedGroup;
   }
+
+  static isIndoorActivityType(activityType: ActivityTypes): boolean {
+    return EXPLICIT_INDOOR_ACTIVITY_TYPES.includes(activityType);
+  }
 }
 
 /**
@@ -1151,6 +1155,15 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.UnspecifiedGroup]: [],
   };
 }
+
+const EXPLICIT_INDOOR_ACTIVITY_TYPES: ActivityTypes[] = [
+  ...ActivityTypesGroupMapping.map[ActivityTypeGroups.IndoorSportsGroup],
+  ActivityTypes.IndoorCycling,
+  ActivityTypes.IndoorRunning,
+  ActivityTypes.IndoorTraining,
+  ActivityTypes['Indoor Climbing'],
+  ActivityTypes.Treadmill
+];
 
 export class ActivityTypesMoving {
   /**

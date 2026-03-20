@@ -52,6 +52,17 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WaterSportsGroup)).toContain(ActivityTypes.Kayaking);
   });
 
+  it('should identify indoor activity types across indoor labels and indoor-group members', () => {
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorCycling)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorRunning)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorTraining)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorClimbing)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Yoga)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Treadmill)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Cycling)).toBe(false);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Running)).toBe(false);
+  });
+
   it('should map alpine_skiing_downhill to AlpineSkiing', () => {
     // @ts-ignore
     expect(ActivityTypes.alpine_skiing_downhill as ActivityTypes).toBe(ActivityTypes.AlpineSkiing);

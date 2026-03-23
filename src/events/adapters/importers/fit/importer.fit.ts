@@ -1199,8 +1199,9 @@ export class EventImporterFIT {
         if (isNumberOrString(userProfile.age)) {
           activity.addStat(new DataAge(userProfile.age));
         }
-        if (userProfile.gender) {
-          activity.addStat(new DataGender(userProfile.gender));
+        const gender = this.getStringValue(userProfile.gender);
+        if (gender !== null) {
+          activity.addStat(new DataGender(gender));
         }
       }
 
@@ -1506,6 +1507,31 @@ export class EventImporterFIT {
     }
 
     return numericValue;
+  }
+
+  private static getStringValue(value: unknown): string | null {
+    if (typeof value === 'string') {
+      const trimmedValue = value.trim();
+      return trimmedValue ? trimmedValue : null;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    if (value && typeof value === 'object') {
+      const enumValueCandidate =
+        (value as { mappedValue?: unknown }).mappedValue ??
+        (value as { value?: unknown }).value ??
+        (value as { rawValue?: unknown }).rawValue ??
+        (value as { name?: unknown }).name;
+
+      if (enumValueCandidate !== undefined && enumValueCandidate !== value) {
+        return this.getStringValue(enumValueCandidate);
+      }
+    }
+
+    return null;
   }
 
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {

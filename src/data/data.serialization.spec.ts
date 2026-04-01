@@ -28,6 +28,7 @@ import { DataBikePodUsed } from './data.bike-pod-used';
 import { DataEnabledNavigationSystems } from './data.enabled-navigation-systems';
 import { DataHeartRateUsed } from './data.heart-rate-used';
 import { DataPowerPodUsed } from './data.power-pod-used';
+import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from './data.training-stress-score-method';
 import { DataGroundContactTimeBalance as _DataGroundContactTimeBalance } from './data-ground-contact-time-balance';
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
@@ -61,6 +62,7 @@ describe('Data Serialization Safety', () => {
     [DataEnabledNavigationSystems, ['GPS']],
     [DataHeartRateUsed, [true]],
     [DataPowerPodUsed, [true]],
+    [DataTrainingStressScoreMethod, [TrainingStressScoreMethod.POWER]],
     [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
     [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]]
   ]);

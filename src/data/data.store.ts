@@ -303,6 +303,7 @@ import { DataPowerPedalSmoothnessLeft } from './data.power-pedal-smoothness-left
 import { DataPowerPedalSmoothnessRight } from './data.power-pedal-smoothness-right';
 import { DataPowerTorqueEffectivenessLeft } from './data.power-torque-effectiveness-left';
 import { DataPowerTorqueEffectivenessRight } from './data.power-torque-effectiveness-right';
+import { DataPowerTrainingStressScore } from './data.power-training-stress-score';
 import { DataTrainingStressScore } from './data.training-stress-score';
 import { DataTrainingStressScoreMethod } from './data.training-stress-score-method';
 import { DataPowerWork } from './data.power-work';
@@ -720,6 +721,7 @@ export const DataStore: any = {
   DataPowerTorqueEffectivenessLeft,
   DataPowerTorqueEffectivenessRight,
   DataTrainingStressScore,
+  DataPowerTrainingStressScore,
   DataTrainingStressScoreMethod,
   DataPowerWork,
   DataRiderPositionChangeEvent,

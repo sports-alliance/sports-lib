@@ -23,6 +23,14 @@ export function convertSpeedToSwimPace(number: number): number {
   return number === 0 ? Infinity : 100 / number;
 }
 
+/**
+ * Converts swim pace from seconds per 100m to m/s
+ * @param number
+ */
+export function convertSwimPaceToSpeed(number: number): number {
+  return number === 0 ? Infinity : 100 / number;
+}
+
 export function convertSpeedToSpeedInKilometersPerHour(number: number): number {
   return number * 3.6;
 }

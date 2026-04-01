@@ -1,8 +1,10 @@
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
+import { DataMaxHRSetting } from '../../data/data.max-hr-setting';
 import { DataCadence } from '../../data/data.cadence';
 import { DataSpeed } from '../../data/data.speed';
 import { DataWeight } from '../../data/data.weight';
+import { DataGender } from '../../data/data.gender';
 import {
   DataVerticalSpeed,
   DataVerticalSpeedFeetPerHour,
@@ -140,6 +142,7 @@ import {
   convertSpeedToSpeedInMetersPerMinute,
   convertSpeedToSpeedInMilesPerHour,
   convertSpeedToSwimPace,
+  convertSwimPaceToSpeed,
   convertSwimPaceToSwimPacePer100Yard,
   isNumber,
   isNumberOrString,
@@ -265,6 +268,7 @@ import {
   ActivityTypesHelper,
   ActivityTypesMoving
 } from '../../activities/activity.types';
+import { type ActivityParsingTssOverridesOptions } from '../../activities/activity-parsing-options';
 import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
 import { DataTimerTime } from '../../data/data.timer-time';
@@ -275,7 +279,14 @@ import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
 
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
+import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
+import { DataPowerTrainingStressScore } from '../../data/data.power-training-stress-score';
+import {
+  DataTrainingStressScoreMethod,
+  TrainingStressScoreMethod,
+  type TrainingStressScoreMethodType
+} from '../../data/data.training-stress-score-method';
 import { DataPowerWork } from '../../data/data.power-work';
 import { GradeCalculator } from './grade-calculator/grade-calculator';
 import { DataVO2Max } from '../../data/data.vo2-max';
@@ -304,6 +315,7 @@ import {
   DataJumpSpeedMin
 } from '../../data/data.jump-stats';
 import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve';
+import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -325,6 +337,8 @@ export class ActivityUtilities {
   private static geoLibAdapter = new GeoLibAdapter();
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
+  private static readonly INTENSITY_FACTOR_DECIMALS = 3;
+  private static readonly TRAINING_STRESS_SCORE_DECIMALS = 1;
   private static readonly jumpStatFamilies: Array<{
     key: string;
     minType: string;
@@ -2047,6 +2061,475 @@ export class ActivityUtilities {
     return new DataFTP(this.round(twentyMinutePower * this.FTP_FACTOR));
   }
 
+  private static calculatePowerIntensityFactor(activity: ActivityInterface): DataPowerIntensityFactor | null {
+    const normalizedPower = this.resolveNormalizedPower(activity);
+    const ftp = this.resolveFunctionalThresholdPower(activity);
+
+    if (normalizedPower === null || ftp === null) {
+      return null;
+    }
+
+    return new DataPowerIntensityFactor(this.round(normalizedPower / ftp, this.INTENSITY_FACTOR_DECIMALS));
+  }
+
+  private static toPositiveFiniteNumber(value: number | null | undefined): number | null {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  private static getDurationSecondsWithoutPauses(activity: ActivityInterface): number {
+    const timerTime = this.getFiniteStatValue(activity, DataTimerTime.type);
+    if (timerTime !== null && timerTime > 0) {
+      return timerTime;
+    }
+
+    const movingTime = this.getFiniteStatValue(activity, DataMovingTime.type);
+    if (movingTime !== null && movingTime > 0) {
+      return movingTime;
+    }
+
+    const duration = this.getFiniteStatValue(activity, DataDuration.type);
+    if (duration !== null && duration > 0) {
+      const pause = this.getFiniteStatValue(activity, DataPause.type);
+      if (pause !== null && pause >= 0 && duration - pause > 0) {
+        return duration - pause;
+      }
+      return duration;
+    }
+
+    const fallbackDurationSeconds = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;
+    if (Number.isFinite(fallbackDurationSeconds) && fallbackDurationSeconds > 0) {
+      return fallbackDurationSeconds;
+    }
+
+    return 0;
+  }
+
+  private static getTssOverrideValue(
+    activity: ActivityInterface,
+    key: keyof ActivityParsingTssOverridesOptions
+  ): number | null {
+    return this.toPositiveFiniteNumber(activity.parseOptions?.tss?.overrides?.[key]);
+  }
+
+  private static getZoneFiveLowerLimit(activity: ActivityInterface, zoneType: string): number | null {
+    const zone = activity.intensityZones.find(intensityZone => intensityZone.type === zoneType);
+    return this.toPositiveFiniteNumber(zone?.zone5LowerLimit);
+  }
+
+  private static getStreamSamplesByDuration(
+    activity: ActivityInterface,
+    streamType: string
+  ): Array<{ duration: number; value: number }> {
+    if (!activity.hasStreamData(streamType)) {
+      return [];
+    }
+
+    return activity
+      .getStreamDataByDuration(streamType, true, true)
+      .map(sample => ({ duration: sample.time / 1000, value: sample.value as number }))
+      .filter(sample => Number.isFinite(sample.duration) && Number.isFinite(sample.value));
+  }
+
+  private static resolveNormalizedPower(activity: ActivityInterface): number | null {
+    const existingNormalizedPower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerNormalized.type));
+    if (existingNormalizedPower !== null) {
+      return existingNormalizedPower;
+    }
+
+    if (!activity.hasStreamData(DataPower.type)) {
+      return null;
+    }
+
+    const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
+    const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
+    const powerStream = powerDurationStream.map(item => item.value) as number[];
+    if (powerStream.length < 2 || timeStream.length < 2) {
+      return null;
+    }
+
+    const computedNormalizedPower = this.toPositiveFiniteNumber(this.computeNormalizedPower(powerStream, timeStream));
+    if (computedNormalizedPower === null) {
+      return null;
+    }
+
+    activity.addStat(new DataPowerNormalized(computedNormalizedPower));
+    return computedNormalizedPower;
+  }
+
+  private static resolveFunctionalThresholdPower(activity: ActivityInterface): number | null {
+    const override = this.getTssOverrideValue(activity, 'functionalThresholdPower');
+    if (override !== null) {
+      return override;
+    }
+
+    const existingFtp = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataFTP.type));
+    if (existingFtp !== null) {
+      return existingFtp;
+    }
+
+    const derivedFtp = this.calculateFTP(activity);
+    if (!derivedFtp) {
+      return null;
+    }
+
+    if (!activity.getStat(DataFTP.type)) {
+      activity.addStat(derivedFtp);
+    }
+    return this.toPositiveFiniteNumber(derivedFtp.getValue());
+  }
+
+  private static persistFunctionalThresholdPowerOverride(activity: ActivityInterface): void {
+    const override = this.getTssOverrideValue(activity, 'functionalThresholdPower');
+    if (override === null) {
+      return;
+    }
+
+    const currentFtp = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataFTP.type));
+    if (currentFtp !== override) {
+      activity.addStat(new DataFTP(override));
+    }
+  }
+
+  private static resolveLactateThresholdHr(activity: ActivityInterface): number | null {
+    const override = this.getTssOverrideValue(activity, 'lactateThresholdHR');
+    if (override !== null) {
+      return override;
+    }
+    return this.getZoneFiveLowerLimit(activity, DataHeartRate.type);
+  }
+
+  private static resolveMaxHeartRate(activity: ActivityInterface): number | null {
+    const override = this.getTssOverrideValue(activity, 'maxHeartRate');
+    if (override !== null) {
+      return override;
+    }
+
+    const setting = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataMaxHRSetting.type));
+    if (setting !== null) {
+      return setting;
+    }
+
+    return this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataHeartRateMax.type));
+  }
+
+  private static resolveRestingHeartRate(activity: ActivityInterface): number | null {
+    return this.getTssOverrideValue(activity, 'restingHeartRate');
+  }
+
+  private static resolveGender(activity: ActivityInterface): string | undefined {
+    const value = activity.getStat(DataGender.type)?.getValue();
+    return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+  }
+
+  private static resolveFunctionalThresholdPace(activity: ActivityInterface): number | null {
+    const override = this.getTssOverrideValue(activity, 'functionalThresholdPace');
+    if (override !== null) {
+      return override;
+    }
+    return this.getZoneFiveLowerLimit(activity, DataSpeed.type);
+  }
+
+  private static resolveSwimSpeed(activity: ActivityInterface): number | null {
+    const averageSpeed = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataSpeedAvg.type));
+    if (averageSpeed !== null) {
+      return averageSpeed;
+    }
+
+    const speedSamples = this.getStreamSamplesByDuration(activity, DataSpeed.type);
+    if (!speedSamples.length) {
+      return null;
+    }
+
+    const averageFromStream = speedSamples.reduce((sum, sample) => sum + sample.value, 0) / speedSamples.length;
+    return this.toPositiveFiniteNumber(averageFromStream);
+  }
+
+  private static resolveThresholdSwimSpeed(activity: ActivityInterface, swimSpeed: number): number | null {
+    const thresholdOverride = this.getTssOverrideValue(activity, 'thresholdSwimSpeed');
+    if (thresholdOverride !== null) {
+      return thresholdOverride;
+    }
+
+    const legacyOverride = this.getTssOverrideValue(activity, 'refSwimSpeed');
+    if (legacyOverride !== null) {
+      return legacyOverride;
+    }
+
+    const fromSwimPaceZones = this.getZoneFiveLowerLimit(activity, DataSwimPace.type);
+    if (fromSwimPaceZones !== null) {
+      const convertedSpeed = this.toPositiveFiniteNumber(convertSwimPaceToSpeed(fromSwimPaceZones));
+      if (convertedSpeed !== null) {
+        return convertedSpeed;
+      }
+    }
+
+    const fromSpeedZones = this.getZoneFiveLowerLimit(activity, DataSpeed.type);
+    if (fromSpeedZones !== null) {
+      return fromSpeedZones;
+    }
+
+    const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
+    if (enableHeuristicFallbacks) {
+      return swimSpeed;
+    }
+
+    return null;
+  }
+
+  private static resolveMetScore(activity: ActivityInterface, durationSeconds: number): number | null {
+    const override = this.getTssOverrideValue(activity, 'metScore');
+    if (override !== null) {
+      return override;
+    }
+
+    const energy = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataEnergy.type));
+    const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
+    if (energy === null || weight === null || durationSeconds <= 0) {
+      return null;
+    }
+
+    const estimatedMetScore = TssCalculator.estimateMetScore(energy, weight, durationSeconds);
+    return this.toPositiveFiniteNumber(estimatedMetScore);
+  }
+
+  private static resolveMetThreshold(activity: ActivityInterface): number {
+    return this.getTssOverrideValue(activity, 'thresholdMet') ?? 10;
+  }
+
+  private static calculatePowerTss(activity: ActivityInterface): TssCalculationResult | null {
+    const ftp = this.resolveFunctionalThresholdPower(activity);
+    if (ftp === null) {
+      return null;
+    }
+
+    const normalizedPower = this.resolveNormalizedPower(activity);
+    if (normalizedPower === null) {
+      return null;
+    }
+
+    return TssCalculator.calculatePowerTss({
+      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+      functionalThresholdPower: ftp,
+      normalizedPower,
+      samples: []
+    });
+  }
+
+  private static calculateHrTss(activity: ActivityInterface): TssCalculationResult | null {
+    const maxHeartRate = this.resolveMaxHeartRate(activity);
+    if (maxHeartRate === null) {
+      return null;
+    }
+
+    const lactateThresholdHR = this.resolveLactateThresholdHr(activity);
+    const restingHeartRate = this.resolveRestingHeartRate(activity);
+    const gender = this.resolveGender(activity);
+
+    const samples = this.getStreamSamplesByDuration(activity, DataHeartRate.type).map(sample => ({
+      duration: sample.duration,
+      hr: sample.value
+    }));
+    if (!samples.length) {
+      return null;
+    }
+
+    return TssCalculator.calculateHrTss({
+      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+      lactateThresholdHR: lactateThresholdHR ?? undefined,
+      maxHeartRate,
+      restingHeartRate: restingHeartRate ?? undefined,
+      gender,
+      samples
+    });
+  }
+
+  private static calculatePaceTss(activity: ActivityInterface): TssCalculationResult | null {
+    const functionalThresholdPace = this.resolveFunctionalThresholdPace(activity);
+    if (functionalThresholdPace === null) {
+      return null;
+    }
+
+    const speedSamples = this.getStreamSamplesByDuration(activity, DataSpeed.type);
+    if (!speedSamples.length) {
+      return null;
+    }
+
+    const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
+    const gradeSmoothByDuration = new Map<number, number>(
+      this.getStreamSamplesByDuration(activity, DataGradeSmooth.type).map(sample => [sample.duration, sample.value / 100])
+    );
+    const gradeByDuration = new Map<number, number>(
+      this.getStreamSamplesByDuration(activity, DataGrade.type).map(sample => [sample.duration, sample.value / 100])
+    );
+    const verticalSamples = this.getStreamSamplesByDuration(activity, DataVerticalSpeed.type);
+    const verticalByDuration = new Map<number, number>(verticalSamples.map(sample => [sample.duration, sample.value]));
+
+    const samples = speedSamples
+      .map(sample => {
+        const speed = sample.value;
+        const verticalSpeed = verticalByDuration.get(sample.duration);
+
+        let grade = gradeSmoothByDuration.get(sample.duration);
+        if (grade === undefined) {
+          grade = gradeByDuration.get(sample.duration);
+        }
+        if (grade === undefined && verticalSpeed !== undefined && speed > 0) {
+          grade = verticalSpeed / speed;
+        }
+        if (grade === undefined) {
+          if (!enableHeuristicFallbacks) {
+            return null;
+          }
+          grade = 0;
+        }
+
+        return {
+          duration: sample.duration,
+          speed,
+          grade,
+          verticalSpeed: verticalSpeed === undefined ? null : verticalSpeed
+        };
+      })
+      .filter(
+        (sample): sample is { duration: number; speed: number; grade: number; verticalSpeed: number | null } =>
+          sample !== null
+      );
+
+    if (!samples.length || samples.length !== speedSamples.length) {
+      return null;
+    }
+
+    return TssCalculator.calculatePaceTss({
+      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+      functionalThresholdPace,
+      samples
+    });
+  }
+
+  private static calculateSwimPaceTss(activity: ActivityInterface): TssCalculationResult | null {
+    const swimSpeed = this.resolveSwimSpeed(activity);
+    if (swimSpeed === null) {
+      return null;
+    }
+
+    const thresholdSwimSpeed = this.resolveThresholdSwimSpeed(activity, swimSpeed);
+    if (thresholdSwimSpeed === null) {
+      return null;
+    }
+
+    return TssCalculator.calculateSwimTss({
+      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+      swimSpeed,
+      thresholdSwimSpeed,
+      samples: []
+    });
+  }
+
+  private static calculateMetTss(activity: ActivityInterface): TssCalculationResult | null {
+    const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
+    if (durationSeconds <= 0) {
+      return null;
+    }
+
+    const metScore = this.resolveMetScore(activity, durationSeconds);
+    if (metScore === null) {
+      return null;
+    }
+
+    return TssCalculator.calculateMetTss({
+      totalDurationWithoutPauses: durationSeconds,
+      metScore,
+      thresholdMet: this.resolveMetThreshold(activity),
+      samples: []
+    });
+  }
+
+  private static supportsPaceTss(activity: ActivityInterface): boolean {
+    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
+    if (
+      activityGroup === ActivityTypeGroups.RunningGroup ||
+      activityGroup === ActivityTypeGroups.TrailRunningGroup
+    ) {
+      return true;
+    }
+
+    return activity.type === ActivityTypes.TrackAndField;
+  }
+
+  private static calculateTrainingStressScoreByPriority(activity: ActivityInterface): TssCalculationResult | null {
+    const powerTss = this.calculatePowerTss(activity);
+    if (powerTss) {
+      return powerTss;
+    }
+
+    const hrTss = this.calculateHrTss(activity);
+    if (hrTss) {
+      return hrTss;
+    }
+
+    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
+    const paceLikeTss =
+      activityGroup === ActivityTypeGroups.SwimmingGroup
+        ? this.calculateSwimPaceTss(activity)
+        : this.supportsPaceTss(activity)
+          ? this.calculatePaceTss(activity)
+          : null;
+    if (paceLikeTss) {
+      return paceLikeTss;
+    }
+
+    return this.calculateMetTss(activity);
+  }
+
+  private static updatePowerOutputsFromPowerTss(
+    activity: ActivityInterface,
+    powerTss: Pick<TssCalculationResult, 'normalizedPower' | 'intensityFactor'>
+  ): void {
+    if (Number.isFinite(powerTss.normalizedPower)) {
+      activity.addStat(new DataPowerNormalized(powerTss.normalizedPower as number));
+    }
+
+    if (Number.isFinite(powerTss.intensityFactor)) {
+      activity.addStat(
+        new DataPowerIntensityFactor(this.round(powerTss.intensityFactor as number, this.INTENSITY_FACTOR_DECIMALS))
+      );
+    }
+  }
+
+  private static setTrainingStressScoreMethod(
+    activity: ActivityInterface,
+    method: TrainingStressScoreMethodType
+  ): void {
+    activity.addStat(new DataTrainingStressScoreMethod(method));
+  }
+
+  private static generateTrainingStressScore(activity: ActivityInterface): void {
+    const existingTss = this.getFiniteStatValue(activity, DataPowerTrainingStressScore.type);
+    const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
+
+    if (existingTss !== null && preserveImportedTss) {
+      if (!activity.getStat(DataTrainingStressScoreMethod.type)) {
+        this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
+      }
+      return;
+    }
+
+    const result = this.calculateTrainingStressScoreByPriority(activity);
+    if (!result) {
+      return;
+    }
+
+    activity.addStat(
+      new DataPowerTrainingStressScore(this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS))
+    );
+    this.setTrainingStressScoreMethod(activity, result.calculationMethod);
+
+    if (result.calculationMethod === TrainingStressScoreMethod.POWER) {
+      this.persistFunctionalThresholdPowerOverride(activity);
+      this.updatePowerOutputsFromPowerTss(activity, result);
+    }
+  }
+
   /**
    * Calculate Critical Power (CP) and W' (Anaerobic Work Capacity)
    * using the Monod & Scherrer 2-parameter model (Power vs 1/Time).
@@ -3144,6 +3627,17 @@ export class ActivityUtilities {
         activity.addStat(ftp);
       }
     }
+
+    // Intensity Factor (IF = Normalized Power / FTP)
+    if (!activity.getStat(DataPowerIntensityFactor.type)) {
+      const intensityFactor = this.calculatePowerIntensityFactor(activity);
+      if (intensityFactor) {
+        activity.addStat(intensityFactor);
+      }
+    }
+
+    // Training Stress Score (priority: POWER -> HR -> PACE/SWIM_PACE -> MET)
+    this.generateTrainingStressScore(activity);
 
     // Critical Power & W'
     // calculateCriticalPowerAndWPrime requires DataPowerCurve to be present (which we just added if missing)

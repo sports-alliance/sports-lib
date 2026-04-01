@@ -5,10 +5,16 @@ import { DataPowerCurve } from '../../data/data.power-curve';
 import { DataCriticalPower } from '../../data/data.critical-power';
 import { DataWPrime } from '../../data/data.w-prime';
 import { DataFTP } from '../../data/data.ftp';
+import { DataPowerNormalized } from '../../data/data.power-normalized';
+import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
+import { DataPowerTrainingStressScore } from '../../data/data.power-training-stress-score';
+import { DataHeartRate } from '../../data/data.heart-rate';
+import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../data/data.training-stress-score-method';
 import { ActivityTypes } from '../../activities/activity.types';
 import { Event } from '../event';
 import { EventUtilities } from './event.utilities';
 import { FileType } from '../adapters/file-type.enum';
+import { IntensityZones } from '../../intensity-zones/intensity-zones';
 
 describe('Power Analytics Integration', () => {
   it("should automatically generate Power Curve, FTP, Critical Power and W' when generating stats", () => {
@@ -62,6 +68,114 @@ describe('Power Analytics Integration', () => {
       expect(cpStat.getValue()).toBeGreaterThan(200);
       expect(wPrimeStat.getValue()).toBeGreaterThan(10000);
     }
+  });
+
+  it('should calculate missing IF and TSS when power data and FTP are available', () => {
+    const powerValues = new Array(3600).fill(300);
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + powerValues.length * 1000);
+
+    // @ts-ignore
+    const activity = new Activity(startDate, endDate, ActivityTypes.Cycling, { toJSON: () => ({}) } as any);
+    const powerStream = activity.createStream(DataPower.type);
+    powerStream.setData(powerValues);
+    activity.addStream(powerStream);
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const normalizedPower = activity.getStat(DataPowerNormalized.type);
+    const ftp = activity.getStat(DataFTP.type);
+    const intensityFactor = activity.getStat(DataPowerIntensityFactor.type);
+    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+
+    expect(normalizedPower).toBeDefined();
+    expect(ftp).toBeDefined();
+    expect(intensityFactor).toBeDefined();
+    expect(tss).toBeDefined();
+
+    expect(normalizedPower!.getValue()).toBeCloseTo(300, 1);
+    expect(ftp!.getValue()).toBe(285);
+    expect(intensityFactor!.getValue()).toBeCloseTo(1.053, 3);
+    expect(tss!.getValue()).toBeCloseTo(109.9, 1);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
+  });
+
+  it('should not calculate TSS from IF alone when no supported method inputs are available', () => {
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + 600 * 1000);
+
+    // @ts-ignore
+    const activity = new Activity(startDate, endDate, ActivityTypes.Cycling, { toJSON: () => ({}) } as any);
+    const powerStream = activity.createStream(DataPower.type);
+    powerStream.setData(new Array(600).fill(250));
+    activity.addStream(powerStream);
+    activity.addStat(new DataPowerIntensityFactor(0.8));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const ftp = activity.getStat(DataFTP.type);
+    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    const method = activity.getStat(DataTrainingStressScoreMethod.type);
+
+    expect(ftp).toBeFalsy();
+    expect(tss).toBeFalsy();
+    expect(method).toBeFalsy();
+  });
+
+  it('should calculate TSS from heart-rate stream when power-based TSS is unavailable', () => {
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + 3600 * 1000);
+
+    // @ts-ignore
+    const activity = new Activity(startDate, endDate, ActivityTypes.Running, { toJSON: () => ({}) } as any);
+    const hrStream = activity.createStream(DataHeartRate.type);
+    hrStream.setData(new Array(3600).fill(160));
+    activity.addStream(hrStream);
+    const zones = new IntensityZones(DataHeartRate.type);
+    zones.zone1Duration = 0;
+    zones.zone2Duration = 0;
+    zones.zone3Duration = 0;
+    zones.zone4Duration = 0;
+    zones.zone5Duration = 0;
+    zones.zone5LowerLimit = 170;
+    activity.intensityZones.push(zones);
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    expect(tss).toBeDefined();
+    expect(tss!.getValue()).toBeCloseTo(100, 1);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+  });
+
+  it('should prefer power-based TSS over heart-rate-zone fallback when both are available', () => {
+    const powerValues = new Array(3600).fill(300);
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + powerValues.length * 1000);
+
+    // @ts-ignore
+    const activity = new Activity(startDate, endDate, ActivityTypes.Cycling, { toJSON: () => ({}) } as any);
+    const powerStream = activity.createStream(DataPower.type);
+    powerStream.setData(powerValues);
+    activity.addStream(powerStream);
+    const hrStream = activity.createStream(DataHeartRate.type);
+    hrStream.setData(new Array(3600).fill(160));
+    activity.addStream(hrStream);
+    const zones = new IntensityZones(DataHeartRate.type);
+    zones.zone1Duration = 0;
+    zones.zone2Duration = 0;
+    zones.zone3Duration = 0;
+    zones.zone4Duration = 0;
+    zones.zone5Duration = 0;
+    zones.zone5LowerLimit = 170;
+    activity.intensityZones.push(zones);
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    expect(tss).toBeDefined();
+    expect(tss!.getValue()).toBeCloseTo(109.9, 1);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
   });
 
   it("should serialize Power Curve, FTP, Critical Power and W' correctly in toJSON", () => {

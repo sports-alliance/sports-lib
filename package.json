@@ -40,6 +40,7 @@
     "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "report:tss": "npx --yes tsx scripts/generate-tss-validation-report.ts",
     "prettier:fix": "prettier --write .",
     "prepare": "husky install"
   },

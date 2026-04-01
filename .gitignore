@@ -45,3 +45,7 @@ lib
 
 # Api doc
 docs
+
+# generated reports
+reports/tss-validation-*.json
+reports/tss-validation-*.md

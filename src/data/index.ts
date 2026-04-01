@@ -183,6 +183,7 @@ export * from './data.power-right';
 export * from './data.power-torque-effectiveness-left';
 export * from './data.power-torque-effectiveness-right';
 export * from './data.power-training-stress-score';
+export * from './data.training-stress-score-method';
 export * from './data.power-up';
 export * from './data.power-watts-per-kg';
 export * from './data.power-work';

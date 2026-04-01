@@ -281,7 +281,7 @@ import { DataSWOLF50m } from '../../data/data.swolf-50m';
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
-import { DataPowerTrainingStressScore } from '../../data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../../data/data.training-stress-score';
 import {
   DataTrainingStressScoreMethod,
   TrainingStressScoreMethod,
@@ -2504,7 +2504,7 @@ export class ActivityUtilities {
   }
 
   private static generateTrainingStressScore(activity: ActivityInterface): void {
-    const existingTss = this.getFiniteStatValue(activity, DataPowerTrainingStressScore.type);
+    const existingTss = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
     const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
 
     if (existingTss !== null && preserveImportedTss) {
@@ -2520,7 +2520,7 @@ export class ActivityUtilities {
     }
 
     activity.addStat(
-      new DataPowerTrainingStressScore(this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS))
+      new DataTrainingStressScore(this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS))
     );
     this.setTrainingStressScoreMethod(activity, result.calculationMethod);
 

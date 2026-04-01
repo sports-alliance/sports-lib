@@ -44,7 +44,7 @@ import { DataPowerPedalSmoothnessRight } from '../data/data.power-pedal-smoothne
 import { DataPowerPedalSmoothnessLeft } from '../data/data.power-pedal-smoothness-left';
 import { DataPowerNormalized } from '../data/data.power-normalized';
 import { DataPowerIntensityFactor } from '../data/data.power-intensity-factor';
-import { DataPowerTrainingStressScore } from '../data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../data/data.training-stress-score';
 import { DataPowerWork } from '../data/data.power-work';
 import { DataCyclingStandingTime } from '../data/data.cycling-standing-time';
 import { DataCyclingSeatedTime } from '../data/data.cycling-seated-time';
@@ -1611,7 +1611,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataPowerPedalSmoothnessRight.type) as DataNumber).getValue()).toEqual(20.5);
             expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toEqual(179);
             expect((activity.getStat(DataPowerIntensityFactor.type) as DataNumber).getValue()).toEqual(0.786);
-            expect((activity.getStat(DataPowerTrainingStressScore.type) as DataNumber).getValue()).toEqual(105.4);
+            expect((activity.getStat(DataTrainingStressScore.type) as DataNumber).getValue()).toEqual(105.4);
             expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(832);
 
             // Cycling dynamics: Power "position" stats
@@ -1652,7 +1652,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataPowerPedalSmoothnessRight.type) as DataNumber).getValue()).toEqual(21.5);
             expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toEqual(147);
             expect((activity.getStat(DataPowerIntensityFactor.type) as DataNumber).getValue()).toEqual(0.733);
-            expect((activity.getStat(DataPowerTrainingStressScore.type) as DataNumber).getValue()).toEqual(48.3);
+            expect((activity.getStat(DataTrainingStressScore.type) as DataNumber).getValue()).toEqual(48.3);
             expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(417);
 
             done();

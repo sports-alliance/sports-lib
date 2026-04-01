@@ -92,7 +92,7 @@ import { DataPowerPedalSmoothnessRight } from '../../../../data/data.power-pedal
 import { DataFTP } from '../../../../data/data.ftp';
 import { DataPowerNormalized } from '../../../../data/data.power-normalized';
 import { DataPowerIntensityFactor } from '../../../../data/data.power-intensity-factor';
-import { DataPowerTrainingStressScore } from '../../../../data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../../../../data/data.training-stress-score';
 import { DataPowerWork } from '../../../../data/data.power-work';
 import { DataCyclingStandingTime } from '../../../../data/data.cycling-standing-time';
 import { DataCyclingSeatedTime } from '../../../../data/data.cycling-seated-time';
@@ -1735,7 +1735,7 @@ export class EventImporterFIT {
     }
 
     if (Number.isFinite(object.training_stress_score)) {
-      stats.push(new DataPowerTrainingStressScore(object.training_stress_score));
+      stats.push(new DataTrainingStressScore(object.training_stress_score));
     }
 
     if (Number.isFinite(object.total_work)) {

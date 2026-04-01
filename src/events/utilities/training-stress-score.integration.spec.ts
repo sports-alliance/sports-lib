@@ -9,7 +9,7 @@ import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataPower } from '../../data/data.power';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
-import { DataPowerTrainingStressScore } from '../../data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../../data/data.training-stress-score';
 import { DataSpeed } from '../../data/data.speed';
 import { DataSwimPace } from '../../data/data.swim-pace';
 import {
@@ -102,11 +102,11 @@ function computeLegacyPowerTssFromSamples(samples: Array<{ duration: number; pow
 describe('Training Stress Score integration', () => {
   it('preserves imported TSS by default and sets method to IMPORTED', () => {
     const activity = createActivity(ActivityTypes.Cycling, 1200);
-    activity.addStat(new DataPowerTrainingStressScore(42.5));
+    activity.addStat(new DataTrainingStressScore(42.5));
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBe(42.5);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 
@@ -123,13 +123,13 @@ describe('Training Stress Score integration', () => {
         }
       })
     );
-    activity.addStat(new DataPowerTrainingStressScore(42.5));
+    activity.addStat(new DataTrainingStressScore(42.5));
     addNumericStream(activity, DataPower.type, new Array(3600).fill(250));
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).not.toBe(42.5);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(42.5);
   });
 
   it('uses POWER first when all methods could be computed', () => {
@@ -179,7 +179,7 @@ describe('Training Stress Score integration', () => {
     const method = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const normalizedPower = activity.getStat(DataPowerNormalized.type)?.getValue() as number;
     const intensityFactor = activity.getStat(DataPowerIntensityFactor.type)?.getValue() as number;
-    const tss = activity.getStat(DataPowerTrainingStressScore.type)?.getValue() as number;
+    const tss = activity.getStat(DataTrainingStressScore.type)?.getValue() as number;
     const derivedFtp = activity.getStat(DataFTP.type)?.getValue() as number;
 
     const expectedIf = Math.round((normalizedPower / ftpOverride) * 1000) / 1000;
@@ -204,7 +204,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
   it('uses Banister when resting HR is provided and Edwards when it is missing', () => {
@@ -239,8 +239,8 @@ describe('Training Stress Score integration', () => {
     addNumericStream(edwardsActivity, DataHeartRate.type, new Array(3600).fill(160));
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(edwardsActivity);
 
-    const banisterTss = banisterActivity.getStat(DataPowerTrainingStressScore.type)?.getValue();
-    const edwardsTss = edwardsActivity.getStat(DataPowerTrainingStressScore.type)?.getValue();
+    const banisterTss = banisterActivity.getStat(DataTrainingStressScore.type)?.getValue();
+    const edwardsTss = edwardsActivity.getStat(DataTrainingStressScore.type)?.getValue();
 
     expect(banisterActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
     expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
@@ -258,7 +258,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.PACE);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
   it('treats grade stream values as percent for PACE TSS inputs', () => {
@@ -278,8 +278,8 @@ describe('Training Stress Score integration', () => {
 
     const percentMethod = runningWithPercentGrade.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const decimalMethod = runningWithDerivedDecimalGrade.getStat(DataTrainingStressScoreMethod.type)?.getValue();
-    const percentTss = runningWithPercentGrade.getStat(DataPowerTrainingStressScore.type)?.getValue() as number;
-    const decimalTss = runningWithDerivedDecimalGrade.getStat(DataPowerTrainingStressScore.type)?.getValue() as number;
+    const percentTss = runningWithPercentGrade.getStat(DataTrainingStressScore.type)?.getValue() as number;
+    const decimalTss = runningWithDerivedDecimalGrade.getStat(DataTrainingStressScore.type)?.getValue() as number;
 
     expect(percentMethod).toBe(TrainingStressScoreMethod.PACE);
     expect(decimalMethod).toBe(TrainingStressScoreMethod.PACE);
@@ -317,7 +317,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.SWIM_PACE);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
   it('converts swim-pace zone threshold (sec/100m) to speed for SWIM_PACE TSS', () => {
@@ -328,7 +328,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.SWIM_PACE);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeCloseTo(50, 1);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeCloseTo(50, 1);
   });
 
   it('continues SWIM_PACE fallback chain when swim-pace zone threshold is invalid', () => {
@@ -340,7 +340,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.SWIM_PACE);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeCloseTo(25.6, 1);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeCloseTo(25.6, 1);
   });
 
   it('falls back to MET as last resort', () => {
@@ -351,7 +351,7 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
   it('skips pace when vertical speed is missing and heuristic fallbacks are disabled', () => {
@@ -382,11 +382,11 @@ describe('Training Stress Score integration', () => {
     );
     const activity = event.getFirstActivity();
 
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBe(105.4);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(105.4);
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    expect(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()).toBe(105.4);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(105.4);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 
@@ -402,7 +402,7 @@ describe('Training Stress Score integration', () => {
 
       const importedEvent = await EventImporterFIT.getFromArrayBuffer(fixtureArrayBuffer);
       const importedActivity = importedEvent.getFirstActivity();
-      const reportedTss = importedActivity.getStat(DataPowerTrainingStressScore.type)?.getValue() as number;
+      const reportedTss = importedActivity.getStat(DataTrainingStressScore.type)?.getValue() as number;
       expect(reportedTss).toBeGreaterThan(0);
 
       const recomputedEvent = await EventImporterFIT.getFromArrayBuffer(
@@ -416,7 +416,7 @@ describe('Training Stress Score integration', () => {
       );
       const recomputedActivity = recomputedEvent.getFirstActivity();
       const method = recomputedActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
-      const computedTss = recomputedActivity.getStat(DataPowerTrainingStressScore.type)?.getValue() as number;
+      const computedTss = recomputedActivity.getStat(DataTrainingStressScore.type)?.getValue() as number;
       const ftp = recomputedActivity.getStat(DataFTP.type)?.getValue() as number;
       const powerSamples = recomputedActivity
         .getStreamDataByDuration(DataPower.type, true, true)
@@ -434,11 +434,11 @@ describe('Training Stress Score integration', () => {
   it('keeps TSS unset when no method inputs are available', () => {
     const activity = createActivity(ActivityTypes.Cycling, 1200);
 
-    expect(activity.getStat(DataPowerTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    expect(activity.getStat(DataPowerTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
     expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
   });
 });

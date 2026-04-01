@@ -1,6 +1,10 @@
-import { DataPower } from './data.power';
+import { DataTrainingStressScore } from './data.training-stress-score';
 
-export class DataPowerTrainingStressScore extends DataPower {
-  static type = 'Power Training Stress Score';
-  static unit = '';
+/**
+ * @deprecated Use DataTrainingStressScore instead.
+ */
+export class DataPowerTrainingStressScore extends DataTrainingStressScore {
+  static type = DataTrainingStressScore.type;
+  static aliases = DataTrainingStressScore.aliases;
+  static unit = DataTrainingStressScore.unit;
 }

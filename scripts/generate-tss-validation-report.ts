@@ -12,7 +12,7 @@ import { DataHeartRate } from '../src/data/data.heart-rate';
 import { DataHeartRateMax } from '../src/data/data.heart-rate-max';
 import { DataMaxHRSetting } from '../src/data/data.max-hr-setting';
 import { DataPower } from '../src/data/data.power';
-import { DataPowerTrainingStressScore } from '../src/data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../src/data/data.training-stress-score';
 import {
   DataTrainingStressScoreMethod,
   TrainingStressScoreMethod,
@@ -591,7 +591,7 @@ const buildActivityDiagnostics = (activity: ActivityInterface): ActivityDiagnost
   return {
     selectedMethod:
       (activity.getStat(DataTrainingStressScoreMethod.type)?.getValue() as MethodName | undefined) ?? null,
-    selectedTss: finiteOrNull(activity.getStat(DataPowerTrainingStressScore.type)?.getValue()),
+    selectedTss: finiteOrNull(activity.getStat(DataTrainingStressScore.type)?.getValue()),
     durationSeconds,
     enableHeuristicFallbacks,
     attempts
@@ -650,7 +650,7 @@ const computeRows = async (): Promise<{
       defaultActivities.forEach((defaultActivity, activityIndex) => {
         const reportedMethod =
           (defaultActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue() as MethodName | undefined) ?? 'n/a';
-        const reportedTss = finiteOrNull(defaultActivity.getStat(DataPowerTrainingStressScore.type)?.getValue());
+        const reportedTss = finiteOrNull(defaultActivity.getStat(DataTrainingStressScore.type)?.getValue());
 
         if (reportedTss === null) {
           return;
@@ -673,7 +673,7 @@ const computeRows = async (): Promise<{
           return;
         }
 
-        const computedTss = finiteOrNull(recomputeActivity.getStat(DataPowerTrainingStressScore.type)?.getValue());
+        const computedTss = finiteOrNull(recomputeActivity.getStat(DataTrainingStressScore.type)?.getValue());
         const computedMethod =
           (recomputeActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue() as MethodName | undefined) ??
           'n/a';

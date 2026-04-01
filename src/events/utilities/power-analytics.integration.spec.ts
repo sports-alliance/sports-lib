@@ -7,7 +7,7 @@ import { DataWPrime } from '../../data/data.w-prime';
 import { DataFTP } from '../../data/data.ftp';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
-import { DataPowerTrainingStressScore } from '../../data/data.power-training-stress-score';
+import { DataTrainingStressScore } from '../../data/data.training-stress-score';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../data/data.training-stress-score-method';
 import { ActivityTypes } from '../../activities/activity.types';
@@ -86,7 +86,7 @@ describe('Power Analytics Integration', () => {
     const normalizedPower = activity.getStat(DataPowerNormalized.type);
     const ftp = activity.getStat(DataFTP.type);
     const intensityFactor = activity.getStat(DataPowerIntensityFactor.type);
-    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    const tss = activity.getStat(DataTrainingStressScore.type);
 
     expect(normalizedPower).toBeDefined();
     expect(ftp).toBeDefined();
@@ -114,7 +114,7 @@ describe('Power Analytics Integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     const ftp = activity.getStat(DataFTP.type);
-    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    const tss = activity.getStat(DataTrainingStressScore.type);
     const method = activity.getStat(DataTrainingStressScoreMethod.type);
 
     expect(ftp).toBeFalsy();
@@ -142,7 +142,7 @@ describe('Power Analytics Integration', () => {
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    const tss = activity.getStat(DataTrainingStressScore.type);
     expect(tss).toBeDefined();
     expect(tss!.getValue()).toBeCloseTo(100, 1);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
@@ -172,7 +172,7 @@ describe('Power Analytics Integration', () => {
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    const tss = activity.getStat(DataPowerTrainingStressScore.type);
+    const tss = activity.getStat(DataTrainingStressScore.type);
     expect(tss).toBeDefined();
     expect(tss!.getValue()).toBeCloseTo(109.9, 1);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);

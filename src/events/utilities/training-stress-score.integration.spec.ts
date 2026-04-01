@@ -186,7 +186,7 @@ describe('Training Stress Score integration', () => {
     const expectedTss =
       Math.round(
         ((100 * Math.max(3600 - 29, 0) * normalizedPower * (normalizedPower / ftpOverride)) / (ftpOverride * 3600)) *
-          10
+        10
       ) / 10;
 
     expect(method).toBe(TrainingStressScoreMethod.POWER);
@@ -286,7 +286,7 @@ describe('Training Stress Score integration', () => {
     expect(Math.abs(percentTss - decimalTss)).toBeLessThanOrEqual(0.2);
   });
 
-  it('uses PACE for Track and Field (STT pace-enabled)', () => {
+  it('uses PACE for Track and Field (TSS pace-enabled)', () => {
     const activity = createActivity(ActivityTypes.TrackAndField, 300);
     addNumericStream(activity, DataSpeed.type, new Array(300).fill(3));
     addNumericStream(activity, DataVerticalSpeed.type, new Array(300).fill(0.1));

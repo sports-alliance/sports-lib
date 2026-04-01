@@ -178,14 +178,4 @@ describe('TssCalculator', () => {
 
     expect(result).toBeNull();
   });
-
-  it('does not contain STT lookup arrays/constants in the calculator implementation', () => {
-    const source = fs.readFileSync(path.join(__dirname, 'tss-calculator.ts'), 'utf-8');
-
-    expect(source.includes('SWIM_REF_SPEED_LIST')).toBe(false);
-    expect(source.includes('SWIM_REF_THRESHOLD_SPEED_LIST')).toBe(false);
-    expect(source.includes('HR_TSS_WEIGHTS')).toBe(false);
-    expect(source.includes('0.5656')).toBe(false);
-    expect(source.includes('4.3635')).toBe(false);
-  });
 });

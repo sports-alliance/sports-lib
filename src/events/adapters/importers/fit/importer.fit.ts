@@ -1225,7 +1225,8 @@ export class EventImporterFIT {
           }
 
           if (metricRecoveryTime !== null && !activity.getStat(DataRecoveryTime.type)) {
-            activity.addStat(new DataRecoveryTime(metricRecoveryTime));
+            // FIT activity_metrics.recovery_time is in minutes. DataRecoveryTime is stored in seconds.
+            activity.addStat(new DataRecoveryTime(metricRecoveryTime * 60));
           }
 
           if (

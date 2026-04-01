@@ -136,7 +136,7 @@ describe('EventImporterFIT MTB Jumps', () => {
 
     const recoveryTime = activity.getStat(DataRecoveryTime.type) as DataRecoveryTime;
     expect(recoveryTime).toBeDefined();
-    expect(recoveryTime.getValue()).toBe(1164);
+    expect(recoveryTime.getValue()).toBe(1164 * 60);
 
     // User Profile
     const weight = activity.getStat(DataWeight.type) as DataWeight;

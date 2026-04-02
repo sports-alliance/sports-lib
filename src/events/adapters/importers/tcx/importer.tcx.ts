@@ -7,6 +7,7 @@ import { CreatorInterface } from '../../../../creators/creator.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataEnergy } from '../../../../data/data.energy';
 import { DataDuration } from '../../../../data/data.duration';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataPause } from '../../../../data/data.pause';
 import { DataSpeedMax } from '../../../../data/data.speed-max';
@@ -220,6 +221,17 @@ export class EventImporterTCX {
           activity.setTimer(new DataTimerTime(0));
         }
         activity.getTimer().setValue(activity.getTimer().getValue() + lap.getTimer().getValue());
+      }
+
+      // Append elapsed time to whole activity
+      const lapElapsed = <DataElapsedTime>lap.getStat(DataElapsedTime.type);
+      if (lapElapsed?.getValue() > 0) {
+        if (!activity.getStat(DataElapsedTime.type)) {
+          activity.addStat(new DataElapsedTime(0));
+        }
+        (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).setValue(
+          (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue() + lapElapsed.getValue()
+        );
       }
 
       // Append moving time to whole activity
@@ -458,9 +470,12 @@ export class EventImporterTCX {
       endDate.setSeconds(endDate.getSeconds() + elapsedTime);
       const lap = new Lap(startDate, endDate, lapIndex + 1, LapTypes.AutoLap);
 
-      // Add elapsed & timer stats to lap
-      lap.addStat(new DataDuration(elapsedTime));
-      lap.addStat(new DataTimerTime(Math.round(timerTime * 10) / 10));
+      // Add elapsed, active duration and timer stats to lap
+      const roundedElapsedTime = Math.round(elapsedTime * 10) / 10;
+      const roundedTimerTime = Math.round(timerTime * 10) / 10;
+      lap.addStat(new DataElapsedTime(roundedElapsedTime));
+      lap.addStat(new DataDuration(roundedTimerTime));
+      lap.addStat(new DataTimerTime(roundedTimerTime));
 
       // Append moving stat only if moving time has been detected
       // We need that to compute total global moving time later

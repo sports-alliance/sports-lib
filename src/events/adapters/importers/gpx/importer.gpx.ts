@@ -9,6 +9,7 @@ import { isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { GXParser } from './gx-parser';
 import { DataDuration } from '../../../../data/data.duration';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
@@ -122,7 +123,8 @@ export class EventImporterGPX {
         const timerTime = elapsedTime;
 
         // Apply stats
-        activity.addStat(new DataDuration(elapsedTime));
+        activity.addStat(new DataElapsedTime(elapsedTime));
+        activity.addStat(new DataDuration(timerTime));
         activity.addStat(new DataTimerTime(timerTime));
 
         activities.push(activity);

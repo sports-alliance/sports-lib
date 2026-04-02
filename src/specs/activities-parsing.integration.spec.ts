@@ -30,6 +30,7 @@ import { DataActiveLengths } from '../data/data-active-lengths';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataTemperatureAvg } from '../data/data.temperature-avg';
 import { DataMovingTime } from '../data/data.moving-time';
+import { DataElapsedTime } from '../data/data.elapsed-time';
 import xmldom from '@xmldom/xmldom';
 import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
@@ -128,7 +129,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             expect(activity.type).toEqual(ActivityTypes.Swimming);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(2300);
@@ -162,7 +163,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             SpecUtils.assertNearEqualTime(movingTime, '44:06');
             SpecUtils.assertNearEqualTime(timerTime, '01:06:03');
             SpecUtils.assertNearEqualTime(elapsedTime, '01:06:23');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 0);
 
             done();
           })
@@ -200,12 +201,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '23:09');
             SpecUtils.assertNearEqualTime(timerTime, '23:09');
             SpecUtils.assertNearEqualTime(elapsedTime, '23:31');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
 
             done();
           })
@@ -246,12 +247,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '41:25');
             SpecUtils.assertNearEqualTime(timerTime, '47:27');
             SpecUtils.assertNearEqualTime(elapsedTime, '49:43');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
 
             done();
           })
@@ -315,7 +316,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '24:28');
             SpecUtils.assertNearEqualTime(timerTime, '31:06');
@@ -362,7 +363,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '44:06');
             SpecUtils.assertNearEqualTime(timerTime, '01:06:03');
@@ -402,12 +403,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '41:25');
             SpecUtils.assertNearEqualTime(timerTime, '47:27');
             SpecUtils.assertNearEqualTime(elapsedTime, '47:27');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 0);
 
             done();
           })
@@ -451,7 +452,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>swimActivity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>swimActivity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>swimActivity.getStat(DataPause.type)).getValue();
-            const elapsedTime = swimActivity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>swimActivity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:00:35', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:01:29');
@@ -492,7 +493,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>swimActivity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>swimActivity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>swimActivity.getStat(DataPause.type)).getValue();
-            const elapsedTime = swimActivity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>swimActivity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '55:43', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:14:47');
@@ -543,12 +544,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '45:42');
             SpecUtils.assertNearEqualTime(timerTime, '47:00');
             SpecUtils.assertNearEqualTime(elapsedTime, '47:04');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -591,7 +592,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:19:37');
             SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
@@ -639,12 +640,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '35:42');
             SpecUtils.assertNearEqualTime(timerTime, '36:01');
             SpecUtils.assertNearEqualTime(elapsedTime, '36:36');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -685,12 +686,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:35:40');
             SpecUtils.assertNearEqualTime(timerTime, '02:39:03');
             SpecUtils.assertNearEqualTime(elapsedTime, '02:40:02');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -729,12 +730,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue(); // TODO If moving time unknown or INVALID loop on all records in activity utils
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '05:28:14');
             SpecUtils.assertNearEqualTime(timerTime, '05:40:19');
             SpecUtils.assertNearEqualTime(elapsedTime, '05:40:19');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -769,12 +770,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '18:51');
             SpecUtils.assertNearEqualTime(timerTime, '21:04');
             SpecUtils.assertNearEqualTime(elapsedTime, '21:04');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -825,7 +826,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '48:35');
             SpecUtils.assertNearEqualTime(timerTime, '48:42');
@@ -868,7 +869,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:39:59');
             SpecUtils.assertNearEqualTime(timerTime, '02:41:39');
@@ -919,12 +920,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '48:43');
             SpecUtils.assertNearEqualTime(timerTime, '51:38');
             SpecUtils.assertNearEqualTime(elapsedTime, '01:02:44');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
             done();
           })
           .catch(e => done(e));
@@ -967,7 +968,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '58:59', 3);
             SpecUtils.assertNearEqualTime(timerTime, '01:07:47');
@@ -1017,7 +1018,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:19:38');
             SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
@@ -1064,12 +1065,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:02:17');
             SpecUtils.assertNearEqualTime(timerTime, '01:02:17');
             SpecUtils.assertNearEqualTime(elapsedTime, '01:02:17');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            expect(Math.abs(pauseTime - (elapsedTime - movingTime))).toBeLessThanOrEqual(1);
 
             done();
           })
@@ -1102,7 +1103,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '25:45');
             SpecUtils.assertNearEqualTime(timerTime, '25:45');
@@ -1140,7 +1141,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '48:43');
             SpecUtils.assertNearEqualTime(timerTime, '51:38');
@@ -1190,7 +1191,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '44:48');
             SpecUtils.assertNearEqualTime(timerTime, '47:00');
@@ -1236,7 +1237,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:17:11');
             SpecUtils.assertNearEqualTime(timerTime, '01:23:09');
@@ -1283,7 +1284,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '32:09');
             SpecUtils.assertNearEqualTime(timerTime, '32:38');
@@ -1316,7 +1317,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '04:51:49');
             SpecUtils.assertNearEqualTime(timerTime, '06:30:22');
@@ -1367,7 +1368,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:04:19');
             SpecUtils.assertNearEqualTime(timerTime, '01:22:50');
@@ -1413,7 +1414,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '28:35');
             SpecUtils.assertNearEqualTime(timerTime, '01:07:19');
@@ -1481,7 +1482,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:00:42', 1);
             SpecUtils.assertNearEqualTime(timerTime, '02:01:04');
@@ -1522,7 +1523,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '05:26:49');
             SpecUtils.assertNearEqualTime(timerTime, '05:27:44');
@@ -1550,7 +1551,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '05:52:28', 1);
             SpecUtils.assertNearEqualTime(timerTime, '05:54:34');
@@ -1577,7 +1578,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '05:07:53');
             SpecUtils.assertNearEqualTime(timerTime, '05:08:22');
@@ -1783,7 +1784,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:02:53', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:03:35');
@@ -1846,7 +1847,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:01:59', 1);
             SpecUtils.assertNearEqualTime(timerTime, '02:01:04');
@@ -1889,7 +1890,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:52:10', 1.5);
             SpecUtils.assertNearEqualTime(timerTime, '02:55:15');
@@ -1971,7 +1972,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:03:10', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:03:35');
@@ -2014,7 +2015,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '02:00:42', 1.5);
             SpecUtils.assertNearEqualTime(timerTime, '02:04:35');
@@ -2053,7 +2054,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '05:26:49', 2);
             SpecUtils.assertNearEqualTime(timerTime, '06:07:13');
@@ -2092,7 +2093,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:47:13', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:49:20');
@@ -2168,7 +2169,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
             const pauseTime = (<DataPause>activity.getStat(DataPause.type)).getValue();
-            const elapsedTime = activity.getDuration().getValue();
+            const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:02:58', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:03:09');
@@ -2222,7 +2223,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             let movingTime = (<DataMovingTime>swimActivity.getStat(DataMovingTime.type)).getValue();
             let timerTime = (<DataTimerTime>swimActivity.getStat(DataTimerTime.type)).getValue();
             let pauseTime = (<DataPause>swimActivity.getStat(DataPause.type)).getValue();
-            let elapsedTime = swimActivity.getDuration().getValue();
+            let elapsedTime = (<DataElapsedTime>swimActivity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '01:01:16', 1);
             SpecUtils.assertNearEqualTime(timerTime, '01:01:29');
@@ -2253,7 +2254,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             movingTime = (<DataMovingTime>cyclingActivity.getStat(DataMovingTime.type)).getValue();
             timerTime = (<DataTimerTime>cyclingActivity.getStat(DataTimerTime.type)).getValue();
             pauseTime = (<DataPause>cyclingActivity.getStat(DataPause.type)).getValue();
-            elapsedTime = cyclingActivity.getDuration().getValue();
+            elapsedTime = (<DataElapsedTime>cyclingActivity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '04:42:28', 1);
             SpecUtils.assertNearEqualTime(timerTime, '04:47:29');
@@ -2283,12 +2284,12 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             movingTime = (<DataMovingTime>runningActivity.getStat(DataMovingTime.type)).getValue();
             timerTime = (<DataTimerTime>runningActivity.getStat(DataTimerTime.type)).getValue();
             pauseTime = (<DataPause>runningActivity.getStat(DataPause.type)).getValue();
-            elapsedTime = runningActivity.getDuration().getValue();
+            elapsedTime = (<DataElapsedTime>runningActivity.getStat(DataElapsedTime.type)).getValue();
 
             SpecUtils.assertNearEqualTime(movingTime, '03:36:57', 1);
             SpecUtils.assertNearEqualTime(timerTime, '03:38:13');
             SpecUtils.assertNearEqualTime(elapsedTime, '03:39:01');
-            SpecUtils.assertEqual(pauseTime, elapsedTime - movingTime, 1);
+            SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
 
             done();
           })
@@ -2400,7 +2401,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Verifying time data
       const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
       const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
-      const elapsedTime = activity.getDuration().getValue();
+      const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
       SpecUtils.assertNearEqualTime(movingTime, '47:20', 1);
       SpecUtils.assertNearEqualTime(timerTime, '47:20');
       SpecUtils.assertNearEqualTime(elapsedTime, '06:01:20');
@@ -2444,7 +2445,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       // Verifying time data
       const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
       const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
-      const elapsedTime = activity.getDuration().getValue();
+      const elapsedTime = (<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue();
       SpecUtils.assertNearEqualTime(movingTime, '05:04:20');
       SpecUtils.assertNearEqualTime(timerTime, '5:07:54');
       SpecUtils.assertNearEqualTime(elapsedTime, '5:07:54');

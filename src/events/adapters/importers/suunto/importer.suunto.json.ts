@@ -27,6 +27,7 @@ import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataDuration } from '../../../../data/data.duration';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataAltitudeMax } from '../../../../data/data.altitude-max';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataAscentTime } from '../../../../data/data.ascent-time';
@@ -65,6 +66,7 @@ import { LapTypes } from '../../../../laps/lap.types';
 import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { DataPaceMax } from '../../../../data/data.pace-max';
 import { DataPaceMin } from '../../../../data/data.pace-min';
+import { DataTimerTime } from '../../../../data/data.timer-time';
 import { DataFusedAltitude } from '../../../../data/data.fused-altitude';
 import { DataBatteryCharge } from '../../../../data/data.battery-charge';
 import { DataBatteryCurrent } from '../../../../data/data.battery-current';
@@ -212,7 +214,16 @@ export class EventImporterSuuntoJSON {
           }
           // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
           if (!activity.getDuration()) {
-            activity.setDuration(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
+            const elapsedSeconds = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;
+            activity.setDuration(new DataDuration(elapsedSeconds));
+            activity.setTimer(new DataTimerTime(elapsedSeconds));
+            activity.addStat(new DataElapsedTime(elapsedSeconds));
+          } else if (!activity.getStat(DataElapsedTime.type)) {
+            const elapsedSeconds = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;
+            activity.addStat(new DataElapsedTime(elapsedSeconds));
+          }
+          if (!activity.getTimer()) {
+            activity.setTimer(new DataTimerTime(activity.getDuration().getValue()));
           }
           activity.setPause(
             new DataPause(
@@ -287,7 +298,16 @@ export class EventImporterSuuntoJSON {
           }
           // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
           if (!lap.getDuration()) {
-            lap.setDuration(new DataDuration((lap.endDate.getTime() - lap.startDate.getTime()) / 1000));
+            const elapsedSeconds = (lap.endDate.getTime() - lap.startDate.getTime()) / 1000;
+            lap.setDuration(new DataDuration(elapsedSeconds));
+            lap.setTimer(new DataTimerTime(elapsedSeconds));
+            lap.addStat(new DataElapsedTime(elapsedSeconds));
+          } else if (!lap.getStat(DataElapsedTime.type)) {
+            const elapsedSeconds = (lap.endDate.getTime() - lap.startDate.getTime()) / 1000;
+            lap.addStat(new DataElapsedTime(elapsedSeconds));
+          }
+          if (!lap.getTimer()) {
+            lap.setTimer(new DataTimerTime(lap.getDuration().getValue()));
           }
           lap.setPause(
             new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue())
@@ -563,12 +583,19 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataVO2Max(object.MAXVO2));
     }
 
-    let pauseDuration = 0;
-    if (isNumberOrString(object.PauseDuration)) {
-      pauseDuration = object.PauseDuration;
-    }
+    const totalDuration = isNumberOrString(object.Duration) ? Number(object.Duration) : null;
+    const pauseDuration = isNumberOrString(object.PauseDuration) ? Number(object.PauseDuration) : 0;
+    const activeDuration =
+      totalDuration !== null && Number.isFinite(totalDuration) ? Math.max(totalDuration - pauseDuration, 0) : null;
+
     stats.push(new DataPause(pauseDuration));
-    stats.push(new DataDuration(object.Duration - pauseDuration));
+    if (totalDuration !== null && Number.isFinite(totalDuration)) {
+      stats.push(new DataElapsedTime(totalDuration));
+    }
+    if (activeDuration !== null) {
+      stats.push(new DataDuration(activeDuration));
+      stats.push(new DataTimerTime(activeDuration));
+    }
 
     // double case
     if (Array.isArray(object.Altitude)) {

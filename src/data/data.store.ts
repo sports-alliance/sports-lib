@@ -31,6 +31,7 @@ import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
 import { DataDistance, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
+import { DataElapsedTime } from './data.elapsed-time';
 import { DataEHPE } from './data.ehpe';
 import { DataEVPE } from './data.evpe';
 import { DataEVPEMin } from './data.evpe-min';
@@ -461,6 +462,7 @@ export const DataStore: any = {
   DataEHPEMax,
   DataEHPEAvg,
   DataDuration,
+  DataElapsedTime,
   DataDistance,
   DataCadence,
   DataGPSAltitude,

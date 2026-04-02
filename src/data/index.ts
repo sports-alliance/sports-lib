@@ -69,6 +69,7 @@ export * from './data.device-location';
 export * from './data.device-names';
 export * from './data.distance';
 export * from './data.duration';
+export * from './data.elapsed-time';
 export * from './data.effort-pace-avg';
 export * from './data.effort-pace-max';
 export * from './data.effort-pace-min';

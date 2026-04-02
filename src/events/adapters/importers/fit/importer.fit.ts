@@ -6,6 +6,7 @@ import { Creator } from '../../../../creators/creator';
 import { CreatorInterface } from '../../../../creators/creator.interface';
 import { ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from '../../../../activities/activity.types';
 import { DataDuration } from '../../../../data/data.duration';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
@@ -179,6 +180,7 @@ import {
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
+const TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS = 1;
 
 export class EventImporterFIT {
   private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
@@ -1465,6 +1467,15 @@ export class EventImporterFIT {
       isNumber(object.total_elapsed_time) &&
       object.total_elapsed_time < object.total_timer_time
     ) {
+      const timeDelta = object.total_timer_time - object.total_elapsed_time;
+
+      // Small inversions are usually a rounding artifact from vendor exporters.
+      // Keep semantics consistent (timer <= elapsed) by clamping without swapping.
+      if (timeDelta <= TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS) {
+        object.total_timer_time = object.total_elapsed_time;
+        return;
+      }
+
       const realTimerTime = object.total_elapsed_time;
       const realElapsedTime = object.total_timer_time;
       object.total_timer_time = realTimerTime;
@@ -1608,7 +1619,8 @@ export class EventImporterFIT {
       elapsedTime = ActivityUtilities.getDataLength(activity.startDate, activity.endDate) - 1;
     }
 
-    stats.push(new DataDuration(Math.round(elapsedTime * 100) / 100));
+    const roundedElapsedTime = Math.round(elapsedTime * 100) / 100;
+    stats.push(new DataElapsedTime(roundedElapsedTime));
 
     // TOTAL TIMER TIME on Object (activity, lap...)
     let timerTime = 0;
@@ -1621,7 +1633,9 @@ export class EventImporterFIT {
       timerTime = elapsedTime;
     }
 
-    stats.push(new DataTimerTime(Math.round(timerTime * 100) / 100));
+    const roundedTimerTime = Math.round(timerTime * 100) / 100;
+    stats.push(new DataDuration(roundedTimerTime));
+    stats.push(new DataTimerTime(roundedTimerTime));
 
     // Moving TIME on Object (activity, lap...)
     let movingTime = isNumber(object.total_moving_time) ? object.total_moving_time : 0;
@@ -1658,7 +1672,7 @@ export class EventImporterFIT {
     }
 
     // Pause TIME on Object (activity, lap...)
-    const pause = elapsedTime > movingTime && movingTime > 0 ? Math.round((elapsedTime - movingTime) * 100) / 100 : 0;
+    const pause = elapsedTime > timerTime ? Math.round((elapsedTime - timerTime) * 100) / 100 : 0;
     stats.push(new DataPause(pause));
 
     const getStatValue = (obj: any, keys: string[]): any => {

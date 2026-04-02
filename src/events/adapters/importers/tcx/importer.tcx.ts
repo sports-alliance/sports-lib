@@ -368,7 +368,7 @@ export class EventImporterTCX {
       const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activityType);
       let movingTime = 0;
       let elapsedTime = 0;
-      const timerTime = lapElement.getElementsByTagName('TotalTimeSeconds').length
+      let timerTime = lapElement.getElementsByTagName('TotalTimeSeconds').length
         ? Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)
         : 0;
 
@@ -441,17 +441,22 @@ export class EventImporterTCX {
       // Active or rest lap?
       const isActiveLap = this.isActiveLap(lapElement);
 
+      // If elapsed time not defined or lower than timer time then use timer time as elapsed time
+      if (!elapsedTime || timerTime > elapsedTime) {
+        elapsedTime = timerTime;
+      }
+
+      // If timer time is missing, use elapsed time fallback for active duration.
+      if (!timerTime && elapsedTime > 0) {
+        timerTime = elapsedTime;
+      }
+
       // If no moving time detected, try to detect from active laps
       if (movingTime === 0) {
         // Lap is considered as active. Track moving time..
         if (isActiveLap) {
           movingTime = timerTime;
         }
-      }
-
-      // If elapsed time not defined or lower than timer time then use timer time as elapsed time
-      if (!elapsedTime || timerTime > elapsedTime) {
-        elapsedTime = timerTime;
       }
 
       // Now creating the lap
@@ -484,7 +489,7 @@ export class EventImporterTCX {
       }
 
       // Pause TIME on Object (activity, lap...)
-      const pause = elapsedTime > movingTime ? Math.round((elapsedTime - movingTime) * 100) / 100 : 0;
+      const pause = elapsedTime > timerTime ? Math.round((elapsedTime - timerTime) * 100) / 100 : 0;
       lap.setPause(new DataPause(pause));
 
       // Assign is active lap status

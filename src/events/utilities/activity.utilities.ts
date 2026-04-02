@@ -272,6 +272,7 @@ import { type ActivityParsingTssOverridesOptions } from '../../activities/activi
 import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
 import { DataTimerTime } from '../../data/data.timer-time';
+import { DataElapsedTime } from '../../data/data.elapsed-time';
 import { DataNumber } from '../../data/data.number';
 import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
 import { DataGradeSmooth } from '../../data/data.grade-smooth';
@@ -4612,12 +4613,21 @@ export class ActivityUtilities {
       activity.addStat(new DataPowerWork(powerWork));
     }
 
-    // If there is no pause defined then get it from duration and moving time (if available)
-    if (!activity.getStat(DataPause.type) || !(<DataPause>activity.getStat(DataPause.type)).getValue()) {
-      const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
-      const pauseTime =
-        movingTimeStat && movingTimeStat.getValue() ? activity.getDuration().getValue() - movingTimeStat.getValue() : 0;
-      activity.addStat(new DataPause(this.round(pauseTime, 2)));
+    // If there is no pause defined, derive it from explicit paused time semantics: elapsed - timer.
+    if (!activity.getStat(DataPause.type)) {
+      const elapsedTimeStat = <DataElapsedTime>activity.getStat(DataElapsedTime.type);
+      const timerTimeStat = <DataTimerTime>activity.getStat(DataTimerTime.type);
+
+      let pauseTime = 0;
+      if (elapsedTimeStat && isNumber(elapsedTimeStat.getValue()) && timerTimeStat && isNumber(timerTimeStat.getValue())) {
+        pauseTime = elapsedTimeStat.getValue() - timerTimeStat.getValue();
+      } else {
+        const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
+        pauseTime =
+          movingTimeStat && movingTimeStat.getValue() ? activity.getDuration().getValue() - movingTimeStat.getValue() : 0;
+      }
+
+      activity.addStat(new DataPause(this.round(Math.max(pauseTime, 0), 2)));
     }
   }
 }

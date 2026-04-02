@@ -143,6 +143,13 @@ The library exposes these metrics through streams, stats, laps/events, and event
 Canonical type strings are the same values used by `ActivityParsingOptions.streams.includeTypes`.
 Some legacy metric types include intentional whitespace in their token (for example ` Steps`), so copy tokens exactly.
 
+Time metric semantics:
+- `Duration` (unit: `s`): active duration (timer time).
+- `Timer time` (unit: `s`): explicit timer/active time.
+- `Elapsed time` (unit: `s`): wall-clock elapsed time (includes pauses).
+- `Pause Time` (unit: `s`): explicit paused time, computed as `max(ElapsedTime - TimerTime, 0)`.
+- `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
+
 High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
@@ -348,6 +355,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Distance` (unit: `m`)
 - `Distance (Stryd)`
 - `Duration` (unit: `s`)
+- `Elapsed time` (unit: `s`)
 - `Effort Pace`
 - `EHPE`
 - `Enabled Navigation Systems`

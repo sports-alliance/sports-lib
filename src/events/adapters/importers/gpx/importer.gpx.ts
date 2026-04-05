@@ -32,12 +32,13 @@ export class EventImporterGPX {
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
       const track = parsedGPX.trk || parsedGPX.rte;
+      const routeBaseDate = EventImporterGPX.resolveRouteBaseDate(parsedGPX);
 
       if (!track?.length) {
         reject(new EmptyEventLibError());
       }
 
-      const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any) => {
+      const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any, trackIndex: number) => {
         // Get the samples
         let samples: any[] = [];
         let isActivity = false;
@@ -68,8 +69,9 @@ export class EventImporterGPX {
         }
 
         // Create an activity. Set the dates depending on route etc
-        const startDate = new Date(isActivity ? samples[0].time[0] : new Date());
-        // @todo for routes add a separate parser
+        const startDate = isActivity
+          ? new Date(samples[0].time[0])
+          : new Date(routeBaseDate.getTime() + trackIndex * 1000);
         const endDate = isActivity
           ? new Date(samples[samples.length - 1].time[0])
           : new Date(startDate.getTime() + (samples.length > 0 ? samples.length - 1 : 0) * 1000);
@@ -144,5 +146,14 @@ export class EventImporterGPX {
       });
       resolve(event);
     });
+  }
+
+  private static resolveRouteBaseDate(parsedGPX: any): Date {
+    const metadataTime = parsedGPX?.metadata?.[0]?.time?.[0];
+    const parsedMetadataTime = metadataTime ? new Date(metadataTime) : null;
+    if (parsedMetadataTime && !Number.isNaN(parsedMetadataTime.getTime())) {
+      return parsedMetadataTime;
+    }
+    return new Date(0);
   }
 }

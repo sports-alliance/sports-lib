@@ -5,6 +5,7 @@ import { Activity } from '../../activities/activity';
 import { ActivityParsingOptions } from '../../activities/activity-parsing-options';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataAltitude } from '../../data/data.altitude';
+import { DataPower } from '../../data/data.power';
 import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
 import { DataDuration } from '../../data/data.duration';
 import { EventInterface } from '../event.interface';
@@ -66,6 +67,9 @@ import { DataVerticalRatio } from '../../data/data.vertical-ratio';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
+import { DataPowerAvg } from '../../data/data.power-avg';
+import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
+import { DataWeight } from '../../data/data.weight';
 import { IBIStream } from '../../streams/ibi-stream';
 import { DataIBI } from '../../data/data.ibi';
 
@@ -571,6 +575,31 @@ describe('Activity Utilities', () => {
   });
 
   describe('generateMissingStreamsAndStatsForActivity', () => {
+    it('should generate PowerWattsPerKg when average power and weight are available', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
+      activity.addStream(new Stream(DataPower.type, [280, 280, 280]));
+      activity.addStat(new DataWeight(70));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      const powerAvg = activity.getStat(DataPowerAvg.type) as DataPowerAvg | undefined;
+      const powerWattsPerKg = activity.getStat(DataPowerWattsPerKg.type) as DataPowerWattsPerKg | undefined;
+      expect(powerAvg).toBeDefined();
+      expect(powerAvg?.getValue()).toBe(280);
+      expect(powerWattsPerKg).toBeDefined();
+      expect(powerWattsPerKg?.getValue()).toBe(4);
+    });
+
+    it('should not generate PowerWattsPerKg when weight is missing', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
+      activity.addStream(new Stream(DataPower.type, [280, 280, 280]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataPowerAvg.type)).toBeDefined();
+      expect(activity.getStat(DataPowerWattsPerKg.type)).toBeUndefined();
+    });
+
     it('should generate unit STATS even if unit STREAMS are disabled', () => {
       const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
       activity.parseOptions = {

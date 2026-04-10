@@ -9,6 +9,8 @@ import { DataRPE } from '../../data/data.rpe';
 
 import { DataPowerMax } from '../../data/data.power-max';
 import { DataPowerMin } from '../../data/data.power-min';
+import { DataPowerAvg } from '../../data/data.power-avg';
+import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
 import { DataSpeedMax } from '../../data/data.speed-max';
 import { DataSpeedMin } from '../../data/data.speed-min';
 import { DataCadenceMax } from '../../data/data.cadence-max';
@@ -79,6 +81,7 @@ import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-m
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
+import { DataWeight } from '../../data/data.weight';
 
 describe('ActivityUtilities', () => {
   describe('getSummaryStatsForActivities', () => {
@@ -645,6 +648,38 @@ describe('ActivityUtilities', () => {
     });
 
     describe('Average Aggregations', () => {
+      it('should derive and average PowerWattsPerKg from average power and weight', () => {
+        const a1 = createMockActivity({
+          [DataPowerAvg.type]: new DataPowerAvg(280),
+          [DataWeight.type]: new DataWeight(70)
+        });
+        const a2 = createMockActivity({
+          [DataPowerAvg.type]: new DataPowerAvg(350),
+          [DataWeight.type]: new DataWeight(70)
+        });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataPowerWattsPerKg.type) as DataPowerWattsPerKg).getValue()
+        ).toBe(4.5);
+      });
+
+      it('should prefer existing PowerWattsPerKg stats when available', () => {
+        const a1 = createMockActivity({
+          [DataPowerAvg.type]: new DataPowerAvg(100),
+          [DataWeight.type]: new DataWeight(100),
+          [DataPowerWattsPerKg.type]: new DataPowerWattsPerKg(4.2)
+        });
+        const a2 = createMockActivity({
+          [DataPowerAvg.type]: new DataPowerAvg(100),
+          [DataWeight.type]: new DataWeight(100),
+          [DataPowerWattsPerKg.type]: new DataPowerWattsPerKg(4.8)
+        });
+        const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
+        expect(
+          (stats.find(s => s.getType() === DataPowerWattsPerKg.type) as DataPowerWattsPerKg).getValue()
+        ).toBe(4.5);
+      });
+
       it('should average Air Power', () => {
         const a1 = createMockActivity({ [DataAirPowerAvg.type]: new DataAirPowerAvg(90) });
         const a2 = createMockActivity({ [DataAirPowerAvg.type]: new DataAirPowerAvg(110) });

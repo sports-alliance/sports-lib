@@ -852,6 +852,8 @@ export class ActivityUtilities {
     let pauseTime = 0;
     let averageHeartRate = 0;
     let averagePower = 0;
+    let averagePowerWattsPerKg = 0;
+    let hasAveragePowerWattsPerKg = false;
     let averagePowerNormalized = 0;
     let hasAveragePowerNormalized = false;
     let averageCadence = 0;
@@ -970,6 +972,20 @@ export class ActivityUtilities {
     });
     if (averagePower) {
       stats.push(new DataPowerAvg(averagePower));
+    }
+
+    // Avg Avg Power-to-Weight ratio (W/kg)
+    activities.forEach(activity => {
+      const activityPowerWattsPerKg = this.resolvePowerWattsPerKg(activity);
+      if (activityPowerWattsPerKg !== null) {
+        averagePowerWattsPerKg = hasAveragePowerWattsPerKg
+          ? (averagePowerWattsPerKg + activityPowerWattsPerKg) / 2
+          : activityPowerWattsPerKg;
+        hasAveragePowerWattsPerKg = true;
+      }
+    });
+    if (hasAveragePowerWattsPerKg) {
+      stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
     }
 
     // Avg Normalized Power
@@ -2075,6 +2091,23 @@ export class ActivityUtilities {
 
   private static toPositiveFiniteNumber(value: number | null | undefined): number | null {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  private static resolvePowerWattsPerKg(activity: ActivityInterface): number | null {
+    const existingPowerWattsPerKg = this.toPositiveFiniteNumber(
+      this.getFiniteStatValue(activity, DataPowerWattsPerKg.type)
+    );
+    if (existingPowerWattsPerKg !== null) {
+      return existingPowerWattsPerKg;
+    }
+
+    const averagePower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerAvg.type));
+    const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
+    if (averagePower === null || weight === null) {
+      return null;
+    }
+
+    return this.round(averagePower / weight, 2);
   }
 
   private static getDurationSecondsWithoutPauses(activity: ActivityInterface): number {
@@ -3601,6 +3634,13 @@ export class ActivityUtilities {
     // Power AVG
     if (!activity.getStat(DataPowerAvg.type) && activity.hasStreamData(DataPower.type)) {
       activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
+    }
+    // Power-to-Weight Ratio (W/kg) from average power and body weight
+    if (!activity.getStat(DataPowerWattsPerKg.type)) {
+      const powerWattsPerKg = this.resolvePowerWattsPerKg(activity);
+      if (powerWattsPerKg !== null) {
+        activity.addStat(new DataPowerWattsPerKg(powerWattsPerKg));
+      }
     }
 
     // Power Normalized

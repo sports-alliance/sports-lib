@@ -271,7 +271,7 @@ export class EventImporterFIT {
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
-            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index));
+            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index, options));
           });
 
           const manufacturer =
@@ -1023,10 +1023,43 @@ export class EventImporterFIT {
     return timestamp;
   }
 
+  private static normalizeElapsedTimeForResolvedDates(
+    object: any,
+    startDate: Date | null,
+    endDate: Date | null,
+    options: ActivityParsingOptions
+  ): any {
+    if (!startDate || !endDate || endDate <= startDate) {
+      return object;
+    }
+
+    const maxActivityDurationSeconds = options.maxActivityDurationDays * 24 * 60 * 60;
+    const resolvedElapsedTime = (endDate.getTime() - startDate.getTime()) / 1000;
+
+    if (
+      !isNumber(object?.total_elapsed_time) ||
+      object.total_elapsed_time <= maxActivityDurationSeconds ||
+      resolvedElapsedTime > maxActivityDurationSeconds
+    ) {
+      return object;
+    }
+
+    return {
+      ...object,
+      start_time: startDate,
+      timestamp: endDate,
+      total_elapsed_time: resolvedElapsedTime,
+      ...(isNumber(object.total_timer_time) && object.total_timer_time > resolvedElapsedTime
+        ? { total_timer_time: resolvedElapsedTime }
+        : {})
+    };
+  }
+
   private static getLapFromSessionLapObject(
     sessionLapObject: any,
     activity: ActivityInterface,
-    lapIndex: number
+    lapIndex: number,
+    options: ActivityParsingOptions
   ): LapInterface {
     this.swapTimesIfRequired(sessionLapObject);
 
@@ -1064,7 +1097,13 @@ export class EventImporterFIT {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
     }
     // Add stats to the lap
-    this.getStatsFromObject(sessionLapObject, activity, true).forEach(stat => lap.addStat(stat));
+    const normalizedSessionLapObject = this.normalizeElapsedTimeForResolvedDates(
+      sessionLapObject,
+      startDate,
+      endDate,
+      options
+    );
+    this.getStatsFromObject(normalizedSessionLapObject, activity, true).forEach(stat => lap.addStat(stat));
     return lap;
   }
 
@@ -1114,13 +1153,14 @@ export class EventImporterFIT {
 
     // Start finding out total elapsed time from fit dedicated fields
     const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
+    const [recordStartDate, recordEndDate] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
 
     // Pick start/end date values
-    let startDate = sessionObject.start_time || getStartEndDatesFromRecords(sessionObject, fitDataObject)[0] || null;
+    let startDate = sessionObject.start_time || recordStartDate || null;
     let endDate =
       sessionObject.timestamp ||
       (startDate && totalElapsedTime && new Date(startDate.getTime() + totalElapsedTime * 1000)) ||
-      getStartEndDatesFromRecords(sessionObject, fitDataObject)[1] ||
+      recordEndDate ||
       null;
 
     // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
@@ -1128,30 +1168,35 @@ export class EventImporterFIT {
     if (
       !totalElapsedTime // Elapsed time missing
     ) {
-      const [startDateResult, endDateResult] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
-      if (startDateResult) {
-        startDate = startDateResult;
+      if (recordStartDate) {
+        startDate = recordStartDate;
       }
 
-      if (endDateResult) {
-        endDate = endDateResult;
+      if (recordEndDate) {
+        endDate = recordEndDate;
       }
     }
 
     // Now verify the start/end date compliance,
     // If for some reason this happens, get from records too
     if (endDate <= startDate) {
-      const [startDateResult, endDateResult] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
-      if (startDateResult) {
-        startDate = startDateResult;
+      if (recordStartDate) {
+        startDate = recordStartDate;
       }
 
-      if (endDateResult) {
-        endDate = endDateResult;
+      if (recordEndDate) {
+        endDate = recordEndDate;
       }
     }
 
     const elapsedTimeFromDates = (+endDate - +startDate) / 1000; // Get elapsed calculated from dates
+    const maxActivityDurationMs = options.maxActivityDurationDays * 24 * 60 * 60 * 1000;
+    const recordDurationMs = recordStartDate && recordEndDate ? +recordEndDate - +recordStartDate : 0;
+    const hasReliableRecordDates = recordDurationMs > 0 && recordDurationMs <= maxActivityDurationMs;
+    const totalElapsedTimeExceedsRecordDuration =
+      totalElapsedTime > 0 &&
+      recordDurationMs > 0 &&
+      totalElapsedTime / (recordDurationMs / 1000) > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD;
 
     // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
     // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
@@ -1163,8 +1208,18 @@ export class EventImporterFIT {
     }
 
     // Re-test potential updated activity duration against max accepted duration
-    if (+endDate - +startDate > options.maxActivityDurationDays * 24 * 60 * 60 * 1000) {
-      endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+    if (+endDate - +startDate > maxActivityDurationMs) {
+      if (
+        recordStartDate &&
+        recordEndDate &&
+        hasReliableRecordDates &&
+        (!totalElapsedTime || totalElapsedTimeExceedsRecordDuration)
+      ) {
+        startDate = recordStartDate;
+        endDate = recordEndDate;
+      } else {
+        endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+      }
     }
 
     if (!startDate || !endDate) {
@@ -1178,14 +1233,19 @@ export class EventImporterFIT {
         this.getCreatorFromFitDataObject(fitDataObject),
         options
       );
-      const normalizedSessionObject = {
-        ...sessionObject,
-        threshold_power:
-          isNumberOrString(sessionObject?.threshold_power) ||
-          !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
-            ? sessionObject?.threshold_power
-            : fitDataObject.zones_target.functional_threshold_power
-      };
+      const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
+        {
+          ...sessionObject,
+          threshold_power:
+            isNumberOrString(sessionObject?.threshold_power) ||
+            !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
+              ? sessionObject?.threshold_power
+              : fitDataObject.zones_target.functional_threshold_power
+        },
+        startDate,
+        endDate,
+        options
+      );
       // Set the activity stats
       this.getStatsFromObject(normalizedSessionObject, activity, false).forEach(stat => activity.addStat(stat));
 

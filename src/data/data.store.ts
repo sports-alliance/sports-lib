@@ -29,7 +29,7 @@ import { DataAbsolutePressureMax } from './data.absolute-pressure-max';
 import { DataAbsolutePressureAvg } from './data.absolute-pressure-avg';
 import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
-import { DataDistance, DataDistanceMiles } from './data.distance';
+import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataElapsedTime } from './data.elapsed-time';
 import { DataEHPE } from './data.ehpe';
@@ -278,6 +278,7 @@ import { DataStartEvent } from './data.start-event';
 import { DataStopAllEvent } from './data.stop-all-event';
 import { DataTime } from './data.time';
 import {
+  convertMetersToFeet,
   convertMetersToMiles,
   convertPaceToPaceInMinutesPerMile,
   convertSpeedToSpeedInFeetPerHour,
@@ -708,6 +709,7 @@ export const DataStore: any = {
   DataStopEvent,
   DataStopAllEvent,
   DataTime,
+  DataDistanceFeet,
   DataDistanceMiles,
   DataGNSSDistanceMiles,
   DataMovingTime,
@@ -1054,16 +1056,16 @@ export class DynamicDataLoader {
       [DataJumpSpeedAvgKnots.type]: convertSpeedToSpeedInKnots
     },
     [DataJumpDistance.type]: {
-      [DataDistanceMiles.type]: convertMetersToMiles
+      [DataDistanceFeet.type]: convertMetersToFeet
     },
     [DataJumpDistanceMin.type]: {
-      [DataDistanceMiles.type]: convertMetersToMiles
+      [DataDistanceFeet.type]: convertMetersToFeet
     },
     [DataJumpDistanceMax.type]: {
-      [DataDistanceMiles.type]: convertMetersToMiles
+      [DataDistanceFeet.type]: convertMetersToFeet
     },
     [DataJumpDistanceAvg.type]: {
-      [DataDistanceMiles.type]: convertMetersToMiles
+      [DataDistanceFeet.type]: convertMetersToFeet
     },
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
@@ -1407,13 +1409,16 @@ export class DynamicDataLoader {
     return userUnitSettings?.distanceUnits || DistanceUnits.Kilometers;
   }
 
-  private static getDistanceMilesDataType(dataType: string): string | null {
+  private static getDistanceImperialDataType(dataType: string): string | null {
     const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
     if (!unitGroup) {
       return null;
     }
     if (unitGroup[DataGNSSDistanceMiles.type]) {
       return DataGNSSDistanceMiles.type;
+    }
+    if (unitGroup[DataDistanceFeet.type]) {
+      return DataDistanceFeet.type;
     }
     if (unitGroup[DataDistanceMiles.type]) {
       return DataDistanceMiles.type;
@@ -1425,11 +1430,11 @@ export class DynamicDataLoader {
     dataType: string,
     userUnitSettings?: UserUnitSettingsInterface
   ): string | null {
-    const distanceMilesDataType = this.getDistanceMilesDataType(dataType);
-    if (!distanceMilesDataType) {
+    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
+    if (!distanceImperialDataType) {
       return null;
     }
-    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Miles ? distanceMilesDataType : dataType;
+    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Miles ? distanceImperialDataType : dataType;
   }
 
   private static getJumpSpeedUnitMappings(
@@ -1668,19 +1673,19 @@ export class DynamicDataLoader {
     }
     const dataType = data.getType();
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
-    const distanceMilesDataType = this.getDistanceMilesDataType(dataType);
+    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
     const distanceUnitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
     if (
       distanceDataType &&
-      distanceMilesDataType &&
+      distanceImperialDataType &&
       distanceUnitGroup &&
-      distanceUnitGroup[distanceMilesDataType]
+      distanceUnitGroup[distanceImperialDataType]
     ) {
-      if (distanceDataType === distanceMilesDataType) {
+      if (distanceDataType === distanceImperialDataType) {
         return [
           this.getDataInstanceFromDataType(
-            distanceMilesDataType,
-            distanceUnitGroup[distanceMilesDataType](<number>data.getValue())
+            distanceImperialDataType,
+            distanceUnitGroup[distanceImperialDataType](<number>data.getValue())
           )
         ];
       }

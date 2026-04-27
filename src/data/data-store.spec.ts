@@ -32,9 +32,12 @@ import {
   DataVerticalSpeedMilesPerHour
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
-import { DataDistance, DataDistanceMiles } from './data.distance';
+import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
+import { DataJumpDistance } from './data.jump-distance';
 import {
   DataJumpDistanceAvg,
+  DataJumpDistanceMax,
+  DataJumpDistanceMin,
   DataJumpSpeedAvg,
   DataJumpSpeedAvgFeetPerMinute,
   DataJumpSpeedAvgFeetPerSecond,
@@ -60,7 +63,11 @@ import {
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataGNSSDistanceMiles } from './data.gnss-distance-miles';
 import { DataStepLength } from './data.step-length';
-import { convertMetersToMiles, convertSpeedToSpeedInMilesPerHour } from '../events/utilities/helpers';
+import {
+  convertMetersToFeet,
+  convertMetersToMiles,
+  convertSpeedToSpeedInMilesPerHour
+} from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
 import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
 
@@ -110,6 +117,7 @@ describe('DataStore', () => {
     DataJumpSpeedMaxMetersPerMinute.type,
     DataJumpSpeedMaxFeetPerMinute.type,
     DataJumpSpeedMaxKnots.type,
+    DataDistanceFeet.type,
     DataDistanceMiles.type,
     DataGNSSDistanceMiles.type
   ];
@@ -272,23 +280,38 @@ describe('DataStore', () => {
       .filter((DataClass: any) => typeof DataClass === 'function')
       .filter((DataClass: any) => DataClass === DataDistance || DataClass.prototype instanceof DataDistance)
       .map((DataClass: any) => DataClass.type as string)
-      .filter((dataType: string) => dataType !== DataDistanceMiles.type && dataType !== DataGNSSDistanceMiles.type);
+      .filter((dataType: string) => (
+        dataType !== DataDistanceFeet.type &&
+        dataType !== DataDistanceMiles.type &&
+        dataType !== DataGNSSDistanceMiles.type
+      ));
 
-    const getExpectedMilesDistanceType = (dataType: string): string =>
-      dataType === DataGNSSDistance.type ? DataGNSSDistanceMiles.type : DataDistanceMiles.type;
+    const getExpectedImperialDistanceType = (dataType: string): string => {
+      if (
+        dataType === DataJumpDistance.type ||
+        dataType === DataJumpDistanceMin.type ||
+        dataType === DataJumpDistanceMax.type ||
+        dataType === DataJumpDistanceAvg.type
+      ) {
+        return DataDistanceFeet.type;
+      }
+      return dataType === DataGNSSDistance.type ? DataGNSSDistanceMiles.type : DataDistanceMiles.type;
+    };
 
-    it('has miles mappings for every DataStore class extending DataDistance (except DataDistanceMiles)', () => {
+    it('has imperial mappings for every DataStore class extending DataDistance (except imperial variants)', () => {
       expect(allDistanceTypes.length).toBeGreaterThan(0);
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.dataTypeUnitGroups[dataType]).toBeDefined();
-        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedMilesDistanceType(dataType)]).toBeDefined();
+        expect(
+          DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedImperialDistanceType(dataType)]
+        ).toBeDefined();
       });
     });
 
-    it('returns miles unit type for all mapped distance-capable data types in miles mode', () => {
+    it('returns imperial unit type for all mapped distance-capable data types in miles mode', () => {
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, milesSettings)).toEqual([
-          getExpectedMilesDistanceType(dataType)
+          getExpectedImperialDistanceType(dataType)
         ]);
       });
     });
@@ -297,6 +320,15 @@ describe('DataStore', () => {
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, kilometersSettings)).toEqual([dataType]);
       });
+    });
+
+    it('displays jump distances in feet when distance preference is miles', () => {
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpDistance(2), milesSettings);
+
+      expect(converted).toHaveLength(1);
+      expect(converted[0].getType()).toBe(DataDistanceFeet.type);
+      expect(converted[0].getDisplayValue()).toBe('6.6');
+      expect(converted[0].getDisplayUnit()).toBe('ft');
     });
 
     it('defaults to kilometers when distanceUnits is missing', () => {
@@ -317,7 +349,7 @@ describe('DataStore', () => {
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
           milesSettings
         )
-      ).toEqual(expect.arrayContaining([DataDistanceMiles.type, DataGNSSDistanceMiles.type]));
+      ).toEqual(expect.arrayContaining([DataDistanceFeet.type, DataDistanceMiles.type, DataGNSSDistanceMiles.type]));
       expect(
         DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
@@ -333,18 +365,22 @@ describe('DataStore', () => {
       );
     });
 
-    it('returns converted miles data instances for all mapped distance classes in miles mode', () => {
+    it('returns converted imperial data instances for all mapped distance classes in miles mode', () => {
       const distanceInstances = allDistanceTypes.map(dataType =>
         DynamicDataLoader.getDataInstanceFromDataType(dataType, 1609.344)
       );
 
       distanceInstances.forEach(distanceInstance => {
-        const expectedMilesType = getExpectedMilesDistanceType(distanceInstance.getType());
+        const expectedImperialType = getExpectedImperialDistanceType(distanceInstance.getType());
+        const isFeetType = expectedImperialType === DataDistanceFeet.type;
         const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distanceInstance, milesSettings);
         expect(converted).toHaveLength(1);
-        expect(converted[0].getType()).toBe(expectedMilesType);
-        expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(1609.344), 10);
-        expect(converted[0].getDisplayUnit()).toBe('mi');
+        expect(converted[0].getType()).toBe(expectedImperialType);
+        expect(converted[0].getValue()).toBeCloseTo(
+          isFeetType ? convertMetersToFeet(1609.344) : convertMetersToMiles(1609.344),
+          10
+        );
+        expect(converted[0].getDisplayUnit()).toBe(isFeetType ? 'ft' : 'mi');
       });
     });
 

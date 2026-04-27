@@ -48,7 +48,7 @@ import {
   DataVerticalSpeedMaxMilesPerHour
 } from './data.vertical-speed-max';
 import { DataJumpDistance } from './data.jump-distance';
-import { DataDistance, DataDistanceMiles } from './data.distance';
+import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
 import { DataGNSSDistance } from './data.gnss-distance';
 import { DataGNSSDistanceMiles } from './data.gnss-distance-miles';
 import { DataAutoLapDistance } from './data.auto-lap-distance';
@@ -281,7 +281,7 @@ describe('DynamicDataLoader family mappings', () => {
     expect(DynamicDataLoader.dataTypeMaxDataType[jumpSpeedKphBaseType]).toBe(DataJumpSpeedMaxKilometersPerHour.type);
   });
 
-  it('maps jump distance family in unit groups to distance conversion targets', () => {
+  it('maps jump distance family in unit groups to feet conversion targets', () => {
     const jumpDistanceFamilyTypes = [
       DataJumpDistance.type,
       DataJumpDistanceMin.type,
@@ -291,7 +291,7 @@ describe('DynamicDataLoader family mappings', () => {
 
     jumpDistanceFamilyTypes.forEach(jumpDistanceType => {
       expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType]).toBeDefined();
-      expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType][DataDistanceMiles.type]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[jumpDistanceType][DataDistanceFeet.type]).toBeDefined();
     });
   });
 

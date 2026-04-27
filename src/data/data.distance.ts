@@ -25,3 +25,16 @@ export class DataDistanceMiles extends DataDistance {
     return 'mi';
   }
 }
+
+export class DataDistanceFeet extends DataDistance {
+  static type = 'Distance in feet';
+  static unit = 'ft';
+
+  getDisplayValue(): string {
+    return this.getValue().toFixed(1);
+  }
+
+  getDisplayUnit(): string {
+    return 'ft';
+  }
+}

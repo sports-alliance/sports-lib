@@ -67,7 +67,7 @@ import { DataEHPE } from '../../data/data.ehpe';
 import { DataEHPEMin } from '../../data/data.ehpe-min';
 import { DataEHPEMax } from '../../data/data.ehpe-max';
 import { DataEHPEAvg } from '../../data/data.ehpe-avg';
-import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
+import { DataDistance, DataDistanceFeet, DataDistanceMiles } from '../../data/data.distance';
 import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
@@ -78,7 +78,12 @@ import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DynamicDataLoader } from '../../data/data.store';
-import { convertMetersToMiles, convertSpeedToSpeedInKilometersPerHour, convertSpeedToSpeedInMilesPerHour } from './helpers';
+import {
+  convertMetersToFeet,
+  convertMetersToMiles,
+  convertSpeedToSpeedInKilometersPerHour,
+  convertSpeedToSpeedInMilesPerHour
+} from './helpers';
 import { DistanceUnits } from '../../users/settings/user.unit.settings.interface';
 import { DataSpeedMilesPerHour } from '../../data/data.speed';
 
@@ -164,7 +169,7 @@ describe('ActivityUtilities summary aggregation integration', () => {
       expect(converted[0].getDisplayUnit()).toBe('mi');
     });
 
-    it('converts jump distance summary stats to miles only in miles mode', () => {
+    it('converts jump distance summary stats to imperial display only in miles mode', () => {
       const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
       const activityB = new Activity(
         new Date(20_000),
@@ -199,8 +204,9 @@ describe('ActivityUtilities summary aggregation integration', () => {
         milesDistanceSettings
       );
       expect(milesConverted).toHaveLength(1);
-      expect(milesConverted[0].getType()).toBe(DataDistanceMiles.type);
-      expect(milesConverted[0].getValue()).toBeCloseTo(convertMetersToMiles(jumpDistanceAvg.getValue()), 10);
+      expect(milesConverted[0].getType()).toBe(DataDistanceFeet.type);
+      expect(milesConverted[0].getValue()).toBeCloseTo(convertMetersToFeet(jumpDistanceAvg.getValue()), 10);
+      expect(milesConverted[0].getDisplayUnit()).toBe('ft');
 
       const kilometersConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
         jumpDistanceAvg,

@@ -2,7 +2,8 @@ import {
   convertSpeedToSpeedInFeetPerSecond,
   convertSpeedToSpeedInKilometersPerHour,
   convertSpeedToSpeedInKnots,
-  convertSpeedToSpeedInMilesPerHour
+  convertSpeedToSpeedInMilesPerHour,
+  convertMetersToFeet
 } from '../events/utilities/helpers';
 import { DynamicDataLoader } from './data.store';
 import {
@@ -28,6 +29,8 @@ import {
   DataJumpSpeedMin
 } from './data.jump-stats';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
+import { DataJumpDistance } from './data.jump-distance';
+import { DataDistanceFeet } from './data.distance';
 
 describe('Jump stats display and unit behavior', () => {
   it('formats jump distance with the same behavior as DataDistance', () => {
@@ -39,6 +42,26 @@ describe('Jump stats display and unit behavior', () => {
     expect(jumpDistanceAvg.getDisplayValue()).toBe('2.0');
     expect(jumpDistanceMin.getDisplayValue()).toBe('1.2');
     expect(jumpDistanceMax.getDisplayValue()).toBe('3.5');
+  });
+
+  it('formats jump distance in feet when the distance preference is miles and the value is below one mile', () => {
+    const milesSettings: any = {
+      speedUnits: [],
+      swimPaceUnits: [],
+      paceUnits: [],
+      gradeAdjustedSpeedUnits: [],
+      gradeAdjustedPaceUnits: [],
+      verticalSpeedUnits: [],
+      distanceUnits: DistanceUnits.Miles
+    };
+
+    const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpDistance(2), milesSettings);
+
+    expect(converted).toHaveLength(1);
+    expect(converted[0].getType()).toBe(DataDistanceFeet.type);
+    expect(converted[0].getValue()).toBeCloseTo(convertMetersToFeet(2), 10);
+    expect(converted[0].getDisplayValue()).toBe('6.6');
+    expect(converted[0].getDisplayUnit()).toBe('ft');
   });
 
   it('formats jump speed with speed precision and converts to speed units', () => {

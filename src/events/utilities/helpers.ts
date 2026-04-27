@@ -71,6 +71,10 @@ export function convertMetersToMiles(number: number): number {
   return number === 0 ? 0 : number / 1609;
 }
 
+export function convertMetersToFeet(number: number): number {
+  return number * 3.28084;
+}
+
 /**
  * Converts m/s to seconds per 100m
  * @param number

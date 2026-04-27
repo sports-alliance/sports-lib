@@ -10,8 +10,8 @@ export interface UserUnitSettingsInterface {
 }
 
 export enum DistanceUnits {
-  Metric = 'Metric',
-  Imperial = 'Imperial'
+  Kilometers = 'Distance',
+  Miles = 'Distance in miles'
 }
 
 export enum SpeedUnits {

@@ -137,7 +137,7 @@ describe('DataStore', () => {
         gradeAdjustedSpeedUnits: [],
         gradeAdjustedPaceUnits: [],
         verticalSpeedUnits: [],
-        distanceUnits: DistanceUnits.Metric,
+        distanceUnits: DistanceUnits.Kilometers,
         elevationUnits: [],
         temperatureUnits: [],
         weightUnits: []
@@ -155,7 +155,7 @@ describe('DataStore', () => {
         gradeAdjustedSpeedUnits: [],
         gradeAdjustedPaceUnits: [],
         verticalSpeedUnits: [],
-        distanceUnits: DistanceUnits.Metric,
+        distanceUnits: DistanceUnits.Kilometers,
         elevationUnits: [],
         temperatureUnits: [],
         weightUnits: []
@@ -176,7 +176,7 @@ describe('DataStore', () => {
         gradeAdjustedSpeedUnits: [],
         gradeAdjustedPaceUnits: [],
         verticalSpeedUnits: [],
-        distanceUnits: DistanceUnits.Metric,
+        distanceUnits: DistanceUnits.Kilometers,
         elevationUnits: [],
         temperatureUnits: [],
         weightUnits: []
@@ -205,7 +205,7 @@ describe('DataStore', () => {
         gradeAdjustedSpeedUnits: [],
         gradeAdjustedPaceUnits: [],
         verticalSpeedUnits: [],
-        distanceUnits: DistanceUnits.Metric,
+        distanceUnits: DistanceUnits.Kilometers,
         elevationUnits: [],
         temperatureUnits: [],
         weightUnits: []
@@ -230,27 +230,27 @@ describe('DataStore', () => {
   });
 
   describe('distanceUnits-based conversion', () => {
-    const imperialSettings: any = {
+    const milesSettings: any = {
       speedUnits: [DataSpeed.type],
       swimPaceUnits: [],
       paceUnits: [],
       gradeAdjustedSpeedUnits: [],
       gradeAdjustedPaceUnits: [],
       verticalSpeedUnits: [],
-      distanceUnits: DistanceUnits.Imperial,
+      distanceUnits: DistanceUnits.Miles,
       elevationUnits: [],
       temperatureUnits: [],
       weightUnits: []
     };
 
-    const metricSettings: any = {
+    const kilometersSettings: any = {
       speedUnits: [DataSpeedMilesPerHour.type],
       swimPaceUnits: [],
       paceUnits: [],
       gradeAdjustedSpeedUnits: [],
       gradeAdjustedPaceUnits: [],
       verticalSpeedUnits: [],
-      distanceUnits: DistanceUnits.Metric,
+      distanceUnits: DistanceUnits.Kilometers,
       elevationUnits: [],
       temperatureUnits: [],
       weightUnits: []
@@ -274,32 +274,32 @@ describe('DataStore', () => {
       .map((DataClass: any) => DataClass.type as string)
       .filter((dataType: string) => dataType !== DataDistanceMiles.type && dataType !== DataGNSSDistanceMiles.type);
 
-    const getExpectedImperialDistanceType = (dataType: string): string =>
+    const getExpectedMilesDistanceType = (dataType: string): string =>
       dataType === DataGNSSDistance.type ? DataGNSSDistanceMiles.type : DataDistanceMiles.type;
 
     it('has miles mappings for every DataStore class extending DataDistance (except DataDistanceMiles)', () => {
       expect(allDistanceTypes.length).toBeGreaterThan(0);
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.dataTypeUnitGroups[dataType]).toBeDefined();
-        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedImperialDistanceType(dataType)]).toBeDefined();
+        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedMilesDistanceType(dataType)]).toBeDefined();
       });
     });
 
-    it('returns miles unit type for all mapped distance-capable data types in imperial mode', () => {
+    it('returns miles unit type for all mapped distance-capable data types in miles mode', () => {
       allDistanceTypes.forEach(dataType => {
-        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, imperialSettings)).toEqual([
-          getExpectedImperialDistanceType(dataType)
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, milesSettings)).toEqual([
+          getExpectedMilesDistanceType(dataType)
         ]);
       });
     });
 
-    it('returns metric base type for all mapped distance-capable data types in metric mode', () => {
+    it('returns kilometers base type for all mapped distance-capable data types in kilometers mode', () => {
       allDistanceTypes.forEach(dataType => {
-        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, metricSettings)).toEqual([dataType]);
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(dataType, kilometersSettings)).toEqual([dataType]);
       });
     });
 
-    it('defaults to metric when distanceUnits is missing', () => {
+    it('defaults to kilometers when distanceUnits is missing', () => {
       expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataDistance.type, missingDistanceSettings)).toEqual([
         DataDistance.type
       ]);
@@ -315,13 +315,13 @@ describe('DataStore', () => {
       expect(
         DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
-          imperialSettings
+          milesSettings
         )
       ).toEqual(expect.arrayContaining([DataDistanceMiles.type, DataGNSSDistanceMiles.type]));
       expect(
         DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
           [DataDistance.type, DataJumpDistanceAvg.type, DataGNSSDistance.type, DataStepLength.type],
-          metricSettings
+          kilometersSettings
         )
       ).toEqual(
         expect.arrayContaining([
@@ -333,30 +333,30 @@ describe('DataStore', () => {
       );
     });
 
-    it('returns converted miles data instances for all mapped distance classes in imperial mode', () => {
+    it('returns converted miles data instances for all mapped distance classes in miles mode', () => {
       const distanceInstances = allDistanceTypes.map(dataType =>
         DynamicDataLoader.getDataInstanceFromDataType(dataType, 1609.344)
       );
 
       distanceInstances.forEach(distanceInstance => {
-        const expectedImperialType = getExpectedImperialDistanceType(distanceInstance.getType());
-        const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distanceInstance, imperialSettings);
+        const expectedMilesType = getExpectedMilesDistanceType(distanceInstance.getType());
+        const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distanceInstance, milesSettings);
         expect(converted).toHaveLength(1);
-        expect(converted[0].getType()).toBe(expectedImperialType);
+        expect(converted[0].getType()).toBe(expectedMilesType);
         expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(1609.344), 10);
         expect(converted[0].getDisplayUnit()).toBe('mi');
       });
     });
 
-    it('returns original metric data instances in metric mode and missing-distanceUnits fallback', () => {
-      const metricInstances = allDistanceTypes.map(dataType =>
+    it('returns original kilometers data instances in kilometers mode and missing-distanceUnits fallback', () => {
+      const kilometersInstances = allDistanceTypes.map(dataType =>
         DynamicDataLoader.getDataInstanceFromDataType(dataType, 1609.344)
       );
 
-      metricInstances.forEach(instance => {
-        const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(instance, metricSettings);
-        expect(metricConverted).toHaveLength(1);
-        expect(metricConverted[0].getType()).toBe(instance.getType());
+      kilometersInstances.forEach(instance => {
+        const kilometersConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(instance, kilometersSettings);
+        expect(kilometersConverted).toHaveLength(1);
+        expect(kilometersConverted[0].getType()).toBe(instance.getType());
 
         const fallbackConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(instance, missingDistanceSettings);
         expect(fallbackConverted).toHaveLength(1);
@@ -373,13 +373,13 @@ describe('DataStore', () => {
       gradeAdjustedSpeedUnits: [],
       gradeAdjustedPaceUnits: [],
       verticalSpeedUnits: [],
-      distanceUnits: DistanceUnits.Metric,
+      distanceUnits: DistanceUnits.Kilometers,
       elevationUnits: [],
       temperatureUnits: [],
       weightUnits: []
     };
 
-    const metricSpeedSettings: any = {
+    const canonicalSpeedSettings: any = {
       ...mphSettings,
       speedUnits: [DataSpeed.type]
     };
@@ -396,14 +396,14 @@ describe('DataStore', () => {
       ]);
     });
 
-    it('keeps jump speed canonical types when selected speed unit is metric m/s', () => {
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, metricSpeedSettings)).toEqual([
+    it('keeps jump speed canonical types when selected speed unit is canonical m/s', () => {
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, canonicalSpeedSettings)).toEqual([
         DataJumpSpeedAvg.type
       ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, metricSpeedSettings)).toEqual([
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, canonicalSpeedSettings)).toEqual([
         DataJumpSpeedMin.type
       ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, metricSpeedSettings)).toEqual([
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, canonicalSpeedSettings)).toEqual([
         DataJumpSpeedMax.type
       ]);
     });
@@ -485,7 +485,7 @@ describe('DataStore', () => {
       gradeAdjustedSpeedUnits: [],
       gradeAdjustedPaceUnits: [],
       verticalSpeedUnits: [],
-      distanceUnits: DistanceUnits.Metric,
+      distanceUnits: DistanceUnits.Kilometers,
       elevationUnits: [],
       temperatureUnits: [],
       weightUnits: []

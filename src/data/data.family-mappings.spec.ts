@@ -309,10 +309,10 @@ describe('DynamicDataLoader family mappings', () => {
 
     mappedDistanceTypes.forEach(distanceType => {
       expect(DynamicDataLoader.dataTypeUnitGroups[distanceType]).toBeDefined();
-      const expectedImperialDistanceType = distanceType === DataGNSSDistance.type
+      const expectedMilesDistanceType = distanceType === DataGNSSDistance.type
         ? DataGNSSDistanceMiles.type
         : DataDistanceMiles.type;
-      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][expectedImperialDistanceType]).toBeDefined();
+      expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][expectedMilesDistanceType]).toBeDefined();
     });
   });
 });

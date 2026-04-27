@@ -1404,10 +1404,10 @@ export class DynamicDataLoader {
   }
 
   private static getDistanceUnits(userUnitSettings?: UserUnitSettingsInterface): DistanceUnits {
-    return userUnitSettings?.distanceUnits || DistanceUnits.Metric;
+    return userUnitSettings?.distanceUnits || DistanceUnits.Kilometers;
   }
 
-  private static getDistanceImperialDataType(dataType: string): string | null {
+  private static getDistanceMilesDataType(dataType: string): string | null {
     const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
     if (!unitGroup) {
       return null;
@@ -1425,11 +1425,11 @@ export class DynamicDataLoader {
     dataType: string,
     userUnitSettings?: UserUnitSettingsInterface
   ): string | null {
-    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
-    if (!distanceImperialDataType) {
+    const distanceMilesDataType = this.getDistanceMilesDataType(dataType);
+    if (!distanceMilesDataType) {
       return null;
     }
-    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Imperial ? distanceImperialDataType : dataType;
+    return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Miles ? distanceMilesDataType : dataType;
   }
 
   private static getJumpSpeedUnitMappings(
@@ -1668,19 +1668,19 @@ export class DynamicDataLoader {
     }
     const dataType = data.getType();
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
-    const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
+    const distanceMilesDataType = this.getDistanceMilesDataType(dataType);
     const distanceUnitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
     if (
       distanceDataType &&
-      distanceImperialDataType &&
+      distanceMilesDataType &&
       distanceUnitGroup &&
-      distanceUnitGroup[distanceImperialDataType]
+      distanceUnitGroup[distanceMilesDataType]
     ) {
-      if (distanceDataType === distanceImperialDataType) {
+      if (distanceDataType === distanceMilesDataType) {
         return [
           this.getDataInstanceFromDataType(
-            distanceImperialDataType,
-            distanceUnitGroup[distanceImperialDataType](<number>data.getValue())
+            distanceMilesDataType,
+            distanceUnitGroup[distanceMilesDataType](<number>data.getValue())
           )
         ];
       }

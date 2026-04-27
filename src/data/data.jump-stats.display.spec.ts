@@ -27,6 +27,7 @@ import {
   DataJumpSpeedMax,
   DataJumpSpeedMin
 } from './data.jump-stats';
+import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
 
 describe('Jump stats display and unit behavior', () => {
   it('formats jump distance with the same behavior as DataDistance', () => {
@@ -89,7 +90,7 @@ describe('Jump stats display and unit behavior', () => {
       gradeAdjustedSpeedUnits: [],
       gradeAdjustedPaceUnits: [],
       verticalSpeedUnits: [],
-      distanceUnits: 'metric'
+      distanceUnits: DistanceUnits.Kilometers
     };
 
     const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataJumpSpeedAvg(5), mphSettings);

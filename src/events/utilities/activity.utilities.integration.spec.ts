@@ -119,24 +119,24 @@ const ensureMinStatFromStream = (
   return newStat;
 };
 
-const imperialDistanceSettings: any = {
+const milesDistanceSettings: any = {
   speedUnits: [],
   swimPaceUnits: [],
   paceUnits: [],
   gradeAdjustedSpeedUnits: [],
   gradeAdjustedPaceUnits: [],
   verticalSpeedUnits: [],
-  distanceUnits: DistanceUnits.Imperial
+  distanceUnits: DistanceUnits.Miles
 };
 
-const metricDistanceSettings: any = {
+const kilometersDistanceSettings: any = {
   speedUnits: [],
   swimPaceUnits: [],
   paceUnits: [],
   gradeAdjustedSpeedUnits: [],
   gradeAdjustedPaceUnits: [],
   verticalSpeedUnits: [],
-  distanceUnits: DistanceUnits.Metric
+  distanceUnits: DistanceUnits.Kilometers
 };
 
 const mphSpeedSettings: any = {
@@ -146,25 +146,25 @@ const mphSpeedSettings: any = {
   gradeAdjustedSpeedUnits: [],
   gradeAdjustedPaceUnits: [],
   verticalSpeedUnits: [],
-  distanceUnits: DistanceUnits.Metric
+  distanceUnits: DistanceUnits.Kilometers
 };
 
 describe('ActivityUtilities summary aggregation integration', () => {
   describe('distance unit conversion integration', () => {
-    it('converts parsed total distance stat to miles when distanceUnits is imperial', async () => {
+    it('converts parsed total distance stat to miles when distanceUnits is miles', async () => {
       const activity = await loadActivity('../../specs/fixtures/runs/fit/6860622783.fit');
       const distance = activity.getStat(DataDistance.type) as DataDistance;
 
       expect(distance).toBeDefined();
 
-      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distance, imperialDistanceSettings);
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(distance, milesDistanceSettings);
       expect(converted).toHaveLength(1);
       expect(converted[0].getType()).toBe(DataDistanceMiles.type);
       expect(converted[0].getValue()).toBeCloseTo(convertMetersToMiles(distance.getValue()), 10);
       expect(converted[0].getDisplayUnit()).toBe('mi');
     });
 
-    it('converts jump distance summary stats to miles only in imperial mode', () => {
+    it('converts jump distance summary stats to miles only in miles mode', () => {
       const activityA = new Activity(new Date(0), new Date(10_000), ActivityTypes.MountainBiking, new Creator('test'));
       const activityB = new Activity(
         new Date(20_000),
@@ -194,20 +194,20 @@ describe('ActivityUtilities summary aggregation integration', () => {
 
       expect(jumpDistanceAvg).toBeDefined();
 
-      const imperialConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+      const milesConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
         jumpDistanceAvg,
-        imperialDistanceSettings
+        milesDistanceSettings
       );
-      expect(imperialConverted).toHaveLength(1);
-      expect(imperialConverted[0].getType()).toBe(DataDistanceMiles.type);
-      expect(imperialConverted[0].getValue()).toBeCloseTo(convertMetersToMiles(jumpDistanceAvg.getValue()), 10);
+      expect(milesConverted).toHaveLength(1);
+      expect(milesConverted[0].getType()).toBe(DataDistanceMiles.type);
+      expect(milesConverted[0].getValue()).toBeCloseTo(convertMetersToMiles(jumpDistanceAvg.getValue()), 10);
 
-      const metricConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+      const kilometersConverted = DynamicDataLoader.getUnitBasedDataFromDataInstance(
         jumpDistanceAvg,
-        metricDistanceSettings
+        kilometersDistanceSettings
       );
-      expect(metricConverted).toHaveLength(1);
-      expect(metricConverted[0].getType()).toBe(DataJumpDistanceAvg.type);
+      expect(kilometersConverted).toHaveLength(1);
+      expect(kilometersConverted[0].getType()).toBe(DataJumpDistanceAvg.type);
     });
 
     it('converts jump speed summary stats to selected speed unit display variants', () => {

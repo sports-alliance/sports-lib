@@ -170,6 +170,7 @@ export class EventImporterJSON {
   static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {
     const zones = new IntensityZones(json.type);
     zones.zone1Duration = json.zone1Duration;
+    zones.zone1LowerLimit = json.zone1LowerLimit;
     zones.zone2Duration = json.zone2Duration;
     zones.zone2LowerLimit = json.zone2LowerLimit;
     zones.zone3Duration = json.zone3Duration;
@@ -178,6 +179,10 @@ export class EventImporterJSON {
     zones.zone4LowerLimit = json.zone4LowerLimit;
     zones.zone5Duration = json.zone5Duration;
     zones.zone5LowerLimit = json.zone5LowerLimit;
+    zones.zone6Duration = json.zone6Duration;
+    zones.zone6LowerLimit = json.zone6LowerLimit;
+    zones.zone7Duration = json.zone7Duration;
+    zones.zone7LowerLimit = json.zone7LowerLimit;
     return zones;
   }
 

@@ -7,6 +7,7 @@ export interface IntensityZonesJSONInterface {
   zone5Duration: number;
   zone6Duration?: number;
   zone7Duration?: number;
+  zone1LowerLimit?: number;
   zone2LowerLimit?: number;
   zone3LowerLimit?: number;
   zone4LowerLimit?: number;

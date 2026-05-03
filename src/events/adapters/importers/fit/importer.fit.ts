@@ -49,6 +49,7 @@ import { DataSWOLF25m } from '../../../../data/data.swolf-25m';
 import { DataDescription } from '../../../../data/data.description';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
+import { IntensityZonesInterface } from '../../../../intensity-zones/intensity-zones.interface';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPower } from '../../../../data/data.power';
 import { DataSpeed } from '../../../../data/data.speed';
@@ -303,14 +304,13 @@ export class EventImporterFIT {
               activity.addStat(new DataHeartRateZoneSevenDuration(sessionObject.time_in_hr_zone[6 + zoneIndexOffset]));
             }
 
-            const hrIntensityZones = new IntensityZones(DataHeartRate.type);
-            hrIntensityZones.zone1Duration = sessionObject.time_in_hr_zone[0 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone2Duration = sessionObject.time_in_hr_zone[1 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone3Duration = sessionObject.time_in_hr_zone[2 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone4Duration = sessionObject.time_in_hr_zone[3 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone5Duration = sessionObject.time_in_hr_zone[4 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone6Duration = sessionObject.time_in_hr_zone[5 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone7Duration = sessionObject.time_in_hr_zone[6 + zoneIndexOffset] || 0;
+            const hrIntensityZones = this.createIntensityZonesFromFitZones(
+              DataHeartRate.type,
+              sessionObject.time_in_hr_zone,
+              zoneIndexOffset,
+              sessionObject.hr_zone_high_boundary,
+              255
+            );
             activity.intensityZones.push(hrIntensityZones);
           }
 
@@ -338,38 +338,13 @@ export class EventImporterFIT {
               activity.addStat(new DataPowerZoneSevenDuration(sessionObject.time_in_power_zone[6 + zoneIndexOffset]));
             }
 
-            const powerIntensityZones = new IntensityZones(DataPower.type);
-            powerIntensityZones.zone1Duration = sessionObject.time_in_power_zone[0 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone2Duration = sessionObject.time_in_power_zone[1 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone3Duration = sessionObject.time_in_power_zone[2 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone4Duration = sessionObject.time_in_power_zone[3 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone5Duration = sessionObject.time_in_power_zone[4 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone6Duration = sessionObject.time_in_power_zone[5 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone7Duration = sessionObject.time_in_power_zone[6 + zoneIndexOffset] || 0;
-
-            if (
-              Array.isArray(sessionObject.power_zone_high_boundary) &&
-              sessionObject.power_zone_high_boundary.length > 0
-            ) {
-              if (isNumber(sessionObject.power_zone_high_boundary[0])) {
-                powerIntensityZones.zone2LowerLimit = sessionObject.power_zone_high_boundary[0];
-              }
-              if (isNumber(sessionObject.power_zone_high_boundary[1])) {
-                powerIntensityZones.zone3LowerLimit = sessionObject.power_zone_high_boundary[1];
-              }
-              if (isNumber(sessionObject.power_zone_high_boundary[2])) {
-                powerIntensityZones.zone4LowerLimit = sessionObject.power_zone_high_boundary[2];
-              }
-              if (isNumber(sessionObject.power_zone_high_boundary[3])) {
-                powerIntensityZones.zone5LowerLimit = sessionObject.power_zone_high_boundary[3];
-              }
-              if (isNumber(sessionObject.power_zone_high_boundary[4])) {
-                powerIntensityZones.zone6LowerLimit = sessionObject.power_zone_high_boundary[4];
-              }
-              if (isNumber(sessionObject.power_zone_high_boundary[5])) {
-                powerIntensityZones.zone7LowerLimit = sessionObject.power_zone_high_boundary[5];
-              }
-            }
+            const powerIntensityZones = this.createIntensityZonesFromFitZones(
+              DataPower.type,
+              sessionObject.time_in_power_zone,
+              zoneIndexOffset,
+              sessionObject.power_zone_high_boundary,
+              65535
+            );
             activity.intensityZones.push(powerIntensityZones);
           }
 
@@ -1353,48 +1328,16 @@ export class EventImporterFIT {
           // Check if IntensityZones for HR is already set, if not create one with boundaries
           const existingHrZones = activity.intensityZones.find(iz => iz.type === DataHeartRate.type);
           if (!existingHrZones && Array.isArray(hrZoneBoundaries) && hrZoneBoundaries.length > 0) {
-            // Create IntensityZones with boundaries
-            const hrIntensityZones = new IntensityZones(DataHeartRate.type);
-            hrIntensityZones.zone1Duration = hrZones[0 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone2Duration = hrZones[1 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone3Duration = hrZones[2 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone4Duration = hrZones[3 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone5Duration = hrZones[4 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone6Duration = hrZones[5 + zoneIndexOffset] || 0;
-            hrIntensityZones.zone7Duration = hrZones[6 + zoneIndexOffset] || 0;
-
-            // hr_zone_high_boundary[n] is the upper limit of zone n+1
-            // Zone 2 lower limit = Zone 1 high boundary = hrZoneBoundaries[0]
-            // Zone 3 lower limit = Zone 2 high boundary = hrZoneBoundaries[1]
-            // etc.
-            if (isNumber(hrZoneBoundaries[0]) && hrZoneBoundaries[0] !== 255) {
-              hrIntensityZones.zone2LowerLimit = hrZoneBoundaries[0];
-            }
-            if (isNumber(hrZoneBoundaries[1]) && hrZoneBoundaries[1] !== 255) {
-              hrIntensityZones.zone3LowerLimit = hrZoneBoundaries[1];
-            }
-            if (isNumber(hrZoneBoundaries[2]) && hrZoneBoundaries[2] !== 255) {
-              hrIntensityZones.zone4LowerLimit = hrZoneBoundaries[2];
-            }
-            if (isNumber(hrZoneBoundaries[3]) && hrZoneBoundaries[3] !== 255) {
-              hrIntensityZones.zone5LowerLimit = hrZoneBoundaries[3];
-            }
-
+            const hrIntensityZones = this.createIntensityZonesFromFitZones(
+              DataHeartRate.type,
+              hrZones,
+              zoneIndexOffset,
+              hrZoneBoundaries,
+              255
+            );
             activity.intensityZones.push(hrIntensityZones);
           } else if (existingHrZones && Array.isArray(hrZoneBoundaries) && hrZoneBoundaries.length > 0) {
-            // Update existing IntensityZones with boundary data if not set
-            if (!existingHrZones.zone2LowerLimit && isNumber(hrZoneBoundaries[0]) && hrZoneBoundaries[0] !== 255) {
-              existingHrZones.zone2LowerLimit = hrZoneBoundaries[0];
-            }
-            if (!existingHrZones.zone3LowerLimit && isNumber(hrZoneBoundaries[1]) && hrZoneBoundaries[1] !== 255) {
-              existingHrZones.zone3LowerLimit = hrZoneBoundaries[1];
-            }
-            if (!existingHrZones.zone4LowerLimit && isNumber(hrZoneBoundaries[2]) && hrZoneBoundaries[2] !== 255) {
-              existingHrZones.zone4LowerLimit = hrZoneBoundaries[2];
-            }
-            if (!existingHrZones.zone5LowerLimit && isNumber(hrZoneBoundaries[3]) && hrZoneBoundaries[3] !== 255) {
-              existingHrZones.zone5LowerLimit = hrZoneBoundaries[3];
-            }
+            this.applyFitZoneHighBoundaries(existingHrZones, hrZoneBoundaries, zoneIndexOffset, 255);
           }
         }
 
@@ -1434,86 +1377,151 @@ export class EventImporterFIT {
           // Check if IntensityZones for Power is already set, if not create one with boundaries
           const existingPowerZones = activity.intensityZones.find(iz => iz.type === DataPower.type);
           if (!existingPowerZones && Array.isArray(powerZones) && powerZones.length > 0) {
-            // Create IntensityZones with boundaries
-            const powerIntensityZones = new IntensityZones(DataPower.type);
-            powerIntensityZones.zone1Duration = powerZones[0 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone2Duration = powerZones[1 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone3Duration = powerZones[2 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone4Duration = powerZones[3 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone5Duration = powerZones[4 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone6Duration = powerZones[5 + zoneIndexOffset] || 0;
-            powerIntensityZones.zone7Duration = powerZones[6 + zoneIndexOffset] || 0;
-
-            if (Array.isArray(powerZoneBoundaries) && powerZoneBoundaries.length > 0) {
-              if (isNumber(powerZoneBoundaries[0]) && powerZoneBoundaries[0] !== 65535) {
-                powerIntensityZones.zone2LowerLimit = powerZoneBoundaries[0];
-              }
-              if (isNumber(powerZoneBoundaries[1]) && powerZoneBoundaries[1] !== 65535) {
-                powerIntensityZones.zone3LowerLimit = powerZoneBoundaries[1];
-              }
-              if (isNumber(powerZoneBoundaries[2]) && powerZoneBoundaries[2] !== 65535) {
-                powerIntensityZones.zone4LowerLimit = powerZoneBoundaries[2];
-              }
-              if (isNumber(powerZoneBoundaries[3]) && powerZoneBoundaries[3] !== 65535) {
-                powerIntensityZones.zone5LowerLimit = powerZoneBoundaries[3];
-              }
-              if (isNumber(powerZoneBoundaries[4]) && powerZoneBoundaries[4] !== 65535) {
-                powerIntensityZones.zone6LowerLimit = powerZoneBoundaries[4];
-              }
-              if (isNumber(powerZoneBoundaries[5]) && powerZoneBoundaries[5] !== 65535) {
-                powerIntensityZones.zone7LowerLimit = powerZoneBoundaries[5];
-              }
-            }
-
+            const powerIntensityZones = this.createIntensityZonesFromFitZones(
+              DataPower.type,
+              powerZones,
+              zoneIndexOffset,
+              powerZoneBoundaries,
+              65535
+            );
             activity.intensityZones.push(powerIntensityZones);
           } else if (existingPowerZones && Array.isArray(powerZoneBoundaries) && powerZoneBoundaries.length > 0) {
-            // Update existing IntensityZones with boundary data if not set
-            if (
-              !existingPowerZones.zone2LowerLimit &&
-              isNumber(powerZoneBoundaries[0]) &&
-              powerZoneBoundaries[0] !== 65535
-            ) {
-              existingPowerZones.zone2LowerLimit = powerZoneBoundaries[0];
-            }
-            if (
-              !existingPowerZones.zone3LowerLimit &&
-              isNumber(powerZoneBoundaries[1]) &&
-              powerZoneBoundaries[1] !== 65535
-            ) {
-              existingPowerZones.zone3LowerLimit = powerZoneBoundaries[1];
-            }
-            if (
-              !existingPowerZones.zone4LowerLimit &&
-              isNumber(powerZoneBoundaries[2]) &&
-              powerZoneBoundaries[2] !== 65535
-            ) {
-              existingPowerZones.zone4LowerLimit = powerZoneBoundaries[2];
-            }
-            if (
-              !existingPowerZones.zone5LowerLimit &&
-              isNumber(powerZoneBoundaries[3]) &&
-              powerZoneBoundaries[3] !== 65535
-            ) {
-              existingPowerZones.zone5LowerLimit = powerZoneBoundaries[3];
-            }
-            if (
-              !existingPowerZones.zone6LowerLimit &&
-              isNumber(powerZoneBoundaries[4]) &&
-              powerZoneBoundaries[4] !== 65535
-            ) {
-              existingPowerZones.zone6LowerLimit = powerZoneBoundaries[4];
-            }
-            if (
-              !existingPowerZones.zone7LowerLimit &&
-              isNumber(powerZoneBoundaries[5]) &&
-              powerZoneBoundaries[5] !== 65535
-            ) {
-              existingPowerZones.zone7LowerLimit = powerZoneBoundaries[5];
-            }
+            this.applyFitZoneHighBoundaries(existingPowerZones, powerZoneBoundaries, zoneIndexOffset, 65535);
           }
         }
       }
       return activity;
+    }
+  }
+
+  private static createIntensityZonesFromFitZones(
+    type: string,
+    durations: any[],
+    zoneIndexOffset: number,
+    highBoundaries?: any[],
+    invalidHighBoundaryValue?: number
+  ): IntensityZones {
+    const intensityZones = new IntensityZones(type);
+    for (let zoneNumber = 1; zoneNumber <= 7; zoneNumber++) {
+      const duration = durations[zoneNumber - 1 + zoneIndexOffset];
+      this.setIntensityZoneDuration(intensityZones, zoneNumber, isNumber(duration) ? duration : 0);
+    }
+    this.applyFitZoneHighBoundaries(intensityZones, highBoundaries, zoneIndexOffset, invalidHighBoundaryValue, true);
+    return intensityZones;
+  }
+
+  private static applyFitZoneHighBoundaries(
+    intensityZones: IntensityZonesInterface,
+    highBoundaries: any[] | undefined,
+    zoneIndexOffset: number,
+    invalidHighBoundaryValue?: number,
+    overwrite = false
+  ): void {
+    if (!Array.isArray(highBoundaries) || highBoundaries.length === 0) {
+      return;
+    }
+
+    for (let zoneNumber = 1; zoneNumber <= 7; zoneNumber++) {
+      const sourceBoundaryIndex = zoneNumber + zoneIndexOffset - 2;
+      if (sourceBoundaryIndex < 0) {
+        continue;
+      }
+
+      const lowerLimit = highBoundaries[sourceBoundaryIndex];
+      if (!isNumber(lowerLimit) || lowerLimit === invalidHighBoundaryValue) {
+        continue;
+      }
+
+      if (!overwrite && this.hasIntensityZoneLowerLimit(intensityZones, zoneNumber)) {
+        continue;
+      }
+
+      this.setIntensityZoneLowerLimit(intensityZones, zoneNumber, lowerLimit);
+    }
+  }
+
+  private static setIntensityZoneDuration(
+    intensityZones: IntensityZonesInterface,
+    zoneNumber: number,
+    duration: number
+  ): void {
+    switch (zoneNumber) {
+      case 1:
+        intensityZones.zone1Duration = duration;
+        break;
+      case 2:
+        intensityZones.zone2Duration = duration;
+        break;
+      case 3:
+        intensityZones.zone3Duration = duration;
+        break;
+      case 4:
+        intensityZones.zone4Duration = duration;
+        break;
+      case 5:
+        intensityZones.zone5Duration = duration;
+        break;
+      case 6:
+        intensityZones.zone6Duration = duration;
+        break;
+      case 7:
+        intensityZones.zone7Duration = duration;
+        break;
+      default:
+        break;
+    }
+  }
+
+  private static setIntensityZoneLowerLimit(
+    intensityZones: IntensityZonesInterface,
+    zoneNumber: number,
+    lowerLimit: number
+  ): void {
+    switch (zoneNumber) {
+      case 1:
+        intensityZones.zone1LowerLimit = lowerLimit;
+        break;
+      case 2:
+        intensityZones.zone2LowerLimit = lowerLimit;
+        break;
+      case 3:
+        intensityZones.zone3LowerLimit = lowerLimit;
+        break;
+      case 4:
+        intensityZones.zone4LowerLimit = lowerLimit;
+        break;
+      case 5:
+        intensityZones.zone5LowerLimit = lowerLimit;
+        break;
+      case 6:
+        intensityZones.zone6LowerLimit = lowerLimit;
+        break;
+      case 7:
+        intensityZones.zone7LowerLimit = lowerLimit;
+        break;
+      default:
+        break;
+    }
+  }
+
+  private static hasIntensityZoneLowerLimit(intensityZones: IntensityZonesInterface, zoneNumber: number): boolean {
+    switch (zoneNumber) {
+      case 1:
+        return isNumber(intensityZones.zone1LowerLimit);
+      case 2:
+        return isNumber(intensityZones.zone2LowerLimit);
+      case 3:
+        return isNumber(intensityZones.zone3LowerLimit);
+      case 4:
+        return isNumber(intensityZones.zone4LowerLimit);
+      case 5:
+        return isNumber(intensityZones.zone5LowerLimit);
+      case 6:
+        return isNumber(intensityZones.zone6LowerLimit);
+      case 7:
+        return isNumber(intensityZones.zone7LowerLimit);
+      default:
+        return false;
     }
   }
 

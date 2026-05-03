@@ -178,12 +178,14 @@ describe('EventImporterFIT MTB Jumps', () => {
       expect(hrIntensityZones.zone3Duration).toBeCloseTo(2160.994, 0);
       expect(hrIntensityZones.zone4Duration).toBeCloseTo(450.999, 0);
       expect(hrIntensityZones.zone5Duration).toBeCloseTo(47, 0);
-      // Zone boundaries: hr_zone_high_boundary = [93, 111, 130, 148, 167, 185] (from image)
-      // zone2LowerLimit = 93, zone3LowerLimit = 111, zone4LowerLimit = 130, zone5LowerLimit = 148
-      expect(hrIntensityZones.zone2LowerLimit).toBe(93);
-      expect(hrIntensityZones.zone3LowerLimit).toBe(111);
-      expect(hrIntensityZones.zone4LowerLimit).toBe(130);
-      expect(hrIntensityZones.zone5LowerLimit).toBe(148);
+      // Garmin time_in_zone includes a below-zone bucket at index 0, so boundaries are offset with durations.
+      expect(hrIntensityZones.zone1LowerLimit).toBe(93);
+      expect(hrIntensityZones.zone2LowerLimit).toBe(111);
+      expect(hrIntensityZones.zone3LowerLimit).toBe(130);
+      expect(hrIntensityZones.zone4LowerLimit).toBe(148);
+      expect(hrIntensityZones.zone5LowerLimit).toBe(167);
+      expect(hrIntensityZones.zone6LowerLimit).toBe(185);
+      expect(hrIntensityZones.zone7LowerLimit).toBeUndefined();
     }
 
     // Check Jumps

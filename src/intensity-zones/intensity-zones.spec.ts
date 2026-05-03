@@ -9,6 +9,7 @@ describe('Zone', () => {
 
   it('should export correctly to JSON', () => {
     zones.zone1Duration = 0;
+    zones.zone1LowerLimit = 0;
     zones.zone2LowerLimit = 1;
     zones.zone2Duration = 2;
     zones.zone3LowerLimit = 3;
@@ -20,6 +21,7 @@ describe('Zone', () => {
     expect(zones.toJSON()).toEqual({
       type: 'test',
       zone1Duration: 0,
+      zone1LowerLimit: 0,
       zone2Duration: 2,
       zone2LowerLimit: 1,
       zone3Duration: 4,

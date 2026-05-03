@@ -11,6 +11,7 @@ import { Privacy } from '../../../../privacy/privacy.class.interface';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataPower } from '../../../../data/data.power';
 import { IBIStream } from '../../../../streams/ibi-stream';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
 
 describe('EventImporterJSON', () => {
   it('should hydrate full event JSON including activities and power curves', () => {
@@ -149,5 +150,43 @@ describe('EventImporterJSON', () => {
 
     expect(event.getActivities()).toEqual([]);
     expect(event.name).toBe('firestore-event');
+  });
+
+  it('should hydrate all optional intensity zone lower limits', () => {
+    const zones = EventImporterJSON.getIntensityZonesFromJSON({
+      type: DataHeartRate.type,
+      zone1Duration: 1,
+      zone2Duration: 2,
+      zone3Duration: 3,
+      zone4Duration: 4,
+      zone5Duration: 5,
+      zone6Duration: 6,
+      zone7Duration: 7,
+      zone1LowerLimit: 90,
+      zone2LowerLimit: 110,
+      zone3LowerLimit: 130,
+      zone4LowerLimit: 150,
+      zone5LowerLimit: 170,
+      zone6LowerLimit: 190,
+      zone7LowerLimit: 210
+    });
+
+    expect(zones.toJSON()).toEqual({
+      type: DataHeartRate.type,
+      zone1Duration: 1,
+      zone2Duration: 2,
+      zone3Duration: 3,
+      zone4Duration: 4,
+      zone5Duration: 5,
+      zone6Duration: 6,
+      zone7Duration: 7,
+      zone1LowerLimit: 90,
+      zone2LowerLimit: 110,
+      zone3LowerLimit: 130,
+      zone4LowerLimit: 150,
+      zone5LowerLimit: 170,
+      zone6LowerLimit: 190,
+      zone7LowerLimit: 210
+    });
   });
 });

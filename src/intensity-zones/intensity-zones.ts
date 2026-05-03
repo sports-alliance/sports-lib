@@ -11,6 +11,7 @@ export class IntensityZones implements IntensityZonesInterface {
   zone5Duration!: number;
   zone6Duration?: number;
   zone7Duration?: number;
+  zone1LowerLimit?: number;
   zone2LowerLimit?: number;
   zone3LowerLimit?: number;
   zone4LowerLimit?: number;
@@ -36,6 +37,9 @@ export class IntensityZones implements IntensityZonesInterface {
     }
     if (isNumber(this.zone7Duration)) {
       json.zone7Duration = this.zone7Duration;
+    }
+    if (isNumber(this.zone1LowerLimit)) {
+      json.zone1LowerLimit = this.zone1LowerLimit;
     }
     if (isNumber(this.zone2LowerLimit)) {
       json.zone2LowerLimit = this.zone2LowerLimit;

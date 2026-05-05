@@ -1603,9 +1603,9 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const activity = event.getFirstActivity();
             expect(activity.creator.name).toEqual('Garmin Edge 1030');
 
-            // Power extended stats
-            expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(51.45);
-            expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(48.55);
+            // Power extended stats. FIT invalid L/R balance samples (0xFF) are excluded.
+            expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(51.66);
+            expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(48.34);
             expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(80);
             expect((activity.getStat(DataPowerTorqueEffectivenessRight.type) as DataNumber).getValue()).toEqual(76.5);
             expect((activity.getStat(DataPowerPedalSmoothnessLeft.type) as DataNumber).getValue()).toEqual(22);

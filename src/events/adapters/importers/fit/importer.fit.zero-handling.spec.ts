@@ -79,6 +79,19 @@ describe('EventImporterFIT Zero Handling', () => {
             expect(recovery).toBeUndefined();
         });
 
+        it('should ignore irrational VO2 max values', () => {
+            const fitObject = {
+                estimated_vo2_max: 114688,
+                vo2_max_cycling: 500,
+            };
+
+            const stats = EventImporterFIT.getStatsFromObject(fitObject, mockActivity, false);
+
+            const vo2 = stats.find(s => s.getType() === DataVO2Max.type);
+
+            expect(vo2).toBeUndefined();
+        });
+
         it('should keep positive values for VO2 max and recovery time', () => {
             const fitObject = {
                 estimated_vo2_max: 57.2,

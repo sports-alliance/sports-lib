@@ -21,6 +21,7 @@ import { DataGradeMax } from '../../../../data/data.grade-max';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { convertSpeedToPace } from '../../../utilities/helpers';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
 describe('EventImporterFIT session stats mapping', () => {
   const toArrayBuffer = (filePath: string): ArrayBuffer => {
@@ -117,6 +118,77 @@ describe('EventImporterFIT session stats mapping', () => {
 
     expect(vo2Max).toBeUndefined();
     expect(recoveryTime).toBeUndefined();
+  });
+
+  it('should prefer Garmin activity metrics VO2 max over user metrics VO2 max', async () => {
+    const fitFilePath = path.join(__dirname, '../../../../../samples/fit/2026-05-04_16-22.fit');
+    if (!fs.existsSync(fitFilePath)) {
+      console.warn(`Sample file not found at ${fitFilePath}. Skipping test.`);
+      return;
+    }
+
+    const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitFilePath));
+    const activity = event.getFirstActivity();
+
+    const vo2Max = activity.getStat(DataVO2Max.type);
+
+    expect(vo2Max).toBeDefined();
+    expect(vo2Max!.getValue()).toBeCloseTo(56.58073425292969, 6);
+  });
+
+  it('should fall back to Garmin user metrics VO2 max when activity metrics VO2 max is invalid', () => {
+    const startTime = new Date('2026-05-04T13:22:31.000Z');
+    const endTime = new Date('2026-05-04T13:32:31.000Z');
+    const activity = (EventImporterFIT as any).getActivityFromSessionObject(
+      {
+        start_time: startTime,
+        timestamp: endTime,
+        total_elapsed_time: 600,
+        total_timer_time: 600,
+        sport: 'cycling',
+        laps: []
+      },
+      {
+        file_ids: [{ manufacturer: 'garmin', product: 4655 }],
+        records: [],
+        events: [],
+        laps: [],
+        activity_metrics: [{ sport: 'cycling', vo2_max: 114688, first_vo2_max: 0, recovery_time: 0 }],
+        user_metrics: [{ start_of_activity: startTime, vo2_max: 53.18017578125, first_vo2_max: 53.18 }]
+      },
+      ActivityParsingOptions.DEFAULT
+    );
+
+    const vo2Max = activity.getStat(DataVO2Max.type);
+
+    expect(vo2Max).toBeDefined();
+    expect(vo2Max!.getValue()).toBeCloseTo(53.18017578125, 6);
+  });
+
+  it('should ignore irrational Garmin VO2 max values', () => {
+    const startTime = new Date('2026-05-04T13:22:31.000Z');
+    const endTime = new Date('2026-05-04T13:32:31.000Z');
+    const activity = (EventImporterFIT as any).getActivityFromSessionObject(
+      {
+        start_time: startTime,
+        timestamp: endTime,
+        total_elapsed_time: 600,
+        total_timer_time: 600,
+        sport: 'cycling',
+        laps: []
+      },
+      {
+        file_ids: [{ manufacturer: 'garmin', product: 4655 }],
+        records: [],
+        events: [],
+        laps: [],
+        activity_metrics: [{ sport: 'cycling', vo2_max: 114688, first_vo2_max: 0, recovery_time: 0 }],
+        user_metrics: [{ start_of_activity: startTime, vo2_max: 500, first_vo2_max: -1 }]
+      },
+      ActivityParsingOptions.DEFAULT
+    );
+
+    expect(activity.getStat(DataVO2Max.type)).toBeUndefined();
   });
 
   it('should map swim session stroke summary stats', async () => {

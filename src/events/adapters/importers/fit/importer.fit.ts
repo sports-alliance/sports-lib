@@ -185,6 +185,8 @@ const TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS = 1;
 
 export class EventImporterFIT {
   private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
+  private static readonly MIN_VALID_VO2_MAX = 10;
+  private static readonly MAX_VALID_VO2_MAX = 100;
 
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
@@ -1251,14 +1253,14 @@ export class EventImporterFIT {
           ) || fitDataObject.activity_metrics[0];
 
         if (activityMetric) {
-          const metricVO2Max = this.getPositiveNumericValue(activityMetric.vo2_max);
-          const metricFirstVO2Max = this.getPositiveNumericValue(activityMetric.first_vo2_max);
+          const metricVO2Max = this.getFirstValidVO2MaxValue(
+            activityMetric.vo2_max,
+            activityMetric.first_vo2_max
+          );
           const metricRecoveryTime = this.getPositiveNumericValue(activityMetric.recovery_time);
 
           if (metricVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
             activity.addStat(new DataVO2Max(metricVO2Max));
-          } else if (metricFirstVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
-            activity.addStat(new DataVO2Max(metricFirstVO2Max));
           }
 
           if (metricRecoveryTime !== null && !activity.getStat(DataRecoveryTime.type)) {
@@ -1280,6 +1282,12 @@ export class EventImporterFIT {
             activity.addStat(new DataAerobicTrainingEffect(activityMetric.aerobic_training_effect));
           }
         }
+      }
+
+      const userMetric = this.getUserMetricForSession(fitDataObject.user_metrics, sessionObject);
+      const userMetricVO2Max = this.getFirstValidVO2MaxValue(userMetric?.vo2_max, userMetric?.first_vo2_max);
+      if (userMetricVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
+        activity.addStat(new DataVO2Max(userMetricVO2Max));
       }
 
       // Check for HR zone durations from time_in_zone messages
@@ -1589,6 +1597,49 @@ export class EventImporterFIT {
     return numericValue;
   }
 
+  private static getValidVO2MaxValue(value: unknown): number | null {
+    const numericValue = this.getPositiveNumericValue(value);
+    if (
+      numericValue === null ||
+      numericValue <= this.MIN_VALID_VO2_MAX ||
+      numericValue > this.MAX_VALID_VO2_MAX
+    ) {
+      return null;
+    }
+
+    return numericValue;
+  }
+
+  private static getFirstValidVO2MaxValue(...values: unknown[]): number | null {
+    for (const value of values) {
+      const numericValue = this.getValidVO2MaxValue(value);
+      if (numericValue !== null) {
+        return numericValue;
+      }
+    }
+
+    return null;
+  }
+
+  private static getUserMetricForSession(userMetrics: unknown, sessionObject: any): any | null {
+    if (!Array.isArray(userMetrics) || !userMetrics.length) {
+      return null;
+    }
+
+    const sessionStart = this.getDateFromValue(sessionObject?.start_time);
+    if (!sessionStart) {
+      return userMetrics[0];
+    }
+
+    return (
+      userMetrics.find((metric: any) => {
+        const metricStart =
+          this.getDateFromValue(metric?.start_of_activity) || this.getDateFromValue(metric?.timestamp);
+        return metricStart ? Math.abs(metricStart.getTime() - sessionStart.getTime()) <= 1000 : false;
+      }) || userMetrics[0]
+    );
+  }
+
   private static getStringValue(value: unknown): string | null {
     if (typeof value === 'string') {
       const trimmedValue = value.trim();
@@ -1774,8 +1825,9 @@ export class EventImporterFIT {
       stats.push(new DataHeartRateMax(object.max_heart_rate));
     }
     // Cadence
-    if (object.vo2_max_cycling && object.vo2_max_cycling > 10) {
-      stats.push(new DataVO2Max(object.vo2_max_cycling));
+    const cyclingVO2Max = this.getValidVO2MaxValue(object.vo2_max_cycling);
+    if (cyclingVO2Max !== null) {
+      stats.push(new DataVO2Max(cyclingVO2Max));
     }
     if (isNumberOrString(object.avg_cadence)) {
       stats.push(new DataCadenceAvg(object.avg_cadence));
@@ -1911,7 +1963,7 @@ export class EventImporterFIT {
     }
 
     // Vo2Max
-    const estimatedVO2Max = this.getPositiveNumericValue(object.estimated_vo2_max);
+    const estimatedVO2Max = this.getValidVO2MaxValue(object.estimated_vo2_max);
     if (estimatedVO2Max !== null) {
       stats.push(new DataVO2Max(estimatedVO2Max));
     }

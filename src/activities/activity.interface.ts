@@ -16,6 +16,7 @@ import { DataStopEvent } from '../data/data.stop-event';
 import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 import { ActivityParsingOptions } from './activity-parsing-options';
+import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
 
 export interface ActivityInterface
   extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
@@ -189,6 +190,28 @@ export interface ActivityInterface
    * Gets the laps of the activity
    */
   hasLaps(): boolean;
+
+  /**
+   * Gets pool swim lengths of the activity.
+   */
+  getSwimLengths(): SwimLengthInterface[];
+
+  /**
+   * Adds a pool swim length to the activity.
+   * @param swimLength
+   */
+  addSwimLength(swimLength: SwimLengthInterface): this;
+
+  /**
+   * Replaces pool swim lengths of the activity.
+   * @param swimLengths
+   */
+  setSwimLengths(swimLengths: SwimLengthInterface[]): this;
+
+  /**
+   * Checks whether the activity has pool swim length rows.
+   */
+  hasSwimLengths(): boolean;
 
   /**
    * Gets all the timebased events of the activity

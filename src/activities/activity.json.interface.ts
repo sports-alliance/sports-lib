@@ -4,6 +4,7 @@ import { LapJSONInterface } from '../laps/lap.json.interface';
 import { DataJSONInterface } from '../data/data.json.interface';
 import { StreamJSONInterface } from '../streams/stream';
 import { ActivityTypes } from './activity.types';
+import { SwimLengthJSONInterface } from '../swim-lengths/swim-length.json.interface';
 
 export interface ActivityJSONInterface {
   id?: string;
@@ -17,6 +18,7 @@ export interface ActivityJSONInterface {
   stats: DataJSONInterface;
   streams: StreamJSONInterface[] | { [key: string]: (number | null)[] };
   laps: LapJSONInterface[];
+  swimLengths?: SwimLengthJSONInterface[];
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];
   events: DataJSONInterface[];

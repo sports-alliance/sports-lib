@@ -1,5 +1,6 @@
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
+import { SwimLength } from '../../../../swim-lengths/swim-length';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -16,6 +17,7 @@ import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
 import { GarminSports, GarminSubSports } from './importer.fit.garmin.profile.data';
 import { DataPause } from '../../../../data/data.pause';
 import { DataInterface } from '../../../../data/data.interface';
+import { DataCadence } from '../../../../data/data.cadence';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
 import { DataPowerAvg } from '../../../../data/data.power-avg';
 import { DataSpeedAvg } from '../../../../data/data.speed-avg';
@@ -1398,6 +1400,7 @@ export class EventImporterFIT {
           }
         }
       }
+      this.addSwimLengthsFromSessionObject(activity, sessionObject, fitDataObject);
       return activity;
     }
   }
@@ -1595,6 +1598,274 @@ export class EventImporterFIT {
     }
 
     return numericValue;
+  }
+
+  private static getFirstNumericValue(...values: unknown[]): number | null {
+    for (const value of values) {
+      const numericValue = this.getNumericValue(value);
+      if (numericValue !== null) {
+        return numericValue;
+      }
+    }
+
+    return null;
+  }
+
+  private static getFitEnumValue(value: unknown): string | null {
+    return this.getStringValue(value)?.toLowerCase() || null;
+  }
+
+  private static getPoolLengthUnit(value: unknown): 'metric' | 'statute' | null {
+    switch (this.getFitEnumValue(value)) {
+      case '0':
+      case 'metric':
+      case 'meter':
+      case 'meters':
+      case 'm':
+        return 'metric';
+      case '1':
+      case 'statute':
+      case 'yard':
+      case 'yards':
+      case 'yd':
+        return 'statute';
+      default:
+        return null;
+    }
+  }
+
+  private static getSwimLengthType(value: unknown): string | null {
+    switch (this.getFitEnumValue(value)) {
+      case '0':
+      case 'idle':
+        return 'idle';
+      case '1':
+      case 'active':
+        return 'active';
+      default:
+        return this.getStringValue(value);
+    }
+  }
+
+  private static getSwimStroke(value: unknown): string | null {
+    switch (this.getFitEnumValue(value)) {
+      case '0':
+      case 'freestyle':
+        return 'freestyle';
+      case '1':
+      case 'backstroke':
+        return 'backstroke';
+      case '2':
+      case 'breaststroke':
+        return 'breaststroke';
+      case '3':
+      case 'butterfly':
+        return 'butterfly';
+      case '4':
+      case 'drill':
+        return 'drill';
+      case '5':
+      case 'mixed':
+        return 'mixed';
+      case '6':
+      case 'im':
+        return 'im';
+      default:
+        return this.getStringValue(value);
+    }
+  }
+
+  private static getPoolLengthMeters(object: any): number | null {
+    const poolLength = this.getNumericValue(object?.pool_length);
+    if (poolLength === null) {
+      return null;
+    }
+
+    if (this.getPoolLengthUnit(object?.pool_length_unit) === 'statute') {
+      return poolLength * 0.9144;
+    }
+
+    return poolLength;
+  }
+
+  private static getSwimLengthEndDate(length: any, startDate: Date): Date {
+    const timerTime = this.getNumericValue(length?.total_timer_time);
+    const elapsedTime = this.getNumericValue(length?.total_elapsed_time);
+    const duration = timerTime ?? elapsedTime;
+    if (duration !== null) {
+      return new Date(startDate.getTime() + duration * 1000);
+    }
+
+    return this.getDateFromValue(length?.timestamp) || startDate;
+  }
+
+  private static getLapWindow(lap: any): { startDate: Date | null; endDate: Date | null } {
+    const startDate = this.getDateFromValue(lap?.start_time);
+    const elapsedTime = this.getNumericValue(lap?.total_elapsed_time) ?? this.getNumericValue(lap?.total_timer_time);
+    const endDate =
+      this.getDateFromValue(lap?.timestamp) ||
+      (startDate && elapsedTime !== null ? new Date(startDate.getTime() + elapsedTime * 1000) : null);
+
+    return { startDate, endDate };
+  }
+
+  private static getLengthLapIndex(length: any, laps: any[]): number | null {
+    const lengthStartDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
+    if (!lengthStartDate) {
+      return null;
+    }
+
+    const lengthTime = lengthStartDate.getTime();
+    const lapIndex = laps.findIndex(lap => {
+      const { startDate, endDate } = this.getLapWindow(lap);
+      return !!startDate && !!endDate && lengthTime >= startDate.getTime() && lengthTime < endDate.getTime();
+    });
+
+    return lapIndex === -1 ? null : lapIndex + 1;
+  }
+
+  private static getSwimLengthDistance(
+    length: any,
+    lap: any | undefined,
+    lapIndex: number | null,
+    poolLength: number | null,
+    activeLengthCountByLapIndex: Map<number, number>
+  ): number | null {
+    const type = this.getSwimLengthType(length?.length_type);
+    if (type !== 'active') {
+      return null;
+    }
+
+    const explicitDistance = this.getNumericValue(length?.total_distance);
+    if (explicitDistance !== null) {
+      return explicitDistance;
+    }
+
+    if (poolLength !== null) {
+      return poolLength;
+    }
+
+    if (!lap || lapIndex === null) {
+      return null;
+    }
+
+    const activeLengthCount = activeLengthCountByLapIndex.get(lapIndex);
+    const lapDistance = this.getNumericValue(lap?.total_distance);
+    if (!activeLengthCount || lapDistance === null) {
+      return null;
+    }
+
+    return lapDistance / activeLengthCount;
+  }
+
+  private static addSwimLengthsFromSessionObject(
+    activity: ActivityInterface,
+    sessionObject: any,
+    fitDataObject: any
+  ): void {
+    const sessionStartDate = this.getDateFromValue(sessionObject?.start_time);
+    const sessionElapsedTime =
+      this.getNumericValue(sessionObject?.total_elapsed_time) ?? this.getNumericValue(sessionObject?.total_timer_time);
+    const sessionEndDate =
+      this.getDateFromValue(sessionObject?.timestamp) ||
+      (sessionStartDate && sessionElapsedTime !== null
+        ? new Date(sessionStartDate.getTime() + sessionElapsedTime * 1000)
+        : null);
+
+    const rawLengths = Array.isArray(sessionObject?.lengths)
+      ? sessionObject.lengths
+      : Array.isArray(fitDataObject?.lengths)
+        ? fitDataObject.lengths
+        : [];
+
+    if (!rawLengths.length || !sessionStartDate || !sessionEndDate) {
+      return;
+    }
+
+    const lengths = rawLengths
+      .filter((length: any) => {
+        const lengthDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
+        return (
+          !!lengthDate &&
+          lengthDate.getTime() >= sessionStartDate.getTime() &&
+          lengthDate.getTime() < sessionEndDate.getTime()
+        );
+      })
+      .sort((a: any, b: any) => {
+        const aDate = this.getDateFromValue(a?.start_time) || this.getDateFromValue(a?.timestamp);
+        const bDate = this.getDateFromValue(b?.start_time) || this.getDateFromValue(b?.timestamp);
+        return (aDate?.getTime() || 0) - (bDate?.getTime() || 0);
+      });
+
+    if (!lengths.length) {
+      return;
+    }
+
+    const laps = Array.isArray(sessionObject?.laps) ? sessionObject.laps : [];
+    const poolLength = this.getPoolLengthMeters(sessionObject);
+    const activeLengthCountByLapIndex = new Map<number, number>();
+    const lapByIndex = new Map<number, any>();
+
+    laps.forEach((lap: any, index: number) => {
+      const lapIndex = index + 1;
+      lapByIndex.set(lapIndex, lap);
+      const activeLengthCount = lengths.filter((length: any) => {
+        return this.getLengthLapIndex(length, laps) === lapIndex && this.getSwimLengthType(length?.length_type) === 'active';
+      }).length;
+      activeLengthCountByLapIndex.set(lapIndex, activeLengthCount);
+    });
+
+    lengths.forEach((length: any, lengthIndex: number) => {
+      const startDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
+      if (!startDate) {
+        return;
+      }
+
+      const lapIndex = this.getLengthLapIndex(length, laps);
+      const lap = lapIndex === null ? undefined : lapByIndex.get(lapIndex);
+      const timerTime = this.getNumericValue(length?.total_timer_time);
+      const elapsedTime = this.getNumericValue(length?.total_elapsed_time);
+
+      activity.addSwimLength(
+        new SwimLength({
+          index: lengthIndex + 1,
+          lapIndex,
+          startDate,
+          endDate: this.getSwimLengthEndDate(length, startDate),
+          type: this.getSwimLengthType(length?.length_type) || 'unknown',
+          stroke: this.getSwimStroke(length?.swim_stroke),
+          strokes: this.getNumericValue(length?.total_strokes),
+          elapsedTime: elapsedTime === null ? null : new DataDuration(elapsedTime),
+          timerTime: timerTime === null ? null : new DataDuration(timerTime),
+          distance: (() => {
+            const distance = this.getSwimLengthDistance(length, lap, lapIndex, poolLength, activeLengthCountByLapIndex);
+            return distance === null ? null : new DataDistance(distance);
+          })(),
+          poolLength: poolLength === null ? null : new DataDistance(poolLength),
+          avgSpeed: (() => {
+            const avgSpeed = this.getNumericValue(length?.avg_speed);
+            return avgSpeed === null ? null : new DataSpeed(avgSpeed);
+          })(),
+          avgCadence: (() => {
+            const avgCadence = this.getFirstNumericValue(length?.avg_cadence, length?.avg_swimming_cadence);
+            return avgCadence === null ? null : new DataCadence(avgCadence);
+          })(),
+          avgHeartRate: (() => {
+            const avgHeartRate = this.getNumericValue(length?.avg_heart_rate);
+            return avgHeartRate === null ? null : new DataHeartRate(avgHeartRate);
+          })(),
+          maxHeartRate: (() => {
+            const maxHeartRate = this.getNumericValue(length?.max_heart_rate);
+            return maxHeartRate === null ? null : new DataHeartRate(maxHeartRate);
+          })(),
+          swolf: this.getNumericValue(length?.avg_swolf),
+          calories: (() => {
+            const calories = this.getNumericValue(length?.total_calories);
+            return calories === null ? null : new DataEnergy(calories);
+          })()
+        })
+      );
+    });
   }
 
   private static getValidVO2MaxValue(value: unknown): number | null {

@@ -31,6 +31,8 @@ import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change
 import { ActivityParsingOptions } from './activity-parsing-options';
 import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
 import { DurationExceededEventLibError } from '../errors/duration-exceeded-event-lib.error';
+import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
+import { SwimLengthJSONInterface } from '../swim-lengths/swim-length.json.interface';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
@@ -54,6 +56,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   public powerCurve?: DataPowerCurve;
 
   private laps: LapInterface[] = [];
+  private swimLengths: SwimLengthInterface[] = [];
   private streams: StreamInterface[] = [];
 
   private events: DataEvent[] = [];
@@ -273,6 +276,24 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this.laps.length > 0;
   }
 
+  getSwimLengths(): SwimLengthInterface[] {
+    return this.swimLengths;
+  }
+
+  addSwimLength(swimLength: SwimLengthInterface): this {
+    this.swimLengths.push(swimLength);
+    return this;
+  }
+
+  setSwimLengths(swimLengths: SwimLengthInterface[]): this {
+    this.swimLengths = swimLengths;
+    return this;
+  }
+
+  hasSwimLengths(): boolean {
+    return this.swimLengths.length > 0;
+  }
+
   getAllEvents(): DataEvent[] {
     return this.events;
   }
@@ -381,7 +402,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       streams.push(timeStream);
     }
 
-    return {
+    const activityJSON: ActivityJSONInterface = {
       name: this.name || null,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),
@@ -400,7 +421,16 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       laps: this.getLaps().reduce((jsonLapsArray: LapJSONInterface[], lap: LapInterface) => {
         jsonLapsArray.push(lap.toJSON(this));
         return jsonLapsArray;
-      }, [])
+      }, []),
+      swimLengths: this.getSwimLengths().reduce(
+        (jsonSwimLengthsArray: SwimLengthJSONInterface[], swimLength: SwimLengthInterface) => {
+          jsonSwimLengthsArray.push(swimLength.toJSON());
+          return jsonSwimLengthsArray;
+        },
+        []
+      )
     };
+
+    return activityJSON;
   }
 }

@@ -3,9 +3,15 @@ import * as path from 'path';
 import { EventImporterFIT } from './importer.fit';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ActivityTypes } from '../../../../activities/activity.types';
+import { DataCadence } from '../../../../data/data.cadence';
 import { DataDistance } from '../../../../data/data.distance';
+import { DataDuration } from '../../../../data/data.duration';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataPace } from '../../../../data/data.pace';
+import { DataSpeed } from '../../../../data/data.speed';
+import { EventImporterJSON } from '../json/importer.json';
+import { Activity } from '../../../../activities/activity';
+import { Creator } from '../../../../creators/creator';
 
 describe('EventImporterFIT', () => {
   describe('Session normalization', () => {
@@ -114,6 +120,149 @@ describe('EventImporterFIT', () => {
       );
 
       expect(ibiData).toEqual([1000, 1000]);
+    });
+  });
+
+  describe('Swim lengths', () => {
+    it('should expose FIT pool swim length rows and preserve them through JSON import', async () => {
+      const fitFilePath = path.resolve(__dirname, '../../../../specs/fixtures/swim/fit/6860712481.fit');
+      const fileBuffer = fs.readFileSync(fitFilePath);
+      const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+
+      const event = await EventImporterFIT.getFromArrayBuffer(arrayBuffer, ActivityParsingOptions.DEFAULT, 'swim-lengths.fit');
+      const activity = event.getActivities()[0];
+      const swimLengths = activity.getSwimLengths();
+
+      expect(swimLengths).toHaveLength(94);
+      expect(swimLengths.filter(length => length.type === 'active')).toHaveLength(80);
+      expect(swimLengths.filter(length => length.type === 'idle')).toHaveLength(14);
+      expect(swimLengths[0].poolLength?.getValue()).toBe(25);
+
+      const firstActiveLength = swimLengths.find(length => length.type === 'active');
+      expect(firstActiveLength?.distance?.getValue()).toBe(25);
+      expect(firstActiveLength?.stroke).toBeTruthy();
+
+      const firstIdleLength = swimLengths.find(length => length.type === 'idle');
+      expect(firstIdleLength?.distance).toBeNull();
+
+      const roundTrippedActivity = EventImporterJSON.getActivityFromJSON(activity.toJSON());
+      expect(roundTrippedActivity.getSwimLengths().map(length => length.toJSON())).toEqual(
+        swimLengths.map(length => length.toJSON())
+      );
+    });
+
+    it('should expose swim lengths from original event 2e7c563f3145828e12ac2eff38ede2d9c4d3ff9f19d4c55aae9c9d6760ab4f7c', async () => {
+      const fitFilePath = path.resolve(
+        __dirname,
+        '../../../../specs/fixtures/swim/fit/original-event-2e7c563f3145828e12ac2eff38ede2d9c4d3ff9f19d4c55aae9c9d6760ab4f7c.fit'
+      );
+      const fileBuffer = fs.readFileSync(fitFilePath);
+      const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+
+      const event = await EventImporterFIT.getFromArrayBuffer(
+        arrayBuffer,
+        ActivityParsingOptions.DEFAULT,
+        'original-event-2e7c563f3145828e12ac2eff38ede2d9c4d3ff9f19d4c55aae9c9d6760ab4f7c.fit'
+      );
+      const activity = event.getActivities()[0];
+      const swimLengths = activity.getSwimLengths();
+
+      expect(event.getActivities()).toHaveLength(1);
+      expect(activity.type).toBe(ActivityTypes.Swimming);
+      expect(activity.getLaps()).toHaveLength(2);
+      expect(swimLengths).toHaveLength(67);
+      expect(swimLengths.filter(length => length.type === 'active')).toHaveLength(64);
+      expect(swimLengths.filter(length => length.type === 'idle')).toHaveLength(3);
+      expect(swimLengths.reduce((totalDistance, length) => totalDistance + (length.distance?.getValue() || 0), 0)).toBe(1600);
+      expect(swimLengths[0].toJSON()).toEqual(expect.objectContaining({
+        index: 1,
+        lapIndex: 1,
+        type: 'idle',
+        distance: null,
+        poolLength: 25
+      }));
+
+      const firstActiveLength = swimLengths.find(length => length.type === 'active');
+      expect(firstActiveLength?.toJSON()).toEqual(expect.objectContaining({
+        lapIndex: 1,
+        stroke: 'freestyle',
+        distance: 25,
+        poolLength: 25
+      }));
+
+      const roundTrippedActivity = EventImporterJSON.getActivityFromJSON(activity.toJSON());
+      expect(roundTrippedActivity.getSwimLengths().map(length => length.toJSON())).toEqual(
+        swimLengths.map(length => length.toJSON())
+      );
+    });
+
+    it('should prefer session-scoped lengths and normalize numeric swim enum fields', () => {
+      const startDate = new Date('2026-05-16T15:27:09.000Z');
+      const endDate = new Date('2026-05-16T15:27:34.000Z');
+      const activity = new Activity(startDate, endDate, ActivityTypes.Swimming, new Creator('Test'));
+
+      (EventImporterFIT as any).addSwimLengthsFromSessionObject(
+        activity,
+        {
+          start_time: startDate,
+          timestamp: endDate,
+          total_elapsed_time: 25,
+          pool_length: 25,
+          pool_length_unit: 0,
+          laps: [
+            {
+              start_time: startDate,
+              timestamp: endDate,
+              total_elapsed_time: 25,
+              total_distance: 25
+            }
+          ],
+          lengths: [
+            {
+              start_time: startDate,
+              timestamp: endDate,
+              total_elapsed_time: 25,
+              total_timer_time: 25,
+              length_type: 1,
+              swim_stroke: 0,
+              total_strokes: 8,
+              avg_speed: 1,
+              avg_swimming_cadence: 20
+            }
+          ]
+        },
+        {
+          lengths: [
+            {
+              start_time: startDate,
+              timestamp: endDate,
+              total_elapsed_time: 25,
+              total_timer_time: 25,
+              length_type: 0
+            }
+          ]
+        }
+      );
+
+      const swimLength = activity.getSwimLengths()[0];
+      expect(swimLength.elapsedTime).toBeInstanceOf(DataDuration);
+      expect(swimLength.distance).toBeInstanceOf(DataDistance);
+      expect(swimLength.poolLength).toBeInstanceOf(DataDistance);
+      expect(swimLength.avgSpeed).toBeInstanceOf(DataSpeed);
+      expect(swimLength.avgCadence).toBeInstanceOf(DataCadence);
+
+      expect(activity.getSwimLengths().map(length => length.toJSON())).toEqual([
+        expect.objectContaining({
+          index: 1,
+          lapIndex: 1,
+          type: 'active',
+          stroke: 'freestyle',
+          distance: 25,
+          poolLength: 25,
+          strokes: 8,
+          avgSpeed: 1
+        })
+      ]);
     });
   });
 

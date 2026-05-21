@@ -26,6 +26,7 @@ import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataEvent } from '../../../../data/data.event';
 import { DataTime } from '../../../../data/data.time';
 import { DataPowerCurve } from '../../../../data/data.power-curve';
+import { SwimLength } from '../../../../swim-lengths/swim-length';
 
 export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
@@ -209,6 +210,11 @@ export class EventImporterJSON {
     json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
       activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
     });
+    if (Array.isArray(json.swimLengths)) {
+      json.swimLengths.forEach(swimLengthJSON => {
+        activity.addSwimLength(SwimLength.fromJSON(swimLengthJSON));
+      });
+    }
 
     if (Array.isArray(json.streams)) {
       json.streams.forEach((streamJson: StreamJSONInterface) => {

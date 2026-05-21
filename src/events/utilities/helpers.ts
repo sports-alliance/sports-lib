@@ -76,11 +76,11 @@ export function convertMetersToFeet(number: number): number {
 }
 
 /**
- * Converts m/s to seconds per 100m
+ * Converts swim pace from seconds per 100m to seconds per 100yd.
  * @param number
  */
 export function convertSwimPaceToSwimPacePer100Yard(number: number): number {
-  return number * 1.93613298;
+  return number * 0.9144;
 }
 
 export function getSize(obj: any): number {

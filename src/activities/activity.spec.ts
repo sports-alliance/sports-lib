@@ -26,6 +26,11 @@ describe('Activity', () => {
     activity.setID('123');
   });
 
+  it('should serialize swim lengths as an activity JSON array like laps', () => {
+    expect(activity.toJSON().laps).toEqual([]);
+    expect(activity.toJSON().swimLengths).toEqual([]);
+  });
+
   it('should get streams based on time', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));

@@ -16,6 +16,7 @@ export interface UserChartSettingsInterface {
   fillOpacity: number;
   lapTypes: LapTypes[];
   showLaps: boolean;
+  showSwimLengths: boolean;
   showGrid: boolean;
   stackYAxes: boolean;
   disableGrouping: boolean;

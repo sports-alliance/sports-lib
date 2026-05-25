@@ -675,6 +675,7 @@ export const DataStore: any = {
   DataStrydSpeed,
   DataStrydDistance,
   DataPoolLength,
+  DataSwimDistance,
   DataDeviceLocation,
   DataPeakEPOC,
   DataActivityTypes,

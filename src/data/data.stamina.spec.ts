@@ -31,4 +31,14 @@ describe('Garmin stamina data types', () => {
     expect(DynamicDataLoader.dataTypeMaxDataType[DataPotentialStamina.type]).toBe(DataPotentialStaminaMax.type);
     expect(DynamicDataLoader.dataTypeAvgDataType[DataPotentialStamina.type]).toBe(DataPotentialStaminaAvg.type);
   });
+
+  it('should round stamina display values without changing raw values', () => {
+    const stamina = new DataStaminaAvg(68.23456789);
+    const potentialStamina = new DataPotentialStaminaAvg(79.87654321);
+
+    expect(stamina.getValue()).toBe(68.23456789);
+    expect(stamina.getDisplayValue()).toBe(68.2);
+    expect(potentialStamina.getValue()).toBe(79.87654321);
+    expect(potentialStamina.getDisplayValue()).toBe(79.9);
+  });
 });

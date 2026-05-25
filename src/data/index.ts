@@ -237,6 +237,7 @@ export * from './data.string';
 export * from './data.stryd-altitude';
 export * from './data.stryd-distance';
 export * from './data.stryd-speed';
+export * from './data.swim-distance';
 export * from './data.swim-pace-avg';
 export * from './data.swim-pace-max';
 export * from './data.swim-pace-min';

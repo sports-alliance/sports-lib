@@ -33,6 +33,7 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
+import { DataSwimDistance } from './data.swim-distance';
 import { DataJumpDistance } from './data.jump-distance';
 import {
   DataJumpDistanceAvg,
@@ -329,6 +330,16 @@ describe('DataStore', () => {
       expect(converted[0].getType()).toBe(DataDistanceFeet.type);
       expect(converted[0].getDisplayValue()).toBe('6.6');
       expect(converted[0].getDisplayUnit()).toBe('ft');
+    });
+
+    it('keeps swim distance in meters when distance preference is miles', () => {
+      const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(new DataSwimDistance(1500), milesSettings);
+
+      expect(converted).toHaveLength(1);
+      expect(converted[0].getType()).toBe(DataDistance.type);
+      expect(converted[0].getDisplayType()).toBe(DataDistance.type);
+      expect(converted[0].getDisplayValue()).toBe('1500');
+      expect(converted[0].getDisplayUnit()).toBe('m');
     });
 
     it('defaults to kilometers when distanceUnits is missing', () => {

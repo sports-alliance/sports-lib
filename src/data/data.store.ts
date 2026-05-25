@@ -166,6 +166,7 @@ import { DataAltiBaroProfile } from './data.alti-baro-profile';
 import { DataIBI } from './data.ibi';
 import { DataSteps } from './data.steps';
 import { DataPoolLength } from './data.pool-length';
+import { DataSwimDistance } from './data.swim-distance';
 import { DataDeviceLocation } from './data.device-location';
 import { DataPeakEPOC } from './data.peak-epoc';
 import { DataDeviceNames } from './data.device-names';
@@ -1700,6 +1701,9 @@ export class DynamicDataLoader {
     data: DataInterface,
     userUnitSettings?: UserUnitSettingsInterface
   ): DataInterface[] {
+    if (data instanceof DataSwimDistance) {
+      return [data];
+    }
     if (!userUnitSettings) {
       return [data];
     }

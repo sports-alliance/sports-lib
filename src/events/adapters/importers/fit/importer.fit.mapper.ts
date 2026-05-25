@@ -31,6 +31,7 @@ import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataAirPower } from '../../../../data/data.air-power';
 import { DataGrit } from '../../../../data/data.grit';
 import { DataFlow } from '../../../../data/data.flow';
+import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { DataLeftTorqueEffectiveness } from '../../../../data/data.left-torque-effectiveness';
 import { DataRightTorqueEffectiveness } from '../../../../data/data.right-torque-effectiveness';
 import { DataLeftPedalSmoothness } from '../../../../data/data.left-pedal-smoothness';
@@ -295,6 +296,18 @@ export const FITSampleMapper: {
     dataType: DataVerticalRatio.type,
     getSampleValue: (sample: any) => {
       return sample.vertical_ratio;
+    }
+  },
+  {
+    dataType: DataStamina.type,
+    getSampleValue: (sample: any) => {
+      return isNumber(sample.stamina) ? sample.stamina : null;
+    }
+  },
+  {
+    dataType: DataPotentialStamina.type,
+    getSampleValue: (sample: any) => {
+      return isNumber(sample.potential_stamina) ? sample.potential_stamina : null;
     }
   },
   {

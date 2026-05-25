@@ -154,7 +154,7 @@ High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
-- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work
+- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
@@ -337,6 +337,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Battery Current` (unit: `mA`)
 - `Battery Life Est.`
 - `Battery Voltage` (unit: `V`)
+- `Beginning Potential Stamina` (unit: `%`)
 - `Bike Pod`
 - `Cadence` (unit: `rpm`)
 - `CriticalPower`
@@ -361,6 +362,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Enabled Navigation Systems`
 - `End Altitude`
 - `End Position`
+- `Ending Potential Stamina` (unit: `%`)
 - `Energy` (unit: `KCal`)
 - `EPOC` (unit: `ml/kg`)
 - `Est Sweat Loss` (unit: `ml`)
@@ -423,6 +425,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Power Work` (unit: `kJ`)
 - `PowerCurve`
 - `PowerWattsPerKg`
+- `Potential Stamina` (unit: `%`)
 - `Primary Benefit`
 - `Rated Perceived Exertion`
 - `Recovery Time`
@@ -437,6 +440,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Speed` (unit: `m/s`)
 - `Speed (Stryd)`
 - `Sport Profile Name`
+- `Stamina` (unit: `%`)
 - `Stance Time` (unit: `ms`)
 - `Stance Time Balance Left`
 - `Stance Time Balance Right`
@@ -530,9 +534,11 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average Pace`
 - `Average pace in minutes per mile`
 - `Average Power`
+- `Average Potential Stamina` (unit: `%`)
 - `Average Respiration Rate` (unit: `br/min`)
 - `Average Satellite 5 Best SNR`
 - `Average Speed`
+- `Average Stamina` (unit: `%`)
 - `Average speed in feet per minute`
 - `Average speed in feet per second`
 - `Average speed in kilometers per hour`
@@ -594,9 +600,11 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum Pace`
 - `Maximum pace in minutes per mile`
 - `Maximum Power`
+- `Maximum Potential Stamina` (unit: `%`)
 - `Maximum Respiration Rate` (unit: `br/min`)
 - `Maximum Satellite 5 Best SNR`
 - `Maximum Speed`
+- `Maximum Stamina` (unit: `%`)
 - `Maximum speed in feet per minute`
 - `Maximum speed in feet per second`
 - `Maximum speed in kilometers per hour`
@@ -650,9 +658,11 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Minimum Pace`
 - `Minimum pace in minutes per mile`
 - `Minimum Power`
+- `Minimum Potential Stamina` (unit: `%`)
 - `Minimum Respiration Rate` (unit: `br/min`)
 - `Minimum Satellite 5 Best SNR`
 - `Minimum Speed`
+- `Minimum Stamina` (unit: `%`)
 - `Minimum speed in feet per minute`
 - `Minimum speed in feet per second`
 - `Minimum speed in kilometers per hour`

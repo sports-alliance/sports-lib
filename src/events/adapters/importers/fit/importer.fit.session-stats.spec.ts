@@ -19,6 +19,11 @@ import { DataGradeAvg } from '../../../../data/data.grade-avg';
 import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataGradeMax } from '../../../../data/data.grade-max';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
+import {
+  DataBeginningPotentialStamina,
+  DataEndingPotentialStamina,
+  DataStaminaMin
+} from '../../../../data/data.stamina';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
@@ -251,5 +256,26 @@ describe('EventImporterFIT session stats mapping', () => {
     expect(avgGrade!.getValue()).toBeCloseTo(0.13, 2);
     expect(minGrade!.getValue()).toBeCloseTo(-3.84, 2);
     expect(maxGrade!.getValue()).toBeCloseTo(4.47, 2);
+  });
+
+  it('should map Garmin stamina session summary fields', () => {
+    const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
+    const stats = EventImporterFIT.getStatsFromObject(
+      {
+        total_elapsed_time: 10,
+        total_timer_time: 10,
+        beginning_potential_stamina: 95,
+        ending_potential_stamina: 66,
+        min_stamina: 34
+      },
+      activity,
+      false
+    );
+
+    const getStat = (type: string) => stats.find(stat => stat.getType() === type);
+
+    expect(getStat(DataBeginningPotentialStamina.type)?.getValue()).toBe(95);
+    expect(getStat(DataEndingPotentialStamina.type)?.getValue()).toBe(66);
+    expect(getStat(DataStaminaMin.type)?.getValue()).toBe(34);
   });
 });

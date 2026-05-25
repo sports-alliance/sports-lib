@@ -33,7 +33,7 @@ import { DataHeartRateMin } from '../../../../data/data.heart-rate-min';
 import { DataPowerMin } from '../../../../data/data.power-min';
 import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
 import { FITSampleMapper } from './importer.fit.mapper';
-import { convertSpeedToPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
+import { convertSpeedToPace, convertSpeedToSwimPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
@@ -153,6 +153,11 @@ import { DataBatteryLifeEstimation } from '../../../../data/data.battery-life-es
 import { DataGradeAvg } from '../../../../data/data.grade-avg';
 import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataGradeMax } from '../../../../data/data.grade-max';
+import {
+  DataBeginningPotentialStamina,
+  DataEndingPotentialStamina,
+  DataStaminaMin
+} from '../../../../data/data.stamina';
 
 import {
   DataJumpDistanceAvg,
@@ -2269,7 +2274,7 @@ export class EventImporterFIT {
       (isNumberOrString(object.avg_speed) || isNumberOrString(object.enhanced_avg_speed)) &&
       isNumberOrString(object.avg_cadence)
     ) {
-      const avgPace100m = 100 / (object.avg_speed || object.enhanced_avg_speed);
+      const avgPace100m = convertSpeedToSwimPace(object.avg_speed || object.enhanced_avg_speed);
 
       if (Number.isFinite(avgPace100m) && Number.isFinite(object.avg_cadence)) {
         const avgCadence = object.avg_cadence;
@@ -2336,6 +2341,16 @@ export class EventImporterFIT {
     }
     if (isNumberOrString(object.max_neg_grade)) {
       stats.push(new DataGradeMin(object.max_neg_grade));
+    }
+
+    if (isNumberOrString(object.beginning_potential_stamina)) {
+      stats.push(new DataBeginningPotentialStamina(object.beginning_potential_stamina));
+    }
+    if (isNumberOrString(object.ending_potential_stamina)) {
+      stats.push(new DataEndingPotentialStamina(object.ending_potential_stamina));
+    }
+    if (isNumberOrString(object.min_stamina)) {
+      stats.push(new DataStaminaMin(object.min_stamina));
     }
 
     if (Number.isFinite(object.avg_step_length)) {

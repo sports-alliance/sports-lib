@@ -67,6 +67,16 @@ import { DataVerticalRatio } from '../../data/data.vertical-ratio';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
+import {
+  DataPotentialStamina,
+  DataPotentialStaminaAvg,
+  DataPotentialStaminaMax,
+  DataPotentialStaminaMin,
+  DataStamina,
+  DataStaminaAvg,
+  DataStaminaMax,
+  DataStaminaMin
+} from '../../data/data.stamina';
 import { DataPowerAvg } from '../../data/data.power-avg';
 import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
 import { DataWeight } from '../../data/data.weight';
@@ -907,6 +917,25 @@ describe('Activity Utilities', () => {
       expect((activity.getStat(DataVerticalRatioMax.type) as DataVerticalRatioMax).getValue()).toBe(8.1);
       expect((activity.getStat(DataVerticalRatioAvg.type) as DataVerticalRatioAvg).getValue()).toBeCloseTo(
         7.8333333333,
+        10
+      );
+    });
+
+    it('should generate min/max/avg stats for Garmin stamina streams', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataStamina.type, [95, 66, 34]));
+      activity.addStream(new Stream(DataPotentialStamina.type, [95, 80, 66]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataStaminaMin.type) as DataStaminaMin).getValue()).toBe(34);
+      expect((activity.getStat(DataStaminaMax.type) as DataStaminaMax).getValue()).toBe(95);
+      expect((activity.getStat(DataStaminaAvg.type) as DataStaminaAvg).getValue()).toBe(65);
+
+      expect((activity.getStat(DataPotentialStaminaMin.type) as DataPotentialStaminaMin).getValue()).toBe(66);
+      expect((activity.getStat(DataPotentialStaminaMax.type) as DataPotentialStaminaMax).getValue()).toBe(95);
+      expect((activity.getStat(DataPotentialStaminaAvg.type) as DataPotentialStaminaAvg).getValue()).toBeCloseTo(
+        80.3333333333,
         10
       );
     });

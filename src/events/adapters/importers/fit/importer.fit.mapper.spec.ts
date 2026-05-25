@@ -4,6 +4,7 @@ import { FITSampleMapper } from './importer.fit.mapper';
 import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
+import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { EventImporterFIT } from './importer.fit';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 
@@ -84,5 +85,16 @@ describe('FITSampleMapper', () => {
 
     expect(mapper!.getSampleValue({ 'Effort Pace': 0 })).toBeNull();
     expect(mapper!.getSampleValue({ 'Effort Pace': -1 })).toBeNull();
+  });
+
+  it('should map Garmin stamina streams from record fields', () => {
+    const staminaMapper = FITSampleMapper.find(m => m.dataType === DataStamina.type);
+    const potentialStaminaMapper = FITSampleMapper.find(m => m.dataType === DataPotentialStamina.type);
+
+    expect(staminaMapper).toBeDefined();
+    expect(potentialStaminaMapper).toBeDefined();
+    expect(staminaMapper!.getSampleValue({ stamina: 34, potential_stamina: 83 })).toBe(34);
+    expect(potentialStaminaMapper!.getSampleValue({ stamina: 34, potential_stamina: 83 })).toBe(83);
+    expect(staminaMapper!.getSampleValue({ stamina: 0 })).toBe(0);
   });
 });

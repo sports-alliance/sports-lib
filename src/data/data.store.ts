@@ -413,6 +413,18 @@ import { DataJumpDistance } from './data.jump-distance';
 import { DataEHPEMin } from './data.ehpe-min';
 import { DataEHPEMax } from './data.ehpe-max';
 import { DataEHPEAvg } from './data.ehpe-avg';
+import {
+  DataBeginningPotentialStamina,
+  DataEndingPotentialStamina,
+  DataPotentialStamina,
+  DataPotentialStaminaAvg,
+  DataPotentialStaminaMax,
+  DataPotentialStaminaMin,
+  DataStamina,
+  DataStaminaAvg,
+  DataStaminaMax,
+  DataStaminaMin
+} from './data.stamina';
 
 const getBaseTypeFromStatType = (type: string): string => type.replace(/^(Average|Minimum|Maximum)\s+/i, '');
 
@@ -489,6 +501,16 @@ export const DataStore: any = {
   DataGradeMin,
   DataGradeMax,
   DataGradeAvg,
+  DataStamina,
+  DataStaminaMin,
+  DataStaminaMax,
+  DataStaminaAvg,
+  DataPotentialStamina,
+  DataPotentialStaminaMin,
+  DataPotentialStaminaMax,
+  DataPotentialStaminaAvg,
+  DataBeginningPotentialStamina,
+  DataEndingPotentialStamina,
   DataRecoveryTime,
   DataPowerMin,
   DataPowerMax,
@@ -844,6 +866,16 @@ export class DynamicDataLoader {
       min: DataJumpDistanceMin.type,
       max: DataJumpDistanceMax.type,
       avg: DataJumpDistanceAvg.type
+    },
+    [DataStamina.type]: {
+      min: DataStaminaMin.type,
+      max: DataStaminaMax.type,
+      avg: DataStaminaAvg.type
+    },
+    [DataPotentialStamina.type]: {
+      min: DataPotentialStaminaMin.type,
+      max: DataPotentialStaminaMax.type,
+      avg: DataPotentialStaminaAvg.type
     },
     'Jump Hang Time': {
       min: DataJumpHangTimeMin.type,

@@ -210,6 +210,16 @@ import { DataVerticalRatio } from '../../data/data.vertical-ratio';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
+import {
+  DataPotentialStamina,
+  DataPotentialStaminaAvg,
+  DataPotentialStaminaMax,
+  DataPotentialStaminaMin,
+  DataStamina,
+  DataStaminaAvg,
+  DataStaminaMax,
+  DataStaminaMin
+} from '../../data/data.stamina';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 
@@ -3890,6 +3900,28 @@ export class ActivityUtilities {
       activity.addStat(new DataVerticalRatioAvg(this.getDataTypeAvg(activity, DataVerticalRatio.type)));
     }
 
+    // Stamina
+    if (!activity.getStat(DataStaminaMax.type) && activity.hasStreamData(DataStamina.type)) {
+      activity.addStat(new DataStaminaMax(this.getDataTypeMax(activity, DataStamina.type)));
+    }
+    if (!activity.getStat(DataStaminaMin.type) && activity.hasStreamData(DataStamina.type)) {
+      activity.addStat(new DataStaminaMin(this.getDataTypeMin(activity, DataStamina.type)));
+    }
+    if (!activity.getStat(DataStaminaAvg.type) && activity.hasStreamData(DataStamina.type)) {
+      activity.addStat(new DataStaminaAvg(this.getDataTypeAvg(activity, DataStamina.type)));
+    }
+
+    // Potential Stamina
+    if (!activity.getStat(DataPotentialStaminaMax.type) && activity.hasStreamData(DataPotentialStamina.type)) {
+      activity.addStat(new DataPotentialStaminaMax(this.getDataTypeMax(activity, DataPotentialStamina.type)));
+    }
+    if (!activity.getStat(DataPotentialStaminaMin.type) && activity.hasStreamData(DataPotentialStamina.type)) {
+      activity.addStat(new DataPotentialStaminaMin(this.getDataTypeMin(activity, DataPotentialStamina.type)));
+    }
+    if (!activity.getStat(DataPotentialStaminaAvg.type) && activity.hasStreamData(DataPotentialStamina.type)) {
+      activity.addStat(new DataPotentialStaminaAvg(this.getDataTypeAvg(activity, DataPotentialStamina.type)));
+    }
+
     this.addMissingJumpStatsFromEvents(activity);
   }
 
@@ -4573,7 +4605,7 @@ export class ActivityUtilities {
       (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type))?.getValue() &&
       (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type))?.getValue()
     ) {
-      const avgPace100m = 100 / (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type)).getValue();
+      const avgPace100m = convertSpeedToSwimPace((<DataSpeedAvg>activity.getStat(DataSpeedAvg.type)).getValue());
       const avgCadence = (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type)).getValue();
 
       if (!activity.getStat(DataSWOLF25m.type)) {

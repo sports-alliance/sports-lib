@@ -18,6 +18,13 @@ import { DataBatteryCharge } from '../../../../data/data.battery-charge';
 import { DataBatteryCurrent } from '../../../../data/data.battery-current';
 import { DataBatteryVoltage } from '../../../../data/data.battery-voltage';
 import {
+  DataPotentialStamina,
+  DataStamina,
+  DataStaminaAvg,
+  DataStaminaMax,
+  DataStaminaMin
+} from '../../../../data/data.stamina';
+import {
   getDuplicateStreamTypes,
   getPrimaryActivityForStreamRegression,
   getUniqueStreamTypes
@@ -32,6 +39,9 @@ describe('EventImporterSuuntoJSON Integration', () => {
     const fileString = fs.readFileSync(filePath, 'utf-8');
     return EventImporterSuuntoJSON.getFromJSONString(fileString, options);
   }
+
+  const finiteNumbers = (values: unknown[]): number[] =>
+    values.filter((value): value is number => Number.isFinite(value));
 
   it('should parse all sample suunto json files', async () => {
     if (!fs.existsSync(samplesDir)) {
@@ -137,6 +147,25 @@ describe('EventImporterSuuntoJSON Integration', () => {
     const baselineStreamTypes = baselineActivity.getAllStreams().map(stream => stream.type);
     const includeFilteredStreamTypes = includeFilteredActivity.getAllStreams().map(stream => stream.type);
     expect(includeFilteredStreamTypes).toEqual(baselineStreamTypes);
+  });
+
+  it('should map Suunto Endurance to Stamina without creating Potential Stamina', async () => {
+    const filePath = path.join(
+      samplesDir,
+      'ym780_Chengdu___3.27.4+2026-05-14_04.13.18-Running-2522C0000220.json'
+    );
+    const event = await parseSuuntoFile(filePath, new ActivityParsingOptions({ generateUnitStreams: false }));
+    const activity = getPrimaryActivityForStreamRegression(event);
+    const staminaValues = finiteNumbers(activity.getStreamData(DataStamina.type));
+    const avgStamina = staminaValues.reduce((sum, value) => sum + value, 0) / staminaValues.length;
+
+    expect(staminaValues).toHaveLength(3949);
+    expect(staminaValues[0]).toBe(100);
+    expect(staminaValues[staminaValues.length - 1]).toBe(71);
+    expect(activity.getStat(DataStaminaMin.type)?.getValue()).toBe(Math.min(...staminaValues));
+    expect(activity.getStat(DataStaminaMax.type)?.getValue()).toBe(Math.max(...staminaValues));
+    expect(activity.getStat(DataStaminaAvg.type)?.getValue()).toBeCloseTo(avgStamina, 10);
+    expect(activity.hasStreamData(DataPotentialStamina.type)).toBe(false);
   });
 
   describe('running-with-extra-data.json', () => {

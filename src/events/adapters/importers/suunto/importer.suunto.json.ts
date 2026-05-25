@@ -113,6 +113,7 @@ import { DataVerticalOscillationMax } from '../../../../data/data.vertical-oscil
 import { DataVerticalOscillationMin } from '../../../../data/data.vertical-oscillation-min';
 import { DataFitnessAge } from '../../../../data/data.fitness-age';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
+import { DataStamina, DataStaminaMin } from '../../../../data/data.stamina';
 
 import { DataDepth } from '../../../../data/data.depth';
 import { DataDepthMax } from '../../../../data/data.depth-max';
@@ -739,6 +740,23 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataMaxHRSetting(object.Personal.MaxHR * 60)); // Convert from Hz to bpm
     }
 
+    if (Array.isArray(object.Endurance)) {
+      const endurance = object.Endurance[0];
+      if (isNumber(endurance?.Cur)) {
+        stats.push(new DataStamina(endurance.Cur));
+      }
+      if (isNumber(endurance?.Min)) {
+        stats.push(new DataStaminaMin(endurance.Min));
+      }
+    } else if (object.Endurance) {
+      if (isNumber(object.Endurance.Cur)) {
+        stats.push(new DataStamina(object.Endurance.Cur));
+      }
+      if (isNumber(object.Endurance.Min)) {
+        stats.push(new DataStaminaMin(object.Endurance.Min));
+      }
+    }
+
     // Depth (Diving)
     if (Object.prototype.hasOwnProperty.call(object, 'Depth')) {
       if (Array.isArray(object.Depth)) {
@@ -947,6 +965,11 @@ export const SuuntoSampleMapper: {
   {
     dataType: DataBatteryVoltage.type,
     sampleField: 'BatteryVoltage',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataStamina.type,
+    sampleField: 'Endurance',
     convertSampleValue: (value: number) => Number(value)
   },
   {

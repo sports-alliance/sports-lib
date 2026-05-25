@@ -20,7 +20,7 @@ import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.name
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { TCXSampleMapper } from './importer.tcx.mapper';
 import { EventUtilities } from '../../../utilities/event.utilities';
-import { convertSpeedToPace, isNumber } from '../../../utilities/helpers';
+import { convertSpeedToPace, convertSpeedToSwimPace, isNumber } from '../../../utilities/helpers';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
 import { findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
@@ -596,7 +596,7 @@ export class EventImporterTCX {
       ) {
         const avgCadence = (lap.getStat(DataCadenceAvg.type) as DataInterface).getValue() as number;
         const avgSpeed = (lap.getStat(DataSpeedAvg.type) as DataInterface).getValue() as number;
-        const avgPace100m = 100 / avgSpeed;
+        const avgPace100m = convertSpeedToSwimPace(avgSpeed);
 
         const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
         lap.addStat(new DataSWOLF25m(swolf25m));

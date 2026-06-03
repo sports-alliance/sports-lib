@@ -2,7 +2,7 @@ import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
 import { Event } from '../../../event';
-import { ActivityTypes, StravaGPXTypes } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper, StravaGPXTypes } from '../../../../activities/activity.types';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { GPXSampleMapper } from './importer.gpx.mapper';
 import { isNumberOrString } from '../../../utilities/helpers';
@@ -14,6 +14,7 @@ import { DataTimerTime } from '../../../../data/data.timer-time';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { EmptyEventLibError } from '../../../../errors/empty-event-sports-libs.error';
+import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 import {
   getStreamSelectionFromOptions,
   isStreamTypeAllowedForImport,
@@ -31,62 +32,56 @@ export class EventImporterGPX {
       const streamSelection = getStreamSelectionFromOptions(options);
       // debugger
       const parsedGPX: any = new GXParser(gpx, domParser);
-      const track = parsedGPX.trk || parsedGPX.rte;
-      const routeBaseDate = EventImporterGPX.resolveRouteBaseDate(parsedGPX);
+      const tracks = parsedGPX.trk || [];
 
-      if (!track?.length) {
+      if (!tracks?.length) {
+        if (parsedGPX.rte?.length) {
+          reject(new ParsingEventLibError('No activities found in GPX; use importRoutesFromGPX for routes'));
+          return;
+        }
         reject(new EmptyEventLibError());
+        return;
       }
 
-      const activities: ActivityInterface[] = track.reduce((activities: ActivityInterface[], trackOrRoute: any, trackIndex: number) => {
+      const activities: ActivityInterface[] = tracks.reduce((activities: ActivityInterface[], track: any) => {
         // Get the samples
         let samples: any[] = [];
-        let isActivity = false;
-        if (trackOrRoute.trkseg) {
-          samples = trackOrRoute.trkseg.reduce((trkptArray: any[], trkseg: any) => {
+        if (track.trkseg) {
+          samples = track.trkseg.reduce((trkptArray: any[], trkseg: any) => {
             if (!trkseg.trkpt) {
               return trkptArray;
             }
             return trkptArray.concat(trkseg.trkpt);
           }, []);
-          // Determine if it's a route. The samples will most probably be missing the time
-          isActivity = !!samples[0]?.time;
-        } else if (trackOrRoute.rtept) {
-          samples = trackOrRoute.rtept;
         }
 
-        // Sort the points if its only an activity
-        if (isActivity) {
-          // Filter samples having time data only for upcoming sort
-          samples = samples.filter(sample => {
-            return !!sample.time;
-          });
+        // Filter samples having time data only for upcoming sort
+        samples = samples.filter(sample => {
+          return !!sample.time;
+        });
 
-          // Sort samples !
-          samples.sort((sampleA: any, sampleB: any) => {
-            return +new Date(sampleA.time[0]) - +new Date(sampleB.time[0]);
-          });
+        if (!samples.length) {
+          return activities;
         }
 
-        // Create an activity. Set the dates depending on route etc
-        const startDate = isActivity
-          ? new Date(samples[0].time[0])
-          : new Date(routeBaseDate.getTime() + trackIndex * 1000);
-        const endDate = isActivity
-          ? new Date(samples[samples.length - 1].time[0])
-          : new Date(startDate.getTime() + (samples.length > 0 ? samples.length - 1 : 0) * 1000);
+        // Sort samples
+        samples.sort((sampleA: any, sampleB: any) => {
+          return +new Date(sampleA.time[0]) - +new Date(sampleB.time[0]);
+        });
 
-        let activityType = isActivity ? ActivityTypes.unknown : ActivityTypes.route;
-        if (trackOrRoute.type && ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type]) {
-          activityType = ActivityTypes[<keyof typeof ActivityTypes>trackOrRoute.type];
-        } else if (trackOrRoute.type && trackOrRoute.type[0] && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
-          const stravaGpxTypeId = parseInt(trackOrRoute.type[0], 10);
+        const startDate = new Date(samples[0].time[0]);
+        const endDate = new Date(samples[samples.length - 1].time[0]);
+
+        const rawActivityType = Array.isArray(track.type) ? track.type[0] : track.type;
+        let activityType = ActivityTypesHelper.resolveActivityType(rawActivityType) || ActivityTypes.unknown;
+        if (rawActivityType && parsedGPX.creator && parsedGPX.creator.match(/StravaGPX/gi) !== null) {
+          const stravaGpxTypeId = parseInt(rawActivityType, 10);
           const typeFound: ActivityTypes | undefined = StravaGPXTypes.map.get(stravaGpxTypeId);
           if (typeFound) {
             activityType = typeFound;
           }
         }
-        const activityName = trackOrRoute.name?.[0] || '';
+        const activityName = track.name?.[0] || '';
         const activity = new Activity(
           startDate,
           endDate,
@@ -110,10 +105,10 @@ export class EventImporterGPX {
           );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
-            subjectSamples.forEach((subjectSample, index) => {
+            subjectSamples.forEach(subjectSample => {
               activity.addDataToStream(
                 sampleMapping.dataType,
-                isActivity ? new Date(subjectSample.time[0]) : new Date(activity.startDate.getTime() + index * 1000),
+                new Date(subjectSample.time[0]),
                 <number>sampleMapping.getSampleValue(subjectSample, samplesInfo)
               );
             });
@@ -134,6 +129,11 @@ export class EventImporterGPX {
         return activities;
       }, []);
 
+      if (!activities.length) {
+        reject(new ParsingEventLibError('No activities found in GPX; use importRoutesFromGPX for routes'));
+        return;
+      }
+
       const event = new Event(name, activities[0].startDate, activities[activities.length - 1].endDate, FileType.GPX);
       activities.forEach(activity => {
         event.addActivity(activity);
@@ -146,14 +146,5 @@ export class EventImporterGPX {
       });
       resolve(event);
     });
-  }
-
-  private static resolveRouteBaseDate(parsedGPX: any): Date {
-    const metadataTime = parsedGPX?.metadata?.[0]?.time?.[0];
-    const parsedMetadataTime = metadataTime ? new Date(metadataTime) : null;
-    if (parsedMetadataTime && !Number.isNaN(parsedMetadataTime.getTime())) {
-      return parsedMetadataTime;
-    }
-    return new Date(0);
   }
 }

@@ -3,7 +3,6 @@ import { Activity } from '../../../../activities/activity';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
-import { Creator } from '../../../../creators/creator';
 import { CreatorInterface } from '../../../../creators/creator.interface';
 import { ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from '../../../../activities/activity.types';
 import { DataDuration } from '../../../../data/data.duration';
@@ -12,9 +11,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { ImporterFitSuuntoDeviceNames } from './importer.fit.suunto.device.names';
-import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
-import { GarminSports, GarminSubSports } from './importer.fit.garmin.profile.data';
+import { GarminSports, GarminSubSports } from '../../../../fit/garmin-profile.data';
 import { DataPause } from '../../../../data/data.pause';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataCadence } from '../../../../data/data.cadence';
@@ -38,7 +35,7 @@ import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
 import { Device } from '../../../../activities/devices/device';
-import { ImporterFitAntPlusDeviceNames } from './importer.fit.ant-plus.device.names';
+import { ImporterFitAntPlusDeviceNames } from '../../../../fit/device-names/importer.fit.ant-plus.device.names';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataPeakEPOC } from '../../../../data/data.peak-epoc';
 import { DataFeeling } from '../../../../data/data.feeling';
@@ -112,9 +109,6 @@ import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscil
 import { DataVerticalRatioAvg } from '../../../../data/data.vertical-ratio-avg';
 import { DataAvgStrideLength } from '../../../../data/data.avg-stride-length';
 import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
-import { ImporterFitWahooDeviceNames } from './importer.fit.wahoo.device.names';
-import { ImporterFitCorosDeviceNames } from './importer.fit.coros.device.names';
-import { ImporterFitSrmDeviceNames } from './importer.fit.srm.device.names';
 import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
 import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-rate';
 import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
@@ -132,14 +126,10 @@ import { DataEndPosition } from '../../../../data/data.end-position';
 import { DataStartPosition } from '../../../../data/data.start-position';
 
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
-import { ImporterFitHammerheadDeviceNames } from './importer.fit.hammerhead.device.names';
-import { ImporterFitLezyneDeviceNames } from './importer.fit.lezyne.device.names';
-import { ImporterFitMagellanDeviceNames } from './importer.fit.magellan.device.names';
-import { ImporterFitSarisDeviceNames } from './importer.fit.saris.device.names';
 import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
-import { ImporterFitDevelopmentDeviceNames } from './importer.fit.development.device.names';
+import { FITCreatorMapper } from '../../../../fit/fit-creator.mapper';
 
 import { DataWeight } from '../../../../data/data.weight';
 import { DataHeight } from '../../../../data/data.height';
@@ -1260,10 +1250,7 @@ export class EventImporterFIT {
           ) || fitDataObject.activity_metrics[0];
 
         if (activityMetric) {
-          const metricVO2Max = this.getFirstValidVO2MaxValue(
-            activityMetric.vo2_max,
-            activityMetric.first_vo2_max
-          );
+          const metricVO2Max = this.getFirstValidVO2MaxValue(activityMetric.vo2_max, activityMetric.first_vo2_max);
           const metricRecoveryTime = this.getPositiveNumericValue(activityMetric.recovery_time);
 
           if (metricVO2Max !== null && !activity.getStat(DataVO2Max.type)) {
@@ -1815,7 +1802,9 @@ export class EventImporterFIT {
       const lapIndex = index + 1;
       lapByIndex.set(lapIndex, lap);
       const activeLengthCount = lengths.filter((length: any) => {
-        return this.getLengthLapIndex(length, laps) === lapIndex && this.getSwimLengthType(length?.length_type) === 'active';
+        return (
+          this.getLengthLapIndex(length, laps) === lapIndex && this.getSwimLengthType(length?.length_type) === 'active'
+        );
       }).length;
       activeLengthCountByLapIndex.set(lapIndex, activeLengthCount);
     });
@@ -1875,11 +1864,7 @@ export class EventImporterFIT {
 
   private static getValidVO2MaxValue(value: unknown): number | null {
     const numericValue = this.getPositiveNumericValue(value);
-    if (
-      numericValue === null ||
-      numericValue <= this.MIN_VALID_VO2_MAX ||
-      numericValue > this.MAX_VALID_VO2_MAX
-    ) {
+    if (numericValue === null || numericValue <= this.MIN_VALID_VO2_MAX || numericValue > this.MAX_VALID_VO2_MAX) {
       return null;
     }
 
@@ -2506,164 +2491,7 @@ export class EventImporterFIT {
   }
 
   public static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
-    const toStartCase = (str: string): string => {
-      return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-    };
-
-    const formatDeviceName = (
-      manufacturer: string | number | null,
-      productName: string | null,
-      recognizedName: string | null,
-      recognizedBrand: string | null,
-      isDevelopment = false
-    ) => {
-      let name = '';
-      const manufacturerString = isNumberOrString(manufacturer) ? String(manufacturer) : null;
-
-      if (recognizedBrand && recognizedName) {
-        name = `${toStartCase(recognizedBrand)} ${recognizedName}`;
-      } else if (recognizedBrand && !recognizedName && productName) {
-        if (productName.match(new RegExp(`${recognizedBrand}`, 'gi'))) {
-          productName = productName.replace(new RegExp(`${recognizedBrand}`, 'gi'), '').trim();
-        }
-        name = `${toStartCase(recognizedBrand)} ${productName}`;
-      } else if (recognizedBrand && !recognizedName && !productName) {
-        name = `${toStartCase(recognizedBrand)}`;
-      } else if (manufacturerString && !recognizedBrand && !recognizedName && !productName && !isDevelopment) {
-        const formattedManufacturer = manufacturerString.replace(new RegExp('[-_]', 'gi'), ' ').trim();
-        name = `${toStartCase(formattedManufacturer)}`;
-      } else if (!recognizedBrand && recognizedName) {
-        name = `${recognizedName}`;
-      } else {
-        name = 'Unknown';
-      }
-
-      return name;
-    };
-
-    let creator: CreatorInterface;
-    let recognizedName = null;
-    const manufacturer = fitDataObject.file_ids[0].manufacturer;
-    const productId = fitDataObject.file_ids[0].product || null;
-    const productName = fitDataObject.file_ids[0].product_name || null;
-
-    switch (manufacturer) {
-      case 'suunto': {
-        recognizedName = ImporterFitSuuntoDeviceNames[<number>productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Suunto'), productId);
-        break;
-      }
-      case 'coros': {
-        recognizedName = ImporterFitCorosDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Coros'), productId);
-        break;
-      }
-      case 'garmin': {
-        recognizedName = GarminProfileMapper.getDeviceName(productId);
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Garmin'), productId);
-        break;
-      }
-      case 'wahoo_fitness': {
-        recognizedName = ImporterFitWahooDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Wahoo'), productId);
-        break;
-      }
-      case 'hammerhead': {
-        recognizedName = ImporterFitHammerheadDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Hammerhead'), productId);
-        break;
-      }
-      case 'lezyne': {
-        recognizedName = ImporterFitLezyneDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Lezyne'), productId);
-        break;
-      }
-      case 'magellan': {
-        recognizedName = ImporterFitMagellanDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Magellan'), productId);
-        break;
-      }
-      case 'saris': {
-        recognizedName = ImporterFitSarisDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'Saris'), productId);
-        break;
-      }
-      case 'srm': {
-        recognizedName = ImporterFitSrmDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, 'SRM'), productId);
-        break;
-      }
-      case 'zwift': {
-        recognizedName = 'Zwift';
-        creator = new Creator(recognizedName);
-        break;
-      }
-      case 'virtualtraining': {
-        recognizedName = 'Rouvy';
-        creator = new Creator(recognizedName);
-        break;
-      }
-      case 'the_sufferfest': {
-        recognizedName = `Wahoo SYSTM`;
-        creator = new Creator(recognizedName, productId);
-        break;
-      }
-      case 'stryd': {
-        recognizedName = `Stryd`;
-        creator = new Creator(
-          recognizedName,
-          productId,
-          fitDataObject.file_creator.software_version,
-          fitDataObject.file_creator.hardware_version,
-          fitDataObject.file_ids[0].serial_number
-        );
-        break;
-      }
-      case 'development': {
-        recognizedName = ImporterFitDevelopmentDeviceNames[productId];
-        creator = new Creator(formatDeviceName(manufacturer, productName, recognizedName, null, true), productId);
-        creator.isRecognized = typeof recognizedName === 'string' || recognizedName === null;
-        break;
-      }
-      default: {
-        // Try to find if it's a numeric Garmin mapping that was missed
-        const manufacturerName =
-          typeof manufacturer === 'number' ? GarminProfileMapper.getManufacturerName(manufacturer) : manufacturer;
-        if (manufacturerName === 'garmin') {
-          recognizedName = GarminProfileMapper.getDeviceName(productId);
-        }
-        creator = new Creator(
-          formatDeviceName(
-            manufacturerName,
-            productName,
-            recognizedName,
-            manufacturerName === 'garmin' ? 'Garmin' : null
-          ),
-          productId
-        );
-      }
-    }
-    creator.manufacturer = manufacturer;
-    creator.isRecognized = creator.isRecognized || !!recognizedName;
-
-    if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.hardware_version)) {
-      creator.hwInfo = String(fitDataObject.file_creator.hardware_version);
-    }
-    if (fitDataObject.file_creator && isNumberOrString(fitDataObject.file_creator.software_version)) {
-      creator.swInfo = String(fitDataObject.file_creator.software_version);
-    } else if (fitDataObject.device_info && isNumberOrString(fitDataObject.device_info.software_version)) {
-      creator.swInfo = String(fitDataObject.device_info.software_version);
-    }
-    if (fitDataObject.file_ids[0] && isNumberOrString(fitDataObject.file_ids[0].serial_number)) {
-      creator.serialNumber = fitDataObject.file_ids[0].serial_number;
-    }
-
-    // If creator name is a number ONLY (e.g. product number), then flag it as 'Unknown'
-    if (Number.isFinite(creator.name) || creator.name.match(/^\d+$/)) {
-      creator.name = `Unknown`;
-    }
-
-    return creator;
+    return FITCreatorMapper.getCreatorFromFitDataObject(fitDataObject);
   }
 }
 

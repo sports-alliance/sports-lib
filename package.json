@@ -56,7 +56,7 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
     "fast-xml-parser": "^5.3.3",
-    "fit-file-parser": "^3.0.1",
+    "fit-file-parser": "^3.0.2",
     "geolib": "^3.3.4",
     "gpx-builder": "^3.7.8",
     "kalmanjs": "^1.1.0",

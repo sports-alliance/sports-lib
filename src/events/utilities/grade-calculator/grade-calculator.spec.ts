@@ -65,6 +65,28 @@ describe('GradeCalculator', () => {
       expect(gradeStream).toEqual(expectedGradeData);
       done();
     });
+
+    it('should calculate point-indexed grade from distance and altitude', () => {
+      const distanceData = [10, null, 20, null, 30, 35, null, 45, 50, 55];
+      const altitudeData = [10, null, 10, 11, 13, 16, null, 15, 14, 13];
+      const expectedGradeData = [0, null, 30, 20, 13.3, -10, null, -20, -20, 0];
+
+      const gradeStream = GradeCalculator.computeGradeStreamByDistance(distanceData, altitudeData, 10, 50);
+
+      expect(gradeStream).toEqual(expectedGradeData);
+    });
+
+    it('should return a null point-indexed grade stream when distance and altitude cannot be aligned', () => {
+      const gradeStream = GradeCalculator.computeGradeStreamByDistance([null, null], [null, null]);
+
+      expect(gradeStream).toEqual([null, null]);
+    });
+
+    it('should not backfill point-indexed grade from future distance or altitude samples', () => {
+      const gradeStream = GradeCalculator.computeGradeStreamByDistance([null, 10, 20], [5, 6, 8], 10, 50);
+
+      expect(gradeStream).toEqual([null, 20, 0]);
+    });
   });
 
   describe('Grade adjusted speed', () => {

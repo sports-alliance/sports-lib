@@ -1,4 +1,4 @@
-import { GarminManufacturers, GarminProducts, GarminSports, GarminSubSports } from './importer.fit.garmin.profile.data';
+import { GarminManufacturers, GarminProducts, GarminSports, GarminSubSports } from './garmin-profile.data';
 
 export class GarminProfileMapper {
   /**
@@ -79,6 +79,7 @@ export class GarminProfileMapper {
         if (lower === 'lte') return 'LTE';
         if (lower === 'hr') return 'HR';
         if (lower === 'gps') return 'GPS';
+        if (lower === 'mtb') return 'MTB';
         if (lower === 'ii') return 'II';
         if (lower === 'iii') return 'III';
         if (lower === 'm' && name.toLowerCase().includes('645m')) return 'Music'; // Special case for Fr645m

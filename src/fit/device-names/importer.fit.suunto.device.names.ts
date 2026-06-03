@@ -1,4 +1,4 @@
-import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.names';
+import { ImporterSuuntoDeviceNames } from '../../events/adapters/importers/suunto/importer.suunto.device.names';
 
 export const ImporterFitSuuntoDeviceNames: { [index: number]: string } = {
   19: ImporterSuuntoDeviceNames.Ambit2,

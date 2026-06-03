@@ -71,6 +71,45 @@ SportsLib.importFromFit(arrayBuffer).then((event)=>{
 });
 ```
 
+Routes / Courses
+---
+Activities and planned routes are separate models.
+
+- Use `importFromGPX`, `importFromTCX`, `importFromFit`, or `importFromJSON` for recorded activities.
+- Use `importRoutesFromGPX`, `importRoutesFromFit`, or `importRoutesFromJSON` for planned routes/courses.
+- Route imports return a `RouteFile`, not an `Event`.
+- Route-only GPX files are intentionally rejected by the activity GPX importer; use `importRoutesFromGPX` instead.
+- FIT binary/profile decoding is handled by `fit-file-parser`; Sports Lib maps the decoded FIT course object into routes, streams, stats, and waypoints.
+
+```typescript
+import {SportsLib, RouteParsingOptions} from '@sports-alliance/sports-lib';
+import {DOMParser} from 'xmldom';
+
+const routeOptions = new RouteParsingOptions({
+  streams: {
+    includeTypes: ['Distance', 'Grade']
+  },
+  generateUnitStreams: false
+});
+
+SportsLib.importRoutesFromGPX(gpxString, DOMParser, routeOptions).then((routeFile)=>{
+  const route = routeFile.getFirstRoute();
+  const points = route.getPointData();
+  const distance = route.getStat('Distance')?.getValue();
+  const waypoints = routeFile.getWaypoints();
+  const routeJSON = routeFile.toJSON();
+  const restoredRouteFile = SportsLib.importRoutesFromJSON(routeJSON);
+});
+
+SportsLib.importRoutesFromFit(arrayBuffer).then((routeFile)=>{
+  const route = routeFile.getFirstRoute();
+  const distanceStream = route.getStreamData('Distance');
+  const waypoints = routeFile.getWaypoints();
+});
+```
+
+Route importers create point-indexed streams such as latitude, longitude, distance, GNSS distance, altitude, and grade when the source data supports them. They also generate route stats such as distance, ascent/descent, altitude summaries, and grade summaries.
+
 FIT device_info mode
 ---
 Some FIT files emit `device_info` rows every second for the same device identity, which can significantly increase payload size.

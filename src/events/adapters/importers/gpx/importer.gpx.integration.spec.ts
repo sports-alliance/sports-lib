@@ -39,7 +39,7 @@ describe('EventImporterGPX Integration', () => {
       return;
     }
 
-    const files = fs.readdirSync(samplesDir).filter(f => f.endsWith('.gpx'));
+    const files = fs.readdirSync(samplesDir).filter(f => f.endsWith('.gpx') && f !== 'route.gpx');
 
     if (files.length === 0) {
       console.warn('No .gpx files found in samples directory.');
@@ -94,10 +94,6 @@ describe('EventImporterGPX Integration', () => {
       {
         fileName: 'amazfit.gpx',
         requiredTypes: [DataDistance.type, DataPace.type, DataGNSSDistanceMiles.type]
-      },
-      {
-        fileName: 'route.gpx',
-        requiredTypes: [DataDistance.type, DataGNSSDistanceMiles.type]
       }
     ];
 
@@ -181,5 +177,15 @@ describe('EventImporterGPX Integration', () => {
 
     expect(parseResult).toBeInstanceOf(Promise);
     await expect(parseResult).rejects.toThrow('Unknown stream includeTypes');
+  });
+
+  it('should reject route-only GPX through the activity importer', async () => {
+    const routeFile = path.join(samplesDir, 'route.gpx');
+    if (!fs.existsSync(routeFile)) {
+      console.warn(`Route sample not found at ${routeFile}. Skipping.`);
+      return;
+    }
+
+    await expect(parseGpxFile(routeFile)).rejects.toThrow('use importRoutesFromGPX');
   });
 });

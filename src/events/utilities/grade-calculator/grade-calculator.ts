@@ -53,6 +53,46 @@ export class GradeCalculator {
     return gradeStream;
   }
 
+  public static computeGradeStreamByDistance(
+    distanceStream: (number | null)[],
+    altitudeStream: (number | null)[],
+    aheadMeters = LOOK_AHEAD_IN_METERS,
+    clamp = CLAMP
+  ): (number | null)[] {
+    const squashedAlignedPoints = GradeCalculator.squashAlignDistanceAltitudeStreams(distanceStream, altitudeStream);
+    const gradeStream = Array(Math.max(distanceStream.length, altitudeStream.length)).fill(null);
+    if (!squashedAlignedPoints.length) {
+      return gradeStream;
+    }
+
+    const squashedAlignedGrade = [];
+    let indexNow = 0;
+    do {
+      const aheadPoints = squashedAlignedPoints.slice(indexNow);
+      const pointNow = aheadPoints[0];
+
+      let aheadIndex = aheadPoints.findIndex(point => pointNow.distance + aheadMeters <= point.distance);
+      aheadIndex = aheadIndex >= 0 ? aheadIndex : aheadPoints.length - 1;
+
+      const aheadPoint = aheadPoints[aheadIndex];
+      const aheadDeltaDistance = aheadPoint.distance - pointNow.distance;
+      const aheadDeltaAltitude = aheadPoint.altitude - pointNow.altitude;
+
+      const aheadGrade =
+        aheadDeltaDistance > 0 ? Math.min(Math.max((aheadDeltaAltitude / aheadDeltaDistance) * 100, -clamp), clamp) : 0;
+
+      squashedAlignedGrade.push(Math.round(aheadGrade * 10) / 10);
+
+      indexNow++;
+    } while (indexNow < squashedAlignedPoints.length);
+
+    for (const [index, point] of squashedAlignedPoints.entries()) {
+      gradeStream[point.index] = squashedAlignedGrade[index];
+    }
+
+    return gradeStream;
+  }
+
   /**
    * Repair distance and altitude streams based on time streams
    * @param timeData
@@ -108,6 +148,47 @@ export class GradeCalculator {
     });
 
     return [squashedAlignedTime, squashedAlignedDist, squashedAlignedAlt];
+  }
+
+  public static squashAlignDistanceAltitudeStreams(
+    distanceData: (number | null)[],
+    altitudeData: (number | null)[]
+  ): { index: number; distance: number; altitude: number }[] {
+    const squashedAlignedPoints: { index: number; distance: number; altitude: number }[] = [];
+
+    let lastKnownDistance: number | null = null;
+    let lastKnownAlt: number | null = null;
+
+    Array.from({ length: Math.max(distanceData.length, altitudeData.length) }).forEach((_value, index) => {
+      const distance = distanceData[index];
+      const altitude = altitudeData[index];
+
+      if (Number.isFinite(distance) && Number.isFinite(altitude)) {
+        squashedAlignedPoints.push({
+          index,
+          distance: distance as number,
+          altitude: altitude as number
+        });
+        lastKnownDistance = distance;
+        lastKnownAlt = altitude;
+      } else if (!Number.isFinite(distance) && Number.isFinite(altitude) && Number.isFinite(lastKnownDistance)) {
+        squashedAlignedPoints.push({
+          index,
+          distance: lastKnownDistance as number,
+          altitude: altitude as number
+        });
+        lastKnownAlt = altitude;
+      } else if (Number.isFinite(distance) && !Number.isFinite(altitude) && Number.isFinite(lastKnownAlt)) {
+        squashedAlignedPoints.push({
+          index,
+          distance: distance as number,
+          altitude: lastKnownAlt as number
+        });
+        lastKnownDistance = distance;
+      }
+    });
+
+    return squashedAlignedPoints;
   }
 
   /**

@@ -6,6 +6,12 @@ import { EventImporterSuuntoJSON } from './events/adapters/importers/suunto/impo
 import { EventImporterJSON } from './events/adapters/importers/json/importer.json';
 import { EventJSONInterface } from './events/event.json.interface';
 import { ActivityParsingOptions } from './activities/activity-parsing-options';
+import { RouteImporterGPX } from './routes/adapters/importers/gpx/importer.route.gpx';
+import { RouteImporterJSON } from './routes/adapters/importers/json/importer.route.json';
+import { RouteImporterFIT } from './routes/adapters/importers/fit/importer.route.fit';
+import { RouteParsingOptions } from './routes/route-parsing-options';
+import { RouteFileInterface } from './routes/route-file.interface';
+import { RouteFileJSONInterface } from './routes/route-file.json.interface';
 
 export class SportsLib {
   /**
@@ -59,6 +65,40 @@ export class SportsLib {
   public static importFromJSON(json: EventJSONInterface): EventInterface {
     return EventImporterJSON.getEventFromJSON(json);
   }
+
+  /**
+   * Parses and returns first-class routes using GPX format.
+   * @param gpxString
+   * @param domParser custom DOMParser (case of NodeJs usage)
+   * @param options
+   */
+  public static importRoutesFromGPX(
+    gpxString: string,
+    domParser?: any,
+    options?: RouteParsingOptions
+  ): Promise<RouteFileInterface> {
+    return RouteImporterGPX.getFromString(gpxString, domParser, options);
+  }
+
+  /**
+   * Parses and returns first-class routes using FIT course format.
+   * @param arrayBuffer
+   * @param options
+   */
+  public static importRoutesFromFit(
+    arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
+    options?: RouteParsingOptions
+  ): Promise<RouteFileInterface> {
+    return RouteImporterFIT.getFromArrayBuffer(arrayBuffer, options);
+  }
+
+  /**
+   * Parses and returns first-class routes using native format (SportsLib exported format).
+   * @param json RouteFileJSONInterface
+   */
+  public static importRoutesFromJSON(json: RouteFileJSONInterface): RouteFileInterface {
+    return RouteImporterJSON.getRouteFileFromJSON(json);
+  }
 }
 
 export * from './activities/activity.interface';
@@ -86,6 +126,7 @@ export * from './laps/lap.types';
 export * from './meta-data/event-meta-data.interface';
 export * from './meta-data/meta-data';
 export * from './privacy/privacy.class.interface';
+export * from './routes';
 export * from './service-tokens/oauth1-service-token.interface';
 export * from './service-tokens/oauth2-service-token.interface';
 export * from './stats/stats.class.interface';

@@ -1,6 +1,13 @@
-import { GarminProfileMapper } from './importer.fit.garmin.profile.mapper';
+import { GarminProfileMapper } from './garmin-profile.mapper';
 
 describe('GarminProfileMapper', () => {
+  describe('getDeviceName', () => {
+    it('should preserve MTB acronym for Garmin Edge MTB', () => {
+      // Product ID 4655 is edge_mtb in @garmin/fitsdk profile.js
+      expect(GarminProfileMapper.getDeviceName(4655)).toBe('Edge MTB');
+    });
+  });
+
   describe('getSportName', () => {
     it('should translate sport ID', () => {
       // Assuming ID 1 is Running

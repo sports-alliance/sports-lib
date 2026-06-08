@@ -129,6 +129,7 @@ import { ActivityParsingOptions } from '../../../../activities/activity-parsing-
 import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 import { DataPowerDown } from '../../../../data/data.power-down';
 import { DataPowerUp } from '../../../../data/data.power-up';
+import { FIT_DISTANCE_ELEVATION_GRADE_SUMMARY_AGGREGATIONS } from '../../../../fit/fit-summary-stat.aggregations';
 import { FITCreatorMapper } from '../../../../fit/fit-creator.mapper';
 
 import { DataWeight } from '../../../../data/data.weight';
@@ -175,6 +176,7 @@ import {
   isStreamTypeAllowedForImport,
   pruneActivityStreamsBySelection
 } from '../../../../streams/stream.selection';
+import { StatsUtilities } from '../../../../stats/stats.utilities';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -912,13 +914,13 @@ export class EventImporterFIT {
     const firstLapWithSport = laps.find((lapObject: any) => {
       return lapObject?.sport !== undefined || lapObject?.sub_sport !== undefined;
     });
-    const lastLap = laps.length ? laps[laps.length - 1] : null;
-    const lastRecord = records.length ? records[records.length - 1] : null;
+    const lapSummary = StatsUtilities.aggregateNumericRecords(laps, FIT_DISTANCE_ELEVATION_GRADE_SUMMARY_AGGREGATIONS);
 
     const sessionObject: any = {
       laps,
       start_time: startDate,
-      timestamp: endDate
+      timestamp: endDate,
+      ...lapSummary
     };
 
     if (totalElapsedTime > 0) {
@@ -934,12 +936,23 @@ export class EventImporterFIT {
       sessionObject.sub_sport = firstLapWithSport.sub_sport;
     }
 
-    const totalDistance = this.getNumericValue(lastLap?.total_distance) ?? this.getNumericValue(lastRecord?.distance);
-    if (totalDistance !== null) {
+    const totalDistance = this.getFinalRecordDistance(records);
+    if (sessionObject.total_distance === undefined && totalDistance !== null) {
       sessionObject.total_distance = totalDistance;
     }
 
     return sessionObject;
+  }
+
+  private static getFinalRecordDistance(records: any[]): number | null {
+    for (let index = records.length - 1; index >= 0; index--) {
+      const distance = this.getNumericValue(records[index]?.distance);
+      if (distance !== null) {
+        return distance;
+      }
+    }
+
+    return null;
   }
 
   private static normalizeFitDataObjectForActivities(fitDataObject: any): void {

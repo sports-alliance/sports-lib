@@ -1,8 +1,13 @@
 import { readFileSync } from 'fs';
 import { ActivityTypes } from '../../../../activities/activity.types';
+import { DataAscent } from '../../../../data/data.ascent';
+import { DataDescent } from '../../../../data/data.descent';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataGNSSDistanceMiles } from '../../../../data/data.gnss-distance-miles';
 import { DataGrade } from '../../../../data/data.grade';
+import { DataGradeAvg } from '../../../../data/data.grade-avg';
+import { DataGradeMax } from '../../../../data/data.grade-max';
+import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { DataSpeed } from '../../../../data/data.speed';
@@ -13,6 +18,10 @@ import { RouteParsingOptions } from '../../../route-parsing-options';
 import { RouteImporterFIT } from './importer.route.fit';
 
 describe('RouteImporterFIT', () => {
+  const importerWithPrivateParse = RouteImporterFIT as unknown as {
+    parseFIT: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
+  };
+
   const readFixture = (path: string): ArrayBuffer => {
     const buffer = readFileSync(path);
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
@@ -35,9 +44,14 @@ describe('RouteImporterFIT', () => {
     expect(route.hasStreamData(DataLongitudeDegrees.type)).toBe(true);
     expect(route.hasStreamData(DataDistance.type)).toBe(true);
     expect(route.hasStreamData(DataGrade.type)).toBe(true);
-    expect(route.getStat(DataDistance.type)!.getValue()).toBeCloseTo(23187.75, 1);
+    expect(route.getStat(DataDistance.type)!.getValue()).toBeCloseTo(23187.9, 1);
     expect(route.getStreamData(DataDistance.type)[0]).toBe(0);
     expect(route.getStreamData(DataDistance.type)[route.getPointCount() - 1]).toBeCloseTo(23187.75, 1);
+    expect(routeFile.getStat(DataDistance.type)!.getValue()).toEqual(route.getStat(DataDistance.type)!.getValue());
+    expect(routeFile.getStat(DataAscent.type)!.getValue()).toEqual(route.getStat(DataAscent.type)!.getValue());
+    expect(routeFile.getStat(DataGradeMin.type)!.getValue()).toEqual(route.getStat(DataGradeMin.type)!.getValue());
+    expect(routeFile.getStat(DataGradeMax.type)!.getValue()).toEqual(route.getStat(DataGradeMax.type)!.getValue());
+    expect(routeFile.getStat(DataGradeAvg.type)!.getValue()).toEqual(route.getStat(DataGradeAvg.type)!.getValue());
 
     expect(waypoints).toHaveLength(2);
     expect(waypoints[0]).toMatchObject({
@@ -108,7 +122,7 @@ describe('RouteImporterFIT', () => {
   });
 
   it('should preserve parser-decoded course point types without FIT enum mapping in sports-lib', () => {
-    const parseSpy = jest.spyOn(RouteImporterFIT as any, 'parseFIT').mockResolvedValue({
+    const parseSpy = jest.spyOn(importerWithPrivateParse, 'parseFIT').mockResolvedValue({
       file_ids: [{ type: 'course', manufacturer: 'garmin', product: 0 }],
       course: { name: 'Decoded Course', sport: 'cycling' },
       records: [
@@ -124,6 +138,140 @@ describe('RouteImporterFIT', () => {
     return RouteImporterFIT.getFromArrayBuffer(new ArrayBuffer(0))
       .then(routeFile => {
         expect(routeFile.getWaypoints().map(waypoint => waypoint.type)).toEqual(['rest_area', '29']);
+      })
+      .finally(() => {
+        parseSpy.mockRestore();
+      });
+  });
+
+  it('should preserve FIT course summary stats when they are present', () => {
+    const parseSpy = jest.spyOn(importerWithPrivateParse, 'parseFIT').mockResolvedValue({
+      file_ids: [{ type: 'course', manufacturer: 'garmin', product: 0 }],
+      course: {
+        name: 'Summary Course',
+        sport: 'cycling',
+        total_distance: 222,
+        total_ascent: 77,
+        total_descent: 33,
+        avg_grade: 5,
+        max_pos_grade: 11,
+        max_neg_grade: -9
+      },
+      records: [
+        { position_lat: 1, position_long: 2, distance: 0, altitude: 10 },
+        { position_lat: 1.1, position_long: 2.1, distance: 100, altitude: 20 }
+      ],
+      course_points: []
+    });
+
+    return RouteImporterFIT.getFromArrayBuffer(new ArrayBuffer(0))
+      .then(routeFile => {
+        const route = routeFile.getFirstRoute();
+
+        expect(route.getStat(DataDistance.type)!.getValue()).toBe(222);
+        expect(route.getStat(DataAscent.type)!.getValue()).toBe(77);
+        expect(route.getStat(DataDescent.type)!.getValue()).toBe(33);
+        expect(route.getStat(DataGradeAvg.type)!.getValue()).toBe(5);
+        expect(route.getStat(DataGradeMax.type)!.getValue()).toBe(11);
+        expect(route.getStat(DataGradeMin.type)!.getValue()).toBe(-9);
+        expect(routeFile.getStat(DataDistance.type)!.getValue()).toBe(222);
+      })
+      .finally(() => {
+        parseSpy.mockRestore();
+      });
+  });
+
+  it('should aggregate FIT lap summary stats when course summaries are absent', () => {
+    const parseSpy = jest.spyOn(importerWithPrivateParse, 'parseFIT').mockResolvedValue({
+      file_ids: [{ type: 'course', manufacturer: 'garmin', product: 0 }],
+      course: {
+        name: 'Lap Summary Course',
+        sport: 'cycling'
+      },
+      laps: [
+        {
+          total_distance: 100,
+          total_ascent: 10,
+          total_descent: 5,
+          avg_grade: 2,
+          max_pos_grade: 8,
+          max_neg_grade: -3,
+          records: [
+            { position_lat: 1, position_long: 2, distance: 0, altitude: 10 },
+            { position_lat: 1.01, position_long: 2.01, distance: 100, altitude: 20 }
+          ]
+        },
+        {
+          total_distance: 300,
+          total_ascent: 20,
+          total_descent: 15,
+          avg_grade: 6,
+          max_pos_grade: 12,
+          max_neg_grade: -9,
+          records: [
+            { position_lat: 1.02, position_long: 2.02, distance: 100, altitude: 20 },
+            { position_lat: 1.03, position_long: 2.03, distance: 400, altitude: 15 }
+          ]
+        }
+      ],
+      course_points: []
+    });
+
+    return RouteImporterFIT.getFromArrayBuffer(new ArrayBuffer(0))
+      .then(routeFile => {
+        const route = routeFile.getFirstRoute();
+
+        expect(route.getStat(DataDistance.type)!.getValue()).toBe(400);
+        expect(route.getStat(DataAscent.type)!.getValue()).toBe(30);
+        expect(route.getStat(DataDescent.type)!.getValue()).toBe(20);
+        expect(route.getStat(DataGradeAvg.type)!.getValue()).toBe(5);
+        expect(route.getStat(DataGradeMax.type)!.getValue()).toBe(12);
+        expect(route.getStat(DataGradeMin.type)!.getValue()).toBe(-9);
+        expect(routeFile.getStat(DataDistance.type)!.getValue()).toBe(400);
+      })
+      .finally(() => {
+        parseSpy.mockRestore();
+      });
+  });
+
+  it('should use final record distance when FIT lap summary distance coverage is incomplete', () => {
+    const parseSpy = jest.spyOn(importerWithPrivateParse, 'parseFIT').mockResolvedValue({
+      file_ids: [{ type: 'course', manufacturer: 'garmin', product: 0 }],
+      course: {
+        name: 'Partial Lap Summary Course',
+        sport: 'cycling'
+      },
+      laps: [
+        {
+          total_distance: 100,
+          total_ascent: 10,
+          records: [
+            { position_lat: 1, position_long: 2, distance: 0, altitude: 10 },
+            { position_lat: 1.01, position_long: 2.01, distance: 100, altitude: 20 }
+          ]
+        },
+        {
+          records: [
+            { position_lat: 1.02, position_long: 2.02, distance: 100, altitude: 20 },
+            { position_lat: 1.03, position_long: 2.03, distance: 400, altitude: 40 },
+            { position_lat: 1.04, position_long: 2.04, altitude: 40 }
+          ]
+        }
+      ],
+      course_points: []
+    });
+
+    return RouteImporterFIT.getFromArrayBuffer(
+      new ArrayBuffer(0),
+      new RouteParsingOptions({ streams: { smooth: { altitudeSmooth: false, grade: false, gradeSmooth: false } } })
+    )
+      .then(routeFile => {
+        const route = routeFile.getFirstRoute();
+
+        expect(route.getStat(DataDistance.type)!.getValue()).toBe(400);
+        expect(routeFile.getStat(DataDistance.type)!.getValue()).toBe(400);
+        expect(route.getStat(DataAscent.type)!.getValue()).toBe(30);
+        expect(routeFile.getStat(DataAscent.type)!.getValue()).toBe(30);
       })
       .finally(() => {
         parseSpy.mockRestore();

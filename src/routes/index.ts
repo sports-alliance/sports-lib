@@ -2,6 +2,7 @@ export * from './route';
 export * from './route-file';
 export * from './route-file.interface';
 export * from './route-file.json.interface';
+export * from './route-file.utilities';
 export * from './route.interface';
 export * from './route.json.interface';
 export * from './route-parsing-options';

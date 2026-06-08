@@ -1,14 +1,15 @@
 import { Creator } from '../creators/creator';
 import { CreatorInterface } from '../creators/creator.interface';
 import { FileType } from '../events/adapters/file-type.enum';
-import { IDClass } from '../id/id.abstract.class';
+import { StatsClassAbstract } from '../stats/stats.class.abstract';
+import { StatsUtilities } from '../stats/stats.utilities';
 import { RouteFileJSONInterface } from './route-file.json.interface';
 import { RouteFileInterface } from './route-file.interface';
 import { RouteInterface } from './route.interface';
 import { RouteWaypointInterface } from './route-point.interface';
 import { RouteJSONInterface } from './route.json.interface';
 
-export class RouteFile extends IDClass implements RouteFileInterface {
+export class RouteFile extends StatsClassAbstract implements RouteFileInterface {
   public name: string;
   public srcFileType: FileType | string;
   public createdAt: Date | null;
@@ -81,6 +82,7 @@ export class RouteFile extends IDClass implements RouteFileInterface {
       srcFileType: this.srcFileType,
       createdAt: this.createdAt ? this.createdAt.getTime() : null,
       creator: this.creator.toJSON(),
+      stats: StatsUtilities.serializeStats(this.getStats()),
       routes: this.getRoutes().reduce((routes: RouteJSONInterface[], route) => {
         routes.push(route.toJSON());
         return routes;

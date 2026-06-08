@@ -2,6 +2,8 @@ import { ActivityTypesHelper } from '../../../../activities/activity.types';
 import { Creator } from '../../../../creators/creator';
 import { CreatorInterface } from '../../../../creators/creator.interface';
 import { DataAltitude } from '../../../../data/data.altitude';
+import { DataInterface } from '../../../../data/data.interface';
+import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { DynamicDataLoader } from '../../../../data/data.store';
@@ -12,6 +14,7 @@ import { Route } from '../../../route';
 import { RouteFile } from '../../../route-file';
 import { RouteFileJSONInterface } from '../../../route-file.json.interface';
 import { RouteFileInterface } from '../../../route-file.interface';
+import { RouteFileUtilities } from '../../../route-file.utilities';
 import { RouteInterface } from '../../../route.interface';
 import { RoutePointInterface } from '../../../route-point.interface';
 import { RouteStream } from '../../../route-stream';
@@ -35,6 +38,12 @@ export class RouteImporterJSON {
     (json.routes || []).forEach(routeJSON => {
       routeFile.addRoute(this.getRouteFromJSON(routeJSON, creator));
     });
+
+    if (this.hasStats(json.stats)) {
+      this.addStatsFromJSON(json.stats, routeFile);
+    } else {
+      RouteFileUtilities.reGenerateStatsForRouteFile(routeFile);
+    }
 
     return routeFile;
   }
@@ -65,13 +74,24 @@ export class RouteImporterJSON {
       route.setID(json.id);
     }
 
-    Object.keys(json.stats || {}).forEach(statName => {
-      route.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, (json.stats || {})[statName]));
-    });
+    this.addStatsFromJSON(json.stats, route);
 
     streams.forEach(stream => route.addStream(stream));
 
     return route;
+  }
+
+  private static addStatsFromJSON(
+    jsonStats: DataJSONInterface | undefined,
+    target: { addStat(stat: DataInterface): void }
+  ): void {
+    Object.keys(jsonStats || {}).forEach(statName => {
+      target.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, (jsonStats || {})[statName]));
+    });
+  }
+
+  private static hasStats(jsonStats: DataJSONInterface | undefined): boolean {
+    return !!jsonStats && Object.keys(jsonStats).length > 0;
   }
 
   private static getStreamsFromJSON(

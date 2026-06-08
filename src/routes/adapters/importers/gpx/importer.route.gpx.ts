@@ -10,6 +10,7 @@ import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error
 import { Route } from '../../../route';
 import { RouteFile } from '../../../route-file';
 import { RouteFileInterface } from '../../../route-file.interface';
+import { RouteFileUtilities } from '../../../route-file.utilities';
 import { RouteParsingOptions } from '../../../route-parsing-options';
 import { RouteLinkInterface, RouteWaypointInterface } from '../../../route-point.interface';
 import { RouteStream } from '../../../route-stream';
@@ -98,6 +99,7 @@ export class RouteImporterGPX {
       }
 
       routeFile.addRoutes(routes);
+      RouteFileUtilities.reGenerateStatsForRouteFile(routeFile);
       resolve(routeFile);
     });
   }

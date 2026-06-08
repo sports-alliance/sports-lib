@@ -17,24 +17,45 @@ describe('EventImporterFIT', () => {
   describe('Session normalization', () => {
     it('should synthesize a fallback session when sessions are missing but top-level messages exist', () => {
       const startDate = new Date('2026-03-06T08:14:19.000Z');
+      const midDate = new Date('2026-03-06T08:24:19.000Z');
       const endDate = new Date('2026-03-06T08:44:19.000Z');
       const fitDataObject: any = {
         sessions: [],
         laps: [
           {
             start_time: startDate,
-            timestamp: endDate,
-            total_elapsed_time: 1800,
-            total_timer_time: 1700,
-            total_distance: 12345,
+            timestamp: midDate,
+            total_elapsed_time: 600,
+            total_timer_time: 550,
+            total_distance: 1000,
+            total_ascent: 10,
+            total_descent: 5,
+            avg_grade: 1,
+            max_pos_grade: 4,
+            max_neg_grade: -2,
             sport: 'running',
             sub_sport: 'road',
             records: [{ timestamp: new Date('2026-03-06T08:14:20.000Z') }]
+          },
+          {
+            start_time: midDate,
+            timestamp: endDate,
+            total_elapsed_time: 1200,
+            total_timer_time: 1150,
+            total_distance: 3000,
+            total_ascent: 20,
+            total_descent: 15,
+            avg_grade: 5,
+            max_pos_grade: 9,
+            max_neg_grade: -6,
+            sport: 'running',
+            sub_sport: 'road',
+            records: [{ timestamp: new Date('2026-03-06T08:24:20.000Z') }]
           }
         ],
         records: [
           { timestamp: startDate, distance: 0 },
-          { timestamp: endDate, distance: 12345 }
+          { timestamp: endDate, distance: 4000 }
         ],
         events: [{ timestamp: new Date('2026-03-06T08:14:25.000Z'), event: 'timer', event_type: 'start' }]
       };
@@ -44,14 +65,50 @@ describe('EventImporterFIT', () => {
       expect(fitDataObject.sessions).toHaveLength(1);
       const session = fitDataObject.sessions[0];
 
-      expect(session.laps).toHaveLength(1);
+      expect(session.laps).toHaveLength(2);
       expect(session.start_time.toISOString()).toBe(startDate.toISOString());
       expect(session.timestamp.toISOString()).toBe(endDate.toISOString());
       expect(session.total_elapsed_time).toBe(1800);
       expect(session.total_timer_time).toBe(1700);
-      expect(session.total_distance).toBe(12345);
+      expect(session.total_distance).toBe(4000);
+      expect(session.total_ascent).toBe(30);
+      expect(session.total_descent).toBe(20);
+      expect(session.avg_grade).toBe(4);
+      expect(session.max_pos_grade).toBe(9);
+      expect(session.max_neg_grade).toBe(-6);
       expect(session.sport).toBe('running');
       expect(session.sub_sport).toBe('road');
+    });
+
+    it('should use final record distance when sessionless lap summary distance coverage is incomplete', () => {
+      const startDate = new Date('2026-03-06T08:14:19.000Z');
+      const midDate = new Date('2026-03-06T08:24:19.000Z');
+      const endDate = new Date('2026-03-06T08:44:19.000Z');
+      const fitDataObject: any = {
+        sessions: [],
+        laps: [
+          {
+            start_time: startDate,
+            timestamp: midDate,
+            total_elapsed_time: 600,
+            total_distance: 1000,
+            total_ascent: 10
+          },
+          {
+            start_time: midDate,
+            timestamp: endDate,
+            total_elapsed_time: 1200
+          }
+        ],
+        records: [{ timestamp: startDate, distance: 0 }, { timestamp: midDate, distance: 4000 }, { timestamp: endDate }]
+      };
+
+      (EventImporterFIT as any).normalizeFitDataObjectForActivities(fitDataObject);
+
+      const session = fitDataObject.sessions[0];
+
+      expect(session.total_distance).toBe(4000);
+      expect(session.total_ascent).toBeUndefined();
     });
 
     it('should keep sessions empty when no valid time boundaries exist', () => {
@@ -69,7 +126,9 @@ describe('EventImporterFIT', () => {
 
     it('should normalize existing sessions that miss laps arrays', () => {
       const fitDataObject: any = {
-        sessions: [{ start_time: new Date('2026-03-06T08:14:19.000Z'), timestamp: new Date('2026-03-06T08:44:19.000Z') }]
+        sessions: [
+          { start_time: new Date('2026-03-06T08:14:19.000Z'), timestamp: new Date('2026-03-06T08:44:19.000Z') }
+        ]
       };
 
       (EventImporterFIT as any).normalizeFitDataObjectForActivities(fitDataObject);
@@ -84,14 +143,10 @@ describe('EventImporterFIT', () => {
 
   describe('HRV handling', () => {
     it('should preserve elapsed time after invalid HRV sentinel values', () => {
-      const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
-        [{ time: [1, 65.535, 1] }],
-        new Date(0),
-        {
-          startDate: new Date(50000),
-          endDate: new Date(70000)
-        }
-      );
+      const ibiData = (EventImporterFIT as any).getIBIDataForActivity([{ time: [1, 65.535, 1] }], new Date(0), {
+        startDate: new Date(50000),
+        endDate: new Date(70000)
+      });
 
       expect(ibiData).toEqual([1000]);
     });
@@ -110,14 +165,10 @@ describe('EventImporterFIT', () => {
     });
 
     it('should drop trailing invalid HRV sentinel values without emitting synthetic intervals', () => {
-      const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
-        [{ time: [1, 1, 65.535] }],
-        new Date(0),
-        {
-          startDate: new Date(0),
-          endDate: new Date(100000)
-        }
-      );
+      const ibiData = (EventImporterFIT as any).getIBIDataForActivity([{ time: [1, 1, 65.535] }], new Date(0), {
+        startDate: new Date(0),
+        endDate: new Date(100000)
+      });
 
       expect(ibiData).toEqual([1000, 1000]);
     });
@@ -129,7 +180,11 @@ describe('EventImporterFIT', () => {
       const fileBuffer = fs.readFileSync(fitFilePath);
       const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
 
-      const event = await EventImporterFIT.getFromArrayBuffer(arrayBuffer, ActivityParsingOptions.DEFAULT, 'swim-lengths.fit');
+      const event = await EventImporterFIT.getFromArrayBuffer(
+        arrayBuffer,
+        ActivityParsingOptions.DEFAULT,
+        'swim-lengths.fit'
+      );
       const activity = event.getActivities()[0];
       const swimLengths = activity.getSwimLengths();
 
@@ -173,22 +228,28 @@ describe('EventImporterFIT', () => {
       expect(swimLengths).toHaveLength(67);
       expect(swimLengths.filter(length => length.type === 'active')).toHaveLength(64);
       expect(swimLengths.filter(length => length.type === 'idle')).toHaveLength(3);
-      expect(swimLengths.reduce((totalDistance, length) => totalDistance + (length.distance?.getValue() || 0), 0)).toBe(1600);
-      expect(swimLengths[0].toJSON()).toEqual(expect.objectContaining({
-        index: 1,
-        lapIndex: 1,
-        type: 'idle',
-        distance: null,
-        poolLength: 25
-      }));
+      expect(swimLengths.reduce((totalDistance, length) => totalDistance + (length.distance?.getValue() || 0), 0)).toBe(
+        1600
+      );
+      expect(swimLengths[0].toJSON()).toEqual(
+        expect.objectContaining({
+          index: 1,
+          lapIndex: 1,
+          type: 'idle',
+          distance: null,
+          poolLength: 25
+        })
+      );
 
       const firstActiveLength = swimLengths.find(length => length.type === 'active');
-      expect(firstActiveLength?.toJSON()).toEqual(expect.objectContaining({
-        lapIndex: 1,
-        stroke: 'freestyle',
-        distance: 25,
-        poolLength: 25
-      }));
+      expect(firstActiveLength?.toJSON()).toEqual(
+        expect.objectContaining({
+          lapIndex: 1,
+          stroke: 'freestyle',
+          distance: 25,
+          poolLength: 25
+        })
+      );
 
       const roundTrippedActivity = EventImporterJSON.getActivityFromJSON(activity.toJSON());
       expect(roundTrippedActivity.getSwimLengths().map(length => length.toJSON())).toEqual(

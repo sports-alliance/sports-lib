@@ -1,17 +1,26 @@
 import { ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
 import { Creator } from '../../../../creators/creator';
 import { CreatorInterface } from '../../../../creators/creator.interface';
+import { DataAscent } from '../../../../data/data.ascent';
 import { DataAltitude } from '../../../../data/data.altitude';
+import { DataDescent } from '../../../../data/data.descent';
 import { DataDistance } from '../../../../data/data.distance';
+import { DataGradeAvg } from '../../../../data/data.grade-avg';
+import { DataGradeMax } from '../../../../data/data.grade-max';
+import { DataGradeMin } from '../../../../data/data.grade-min';
+import { DataInterface } from '../../../../data/data.interface';
 import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 import { FileType } from '../../../../events/adapters/file-type.enum';
+import { FIT_DISTANCE_ELEVATION_GRADE_SUMMARY_AGGREGATIONS } from '../../../../fit/fit-summary-stat.aggregations';
 import { FITCreatorMapper } from '../../../../fit/fit-creator.mapper';
 import { GeoLibAdapter } from '../../../../geodesy/adapters/geolib.adapter';
+import { StatsUtilities } from '../../../../stats/stats.utilities';
 import { Route } from '../../../route';
 import { RouteFile } from '../../../route-file';
 import { RouteFileInterface } from '../../../route-file.interface';
+import { RouteFileUtilities } from '../../../route-file.utilities';
 import { RouteParsingOptions } from '../../../route-parsing-options';
 import { RoutePointInterface, RouteWaypointInterface } from '../../../route-point.interface';
 import { RouteStream } from '../../../route-stream';
@@ -68,9 +77,10 @@ export class RouteImporterFIT {
     );
 
     this.addRouteStreams(route, records);
+    this.addRouteSummaryStats(route, fitDataObject, records);
     RouteUtilities.generateMissingStreamsAndStatsForRoute(route);
 
-    return new RouteFile(
+    const routeFile = new RouteFile(
       routeName,
       FileType.FIT,
       creator,
@@ -78,6 +88,8 @@ export class RouteImporterFIT {
       this.getWaypointsFromCoursePoints(fitDataObject, records),
       this.getCreatedAt(fitDataObject, records)
     );
+    RouteFileUtilities.reGenerateStatsForRouteFile(routeFile);
+    return routeFile;
   }
 
   private static async parseFIT(arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>): Promise<any> {
@@ -165,6 +177,75 @@ export class RouteImporterFIT {
         )
       );
     }
+  }
+
+  private static addRouteSummaryStats(route: Route, fitDataObject: unknown, records: FITRouteRecord[]): void {
+    const fitRecord = this.getObjectRecord(fitDataObject);
+    const summaryObjects = [
+      fitRecord?.course,
+      this.getAggregateSummaryObject(this.toArray(fitRecord?.sessions)),
+      this.getAggregateSummaryObject(this.toArray(fitRecord?.laps)),
+      fitRecord,
+      this.getFinalRecordDistanceSummary(records)
+    ];
+
+    this.addSummaryStat(route, summaryObjects, ['total_distance', 'TotalDistance'], DataDistance);
+    this.addSummaryStat(route, summaryObjects, ['total_ascent', 'TotalAscent'], DataAscent);
+    this.addSummaryStat(route, summaryObjects, ['total_descent', 'TotalDescent'], DataDescent);
+    this.addSummaryStat(route, summaryObjects, ['avg_grade', 'AvgGrade'], DataGradeAvg);
+    this.addSummaryStat(route, summaryObjects, ['max_pos_grade', 'MaxPositiveGrade'], DataGradeMax);
+    this.addSummaryStat(route, summaryObjects, ['max_neg_grade', 'MaxNegativeGrade'], DataGradeMin);
+  }
+
+  private static addSummaryStat(
+    route: Route,
+    summaryObjects: unknown[],
+    keys: string[],
+    DataClass: { type: string; new (value: number): DataInterface }
+  ): void {
+    if (route.getStat(DataClass.type)) {
+      return;
+    }
+
+    const value = this.getSummaryValue(summaryObjects, keys);
+    if (value === null) {
+      return;
+    }
+
+    route.addStat(new DataClass(value));
+  }
+
+  private static getSummaryValue(summaryObjects: unknown[], keys: string[]): number | null {
+    for (const summaryObject of summaryObjects) {
+      const summaryValue = StatsUtilities.getFiniteNumericRecordValue(summaryObject, keys);
+      if (summaryValue !== null) {
+        return summaryValue;
+      }
+    }
+
+    return null;
+  }
+
+  private static getAggregateSummaryObject(summaryObjects: unknown[]): Record<string, number> | null {
+    const summary = StatsUtilities.aggregateNumericRecords(
+      summaryObjects,
+      FIT_DISTANCE_ELEVATION_GRADE_SUMMARY_AGGREGATIONS
+    );
+    return Object.keys(summary).length ? summary : null;
+  }
+
+  private static getFinalRecordDistanceSummary(records: FITRouteRecord[]): { total_distance: number } | null {
+    for (let index = records.length - 1; index >= 0; index--) {
+      if (this.isFiniteNumber(records[index].distance)) {
+        return { total_distance: records[index].distance as number };
+      }
+    }
+
+    return null;
+  }
+
+  private static getObjectRecord(value: unknown): Record<string, unknown> | null {
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
   }
 
   private static getWaypointsFromCoursePoints(fitDataObject: any, records: FITRouteRecord[]): RouteWaypointInterface[] {

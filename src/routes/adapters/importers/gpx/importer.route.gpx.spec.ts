@@ -4,10 +4,13 @@ import { DOMParser } from '@xmldom/xmldom';
 import { ActivityTypes } from '../../../../activities/activity.types';
 import { DataAltitude } from '../../../../data/data.altitude';
 import { DataAscent } from '../../../../data/data.ascent';
+import { DataDescent } from '../../../../data/data.descent';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataGNSSDistanceMiles } from '../../../../data/data.gnss-distance-miles';
 import { DataGrade } from '../../../../data/data.grade';
 import { DataGradeAvg } from '../../../../data/data.grade-avg';
+import { DataGradeMax } from '../../../../data/data.grade-max';
+import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
 import { DataPace } from '../../../../data/data.pace';
 import { DataSpeed } from '../../../../data/data.speed';
@@ -45,6 +48,13 @@ describe('RouteImporterGPX', () => {
     expect(route.getStat(DataDistance.type)!.getValue()).toBeGreaterThan(0);
     expect(route.getStat(DataAscent.type)!.getValue()).toBeGreaterThan(0);
     expect(route.getStat(DataGradeAvg.type)).toBeDefined();
+
+    expect(result.getStat(DataDistance.type)!.getValue()).toEqual(route.getStat(DataDistance.type)!.getValue());
+    expect(result.getStat(DataAscent.type)!.getValue()).toEqual(route.getStat(DataAscent.type)!.getValue());
+    expect(result.getStat(DataDescent.type)!.getValue()).toEqual(route.getStat(DataDescent.type)!.getValue());
+    expect(result.getStat(DataGradeMin.type)!.getValue()).toEqual(route.getStat(DataGradeMin.type)!.getValue());
+    expect(result.getStat(DataGradeMax.type)!.getValue()).toEqual(route.getStat(DataGradeMax.type)!.getValue());
+    expect(result.getStat(DataGradeAvg.type)!.getValue()).toEqual(route.getStat(DataGradeAvg.type)!.getValue());
   });
 
   it('keeps metadata time on the route file rather than fabricating activity dates', async () => {
@@ -205,7 +215,45 @@ describe('RouteImporterGPX', () => {
 
     expect(json.id).toEqual('route-file-id');
     expect(json.routes[0].id).toEqual('route-id');
+    expect(json.stats![DataDistance.type]).toEqual(routeFile.getStat(DataDistance.type)!.getValue());
     expect(importedRouteFile.toJSON()).toEqual(json);
+  });
+
+  it('preserves route file stats from native JSON when present', async () => {
+    const routeFile = await SportsLib.importRoutesFromGPX(readRouteSample(), DOMParser);
+    const json = RouteExporterJSON.export(routeFile);
+    json.stats![DataDistance.type] = 12345;
+
+    const importedRouteFile = RouteImporterJSON.getRouteFileFromJSON(json);
+
+    expect(importedRouteFile.getStat(DataDistance.type)!.getValue()).toBe(12345);
+    expect(importedRouteFile.toJSON().stats![DataDistance.type]).toBe(12345);
+  });
+
+  it('regenerates route file stats from routes when native JSON has an empty stats object', async () => {
+    const routeFile = await SportsLib.importRoutesFromGPX(readRouteSample(), DOMParser);
+    const json = RouteExporterJSON.export(routeFile);
+    json.stats = {};
+
+    const importedRouteFile = RouteImporterJSON.getRouteFileFromJSON(json);
+
+    expect(importedRouteFile.getStat(DataDistance.type)!.getValue()).toEqual(
+      importedRouteFile.getFirstRoute().getStat(DataDistance.type)!.getValue()
+    );
+    expect(importedRouteFile.toJSON().stats![DataDistance.type]).toBeDefined();
+  });
+
+  it('regenerates route file stats from routes for older native JSON payloads', async () => {
+    const routeFile = await SportsLib.importRoutesFromGPX(readRouteSample(), DOMParser);
+    const json = RouteExporterJSON.export(routeFile);
+    delete (json as Partial<typeof json>).stats;
+
+    const importedRouteFile = RouteImporterJSON.getRouteFileFromJSON(json);
+
+    expect(importedRouteFile.getStat(DataDistance.type)!.getValue()).toEqual(
+      importedRouteFile.getFirstRoute().getStat(DataDistance.type)!.getValue()
+    );
+    expect(importedRouteFile.toJSON().stats![DataDistance.type]).toBeDefined();
   });
 
   it('rejects route JSON when point geometry conflicts with geometry streams', async () => {

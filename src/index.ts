@@ -130,6 +130,7 @@ export * from './routes';
 export * from './service-tokens/oauth1-service-token.interface';
 export * from './service-tokens/oauth2-service-token.interface';
 export * from './stats/stats.class.interface';
+export * from './stats/stats.utilities';
 export * from './streams/compressed.stream.interface';
 export * from './streams/stream';
 export * from './streams/stream.interface';

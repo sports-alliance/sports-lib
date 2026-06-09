@@ -9,6 +9,7 @@ import { ActivityParsingOptions } from './activities/activity-parsing-options';
 import { RouteImporterGPX } from './routes/adapters/importers/gpx/importer.route.gpx';
 import { RouteImporterJSON } from './routes/adapters/importers/json/importer.route.json';
 import { RouteImporterFIT } from './routes/adapters/importers/fit/importer.route.fit';
+import { RouteExporterGPX } from './routes/adapters/exporters/exporter.route.gpx';
 import { RouteParsingOptions } from './routes/route-parsing-options';
 import { RouteFileInterface } from './routes/route-file.interface';
 import { RouteFileJSONInterface } from './routes/route-file.json.interface';
@@ -98,6 +99,14 @@ export class SportsLib {
    */
   public static importRoutesFromJSON(json: RouteFileJSONInterface): RouteFileInterface {
     return RouteImporterJSON.getRouteFileFromJSON(json);
+  }
+
+  /**
+   * Exports first-class routes using GPX route format.
+   * @param routeFile
+   */
+  public static exportRoutesToGPX(routeFile: RouteFileInterface): Promise<string> {
+    return RouteExporterGPX.getAsString(routeFile);
   }
 }
 

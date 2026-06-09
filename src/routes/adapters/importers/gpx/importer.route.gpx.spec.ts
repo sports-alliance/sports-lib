@@ -279,4 +279,12 @@ describe('RouteImporterGPX', () => {
     const parsedExport = await RouteImporterGPX.getFromString(gpxString, DOMParser);
     expect(parsedExport.getFirstRoute().getPointCount()).toEqual(routeFile.getFirstRoute().getPointCount());
   });
+
+  it('exports routes to GPX through the public SportsLib API', async () => {
+    const routeFile = await SportsLib.importRoutesFromGPX(readRouteSample(), DOMParser);
+
+    await expect(SportsLib.exportRoutesToGPX(routeFile)).resolves.toEqual(
+      await RouteExporterGPX.getAsString(routeFile)
+    );
+  });
 });

@@ -1042,6 +1042,83 @@ export class EventImporterFIT {
     };
   }
 
+  private static resolveInvalidLapDates(
+    sessionLapObject: any,
+    activity: ActivityInterface,
+    startDate: Date | null,
+    endDate: Date | null,
+    firstRecordTimestamp: Date | null,
+    lastRecordTimestamp: Date | null
+  ): { startDate: Date; endDate: Date } {
+    const rawStartDate = this.getDateFromValue(sessionLapObject?.start_time);
+    const rawEndDate = this.getDateFromValue(sessionLapObject?.timestamp);
+    const totalElapsedTime =
+      this.getNumericValue(sessionLapObject?.total_elapsed_time) ??
+      this.getNumericValue(sessionLapObject?.total_timer_time);
+
+    if (rawStartDate && rawEndDate && rawEndDate <= rawStartDate) {
+      const recoveredStartDate =
+        firstRecordTimestamp ||
+        (activity.startDate < rawEndDate ? activity.startDate : null) ||
+        (totalElapsedTime && totalElapsedTime > 0
+          ? new Date(rawEndDate.getTime() - totalElapsedTime * 1000)
+          : null);
+
+      if (recoveredStartDate && recoveredStartDate < rawEndDate) {
+        return {
+          startDate: recoveredStartDate,
+          endDate: rawEndDate
+        };
+      }
+    }
+
+    if (startDate && totalElapsedTime && totalElapsedTime > 0) {
+      const recoveredEndDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
+      if (recoveredEndDate > startDate) {
+        return {
+          startDate,
+          endDate: recoveredEndDate
+        };
+      }
+    }
+
+    if (endDate && totalElapsedTime && totalElapsedTime > 0) {
+      const recoveredStartDate = new Date(endDate.getTime() - totalElapsedTime * 1000);
+      if (recoveredStartDate < endDate) {
+        return {
+          startDate: recoveredStartDate,
+          endDate
+        };
+      }
+    }
+
+    const fallbackStartDate =
+      firstRecordTimestamp ||
+      (activity.startDate && (!endDate || activity.startDate < endDate) ? activity.startDate : null) ||
+      startDate ||
+      rawStartDate;
+    const fallbackEndDate =
+      lastRecordTimestamp ||
+      (rawEndDate && fallbackStartDate && rawEndDate > fallbackStartDate ? rawEndDate : null) ||
+      (activity.endDate && fallbackStartDate && activity.endDate > fallbackStartDate ? activity.endDate : null) ||
+      endDate ||
+      rawEndDate;
+
+    if (fallbackStartDate && fallbackEndDate && fallbackEndDate > fallbackStartDate) {
+      return {
+        startDate: fallbackStartDate,
+        endDate: fallbackEndDate
+      };
+    }
+
+    return {
+      startDate: activity.startDate,
+      endDate: activity.endDate > activity.startDate
+        ? activity.endDate
+        : new Date(activity.startDate.getTime() + 1000)
+    };
+  }
+
   private static getLapFromSessionLapObject(
     sessionLapObject: any,
     activity: ActivityInterface,
@@ -1073,9 +1150,21 @@ export class EventImporterFIT {
         new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
+    const resolvedDates =
+      !startDate || !endDate || endDate <= startDate
+        ? this.resolveInvalidLapDates(
+            sessionLapObject,
+            activity,
+            startDate,
+            endDate,
+            firstRecordTimestamp,
+            lastRecordTimestamp
+          )
+        : { startDate, endDate };
+
     const lap = new Lap(
-      startDate,
-      endDate, // Some dont have a timestamp
+      resolvedDates.startDate,
+      resolvedDates.endDate, // Some dont have a timestamp
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
@@ -1086,8 +1175,8 @@ export class EventImporterFIT {
     // Add stats to the lap
     const normalizedSessionLapObject = this.normalizeElapsedTimeForResolvedDates(
       sessionLapObject,
-      startDate,
-      endDate,
+      resolvedDates.startDate,
+      resolvedDates.endDate,
       options
     );
     this.getStatsFromObject(normalizedSessionLapObject, activity, true).forEach(stat => lap.addStat(stat));
@@ -1166,7 +1255,7 @@ export class EventImporterFIT {
 
     // Now verify the start/end date compliance,
     // If for some reason this happens, get from records too
-    if (endDate <= startDate) {
+    if (startDate && endDate && endDate <= startDate) {
       if (recordStartDate) {
         startDate = recordStartDate;
       }
@@ -1174,6 +1263,10 @@ export class EventImporterFIT {
       if (recordEndDate) {
         endDate = recordEndDate;
       }
+    }
+
+    if (startDate && endDate && endDate <= startDate && totalElapsedTime > 0) {
+      endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
     }
 
     const elapsedTimeFromDates = (+endDate - +startDate) / 1000; // Get elapsed calculated from dates
@@ -1188,9 +1281,9 @@ export class EventImporterFIT {
     // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
     // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
     // @see test case implying 'fixtures/rides/fit/5319808632.fit' fit file
-    if (elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
+    if (totalElapsedTime && elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
       if (totalElapsedTime) {
-        endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+        endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
       }
     }
 
@@ -1205,7 +1298,7 @@ export class EventImporterFIT {
         startDate = recordStartDate;
         endDate = recordEndDate;
       } else {
-        endDate = new Date(sessionObject.start_time.getTime() + totalElapsedTime * 1000);
+        endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
       }
     }
 

@@ -338,7 +338,7 @@ describe('DataStore', () => {
       expect(converted).toHaveLength(1);
       expect(converted[0].getType()).toBe(DataDistance.type);
       expect(converted[0].getDisplayType()).toBe(DataDistance.type);
-      expect(converted[0].getDisplayValue()).toBe('1500');
+      expect(converted[0].getDisplayValue()).toBe('1.500');
       expect(converted[0].getDisplayUnit()).toBe('m');
     });
 

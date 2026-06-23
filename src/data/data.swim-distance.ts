@@ -1,4 +1,5 @@
 import { DataDistance } from './data.distance';
+import { formatMeterDistanceDisplayValue } from './data.meter-distance-display';
 
 export class DataSwimDistance extends DataDistance {
   static override type = DataDistance.type;
@@ -6,7 +7,7 @@ export class DataSwimDistance extends DataDistance {
   static override displayType = DataDistance.type;
 
   override getDisplayValue(): string {
-    return String(this.getValue());
+    return formatMeterDistanceDisplayValue(this.getValue());
   }
 
   override getDisplayUnit(): string {

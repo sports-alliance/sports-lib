@@ -10,8 +10,20 @@ export interface RouteParsingStreamOptions {
   includeTypes?: string[];
 }
 
+export interface RouteParsingGPXOptions {
+  /**
+   * Treat timed GPX tracks as route geometry.
+   *
+   * Defaults to false because GPX tracks with per-point time values usually represent
+   * completed activities. Route upload flows can opt in when the user explicitly wants
+   * to turn activity track geometry into a reusable route.
+   */
+  importTimedTracksAsRoutes?: boolean;
+}
+
 export interface RouteParsingOptionsInput {
   streams?: RouteParsingStreamOptions;
+  gpx?: RouteParsingGPXOptions;
   generateUnitStreams?: boolean;
 }
 
@@ -25,6 +37,10 @@ export class RouteParsingOptions {
       gradeSmooth?: boolean;
     };
     includeTypes?: string[];
+  };
+
+  public gpx: {
+    importTimedTracksAsRoutes: boolean;
   };
 
   public generateUnitStreams: boolean;
@@ -41,6 +57,10 @@ export class RouteParsingOptions {
     if (options.streams?.includeTypes) {
       this.streams.includeTypes = [...options.streams.includeTypes];
     }
+
+    this.gpx = {
+      importTimedTracksAsRoutes: options.gpx?.importTimedTracksAsRoutes ?? false
+    };
 
     this.generateUnitStreams = options.generateUnitStreams ?? true;
   }

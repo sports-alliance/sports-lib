@@ -42,7 +42,7 @@ export class RouteImporterGPX {
         RouteImporterGPX.getDate(metadata.time)
       );
 
-      const routes = RouteImporterGPX.getRouteCandidates(parsedGPX)
+      const routes = RouteImporterGPX.getRouteCandidates(parsedGPX, options)
         .map(routeCandidate => {
           const points = routeCandidate.pointNodes
             .map(routePoint => RouteImporterGPX.getPointFromGPXNode(routePoint))
@@ -104,19 +104,25 @@ export class RouteImporterGPX {
     });
   }
 
-  private static getRouteCandidates(parsedGPX: any): GPXRouteCandidate[] {
+  private static getRouteCandidates(parsedGPX: any, options: RouteParsingOptions): GPXRouteCandidate[] {
     const explicitRoutes = RouteImporterGPX.toArray(parsedGPX.rte).map(routeNode => ({
       routeNode,
       pointNodes: RouteImporterGPX.toArray(routeNode.rtept)
     }));
 
-    const untimedTrackRoutes = RouteImporterGPX.toArray(parsedGPX.trk)
+    const importTimedTracksAsRoutes = options.gpx.importTimedTracksAsRoutes && explicitRoutes.length === 0;
+    const trackRoutes = RouteImporterGPX.toArray(parsedGPX.trk)
       .map(routeNode => {
         const pointNodes = RouteImporterGPX.toArray(routeNode.trkseg).reduce((points: any[], trkseg: any) => {
           return points.concat(RouteImporterGPX.toArray(trkseg.trkpt));
         }, []);
 
-        if (!pointNodes.length || pointNodes.some(point => RouteImporterGPX.toArray(point.time).length > 0)) {
+        if (!pointNodes.length) {
+          return null;
+        }
+
+        const hasTimedPoints = pointNodes.some(point => RouteImporterGPX.toArray(point.time).length > 0);
+        if (hasTimedPoints && !importTimedTracksAsRoutes) {
           return null;
         }
 
@@ -127,7 +133,7 @@ export class RouteImporterGPX {
       })
       .filter((routeCandidate): routeCandidate is GPXRouteCandidate => routeCandidate !== null);
 
-    return RouteImporterGPX.dedupeRouteCandidates(explicitRoutes.concat(untimedTrackRoutes));
+    return RouteImporterGPX.dedupeRouteCandidates(explicitRoutes.concat(trackRoutes));
   }
 
   private static dedupeRouteCandidates(routeCandidates: GPXRouteCandidate[]): GPXRouteCandidate[] {

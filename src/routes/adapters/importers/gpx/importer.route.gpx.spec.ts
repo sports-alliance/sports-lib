@@ -100,6 +100,111 @@ describe('RouteImporterGPX', () => {
     expect(result.getFirstRoute().getPointCount()).toEqual(2);
   });
 
+  it('rejects timed GPX activity tracks by default', async () => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+      <gpx creator="Garmin Connect" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+        <metadata>
+          <name>Activity Track File</name>
+          <time>2019-07-11T05:36:07.000Z</time>
+        </metadata>
+        <trk>
+          <name>Timed Activity Track</name>
+          <type>cycling</type>
+          <trkseg>
+            <trkpt lat="39.80649" lon="21.00458">
+              <ele>908.6</ele>
+              <time>2019-07-11T05:36:07.000Z</time>
+            </trkpt>
+            <trkpt lat="39.80650" lon="21.00459">
+              <ele>909.1</ele>
+              <time>2019-07-11T05:36:08.000Z</time>
+            </trkpt>
+          </trkseg>
+        </trk>
+      </gpx>`;
+
+    await expect(RouteImporterGPX.getFromString(gpxString, DOMParser)).rejects.toThrow('No routes found in GPX');
+  });
+
+  it('parses timed GPX tracks as route geometry when explicitly enabled', async () => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+      <gpx creator="Garmin Connect" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+        <metadata>
+          <name>Activity Track File</name>
+          <time>2019-07-11T05:36:07.000Z</time>
+        </metadata>
+        <trk>
+          <name>Timed Activity Track</name>
+          <type>cycling</type>
+          <trkseg>
+            <trkpt lat="39.80649" lon="21.00458">
+              <ele>908.6</ele>
+              <time>2019-07-11T05:36:07.000Z</time>
+            </trkpt>
+            <trkpt lat="39.80650" lon="21.00459">
+              <ele>909.1</ele>
+              <time>2019-07-11T05:36:08.000Z</time>
+            </trkpt>
+          </trkseg>
+        </trk>
+      </gpx>`;
+
+    const result = await SportsLib.importRoutesFromGPX(
+      gpxString,
+      DOMParser,
+      new RouteParsingOptions({ gpx: { importTimedTracksAsRoutes: true } })
+    );
+
+    expect(result.name).toEqual('Activity Track File');
+    expect(result.createdAt!.toISOString()).toEqual('2019-07-11T05:36:07.000Z');
+    expect(result.getRoutes()).toHaveLength(1);
+    expect(result.getFirstRoute().name).toEqual('Timed Activity Track');
+    expect(result.getFirstRoute().activityType).toEqual(ActivityTypes.Cycling);
+    expect(result.getFirstRoute().getPointCount()).toEqual(2);
+    expect(result.getFirstRoute().getPointData()[0]).toEqual(
+      expect.objectContaining({
+        latitudeDegrees: 39.80649,
+        longitudeDegrees: 21.00458,
+        altitude: 908.6
+      })
+    );
+    expect(result.getFirstRoute().hasStreamData(DataLatitudeDegrees.type)).toBe(true);
+    expect(result.getFirstRoute().hasStreamData(DataAltitude.type)).toBe(true);
+    expect(result.getFirstRoute().hasStreamData(DataSpeed.type)).toBe(false);
+    expect(result.getFirstRoute().getStat(DataDistance.type)!.getValue()).toBeGreaterThan(0);
+  });
+
+  it('does not add timed activity tracks when explicit GPX routes exist', async () => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+      <gpx creator="Garmin Connect" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+        <rte>
+          <name>Explicit Route</name>
+          <rtept lat="1" lon="2"><ele>10</ele></rtept>
+          <rtept lat="1.1" lon="2.1"><ele>20</ele></rtept>
+        </rte>
+        <trk>
+          <name>Timed Activity Track</name>
+          <trkseg>
+            <trkpt lat="3" lon="4">
+              <time>2019-07-11T05:36:07.000Z</time>
+            </trkpt>
+            <trkpt lat="3.1" lon="4.1">
+              <time>2019-07-11T05:36:08.000Z</time>
+            </trkpt>
+          </trkseg>
+        </trk>
+      </gpx>`;
+
+    const result = await RouteImporterGPX.getFromString(
+      gpxString,
+      DOMParser,
+      new RouteParsingOptions({ gpx: { importTimedTracksAsRoutes: true } })
+    );
+
+    expect(result.getRoutes()).toHaveLength(1);
+    expect(result.getFirstRoute().name).toEqual('Explicit Route');
+  });
+
   it('dedupes compatibility GPX files that encode the same route as rte and untimed trk', async () => {
     const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
       <gpx creator="Garmin Connect" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">

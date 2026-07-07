@@ -7,6 +7,8 @@ export * from './route.interface';
 export * from './route.json.interface';
 export * from './route-parsing-options';
 export * from './route-point.interface';
+export * from './route-preview.interface';
+export * from './route-preview.utilities';
 export * from './route-stream';
 export * from './route-stream.interface';
 export * from './route.utilities';

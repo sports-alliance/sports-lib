@@ -55,6 +55,7 @@
   "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
+    "@googlemaps/polyline-codec": "^1.0.28",
     "fast-xml-parser": "^5.3.3",
     "fit-file-parser": "^3.0.2",
     "geolib": "^3.3.4",

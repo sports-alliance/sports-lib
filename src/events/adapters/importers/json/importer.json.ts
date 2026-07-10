@@ -27,6 +27,7 @@ import { DataEvent } from '../../../../data/data.event';
 import { DataTime } from '../../../../data/data.time';
 import { DataPowerCurve } from '../../../../data/data.power-curve';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
+import { DataInterface } from '../../../../data/data.interface';
 
 export class EventImporterJSON {
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
@@ -39,9 +40,7 @@ export class EventImporterJSON {
       json.description || undefined,
       json.isMerge || false
     );
-    Object.keys(json.stats || {}).forEach((statName: any) => {
-      event.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, (json.stats || {})[statName]));
-    });
+    this.addStatsFromJSON(event, json.stats || {});
     if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {
       event.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
       event.addStat(<any>event.powerCurve);
@@ -155,24 +154,89 @@ export class EventImporterJSON {
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>json.type]
     );
-    Object.keys(json.stats).forEach((statName: any) => {
-      lap.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
-    });
+    this.addStatsFromJSON(lap, json.stats);
     return lap;
   }
 
-  static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
-    let streamType = json.type;
+  private static getCanonicalDataType(dataType: string): string {
     try {
-      streamType = DynamicDataLoader.getDataClassFromDataType(json.type).type;
+      return DynamicDataLoader.getDataClassFromDataType(dataType).type;
     } catch (_error) {
-      streamType = json.type;
+      return dataType;
     }
+  }
+
+  private static shouldReplaceCanonicalEntry<T>(
+    existing: { sourceType: string; value: T } | undefined,
+    sourceType: string,
+    canonicalType: string
+  ): boolean {
+    if (!existing) {
+      return true;
+    }
+    return existing.sourceType !== canonicalType && sourceType === canonicalType;
+  }
+
+  private static getCanonicalJSONMap<T>(json: { [key: string]: T }): Map<string, { sourceType: string; value: T }> {
+    const canonicalMap = new Map<string, { sourceType: string; value: T }>();
+    Object.keys(json || {}).forEach(sourceType => {
+      const canonicalType = this.getCanonicalDataType(sourceType);
+      const existing = canonicalMap.get(canonicalType);
+      if (this.shouldReplaceCanonicalEntry(existing, sourceType, canonicalType)) {
+        canonicalMap.set(canonicalType, { sourceType, value: json[sourceType] });
+      }
+    });
+    return canonicalMap;
+  }
+
+  private static addStatsFromJSON(
+    target: { addStat: (stat: DataInterface) => void },
+    stats: DataJSONInterface = {}
+  ): void {
+    this.getCanonicalJSONMap(stats).forEach((entry, canonicalType) => {
+      target.addStat(DynamicDataLoader.getDataInstanceFromDataType(canonicalType, entry.value));
+    });
+  }
+
+  static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
+    const streamType = this.getCanonicalDataType(json.type);
 
     if (streamType === DataIBI.type) {
       return new IBIStream(<number[]>json.data);
     }
     return new Stream(streamType, json.data);
+  }
+
+  private static getCanonicalStreamsFromJSON(
+    streams: StreamJSONInterface[] | { [key: string]: (number | null)[] }
+  ): StreamJSONInterface[] {
+    const canonicalMap = new Map<string, { sourceType: string; value: StreamJSONInterface }>();
+    const addStream = (sourceType: string, data: StreamJSONInterface['data']) => {
+      const canonicalType = this.getCanonicalDataType(sourceType);
+      if (canonicalType === DataTime.type) {
+        return;
+      }
+      const existing = canonicalMap.get(canonicalType);
+      if (this.shouldReplaceCanonicalEntry(existing, sourceType, canonicalType)) {
+        canonicalMap.set(canonicalType, {
+          sourceType,
+          value: {
+            type: canonicalType,
+            data
+          }
+        });
+      }
+    };
+
+    if (Array.isArray(streams)) {
+      streams.forEach(streamJson => addStream(streamJson.type, streamJson.data));
+    } else {
+      Object.keys(streams || {}).forEach(streamKey => {
+        addStream(streamKey, streams[streamKey]);
+      });
+    }
+
+    return Array.from(canonicalMap.values()).map(entry => entry.value);
   }
 
   static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {
@@ -207,9 +271,7 @@ export class EventImporterJSON {
       ActivityTypes[<keyof typeof ActivityTypes>json.type],
       EventImporterJSON.getCreatorFromJSON(json.creator)
     );
-    Object.keys(json.stats).forEach((statName: any) => {
-      activity.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, json.stats[statName]));
-    });
+    this.addStatsFromJSON(activity, json.stats);
     if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {
       activity.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
       activity.addStat(<any>activity.powerCurve);
@@ -223,25 +285,9 @@ export class EventImporterJSON {
       });
     }
 
-    if (Array.isArray(json.streams)) {
-      json.streams.forEach((streamJson: StreamJSONInterface) => {
-        if (streamJson.type === DataTime.type) {
-          return;
-        }
-        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
-      });
-    } else {
-      Object.keys(json.streams).forEach(streamKey => {
-        if (streamKey === DataTime.type) {
-          return;
-        }
-        const streamJson: StreamJSONInterface = {
-          type: streamKey,
-          data: (json.streams as { [key: string]: number[] })[streamKey]
-        };
-        activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
-      });
-    }
+    this.getCanonicalStreamsFromJSON(json.streams).forEach(streamJson => {
+      activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));
+    });
 
     json.intensityZones.forEach(intensityZonesJSON => {
       activity.intensityZones.push(EventImporterJSON.getIntensityZonesFromJSON(intensityZonesJSON));

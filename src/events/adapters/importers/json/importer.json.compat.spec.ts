@@ -43,6 +43,31 @@ describe('EventImporterJSON legacy type compatibility', () => {
     expect(activity.getStat(DataPowerBalanceRight.type)?.getValue()).toBe(49);
   });
 
+  it('prefers canonical stat keys when legacy aliases collide with them', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'mixed-json-balance-stats',
+      startDate: 0,
+      endDate: 1000,
+      type: ActivityTypes.Cycling,
+      powerMeter: true,
+      trainer: false,
+      stats: {
+        [DataPowerBalanceLeft.type]: 61,
+        'Left Balance': 51,
+        'Right Balance': 49,
+        [DataPowerBalanceRight.type]: 39
+      },
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.getStat(DataPowerBalanceLeft.type)?.getValue()).toBe(61);
+    expect(activity.getStat(DataPowerBalanceRight.type)?.getValue()).toBe(39);
+  });
+
   it('maps legacy balance stream keys to canonical power balance types', () => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'legacy-json-balance-streams',
@@ -66,6 +91,56 @@ describe('EventImporterJSON legacy type compatibility', () => {
     expect(activity.hasStreamData('Right Balance')).toBe(false);
     expect(activity.getStream(DataPowerBalanceLeft.type).getData()).toEqual([51, 52, 53]);
     expect(activity.getStream(DataPowerBalanceRight.type).getData()).toEqual([49, 48, 47]);
+  });
+
+  it('dedupes mixed legacy and canonical balance streams without throwing', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'mixed-json-balance-streams',
+      startDate: 0,
+      endDate: 3000,
+      type: ActivityTypes.Cycling,
+      powerMeter: true,
+      trainer: false,
+      stats: {},
+      streams: {
+        [DataPowerBalanceLeft.type]: [61, 62, 63],
+        'Left Balance': [51, 52, 53],
+        'Right Balance': [49, 48, 47],
+        [DataPowerBalanceRight.type]: [39, 38, 37]
+      },
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.getStream(DataPowerBalanceLeft.type).getData()).toEqual([61, 62, 63]);
+    expect(activity.getStream(DataPowerBalanceRight.type).getData()).toEqual([39, 38, 37]);
+  });
+
+  it('dedupes mixed legacy and canonical array streams without throwing', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'mixed-json-balance-array-streams',
+      startDate: 0,
+      endDate: 3000,
+      type: ActivityTypes.Cycling,
+      powerMeter: true,
+      trainer: false,
+      stats: {},
+      streams: [
+        { type: DataPowerBalanceLeft.type, data: [61, 62, 63] },
+        { type: 'Left Balance', data: [51, 52, 53] },
+        { type: 'Right Balance', data: [49, 48, 47] },
+        { type: DataPowerBalanceRight.type, data: [39, 38, 37] }
+      ],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.getStream(DataPowerBalanceLeft.type).getData()).toEqual([61, 62, 63]);
+    expect(activity.getStream(DataPowerBalanceRight.type).getData()).toEqual([39, 38, 37]);
   });
 
   it('ignores legacy object-form Time streams while preserving IBI streams', () => {

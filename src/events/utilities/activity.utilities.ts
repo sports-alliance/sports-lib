@@ -483,21 +483,35 @@ export class ActivityUtilities {
     LeftDataClass: { type: string; new (value: number): DataInterface },
     RightDataClass: { type: string; new (value: number): DataInterface }
   ): void {
-    if (activity.getStat(LeftDataClass.type) || activity.getStat(RightDataClass.type)) {
+    const leftStat = activity.getStat(LeftDataClass.type);
+    const rightStat = activity.getStat(RightDataClass.type);
+    const leftStatValue = leftStat?.getValue();
+    const rightStatValue = rightStat?.getValue();
+    if (leftStat && rightStat) {
+      return;
+    }
+
+    if (leftStat && !rightStat && typeof leftStatValue === 'number') {
+      activity.addStat(new RightDataClass(this.round(100 - leftStatValue, 2)));
+      return;
+    }
+
+    if (rightStat && !leftStat && typeof rightStatValue === 'number') {
+      activity.addStat(new LeftDataClass(this.round(100 - rightStatValue, 2)));
       return;
     }
 
     if (activity.hasStreamData(LeftDataClass.type)) {
       const avgLeftBalance = this.round(this.getDataTypeAvg(activity, LeftDataClass.type), 2);
       activity.addStat(new LeftDataClass(avgLeftBalance));
-      activity.addStat(new RightDataClass(100 - avgLeftBalance));
+      activity.addStat(new RightDataClass(this.round(100 - avgLeftBalance, 2)));
       return;
     }
 
     if (activity.hasStreamData(RightDataClass.type)) {
       const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
       activity.addStat(new RightDataClass(avgRightBalance));
-      activity.addStat(new LeftDataClass(100 - avgRightBalance));
+      activity.addStat(new LeftDataClass(this.round(100 - avgRightBalance, 2)));
     }
   }
 
@@ -3862,12 +3876,7 @@ export class ActivityUtilities {
       }
     }
 
-    // Assign L/R balance from streams if exists
-    if (!activity.getStat(DataPowerBalanceRight.type) && activity.hasStreamData(DataPowerBalanceRight.type)) {
-      const avgRightBalance = this.round(this.getDataTypeAvg(activity, DataPowerBalanceRight.type), 2);
-      activity.addStat(new DataPowerBalanceRight(avgRightBalance));
-      activity.addStat(new DataPowerBalanceLeft(100 - avgRightBalance));
-    }
+    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight);
 
     this.addLeftRightBalanceStatsFromStreams(
       activity,

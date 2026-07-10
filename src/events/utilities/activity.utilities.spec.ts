@@ -78,10 +78,20 @@ import {
   DataStaminaMin
 } from '../../data/data.stamina';
 import { DataPowerAvg } from '../../data/data.power-avg';
+import { DataPowerBalanceLeft } from '../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../data/data.power-balance-right';
 import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
 import { DataWeight } from '../../data/data.weight';
 import { IBIStream } from '../../streams/ibi-stream';
 import { DataIBI } from '../../data/data.ibi';
+import {
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight
+} from '../../data/data.running-dynamics-balance';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -905,6 +915,44 @@ describe('Activity Utilities', () => {
         8.6666666667,
         10
       );
+    });
+
+    it('should generate power balance stats from a left-only balance stream', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
+      activity.addStream(new Stream(DataPowerBalanceLeft.type, [51, 52, 53]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect((activity.getStat(DataPowerBalanceLeft.type) as DataPowerBalanceLeft).getValue()).toBe(52);
+      expect((activity.getStat(DataPowerBalanceRight.type) as DataPowerBalanceRight).getValue()).toBe(48);
+    });
+
+    it('should generate running dynamics balance stats from left or right streams', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataVerticalOscillationBalanceLeft.type, [48, 49]));
+      activity.addStream(new Stream(DataLegSpringStiffnessBalanceRight.type, [52, 53]));
+      activity.addStream(new Stream(DataImpactLoadingRateBalanceLeft.type, [50, 50]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(
+        (activity.getStat(DataVerticalOscillationBalanceLeft.type) as DataVerticalOscillationBalanceLeft).getValue()
+      ).toBe(48.5);
+      expect(
+        (activity.getStat(DataVerticalOscillationBalanceRight.type) as DataVerticalOscillationBalanceRight).getValue()
+      ).toBe(51.5);
+      expect(
+        (activity.getStat(DataLegSpringStiffnessBalanceLeft.type) as DataLegSpringStiffnessBalanceLeft).getValue()
+      ).toBe(47.5);
+      expect(
+        (activity.getStat(DataLegSpringStiffnessBalanceRight.type) as DataLegSpringStiffnessBalanceRight).getValue()
+      ).toBe(52.5);
+      expect(
+        (activity.getStat(DataImpactLoadingRateBalanceLeft.type) as DataImpactLoadingRateBalanceLeft).getValue()
+      ).toBe(50);
+      expect(
+        (activity.getStat(DataImpactLoadingRateBalanceRight.type) as DataImpactLoadingRateBalanceRight).getValue()
+      ).toBe(50);
     });
 
     it('should generate min/max/avg stats for Vertical Ratio when stream exists', () => {

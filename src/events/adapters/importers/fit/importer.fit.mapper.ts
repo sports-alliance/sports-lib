@@ -258,20 +258,28 @@ export const FITSampleMapper: {
   {
     dataType: DataGroundContactTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time_balance; // The field sample refers to the balance on left leg
+      // The FIT stance_time_balance field refers to the balance on the left leg.
+      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
+        ? sample.stance_time_balance
+        : null;
     }
   },
   {
     dataType: DataGroundContactTimeBalanceRight.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.stance_time_balance) ? 100 - sample.stance_time_balance : null;
+      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
+        ? 100 - sample.stance_time_balance
+        : null;
     }
   },
   // Keep DataStanceTimeBalanceLeft for backward compatibility
   {
     dataType: DataStanceTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
-      return sample.stance_time_balance; // The field sample refers to the balance on left leg
+      // The FIT stance_time_balance field refers to the balance on the left leg.
+      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
+        ? sample.stance_time_balance
+        : null;
     }
   },
 

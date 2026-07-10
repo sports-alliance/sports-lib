@@ -3,6 +3,9 @@ import * as path from 'path';
 import { FITSampleMapper } from './importer.fit.mapper';
 import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
+import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { EventImporterFIT } from './importer.fit';
@@ -39,6 +42,22 @@ describe('FITSampleMapper', () => {
 
     const mapped = mapper!.getSampleValue({ stance_time: 296, 'Ground Time': 1216 });
     expect(mapped).toBe(296);
+  });
+
+  it('should treat zero Ground Contact Time balance samples as missing', () => {
+    const leftMapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTimeBalanceLeft.type);
+    const rightMapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTimeBalanceRight.type);
+    const legacyLeftMapper = FITSampleMapper.find(m => m.dataType === DataStanceTimeBalanceLeft.type);
+
+    expect(leftMapper).toBeDefined();
+    expect(rightMapper).toBeDefined();
+    expect(legacyLeftMapper).toBeDefined();
+    expect(leftMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(51.25);
+    expect(rightMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(48.75);
+    expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(51.25);
+    expect(leftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
+    expect(rightMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
+    expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
   });
 
   it('should keep Ground Time stream values in ms when importing a FIT file', async () => {

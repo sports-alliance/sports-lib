@@ -16,8 +16,8 @@ import { DataAccumulatedPower } from '../../../../data/data.accumulated-power';
 import { DataStrydAltitude } from '../../../../data/data.stryd-altitude';
 import { DataStrydDistance } from '../../../../data/data.stryd-distance';
 import { DataStrydSpeed } from '../../../../data/data.stryd-speed';
-import { DataRightBalance } from '../../../../data/data.right-balance';
-import { DataLeftBalance } from '../../../../data/data.left-balance';
+import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
@@ -228,7 +228,7 @@ export const FITSampleMapper: {
     }
   },
   {
-    dataType: DataRightBalance.type,
+    dataType: DataPowerBalanceRight.type,
     getSampleValue: (sample: any) => {
       if (!sample.left_right_balance) {
         return null;
@@ -241,7 +241,7 @@ export const FITSampleMapper: {
   },
   // @todo if conservation of data is needed this can be taken of and generated on the fly
   {
-    dataType: DataLeftBalance.type,
+    dataType: DataPowerBalanceLeft.type,
     getSampleValue: (sample: any) => {
       if (!sample.left_right_balance) {
         return null;

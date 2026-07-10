@@ -165,8 +165,8 @@ import { DataCriticalPower } from '../../data/data.critical-power';
 import { DataWPrime } from '../../data/data.w-prime';
 import { DataFTP } from '../../data/data.ftp';
 import { DataPowerLeft } from '../../data/data.power-left';
-import { DataRightBalance } from '../../data/data.right-balance';
-import { DataLeftBalance } from '../../data/data.left-balance';
+import { DataPowerBalanceLeft } from '../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../data/data.power-balance-right';
 import { DataPowerRight } from '../../data/data.power-right';
 import { DataAirPowerMin } from '../../data/data.air-power-min';
 import { DataAirPower } from '../../data/data.air-power';
@@ -3106,7 +3106,7 @@ export class ActivityUtilities {
     if (!activity.hasStreamData(DataPowerRight.type) && this.canGenerateDerivedStream(activity, DataPowerRight.type)) {
       const rightPowerStream = activity.createStream(DataPowerRight.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData = activity.getStreamData(DataRightBalance.type);
+      const rightBalanceStreamData = activity.getStreamData(DataPowerBalanceRight.type);
       rightPowerStream.setData(
         rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
           const powerStreamDataItem = powerStreamData[index];
@@ -3123,7 +3123,7 @@ export class ActivityUtilities {
     if (!activity.hasStreamData(DataPowerLeft.type) && this.canGenerateDerivedStream(activity, DataPowerLeft.type)) {
       const leftPowerStream = activity.createStream(DataPowerLeft.type);
       const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData = activity.getStreamData(DataLeftBalance.type);
+      const leftBalanceStreamData = activity.getStreamData(DataPowerBalanceLeft.type);
       leftPowerStream.setData(
         leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
           const powerStreamDataItem = powerStreamData[index];
@@ -3863,10 +3863,10 @@ export class ActivityUtilities {
     }
 
     // Assign L/R balance from streams if exists
-    if (!activity.getStat(DataRightBalance.type) && activity.hasStreamData(DataRightBalance.type)) {
-      const avgRightBalance = this.round(this.getDataTypeAvg(activity, DataRightBalance.type), 2);
-      activity.addStat(new DataRightBalance(avgRightBalance));
-      activity.addStat(new DataLeftBalance(100 - avgRightBalance));
+    if (!activity.getStat(DataPowerBalanceRight.type) && activity.hasStreamData(DataPowerBalanceRight.type)) {
+      const avgRightBalance = this.round(this.getDataTypeAvg(activity, DataPowerBalanceRight.type), 2);
+      activity.addStat(new DataPowerBalanceRight(avgRightBalance));
+      activity.addStat(new DataPowerBalanceLeft(100 - avgRightBalance));
     }
 
     this.addLeftRightBalanceStatsFromStreams(

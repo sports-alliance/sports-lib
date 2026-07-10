@@ -436,7 +436,6 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Jump Event`
 - `Jump Score`
 - `Latitude` (unit: `degrees`)
-- `Left Balance`
 - `Left Pedal Smoothness` (unit: `%`)
 - `Left Torque Effectiveness` (unit: `%`)
 - `Leg Spring Stiffness` (unit: `"KN/m"`)
@@ -454,6 +453,8 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Pool Length` (unit: `m`)
 - `Position`
 - `Power` (unit: `watt`)
+- `Power Balance Left`
+- `Power Balance Right`
 - `Power Down Event`
 - `Power Intensity Factor`
 - `Power Left`
@@ -474,7 +475,6 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Recovery Time`
 - `Resting Calories` (unit: `kcal`)
 - `Rider Position Change Event`
-- `Right Balance`
 - `Right Pedal Smoothness` (unit: `%`)
 - `Right Torque Effectiveness` (unit: `%`)
 - `Rotations`

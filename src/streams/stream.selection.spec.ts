@@ -11,6 +11,7 @@ import { DataHeartRate } from '../data/data.heart-rate';
 import { DataLatitudeDegrees } from '../data/data.latitude-degrees';
 import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { DataPace } from '../data/data.pace';
+import { DataPowerBalanceLeft } from '../data/data.power-balance-left';
 import { DataSpeed, DataSpeedKilometersPerHour } from '../data/data.speed';
 import { Stream } from './stream';
 import { getStreamSelectionFromOptions, isStreamTypeAllowedForImport, pruneActivityStreamsBySelection } from './stream.selection';
@@ -46,6 +47,18 @@ describe('stream.selection', () => {
     expect(selection?.importAllowSet.has(DataDistance.type)).toBe(true);
     expect(selection?.importAllowSet.has(DataPace.type)).toBe(true);
     expect(selection?.importAllowSet.has(DataSpeed.type)).toBe(true);
+  });
+
+  it('should normalize legacy includeType aliases to canonical stream types', () => {
+    const selection = getStreamSelectionFromOptions(
+      new ActivityParsingOptions({
+        streams: { includeTypes: [' Left Balance ', DataPowerBalanceLeft.type] }
+      })
+    );
+
+    expect(selection).not.toBeNull();
+    expect(selection?.outputAllowSet).toEqual(new Set([DataPowerBalanceLeft.type]));
+    expect(selection?.importAllowSet.has(DataPowerBalanceLeft.type)).toBe(true);
   });
 
   it('should expand dependencies for pace requests', () => {

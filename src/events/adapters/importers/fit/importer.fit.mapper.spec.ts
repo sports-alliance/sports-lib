@@ -7,6 +7,8 @@ import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-c
 import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
 import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
+import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { EventImporterFIT } from './importer.fit';
 import { convertSpeedToPace } from '../../../utilities/helpers';
@@ -66,6 +68,18 @@ describe('FITSampleMapper', () => {
     expect(leftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(rightMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
+  });
+
+  it('should map FIT left_right_balance to canonical power balance fields', () => {
+    const leftMapper = FITSampleMapper.find(m => m.dataType === DataPowerBalanceLeft.type);
+    const rightMapper = FITSampleMapper.find(m => m.dataType === DataPowerBalanceRight.type);
+
+    expect(leftMapper).toBeDefined();
+    expect(rightMapper).toBeDefined();
+    expect(leftMapper!.getSampleValue({ left_right_balance: { right: false, value: 51.25 } })).toBe(51.25);
+    expect(rightMapper!.getSampleValue({ left_right_balance: { right: false, value: 51.25 } })).toBe(48.75);
+    expect(leftMapper!.getSampleValue({ left_right_balance: { right: true, value: 48.75 } })).toBe(51.25);
+    expect(rightMapper!.getSampleValue({ left_right_balance: { right: true, value: 48.75 } })).toBe(48.75);
   });
 
   it('should map Stryd Duo balance fields as left/right pairs', () => {

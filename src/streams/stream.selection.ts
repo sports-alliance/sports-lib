@@ -18,11 +18,7 @@ function validateAndNormalizeRequestedTypes(requestedTypes: string[]): Set<strin
 
     try {
       const dataClass = DynamicDataLoader.getDataClassFromDataType(normalizedType);
-      if (dataClass.type !== normalizedType) {
-        unknownTypes.push(type);
-        return;
-      }
-      normalizedTypes.add(normalizedType);
+      normalizedTypes.add(dataClass.type);
     } catch (_error) {
       unknownTypes.push(type);
     }

@@ -169,6 +169,8 @@ export * from './data.percent';
 export * from './data.pool-length';
 export * from './data.position.interface';
 export * from './data.position';
+export * from './data.power-balance-left';
+export * from './data.power-balance-right';
 export * from './data.power-avg';
 export * from './data.power-curve';
 export * from './data.power-down';

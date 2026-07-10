@@ -13,6 +13,8 @@ import { DataAvgStrokeDistance } from './data.avg-stroke-distance';
 import { DataAvgStrokeCount } from './data.avg-stroke-count';
 import { DataAvgStrideLength } from './data.avg-stride-length';
 import { DataMaxHRSetting } from './data.max-hr-setting';
+import { DataPowerBalanceLeft } from './data.power-balance-left';
+import { DataPowerBalanceRight } from './data.power-balance-right';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMax,
@@ -51,6 +53,8 @@ describe('Data naming canonicalization compatibility', () => {
     { cls: DataAvgStrokeCount, canonical: 'Average Stroke Count', legacy: 'Avg Stroke Count' },
     { cls: DataAvgStrideLength, canonical: 'Average Stride Length', legacy: 'Avg Stride Length' },
     { cls: DataMaxHRSetting, canonical: 'Maximum HR Setting', legacy: 'Max HR Setting' },
+    { cls: DataPowerBalanceLeft, canonical: 'Power Balance Left', legacy: 'Left Balance' },
+    { cls: DataPowerBalanceRight, canonical: 'Power Balance Right', legacy: 'Right Balance' },
 
     { cls: DataJumpHangTimeAvg, canonical: 'Average Jump Hang Time', legacy: 'Jump Hang Time Avg' },
     { cls: DataJumpHangTimeMin, canonical: 'Minimum Jump Hang Time', legacy: 'Jump Hang Time Min' },

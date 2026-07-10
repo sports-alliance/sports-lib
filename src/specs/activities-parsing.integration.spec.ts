@@ -37,8 +37,8 @@ import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
 import { DataActiveLap } from '../data/data-active-lap';
 import { DataSWOLF25m } from '../data/data.swolf-25m';
 import { DataSWOLF50m } from '../data/data.swolf-50m';
-import { DataLeftBalance } from '../data/data.left-balance';
-import { DataRightBalance } from '../data/data.right-balance';
+import { DataPowerBalanceLeft } from '../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../data/data.power-balance-right';
 import { DataPowerTorqueEffectivenessLeft } from '../data/data.power-torque-effectiveness-left';
 import { DataPowerTorqueEffectivenessRight } from '../data/data.power-torque-effectiveness-right';
 import { DataPowerPedalSmoothnessRight } from '../data/data.power-pedal-smoothness-right';
@@ -1604,8 +1604,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.creator.name).toEqual('Garmin Edge 1030');
 
             // Power extended stats. FIT invalid L/R balance samples (0xFF) are excluded.
-            expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(51.66);
-            expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(48.34);
+            expect((activity.getStat(DataPowerBalanceLeft.type) as DataNumber).getValue()).toEqual(51.66);
+            expect((activity.getStat(DataPowerBalanceRight.type) as DataNumber).getValue()).toEqual(48.34);
             expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(80);
             expect((activity.getStat(DataPowerTorqueEffectivenessRight.type) as DataNumber).getValue()).toEqual(76.5);
             expect((activity.getStat(DataPowerPedalSmoothnessLeft.type) as DataNumber).getValue()).toEqual(22);
@@ -1645,8 +1645,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const activity = event.getFirstActivity();
             expect(activity.creator.name).toEqual('Garmin Edge 1000');
             expect(activity.hasPowerMeter()).toBeTruthy();
-            expect((activity.getStat(DataLeftBalance.type) as DataNumber).getValue()).toEqual(45.91);
-            expect((activity.getStat(DataRightBalance.type) as DataNumber).getValue()).toEqual(54.09);
+            expect((activity.getStat(DataPowerBalanceLeft.type) as DataNumber).getValue()).toEqual(45.91);
+            expect((activity.getStat(DataPowerBalanceRight.type) as DataNumber).getValue()).toEqual(54.09);
             expect((activity.getStat(DataPowerTorqueEffectivenessLeft.type) as DataNumber).getValue()).toEqual(71);
             expect((activity.getStat(DataPowerTorqueEffectivenessRight.type) as DataNumber).getValue()).toEqual(73);
             expect((activity.getStat(DataPowerPedalSmoothnessLeft.type) as DataNumber).getValue()).toEqual(20);

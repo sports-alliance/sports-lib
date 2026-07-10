@@ -162,10 +162,17 @@ export class EventImporterJSON {
   }
 
   static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
-    if (json.type === DataIBI.type) {
+    let streamType = json.type;
+    try {
+      streamType = DynamicDataLoader.getDataClassFromDataType(json.type).type;
+    } catch (_error) {
+      streamType = json.type;
+    }
+
+    if (streamType === DataIBI.type) {
       return new IBIStream(<number[]>json.data);
     }
-    return new Stream(json.type, json.data);
+    return new Stream(streamType, json.data);
   }
 
   static getIntensityZonesFromJSON(json: IntensityZonesJSONInterface): IntensityZones {

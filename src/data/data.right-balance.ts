@@ -1,5 +1,2 @@
-import { DataBalance } from './data.balance';
-
-export class DataRightBalance extends DataBalance {
-  static type = 'Right Balance';
-}
+/** @deprecated Use DataPowerBalanceRight instead. */
+export { DataPowerBalanceRight as DataRightBalance } from './data.power-balance-right';

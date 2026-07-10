@@ -7,13 +7,13 @@ import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
 import { DataGradeAdjustedSpeed } from '../data/data.grade-adjusted-speed';
 import { DataGradeSmooth } from '../data/data.grade-smooth';
 import { DataLatitudeDegrees } from '../data/data.latitude-degrees';
-import { DataLeftBalance } from '../data/data.left-balance';
 import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { DataPace } from '../data/data.pace';
 import { DataPower } from '../data/data.power';
+import { DataPowerBalanceLeft } from '../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../data/data.power-balance-right';
 import { DataPowerLeft } from '../data/data.power-left';
 import { DataPowerRight } from '../data/data.power-right';
-import { DataRightBalance } from '../data/data.right-balance';
 import { DataSpeed } from '../data/data.speed';
 import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
@@ -69,11 +69,11 @@ const STREAM_DERIVATION_RULES: StreamDerivationRule[] = [
   },
   {
     provides: DataPowerLeft.type,
-    requiresAll: [DataPower.type, DataLeftBalance.type]
+    requiresAll: [DataPower.type, DataPowerBalanceLeft.type]
   },
   {
     provides: DataPowerRight.type,
-    requiresAll: [DataPower.type, DataRightBalance.type]
+    requiresAll: [DataPower.type, DataPowerBalanceRight.type]
   },
   {
     provides: DataStanceTimeBalanceRight.type,

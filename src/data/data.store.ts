@@ -191,6 +191,8 @@ import {
   DataVerticalOscillationBalanceRight
 } from './data.running-dynamics-balance';
 import { DataLeftBalance } from './data.left-balance';
+import { DataPowerBalanceLeft } from './data.power-balance-left';
+import { DataPowerBalanceRight } from './data.power-balance-right';
 import { DataRightBalance } from './data.right-balance';
 import { DataRPE } from './data.rpe';
 import { DataPowerRight } from './data.power-right';
@@ -699,6 +701,8 @@ export const DataStore: any = {
   DataLegSpringStiffnessBalanceRight,
   DataImpactLoadingRateBalanceLeft,
   DataImpactLoadingRateBalanceRight,
+  DataPowerBalanceLeft,
+  DataPowerBalanceRight,
   DataLeftBalance,
   DataRightBalance,
   DataPowerLeft,
@@ -1022,8 +1026,8 @@ export class DynamicDataLoader {
     DataLegSpringStiffnessBalanceRight.type,
     DataImpactLoadingRateBalanceLeft.type,
     DataImpactLoadingRateBalanceRight.type,
-    DataLeftBalance.type,
-    DataRightBalance.type,
+    DataPowerBalanceLeft.type,
+    DataPowerBalanceRight.type,
     DataPowerLeft.type,
     DataPowerRight.type,
     DataStanceTime.type,

@@ -6,6 +6,8 @@ import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
 import { DataAvgRespirationRate } from '../../../../data/data.avg-respiration-rate';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataIBI } from '../../../../data/data.ibi';
+import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataTime } from '../../../../data/data.time';
 import { IBIStream } from '../../../../streams/ibi-stream';
 
@@ -22,7 +24,9 @@ describe('EventImporterJSON legacy type compatibility', () => {
         'Avg VAM': 123,
         'Jump Height Avg': 1.5,
         'Max HR Setting': 190,
-        'Respiration Rate Avg': 16
+        'Respiration Rate Avg': 16,
+        'Left Balance': 51,
+        'Right Balance': 49
       },
       streams: [],
       laps: [],
@@ -35,6 +39,33 @@ describe('EventImporterJSON legacy type compatibility', () => {
     expect(activity.getStat(DataJumpHeightAvg.type)?.getValue()).toBe(1.5);
     expect(activity.getStat(DataMaxHRSetting.type)?.getValue()).toBe(190);
     expect(activity.getStat(DataAvgRespirationRate.type)?.getValue()).toBe(16);
+    expect(activity.getStat(DataPowerBalanceLeft.type)?.getValue()).toBe(51);
+    expect(activity.getStat(DataPowerBalanceRight.type)?.getValue()).toBe(49);
+  });
+
+  it('maps legacy balance stream keys to canonical power balance types', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'legacy-json-balance-streams',
+      startDate: 0,
+      endDate: 3000,
+      type: ActivityTypes.Cycling,
+      powerMeter: true,
+      trainer: false,
+      stats: {},
+      streams: {
+        'Left Balance': [51, 52, 53],
+        'Right Balance': [49, 48, 47]
+      },
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.hasStreamData('Left Balance')).toBe(false);
+    expect(activity.hasStreamData('Right Balance')).toBe(false);
+    expect(activity.getStream(DataPowerBalanceLeft.type).getData()).toEqual([51, 52, 53]);
+    expect(activity.getStream(DataPowerBalanceRight.type).getData()).toEqual([49, 48, 47]);
   });
 
   it('ignores legacy object-form Time streams while preserving IBI streams', () => {

@@ -189,7 +189,7 @@ import {
   DataLegSpringStiffnessBalanceRight,
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
-} from './data.stryd-balance';
+} from './data.running-dynamics-balance';
 import { DataLeftBalance } from './data.left-balance';
 import { DataRightBalance } from './data.right-balance';
 import { DataRPE } from './data.rpe';

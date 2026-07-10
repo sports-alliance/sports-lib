@@ -17,7 +17,7 @@ import {
   DataLegSpringStiffnessBalanceRight,
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
-} from '../../../../data/data.stryd-balance';
+} from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
   it('should map Ground Time as milliseconds without scaling', () => {

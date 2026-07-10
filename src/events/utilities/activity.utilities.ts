@@ -209,7 +209,7 @@ import {
   DataLegSpringStiffnessBalanceRight,
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
-} from '../../data/data.stryd-balance';
+} from '../../data/data.running-dynamics-balance';
 import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';

@@ -39,7 +39,7 @@ import {
   DataLegSpringStiffnessBalanceRight,
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
-} from '../../../../data/data.stryd-balance';
+} from '../../../../data/data.running-dynamics-balance';
 import { DataLeftTorqueEffectiveness } from '../../../../data/data.left-torque-effectiveness';
 import { DataRightTorqueEffectiveness } from '../../../../data/data.right-torque-effectiveness';
 import { DataLeftPedalSmoothness } from '../../../../data/data.left-pedal-smoothness';

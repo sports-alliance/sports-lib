@@ -10,6 +10,14 @@ import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { EventImporterFIT } from './importer.fit';
 import { convertSpeedToPace } from '../../../utilities/helpers';
+import {
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight
+} from '../../../../data/data.stryd-balance';
 
 describe('FITSampleMapper', () => {
   it('should map Ground Time as milliseconds without scaling', () => {
@@ -58,6 +66,60 @@ describe('FITSampleMapper', () => {
     expect(leftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(rightMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
+  });
+
+  it('should map Stryd Duo balance fields as left/right pairs', () => {
+    const sample = {
+      'Vertical Oscillation Balance': 48.75,
+      'Leg Spring Stiffness Balance': 47.5,
+      'Impact Loading Rate Balance': 50.25
+    };
+
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataVerticalOscillationBalanceLeft.type)!.getSampleValue(sample)
+    ).toBe(48.75);
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataVerticalOscillationBalanceRight.type)!.getSampleValue(sample)
+    ).toBe(51.25);
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataLegSpringStiffnessBalanceLeft.type)!.getSampleValue(sample)
+    ).toBe(47.5);
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataLegSpringStiffnessBalanceRight.type)!.getSampleValue(sample)
+    ).toBe(52.5);
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataImpactLoadingRateBalanceLeft.type)!.getSampleValue(sample)
+    ).toBe(50.25);
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataImpactLoadingRateBalanceRight.type)!.getSampleValue(sample)
+    ).toBe(49.75);
+  });
+
+  it('should treat zero Stryd Duo balance samples as missing', () => {
+    const sample = {
+      'Vertical Oscillation Balance': 0,
+      'Leg Spring Stiffness Balance': 0,
+      'Impact Loading Rate Balance': 0
+    };
+
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataVerticalOscillationBalanceLeft.type)!.getSampleValue(sample)
+    ).toBeNull();
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataVerticalOscillationBalanceRight.type)!.getSampleValue(sample)
+    ).toBeNull();
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataLegSpringStiffnessBalanceLeft.type)!.getSampleValue(sample)
+    ).toBeNull();
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataLegSpringStiffnessBalanceRight.type)!.getSampleValue(sample)
+    ).toBeNull();
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataImpactLoadingRateBalanceLeft.type)!.getSampleValue(sample)
+    ).toBeNull();
+    expect(
+      FITSampleMapper.find(m => m.dataType === DataImpactLoadingRateBalanceRight.type)!.getSampleValue(sample)
+    ).toBeNull();
   });
 
   it('should keep Ground Time stream values in ms when importing a FIT file', async () => {

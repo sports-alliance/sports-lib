@@ -429,6 +429,8 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Heart Rate Used`
 - `Height` (unit: `m`)
 - `IBI` (unit: `ms`)
+- `Impact Loading Rate Balance Left`
+- `Impact Loading Rate Balance Right`
 - `Jump Count`
 - `Jump Distance`
 - `Jump Event`
@@ -438,6 +440,8 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Left Pedal Smoothness` (unit: `%`)
 - `Left Torque Effectiveness` (unit: `%`)
 - `Leg Spring Stiffness` (unit: `"KN/m"`)
+- `Leg Spring Stiffness Balance Left`
+- `Leg Spring Stiffness Balance Right`
 - `Leg Stiffness` (unit: `"KN/m"`)
 - `Longitude` (unit: `degrees`)
 - `Moving time`
@@ -501,6 +505,8 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Training Stress Score`
 - `Training Stress Score Method`
 - `Vertical Oscillation` (unit: `mm`)
+- `Vertical Oscillation Balance Left`
+- `Vertical Oscillation Balance Right`
 - `Vertical Ratio` (unit: `%`)
 - `Vertical Speed` (unit: `m/s`)
 - `VO2 Max`

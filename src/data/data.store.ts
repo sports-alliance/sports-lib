@@ -182,6 +182,14 @@ import { DataAccumulatedPower } from './data.accumulated-power';
 import { DataStrydDistance } from './data.stryd-distance';
 import { DataStrydSpeed } from './data.stryd-speed';
 import { DataStrydAltitude } from './data.stryd-altitude';
+import {
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight
+} from './data.stryd-balance';
 import { DataLeftBalance } from './data.left-balance';
 import { DataRightBalance } from './data.right-balance';
 import { DataRPE } from './data.rpe';
@@ -685,6 +693,12 @@ export const DataStore: any = {
   DataSWOLF25m,
   DataSWOLF50m,
   DataAccumulatedPower,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
   DataLeftBalance,
   DataRightBalance,
   DataPowerLeft,
@@ -1002,6 +1016,12 @@ export class DynamicDataLoader {
     DataStrydAltitude.type,
     DataStrydDistance.type,
     DataStrydSpeed.type,
+    DataVerticalOscillationBalanceLeft.type,
+    DataVerticalOscillationBalanceRight.type,
+    DataLegSpringStiffnessBalanceLeft.type,
+    DataLegSpringStiffnessBalanceRight.type,
+    DataImpactLoadingRateBalanceLeft.type,
+    DataImpactLoadingRateBalanceRight.type,
     DataLeftBalance.type,
     DataRightBalance.type,
     DataPowerLeft.type,

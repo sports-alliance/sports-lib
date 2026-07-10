@@ -32,6 +32,14 @@ import { DataAirPower } from '../../../../data/data.air-power';
 import { DataGrit } from '../../../../data/data.grit';
 import { DataFlow } from '../../../../data/data.flow';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
+import {
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight
+} from '../../../../data/data.stryd-balance';
 import { DataLeftTorqueEffectiveness } from '../../../../data/data.left-torque-effectiveness';
 import { DataRightTorqueEffectiveness } from '../../../../data/data.right-torque-effectiveness';
 import { DataLeftPedalSmoothness } from '../../../../data/data.left-pedal-smoothness';
@@ -41,6 +49,16 @@ import {
   GNSS_DEGREES_PRECISION_NUMBER_OF_DECIMAL_PLACES
 } from '../../../../constants/constants';
 import { SampleInfo } from '../sample-info.interface';
+
+const getPositiveBalanceValue = (sample: any, fieldName: string): number | null => {
+  const value = sample[fieldName];
+  return isNumber(value) && value > 0 ? value : null;
+};
+
+const getPositiveBalanceComplementValue = (sample: any, fieldName: string): number | null => {
+  const value = getPositiveBalanceValue(sample, fieldName);
+  return value === null ? null : 100 - value;
+};
 
 export const FITSampleMapper: {
   dataType: string;
@@ -259,17 +277,49 @@ export const FITSampleMapper: {
     dataType: DataGroundContactTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
       // The FIT stance_time_balance field refers to the balance on the left leg.
-      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
-        ? sample.stance_time_balance
-        : null;
+      return getPositiveBalanceValue(sample, 'stance_time_balance');
     }
   },
   {
     dataType: DataGroundContactTimeBalanceRight.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
-        ? 100 - sample.stance_time_balance
-        : null;
+      return getPositiveBalanceComplementValue(sample, 'stance_time_balance');
+    }
+  },
+  {
+    dataType: DataVerticalOscillationBalanceLeft.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceValue(sample, 'Vertical Oscillation Balance');
+    }
+  },
+  {
+    dataType: DataVerticalOscillationBalanceRight.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceComplementValue(sample, 'Vertical Oscillation Balance');
+    }
+  },
+  {
+    dataType: DataLegSpringStiffnessBalanceLeft.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceValue(sample, 'Leg Spring Stiffness Balance');
+    }
+  },
+  {
+    dataType: DataLegSpringStiffnessBalanceRight.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceComplementValue(sample, 'Leg Spring Stiffness Balance');
+    }
+  },
+  {
+    dataType: DataImpactLoadingRateBalanceLeft.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceValue(sample, 'Impact Loading Rate Balance');
+    }
+  },
+  {
+    dataType: DataImpactLoadingRateBalanceRight.type,
+    getSampleValue: (sample: any) => {
+      return getPositiveBalanceComplementValue(sample, 'Impact Loading Rate Balance');
     }
   },
   // Keep DataStanceTimeBalanceLeft for backward compatibility
@@ -277,9 +327,7 @@ export const FITSampleMapper: {
     dataType: DataStanceTimeBalanceLeft.type,
     getSampleValue: (sample: any) => {
       // The FIT stance_time_balance field refers to the balance on the left leg.
-      return isNumber(sample.stance_time_balance) && sample.stance_time_balance > 0
-        ? sample.stance_time_balance
-        : null;
+      return getPositiveBalanceValue(sample, 'stance_time_balance');
     }
   },
 

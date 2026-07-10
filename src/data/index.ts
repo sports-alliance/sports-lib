@@ -235,6 +235,7 @@ export * from './data.stop-event';
 export * from './data.store';
 export * from './data.string';
 export * from './data.stryd-altitude';
+export * from './data.stryd-balance';
 export * from './data.stryd-distance';
 export * from './data.stryd-speed';
 export * from './data.swim-distance';

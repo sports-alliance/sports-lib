@@ -202,6 +202,14 @@ import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-ma
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
+import {
+  DataImpactLoadingRateBalanceLeft,
+  DataImpactLoadingRateBalanceRight,
+  DataLegSpringStiffnessBalanceLeft,
+  DataLegSpringStiffnessBalanceRight,
+  DataVerticalOscillationBalanceLeft,
+  DataVerticalOscillationBalanceRight
+} from '../../data/data.stryd-balance';
 import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
@@ -468,6 +476,29 @@ export class ActivityUtilities {
   public static round(value: number, decimals = 0) {
     const decimalsFactor = Math.pow(10, decimals);
     return Math.round(value * decimalsFactor) / decimalsFactor;
+  }
+
+  private static addLeftRightBalanceStatsFromStreams(
+    activity: ActivityInterface,
+    LeftDataClass: { type: string; new (value: number): DataInterface },
+    RightDataClass: { type: string; new (value: number): DataInterface }
+  ): void {
+    if (activity.getStat(LeftDataClass.type) || activity.getStat(RightDataClass.type)) {
+      return;
+    }
+
+    if (activity.hasStreamData(LeftDataClass.type)) {
+      const avgLeftBalance = this.round(this.getDataTypeAvg(activity, LeftDataClass.type), 2);
+      activity.addStat(new LeftDataClass(avgLeftBalance));
+      activity.addStat(new RightDataClass(100 - avgLeftBalance));
+      return;
+    }
+
+    if (activity.hasStreamData(RightDataClass.type)) {
+      const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
+      activity.addStat(new RightDataClass(avgRightBalance));
+      activity.addStat(new LeftDataClass(100 - avgRightBalance));
+    }
   }
 
   public static getAverage(data: number[]): number {
@@ -2175,7 +2206,9 @@ export class ActivityUtilities {
   }
 
   private static resolveNormalizedPower(activity: ActivityInterface): number | null {
-    const existingNormalizedPower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerNormalized.type));
+    const existingNormalizedPower = this.toPositiveFiniteNumber(
+      this.getFiniteStatValue(activity, DataPowerNormalized.type)
+    );
     if (existingNormalizedPower !== null) {
       return existingNormalizedPower;
     }
@@ -2400,7 +2433,10 @@ export class ActivityUtilities {
 
     const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
     const gradeSmoothByDuration = new Map<number, number>(
-      this.getStreamSamplesByDuration(activity, DataGradeSmooth.type).map(sample => [sample.duration, sample.value / 100])
+      this.getStreamSamplesByDuration(activity, DataGradeSmooth.type).map(sample => [
+        sample.duration,
+        sample.value / 100
+      ])
     );
     const gradeByDuration = new Map<number, number>(
       this.getStreamSamplesByDuration(activity, DataGrade.type).map(sample => [sample.duration, sample.value / 100])
@@ -2490,10 +2526,7 @@ export class ActivityUtilities {
 
   private static supportsPaceTss(activity: ActivityInterface): boolean {
     const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    if (
-      activityGroup === ActivityTypeGroups.RunningGroup ||
-      activityGroup === ActivityTypeGroups.TrailRunningGroup
-    ) {
+    if (activityGroup === ActivityTypeGroups.RunningGroup || activityGroup === ActivityTypeGroups.TrailRunningGroup) {
       return true;
     }
 
@@ -3836,25 +3869,29 @@ export class ActivityUtilities {
       activity.addStat(new DataLeftBalance(100 - avgRightBalance));
     }
 
-    // Assign L/R balance stance time from streams if exists
-    if (
-      !activity.getStat(DataGroundContactTimeBalanceLeft.type) &&
-      activity.hasStreamData(DataGroundContactTimeBalanceLeft.type)
-    ) {
-      const avgStanceTimeLeftBalance = this.round(
-        this.getDataTypeAvg(activity, DataGroundContactTimeBalanceLeft.type),
-        2
-      );
-      activity.addStat(new DataGroundContactTimeBalanceLeft(avgStanceTimeLeftBalance));
-      activity.addStat(new DataGroundContactTimeBalanceRight(100 - avgStanceTimeLeftBalance));
-    }
+    this.addLeftRightBalanceStatsFromStreams(
+      activity,
+      DataGroundContactTimeBalanceLeft,
+      DataGroundContactTimeBalanceRight
+    );
+    this.addLeftRightBalanceStatsFromStreams(
+      activity,
+      DataVerticalOscillationBalanceLeft,
+      DataVerticalOscillationBalanceRight
+    );
+    this.addLeftRightBalanceStatsFromStreams(
+      activity,
+      DataLegSpringStiffnessBalanceLeft,
+      DataLegSpringStiffnessBalanceRight
+    );
+    this.addLeftRightBalanceStatsFromStreams(
+      activity,
+      DataImpactLoadingRateBalanceLeft,
+      DataImpactLoadingRateBalanceRight
+    );
 
     // Backward compatibility for Stance Time Balance
-    if (!activity.getStat(DataStanceTimeBalanceLeft.type) && activity.hasStreamData(DataStanceTimeBalanceLeft.type)) {
-      const avgStanceTimeLeftBalance = this.round(this.getDataTypeAvg(activity, DataStanceTimeBalanceLeft.type), 2);
-      activity.addStat(new DataStanceTimeBalanceLeft(avgStanceTimeLeftBalance));
-      activity.addStat(new DataStanceTimeBalanceRight(100 - avgStanceTimeLeftBalance));
-    }
+    this.addLeftRightBalanceStatsFromStreams(activity, DataStanceTimeBalanceLeft, DataStanceTimeBalanceRight);
 
     // Ground Contact Time
     if (!activity.getStat(DataGroundContactTimeMax.type) && activity.hasStreamData(DataGroundContactTime.type)) {
@@ -4691,12 +4728,19 @@ export class ActivityUtilities {
       const timerTimeStat = <DataTimerTime>activity.getStat(DataTimerTime.type);
 
       let pauseTime = 0;
-      if (elapsedTimeStat && isNumber(elapsedTimeStat.getValue()) && timerTimeStat && isNumber(timerTimeStat.getValue())) {
+      if (
+        elapsedTimeStat &&
+        isNumber(elapsedTimeStat.getValue()) &&
+        timerTimeStat &&
+        isNumber(timerTimeStat.getValue())
+      ) {
         pauseTime = elapsedTimeStat.getValue() - timerTimeStat.getValue();
       } else {
         const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
         pauseTime =
-          movingTimeStat && movingTimeStat.getValue() ? activity.getDuration().getValue() - movingTimeStat.getValue() : 0;
+          movingTimeStat && movingTimeStat.getValue()
+            ? activity.getDuration().getValue() - movingTimeStat.getValue()
+            : 0;
       }
 
       activity.addStat(new DataPause(this.round(Math.max(pauseTime, 0), 2)));

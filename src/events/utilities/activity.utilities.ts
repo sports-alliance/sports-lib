@@ -334,7 +334,17 @@ import {
   DataJumpSpeedMin
 } from '../../data/data.jump-stats';
 import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve';
+import {
+  DataDurabilityEvidence,
+  type DurabilityEvidenceValue,
+  normalizeDurabilityEvidenceValue
+} from '../../data/data.durability-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
+import {
+  analyzeActivityDurability,
+  calculateActivityDurabilitySourceFingerprint,
+  hasActivityDurabilitySourceData
+} from './activity-durability';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -841,6 +851,27 @@ export class ActivityUtilities {
     this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
     this.generateMissingSpeedDerivedStatsForActivity(activity);
+    const existingDurability = activity.getStat<DurabilityEvidenceValue>(DataDurabilityEvidence.type)?.getValue();
+    const canonicalExistingDurability = normalizeDurabilityEvidenceValue(existingDurability);
+    const hasSourceData = canonicalExistingDurability ? hasActivityDurabilitySourceData(activity) : false;
+    const canReuseExistingDurability =
+      !!canonicalExistingDurability &&
+      (!hasSourceData ||
+        canonicalExistingDurability.sourceFingerprint === calculateActivityDurabilitySourceFingerprint(activity));
+    const existingIsCanonical =
+      !!canonicalExistingDurability &&
+      JSON.stringify(existingDurability) === JSON.stringify(canonicalExistingDurability);
+
+    if (!canReuseExistingDurability) {
+      activity.removeStat(DataDurabilityEvidence.type);
+      const durability = analyzeActivityDurability(activity, { includeTimeline: false }).summary;
+      if (durability) {
+        activity.addStat(new DataDurabilityEvidence(durability));
+      }
+    } else if (!existingIsCanonical) {
+      activity.removeStat(DataDurabilityEvidence.type);
+      activity.addStat(new DataDurabilityEvidence(canonicalExistingDurability));
+    }
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
   }
 
@@ -896,7 +927,7 @@ export class ActivityUtilities {
     const stats: DataInterface[] = [];
     // If only one
     if (activities.length === 1) {
-      return activities[0].getStatsAsArray();
+      return activities[0].getStatsAsArray().filter(stat => stat.getType() !== DataDurabilityEvidence.type);
     }
 
     let duration = 0;

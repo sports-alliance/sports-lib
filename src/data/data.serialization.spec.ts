@@ -3,6 +3,11 @@ import { Data } from './data';
 import { DataDuration } from './data.duration';
 import { DataPower } from './data.power';
 import { DataPowerCurve } from './data.power-curve';
+import {
+  DataDurabilityEvidence,
+  DURABILITY_PROTOCOL_VERSION,
+  type DurabilityEvidenceValue
+} from './data.durability-evidence';
 import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
 import { RiderPosition } from './data.cycling-position';
 import { DataSportProfileName } from './data.sport-profile-name';
@@ -38,6 +43,33 @@ describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
   const knownProviders = new Map<typeof Data | any, any[]>([
     [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
+    [
+      DataDurabilityEvidence,
+      [
+        {
+          protocolVersion: DURABILITY_PROTOCOL_VERSION,
+          sourceFingerprint: 'durability-v1:0000000000000000',
+          discipline: 'cycling',
+          outputSource: 'power',
+          outputUnit: 'W',
+          context: null,
+          durationSeconds: 3600,
+          qualifyingDurationSeconds: 0,
+          coverageRatio: 0,
+          eligibility: {
+            eligible: false,
+            reason: 'missing-output',
+            validSampleCount: 0,
+            comparisonSegments: 'halves',
+            earlySampleCount: 0,
+            lateSampleCount: 0,
+            outputCoefficientOfVariation: null,
+            hardZoneRatio: null
+          },
+          evidence: null
+        } satisfies DurabilityEvidenceValue
+      ]
+    ],
     [DataRiderPositionChangeEvent, [1, RiderPosition.SEATED]],
     [DataSportProfileName, ['TestProfile']],
     [DataFusedLocation, [true]],

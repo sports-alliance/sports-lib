@@ -333,6 +333,7 @@ import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance
 import { DataCriticalPower } from './data.critical-power';
 import { DataFTP } from './data.ftp';
 import { DataPowerCurve } from './data.power-curve';
+import { DataDurabilityEvidence } from './data.durability-evidence';
 import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
 import { DataWPrime } from './data.w-prime';
 
@@ -468,6 +469,7 @@ export const DataStore: any = {
   DataCriticalPower,
   DataFTP,
   DataPowerCurve,
+  DataDurabilityEvidence,
   DataPowerWattsPerKg,
   DataWPrime,
   DataNumberOfSatellites,

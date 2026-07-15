@@ -1,17 +1,9 @@
-import { DataInterface, UnitSystem } from './data.interface';
-import { DataJSONInterface } from './data.json.interface';
+import { DataInterface, DefaultDataClassValue, UnitSystem } from './data.interface';
+import { DataJSONInterface, DataJSONValue } from './data.json.interface';
 import { DataPositionInterface } from './data.position.interface';
 import { isNumber } from '../events/utilities/helpers';
 
-export abstract class Data<
-  T extends number | string | boolean | string[] | DataPositionInterface | any[] =
-    | number
-    | string
-    | boolean
-    | string[]
-    | DataPositionInterface
-    | any[]
-> implements DataInterface {
+export abstract class Data<T = DefaultDataClassValue> implements DataInterface<T> {
   static type: string;
   static unit: string;
   static displayType?: string;
@@ -28,7 +20,7 @@ export abstract class Data<
     this.value = value;
   }
 
-  setValue(value: number | string | boolean | string[] | DataPositionInterface): this {
+  setValue(value: T): this {
     if (!this.isValueTypeValid(value)) {
       throw new Error('Value is not boolean or number or string or Date or position');
     }
@@ -71,20 +63,21 @@ export abstract class Data<
     return (<typeof Data>this.constructor).unitSystem;
   }
 
-  isValueTypeValid(value: any): boolean {
+  isValueTypeValid(value: unknown): boolean {
+    const position = value as Partial<DataPositionInterface> | null;
     return !(
       typeof value !== 'string' &&
       typeof value !== 'number' &&
       typeof value !== 'boolean' &&
       !Array.isArray(value) &&
-      !isNumber(value.latitudeDegrees) &&
-      !isNumber(value.longitudeDegrees)
+      !isNumber(position?.latitudeDegrees) &&
+      !isNumber(position?.longitudeDegrees)
     );
   }
 
   toJSON(): DataJSONInterface {
     return {
-      [this.getType()]: this.getValue()
+      [this.getType()]: this.getValue() as DataJSONValue
     };
   }
 }

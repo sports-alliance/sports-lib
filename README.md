@@ -193,7 +193,7 @@ High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
-- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina
+- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
@@ -279,6 +279,17 @@ Critical Power model (Monod-Scherrer on duration 180..1200s):
   slope = (n*sumXY - sumX*sumY) / (n*sumXX - sumX^2) = W'
   intercept = (sumY - slope*sumX) / n = CP
 ```
+
+`samplePowerCurveAtDuration` samples exact points or interpolates in reciprocal-duration (`1/t`) space. Interpolation
+requires neighboring durations within the default 1.25 ratio (configurable up to the hard maximum of 2), keeps the
+strongest duplicate, and never extrapolates. `comparePowerCurveWindows` reports recent/reference retention percentage
+and its percentage-point delta from 100 while normalizing each input curve only once.
+
+`Durability Evidence` is a compact, versioned activity stat. Running, cycling/MTB, and open-water evidence compares
+output/heart-rate efficiency across fixed early and late time halves after warm-up/cool-down exclusion. Pool evidence
+compares the outer thirds of like-for-like active lengths using the dominant stroke and pool length. Timelines and source
+streams are never stored in the stat; a deterministic protocol-input fingerprint invalidates stale evidence, and
+ineligible activities retain an explicit reason and coverage instead of zero values.
 
 6) Training Stress Score (TSS) methods and priority
 
@@ -394,6 +405,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Device Names`
 - `Distance` (unit: `m`)
 - `Distance (Stryd)`
+- `Durability Evidence`
 - `Duration` (unit: `s`)
 - `Elapsed time` (unit: `s`)
 - `Effort Pace`

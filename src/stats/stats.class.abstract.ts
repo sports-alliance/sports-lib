@@ -1,7 +1,7 @@
 import { StatsClassInterface } from './stats.class.interface';
 import { IDClass } from '../id/id.abstract.class';
 import { DataDistance } from '../data/data.distance';
-import { DataInterface } from '../data/data.interface';
+import { DataInterface, DefaultDataValue } from '../data/data.interface';
 
 export abstract class StatsClassAbstract extends IDClass implements StatsClassInterface {
   public stats = new Map<string, DataInterface>(); // this could just be an array
@@ -10,16 +10,16 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     return <DataDistance>this.stats.get(DataDistance.type);
   }
 
-  getStat(statType: string): DataInterface | void {
-    return this.stats.get(statType);
+  getStat<TValue = DefaultDataValue>(statType: string): DataInterface<TValue> | void {
+    return this.stats.get(statType) as DataInterface<TValue> | void;
   }
 
-  getStats(): Map<string, DataInterface> {
-    return this.stats;
+  getStats<TValue = DefaultDataValue>(): Map<string, DataInterface<TValue>> {
+    return this.stats as unknown as Map<string, DataInterface<TValue>>;
   }
 
-  getStatsAsArray(): DataInterface[] {
-    return Array.from(this.stats.values());
+  getStatsAsArray<TValue = DefaultDataValue>(): DataInterface<TValue>[] {
+    return Array.from(this.stats.values()) as unknown as DataInterface<TValue>[];
   }
 
   removeStat(statType: string) {
@@ -34,7 +34,7 @@ export abstract class StatsClassAbstract extends IDClass implements StatsClassIn
     this.stats.set(DataDistance.type, distance);
   }
 
-  addStat(stat: DataInterface) {
-    this.stats.set(stat.getType(), stat);
+  addStat(stat: DataInterface<unknown>) {
+    this.stats.set(stat.getType(), stat as unknown as DataInterface);
   }
 }

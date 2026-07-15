@@ -1,11 +1,11 @@
 import { DataBare } from './data.bare';
 
-export abstract class DataBoolean extends DataBare {
+export abstract class DataBoolean extends DataBare<boolean> {
   constructor(value: boolean) {
     super(value);
   }
 
-  isValueTypeValid(value: any): boolean {
+  isValueTypeValid(value: unknown): boolean {
     return typeof value === 'boolean';
   }
 }

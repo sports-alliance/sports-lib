@@ -1,14 +1,14 @@
 import { DataDistance } from '../data/data.distance';
-import { DataInterface } from '../data/data.interface';
+import { DataInterface, DefaultDataValue } from '../data/data.interface';
 
 export interface StatsClassInterface {
   getDistance(): DataDistance;
 
-  getStat(statType: string): DataInterface | void;
+  getStat<TValue = DefaultDataValue>(statType: string): DataInterface<TValue> | void;
 
-  getStats(): Map<string, DataInterface>;
+  getStats<TValue = DefaultDataValue>(): Map<string, DataInterface<TValue>>;
 
-  getStatsAsArray(): DataInterface[];
+  getStatsAsArray<TValue = DefaultDataValue>(): DataInterface<TValue>[];
 
   removeStat(statType: string): void;
 
@@ -16,5 +16,5 @@ export interface StatsClassInterface {
 
   setDistance(distance: DataDistance): void;
 
-  addStat(stat: DataInterface): void;
+  addStat(stat: DataInterface<unknown>): void;
 }

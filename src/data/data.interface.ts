@@ -2,10 +2,13 @@ import { SerializableClassInterface } from '../serializable/serializable.class.i
 import { DataJSONInterface } from './data.json.interface';
 import { DataPositionInterface } from './data.position.interface';
 
-export interface DataInterface extends SerializableClassInterface {
-  setValue(value: number | string | string[] | DataPositionInterface): this;
+export type DefaultDataValue = number | string | boolean | string[] | DataPositionInterface;
+export type DefaultDataClassValue = DefaultDataValue | unknown[];
 
-  getValue(_formatForDataType?: string): number | string | boolean | string[] | DataPositionInterface;
+export interface DataInterface<TValue = DefaultDataValue> extends SerializableClassInterface {
+  setValue(value: TValue): this;
+
+  getValue(_formatForDataType?: string): TValue;
 
   getDisplayValue(): number | string | boolean | string[] | DataPositionInterface;
 
@@ -19,7 +22,7 @@ export interface DataInterface extends SerializableClassInterface {
 
   getUnitSystem(): UnitSystem;
 
-  isValueTypeValid(value: any): boolean;
+  isValueTypeValid(value: unknown): boolean;
 
   toJSON(): DataJSONInterface;
 }

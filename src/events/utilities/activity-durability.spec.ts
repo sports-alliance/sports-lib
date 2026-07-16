@@ -403,6 +403,30 @@ describe('activity durability', () => {
     ).toBeNull();
   });
 
+  it('keeps low-speed aerobic evidence canonical after compact rounding', () => {
+    const result = analyzeActivityDurability(
+      mockActivity({
+        type: ActivityTypes.OpenWaterSwimming,
+        streams: {
+          [DataSpeed.type]: Array.from({ length: 3600 }, (_, index) =>
+            index < 1800 ? 0.7841418666152612 : 0.7315227118907159
+          ),
+          [DataHeartRate.type]: Array.from({ length: 3600 }, (_, index) =>
+            index < 1800 ? 126.27571303159694 : 129.2996705923337
+          )
+        }
+      }),
+      { includeTimeline: false }
+    );
+
+    expect(result.summary).toMatchObject({
+      discipline: 'open-water-swimming',
+      eligibility: { eligible: true, reason: 'eligible' }
+    });
+    expect(normalizeDurabilityEvidenceValue(result.summary)).toEqual(result.summary);
+    expect(() => new DataDurabilityEvidence(result.summary)).not.toThrow();
+  });
+
   it('fingerprints protocol inputs deterministically and changes when source evidence changes', () => {
     const streams = {
       [DataPower.type]: Array(3600).fill(200),

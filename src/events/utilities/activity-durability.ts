@@ -712,30 +712,43 @@ function buildAerobicEvidence(
   const secondOutput = averageAccumulatorOutput(secondHalf);
   const firstHeartRate = averageAccumulatorHeartRate(firstHalf);
   const secondHeartRate = averageAccumulatorHeartRate(secondHalf);
-  const firstEfficiency = calculateAerobicEfficiency(firstOutput, firstHeartRate);
-  const secondEfficiency = calculateAerobicEfficiency(secondOutput, secondHeartRate);
   if (
     firstOutput === null ||
     secondOutput === null ||
     firstHeartRate === null ||
-    secondHeartRate === null ||
-    firstEfficiency === null ||
-    secondEfficiency === null ||
-    firstEfficiency <= 0
+    secondHeartRate === null
   ) {
     return null;
   }
+  // Persist canonical base values first, then calculate every derived value from those
+  // rounded bases. Calculating each field independently from full-precision values can
+  // produce a compact summary that fails its own arithmetic validation after rounding,
+  // especially for low speed values such as open-water swimming.
+  const firstHalfOutput = round(firstOutput, 4);
+  const secondHalfOutput = round(secondOutput, 4);
+  const firstHalfHeartRateBpm = round(firstHeartRate, 3);
+  const secondHalfHeartRateBpm = round(secondHeartRate, 3);
+  const canonicalFirstEfficiency = calculateAerobicEfficiency(firstHalfOutput, firstHalfHeartRateBpm);
+  const canonicalSecondEfficiency = calculateAerobicEfficiency(secondHalfOutput, secondHalfHeartRateBpm);
+  if (canonicalFirstEfficiency === null || canonicalSecondEfficiency === null) {
+    return null;
+  }
+  const firstHalfEfficiency = round(canonicalFirstEfficiency, 6);
+  const secondHalfEfficiency = round(canonicalSecondEfficiency, 6);
   return {
     kind: 'aerobic-efficiency',
-    firstHalfEfficiency: round(firstEfficiency, 6),
-    secondHalfEfficiency: round(secondEfficiency, 6),
-    decouplingPercent: round(((firstEfficiency - secondEfficiency) / firstEfficiency) * 100, 3),
-    firstHalfOutput: round(firstOutput, 4),
-    secondHalfOutput: round(secondOutput, 4),
-    outputRetentionPercent: round((secondOutput / firstOutput) * 100, 3),
-    firstHalfHeartRateBpm: round(firstHeartRate, 3),
-    secondHalfHeartRateBpm: round(secondHeartRate, 3),
-    heartRateDriftBpm: round(secondHeartRate - firstHeartRate, 3)
+    firstHalfEfficiency,
+    secondHalfEfficiency,
+    decouplingPercent: round(
+      ((firstHalfEfficiency - secondHalfEfficiency) / firstHalfEfficiency) * 100,
+      3
+    ),
+    firstHalfOutput,
+    secondHalfOutput,
+    outputRetentionPercent: round((secondHalfOutput / firstHalfOutput) * 100, 3),
+    firstHalfHeartRateBpm,
+    secondHalfHeartRateBpm,
+    heartRateDriftBpm: round(secondHalfHeartRateBpm - firstHalfHeartRateBpm, 3)
   };
 }
 

@@ -23,3 +23,13 @@ export interface GarminAPIEventMetaDataJsonInterface extends EventMetaDataJsonIn
   serviceStartTimeInSeconds: number;
   serviceManual: boolean;
 }
+
+export interface WahooAPIEventMetaDataJsonInterface extends EventMetaDataJsonInterface {
+  serviceUserID: string;
+  serviceWorkoutID: string;
+  serviceWorkoutSummaryID: string;
+  serviceSummaryUpdatedAt: string;
+  serviceManual?: boolean;
+  serviceEdited?: boolean;
+  serviceFitnessAppID?: number;
+}

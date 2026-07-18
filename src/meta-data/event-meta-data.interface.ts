@@ -3,7 +3,8 @@ import {
   COROSAPIEventMetaDataJsonInterface,
   EventMetaDataJsonInterface,
   GarminAPIEventMetaDataJsonInterface as GarminAPIEventMetaDataJsonInterface,
-  SuuntoAppEventMetaDataJsonInterface
+  SuuntoAppEventMetaDataJsonInterface,
+  WahooAPIEventMetaDataJsonInterface
 } from './meta-data.json.interface';
 
 export interface EventMetaDataInterface extends SerializableClassInterface {
@@ -36,8 +37,21 @@ export interface GarminAPIEventMetaDataInterface extends EventMetaDataInterface 
   toJSON(): GarminAPIEventMetaDataJsonInterface;
 }
 
+export interface WahooAPIEventMetaDataInterface extends EventMetaDataInterface {
+  serviceUserID: string;
+  serviceWorkoutID: string;
+  serviceWorkoutSummaryID: string;
+  serviceSummaryUpdatedAt: string;
+  serviceManual?: boolean;
+  serviceEdited?: boolean;
+  serviceFitnessAppID?: number;
+
+  toJSON(): WahooAPIEventMetaDataJsonInterface;
+}
+
 export enum ServiceNames {
   SuuntoApp = 'Suunto app',
   GarminAPI = 'Garmin API',
-  COROSAPI = 'COROS API'
+  COROSAPI = 'COROS API',
+  WahooAPI = 'Wahoo API'
 }

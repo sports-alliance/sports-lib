@@ -21,3 +21,7 @@ export interface SuuntoAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenIn
 export interface COROSAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface {
   openId: string;
 }
+
+export interface WahooAPIAuth2ServiceTokenInterface extends Auth2ServiceTokenInterface {
+  wahooUserID: string;
+}

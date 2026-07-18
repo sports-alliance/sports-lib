@@ -2,12 +2,14 @@ import {
   COROSAPIEventMetaDataInterface,
   GarminAPIEventMetaDataInterface,
   ServiceNames,
-  SuuntoAppEventMetaDataInterface
+  SuuntoAppEventMetaDataInterface,
+  WahooAPIEventMetaDataInterface
 } from './event-meta-data.interface';
 import {
   COROSAPIEventMetaDataJsonInterface,
   GarminAPIEventMetaDataJsonInterface,
-  SuuntoAppEventMetaDataJsonInterface
+  SuuntoAppEventMetaDataJsonInterface,
+  WahooAPIEventMetaDataJsonInterface
 } from './meta-data.json.interface';
 
 export class SuuntoAppEventMetaData implements SuuntoAppEventMetaDataInterface {
@@ -70,6 +72,35 @@ export class GarminAPIEventMetaData implements GarminAPIEventMetaDataInterface {
       serviceActivityFileType: this.serviceActivityFileType,
       serviceManual: this.serviceManual,
       serviceStartTimeInSeconds: this.serviceStartTimeInSeconds,
+      date: this.date.getTime()
+    };
+  }
+}
+
+export class WahooAPIEventMetaData implements WahooAPIEventMetaDataInterface {
+  serviceName = ServiceNames.WahooAPI;
+
+  constructor(
+    public serviceWorkoutID: string,
+    public serviceWorkoutSummaryID: string,
+    public serviceUserID: string,
+    public serviceSummaryUpdatedAt: string,
+    public date: Date,
+    public serviceManual?: boolean,
+    public serviceEdited?: boolean,
+    public serviceFitnessAppID?: number
+  ) {}
+
+  toJSON(): WahooAPIEventMetaDataJsonInterface {
+    return {
+      serviceWorkoutID: this.serviceWorkoutID,
+      serviceWorkoutSummaryID: this.serviceWorkoutSummaryID,
+      serviceUserID: this.serviceUserID,
+      serviceSummaryUpdatedAt: this.serviceSummaryUpdatedAt,
+      serviceManual: this.serviceManual,
+      serviceEdited: this.serviceEdited,
+      serviceFitnessAppID: this.serviceFitnessAppID,
+      serviceName: this.serviceName,
       date: this.date.getTime()
     };
   }

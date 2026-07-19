@@ -64,7 +64,7 @@ export class EventExporterGPX implements EventExporter {
               return pointsArray;
             }, [])
         );
-        tracks.push(new Track([segment], { name: activity.type }));
+        tracks.push(new Track([segment], { name: activity.type, type: activity.type }));
         // @todo it should make an activity copy
         activity.removeStream(timeStream);
       });

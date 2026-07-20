@@ -67,6 +67,27 @@ export class DataDuration extends DataNumber {
     }
   }
 
+  /**
+   * Formats an elapsed duration as a stopwatch value, such as `1:36.12`.
+   *
+   * Uses a single minute digit for sub-hour durations, pads seconds to two
+   * digits, and retains trailing zeroes in the fractional part.
+   */
+  getStopwatchDisplayValue(fractionDigits = 2): string {
+    const boundedFractionDigits = Math.max(0, Math.min(3, Math.trunc(fractionDigits)));
+    const precision = 10 ** boundedFractionDigits;
+    const roundedSeconds = Math.round(this.getValue() * precision) / precision;
+    const h = Math.floor(roundedSeconds / 3600);
+    const m = Math.floor((roundedSeconds % 3600) / 60);
+    const s = Math.floor(roundedSeconds % 60);
+    const fractionalPart = boundedFractionDigits
+      ? (roundedSeconds % 1).toFixed(boundedFractionDigits).substring(1)
+      : '';
+    const seconds = `${('0' + s).slice(-2)}${fractionalPart}`;
+
+    return h > 0 ? `${h}:${('0' + m).slice(-2)}:${seconds}` : `${m}:${seconds}`;
+  }
+
   getDisplayUnit(): string {
     return '';
   }

@@ -35,7 +35,8 @@
     "build": "npm run clean && tsc --emitDeclarationOnly --outDir lib/esm --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && esbuild src/index.ts --bundle --format=esm --outfile=lib/esm/index.js --platform=node --packages=external && echo '{\"type\": \"commonjs\"}' > lib/cjs/package.json && echo '{\"type\": \"module\"}' > lib/esm/package.json",
     "watch": "npm run build -- --watch",
     "clean": "rimraf ./lib/",
-    "generate:docs": "npm run build && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "docs:build": "typedoc --options typedoc.json",
+    "generate:docs": "npm run docs:build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
@@ -51,7 +52,7 @@
   "bugs": {
     "url": "https://github.com/sports-alliance/sports-lib/issues"
   },
-  "homepage": "https://github.com/sports-alliance/sports-lib/",
+  "homepage": "https://sports-alliance.github.io/sports-lib/",
   "author": "Sports-Alliance",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {

@@ -5,8 +5,7 @@ export class DataDuration extends DataNumber {
   static unit = 's';
 
   /**
-   * Converts to hhh:mmm:ss:ms
-   * @todo should adopt and round depending if needed to show seconds or not
+   * Converts to hhh:mmm:ss:ms and rounds its displayed fractional seconds.
    * @param showDays
    * @param showSeconds
    * @param showMilliseconds

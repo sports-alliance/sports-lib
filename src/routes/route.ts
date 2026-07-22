@@ -30,7 +30,7 @@ export class Route extends StatsClassAbstract implements RouteInterface {
   private points: RoutePointInterface[] = [];
 
   constructor(
-    creator: Creator = new Creator('Unknown Device'),
+    creator: CreatorInterface = new Creator('Unknown Device'),
     options: RouteParsingOptions = RouteParsingOptions.DEFAULT,
     name: string | null = null,
     activityType: ActivityTypes | null = null,

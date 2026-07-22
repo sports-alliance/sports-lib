@@ -8,6 +8,10 @@ import { PrivacyClassInterface } from '../privacy/privacy.class.interface';
 import { FileType } from './adapters/file-type.enum';
 import { DataPowerCurve } from '../data/data.power-curve';
 
+/**
+ * A parsed activity file. An event can contain one activity or a multi-sport collection of
+ * activities, together with event-level summary metrics.
+ */
 export interface EventInterface
   extends
     StatsClassInterface,

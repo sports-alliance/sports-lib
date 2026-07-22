@@ -5,6 +5,9 @@ import { DataPositionInterface } from './data.position.interface';
 export type DefaultDataValue = number | string | boolean | string[] | DataPositionInterface;
 export type DefaultDataClassValue = DefaultDataValue | unknown[];
 
+/**
+ * A typed metric value. Data objects retain the canonical metric type and unit alongside their value.
+ */
 export interface DataInterface<TValue = DefaultDataValue> extends SerializableClassInterface {
   setValue(value: TValue): this;
 

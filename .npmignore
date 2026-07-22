@@ -5,6 +5,8 @@
 *.md
 src
 docs
+site
+typedoc.json
 samples
 coverage
 jest.config.js

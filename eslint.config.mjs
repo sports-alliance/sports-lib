@@ -43,7 +43,7 @@ export default [
     }
   },
   {
-    ignores: ['docs/**', 'lib/**', 'node_modules/**', 'samples/**']
+    ignores: ['docs/**/*.md', 'site/**', 'lib/**', 'node_modules/**', 'samples/**']
   },
   prettierConfig
 ];

@@ -12,10 +12,7 @@ import { StreamFilterInterface } from './stream.filter.interface';
  * null means no value and that means missing data.
  */
 export interface StreamInterface extends SerializableClassInterface {
-  /**
-   * Type of the string. Can be any of the datatypes stored in the dataStore.
-   * @todo make this an 'enum'
-   */
+  /** Type of the stream. Use a canonical `Data*.type` string such as `Distance` or `Heart Rate`. */
   type: string;
 
   /**

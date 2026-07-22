@@ -2,6 +2,11 @@
 
 *A Library for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc*
 
+API Reference
+-------
+
+Browse the generated API reference at [sports-alliance.github.io/sports-lib](https://sports-alliance.github.io/sports-lib/).
+
 About
 -----
 Sports Lib tries to achieve a common domain model and lib for sport activity formats

@@ -189,7 +189,7 @@ export class ActivityTypesHelper {
  *
  * Important: don't forget to declare the original string value aka: 'Running' = 'Running'
  *
- * @todo how do we write activity names? Is it Alpine skiing? or Alpine Skiing? For now I used uppercase each word
+ * Activity names are normalized with title-style capitalization where a source does not provide a canonical name.
  */
 export enum ActivityTypes {
   /**

@@ -7,6 +7,9 @@ import { RouteFileJSONInterface } from './route-file.json.interface';
 import { RouteInterface } from './route.interface';
 import { RouteWaypointInterface } from './route-point.interface';
 
+/**
+ * A collection of planned routes and file-level waypoints imported from or exported to a route format.
+ */
 export interface RouteFileInterface extends SerializableClassInterface, IDClassInterface, StatsClassInterface {
   name: string;
   srcFileType: FileType | string;

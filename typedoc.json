@@ -1,0 +1,48 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["docs/api.ts"],
+  "entryPointStrategy": "resolve",
+  "alwaysCreateEntryPointModule": true,
+  "tsconfig": "tsconfig.docs.json",
+  "out": "site",
+  "readme": "docs/README.md",
+  "name": "Sports Lib API",
+  "includeVersion": true,
+  "basePath": ".",
+  "sourceLinkTemplate": "https://github.com/sports-alliance/sports-lib/blob/{gitRevision}/{path}#L{line}",
+  "gitRevision": "master",
+  "hostedBaseUrl": "https://sports-alliance.github.io/sports-lib/",
+  "useHostedBaseUrlForAbsoluteLinks": true,
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true,
+    "includeFolders": false,
+    "compactFolders": true,
+    "excludeReferences": true
+  },
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Import and export",
+    "Parsing options",
+    "Activities and events",
+    "Routes",
+    "Streams, stats, and data",
+    "Serialization and supporting contracts",
+    "Analytics",
+    "*"
+  ],
+  "navigationLinks": {
+    "GitHub": "https://github.com/sports-alliance/sports-lib",
+    "npm": "https://www.npmjs.com/package/@sports-alliance/sports-lib"
+  },
+  "cleanOutputDir": true,
+  "treatWarningsAsErrors": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "invalidPath": true,
+    "rewrittenLink": true,
+    "notDocumented": false,
+    "unusedMergeModuleWith": true
+  }
+}

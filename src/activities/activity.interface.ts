@@ -18,6 +18,10 @@ import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change
 import { ActivityParsingOptions } from './activity-parsing-options';
 import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
 
+/**
+ * A recorded activity within an event. Activities own time-indexed streams, metrics, laps,
+ * and source metadata.
+ */
 export interface ActivityInterface
   extends StatsClassInterface, DurationClassInterface, SerializableClassInterface, IDClassInterface {
   name: string;

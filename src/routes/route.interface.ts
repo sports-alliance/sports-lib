@@ -9,6 +9,9 @@ import { RouteLinkInterface, RoutePointInterface } from './route-point.interface
 import { RouteStreamInterface } from './route-stream.interface';
 import { RouteJSONInterface } from './route.json.interface';
 
+/**
+ * A planned route with point-indexed streams, route metadata, and derived route statistics.
+ */
 export interface RouteInterface extends StatsClassInterface, SerializableClassInterface, IDClassInterface {
   name: string | null;
   activityType: ActivityTypes | null;

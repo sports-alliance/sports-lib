@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": [
+    "docs/api.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "lib",
+    "src/**/*.spec.ts"
+  ]
+}

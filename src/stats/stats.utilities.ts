@@ -8,7 +8,7 @@ type NumericRecordReducer = 'sum' | 'min' | 'max' | 'average' | 'weightedAverage
 export interface NumericRecordAggregation {
   readonly outputKey: string;
   readonly keys: readonly string[];
-  readonly reducer: NumericRecordReducer;
+  readonly reducer: 'sum' | 'min' | 'max' | 'average' | 'weightedAverage';
   readonly weightKeys?: readonly string[];
   readonly requireCompleteCoverage?: boolean;
 }
@@ -22,7 +22,7 @@ export class StatsUtilities {
     return statsJSON;
   }
 
-  static getFiniteStatValue(source: StatsSource, statType: string): number | null {
+  static getFiniteStatValue(source: Pick<StatsClassInterface, 'getStat'>, statType: string): number | null {
     const value = source.getStat(statType)?.getValue();
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
   }
@@ -89,7 +89,7 @@ export class StatsUtilities {
     }, {});
   }
 
-  static sum(sources: StatsSource[], statType: string): number | null {
+  static sum(sources: Pick<StatsClassInterface, 'getStat'>[], statType: string): number | null {
     let sum = 0;
     let hasValue = false;
 
@@ -105,22 +105,26 @@ export class StatsUtilities {
     return hasValue ? sum : null;
   }
 
-  static min(sources: StatsSource[], statType: string): number | null {
+  static min(sources: Pick<StatsClassInterface, 'getStat'>[], statType: string): number | null {
     const values = this.getFiniteStatValues(sources, statType);
     return values.length ? Math.min(...values) : null;
   }
 
-  static max(sources: StatsSource[], statType: string): number | null {
+  static max(sources: Pick<StatsClassInterface, 'getStat'>[], statType: string): number | null {
     const values = this.getFiniteStatValues(sources, statType);
     return values.length ? Math.max(...values) : null;
   }
 
-  static average(sources: StatsSource[], statType: string): number | null {
+  static average(sources: Pick<StatsClassInterface, 'getStat'>[], statType: string): number | null {
     const values = this.getFiniteStatValues(sources, statType);
     return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
   }
 
-  static weightedAverage(sources: StatsSource[], valueStatType: string, weightStatType: string): number | null {
+  static weightedAverage(
+    sources: Pick<StatsClassInterface, 'getStat'>[],
+    valueStatType: string,
+    weightStatType: string
+  ): number | null {
     const valuesWithWeights = sources.reduce<{ value: number; weight: number | null }[]>((accu, source) => {
       const value = this.getFiniteStatValue(source, valueStatType);
       if (value === null) {

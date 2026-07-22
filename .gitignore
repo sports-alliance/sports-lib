@@ -43,8 +43,8 @@ Thumbs.db
 # build
 lib
 
-# Api doc
-docs
+# Generated API reference
+site
 
 # generated reports
 reports/tss-validation-*.json

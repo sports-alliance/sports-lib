@@ -1,6 +1,9 @@
 import { DataDistance } from '../data/data.distance';
 import { DataInterface, DefaultDataValue } from '../data/data.interface';
 
+/**
+ * Contract implemented by models that expose typed summary metrics keyed by canonical data type.
+ */
 export interface StatsClassInterface {
   getDistance(): DataDistance;
 

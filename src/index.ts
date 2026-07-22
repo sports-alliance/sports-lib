@@ -15,6 +15,10 @@ import { RouteParsingOptions } from './routes/route-parsing-options';
 import { RouteFileInterface } from './routes/route-file.interface';
 import { RouteFileJSONInterface } from './routes/route-file.json.interface';
 
+/**
+ * Primary facade for importing activities and routes, exporting route files, and restoring
+ * Sports Lib's native JSON representation.
+ */
 export class SportsLib {
   /**
    * Parses and returns an event using GPX format
@@ -149,10 +153,17 @@ export * from './activities/activity.interface';
 export * from './activities/activity-parsing-options';
 export * from './activities/activity.json.interface';
 export * from './activities/activity.types';
+export * from './activities/devices/device.interface';
+export * from './activities/devices/device.json.interface';
 export * from './constants/constants';
+export * from './creators/creator.interface';
+export * from './creators/creator.json.interface';
 export * from './data';
+export * from './duration/duration.class.interface';
 export * from './events/adapters/exporters/exporter.gpx';
+export * from './events/adapters/exporters/exporter.interface';
 export * from './events/adapters/exporters/exporter.json';
+export * from './events/adapters/file-type.enum';
 export * from './events/adapters/importers/fit/importer.fit';
 export * from './events/adapters/importers/gpx/importer.gpx';
 export * from './events/adapters/importers/json/importer.json';
@@ -167,17 +178,23 @@ export * from './events/utilities/event.utilities';
 export * from './events/utilities/power-curve-sampling';
 export * from './events/utilities/helpers';
 export * from './geodesy/adapters/geolib.adapter';
+export * from './id/id.class.interface';
+export * from './intensity-zones/intensity-zones.interface';
+export * from './intensity-zones/intensity-zones.json.interface';
 export * from './laps/lap.interface';
+export * from './laps/lap.json.interface';
 export * from './laps/lap.types';
 export * from './meta-data/event-meta-data.interface';
 export * from './meta-data/meta-data';
 export * from './privacy/privacy.class.interface';
 export * from './routes';
+export * from './serializable/serializable.class.interface';
 export * from './service-tokens/oauth1-service-token.interface';
 export * from './service-tokens/oauth2-service-token.interface';
 export * from './stats/stats.class.interface';
 export * from './stats/stats.utilities';
 export * from './streams/compressed.stream.interface';
+export * from './streams/stream.filter.interface';
 export * from './streams/stream';
 export * from './streams/stream.interface';
 export * from './swim-lengths/swim-length';

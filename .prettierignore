@@ -1,8 +1,9 @@
 # Generated data
-docs
+docs/**/*.md
 lib
 coverage
 node_modules
+site
 
 # OS/IDE
 .vscode

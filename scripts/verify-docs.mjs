@@ -41,7 +41,7 @@ for (const guidePage of guidePages) {
 
 const metricsGuide = await readFile(resolve(siteDirectory, 'documents/Metrics_and_calculations.html'), 'utf8');
 if (!metricsGuide.includes('Data Coverage &amp; Calculation Reference')) {
-  throw new Error('The metrics guide does not include the README data coverage reference.');
+  throw new Error('The metrics guide does not include the data coverage reference.');
 }
 
 console.log(`Verified ${requiredPages.length} generated documentation pages.`);

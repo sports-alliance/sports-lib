@@ -15,13 +15,12 @@ When asking an agent to help with debugging or adding data, you can refer them t
 - "Use the debug-utils skill to inspect this file."
 - "Follow the add-new-data workflow."
 
-## Agent Rule: New Data Types Must Update README
+## Agent Rule: Data Type Changes Must Update Metric Documentation
 
 When an agent adds, renames, or removes any exported `Data*.type` in `src/data/`:
-- Update the data catalog section in `README.md` (between `<!-- DATA_COVERAGE_START -->` and `<!-- DATA_COVERAGE_END -->`).
-- Keep the nested `data-coverage` include region valid so the hosted metric guide renders the same catalog.
+- Update the metric catalog in `docs/guides/metrics-and-calculations.md`.
 - Keep canonical metric tokens exactly as declared in code (including legacy whitespace tokens like `` ` Steps` ``).
-- Include the README update in the same change/PR as the data-type change.
+- Include the documentation update in the same change/PR as the data-type change.
 
 ## Agent Rule: Public API Changes Must Update Documentation
 

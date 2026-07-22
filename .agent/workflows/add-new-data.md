@@ -55,10 +55,8 @@ Before writing code, verify the data exists and understand its structure.
 ### 6. Clean Up
 - Revert any temporary changes to the debug scripts (`find-values.js` etc.) unless they are useful for future debugging.
 
-### 7. Keep README Data Catalog in Sync (Required)
+### 7. Keep Metric Documentation in Sync (Required)
 If your change adds/renames/removes any exported `Data*.type`:
-1. Update the README data catalog block between:
-   - `<!-- DATA_COVERAGE_START -->`
-   - `<!-- DATA_COVERAGE_END -->`
+1. Update the metric catalog in `docs/guides/metrics-and-calculations.md`.
 2. Ensure canonical type strings match code exactly (including legacy tokens with whitespace, such as `` ` Steps` ``).
-3. Verify the README catalog still matches `src/data/index.ts` + `static type` declarations before finishing.
+3. Verify the metric guide still matches `src/data/index.ts` + `static type` declarations before finishing.

@@ -25,6 +25,7 @@ import { RouteParsingOptions } from '../../../route-parsing-options';
 import { RoutePointInterface, RouteWaypointInterface } from '../../../route-point.interface';
 import { RouteStream } from '../../../route-stream';
 import { RouteUtilities } from '../../../route.utilities';
+import { FITRouteSportMapper } from '../../fit-route-sport.mapper';
 import { Buffer } from 'buffer';
 
 interface FITRouteRecord {
@@ -367,6 +368,7 @@ export class RouteImporterFIT {
 
   private static getActivityType(fitDataObject: any): ActivityTypes {
     return (
+      FITRouteSportMapper.fromFIT(fitDataObject?.course?.sport, fitDataObject?.course?.sub_sport) ||
       ActivityTypesHelper.resolveActivityType(fitDataObject?.course?.sport) ||
       ActivityTypesHelper.resolveActivityType(this.toArray(fitDataObject?.sports)[0]?.sport) ||
       ActivityTypes.route

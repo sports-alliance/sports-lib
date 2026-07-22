@@ -106,9 +106,24 @@ SportsLib.importRoutesFromFit(arrayBuffer).then((routeFile)=>{
   const distanceStream = route.getStreamData('Distance');
   const waypoints = routeFile.getWaypoints();
 });
+
+SportsLib.exportRoutesToFit(routeFile).then((fitArrayBuffer)=>{
+  // Save or upload the FIT Course binary.
+});
+
+// Convenience conversions compose the route importers and exporters.
+SportsLib.convertRoutesFromGPXToFit(gpxString, DOMParser).then((fitArrayBuffer)=>{
+  // GPX route -> FIT Course
+});
+
+SportsLib.convertRoutesFromFitToGPX(fitArrayBuffer).then((gpxString)=>{
+  // FIT Course -> GPX route
+});
 ```
 
 Route importers create point-indexed streams such as latitude, longitude, distance, GNSS distance, altitude, and grade when the source data supports them. They also generate route stats such as distance, ascent/descent, altitude summaries, and grade summaries.
+
+FIT Course export requires exactly one route. It preserves route geometry, altitude, cumulative distance, creation time, and supported route-file waypoints, and maps each activity to the closest FIT sport/sub-sport. Exact activity-variant recovery (such as open-water swimming or indoor cycling) requires `fit-file-parser` 3.1.0 or later. FIT Course files cannot represent all GPX route metadata; use native route JSON when comments, links, symbols, or extensions must be retained.
 
 FIT device_info mode
 ---

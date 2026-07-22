@@ -10,6 +10,7 @@ import { RouteImporterGPX } from './routes/adapters/importers/gpx/importer.route
 import { RouteImporterJSON } from './routes/adapters/importers/json/importer.route.json';
 import { RouteImporterFIT } from './routes/adapters/importers/fit/importer.route.fit';
 import { RouteExporterGPX } from './routes/adapters/exporters/exporter.route.gpx';
+import { RouteExporterFIT } from './routes/adapters/exporters/exporter.route.fit';
 import { RouteParsingOptions } from './routes/route-parsing-options';
 import { RouteFileInterface } from './routes/route-file.interface';
 import { RouteFileJSONInterface } from './routes/route-file.json.interface';
@@ -107,6 +108,40 @@ export class SportsLib {
    */
   public static exportRoutesToGPX(routeFile: RouteFileInterface): Promise<string> {
     return RouteExporterGPX.getAsString(routeFile);
+  }
+
+  /**
+   * Exports a single first-class route as a FIT course file.
+   * @param routeFile
+   */
+  public static exportRoutesToFit(routeFile: RouteFileInterface): Promise<ArrayBuffer> {
+    return RouteExporterFIT.getAsArrayBuffer(routeFile);
+  }
+
+  /**
+   * Converts a GPX route file to a FIT course file.
+   * @param gpxString
+   * @param domParser custom DOMParser (case of NodeJs usage)
+   * @param options
+   */
+  public static async convertRoutesFromGPXToFit(
+    gpxString: string,
+    domParser?: any,
+    options?: RouteParsingOptions
+  ): Promise<ArrayBuffer> {
+    return this.exportRoutesToFit(await this.importRoutesFromGPX(gpxString, domParser, options));
+  }
+
+  /**
+   * Converts a FIT course file to a GPX route file.
+   * @param arrayBuffer
+   * @param options
+   */
+  public static async convertRoutesFromFitToGPX(
+    arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
+    options?: RouteParsingOptions
+  ): Promise<string> {
+    return this.exportRoutesToGPX(await this.importRoutesFromFit(arrayBuffer, options));
   }
 }
 

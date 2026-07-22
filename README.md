@@ -2,10 +2,16 @@
 
 *A Library for processing GPX, TCX, FIT and JSON files from services such as Strava, Movescount, Garmin, Polar etc*
 
-API Reference
--------
+Documentation
+-------------
 
-Browse the generated API reference at [sports-alliance.github.io/sports-lib](https://sports-alliance.github.io/sports-lib/).
+Browse the generated [API reference](https://sports-alliance.github.io/sports-lib/) and consumer guides:
+
+- [Import activities](https://sports-alliance.github.io/sports-lib/documents/Import_activities.html)
+- [Work with routes](https://sports-alliance.github.io/sports-lib/documents/Work_with_routes.html)
+- [Configure parsing](https://sports-alliance.github.io/sports-lib/documents/Configure_parsing.html)
+- [Export and persist data](https://sports-alliance.github.io/sports-lib/documents/Export_and_persist_data.html)
+- [Metrics and calculations](https://sports-alliance.github.io/sports-lib/documents/Metrics_and_calculations.html)
 
 About
 -----
@@ -25,166 +31,43 @@ Release Notes
 Install
 -------
 
-- Install via npm 
-
-  `npm install @sports-alliance/sports-lib --save`
+```sh
+npm install @sports-alliance/sports-lib
+```
   
-Examples
-=======
+Quick start
+-----------
 
+For GPX parsing in Node.js, install a DOM parser as well:
 
-GPX
----
-```typescript
-import {SportsLib} from '@sports-alliance/sports-lib';
-import {DOMParser} from 'xmldom'
-
-// For GPX you need a string 
-const gpxString = 'Some string from a file etc';
-SportsLib.importFromGPX(gpxString, DOMParser).then((event)=>{
-  // do Stuff with the file
-  const distance = event.getDistance();
-  const duration = event.getDuration();
-});
+```sh
+npm install @xmldom/xmldom
 ```
 
-TCX
----
-```typescript
-import {SportsLib} from '@sports-alliance/sports-lib';
+```ts
+import { SportsLib } from '@sports-alliance/sports-lib';
+import { DOMParser } from '@xmldom/xmldom';
 
-// For TCX you need a string 
-const tcxString = 'Some string from a file etc';
-SportsLib.importFromTCX((new DOMParser()).parseFromString(tcxString, 'application/xml')).then((event)=>{
-  // do Stuff with the file
-  const distance = event.getDistance();
-  const duration = event.getDuration();
-});
+const event = await SportsLib.importFromGPX(gpxText, DOMParser);
+const activity = event.getFirstActivity();
+const distanceMetres = activity.getDistance().getValue();
 ```
 
-
-FIT
----
-```typescript
-import {SportsLib} from '@sports-alliance/sports-lib';
-
-// For FIT you need an ArrayBuffer (binary) 
-SportsLib.importFromFit(arrayBuffer).then((event)=>{
-  // do Stuff with the file
-  const distance = event.getDistance();
-  const duration = event.getDuration();
-});
-```
+See [Import activities](https://sports-alliance.github.io/sports-lib/) for GPX, TCX, FIT, Suunto JSON, native JSON, and parsing examples.
 
 Routes / Courses
 ---
 Activities and planned routes are separate models.
 
-- Use `importFromGPX`, `importFromTCX`, `importFromFit`, or `importFromJSON` for recorded activities.
-- Use `importRoutesFromGPX`, `importRoutesFromFit`, or `importRoutesFromJSON` for planned routes/courses.
-- Route imports return a `RouteFile`, not an `Event`.
-- Route-only GPX files are intentionally rejected by the activity GPX importer; use `importRoutesFromGPX` instead.
-- FIT binary/profile decoding is handled by `fit-file-parser`; Sports Lib maps the decoded FIT course object into routes, streams, stats, and waypoints.
+Route imports return a `RouteFileInterface`, not an activity event. See [Work with routes](https://sports-alliance.github.io/sports-lib/) for GPX, FIT Course, and native JSON imports; exports; conversions; previews; and metadata limitations.
 
-```typescript
-import {SportsLib, RouteParsingOptions} from '@sports-alliance/sports-lib';
-import {DOMParser} from 'xmldom';
+Parsing options
+---------------
 
-const routeOptions = new RouteParsingOptions({
-  streams: {
-    includeTypes: ['Distance', 'Grade']
-  },
-  generateUnitStreams: false
-});
-
-SportsLib.importRoutesFromGPX(gpxString, DOMParser, routeOptions).then((routeFile)=>{
-  const route = routeFile.getFirstRoute();
-  const points = route.getPointData();
-  const distance = route.getStat('Distance')?.getValue();
-  const waypoints = routeFile.getWaypoints();
-  const routeJSON = routeFile.toJSON();
-  const restoredRouteFile = SportsLib.importRoutesFromJSON(routeJSON);
-});
-
-SportsLib.importRoutesFromFit(arrayBuffer).then((routeFile)=>{
-  const route = routeFile.getFirstRoute();
-  const distanceStream = route.getStreamData('Distance');
-  const waypoints = routeFile.getWaypoints();
-});
-
-SportsLib.exportRoutesToFit(routeFile).then((fitArrayBuffer)=>{
-  // Save or upload the FIT Course binary.
-});
-
-// Convenience conversions compose the route importers and exporters.
-SportsLib.convertRoutesFromGPXToFit(gpxString, DOMParser).then((fitArrayBuffer)=>{
-  // GPX route -> FIT Course
-});
-
-SportsLib.convertRoutesFromFitToGPX(fitArrayBuffer).then((gpxString)=>{
-  // FIT Course -> GPX route
-});
-```
-
-Route importers create point-indexed streams such as latitude, longitude, distance, GNSS distance, altitude, and grade when the source data supports them. They also generate route stats such as distance, ascent/descent, altitude summaries, and grade summaries.
-
-FIT Course export requires exactly one route. It preserves route geometry, altitude, cumulative distance, creation time, and supported route-file waypoints, and maps each activity to the closest FIT sport/sub-sport. Exact activity-variant recovery (such as open-water swimming or indoor cycling) requires `fit-file-parser` 3.1.0 or later. FIT Course files cannot represent all GPX route metadata; use native route JSON when comments, links, symbols, or extensions must be retained.
-
-FIT device_info mode
----
-Some FIT files emit `device_info` rows every second for the same device identity, which can significantly increase payload size.
-
-`ActivityParsingOptions` exposes `deviceInfoMode`:
-- `raw` (default): keep all `device_info` rows (backwards-compatible behavior).
-- `changes`: collapse contiguous timestamp-only repeats and keep first + last item for each contiguous identical run.
-
-```typescript
-import { SportsLib, ActivityParsingOptions } from '@sports-alliance/sports-lib';
-
-const options = new ActivityParsingOptions({
-  deviceInfoMode: 'changes'
-});
-
-SportsLib.importFromFit(arrayBuffer, options).then(event => {
-  // event.getFirstActivity().creator.devices is compacted by state changes
-});
-```
-
-`summary` mode is intentionally not exposed in this version.
-
-Stream includeTypes filter (FIT/TCX/GPX)
----
-`ActivityParsingOptions` also supports stream allowlisting under `streams.includeTypes`.
-
-- `includeTypes` missing or `[]`: current behavior (no filtering).
-- `includeTypes` provided: strict final stream output for FIT/TCX/GPX importers.
-- Values must be canonical `Data*.type` strings (for example: `Distance`, `Heart Rate`, `Pace`).
-- Unknown types throw a parsing error.
-- Derived requests are supported: required internal dependencies are resolved automatically and then removed from final output unless explicitly requested.
-
-```typescript
-import { SportsLib, ActivityParsingOptions } from '@sports-alliance/sports-lib';
-
-// Raw-only request
-const rawOnlyOptions = new ActivityParsingOptions({
-  streams: { includeTypes: ['Distance', 'Heart Rate'] }
-});
-
-// Derived request (Pace): dependencies (like Speed) are handled internally
-const derivedOnlyOptions = new ActivityParsingOptions({
-  streams: { includeTypes: ['Pace'] }
-});
-
-SportsLib.importFromFit(arrayBuffer, rawOnlyOptions).then(event => {
-  // activity streams contain only Distance + Heart Rate
-});
-
-SportsLib.importFromFit(arrayBuffer, derivedOnlyOptions).then(event => {
-  // activity streams contain only Pace
-});
-```
+`ActivityParsingOptions` and `RouteParsingOptions` control stream derivation, output filtering, unit streams, and FIT device-info compaction. See [Configure parsing](https://sports-alliance.github.io/sports-lib/) for supported options, filtering semantics, and route-specific behavior.
 
 <!-- DATA_COVERAGE_START -->
+<!-- #region data-coverage -->
 Data Coverage & Calculation Reference
 ---
 
@@ -787,62 +670,5 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Vertical speed in miles per hour` (unit: `mph`)
 
 </details>
+<!-- #endregion data-coverage -->
 <!-- DATA_COVERAGE_END -->
-
-Export
----
-```typescript
-// Get an event as seen above
-const gpxString = await new EventExporterGPX().getAsString(event);
-// Send the blob
-const blob = new Blob(
-  [jsonString],
-  {type: new EventExporterGPX().fileType},
-);
-```
-
-
-Example converting a FIT file to GPX
----
-Thanks to [@guikeller](https://github.com/guikeller)
-```typescript 
-import fs from 'fs';
-import sportsLibPkg from '@sports-alliance/sports-lib';
-import exporterPkg from '@sports-alliance/sports-lib/lib/events/adapters/exporters/exporter.gpx.js'
-
-const { SportsLib } = sportsLibPkg;
-const { EventExporterGPX } = exporterPkg;
-
-// Input and output file path
-const inputFilePath = '/tmp/test.fit';
-const outputGpxFilePath = '/tmp/test.gpx';
-
-// reads the FIT file into memory
-const inputFile = fs.readFileSync(inputFilePath, null);
-if (!inputFile || !inputFile.buffer) {
-    console.error('Ooops, could not read the inputFile or it does not exists, see details below');
-    console.error(JSON.stringify(inputFilePath));
-    return;
-}
-const inputFileBuffer = inputFile.buffer;
-// uses lib to read the FIT file
-SportsLib.importFromFit(inputFileBuffer).then((event) => {
-    // convert to gpx
-    const gpxPromise = new EventExporterGPX().getAsString(event);
-    gpxPromise.then((gpxString) => {
-        // writes the gpx to file
-        fs.writeFileSync(outputGpxFilePath, gpxString, (wError) => {
-            if (wError) {
-                console.error('Ooops, something went wrong while saving the GPX file, see details below.');
-                console.error(JSON.stringify(wError));
-            }
-        });
-        // all done, celebrate!
-        console.log('Converted FIT file to GPX successfully!');
-        console.log('GPX file saved here: ' + outputGpxFilePath);
-    }).catch((cError) => {
-        console.error('Ooops, something went wrong while converting the FIT file, see details below');
-        console.error(JSON.stringify(cError));
-    });
-});
-```

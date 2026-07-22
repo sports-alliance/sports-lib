@@ -1,6 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["docs/api.ts"],
+  "projectDocuments": ["docs/guides/**/*.md"],
   "entryPointStrategy": "resolve",
   "alwaysCreateEntryPointModule": true,
   "tsconfig": "tsconfig.docs.json",
@@ -10,7 +11,7 @@
   "includeVersion": true,
   "basePath": ".",
   "sourceLinkTemplate": "https://github.com/sports-alliance/sports-lib/blob/{gitRevision}/{path}#L{line}",
-  "gitRevision": "master",
+  "gitRevision": "main",
   "hostedBaseUrl": "https://sports-alliance.github.io/sports-lib/",
   "useHostedBaseUrlForAbsoluteLinks": true,
   "navigation": {

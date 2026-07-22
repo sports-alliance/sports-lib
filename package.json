@@ -35,7 +35,7 @@
     "build": "npm run clean && tsc --emitDeclarationOnly --outDir lib/esm --project tsconfig.esm.json && tsc --project tsconfig.cjs.json && esbuild src/index.ts --bundle --format=esm --outfile=lib/esm/index.js --platform=node --packages=external && echo '{\"type\": \"commonjs\"}' > lib/cjs/package.json && echo '{\"type\": \"module\"}' > lib/esm/package.json",
     "watch": "npm run build -- --watch",
     "clean": "rimraf ./lib/",
-    "docs:build": "typedoc --options typedoc.json",
+    "docs:build": "typedoc --options typedoc.json && node scripts/verify-docs.mjs",
     "generate:docs": "npm run docs:build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

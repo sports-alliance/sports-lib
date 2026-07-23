@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { ActivityInterface } from '../../activities/activity.interface';
 import { EventImporterFIT } from '../adapters/importers/fit/importer.fit';
+import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { EventImporterSuuntoJSON } from '../adapters/importers/suunto/importer.suunto.json';
 import { DataCriticalPower } from '../../data/data.critical-power';
 import { DataFTP } from '../../data/data.ftp';
@@ -161,6 +162,19 @@ describe('activity three dimensional strain fixture integration', () => {
       expect(evidence.discipline).toBe('cycling');
       expect(JSON.stringify(evidence)).not.toContain('timeline');
     }
+  });
+
+  it('round-trips compact evidence through native event JSON', async () => {
+    const event = await importSpecFitFixture('971150603.fit');
+    const original = getEvidence(event.getFirstActivity());
+
+    const restoredEvent = EventImporterJSON.getEventFromJSON(event.toJSON());
+    const restoredActivity = restoredEvent.getFirstActivity();
+    const restoredStat = restoredActivity.getStat(DataThreeDimensionalStrainEvidence.type);
+
+    expect(restoredStat).toBeInstanceOf(DataThreeDimensionalStrainEvidence);
+    expect(getEvidence(restoredActivity)).toEqual(original);
+    expect(JSON.stringify(restoredActivity.toJSON())).not.toContain('timeline');
   });
 
   it('does not alter existing power metrics when evidence is regenerated', async () => {

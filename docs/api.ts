@@ -177,4 +177,31 @@ export type {
   PowerCurveWindowComparison,
   SamplePowerCurveOptions
 } from '../src/events/utilities/power-curve-sampling';
+export {
+  calculateImpulseResponse,
+  calculateMaximumPowerAvailable,
+  calculateThreeDimensionalImpulseResponse,
+  calculateThreeDimensionalStrain,
+  calculateThreeDimensionalStrainCoefficient,
+  fitThreeParameterCriticalPowerModel,
+  predictThreeParameterCriticalPower,
+  resolveThreeDimensionalPowerContributions
+} from '../src/events/utilities/three-dimensional-impulse-response';
+export type {
+  CalculateThreeDimensionalStrainOptions,
+  ImpulseResponseParameters,
+  ImpulseResponsePoint,
+  ThreeDimensionalImpulseResponseParameters,
+  ThreeDimensionalImpulseResponsePoint,
+  ThreeDimensionalPowerContributions,
+  ThreeDimensionalPowerSample,
+  ThreeDimensionalStrainAnalysis,
+  ThreeDimensionalStrainLoad,
+  ThreeDimensionalStrainReason,
+  ThreeDimensionalStrainScores,
+  ThreeDimensionalStrainStatus,
+  ThreeParameterCriticalPowerFit,
+  ThreeParameterCriticalPowerFitOptions,
+  ThreeParameterCriticalPowerModel
+} from '../src/events/utilities/three-dimensional-impulse-response';
 export { EventUtilities } from '../src/events/utilities/event.utilities';

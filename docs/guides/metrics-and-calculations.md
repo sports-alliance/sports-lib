@@ -131,6 +131,22 @@ compares the outer thirds of like-for-like active lengths using the dominant str
 streams are never stored in the stat; a deterministic protocol-input fingerprint invalidates stale evidence, and
 ineligible activities retain an explicit reason and coverage instead of zero values.
 
+Three-dimensional impulse-response utilities (experimental, cycling power):
+
+- `fitThreeParameterCriticalPowerModel` fits the Morton three-parameter power-duration model from a mean-max curve,
+  returning CP, W′, Pmax, fit quality, and convergence state. It needs several distinct maximal-duration efforts; a
+  mathematically successful fit is not proof those efforts represent current capacity.
+- `calculateThreeDimensionalStrain` takes continuous power plus those externally chosen model parameters. It uses W′
+  balance, maximum power available (MPA), and the CP/W′/Pmax power allocation to return total strain and the three
+  components. It never fills missing power samples: insufficient coverage, missing power, and power above Pmax leave
+  scores unavailable.
+- The default MPA relation is the linear form in Equation 4 of Kontro et al. The explicit exponent-two option exists
+  solely to reproduce the modified supporting-workbook Fig 4/5 calculation; consumers must persist which variant they
+  use.
+- `calculateThreeDimensionalImpulseResponse` applies independent exponential fitness-fatigue responses to the three
+  strain series. It does not infer individual gains or time constants. Fit and validate those parameters against held-out
+  CP, W′, and Pmax observations before showing predictive athlete-facing conclusions.
+
 6) Training Stress Score (TSS) methods and priority
 
 Priority order:

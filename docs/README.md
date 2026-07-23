@@ -30,4 +30,4 @@ Use the navigation to browse the curated API, including [SportsLib](https://spor
 
 ## Analytics
 
-`analyzeActivityDurability` produces deterministic durability evidence when an activity has enough eligible source data. `samplePowerCurveAtDuration` and `comparePowerCurveWindows` support power-curve comparisons without extrapolating beyond known samples.
+`analyzeActivityDurability` produces deterministic durability evidence when an activity has enough eligible source data. `samplePowerCurveAtDuration` and `comparePowerCurveWindows` support power-curve comparisons without extrapolating beyond known samples. `calculateThreeDimensionalStrain` turns continuous cycling power plus an externally fitted CP/W′/Pmax model into coverage-gated total and component strain scores; `calculateThreeDimensionalImpulseResponse` applies independently calibrated fitness-fatigue responses to those three load series.

@@ -1,0 +1,33 @@
+{
+  "source": {
+    "citation": "Kontro H, Mastracci A, Cheung SS, MacInnis MJ (2026), The three-dimensional impulse-response model: Modeling the training process in accordance with energy system-specific adaptation.",
+    "doi": "10.1371/journal.pone.0341721",
+    "supplementUrl": "https://journals.plos.org/plosone/article/file?type=supplementary&id=10.1371/journal.pone.0341721.s004",
+    "workbookSha256": "7da8f3f5b3d540b3f2c9c1ef2e6efc2ac932169f060c14eb9d936c3f3944be9f",
+    "workbookSheet": "TSS XSS calculator (Fig4-5)",
+    "inputCells": "O1:O3 and R2:R1201",
+    "outputCells": "AC2:AF2",
+    "license": "CC BY 4.0"
+  },
+  "model": {
+    "criticalPowerWatts": 330,
+    "wPrimeJoules": 25000,
+    "maximumPowerWatts": 1200
+  },
+  "samples": {
+    "powerWatts": 350,
+    "count": 1200
+  },
+  "options": {
+    "maximumPowerAvailableExponent": 2,
+    "wPrimeBalanceTiming": "after-sample"
+  },
+  "expected": {
+    "total": 65.10695879597203,
+    "criticalPower": 61.386561150487935,
+    "wPrime": 3.634871262829307,
+    "maximumPower": 0.08552638265480715,
+    "endingWPrimeBalanceJoules": 1000,
+    "minimumWPrimeBalanceJoules": 1000
+  }
+}

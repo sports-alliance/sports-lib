@@ -7,8 +7,10 @@ import {
   fitThreeParameterCriticalPowerModel,
   predictThreeParameterCriticalPower,
   resolveThreeDimensionalPowerContributions,
+  type CalculateThreeDimensionalStrainOptions,
   type ThreeParameterCriticalPowerModel
 } from './three-dimensional-impulse-response';
+import * as plosOneThreeDimensionalStrainCalculator from '../../specs/fixtures/analytics/plos-one-three-dimensional-strain-calculator.json';
 
 const model: ThreeParameterCriticalPowerModel = {
   criticalPowerWatts: 300,
@@ -179,20 +181,21 @@ describe('three-dimensional impulse-response utilities', () => {
       });
     });
 
-    it('matches the published Fig 4/5 supporting workbook for 20 minutes at 350 W', () => {
-      // Kontro et al. (2026), S2 File, "TSS XSS calculator (Fig4-5)".
+    it('matches the published S2 calculator fixture for 20 minutes at 350 W', () => {
+      const fixture = plosOneThreeDimensionalStrainCalculator;
       const analysis = calculateThreeDimensionalStrain(
-        new Array(1_200).fill(350),
-        { criticalPowerWatts: 330, wPrimeJoules: 25_000, maximumPowerWatts: 1_200 },
-        { maximumPowerAvailableExponent: 2, wPrimeBalanceTiming: 'after-sample' }
+        new Array(fixture.samples.count).fill(fixture.samples.powerWatts),
+        fixture.model,
+        fixture.options as CalculateThreeDimensionalStrainOptions
       );
 
       expect(analysis.status).toBe('ready');
-      expect(analysis.scores!.total).toBeCloseTo(65.10695879597203, 8);
-      expect(analysis.scores!.criticalPower).toBeCloseTo(61.386561150487935, 8);
-      expect(analysis.scores!.wPrime).toBeCloseTo(3.634871262829307, 8);
-      expect(analysis.scores!.maximumPower).toBeCloseTo(0.08552638265480715, 8);
-      expect(analysis.minimumWPrimeBalanceJoules).toBeCloseTo(1_000, 8);
+      expect(analysis.scores!.total).toBeCloseTo(fixture.expected.total, 8);
+      expect(analysis.scores!.criticalPower).toBeCloseTo(fixture.expected.criticalPower, 8);
+      expect(analysis.scores!.wPrime).toBeCloseTo(fixture.expected.wPrime, 8);
+      expect(analysis.scores!.maximumPower).toBeCloseTo(fixture.expected.maximumPower, 8);
+      expect(analysis.endingWPrimeBalanceJoules).toBeCloseTo(fixture.expected.endingWPrimeBalanceJoules, 8);
+      expect(analysis.minimumWPrimeBalanceJoules).toBeCloseTo(fixture.expected.minimumWPrimeBalanceJoules, 8);
     });
 
     it('matches the reference main-model timing and caps strain when MPA is below observed power', () => {

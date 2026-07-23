@@ -132,6 +132,26 @@ describe('three-dimensional impulse-response utilities', () => {
       });
     });
 
+    it('preserves power allocation and bounded-strain invariants across the model domain', () => {
+      const powers = [0, 1, 299, 300, 301, 400, 750, 1_199, 1_200];
+      const balances = [0, 1, 10_000, 19_999, 20_000];
+
+      powers.forEach(power => {
+        const allocation = resolveThreeDimensionalPowerContributions(power, model)!;
+        expect(allocation.criticalPowerWatts + allocation.wPrimeWatts + allocation.maximumPowerWatts).toBeCloseTo(
+          power,
+          12
+        );
+
+        balances.forEach(balance => {
+          const mpa = calculateMaximumPowerAvailable(balance, model)!;
+          const coefficient = calculateThreeDimensionalStrainCoefficient(power, mpa, model)!;
+          expect(coefficient).toBeGreaterThan(0);
+          expect(coefficient).toBeLessThanOrEqual(1);
+        });
+      });
+    });
+
     it('calculates MPA for both the main-model and quadratic supporting-workbook variants', () => {
       expect(calculateMaximumPowerAvailable(20_000, model)).toBe(1_200);
       expect(calculateMaximumPowerAvailable(0, model)).toBe(300);
@@ -144,7 +164,7 @@ describe('three-dimensional impulse-response utilities', () => {
       expect(calculateThreeDimensionalStrainCoefficient(100, mpaAtFullBalance, model)).toBeCloseTo(0.214286, 6);
       expect(calculateThreeDimensionalStrainCoefficient(300, mpaAtFullBalance, model)).toBeCloseTo(0.25, 6);
       expect(calculateThreeDimensionalStrainCoefficient(400, 400, model)).toBeCloseTo(1, 6);
-      expect(calculateThreeDimensionalStrainCoefficient(400, 300, model)).toBeCloseTo(1.090909, 6);
+      expect(calculateThreeDimensionalStrainCoefficient(400, 300, model)).toBeCloseTo(1, 6);
     });
 
     it('normalizes one hour at CP in a recovered state to 100 strain score', () => {
@@ -164,7 +184,7 @@ describe('three-dimensional impulse-response utilities', () => {
       const analysis = calculateThreeDimensionalStrain(
         new Array(1_200).fill(350),
         { criticalPowerWatts: 330, wPrimeJoules: 25_000, maximumPowerWatts: 1_200 },
-        { maximumPowerAvailableExponent: 2 }
+        { maximumPowerAvailableExponent: 2, wPrimeBalanceTiming: 'after-sample' }
       );
 
       expect(analysis.status).toBe('ready');
@@ -173,6 +193,18 @@ describe('three-dimensional impulse-response utilities', () => {
       expect(analysis.scores!.wPrime).toBeCloseTo(3.634871262829307, 8);
       expect(analysis.scores!.maximumPower).toBeCloseTo(0.08552638265480715, 8);
       expect(analysis.minimumWPrimeBalanceJoules).toBeCloseTo(1_000, 8);
+    });
+
+    it('matches the reference main-model timing and caps strain when MPA is below observed power', () => {
+      const fresh = calculateThreeDimensionalStrain([400], model);
+      const depleted = calculateThreeDimensionalStrain([400], model, { initialWPrimeBalanceJoules: 0 });
+
+      expect(fresh.scores!.total).toBeCloseTo(4 / 99, 12);
+      expect(depleted.scores!.total).toBeCloseTo(4 / 27, 12);
+      expect(depleted.scores!.total).toBeCloseTo(
+        depleted.scores!.criticalPower + depleted.scores!.wPrime + depleted.scores!.maximumPower,
+        12
+      );
     });
 
     it('models W′ recovery below CP without inventing missing power samples', () => {
@@ -232,6 +264,10 @@ describe('three-dimensional impulse-response utilities', () => {
         reason: 'invalid-model'
       });
       expect(calculateThreeDimensionalStrain([300], model, { minimumCoverageRatio: 2 })).toMatchObject({
+        status: 'invalid-model',
+        reason: 'invalid-model'
+      });
+      expect(calculateThreeDimensionalStrain([300], model, { wPrimeBalanceTiming: 'unknown' as never })).toMatchObject({
         status: 'invalid-model',
         reason: 'invalid-model'
       });

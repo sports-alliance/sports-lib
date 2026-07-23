@@ -140,9 +140,10 @@ Three-dimensional impulse-response utilities (experimental, cycling power):
   balance, maximum power available (MPA), and the CP/W′/Pmax power allocation to return total strain and the three
   components. It never fills missing power samples: insufficient coverage, missing power, and power above Pmax leave
   scores unavailable.
-- The default MPA relation is the linear form in Equation 4 of Kontro et al. The explicit exponent-two option exists
-  solely to reproduce the modified supporting-workbook Fig 4/5 calculation; consumers must persist which variant they
-  use.
+- The default MPA relation is the linear form in Equation 4 of Kontro et al., evaluated from the W′ state before the
+  current sample. To reproduce the modified supporting-workbook Fig 4/5 calculation, use both the exponent-two option
+  and `wPrimeBalanceTiming: 'after-sample'`; consumers must persist both choices. When observed power exceeds MPA, the
+  strain calculation floors MPA at observed power so the strain coefficient remains at or below one.
 - `calculateThreeDimensionalImpulseResponse` applies independent exponential fitness-fatigue responses to the three
   strain series. It does not infer individual gains or time constants. Fit and validate those parameters against held-out
   CP, W′, and Pmax observations before showing predictive athlete-facing conclusions.

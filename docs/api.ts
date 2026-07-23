@@ -202,6 +202,7 @@ export type {
   ThreeDimensionalStrainStatus,
   ThreeParameterCriticalPowerFit,
   ThreeParameterCriticalPowerFitOptions,
-  ThreeParameterCriticalPowerModel
+  ThreeParameterCriticalPowerModel,
+  WPrimeBalanceTiming
 } from '../src/events/utilities/three-dimensional-impulse-response';
 export { EventUtilities } from '../src/events/utilities/event.utilities';

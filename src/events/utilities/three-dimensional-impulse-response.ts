@@ -14,6 +14,7 @@ export interface ThreeParameterCriticalPowerModel {
   maximumPowerWatts: number;
 }
 
+/** Controls data sufficiency and optimizer work for a three-parameter CP fit. */
 export interface ThreeParameterCriticalPowerFitOptions {
   /** Minimum number of distinct curve durations required. Defaults to 5. */
   minimumSampleCount?: number;
@@ -21,6 +22,7 @@ export interface ThreeParameterCriticalPowerFitOptions {
   maximumIterations?: number;
 }
 
+/** A fitted CP/W′/Pmax model with diagnostics for caller-side quality gating. */
 export interface ThreeParameterCriticalPowerFit {
   model: ThreeParameterCriticalPowerModel;
   sampleCount: number;
@@ -31,12 +33,14 @@ export interface ThreeParameterCriticalPowerFit {
   converged: boolean;
 }
 
+/** CP, W′, and Pmax instantaneous power contributions, in watts. */
 export interface ThreeDimensionalPowerContributions {
   criticalPowerWatts: number;
   wPrimeWatts: number;
   maximumPowerWatts: number;
 }
 
+/** Total and component strain scores for one activity. */
 export interface ThreeDimensionalStrainScores {
   total: number;
   criticalPower: number;
@@ -53,6 +57,13 @@ export type ThreeDimensionalStrainReason =
   | 'invalid-model';
 
 /**
+ * Chooses whether the W′ state is evaluated before or after each power sample.
+ * The main model evaluates the prior state; the supporting Fig. 4/5 workbook
+ * evaluates the state after the sample's W′ update.
+ */
+export type WPrimeBalanceTiming = 'before-sample' | 'after-sample';
+
+/**
  * A power sample may be a direct watt value or an object whose optional duration
  * gives that sample's elapsed interval. Direct values use `sampleIntervalSeconds`.
  */
@@ -65,6 +76,7 @@ export type ThreeDimensionalPowerSample =
       durationSeconds?: unknown;
     };
 
+/** Controls power-stream quality gates and source-compatible strain variants. */
 export interface CalculateThreeDimensionalStrainOptions {
   /** Elapsed seconds for a direct numeric sample. Defaults to one second. */
   sampleIntervalSeconds?: number;
@@ -73,15 +85,21 @@ export interface CalculateThreeDimensionalStrainOptions {
   /** Minimum recorded power duration required for a usable result. Defaults to one second. */
   minimumRecordedDurationSeconds?: number;
   /**
-   * The MPA exponent. `1` implements Equation 4 in Kontro et al.; `2` implements
-   * the modified MPA calculation used in the paper's Fig 4/5 supporting workbook.
-   * Defaults to `1`.
+   * The MPA exponent. `1` implements Equation 4 in Kontro et al.; `2` is the
+   * modified MPA relation in the paper's Fig. 4/5 supporting workbook. Defaults
+   * to `1`. The supporting workbook also requires `wPrimeBalanceTiming: 'after-sample'`.
    */
   maximumPowerAvailableExponent?: 1 | 2;
+  /**
+   * Whether MPA is evaluated before or after each W′ update. Defaults to
+   * `'before-sample'`, which matches the main model's reference implementation.
+   */
+  wPrimeBalanceTiming?: WPrimeBalanceTiming;
   /** W′ balance at the start of the activity. Defaults to a fully recovered W′. */
   initialWPrimeBalanceJoules?: number;
 }
 
+/** Coverage diagnostics and, when ready, the resulting strain scores and W′ state. */
 export interface ThreeDimensionalStrainAnalysis {
   status: ThreeDimensionalStrainStatus;
   reason: ThreeDimensionalStrainReason | null;
@@ -95,6 +113,7 @@ export interface ThreeDimensionalStrainAnalysis {
   minimumWPrimeBalanceJoules: number | null;
 }
 
+/** Parameters for one daily exponential fitness-fatigue response series. */
 export interface ImpulseResponseParameters {
   baseline: number;
   fitnessGain: number;
@@ -105,6 +124,7 @@ export interface ImpulseResponseParameters {
   initialFatigue?: number;
 }
 
+/** The fitness, fatigue, and performance estimate for one daily load observation. */
 export interface ImpulseResponsePoint {
   load: number;
   fitness: number;
@@ -112,18 +132,21 @@ export interface ImpulseResponsePoint {
   performance: number;
 }
 
+/** One day's CP, W′, and Pmax strain-score loads. */
 export interface ThreeDimensionalStrainLoad {
   criticalPower: number;
   wPrime: number;
   maximumPower: number;
 }
 
+/** Independent fitness-fatigue parameters for each strain-score component. */
 export interface ThreeDimensionalImpulseResponseParameters {
   criticalPower: ImpulseResponseParameters;
   wPrime: ImpulseResponseParameters;
   maximumPower: ImpulseResponseParameters;
 }
 
+/** Independent CP, W′, and Pmax response points for one day. */
 export interface ThreeDimensionalImpulseResponsePoint {
   criticalPower: ImpulseResponsePoint;
   wPrime: ImpulseResponsePoint;
@@ -283,7 +306,9 @@ export function calculateMaximumPowerAvailable(
 
 /**
  * Calculates the strain coefficient in Equation 11. Both power and MPA are
- * validated against the model's fatigue-free maximum power.
+ * validated against the model's fatigue-free maximum power. MPA is floored at
+ * observed power so a transient, physically inconsistent sample cannot produce
+ * a coefficient above one.
  */
 export function calculateThreeDimensionalStrainCoefficient(
   powerWatts: number,
@@ -301,8 +326,9 @@ export function calculateThreeDimensionalStrainCoefficient(
     return null;
   }
   const denominator = model.maximumPowerWatts - powerWatts + model.criticalPowerWatts;
+  const effectiveMaximumPowerAvailableWatts = Math.max(maximumPowerAvailableWatts, powerWatts);
   return denominator > 0
-    ? (model.maximumPowerWatts - maximumPowerAvailableWatts + model.criticalPowerWatts) / denominator
+    ? (model.maximumPowerWatts - effectiveMaximumPowerAvailableWatts + model.criticalPowerWatts) / denominator
     : null;
 }
 
@@ -374,10 +400,13 @@ export function calculateThreeDimensionalStrain(
   };
 
   validSamples.forEach(sample => {
+    const previousWPrimeBalance = wPrimeBalance;
     wPrimeBalance = calculateNextWPrimeBalance(wPrimeBalance, sample.powerWatts, sample.durationSeconds, model);
     minimumWPrimeBalanceJoules = Math.min(minimumWPrimeBalanceJoules, wPrimeBalance);
+    const wPrimeBalanceForStrain =
+      resolvedOptions.wPrimeBalanceTiming === 'before-sample' ? previousWPrimeBalance : wPrimeBalance;
     const maximumPowerAvailable = calculateMaximumPowerAvailable(
-      wPrimeBalance,
+      wPrimeBalanceForStrain,
       model,
       resolvedOptions.maximumPowerAvailableExponent
     );
@@ -478,6 +507,7 @@ interface ResolvedStrainOptions {
   minimumCoverageRatio: number;
   minimumRecordedDurationSeconds: number;
   maximumPowerAvailableExponent: 1 | 2;
+  wPrimeBalanceTiming: WPrimeBalanceTiming;
   initialWPrimeBalanceJoules: number | null;
 }
 
@@ -682,13 +712,15 @@ function resolveStrainOptions(options: CalculateThreeDimensionalStrainOptions): 
   const minimumCoverageRatio =
     options.minimumCoverageRatio === undefined ? DEFAULT_MINIMUM_COVERAGE_RATIO : options.minimumCoverageRatio;
   const maximumPowerAvailableExponent = options.maximumPowerAvailableExponent ?? 1;
+  const wPrimeBalanceTiming = options.wPrimeBalanceTiming ?? 'before-sample';
   if (
     !isFinitePositiveNumber(sampleIntervalSeconds) ||
     !isFinitePositiveNumber(minimumRecordedDurationSeconds) ||
     !Number.isFinite(minimumCoverageRatio) ||
     minimumCoverageRatio <= 0 ||
     minimumCoverageRatio > 1 ||
-    !isValidMaximumPowerAvailableExponent(maximumPowerAvailableExponent)
+    !isValidMaximumPowerAvailableExponent(maximumPowerAvailableExponent) ||
+    !isValidWPrimeBalanceTiming(wPrimeBalanceTiming)
   ) {
     return null;
   }
@@ -701,6 +733,7 @@ function resolveStrainOptions(options: CalculateThreeDimensionalStrainOptions): 
     minimumRecordedDurationSeconds,
     minimumCoverageRatio,
     maximumPowerAvailableExponent,
+    wPrimeBalanceTiming,
     initialWPrimeBalanceJoules: initialWPrimeBalanceJoules ?? null
   };
 }
@@ -791,6 +824,10 @@ function isValidModel(
 
 function isValidMaximumPowerAvailableExponent(value: unknown): value is 1 | 2 {
   return value === 1 || value === 2;
+}
+
+function isValidWPrimeBalanceTiming(value: unknown): value is WPrimeBalanceTiming {
+  return value === 'before-sample' || value === 'after-sample';
 }
 
 function toFiniteNumber(value: unknown, seen = new Set<object>()): number | null {

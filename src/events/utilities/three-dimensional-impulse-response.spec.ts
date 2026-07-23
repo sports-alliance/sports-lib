@@ -258,6 +258,48 @@ describe('three-dimensional impulse-response utilities', () => {
       });
     });
 
+    it('remains finite and component-conserving over a day of varied one-second power samples', () => {
+      const samples = Array.from({ length: 86_400 }, (_value, index) => {
+        const phase = index % 600;
+        if (phase < 10) return 1_100;
+        if (phase < 60) return 500;
+        if (phase < 180) return 250;
+        if (phase < 360) return 0;
+        return 320;
+      });
+      const analysis = calculateThreeDimensionalStrain(samples, model);
+
+      expect(analysis.status).toBe('ready');
+      expect(analysis.sampleCount).toBe(86_400);
+      expect(analysis.coverageRatio).toBe(1);
+      expect(analysis.scores).not.toBeNull();
+      expect(Object.values(analysis.scores!).every(Number.isFinite)).toBe(true);
+      expect(analysis.scores!.total).toBeCloseTo(
+        analysis.scores!.criticalPower + analysis.scores!.wPrime + analysis.scores!.maximumPower,
+        7
+      );
+      expect(analysis.endingWPrimeBalanceJoules).toBeGreaterThanOrEqual(0);
+      expect(analysis.endingWPrimeBalanceJoules).toBeLessThanOrEqual(model.wPrimeJoules);
+      expect(analysis.minimumWPrimeBalanceJoules).toBeGreaterThanOrEqual(0);
+    });
+
+    it('rejects an otherwise long valid series when one sample exceeds the fatigue-free maximum', () => {
+      const samples = new Array(7_200).fill(300);
+      samples[samples.length - 1] = model.maximumPowerWatts + 1;
+      const analysis = calculateThreeDimensionalStrain(samples, model);
+
+      expect(analysis).toMatchObject({
+        status: 'insufficient-evidence',
+        reason: 'power-exceeds-maximum',
+        candidateDurationSeconds: 7_200,
+        recordedDurationSeconds: 7_200,
+        coverageRatio: 1,
+        scores: null,
+        endingWPrimeBalanceJoules: null,
+        minimumWPrimeBalanceJoules: null
+      });
+    });
+
     it('rejects invalid models, options, allocations, and coefficients without throwing', () => {
       expect(calculateThreeDimensionalStrain([300], { ...model, wPrimeJoules: 0 })).toMatchObject({
         status: 'invalid-model',

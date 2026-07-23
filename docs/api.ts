@@ -116,6 +116,7 @@ export {
   DataStartEvent,
   DataStopAllEvent,
   DataStopEvent,
+  DataThreeDimensionalStrainEvidence,
   DataTimerTime
 } from '../src/data';
 export type { DataPowerCurvePoint } from '../src/data/data.power-curve';
@@ -131,6 +132,16 @@ export type {
   DurabilityOutputUnit,
   PoolDurabilityEvidence
 } from '../src/data/data.durability-evidence';
+export { THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION } from '../src/data/data.three-dimensional-strain-evidence';
+export type {
+  ThreeDimensionalStrainDiscipline,
+  ThreeDimensionalStrainEligibility,
+  ThreeDimensionalStrainEligibilityReason,
+  ThreeDimensionalStrainEvidence,
+  ThreeDimensionalStrainEvidenceValue,
+  ThreeDimensionalStrainFitDiagnostics,
+  ThreeDimensionalStrainInputDiagnostics
+} from '../src/data/data.three-dimensional-strain-evidence';
 export { RiderPosition } from '../src/data/data.cycling-position';
 
 /** @category Serialization and supporting contracts */

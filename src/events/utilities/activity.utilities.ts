@@ -339,12 +339,21 @@ import {
   type DurabilityEvidenceValue,
   normalizeDurabilityEvidenceValue
 } from '../../data/data.durability-evidence';
+import {
+  DataThreeDimensionalStrainEvidence,
+  type ThreeDimensionalStrainEvidenceValue,
+  normalizeThreeDimensionalStrainEvidenceValue
+} from '../../data/data.three-dimensional-strain-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
   hasActivityDurabilitySourceData
 } from './activity-durability';
+import {
+  analyzeActivityThreeDimensionalStrain,
+  calculateActivityThreeDimensionalStrainSourceFingerprint
+} from './activity-three-dimensional-strain';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -872,7 +881,32 @@ export class ActivityUtilities {
       activity.removeStat(DataDurabilityEvidence.type);
       activity.addStat(new DataDurabilityEvidence(canonicalExistingDurability));
     }
+
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
+
+    const existingThreeDimensionalStrain = activity
+      .getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type)
+      ?.getValue();
+    const canonicalExistingThreeDimensionalStrain =
+      normalizeThreeDimensionalStrainEvidenceValue(existingThreeDimensionalStrain);
+    const canReuseExistingThreeDimensionalStrain =
+      !!canonicalExistingThreeDimensionalStrain &&
+      canonicalExistingThreeDimensionalStrain.sourceFingerprint ===
+        calculateActivityThreeDimensionalStrainSourceFingerprint(activity);
+    const existingThreeDimensionalStrainIsCanonical =
+      !!canonicalExistingThreeDimensionalStrain &&
+      JSON.stringify(existingThreeDimensionalStrain) === JSON.stringify(canonicalExistingThreeDimensionalStrain);
+
+    if (!canReuseExistingThreeDimensionalStrain) {
+      const threeDimensionalStrain = analyzeActivityThreeDimensionalStrain(activity).summary;
+      activity.removeStat(DataThreeDimensionalStrainEvidence.type);
+      if (threeDimensionalStrain) {
+        activity.addStat(new DataThreeDimensionalStrainEvidence(threeDimensionalStrain));
+      }
+    } else if (canReuseExistingThreeDimensionalStrain && !existingThreeDimensionalStrainIsCanonical) {
+      activity.removeStat(DataThreeDimensionalStrainEvidence.type);
+      activity.addStat(new DataThreeDimensionalStrainEvidence(canonicalExistingThreeDimensionalStrain));
+    }
   }
 
   public static fixAbnormalStreamData(activity: ActivityInterface): void {
@@ -927,7 +961,12 @@ export class ActivityUtilities {
     const stats: DataInterface[] = [];
     // If only one
     if (activities.length === 1) {
-      return activities[0].getStatsAsArray().filter(stat => stat.getType() !== DataDurabilityEvidence.type);
+      return activities[0]
+        .getStatsAsArray()
+        .filter(
+          stat =>
+            stat.getType() !== DataDurabilityEvidence.type && stat.getType() !== DataThreeDimensionalStrainEvidence.type
+        );
     }
 
     let duration = 0;

@@ -334,6 +334,7 @@ import { DataCriticalPower } from './data.critical-power';
 import { DataFTP } from './data.ftp';
 import { DataPowerCurve } from './data.power-curve';
 import { DataDurabilityEvidence } from './data.durability-evidence';
+import { DataThreeDimensionalStrainEvidence } from './data.three-dimensional-strain-evidence';
 import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
 import { DataWPrime } from './data.w-prime';
 
@@ -470,6 +471,7 @@ export const DataStore: any = {
   DataFTP,
   DataPowerCurve,
   DataDurabilityEvidence,
+  DataThreeDimensionalStrainEvidence,
   DataPowerWattsPerKg,
   DataWPrime,
   DataNumberOfSatellites,

@@ -8,6 +8,11 @@ import {
   DURABILITY_PROTOCOL_VERSION,
   type DurabilityEvidenceValue
 } from './data.durability-evidence';
+import {
+  DataThreeDimensionalStrainEvidence,
+  THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+  type ThreeDimensionalStrainEvidenceValue
+} from './data.three-dimensional-strain-evidence';
 import { DataRiderPositionChangeEvent } from './data.rider-position-change-event';
 import { RiderPosition } from './data.cycling-position';
 import { DataSportProfileName } from './data.sport-profile-name';
@@ -43,6 +48,30 @@ describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
   const knownProviders = new Map<typeof Data | any, any[]>([
     [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
+    [
+      DataThreeDimensionalStrainEvidence,
+      [
+        {
+          protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+          sourceFingerprint: 'three-dimensional-strain-v1:0000000000000000',
+          discipline: 'cycling',
+          eligibility: { eligible: false, reason: 'missing-power' },
+          input: {
+            powerSampleCount: 0,
+            validPowerSampleCount: 0,
+            candidateDurationSeconds: 0,
+            recordedDurationSeconds: 0,
+            coverageRatio: 0,
+            curvePointCount: 0,
+            hasShortDuration: false,
+            hasMediumDuration: false,
+            hasLongDuration: false
+          },
+          fit: null,
+          evidence: null
+        } satisfies ThreeDimensionalStrainEvidenceValue
+      ]
+    ],
     [
       DataDurabilityEvidence,
       [

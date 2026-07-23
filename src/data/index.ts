@@ -66,6 +66,7 @@ export * from './data.descent-time';
 export * from './data.descent';
 export * from './data.description';
 export * from './data.durability-evidence';
+export * from './data.three-dimensional-strain-evidence';
 export * from './data.device-location';
 export * from './data.device-names';
 export * from './data.distance';

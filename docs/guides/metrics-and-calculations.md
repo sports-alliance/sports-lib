@@ -33,7 +33,7 @@ High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
-- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence
+- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, three-dimensional strain evidence
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
@@ -131,7 +131,15 @@ compares the outer thirds of like-for-like active lengths using the dominant str
 streams are never stored in the stat; a deterministic protocol-input fingerprint invalidates stale evidence, and
 ineligible activities retain an explicit reason and coverage instead of zero values.
 
-Three-dimensional impulse-response utilities (experimental, cycling power):
+`Three Dimensional Strain Evidence` is a compact, versioned activity stat generated from an activity's own recorded
+power and mean-max power curve. It is available for cycling/MTB and running/trail-running activities with power data.
+The stat stores the fitted CP/W′/Pmax parameters, fit quality, coverage, status, and the total/CP/W′/Pmax strain
+components when the source passes its quality gates. Missing power, insufficient coverage, inadequate duration range,
+poor fits, and power above fitted Pmax retain an explicit reason rather than a zero score. It does not replace `FTP`,
+`CriticalPower`, `WPrime`, or `Maximum Power`; it is excluded from event summaries and stores no source stream or
+timeline.
+
+Three-dimensional impulse-response utilities:
 
 - `fitThreeParameterCriticalPowerModel` fits the Morton three-parameter power-duration model from a mean-max curve,
   returning CP, W′, Pmax, fit quality, and convergence state. It needs several distinct maximal-duration efforts; a
@@ -367,6 +375,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Temperature` (unit: `°C`)
 - `Time`
 - `Timer time`
+- `Three Dimensional Strain Evidence`
 - `Total Cycles`
 - `Total Flow`
 - `Total Grit`

@@ -143,10 +143,18 @@ function buildPaceTssSamplesFromActivity(activity: ActivityInterface): TssSample
   return samples;
 }
 
-function calculateEnergyCostCorrectedPaceTss(samples: TssSample[], thresholdSpeed: number): number | null {
+function calculatePaceTssWithEnergyCostConvention(
+  samples: TssSample[],
+  thresholdSpeed: number,
+  useCorrectedEnergyCost: (grade: number) => boolean
+): number | null {
   const adjustedSpeedSamples = samples
     .filter(
-      sample => Number.isFinite(sample.duration) && Number.isFinite(sample.speed) && Number.isFinite(sample.grade)
+      sample =>
+        Number.isFinite(sample.duration) &&
+        Number.isFinite(sample.speed) &&
+        (sample.speed as number) > 0 &&
+        Number.isFinite(sample.grade)
     )
     .sort((left, right) => left.duration - right.duration)
     .map(sample => {
@@ -162,7 +170,7 @@ function calculateEnergyCostCorrectedPaceTss(samples: TssSample[], thresholdSpee
       return {
         duration: sample.duration,
         // At a fixed observed speed, a higher energetic cost must produce a higher equivalent-flat speed.
-        adjustedSpeed: speed * (cost / 3.6)
+        adjustedSpeed: speed * (useCorrectedEnergyCost(grade) ? cost / 3.6 : 3.6 / cost)
       };
     });
 
@@ -194,6 +202,10 @@ function calculateEnergyCostCorrectedPaceTss(samples: TssSample[], thresholdSpee
   const duration = adjustedSpeedSamples[adjustedSpeedSamples.length - 1].duration;
   const tss = 100 * (duration / 3600) * Math.pow(intensityFactor, 2);
   return Number.isFinite(tss) ? tss : null;
+}
+
+function calculateEnergyCostCorrectedPaceTss(samples: TssSample[], thresholdSpeed: number): number | null {
+  return calculatePaceTssWithEnergyCostConvention(samples, thresholdSpeed, () => true);
 }
 
 function removeStreamIfPresent(activity: ActivityInterface, streamType: string): void {
@@ -558,9 +570,9 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
-    ['Suunto flat run', '6914538454.fit', 73.35, 60.23],
-    ['Coros hilly 10 km run', '6916663933.fit', 160.05, 133.74],
-    ['Coros hilly half-marathon run', '6916728382.fit', 270.52, 208.59]
+    ['Suunto flat run', '6914538454.fit', 73.35, 62.82],
+    ['Coros hilly 10 km run', '6916663933.fit', 160.05, 134.11],
+    ['Coros hilly half-marathon run', '6916728382.fit', 270.52, 209.35]
   ])(
     'parses %s into PACE TSS samples with the expected current and energy-cost-corrected values',
     async (_label, fixtureName, expectedCurrentTss, expectedCorrectedTss) => {
@@ -590,6 +602,58 @@ describe('Training Stress Score integration', () => {
       expect(current?.trainingStressScore).toBeCloseTo(expectedCurrentTss, 2);
       expect(energyCostCorrected).toBeCloseTo(expectedCorrectedTss, 2);
       expect(energyCostCorrected as number).toBeLessThan(current?.trainingStressScore as number);
+    }
+  );
+
+  it.each([
+    ['Coros hilly 10 km run', '6916663933.fit', 103.21, 181.77, 134.11],
+    ['Coros hilly half-marathon run', '6916728382.fit', 129.39, 317.48, 209.35]
+  ])(
+    'attributes the full-run correction decrease to downhill fixture samples for %s',
+    async (_label, fixtureName, expectedDownhillOnlyTss, expectedUphillOnlyTss, expectedCorrectedTss) => {
+      const fixturePath = path.join(__dirname, '../../specs/fixtures/runs/fit', fixtureName);
+      const fixtureBuffer = fs.readFileSync(fixturePath);
+      const fixtureArrayBuffer = fixtureBuffer.buffer.slice(
+        fixtureBuffer.byteOffset,
+        fixtureBuffer.byteOffset + fixtureBuffer.byteLength
+      );
+      const activity = (
+        await EventImporterFIT.getFromArrayBuffer(fixtureArrayBuffer, undefined, fixtureName)
+      ).getFirstActivity();
+      const samples = buildPaceTssSamplesFromActivity(activity);
+      const thresholdSpeed = 3;
+      const current = TssCalculator.calculatePaceTss({
+        totalDurationWithoutPauses: samples[samples.length - 1]?.duration ?? 0,
+        functionalThresholdPace: thresholdSpeed,
+        samples
+      })?.trainingStressScore;
+      const currentReference = calculatePaceTssWithEnergyCostConvention(samples, thresholdSpeed, () => false);
+      const downhillOnlyCorrected = calculatePaceTssWithEnergyCostConvention(
+        samples,
+        thresholdSpeed,
+        grade => grade < -0.01
+      );
+      const uphillOnlyCorrected = calculatePaceTssWithEnergyCostConvention(
+        samples,
+        thresholdSpeed,
+        grade => grade > 0.01
+      );
+      const fullyCorrected = calculateEnergyCostCorrectedPaceTss(samples, thresholdSpeed);
+
+      expect(current).toBeDefined();
+      expect(currentReference).toBeCloseTo(current as number, 6);
+      expect(downhillOnlyCorrected).not.toBeNull();
+      expect(uphillOnlyCorrected).not.toBeNull();
+      expect(fullyCorrected).not.toBeNull();
+      expect(downhillOnlyCorrected).toBeCloseTo(expectedDownhillOnlyTss, 2);
+      expect(uphillOnlyCorrected).toBeCloseTo(expectedUphillOnlyTss, 2);
+      expect(fullyCorrected).toBeCloseTo(expectedCorrectedTss, 2);
+      expect(downhillOnlyCorrected as number).toBeLessThan(current as number);
+      expect(uphillOnlyCorrected as number).toBeGreaterThan(current as number);
+      expect((current as number) - (downhillOnlyCorrected as number)).toBeGreaterThan(
+        (uphillOnlyCorrected as number) - (current as number)
+      );
+      expect(fullyCorrected as number).toBeLessThan(current as number);
     }
   );
 

@@ -42,7 +42,6 @@ Calculations / Derivations
 The following formulas describe how missing streams/stats are computed in:
 - `src/events/utilities/activity.utilities.ts`
 - `src/events/utilities/grade-calculator/grade-calculator.ts`
-- `src/events/utilities/tss/tss-calculator.ts`
 - `src/events/utilities/helpers.ts`
 
 1) Distance, GNSS distance, speed, pace, swim pace
@@ -156,44 +155,7 @@ Three-dimensional impulse-response utilities:
   strain series. It does not infer individual gains or time constants. Fit and validate those parameters against held-out
   CP, W′, and Pmax observations before showing predictive athlete-facing conclusions.
 
-6) Training Stress Score (TSS) methods and priority
-
-Priority order:
-- POWER -> HR -> PACE/SWIM_PACE -> MET
-
-POWER TSS:
-```text
-IF = NP / FTP
-EffectiveDuration = max(durationWithoutPauses - 29, 0)
-TSS = (100 * EffectiveDuration * NP * IF) / (FTP * 3600)
-```
-
-HR TSS:
-- Banister TRIMP when resting HR is available
-- Edwards-zone fallback otherwise
-
-PACE TSS (running/trail groups):
-- Uses Minetti running-cost grade adjustment, then NP-like 30s/4th-power normalization
-```text
-Cost(g) = 155.4*g^5 - 30.4*g^4 - 43.3*g^3 + 46.3*g^2 + 19.5*g + 3.6
-AdjustedSpeed = Speed * (3.6 / Cost(g))
-TSS = 100 * (duration/3600) * IF^2
-```
-
-SWIM_PACE TSS:
-```text
-IF = SwimSpeed / ThresholdSwimSpeed
-TSS = 100 * (duration/3600) * IF^3
-```
-
-MET TSS:
-```text
-METScore = (3600 * Energy) / (Weight * Duration)
-IF = METScore / ThresholdMET
-TSS = 100 * (duration/3600) * IF^2
-```
-
-7) SWOLF, moving time fallback, power work, battery, jumps
+6) SWOLF, moving time fallback, power work, battery, jumps
 
 ```text
 SWOLF(poolLength) = round((secondsPerMeter + strokesPerMeter) * poolLength, 1)

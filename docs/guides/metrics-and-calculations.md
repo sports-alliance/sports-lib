@@ -152,8 +152,18 @@ Three-dimensional impulse-response utilities:
   and `wPrimeBalanceTiming: 'after-sample'`; consumers must persist both choices. When observed power exceeds MPA, the
   strain calculation floors MPA at observed power so the strain coefficient remains at or below one.
 - `calculateThreeDimensionalImpulseResponse` applies independent exponential fitness-fatigue responses to the three
-  strain series. It does not infer individual gains or time constants. Fit and validate those parameters against held-out
-  CP, W′, and Pmax observations before showing predictive athlete-facing conclusions.
+  strain series using caller-supplied parameters.
+- `fitThreeDimensionalImpulseResponseParameters` can calibrate those three parameter sets from pre-aggregated,
+  date-keyed daily strain loads and independently measured CP, W′, and Pmax observations. It zero-fills omitted rest
+  days, fits each energy system independently, and reserves the latest observations for chronological validation. It
+  returns `ready` only when each system passes its held-out error gate; it can return a `partial`, `poor-fit`,
+  `insufficient-evidence`, or `invalid-input` result instead of manufacturing generic athlete parameters. A model with
+  no measurable training-response signal, or a solution that reaches a configured time-constant bound, is also
+  withheld because the available data do not identify a predictive response within the search range. Its defaults are
+  data-sufficiency, numerical-bound, and validation safeguards—not population gains or time constants. Consumers
+  should use a stable, documented testing protocol for observations, retain all daily load history before the first test,
+  inspect the returned diagnostics, and recalibrate periodically. Activity self-fits and device estimates derived from
+  the same activities as the input loads are not independent validation observations.
 
 6) SWOLF, moving time fallback, power work, battery, jumps
 

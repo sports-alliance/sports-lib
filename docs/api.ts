@@ -216,4 +216,18 @@ export type {
   ThreeParameterCriticalPowerModel,
   WPrimeBalanceTiming
 } from '../src/events/utilities/three-dimensional-impulse-response';
+export { fitThreeDimensionalImpulseResponseParameters } from '../src/events/utilities/three-dimensional-impulse-response-calibration';
+export type {
+  FitThreeDimensionalImpulseResponseOptions,
+  ImpulseResponseCalibrationDiagnostics,
+  ImpulseResponseCalibrationError,
+  ImpulseResponseCalibrationReason,
+  ImpulseResponseCalibrationStatus,
+  ImpulseResponseComponentCalibration,
+  ThreeDimensionalDailyStrainLoad,
+  ThreeDimensionalImpulseResponseCalibration,
+  ThreeDimensionalImpulseResponseCalibrationReason,
+  ThreeDimensionalImpulseResponseCalibrationStatus,
+  ThreeDimensionalPerformanceObservation
+} from '../src/events/utilities/three-dimensional-impulse-response-calibration';
 export { EventUtilities } from '../src/events/utilities/event.utilities';

@@ -176,13 +176,10 @@ function normalizeLegacyEvidence(raw: Record<string, unknown>): ThreeDimensional
 function normalizeCurrentEvidence(raw: Record<string, unknown>): ThreeDimensionalStrainEvidenceValueV2 | null {
   const activityType = normalizeActivityType(raw.activityType);
   const core = normalizeEvidenceCore(raw, THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION);
-  if (!activityType || !core) {
+  if (!activityType || typeof raw.activityGroup !== 'string' || !core) {
     return null;
   }
   const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activityType);
-  if (raw.activityGroup !== activityGroup) {
-    return null;
-  }
   const normalized: ThreeDimensionalStrainEvidenceValueV2 = {
     protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
     activityType,

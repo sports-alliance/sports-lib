@@ -151,7 +151,17 @@ describe('activity three dimensional strain', () => {
     expect(
       normalizeThreeDimensionalStrainEvidenceValue({
         ...summary,
+        activityType: 'cycling',
         activityGroup: ActivityTypeGroups.WaterSportsGroup
+      })
+    ).toMatchObject({
+      activityType: ActivityTypes.Cycling,
+      activityGroup: ActivityTypeGroups.CyclingGroup
+    });
+    expect(
+      normalizeThreeDimensionalStrainEvidenceValue({
+        ...summary,
+        activityGroup: null
       })
     ).toBeNull();
     expect(
@@ -273,6 +283,22 @@ describe('activity three dimensional strain', () => {
       });
     }
   );
+
+  it('generates a power curve and persists v2 evidence through the parsing pipeline for rowing', () => {
+    const activity = new Activity(new Date(0), new Date(3_600_000), ActivityTypes.Rowing, new Creator('Test'));
+    activity.addStream(activity.createStream(DataPower.type).setData(Array(3_600).fill(200)));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataPowerCurve.type)).toBeDefined();
+    expect(
+      activity.getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type)?.getValue()
+    ).toMatchObject({
+      protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+      activityType: ActivityTypes.Rowing,
+      activityGroup: ActivityTypeGroups.WaterSportsGroup
+    });
+  });
 
   it('does not persist evidence for activity types with neither recorded power nor a power curve', () => {
     const activity = new Activity(new Date(0), new Date(3_600_000), ActivityTypes.Rowing, new Creator('Test'));

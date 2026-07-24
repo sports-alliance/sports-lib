@@ -49,3 +49,9 @@ site
 # generated reports
 reports/tss-validation-*.json
 reports/tss-validation-*.md
+
+# Local production FIT regression inputs (never source control user data)
+/samples/fit/garmin-corrupt-session-duration-record-range-1.fit
+/samples/fit/garmin-corrupt-session-duration-record-range-2.fit
+/samples/fit/qs-invalid-strain-evidence-02f9b16c.fit
+/samples/fit/qs-invalid-strain-evidence-fcbe8072.fit

@@ -176,6 +176,7 @@ export * from './events/utilities/activity.utilities';
 export * from './events/utilities/activity-durability';
 export * from './events/utilities/event.utilities';
 export * from './events/utilities/power-curve-sampling';
+export * from './events/utilities/three-dimensional-capacity';
 export * from './events/utilities/three-dimensional-impulse-response';
 export * from './events/utilities/three-dimensional-impulse-response-calibration';
 export * from './events/utilities/helpers';

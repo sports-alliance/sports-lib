@@ -6,7 +6,8 @@ import type { PowerCurveSampleLike } from './power-curve-sampling';
  * `criticalPowerWatts` is the sustainable oxidative-power asymptote, `wPrimeJoules`
  * is finite work capacity above it, and `maximumPowerWatts` is the fatigue-free
  * maximum power. All three values must be strictly positive and maximum power
- * must exceed critical power.
+ * must exceed critical power. Models whose derived time offset or strain scale
+ * cannot be represented as finite positive numbers are also invalid.
  */
 export interface ThreeParameterCriticalPowerModel {
   criticalPowerWatts: number;
@@ -272,7 +273,8 @@ export function resolveThreeDimensionalPowerContributions(
     };
   }
   const aboveCriticalPower = powerWatts - model.criticalPowerWatts;
-  const maximumPowerWatts = Math.pow(aboveCriticalPower, 2) / (model.maximumPowerWatts - model.criticalPowerWatts);
+  const maximumPowerWatts =
+    aboveCriticalPower * (aboveCriticalPower / (model.maximumPowerWatts - model.criticalPowerWatts));
   return {
     criticalPowerWatts: model.criticalPowerWatts,
     maximumPowerWatts,
@@ -335,7 +337,8 @@ export function calculateThreeDimensionalStrainCoefficient(
 /**
  * Converts a continuous power series to total and component strain scores.
  * Missing samples are never interpolated; results remain unavailable until the
- * caller's requested coverage threshold is met.
+ * caller's requested coverage threshold is met. Numerically non-representable
+ * models, durations, intermediate states, or scores return `invalid-model`.
  */
 export function calculateThreeDimensionalStrain(
   samples: readonly ThreeDimensionalPowerSample[],
@@ -360,6 +363,16 @@ export function calculateThreeDimensionalStrain(
     (sample): sample is NormalizedPowerSample & { powerWatts: number } => sample.powerWatts !== null
   );
   const recordedDurationSeconds = validSamples.reduce((sum, sample) => sum + sample.durationSeconds, 0);
+  if (!Number.isFinite(candidateDurationSeconds) || !Number.isFinite(recordedDurationSeconds)) {
+    return {
+      sampleCount: samples.length,
+      validSampleCount: validSamples.length,
+      candidateDurationSeconds: 0,
+      recordedDurationSeconds: 0,
+      coverageRatio: 0,
+      ...createUnavailableStrainAnalysis('invalid-model')
+    };
+  }
   const coverageRatio = candidateDurationSeconds > 0 ? recordedDurationSeconds / candidateDurationSeconds : 0;
   const base = {
     sampleCount: samples.length,
@@ -392,6 +405,9 @@ export function calculateThreeDimensionalStrain(
   let wPrimeBalance = resolvedOptions.initialWPrimeBalanceJoules ?? model.wPrimeJoules;
   let minimumWPrimeBalanceJoules = wPrimeBalance;
   const strainRateScale = ((100 / 3600) * model.maximumPowerWatts) / Math.pow(model.criticalPowerWatts, 2);
+  if (!isFinitePositiveNumber(strainRateScale)) {
+    return { ...base, ...createUnavailableStrainAnalysis('invalid-model') };
+  }
   const scores: ThreeDimensionalStrainScores = {
     total: 0,
     criticalPower: 0,
@@ -399,9 +415,12 @@ export function calculateThreeDimensionalStrain(
     maximumPower: 0
   };
 
-  validSamples.forEach(sample => {
+  for (const sample of validSamples) {
     const previousWPrimeBalance = wPrimeBalance;
     wPrimeBalance = calculateNextWPrimeBalance(wPrimeBalance, sample.powerWatts, sample.durationSeconds, model);
+    if (!isFiniteNonNegativeNumber(wPrimeBalance) || wPrimeBalance > model.wPrimeJoules) {
+      return { ...base, ...createUnavailableStrainAnalysis('invalid-model') };
+    }
     minimumWPrimeBalanceJoules = Math.min(minimumWPrimeBalanceJoules, wPrimeBalance);
     const wPrimeBalanceForStrain =
       resolvedOptions.wPrimeBalanceTiming === 'before-sample' ? previousWPrimeBalance : wPrimeBalance;
@@ -416,14 +435,31 @@ export function calculateThreeDimensionalStrain(
         ? null
         : calculateThreeDimensionalStrainCoefficient(sample.powerWatts, maximumPowerAvailable, model);
     if (!contributions || strainCoefficient === null) {
-      return;
+      return { ...base, ...createUnavailableStrainAnalysis('invalid-model') };
     }
     const sampleScale = strainCoefficient * strainRateScale * sample.durationSeconds;
-    scores.total += sample.powerWatts * sampleScale;
-    scores.criticalPower += contributions.criticalPowerWatts * sampleScale;
-    scores.wPrime += contributions.wPrimeWatts * sampleScale;
-    scores.maximumPower += contributions.maximumPowerWatts * sampleScale;
-  });
+    const criticalPowerIncrement = contributions.criticalPowerWatts * sampleScale;
+    const wPrimeIncrement = contributions.wPrimeWatts * sampleScale;
+    const maximumPowerIncrement = contributions.maximumPowerWatts * sampleScale;
+    if (
+      !isFiniteNonNegativeNumber(sampleScale) ||
+      !isFiniteNonNegativeNumber(criticalPowerIncrement) ||
+      !isFiniteNonNegativeNumber(wPrimeIncrement) ||
+      !isFiniteNonNegativeNumber(maximumPowerIncrement) ||
+      !Number.isFinite(scores.criticalPower + criticalPowerIncrement) ||
+      !Number.isFinite(scores.wPrime + wPrimeIncrement) ||
+      !Number.isFinite(scores.maximumPower + maximumPowerIncrement)
+    ) {
+      return { ...base, ...createUnavailableStrainAnalysis('invalid-model') };
+    }
+    scores.criticalPower += criticalPowerIncrement;
+    scores.wPrime += wPrimeIncrement;
+    scores.maximumPower += maximumPowerIncrement;
+  }
+  scores.total = scores.criticalPower + scores.wPrime + scores.maximumPower;
+  if (!Number.isFinite(scores.total)) {
+    return { ...base, ...createUnavailableStrainAnalysis('invalid-model') };
+  }
 
   return {
     status: 'ready',
@@ -813,12 +849,24 @@ function isValidThreeDimensionalStrainLoad(load: ThreeDimensionalStrainLoad): bo
 function isValidModel(
   model: ThreeParameterCriticalPowerModel | null | undefined
 ): model is ThreeParameterCriticalPowerModel {
+  if (
+    !model ||
+    !isFinitePositiveNumber(model.criticalPowerWatts) ||
+    !isFinitePositiveNumber(model.wPrimeJoules) ||
+    !isFinitePositiveNumber(model.maximumPowerWatts) ||
+    model.maximumPowerWatts <= model.criticalPowerWatts
+  ) {
+    return false;
+  }
+  const powerRange = model.maximumPowerWatts - model.criticalPowerWatts;
+  const timeOffsetSeconds = model.wPrimeJoules / powerRange;
+  const strainRateScale =
+    ((100 / 3600) * model.maximumPowerWatts) / (model.criticalPowerWatts * model.criticalPowerWatts);
   return (
-    !!model &&
-    isFinitePositiveNumber(model.criticalPowerWatts) &&
-    isFinitePositiveNumber(model.wPrimeJoules) &&
-    isFinitePositiveNumber(model.maximumPowerWatts) &&
-    model.maximumPowerWatts > model.criticalPowerWatts
+    isFinitePositiveNumber(powerRange) &&
+    isFinitePositiveNumber(timeOffsetSeconds) &&
+    isFinitePositiveNumber(strainRateScale) &&
+    Number.isFinite(model.maximumPowerWatts + model.criticalPowerWatts)
   );
 }
 

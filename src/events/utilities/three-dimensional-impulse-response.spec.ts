@@ -277,9 +277,8 @@ describe('three-dimensional impulse-response utilities', () => {
       expect(analysis.coverageRatio).toBe(1);
       expect(analysis.scores).not.toBeNull();
       expect(Object.values(analysis.scores!).every(Number.isFinite)).toBe(true);
-      expect(analysis.scores!.total).toBeCloseTo(
-        analysis.scores!.criticalPower + analysis.scores!.wPrime + analysis.scores!.maximumPower,
-        7
+      expect(analysis.scores!.total).toBe(
+        analysis.scores!.criticalPower + analysis.scores!.wPrime + analysis.scores!.maximumPower
       );
       expect(analysis.endingWPrimeBalanceJoules).toBeGreaterThanOrEqual(0);
       expect(analysis.endingWPrimeBalanceJoules).toBeLessThanOrEqual(model.wPrimeJoules);
@@ -319,6 +318,35 @@ describe('three-dimensional impulse-response utilities', () => {
       expect(calculateThreeDimensionalStrain([300], model, { initialWPrimeBalanceJoules: 20_001 })).toMatchObject({
         status: 'invalid-model',
         reason: 'invalid-model'
+      });
+      const numericallyDegenerateModel = {
+        criticalPowerWatts: Number.MIN_VALUE,
+        wPrimeJoules: 1,
+        maximumPowerWatts: 1
+      };
+      expect(calculateThreeDimensionalStrain([Number.MIN_VALUE], numericallyDegenerateModel)).toMatchObject({
+        status: 'invalid-model',
+        reason: 'invalid-model',
+        scores: null
+      });
+      expect(predictThreeParameterCriticalPower(numericallyDegenerateModel, 10)).toBeNull();
+      expect(resolveThreeDimensionalPowerContributions(Number.MIN_VALUE, numericallyDegenerateModel)).toBeNull();
+      expect(calculateMaximumPowerAvailable(1, numericallyDegenerateModel)).toBeNull();
+      expect(calculateThreeDimensionalStrainCoefficient(Number.MIN_VALUE, 1, numericallyDegenerateModel)).toBeNull();
+      expect(
+        calculateThreeDimensionalStrain(
+          [
+            { power: 300, durationSeconds: Number.MAX_VALUE },
+            { power: 300, durationSeconds: Number.MAX_VALUE }
+          ],
+          model
+        )
+      ).toMatchObject({
+        status: 'invalid-model',
+        reason: 'invalid-model',
+        candidateDurationSeconds: 0,
+        recordedDurationSeconds: 0,
+        scores: null
       });
       expect(resolveThreeDimensionalPowerContributions(1_201, model)).toBeNull();
       expect(calculateMaximumPowerAvailable(20_001, model)).toBeNull();

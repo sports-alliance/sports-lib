@@ -55,7 +55,7 @@ export class EventUtilities {
    * - Does NOT read the original imported file (FIT/TCX/GPX/etc.); raw source payload is not retained.
    *
    * Regeneration model:
-   * - Single-activity event: copies current activity stats into the event.
+   * - Single-activity event: copies current summary-eligible activity stats into the event.
    * - Multi-activity event: recomputes event summary stats from activity stats and aggregates power curves.
    *
    * Interaction with `generateStatsForAll(event)`:
@@ -80,7 +80,7 @@ export class EventUtilities {
     // If only one
     if (event.getActivities().length === 1) {
       const firstActivity = event.getFirstActivity();
-      firstActivity.getStats().forEach(stat => {
+      ActivityUtilities.getSummaryStatsForActivities([firstActivity]).forEach(stat => {
         event.addStat(stat);
       });
 
@@ -103,13 +103,6 @@ export class EventUtilities {
 
     // Special handling for Power Curve Aggregation
     this.aggregatePowerCurves(event);
-
-    // Calculate Critical Power & W' for the aggregated curve
-    const cpWPrime = ActivityUtilities.calculateCriticalPowerAndWPrime(event);
-    if (cpWPrime) {
-      event.addStat(cpWPrime.cp);
-      event.addStat(cpWPrime.wPrime);
-    }
   }
 
   private static aggregatePowerCurves(event: EventInterface): void {

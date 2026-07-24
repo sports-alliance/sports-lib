@@ -339,21 +339,13 @@ import {
   type DurabilityEvidenceValue,
   normalizeDurabilityEvidenceValue
 } from '../../data/data.durability-evidence';
-import {
-  DataThreeDimensionalStrainEvidence,
-  type ThreeDimensionalStrainEvidenceValue,
-  normalizeThreeDimensionalStrainEvidenceValue
-} from '../../data/data.three-dimensional-strain-evidence';
+import { DataThreeDimensionalStrainEvidence } from '../../data/data.three-dimensional-strain-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
   hasActivityDurabilitySourceData
 } from './activity-durability';
-import {
-  analyzeActivityThreeDimensionalStrain,
-  calculateActivityThreeDimensionalStrainSourceFingerprint
-} from './activity-three-dimensional-strain';
 
 // @ts-ignore
 import KalmanFilter from 'kalmanjs';
@@ -883,30 +875,6 @@ export class ActivityUtilities {
     }
 
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
-
-    const existingThreeDimensionalStrain = activity
-      .getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type)
-      ?.getValue();
-    const canonicalExistingThreeDimensionalStrain =
-      normalizeThreeDimensionalStrainEvidenceValue(existingThreeDimensionalStrain);
-    const canReuseExistingThreeDimensionalStrain =
-      !!canonicalExistingThreeDimensionalStrain &&
-      canonicalExistingThreeDimensionalStrain.sourceFingerprint ===
-        calculateActivityThreeDimensionalStrainSourceFingerprint(activity);
-    const existingThreeDimensionalStrainIsCanonical =
-      !!canonicalExistingThreeDimensionalStrain &&
-      JSON.stringify(existingThreeDimensionalStrain) === JSON.stringify(canonicalExistingThreeDimensionalStrain);
-
-    if (!canReuseExistingThreeDimensionalStrain) {
-      const threeDimensionalStrain = analyzeActivityThreeDimensionalStrain(activity).summary;
-      activity.removeStat(DataThreeDimensionalStrainEvidence.type);
-      if (threeDimensionalStrain) {
-        activity.addStat(new DataThreeDimensionalStrainEvidence(threeDimensionalStrain));
-      }
-    } else if (canReuseExistingThreeDimensionalStrain && !existingThreeDimensionalStrainIsCanonical) {
-      activity.removeStat(DataThreeDimensionalStrainEvidence.type);
-      activity.addStat(new DataThreeDimensionalStrainEvidence(canonicalExistingThreeDimensionalStrain));
-    }
   }
 
   public static fixAbnormalStreamData(activity: ActivityInterface): void {
@@ -2694,6 +2662,10 @@ export class ActivityUtilities {
   /**
    * Calculate Critical Power (CP) and W' (Anaerobic Work Capacity)
    * using the Monod & Scherrer 2-parameter model (Power vs 1/Time).
+   *
+   * @deprecated A single activity curve is not sufficient evidence of current
+   * athlete capacity. Use `fitThreeDimensionalCapacityModel` with a dated,
+   * same-activity-type history instead.
    * @param activity
    */
   public static calculateCriticalPowerAndWPrime(
@@ -3806,19 +3778,6 @@ export class ActivityUtilities {
 
     // Training Stress Score (priority: POWER -> HR -> PACE/SWIM_PACE -> MET)
     this.generateTrainingStressScore(activity);
-
-    // Critical Power & W'
-    // calculateCriticalPowerAndWPrime requires DataPowerCurve to be present (which we just added if missing)
-    if (
-      (!activity.getStat(DataCriticalPower.type) || !activity.getStat(DataWPrime.type)) &&
-      activity.getStat(DataPowerCurve.type)
-    ) {
-      const cpWPrime = this.calculateCriticalPowerAndWPrime(activity);
-      if (cpWPrime) {
-        activity.addStat(cpWPrime.cp);
-        activity.addStat(cpWPrime.wPrime);
-      }
-    }
 
     // Air AirPower Max
     if (!activity.getStat(DataAirPowerMax.type) && activity.hasStreamData(DataAirPower.type)) {

@@ -2398,45 +2398,6 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       }
     });
 
-    it.each([
-      {
-        fileName: 'garmin-corrupt-session-duration-record-range-1.fit',
-        startDate: '2024-01-01T00:00:00.000Z',
-        endDate: '2024-01-01T00:01:58.000Z',
-        elapsedTime: 118,
-        timerTime: 117
-      },
-      {
-        fileName: 'garmin-corrupt-session-duration-record-range-2.fit',
-        startDate: '2024-02-01T00:00:00.000Z',
-        endDate: '2024-02-01T00:01:27.000Z',
-        elapsedTime: 87,
-        timerTime: 85
-      }
-    ])('should parse Garmin FIT file with corrupt session duration: $fileName', async expected => {
-      // Given
-      const path = process.cwd() + `/samples/fit/${expected.fileName}`;
-      const buffer = fs.readFileSync(path);
-
-      // When
-      const event = await SportsLib.importFromFit(buffer);
-
-      // Then
-      const activity = event.getFirstActivity();
-      const lap = activity.getLaps()[0];
-
-      expect(event.startDate.toISOString()).toEqual(expected.startDate);
-      expect(event.endDate.toISOString()).toEqual(expected.endDate);
-      expect(activity.startDate.toISOString()).toEqual(expected.startDate);
-      expect(activity.endDate.toISOString()).toEqual(expected.endDate);
-      expect(lap.startDate.toISOString()).toEqual(expected.startDate);
-      expect(lap.endDate.toISOString()).toEqual(expected.endDate);
-      expect((<DataElapsedTime>activity.getStat(DataElapsedTime.type)).getValue()).toEqual(expected.elapsedTime);
-      expect((<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue()).toEqual(expected.timerTime);
-      expect((<DataElapsedTime>lap.getStat(DataElapsedTime.type)).getValue()).toEqual(expected.elapsedTime);
-      expect((<DataTimerTime>lap.getStat(DataTimerTime.type)).getValue()).toEqual(expected.timerTime);
-    });
-
     it('should handle inverted elapsed and timer time', async () => {
       // Given FIT Source: https://connect.garmin.com/modern/activity/7852903753 OR https://www.strava.com/activities/6288405028
       const path = __dirname + '/fixtures/others/inverted-times.fit';

@@ -97,7 +97,12 @@ export type ThreeDimensionalStrainEvidenceValue =
   | ThreeDimensionalStrainEvidenceValueV1
   | ThreeDimensionalStrainEvidenceValueV2;
 
-/** A compact, versioned result of fitting and scoring an activity's recorded power. */
+/**
+ * A compact, versioned historical result of fitting and scoring an activity's recorded power.
+ *
+ * @deprecated Read-only compatibility for previously persisted v1/v2 activity JSON. Parsers no longer generate this
+ * stat; use dated capacity snapshots and `calculateThreeDimensionalStrain` for new calculations.
+ */
 export class DataThreeDimensionalStrainEvidence extends DataBare<ThreeDimensionalStrainEvidenceValue> {
   static type = 'Three Dimensional Strain Evidence';
 

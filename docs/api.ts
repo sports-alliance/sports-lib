@@ -194,6 +194,29 @@ export type {
   SamplePowerCurveOptions
 } from '../src/events/utilities/power-curve-sampling';
 export {
+  THREE_DIMENSIONAL_CAPACITY_CRITICAL_POWER_ANCHORS_SECONDS,
+  THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
+  THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS,
+  buildPowerDurationEnvelope,
+  fitThreeDimensionalCapacityModel
+} from '../src/events/utilities/three-dimensional-capacity';
+export type {
+  BuildPowerDurationEnvelopeOptions,
+  CriticalPowerFitCandidate,
+  CriticalPowerFitMethod,
+  DatedActivityPowerCurve,
+  FitThreeDimensionalCapacityOptions,
+  PowerDurationEnvelope,
+  PowerDurationEnvelopePoint,
+  PowerDurationEnvelopeStatus,
+  ThreeDimensionalCapacityComponent,
+  ThreeDimensionalCapacityComponentStatus,
+  ThreeDimensionalCapacityDiagnostics,
+  ThreeDimensionalCapacityFit,
+  ThreeDimensionalCapacityReason,
+  ThreeDimensionalCapacityStatus
+} from '../src/events/utilities/three-dimensional-capacity';
+export {
   calculateImpulseResponse,
   calculateMaximumPowerAvailable,
   calculateThreeDimensionalImpulseResponse,

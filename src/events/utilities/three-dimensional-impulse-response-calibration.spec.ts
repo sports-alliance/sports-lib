@@ -365,16 +365,18 @@ describe('three-dimensional impulse-response calibration', () => {
       }
     ];
 
-    invalidCases.forEach(({ name: _name, dailyLoads, observations, options, reason }) => {
-      const fit = () =>
-        fitThreeDimensionalImpulseResponseParameters(
+    invalidCases.forEach(({ name, dailyLoads, observations, options, reason }) => {
+      let result: ReturnType<typeof fitThreeDimensionalImpulseResponseParameters> | undefined;
+
+      expect(() => {
+        result = fitThreeDimensionalImpulseResponseParameters(
           dailyLoads as ThreeDimensionalDailyStrainLoad[],
           observations as ThreeDimensionalPerformanceObservation[],
           options as Parameters<typeof fitThreeDimensionalImpulseResponseParameters>[2]
         );
+      }).not.toThrow();
 
-      expect(fit).not.toThrow();
-      expect(fit()).toMatchObject({ status: 'invalid-input', reason });
+      expect({ name, result }).toMatchObject({ name, result: { status: 'invalid-input', reason } });
     });
   });
 

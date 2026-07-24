@@ -127,6 +127,7 @@ describe('three-dimensional impulse-response calibration fixture integration', (
 
     expect(fixture.source).toMatchObject({
       doi: '10.1371/journal.pone.0341721',
+      codeRepositoryUrl: 'https://github.com/HKont/3DIR-model-code',
       dataFileSha256: '89be756f745c7bd4c5f6fa5fae5d92e30da980db957dbfa7e2618c9be5bc2cd7',
       license: 'CC BY 4.0',
       referenceImplementationCommit: 'f8dc4c0158ce8b8ccb0907fb1ec22e7ce3a031dc',

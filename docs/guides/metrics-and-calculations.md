@@ -163,8 +163,9 @@ and not a source of generic fitness, fatigue, gains, or time constants.
 Observations must be independent performance measurements from a stable, documented test protocol. Do not use a
 power-curve self-fit, a device estimate, or another value derived from the same activities used to produce the strain
 loads: that would let the model validate against its own input. Omitted dates within the supplied history are rest days
-and are zero-filled. The latest observations for each output are held out chronologically, so the fitter evaluates
-whether the learned response predicts later testing instead of merely describing the history used to fit it.
+and are zero-filled, so do not omit a date to represent unknown or incomplete activity data. The latest observations for
+each output are held out chronologically, so the fitter evaluates whether the learned response predicts later testing
+instead of merely describing the history used to fit it.
 
 The fitter returns `ready` only for outputs that pass this held-out quality gate. `partial`, `poor-fit`, and
 `insufficient-evidence` do not supply predictive parameters for their unavailable outputs; `invalid-input` indicates
@@ -176,8 +177,9 @@ are data-sufficiency, numerical-bound, physical-plausibility, and validation saf
 
 Aggregate the three strain components from every eligible activity into one `ThreeDimensionalDailyStrainLoad` per
 calendar day. Include every date with an activity; rest days may be omitted because they are zero-filled. Record
-independent CP, W′, and Pmax test results on their actual date. The default policy requires at least 16 observations per
-output, including 12 fitting observations, four latest held-out observations, and a 56-day fitting span.
+independent CP, W′, and Pmax test results on their actual date. Do not represent an unparsed or unavailable activity as
+a rest day. The default policy requires at least 16 observations per output, including 12 fitting observations, four
+latest held-out observations, and a 56-day fitting span.
 
 ```ts
 import {
@@ -193,18 +195,20 @@ function calibrateFromRetainedHistory(
   // dailyLoads contains one summed strain record per activity date.
   // observations contains independently administered CP/W′/Pmax test results.
   const calibration = fitThreeDimensionalImpulseResponseParameters(dailyLoads, observations);
-  if (calibration.criticalPower.status === 'ready') {
-    const criticalPowerResponse = calibration.criticalPower.parameters;
-    // Use this component's validated response parameters in the consuming application.
-  }
+  return {
+    calibration,
+    criticalPowerParameters:
+      calibration.criticalPower.status === 'ready' ? calibration.criticalPower.parameters : null
+  };
 }
 ```
 
 Persist calibration data in the consuming application, not as a sports-lib storage contract: retain the raw daily
 loads, independent observations, test-protocol and version metadata, result, and diagnostics. Retain all history from
 the first test onward, inspect held-out error after every fit, and recalibrate when new independent test results arrive.
-Only persist or use predictive parameters for components whose individual status is `ready`; a top-level `partial`
-result may still contain valid parameters for one or two components.
+Persist a component's parameters as predictive parameters only when its individual status is `ready`; retain non-ready
+results and diagnostics for audit. A top-level `partial` result may still contain valid parameters for one or two
+components.
 
 6) SWOLF, moving time fallback, power work, battery, jumps
 

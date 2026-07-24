@@ -107,6 +107,9 @@ describe('three-dimensional impulse-response calibration fixture integration', (
 
   it('gates the paper authors’ illustrative athlete data by chronological hold-out quality', () => {
     const fixture = publishedTrainingFixture;
+    const missingLoadDayIndexes = fixture.dailyLoads
+      .map((load, index) => (load.every(value => value === null) ? index : null))
+      .filter((index): index is number => index !== null);
     const loads = fixture.dailyLoads.map((load, index) => ({
       date: dateForIndexFrom(fixture.startDate, index),
       // The authors' reference R implementation explicitly converts these eight absent
@@ -125,10 +128,23 @@ describe('three-dimensional impulse-response calibration fixture integration', (
     expect(fixture.source).toMatchObject({
       doi: '10.1371/journal.pone.0341721',
       dataFileSha256: '89be756f745c7bd4c5f6fa5fae5d92e30da980db957dbfa7e2618c9be5bc2cd7',
-      license: 'CC BY 4.0'
+      license: 'CC BY 4.0',
+      referenceImplementationCommit: 'f8dc4c0158ce8b8ccb0907fb1ec22e7ce3a031dc',
+      referenceImplementationFile: 'Fitting 3D with SS.R'
     });
     expect(loads).toHaveLength(365);
-    expect(fixture.dailyLoads.filter(load => load.some(value => value === null))).toHaveLength(8);
+    expect(fixture.performanceObservations).toHaveLength(29);
+    expect(missingLoadDayIndexes).toEqual([182, 183, 191, 193, 194, 339, 344, 345]);
+    expect(missingLoadDayIndexes.map(index => loads[index])).toEqual(
+      missingLoadDayIndexes.map(index => ({
+        date: dateForIndexFrom(fixture.startDate, index),
+        criticalPower: 0,
+        wPrime: 0,
+        maximumPower: 0
+      }))
+    );
+    // The authors' script uses a different fitting protocol. This fixture asserts sports-lib's
+    // independent chronological hold-out gate, not numerical equality with that all-observation fit.
     expect(calibration).toMatchObject({
       status: 'poor-fit',
       dateRange: { start: '2025-09-01', end: '2026-08-31' },

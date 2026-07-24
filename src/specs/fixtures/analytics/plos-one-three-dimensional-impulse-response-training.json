@@ -5,6 +5,8 @@
     "articleUrl": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0341721",
     "supplementUrl": "https://journals.plos.org/plosone/article/file?type=supplementary&id=10.1371/journal.pone.0341721.s004",
     "codeRepositoryUrl": "https://github.com/HKont/3DIR-model-code",
+    "referenceImplementationCommit": "f8dc4c0158ce8b8ccb0907fb1ec22e7ce3a031dc",
+    "referenceImplementationFile": "Fitting 3D with SS.R",
     "dataFile": "Example data for fitting 3D.xlsx",
     "dataFileSha256": "89be756f745c7bd4c5f6fa5fae5d92e30da980db957dbfa7e2618c9be5bc2cd7",
     "license": "CC BY 4.0"

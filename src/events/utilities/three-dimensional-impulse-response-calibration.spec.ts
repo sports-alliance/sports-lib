@@ -249,6 +249,135 @@ describe('three-dimensional impulse-response calibration', () => {
     });
   });
 
+  it('is invariant to deterministic permutations of daily loads and split same-day observations', () => {
+    const data = createSyntheticData();
+    const splitObservations = data.observations.flatMap(observation => [
+      { date: observation.date, criticalPowerWatts: observation.criticalPowerWatts },
+      { date: observation.date, wPrimeJoules: observation.wPrimeJoules },
+      { date: observation.date, maximumPowerWatts: observation.maximumPowerWatts }
+    ]);
+    const expected = fitThreeDimensionalImpulseResponseParameters(data.loads, splitObservations);
+
+    [17, 83, 2_021, 99_991].forEach(seed => {
+      expect(
+        fitThreeDimensionalImpulseResponseParameters(
+          permuteDeterministically(data.loads, seed),
+          permuteDeterministically(splitObservations, seed * 17)
+        )
+      ).toEqual(expected);
+    });
+  });
+
+  it('treats omitted zero-load rest days exactly like explicit zero-load days', () => {
+    const data = createSyntheticData();
+    const denseLoads = data.loads.map((load, index) =>
+      index % 13 === 5 ? { ...load, criticalPower: 0, wPrime: 0, maximumPower: 0 } : load
+    );
+    const sparseLoads = denseLoads.filter(
+      load => load.criticalPower !== 0 || load.wPrime !== 0 || load.maximumPower !== 0
+    );
+
+    expect(fitThreeDimensionalImpulseResponseParameters(sparseLoads, data.observations)).toEqual(
+      fitThreeDimensionalImpulseResponseParameters(denseLoads, data.observations)
+    );
+  });
+
+  it('rejects a deterministic matrix of malformed values without throwing', () => {
+    const data = createSyntheticData();
+    const invalidCases: Array<{
+      name: string;
+      dailyLoads: unknown;
+      observations: unknown;
+      options?: unknown;
+      reason: 'invalid-daily-loads' | 'invalid-observations' | 'invalid-options';
+    }> = [
+      {
+        name: 'negative daily CP load',
+        dailyLoads: [{ ...data.loads[0], criticalPower: -1 }],
+        observations: data.observations,
+        reason: 'invalid-daily-loads'
+      },
+      {
+        name: 'non-finite daily W prime load',
+        dailyLoads: [{ ...data.loads[0], wPrime: Number.POSITIVE_INFINITY }],
+        observations: data.observations,
+        reason: 'invalid-daily-loads'
+      },
+      {
+        name: 'duplicate daily date',
+        dailyLoads: [data.loads[0], { ...data.loads[0], maximumPower: 99 }],
+        observations: data.observations,
+        reason: 'invalid-daily-loads'
+      },
+      {
+        name: 'impossible observation date',
+        dailyLoads: data.loads,
+        observations: [{ date: '2025-02-30', criticalPowerWatts: 250 }],
+        reason: 'invalid-observations'
+      },
+      {
+        name: 'nonpositive observed W prime',
+        dailyLoads: data.loads,
+        observations: [{ date: '2025-02-01', wPrimeJoules: 0 }],
+        reason: 'invalid-observations'
+      },
+      {
+        name: 'non-finite observed maximum power',
+        dailyLoads: data.loads,
+        observations: [{ date: '2025-02-01', maximumPowerWatts: Number.NaN }],
+        reason: 'invalid-observations'
+      },
+      {
+        name: 'duplicate observed critical power component',
+        dailyLoads: data.loads,
+        observations: [
+          { date: '2025-02-01', criticalPowerWatts: 250 },
+          { date: '2025-02-01', criticalPowerWatts: 251 }
+        ],
+        reason: 'invalid-observations'
+      },
+      {
+        name: 'maximum power no greater than critical power',
+        dailyLoads: data.loads,
+        observations: [{ date: '2025-02-01', criticalPowerWatts: 300, maximumPowerWatts: 300 }],
+        reason: 'invalid-observations'
+      },
+      {
+        name: 'zero validation observation count',
+        dailyLoads: data.loads,
+        observations: data.observations,
+        options: { validationObservationCount: 0 },
+        reason: 'invalid-options'
+      },
+      {
+        name: 'non-finite time constant bound',
+        dailyLoads: data.loads,
+        observations: data.observations,
+        options: { maximumTimeConstantDays: Number.POSITIVE_INFINITY },
+        reason: 'invalid-options'
+      },
+      {
+        name: 'inverted response time constants',
+        dailyLoads: data.loads,
+        observations: data.observations,
+        options: { minimumFitnessToFatigueTimeConstantRatio: 0.5 },
+        reason: 'invalid-options'
+      }
+    ];
+
+    invalidCases.forEach(({ name: _name, dailyLoads, observations, options, reason }) => {
+      const fit = () =>
+        fitThreeDimensionalImpulseResponseParameters(
+          dailyLoads as ThreeDimensionalDailyStrainLoad[],
+          observations as ThreeDimensionalPerformanceObservation[],
+          options as Parameters<typeof fitThreeDimensionalImpulseResponseParameters>[2]
+        );
+
+      expect(fit).not.toThrow();
+      expect(fit()).toMatchObject({ status: 'invalid-input', reason });
+    });
+  });
+
   it('does not return a model with a nonpositive baseline or daily performance', () => {
     const loads = Array.from({ length: 200 }, (_, index) => ({
       date: dateForIndex(index),
@@ -348,4 +477,15 @@ function dateForIndex(index: number): string {
 
 function formatDate(year: number, month: number, day: number): string {
   return new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10);
+}
+
+function permuteDeterministically<T>(values: readonly T[], seed: number): T[] {
+  const result = [...values];
+  let state = seed >>> 0;
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    state = (state * 1_664_525 + 1_013_904_223) >>> 0;
+    const swapIndex = state % (index + 1);
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
 }

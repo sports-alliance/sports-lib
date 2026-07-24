@@ -153,18 +153,58 @@ Three-dimensional impulse-response utilities:
   strain calculation floors MPA at observed power so the strain coefficient remains at or below one.
 - `calculateThreeDimensionalImpulseResponse` applies independent exponential fitness-fatigue responses to the three
   strain series using caller-supplied parameters.
-- `fitThreeDimensionalImpulseResponseParameters` can calibrate those three parameter sets from pre-aggregated,
-  date-keyed daily strain loads and independently measured CP, W′, and Pmax observations. It zero-fills omitted rest
-  days, fits each energy system independently, and reserves the latest observations for chronological validation. It
-  returns `ready` only when each system passes its held-out error gate; it can return a `partial`, `poor-fit`,
-  `insufficient-evidence`, or `invalid-input` result instead of manufacturing generic athlete parameters. A model with
-  no measurable training-response signal, or a solution that reaches a configured time-constant bound, is also
-  withheld because the available data do not identify a predictive response within the search range. Its defaults are
-  data-sufficiency, numerical-bound, physically positive performance, and validation safeguards—not population gains
-  or time constants. Consumers
-  should use a stable, documented testing protocol for observations, retain all daily load history before the first test,
-  inspect the returned diagnostics, and recalibrate periodically. Activity self-fits and device estimates derived from
-  the same activities as the input loads are not independent validation observations.
+### Calibration theory and limits
+
+`fitThreeDimensionalImpulseResponseParameters` calibrates three independent fitness-fatigue responses from
+pre-aggregated, date-keyed CP, W′, and Pmax strain loads. The three outputs represent distinct energy-system-specific
+responses; a strong CP fit does not validate W′ or Pmax. The model is a training-response model, not an FTP estimate
+and not a source of generic fitness, fatigue, gains, or time constants.
+
+Observations must be independent performance measurements from a stable, documented test protocol. Do not use a
+power-curve self-fit, a device estimate, or another value derived from the same activities used to produce the strain
+loads: that would let the model validate against its own input. Omitted dates within the supplied history are rest days
+and are zero-filled. The latest observations for each output are held out chronologically, so the fitter evaluates
+whether the learned response predicts later testing instead of merely describing the history used to fit it.
+
+The fitter returns `ready` only for outputs that pass this held-out quality gate. `partial`, `poor-fit`, and
+`insufficient-evidence` do not supply predictive parameters for their unavailable outputs; `invalid-input` indicates
+that the supplied data cannot be interpreted safely. It also withholds a model with no measurable training response,
+time constants at the configured search boundary, or a nonpositive baseline or predicted daily performance. Defaults
+are data-sufficiency, numerical-bound, physical-plausibility, and validation safeguards—not population parameters.
+
+### Practical calibration recipe
+
+Aggregate the three strain components from every eligible activity into one `ThreeDimensionalDailyStrainLoad` per
+calendar day. Include every date with an activity; rest days may be omitted because they are zero-filled. Record
+independent CP, W′, and Pmax test results on their actual date. The default policy requires at least 16 observations per
+output, including 12 fitting observations, four latest held-out observations, and a 56-day fitting span.
+
+```ts
+import {
+  fitThreeDimensionalImpulseResponseParameters,
+  type ThreeDimensionalDailyStrainLoad,
+  type ThreeDimensionalPerformanceObservation
+} from '@sports-alliance/sports-lib';
+
+function calibrateFromRetainedHistory(
+  dailyLoads: readonly ThreeDimensionalDailyStrainLoad[],
+  observations: readonly ThreeDimensionalPerformanceObservation[]
+) {
+  // dailyLoads contains one summed strain record per activity date.
+  // observations contains independently administered CP/W′/Pmax test results.
+  const calibration = fitThreeDimensionalImpulseResponseParameters(dailyLoads, observations);
+  if (calibration.criticalPower.status === 'ready') {
+    const criticalPowerResponse = calibration.criticalPower.parameters;
+    // Use this component's validated response parameters in the consuming application.
+  }
+}
+```
+
+Persist calibration data in the consuming application, not as a sports-lib storage contract: retain the raw daily
+loads, independent observations, test-protocol and version metadata, result, and diagnostics. Retain all history from
+the first test onward, inspect held-out error after every fit, and recalibrate when new independent test results arrive.
+Only persist or use predictive parameters for components whose individual status is `ready`; a top-level `partial`
+result may still contain valid parameters for one or two components.
 
 6) SWOLF, moving time fallback, power work, battery, jumps
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sports-Lib Metric Extension"
+  short_description: "Safely extend normalized fitness metrics"
+  default_prompt: "Use $metric-extension to add or correct this sports-lib metric."

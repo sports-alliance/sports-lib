@@ -6,6 +6,7 @@ This directory contains configuration, skills, and workflows for AI agents worki
 
 - **skills/**: Contains specialized "skills" (instructions + scripts) for the agent.
   - `debug-utils`: Instructions for using the project's ad-hoc FIT file debugging scripts.
+  - `metric-extension`: Safely add or correct normalized metrics from raw activity data.
 - **workflows/**: Contains step-by-step guides for common tasks.
   - `add-new-data.md`: How to identify and add new data fields from FIT files.
 
@@ -13,6 +14,7 @@ This directory contains configuration, skills, and workflows for AI agents worki
 
 When asking an agent to help with debugging or adding data, you can refer them to these specific skills or workflows if they don't automatically pick them up.
 - "Use the debug-utils skill to inspect this file."
+- "Use the metric-extension skill to add this FIT metric."
 - "Follow the add-new-data workflow."
 
 ## Agent Rule: Data Type Changes Must Update Metric Documentation

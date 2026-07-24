@@ -160,7 +160,8 @@ Three-dimensional impulse-response utilities:
   `insufficient-evidence`, or `invalid-input` result instead of manufacturing generic athlete parameters. A model with
   no measurable training-response signal, or a solution that reaches a configured time-constant bound, is also
   withheld because the available data do not identify a predictive response within the search range. Its defaults are
-  data-sufficiency, numerical-bound, and validation safeguards—not population gains or time constants. Consumers
+  data-sufficiency, numerical-bound, physically positive performance, and validation safeguards—not population gains
+  or time constants. Consumers
   should use a stable, documented testing protocol for observations, retain all daily load history before the first test,
   inspect the returned diagnostics, and recalibrate periodically. Activity self-fits and device estimates derived from
   the same activities as the input loads are not independent validation observations.

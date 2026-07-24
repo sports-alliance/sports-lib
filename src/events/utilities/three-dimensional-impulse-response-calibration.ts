@@ -41,7 +41,7 @@ export interface FitThreeDimensionalImpulseResponseOptions {
   maximumTimeConstantDays?: number;
   /**
    * Enforces a fitness response no shorter than the fatigue response. Defaults to 1, so the
-   * fitness time constant must be at least as long as the fatigue time constant.
+   * fitness time constant must be at least as long as the fatigue time constant. Must be at least 1.
    */
   minimumFitnessToFatigueTimeConstantRatio?: number;
   /** Maximum deterministic Nelder-Mead iterations per starting point. Defaults to 500. */
@@ -201,7 +201,8 @@ const CALIBRATION_EPSILON = 1e-10;
  * each output are reserved for chronological validation. It also never invents athlete-specific
  * gains or time constants when evidence is insufficient. Callers should aggregate activity strain
  * into one load per calendar day, include zero-load rest days implicitly, and periodically
- * recalibrate with independently measured performance observations.
+ * recalibrate with independently measured performance observations. Returned models retain a
+ * strictly positive baseline and daily performance trajectory.
  */
 export function fitThreeDimensionalImpulseResponseParameters(
   dailyLoads: readonly ThreeDimensionalDailyStrainLoad[],
@@ -312,7 +313,9 @@ function fitComponent(
       timeConstants.fatigueTimeConstantDays
     );
     const coefficients = fitNonNegativeCoefficients(states, trainingObservations);
-    return coefficients?.sumSquaredError ?? Number.POSITIVE_INFINITY;
+    return coefficients && hasPositivePerformanceTrajectory(states, coefficients)
+      ? coefficients.sumSquaredError
+      : Number.POSITIVE_INFINITY;
   };
 
   let best: CalibrationCandidate | null = null;
@@ -328,7 +331,11 @@ function fitComponent(
       timeConstants.fatigueTimeConstantDays
     );
     const coefficients = fitNonNegativeCoefficients(states, trainingObservations);
-    if (!coefficients || !Number.isFinite(coefficients.sumSquaredError)) {
+    if (
+      !coefficients ||
+      !Number.isFinite(coefficients.sumSquaredError) ||
+      !hasPositivePerformanceTrajectory(states, coefficients)
+    ) {
       continue;
     }
     const candidate: CalibrationCandidate = {
@@ -556,6 +563,16 @@ function predictFromStates(
   );
 }
 
+function hasPositivePerformanceTrajectory(
+  states: ResponseStates,
+  parameters: Pick<ImpulseResponseParameters, 'baseline' | 'fitnessGain' | 'fatigueGain'>
+): boolean {
+  return (
+    isFinitePositiveNumber(parameters.baseline) &&
+    states.fitness.every((_, dayIndex) => isFinitePositiveNumber(predictFromStates(states, dayIndex, parameters)))
+  );
+}
+
 function decodeTimeConstantCoordinates(
   coordinates: readonly number[],
   options: ResolvedFitOptions
@@ -732,6 +749,7 @@ function resolveFitOptions(options: FitThreeDimensionalImpulseResponseOptions): 
     maximumValidationNormalizedRmse === null ||
     !maximumCalendarSpanDays ||
     minimumObservationCount < minimumTrainingObservationCount + validationObservationCount ||
+    minimumFitnessToFatigueTimeConstantRatio < 1 ||
     minimumTimeConstantDays * minimumFitnessToFatigueTimeConstantRatio >= maximumTimeConstantDays
   ) {
     return null;
@@ -772,16 +790,12 @@ function isValidDailyLoads(dailyLoads: readonly ThreeDimensionalDailyStrainLoad[
 }
 
 function isValidPerformanceObservations(observations: readonly ThreeDimensionalPerformanceObservation[]): boolean {
-  const observedDatesByComponent = {
-    criticalPower: new Set<string>(),
-    wPrime: new Set<string>(),
-    maximumPower: new Set<string>()
-  };
-  return observations.every(observation => {
+  const measurementsByDate = new Map<string, Partial<Record<'criticalPower' | 'wPrime' | 'maximumPower', number>>>();
+  const observationsAreValid = observations.every(observation => {
     if (!observation || !isValidDate(observation.date)) {
       return false;
     }
-    const values: Array<[keyof typeof observedDatesByComponent, number | undefined]> = [
+    const values: Array<['criticalPower' | 'wPrime' | 'maximumPower', number | undefined]> = [
       ['criticalPower', observation.criticalPowerWatts],
       ['wPrime', observation.wPrimeJoules],
       ['maximumPower', observation.maximumPowerWatts]
@@ -790,24 +804,29 @@ function isValidPerformanceObservations(observations: readonly ThreeDimensionalP
     if (!hasMeasurement) {
       return false;
     }
-    if (
-      observation.criticalPowerWatts !== undefined &&
-      observation.maximumPowerWatts !== undefined &&
-      observation.maximumPowerWatts <= observation.criticalPowerWatts
-    ) {
-      return false;
-    }
-    return values.every(([component, value]) => {
+    const measurements = measurementsByDate.get(observation.date) ?? {};
+    const valuesAreValid = values.every(([component, value]) => {
       if (value === undefined) {
         return true;
       }
-      if (!isFinitePositiveNumber(value) || observedDatesByComponent[component].has(observation.date)) {
+      if (!isFinitePositiveNumber(value) || measurements[component] !== undefined) {
         return false;
       }
-      observedDatesByComponent[component].add(observation.date);
+      measurements[component] = value;
       return true;
     });
+    if (valuesAreValid) {
+      measurementsByDate.set(observation.date, measurements);
+    }
+    return valuesAreValid;
   });
+  return (
+    observationsAreValid &&
+    [...measurementsByDate.values()].every(
+      ({ criticalPower, maximumPower }) =>
+        criticalPower === undefined || maximumPower === undefined || maximumPower > criticalPower
+    )
+  );
 }
 
 function createUnavailableComponentCalibration(

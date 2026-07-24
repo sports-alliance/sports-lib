@@ -179,6 +179,10 @@ describe('three-dimensional impulse-response calibration', () => {
     const data = createSyntheticData();
     const duplicateLoadDay = [...data.loads, { ...data.loads[0], criticalPower: 999 }];
     const duplicateObservation = [...data.observations, { date: data.observations[0].date, criticalPowerWatts: 251 }];
+    const incompatibleSameDayObservations = [
+      { date: '2025-02-01', criticalPowerWatts: 300 },
+      { date: '2025-02-01', maximumPowerWatts: 300 }
+    ];
 
     expect(fitThreeDimensionalImpulseResponseParameters([], data.observations)).toMatchObject({
       status: 'invalid-input',
@@ -212,12 +216,76 @@ describe('three-dimensional impulse-response calibration', () => {
         { date: '2025-02-01', criticalPowerWatts: 300, maximumPowerWatts: 300 }
       ])
     ).toMatchObject({ status: 'invalid-input', reason: 'invalid-observations' });
+    expect(fitThreeDimensionalImpulseResponseParameters(data.loads, incompatibleSameDayObservations)).toMatchObject({
+      status: 'invalid-input',
+      reason: 'invalid-observations'
+    });
     expect(
       fitThreeDimensionalImpulseResponseParameters(data.loads, data.observations, {
         minimumTimeConstantDays: 10,
         maximumTimeConstantDays: 10
       })
     ).toMatchObject({ status: 'invalid-input', reason: 'invalid-options' });
+    expect(
+      fitThreeDimensionalImpulseResponseParameters(data.loads, data.observations, {
+        minimumFitnessToFatigueTimeConstantRatio: 0.5
+      })
+    ).toMatchObject({ status: 'invalid-input', reason: 'invalid-options' });
+  });
+
+  it('allows different same-day measurements in separate records', () => {
+    const data = createSyntheticData();
+    const splitObservations = data.observations.flatMap(observation => [
+      { date: observation.date, criticalPowerWatts: observation.criticalPowerWatts },
+      { date: observation.date, wPrimeJoules: observation.wPrimeJoules },
+      { date: observation.date, maximumPowerWatts: observation.maximumPowerWatts }
+    ]);
+
+    expect(fitThreeDimensionalImpulseResponseParameters(data.loads, splitObservations)).toMatchObject({
+      status: 'ready',
+      criticalPower: { status: 'ready' },
+      wPrime: { status: 'ready' },
+      maximumPower: { status: 'ready' }
+    });
+  });
+
+  it('does not return a model with a nonpositive baseline or daily performance', () => {
+    const loads = Array.from({ length: 200 }, (_, index) => ({
+      date: dateForIndex(index),
+      criticalPower: 40 + (index % 7 === 0 ? 100 : 0) + (index % 19 < 3 ? 50 : 0),
+      wPrime: 5,
+      maximumPower: 1
+    }));
+    const response = calculateThreeDimensionalImpulseResponse(
+      loads.map(({ criticalPower, wPrime, maximumPower }) => ({ criticalPower, wPrime, maximumPower })),
+      {
+        criticalPower: {
+          baseline: -100,
+          fitnessGain: 12,
+          fatigueGain: 0,
+          fitnessTimeConstantDays: 20,
+          fatigueTimeConstantDays: 5
+        },
+        wPrime: knownParameters.wPrime,
+        maximumPower: knownParameters.maximumPower
+      }
+    )!;
+    const observations = response
+      .map((point, index) => ({ point, index }))
+      .filter(({ index }) => index >= 50 && index % 7 === 0)
+      .map(({ point, index }) => ({ date: loads[index].date, criticalPowerWatts: point.criticalPower.performance }));
+    const calibration = fitThreeDimensionalImpulseResponseParameters(loads, observations, {
+      maximumValidationNormalizedRmse: 0.2
+    });
+
+    const parameters = calibration.criticalPower.parameters;
+    expect(parameters).not.toBeNull();
+    expect(parameters!.baseline).toBeGreaterThan(0);
+    const fittedResponse = calculateThreeDimensionalImpulseResponse(
+      loads.map(({ criticalPower, wPrime, maximumPower }) => ({ criticalPower, wPrime, maximumPower })),
+      { criticalPower: parameters!, wPrime: knownParameters.wPrime, maximumPower: knownParameters.maximumPower }
+    )!;
+    expect(fittedResponse.every(point => point.criticalPower.performance > 0)).toBe(true);
   });
 
   it('keeps bounded finite diagnostics over a ten-year zero-filled training history', () => {

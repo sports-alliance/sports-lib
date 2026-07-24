@@ -132,12 +132,16 @@ streams are never stored in the stat; a deterministic protocol-input fingerprint
 ineligible activities retain an explicit reason and coverage instead of zero values.
 
 `Three Dimensional Strain Evidence` is a compact, versioned activity stat generated from an activity's own recorded
-power and mean-max power curve. It is available for cycling/MTB and running/trail-running activities with power data.
-The stat stores the fitted CP/W′/Pmax parameters, fit quality, coverage, status, and the total/CP/W′/Pmax strain
-components when the source passes its quality gates. Missing power, insufficient coverage, inadequate duration range,
-poor fits, and power above fitted Pmax retain an explicit reason rather than a zero score. It does not replace `FTP`,
-`CriticalPower`, `WPrime`, or `Maximum Power`; it is excluded from event summaries and stores no source stream or
-timeline.
+power and mean-max power curve. Every canonical activity type is evaluated when it has either input; an activity with
+neither a power stream nor a curve receives no stat. A score remains available only when both inputs satisfy the
+coverage, duration-range, and fit-quality gates. The current v2 record stores the canonical activity type and activity
+group alongside fitted CP/W′/Pmax parameters, fit quality, coverage, status, and total/CP/W′/Pmax strain components.
+Missing power, insufficient coverage, inadequate duration range, poor fits, and power above fitted Pmax retain an
+explicit reason rather than a zero score. Consumers must aggregate and calibrate one canonical activity type at a time:
+an activity group is display metadata, not evidence that rowing, skiing, cycling, or another sport shares one response.
+The stat does not replace `FTP`, `CriticalPower`, `WPrime`, or `Maximum Power`; it is excluded from event summaries and
+stores no source stream or timeline. Historic v1 running/cycling records remain readable and are regenerated as v2 on
+reparse.
 
 Three-dimensional impulse-response utilities:
 
@@ -176,11 +180,12 @@ are data-sufficiency, numerical-bound, physical-plausibility, and validation saf
 
 ### Practical calibration recipe
 
-Aggregate the three strain components from every eligible activity into one `ThreeDimensionalDailyStrainLoad` per
-calendar day. Include every date with an activity; rest days may be omitted because they are zero-filled. Record
-independent CP, W′, and Pmax test results on their actual date. Do not represent an unparsed or unavailable activity as
-a rest day. The default policy requires at least 16 observations per output, including 12 fitting observations, four
-latest held-out observations, and a 56-day fitting span.
+Aggregate the three strain components from eligible activities of one canonical activity type into one
+`ThreeDimensionalDailyStrainLoad` per calendar day. Include every date with an activity of that type; rest days may be
+omitted because they are zero-filled. Record independent CP, W′, and Pmax test results on their actual date using the
+same type-specific protocol. Do not represent an unparsed or unavailable activity as a rest day. The default policy
+requires at least 16 observations per output, including 12 fitting observations, four latest held-out observations, and
+a 56-day fitting span.
 
 ```ts
 import {

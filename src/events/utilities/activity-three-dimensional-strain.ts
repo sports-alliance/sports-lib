@@ -1,11 +1,10 @@
 import { ActivityInterface } from '../../activities/activity.interface';
-import { ActivityTypeGroups, ActivityTypesHelper } from '../../activities/activity.types';
+import { ActivityTypesHelper, type ActivityTypeGroup, type ActivityTypes } from '../../activities/activity.types';
 import {
   THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS,
   THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
-  type ThreeDimensionalStrainDiscipline,
   type ThreeDimensionalStrainEligibilityReason,
-  type ThreeDimensionalStrainEvidenceValue,
+  type ThreeDimensionalStrainEvidenceValueV2,
   type ThreeDimensionalStrainFitDiagnostics,
   type ThreeDimensionalStrainInputDiagnostics
 } from '../../data/data.three-dimensional-strain-evidence';
@@ -18,51 +17,54 @@ import {
 } from './three-dimensional-impulse-response';
 
 export interface ActivityThreeDimensionalStrainAnalysis {
-  summary: ThreeDimensionalStrainEvidenceValue | null;
+  summary: ThreeDimensionalStrainEvidenceValueV2 | null;
 }
 
 /**
  * Analyzes one activity's recorded power with a self-fitted three-parameter
- * power-duration model. It does not inspect any other activity.
+ * power-duration model. Any canonical activity type can qualify; the result
+ * retains that type and its activity group so consumers can keep sports separate.
  */
 export function analyzeActivityThreeDimensionalStrain(
   activity: ActivityInterface
 ): ActivityThreeDimensionalStrainAnalysis {
-  const discipline = resolveDiscipline(activity);
-  if (!discipline) {
+  const activityContext = resolveActivityContext(activity);
+  const power = safeGetPower(activity);
+  const curve = safeGetPowerCurve(activity);
+  if (!activityContext || (power.length === 0 && curve.length === 0)) {
     return { summary: null };
   }
 
-  const power = safeGetPower(activity);
-  const curve = safeGetPowerCurve(activity);
   const sourceFingerprint = calculateActivityThreeDimensionalStrainSourceFingerprint(activity);
   const input = buildInputDiagnostics(power, curve);
 
   if (!input.validPowerSampleCount) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'missing-power') };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'missing-power') };
   }
   if (input.coverageRatio < THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS.minimumPowerCoverageRatio) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'insufficient-coverage') };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'insufficient-coverage') };
   }
   if (input.curvePointCount < THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS.minimumCurvePointCount) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'insufficient-curve-points') };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'insufficient-curve-points') };
   }
   if (!input.hasShortDuration || !input.hasMediumDuration || !input.hasLongDuration) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'insufficient-duration-range') };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'insufficient-duration-range') };
   }
 
   const fit = fitThreeParameterCriticalPowerModel(curve, {
     minimumSampleCount: THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS.minimumCurvePointCount
   });
   if (!fit || !fit.converged) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'fit-failed') };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'fit-failed') };
   }
   const fitDiagnostics = toFitDiagnostics(fit);
   if (fit.normalizedRmse > THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS.maximumNormalizedRmse) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'poor-fit', fitDiagnostics) };
+    return { summary: buildUnavailable(activityContext, sourceFingerprint, input, 'poor-fit', fitDiagnostics) };
   }
   if (Math.max(...power.filter(isValidPower)) > fit.model.maximumPowerWatts) {
-    return { summary: buildUnavailable(discipline, sourceFingerprint, input, 'power-exceeds-maximum', fitDiagnostics) };
+    return {
+      summary: buildUnavailable(activityContext, sourceFingerprint, input, 'power-exceeds-maximum', fitDiagnostics)
+    };
   }
 
   const strain = calculateThreeDimensionalStrain(power, fit.model, {
@@ -78,7 +80,7 @@ export function analyzeActivityThreeDimensionalStrain(
   ) {
     return {
       summary: buildUnavailable(
-        discipline,
+        activityContext,
         sourceFingerprint,
         inputFromStrain(input, strain),
         mapStrainReason(strain),
@@ -91,7 +93,7 @@ export function analyzeActivityThreeDimensionalStrain(
     summary: {
       protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
       sourceFingerprint,
-      discipline,
+      ...activityContext,
       eligibility: { eligible: true, reason: 'eligible' },
       input: inputFromStrain(input, strain),
       fit: fitDiagnostics,
@@ -104,9 +106,10 @@ export function analyzeActivityThreeDimensionalStrain(
   };
 }
 
-/** A deterministic invalidation key for all protocol-v1 inputs. */
+/** A deterministic invalidation key for all protocol-v2 inputs. */
 export function calculateActivityThreeDimensionalStrainSourceFingerprint(activity: ActivityInterface): string {
   const fingerprint = new ThreeDimensionalStrainFingerprint();
+  const activityContext = resolveActivityContext(activity);
   fingerprint.add('protocol-version', THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION);
   Object.keys(THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS)
     .sort()
@@ -116,7 +119,8 @@ export function calculateActivityThreeDimensionalStrainSourceFingerprint(activit
         THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS[key as keyof typeof THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS]
       )
     );
-  fingerprint.add('activity-type', activity.type);
+  fingerprint.add('activity-type', activityContext?.activityType || null);
+  fingerprint.add('activity-group', activityContext?.activityGroup || null);
   fingerprint.add('duration-seconds', safeGetDuration(activity));
   safeGetPower(activity).forEach((value, index) => fingerprint.add(`power-${index}`, value));
   safeGetPowerCurve(activity).forEach((point, index) => {
@@ -126,17 +130,37 @@ export function calculateActivityThreeDimensionalStrainSourceFingerprint(activit
   return fingerprint.digest();
 }
 
+interface ActivityContext {
+  activityType: ActivityTypes;
+  activityGroup: ActivityTypeGroup;
+}
+
+function resolveActivityContext(activity: ActivityInterface): ActivityContext | null {
+  try {
+    const activityType = ActivityTypesHelper.resolveActivityType(activity.type);
+    if (!activityType) {
+      return null;
+    }
+    return {
+      activityType,
+      activityGroup: ActivityTypesHelper.getActivityGroupForActivityType(activityType)
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildUnavailable(
-  discipline: ThreeDimensionalStrainDiscipline,
+  activityContext: ActivityContext,
   sourceFingerprint: string,
   input: ThreeDimensionalStrainInputDiagnostics,
   reason: Exclude<ThreeDimensionalStrainEligibilityReason, 'eligible'>,
   fit: ThreeDimensionalStrainFitDiagnostics | null = null
-): ThreeDimensionalStrainEvidenceValue {
+): ThreeDimensionalStrainEvidenceValueV2 {
   return {
     protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
     sourceFingerprint,
-    discipline,
+    ...activityContext,
     eligibility: { eligible: false, reason },
     input,
     fit,
@@ -267,17 +291,6 @@ function isValidPower(value: number | null): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
-function resolveDiscipline(activity: ActivityInterface): ThreeDimensionalStrainDiscipline | null {
-  const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-  if (group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup) {
-    return 'cycling';
-  }
-  if (group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup) {
-    return 'running';
-  }
-  return null;
-}
-
 class ThreeDimensionalStrainFingerprint {
   private first = 0x811c9dc5;
   private second = 0x9e3779b9;
@@ -287,7 +300,7 @@ class ThreeDimensionalStrainFingerprint {
   }
 
   digest(): string {
-    return `three-dimensional-strain-v1:${toHex(this.first)}${toHex(this.second)}`;
+    return `three-dimensional-strain-v${THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION}:${toHex(this.first)}${toHex(this.second)}`;
   }
 
   private update(value: string): void {

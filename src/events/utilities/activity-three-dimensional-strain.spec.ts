@@ -1,13 +1,15 @@
 import { Activity } from '../../activities/activity';
-import { ActivityTypes } from '../../activities/activity.types';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { Creator } from '../../creators/creator';
 import { DataDuration } from '../../data/data.duration';
 import { DataPower } from '../../data/data.power';
 import { DataPowerCurve } from '../../data/data.power-curve';
 import {
   DataThreeDimensionalStrainEvidence,
+  THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
   THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
   type ThreeDimensionalStrainEvidenceValue,
+  type ThreeDimensionalStrainEvidenceValueV1,
   normalizeThreeDimensionalStrainEvidenceValue
 } from '../../data/data.three-dimensional-strain-evidence';
 import { ActivityUtilities } from './activity.utilities';
@@ -24,6 +26,7 @@ const model = {
 };
 
 const durations = [5, 15, 30, 120, 180, 360, 600, 1_200];
+const canonicalActivityTypes = [...new Set(Object.values(ActivityTypes))] as ActivityTypes[];
 
 function createPowerCurve(): DataPowerCurve {
   return new DataPowerCurve(
@@ -34,8 +37,11 @@ function createPowerCurve(): DataPowerCurve {
   );
 }
 
-function createActivity(power: (number | null)[] = Array(3_600).fill(200)): Activity {
-  const activity = new Activity(new Date(0), new Date(power.length * 1000), ActivityTypes.Cycling, new Creator('Test'));
+function createActivity(
+  power: (number | null)[] = Array(3_600).fill(200),
+  activityType: ActivityTypes = ActivityTypes.Cycling
+): Activity {
+  const activity = new Activity(new Date(0), new Date(power.length * 1000), activityType, new Creator('Test'));
   activity.addStream(activity.createStream(DataPower.type).setData(power));
   activity.addStat(createPowerCurve());
   return activity;
@@ -47,7 +53,8 @@ describe('activity three dimensional strain', () => {
 
     expect(result.summary).toMatchObject({
       protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
-      discipline: 'cycling',
+      activityType: ActivityTypes.Cycling,
+      activityGroup: ActivityTypeGroups.CyclingGroup,
       eligibility: { eligible: true, reason: 'eligible' },
       input: {
         powerSampleCount: 3_600,
@@ -120,12 +127,33 @@ describe('activity three dimensional strain', () => {
     expect(analyzeActivityThreeDimensionalStrain(poorFit).summary?.eligibility.reason).toBe('poor-fit');
   });
 
-  it('canonicalizes serialization and rejects impossible eligible values', () => {
+  it('canonicalizes v2 serialization, reads historic v1 records, and rejects impossible eligible values', () => {
     const summary = analyzeActivityThreeDimensionalStrain(createActivity()).summary!;
     const stat = new DataThreeDimensionalStrainEvidence({ ...summary, timeline: [{ power: 900 }] });
+    const legacy = {
+      ...summary,
+      protocolVersion: THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
+      sourceFingerprint: 'three-dimensional-strain-v1:0000000000000000',
+      discipline: 'cycling'
+    };
 
     expect(JSON.stringify(stat.toJSON())).not.toContain('timeline');
     expect(normalizeThreeDimensionalStrainEvidenceValue(summary)).toEqual(summary);
+    expect(normalizeThreeDimensionalStrainEvidenceValue(legacy)).toEqual({
+      protocolVersion: THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
+      sourceFingerprint: 'three-dimensional-strain-v1:0000000000000000',
+      discipline: 'cycling',
+      eligibility: summary.eligibility,
+      input: summary.input,
+      fit: summary.fit,
+      evidence: summary.evidence
+    });
+    expect(
+      normalizeThreeDimensionalStrainEvidenceValue({
+        ...summary,
+        activityGroup: ActivityTypeGroups.WaterSportsGroup
+      })
+    ).toBeNull();
     expect(
       normalizeThreeDimensionalStrainEvidenceValue({
         ...summary,
@@ -178,8 +206,46 @@ describe('activity three dimensional strain', () => {
 
     const regenerated = activity.getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type);
     expect(regenerated).not.toBe(originalEvidence);
-    expect(regenerated?.getValue().sourceFingerprint).toMatch(/^three-dimensional-strain-v1:[0-9a-f]{16}$/);
+    expect(regenerated?.getValue().sourceFingerprint).toMatch(/^three-dimensional-strain-v2:[0-9a-f]{16}$/);
     expect(activity.getStat(DataPowerCurve.type)).toBe(originalCurve);
+  });
+
+  it('uses the canonical activity type, rather than a source alias, in the v2 fingerprint', () => {
+    const canonical = createActivity();
+    const sourceAlias = createActivity();
+    sourceAlias.type = 'cycling' as ActivityTypes;
+
+    expect(calculateActivityThreeDimensionalStrainSourceFingerprint(sourceAlias)).toBe(
+      calculateActivityThreeDimensionalStrainSourceFingerprint(canonical)
+    );
+    expect(analyzeActivityThreeDimensionalStrain(sourceAlias).summary).toMatchObject({
+      activityType: ActivityTypes.Cycling,
+      activityGroup: ActivityTypeGroups.CyclingGroup
+    });
+  });
+
+  it('replaces readable v1 evidence with v2 on reparse', () => {
+    const activity = createActivity();
+    const current = analyzeActivityThreeDimensionalStrain(activity).summary!;
+    const { activityType: _activityType, activityGroup: _activityGroup, ...core } = current;
+    const legacy: ThreeDimensionalStrainEvidenceValueV1 = {
+      ...core,
+      protocolVersion: THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
+      sourceFingerprint: 'three-dimensional-strain-v1:0000000000000000',
+      discipline: 'cycling'
+    };
+    activity.addStat(new DataThreeDimensionalStrainEvidence(legacy));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(
+      activity.getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type)?.getValue()
+    ).toMatchObject({
+      protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+      activityType: ActivityTypes.Cycling,
+      activityGroup: ActivityTypeGroups.CyclingGroup,
+      sourceFingerprint: expect.stringMatching(/^three-dimensional-strain-v2:[0-9a-f]{16}$/)
+    });
   });
 
   it('does not promote compact evidence into event summary stats', () => {
@@ -194,10 +260,22 @@ describe('activity three dimensional strain', () => {
     ).toBe(false);
   });
 
-  it('does not add the stat to unsupported activity types even when power exists', () => {
-    const activity = new Activity(new Date(0), new Date(3_600_000), ActivityTypes.Swimming, new Creator('Test'));
-    activity.addStream(activity.createStream(DataPower.type).setData(Array(3_600).fill(200)));
-    activity.addStat(createPowerCurve());
+  it.each(canonicalActivityTypes)(
+    'evaluates canonical activity type %s when it has valid power input',
+    activityType => {
+      const summary = analyzeActivityThreeDimensionalStrain(createActivity(Array(120).fill(200), activityType)).summary;
+
+      expect(summary).toMatchObject({
+        protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+        activityType,
+        activityGroup: ActivityTypesHelper.getActivityGroupForActivityType(activityType),
+        eligibility: { eligible: true, reason: 'eligible' }
+      });
+    }
+  );
+
+  it('does not persist evidence for activity types with neither recorded power nor a power curve', () => {
+    const activity = new Activity(new Date(0), new Date(3_600_000), ActivityTypes.Rowing, new Creator('Test'));
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 

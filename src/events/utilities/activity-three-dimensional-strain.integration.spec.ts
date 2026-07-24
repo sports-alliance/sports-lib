@@ -10,7 +10,7 @@ import { DataPower } from '../../data/data.power';
 import { DataPowerCurve } from '../../data/data.power-curve';
 import {
   DataThreeDimensionalStrainEvidence,
-  type ThreeDimensionalStrainEvidenceValue
+  type ThreeDimensionalStrainEvidenceValueV2
 } from '../../data/data.three-dimensional-strain-evidence';
 import { DataWPrime } from '../../data/data.w-prime';
 import { ActivityUtilities } from './activity.utilities';
@@ -53,12 +53,13 @@ describe('activity three dimensional strain fixture integration', () => {
     return EventImporterSuuntoJSON.getFromJSONString(fs.readFileSync(path.join(suuntoSamplesDirectory, name), 'utf8'));
   }
 
-  function getEvidence(activity: Pick<ActivityInterface, 'getStat'>): ThreeDimensionalStrainEvidenceValue {
+  function getEvidence(activity: Pick<ActivityInterface, 'getStat'>): ThreeDimensionalStrainEvidenceValueV2 {
     const evidence = activity
-      .getStat<ThreeDimensionalStrainEvidenceValue>(DataThreeDimensionalStrainEvidence.type)
+      .getStat<ThreeDimensionalStrainEvidenceValueV2>(DataThreeDimensionalStrainEvidence.type)
       ?.getValue();
     expect(evidence).toBeDefined();
-    return evidence as ThreeDimensionalStrainEvidenceValue;
+    expect(evidence?.protocolVersion).toBe(2);
+    return evidence as ThreeDimensionalStrainEvidenceValueV2;
   }
 
   function expectPersistedEvidenceMatchesDirectCalculation(
@@ -95,7 +96,9 @@ describe('activity three dimensional strain fixture integration', () => {
 
     expect(activity.getStreamData(DataPower.type)).toHaveLength(3_823);
     expect(getEvidence(activity)).toMatchObject({
-      discipline: 'cycling',
+      protocolVersion: 2,
+      activityType: 'Cycling',
+      activityGroup: 'cycling_group',
       fit: {
         criticalPowerWatts: expect.closeTo(147.46469400213877, 6),
         wPrimeJoules: expect.closeTo(9_318.191991981243, 4),
@@ -111,14 +114,13 @@ describe('activity three dimensional strain fixture integration', () => {
     expectPersistedEvidenceMatchesDirectCalculation(activity);
   });
 
-  it('keeps missing and gapped FIT power unavailable without inventing load', async () => {
+  it('keeps gapped FIT power unavailable and omits activities with no power input', async () => {
     const gappedActivity = (await importFitFixture('road-with-power.fit')).getFirstActivity();
     const missingActivity = (await importFitFixture('garmin.fit')).getFirstActivity();
 
     expect(getEvidence(gappedActivity).eligibility).toEqual({ eligible: false, reason: 'insufficient-coverage' });
     expect(getEvidence(gappedActivity).evidence).toBeNull();
-    expect(getEvidence(missingActivity).eligibility).toEqual({ eligible: false, reason: 'missing-power' });
-    expect(getEvidence(missingActivity).evidence).toBeNull();
+    expect(missingActivity.getStat(DataThreeDimensionalStrainEvidence.type)).toBeUndefined();
   });
 
   it('supports real running-power Suunto activities, including zero-watt coasting samples', async () => {
@@ -129,7 +131,9 @@ describe('activity three dimensional strain fixture integration', () => {
 
     expect(continuousActivity.getStreamData(DataPower.type)).toHaveLength(4_900);
     expect(getEvidence(continuousActivity)).toMatchObject({
-      discipline: 'running',
+      protocolVersion: 2,
+      activityType: 'Running',
+      activityGroup: 'running_group',
       input: { validPowerSampleCount: 4_882, coverageRatio: expect.closeTo(0.9963265306122449, 10) },
       fit: {
         criticalPowerWatts: expect.closeTo(210.58046538565867, 6),
@@ -158,8 +162,10 @@ describe('activity three dimensional strain fixture integration', () => {
     for (const name of fixtureNames) {
       const activity = (await importFitPowerFixture(name)).getFirstActivity();
       const evidence = getEvidence(activity);
-      expect(evidence.sourceFingerprint).toMatch(/^three-dimensional-strain-v1:[0-9a-f]{16}$/);
-      expect(evidence.discipline).toBe('cycling');
+      expect(evidence.sourceFingerprint).toMatch(/^three-dimensional-strain-v2:[0-9a-f]{16}$/);
+      expect(evidence.protocolVersion).toBe(2);
+      expect(evidence.activityType).toBe('Cycling');
+      expect(evidence.activityGroup).toBe('cycling_group');
       expect(JSON.stringify(evidence)).not.toContain('timeline');
     }
   });

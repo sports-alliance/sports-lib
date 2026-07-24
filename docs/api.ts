@@ -132,13 +132,18 @@ export type {
   DurabilityOutputUnit,
   PoolDurabilityEvidence
 } from '../src/data/data.durability-evidence';
-export { THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION } from '../src/data/data.three-dimensional-strain-evidence';
+export {
+  THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
+  THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION
+} from '../src/data/data.three-dimensional-strain-evidence';
 export type {
   ThreeDimensionalStrainDiscipline,
   ThreeDimensionalStrainEligibility,
   ThreeDimensionalStrainEligibilityReason,
   ThreeDimensionalStrainEvidence,
   ThreeDimensionalStrainEvidenceValue,
+  ThreeDimensionalStrainEvidenceValueV1,
+  ThreeDimensionalStrainEvidenceValueV2,
   ThreeDimensionalStrainFitDiagnostics,
   ThreeDimensionalStrainInputDiagnostics
 } from '../src/data/data.three-dimensional-strain-evidence';

@@ -1,5 +1,6 @@
 import { DataStore } from './data.store';
 import { Data } from './data';
+import { ActivityTypeGroups, ActivityTypes } from '../activities/activity.types';
 import { DataDuration } from './data.duration';
 import { DataPower } from './data.power';
 import { DataPowerCurve } from './data.power-curve';
@@ -53,8 +54,9 @@ describe('Data Serialization Safety', () => {
       [
         {
           protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
-          sourceFingerprint: 'three-dimensional-strain-v1:0000000000000000',
-          discipline: 'cycling',
+          sourceFingerprint: 'three-dimensional-strain-v2:0000000000000000',
+          activityType: ActivityTypes.Cycling,
+          activityGroup: ActivityTypeGroups.CyclingGroup,
           eligibility: { eligible: false, reason: 'missing-power' },
           input: {
             powerSampleCount: 0,

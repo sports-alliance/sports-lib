@@ -1,7 +1,11 @@
 import { DataBare } from './data.bare';
 import { DataJSONInterface } from './data.json.interface';
+import { ActivityTypesHelper, type ActivityTypeGroup, type ActivityTypes } from '../activities/activity.types';
 
-export const THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION = 1 as const;
+/** The current persisted evidence protocol. */
+export const THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION = 2 as const;
+/** The original running/cycling-only persisted protocol, retained for reading historic activity JSON. */
+export const THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION = 1 as const;
 
 export const THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS = Object.freeze({
   minimumCurvePointCount: 8,
@@ -13,6 +17,7 @@ export const THREE_DIMENSIONAL_STRAIN_PROTOCOL_THRESHOLDS = Object.freeze({
   minimumPowerCoverageRatio: 0.95
 });
 
+/** @deprecated Protocol v1 only. Use the v2 activity type and group instead. */
 export type ThreeDimensionalStrainDiscipline = 'cycling' | 'running';
 
 export type ThreeDimensionalStrainEligibilityReason =
@@ -63,17 +68,34 @@ export interface ThreeDimensionalStrainEvidence {
   minimumWPrimeBalanceJoules: number;
 }
 
-/** Compact, activity-level 3D strain evidence. Source streams and timelines are never persisted. */
-export interface ThreeDimensionalStrainEvidenceValue {
-  protocolVersion: typeof THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION;
-  /** Deterministic digest of the activity inputs used by protocol v1. */
+interface ThreeDimensionalStrainEvidenceValueBase {
   sourceFingerprint: string;
-  discipline: ThreeDimensionalStrainDiscipline;
   eligibility: ThreeDimensionalStrainEligibility;
   input: ThreeDimensionalStrainInputDiagnostics;
   fit: ThreeDimensionalStrainFitDiagnostics | null;
   evidence: ThreeDimensionalStrainEvidence | null;
 }
+
+/** Historic v1 evidence, retained only so previously persisted activity JSON remains readable. */
+export interface ThreeDimensionalStrainEvidenceValueV1 extends ThreeDimensionalStrainEvidenceValueBase {
+  protocolVersion: typeof THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION;
+  discipline: ThreeDimensionalStrainDiscipline;
+}
+
+/**
+ * Compact, activity-level v2 evidence. The canonical activity type is the aggregation boundary:
+ * callers must not pool strain from distinct sports merely because they share an activity group.
+ */
+export interface ThreeDimensionalStrainEvidenceValueV2 extends ThreeDimensionalStrainEvidenceValueBase {
+  protocolVersion: typeof THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION;
+  activityType: ActivityTypes;
+  activityGroup: ActivityTypeGroup;
+}
+
+/** Compact, versioned activity evidence. Source streams and timelines are never persisted. */
+export type ThreeDimensionalStrainEvidenceValue =
+  | ThreeDimensionalStrainEvidenceValueV1
+  | ThreeDimensionalStrainEvidenceValueV2;
 
 /** A compact, versioned result of fitting and scoring an activity's recorded power. */
 export class DataThreeDimensionalStrainEvidence extends DataBare<ThreeDimensionalStrainEvidenceValue> {
@@ -103,7 +125,7 @@ export class DataThreeDimensionalStrainEvidence extends DataBare<ThreeDimensiona
   }
 }
 
-const DISCIPLINES = new Set<ThreeDimensionalStrainDiscipline>(['cycling', 'running']);
+const LEGACY_DISCIPLINES = new Set<ThreeDimensionalStrainDiscipline>(['cycling', 'running']);
 const ELIGIBILITY_REASONS = new Set<ThreeDimensionalStrainEligibilityReason>([
   'eligible',
   'missing-power',
@@ -115,35 +137,76 @@ const ELIGIBILITY_REASONS = new Set<ThreeDimensionalStrainEligibilityReason>([
   'power-exceeds-maximum'
 ]);
 
-/** Returns a canonical value and drops unknown fields, including any source streams or timeline. */
+/**
+ * Returns a canonical value and drops unknown fields, including any source streams or timeline.
+ * Both v1 and v2 records are accepted so historical activity JSON can be restored before reparse.
+ */
 export function normalizeThreeDimensionalStrainEvidenceValue(
   value: unknown
 ): ThreeDimensionalStrainEvidenceValue | null {
   const raw = asRecord(value);
-  if (!raw || raw.protocolVersion !== THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION) {
+  if (!raw) {
     return null;
   }
-  const discipline = DISCIPLINES.has(raw.discipline as ThreeDimensionalStrainDiscipline)
+  if (raw.protocolVersion === THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION) {
+    return normalizeLegacyEvidence(raw);
+  }
+  if (raw.protocolVersion === THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION) {
+    return normalizeCurrentEvidence(raw);
+  }
+  return null;
+}
+
+function normalizeLegacyEvidence(raw: Record<string, unknown>): ThreeDimensionalStrainEvidenceValueV1 | null {
+  const discipline = LEGACY_DISCIPLINES.has(raw.discipline as ThreeDimensionalStrainDiscipline)
     ? (raw.discipline as ThreeDimensionalStrainDiscipline)
     : null;
-  const sourceFingerprint = normalizeSourceFingerprint(raw.sourceFingerprint);
+  const core = normalizeEvidenceCore(raw, THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION);
+  if (!discipline || !core) {
+    return null;
+  }
+  const normalized: ThreeDimensionalStrainEvidenceValueV1 = {
+    protocolVersion: THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
+    discipline,
+    ...core
+  };
+  return isSemanticallyValid(normalized) ? normalized : null;
+}
+
+function normalizeCurrentEvidence(raw: Record<string, unknown>): ThreeDimensionalStrainEvidenceValueV2 | null {
+  const activityType = normalizeActivityType(raw.activityType);
+  const core = normalizeEvidenceCore(raw, THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION);
+  if (!activityType || !core) {
+    return null;
+  }
+  const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activityType);
+  if (raw.activityGroup !== activityGroup) {
+    return null;
+  }
+  const normalized: ThreeDimensionalStrainEvidenceValueV2 = {
+    protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
+    activityType,
+    activityGroup,
+    ...core
+  };
+  return isSemanticallyValid(normalized) ? normalized : null;
+}
+
+function normalizeEvidenceCore(
+  raw: Record<string, unknown>,
+  protocolVersion:
+    | typeof THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION
+    | typeof THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION
+): ThreeDimensionalStrainEvidenceValueBase | null {
+  const sourceFingerprint = normalizeSourceFingerprint(raw.sourceFingerprint, protocolVersion);
   const eligibility = normalizeEligibility(raw.eligibility);
   const input = normalizeInput(raw.input);
   const fit = raw.fit === null ? null : normalizeFit(raw.fit);
   const evidence = raw.evidence === null ? null : normalizeEvidence(raw.evidence);
-  if (!discipline || !sourceFingerprint || !eligibility || !input || fit === undefined || evidence === undefined) {
+  if (!sourceFingerprint || !eligibility || !input || fit === undefined || evidence === undefined) {
     return null;
   }
-  const normalized: ThreeDimensionalStrainEvidenceValue = {
-    protocolVersion: THREE_DIMENSIONAL_STRAIN_PROTOCOL_VERSION,
-    sourceFingerprint,
-    discipline,
-    eligibility,
-    input,
-    fit,
-    evidence
-  };
-  return isSemanticallyValid(normalized) ? normalized : null;
+  return { sourceFingerprint, eligibility, input, fit, evidence };
 }
 
 function assertThreeDimensionalStrainEvidenceValue(value: unknown): ThreeDimensionalStrainEvidenceValue {
@@ -152,6 +215,17 @@ function assertThreeDimensionalStrainEvidenceValue(value: unknown): ThreeDimensi
     throw new Error('Invalid three dimensional strain evidence value');
   }
   return normalized;
+}
+
+function normalizeActivityType(value: unknown): ActivityTypes | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  try {
+    return ActivityTypesHelper.resolveActivityType(value) || null;
+  } catch {
+    return null;
+  }
 }
 
 function normalizeEligibility(value: unknown): ThreeDimensionalStrainEligibility | null {
@@ -358,7 +432,9 @@ function nullableFinite(value: unknown): number | null | undefined {
   return value === null ? null : typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-function normalizeSourceFingerprint(value: unknown): string | null {
+function normalizeSourceFingerprint(value: unknown, protocolVersion: number): string | null {
   const fingerprint = typeof value === 'string' ? value.trim() : '';
-  return /^three-dimensional-strain-v1:[0-9a-f]{16}$/.test(fingerprint) ? fingerprint : null;
+  return new RegExp(`^three-dimensional-strain-v${protocolVersion}:[0-9a-f]{16}$`).test(fingerprint)
+    ? fingerprint
+    : null;
 }

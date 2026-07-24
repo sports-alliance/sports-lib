@@ -33,7 +33,7 @@ High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
-- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, three-dimensional strain evidence
+- Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, legacy three-dimensional strain evidence
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
@@ -101,7 +101,7 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Cadence minimum/average exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 
-5) Power analytics (NP, power curve, FTP, IF, CP/W')
+5) Power analytics (NP, power curve, FTP, IF, and capacity models)
 
 ```text
 NormalizedPower (NP):
@@ -112,12 +112,6 @@ NP = 4th_root(average(mean30s^4))
 PowerCurve(duration d): max rolling mean power over window d
 FTP = round(0.95 * best_20min_power)
 IF = NP / FTP
-
-Critical Power model (Monod-Scherrer on duration 180..1200s):
-  x = 1 / timeSeconds
-  y = power
-  slope = (n*sumXY - sumX*sumY) / (n*sumXX - sumX^2) = W'
-  intercept = (sumY - slope*sumX) / n = CP
 ```
 
 `samplePowerCurveAtDuration` samples exact points or interpolates in reciprocal-duration (`1/t`) space. Interpolation
@@ -125,23 +119,74 @@ requires neighboring durations within the default 1.25 ratio (configurable up to
 strongest duplicate, and never extrapolates. `comparePowerCurveWindows` reports recent/reference retention percentage
 and its percentage-point delta from 100 while normalizing each input curve only once.
 
+Parsing does not infer `CriticalPower` or `WPrime` from one activity. The deprecated
+`ActivityUtilities.calculateCriticalPowerAndWPrime` helper remains temporarily available as a low-level
+Monod-Scherrer calculation for callers who deliberately supply a maximal test curve; its output is not evidence that an
+arbitrary workout measured current athlete capacity. Existing `CriticalPower` and `WPrime` data classes and historical
+JSON remain readable.
+
 `Durability Evidence` is a compact, versioned activity stat. Running, cycling/MTB, and open-water evidence compares
 output/heart-rate efficiency across fixed early and late time halves after warm-up/cool-down exclusion. Pool evidence
 compares the outer thirds of like-for-like active lengths using the dominant stroke and pool length. Timelines and source
 streams are never stored in the stat; a deterministic protocol-input fingerprint invalidates stale evidence, and
 ineligible activities retain an explicit reason and coverage instead of zero values.
 
-`Three Dimensional Strain Evidence` is a compact, versioned activity stat generated from an activity's own recorded
-power and mean-max power curve. Every canonical activity type is evaluated when it has either input; an activity with
-neither a power stream nor a curve receives no stat. A score remains available only when both inputs satisfy the
-coverage, duration-range, and fit-quality gates. The current v2 record stores the canonical activity type and activity
-group alongside fitted CP/W′/Pmax parameters, fit quality, coverage, status, and total/CP/W′/Pmax strain components.
-Missing power, insufficient coverage, inadequate duration range, poor fits, and power above fitted Pmax retain an
-explicit reason rather than a zero score. Consumers must aggregate and calibrate one canonical activity type at a time:
-an activity group is display metadata, not evidence that rowing, skiing, cycling, or another sport shares one response.
-The stat does not replace `FTP`, `CriticalPower`, `WPrime`, or `Maximum Power`; it is excluded from event summaries and
-stores no source stream or timeline. Historic v1 running/cycling records remain readable and are regenerated as v2 on
-reparse.
+`Three Dimensional Strain Evidence` is a legacy, versioned activity stat retained only so historical native JSON remains
+readable. FIT, TCX, GPX, and provider parsing no longer generates or regenerates it: one workout cannot establish a
+current CP/W′/Pmax capacity model. Reprocessing an original source therefore retains its power evidence but produces no
+new strain stat. Historic v1 and v2 records remain readable and excluded from event summaries.
+
+### Rolling capacity estimation and scoring
+
+For the literature provenance, complete equations, estimator gates, external-algorithm comparison, validation boundary,
+and known limitations, read the
+[three-dimensional power and training-response model guide](three-dimensional-training-model.md).
+
+`buildPowerDurationEnvelope` accepts dated activity power curves and samples their maximum envelope at fixed
+short-duration and CP/W′ anchors. `fitThreeDimensionalCapacityModel` then applies evidence, fit-quality, and
+leave-one-anchor-out stability gates. The default contract requires at least three distinct activities spanning 14
+days, sufficient 2–20-minute evidence, and sufficient 1–30-second evidence. It returns a complete model only for
+`ready`; `partial` can expose credible CP/W′ while withholding Pmax and the complete model.
+
+Inputs must all belong to one exact canonical activity type. Activity groups are not a pooling boundary: `Cycling`,
+`Indoor Cycling`, `Running`, rowing types, and every other power-bearing type maintain independent histories. Every
+curve must also predate `effectiveDate`, so accidentally supplied future evidence returns `invalid-input` instead of
+changing an older capacity snapshot.
+
+The consuming application owns window selection and persistence. A practical policy is to fit each Monday from the
+previous 42 completed UTC days, use that snapshot for workouts until the next Monday, and retain the input dates,
+source IDs, estimator version, source fingerprint, result, and diagnostics. Do not use a later snapshot to rescore an
+earlier workout as though that capacity had been known at the time.
+
+```ts
+import {
+  calculateThreeDimensionalStrain,
+  fitThreeDimensionalCapacityModel,
+  type DatedActivityPowerCurve,
+  type ThreeDimensionalPowerSample
+} from '@sports-alliance/sports-lib';
+
+function scoreWorkout(
+  history: readonly DatedActivityPowerCurve[],
+  workoutPower: readonly ThreeDimensionalPowerSample[],
+  snapshotEffectiveDate: string
+) {
+  const capacity = fitThreeDimensionalCapacityModel(history, {
+    effectiveDate: snapshotEffectiveDate
+  });
+  if (capacity.status !== 'ready' || !capacity.model) {
+    return { capacity, strain: null };
+  }
+  return {
+    capacity,
+    strain: calculateThreeDimensionalStrain(workoutPower, capacity.model)
+  };
+}
+```
+
+An activity's strain must be calculated with the ready snapshot effective on that activity's date. Aggregate only
+ready workout results, keep the CP, W′, and Pmax components separate, and never substitute FTP, historic parser CP/W′,
+another activity type, or a future model when capacity is unavailable.
 
 Three-dimensional impulse-response utilities:
 
@@ -159,6 +204,9 @@ Three-dimensional impulse-response utilities:
 - `calculateThreeDimensionalImpulseResponse` applies independent exponential fitness-fatigue responses to the three
   strain series using caller-supplied parameters.
 ### Calibration theory and limits
+
+The [three-dimensional power and training-response model guide](three-dimensional-training-model.md) distinguishes the
+published response model, the authors' illustrative R fitter, and Sports Lib's chronological validation contract.
 
 `fitThreeDimensionalImpulseResponseParameters` calibrates three independent fitness-fatigue responses from
 pre-aggregated, date-keyed CP, W′, and Pmax strain loads. The three outputs represent distinct energy-system-specific
@@ -178,7 +226,7 @@ that the supplied data cannot be interpreted safely. It also withholds a model w
 time constants at the configured search boundary, or a nonpositive baseline or predicted daily performance. Defaults
 are data-sufficiency, numerical-bound, physical-plausibility, and validation safeguards—not population parameters.
 
-### Practical calibration recipe
+### Practical response-calibration recipe
 
 Aggregate the three strain components from eligible activities of one canonical activity type into one
 `ThreeDimensionalDailyStrainLoad` per calendar day. Include every date with an activity of that type; rest days may be
@@ -283,7 +331,7 @@ BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
   - Sums duration, pause, distance, ascent, descent, energy.
   - Aggregates zone durations by summation.
   - Averages many average-like stats using iterative pairwise averaging.
-  - Aggregates power curves by duration-wise maxima (power and W/kg), then recomputes CP/W'.
+  - Aggregates power curves by duration-wise maxima (power and W/kg) without inferring event-level CP/W′.
 
 Full Metric Catalog (Appendix)
 ---

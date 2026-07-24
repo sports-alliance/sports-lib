@@ -12,6 +12,7 @@ The hosted documentation contains the supported API and all consumer guidance:
 - [Configure parsing](https://sports-alliance.github.io/sports-lib/documents/Configure_parsing.html)
 - [Export and persist data](https://sports-alliance.github.io/sports-lib/documents/Export_and_persist_data.html)
 - [Metrics and calculations](https://sports-alliance.github.io/sports-lib/documents/Metrics_and_calculations.html)
+- [Three-dimensional power and training-response model](https://sports-alliance.github.io/sports-lib/documents/Three-dimensional_power_and_training-response_model.html)
 
 ## Install
 

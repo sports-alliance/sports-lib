@@ -12,6 +12,7 @@ const requiredPages = [
   'documents/Configure_parsing.html',
   'documents/Export_and_persist_data.html',
   'documents/Metrics_and_calculations.html',
+  'documents/Three-dimensional_power_and_training-response_model.html',
   'classes/API.SportsLib.html',
   'classes/API.ActivityParsingOptions.html',
   'classes/API.RouteParsingOptions.html',
@@ -42,6 +43,24 @@ for (const guidePage of guidePages) {
 const metricsGuide = await readFile(resolve(siteDirectory, 'documents/Metrics_and_calculations.html'), 'utf8');
 if (!metricsGuide.includes('Data Coverage &amp; Calculation Reference')) {
   throw new Error('The metrics guide does not include the data coverage reference.');
+}
+
+const threeDimensionalGuide = await readFile(
+  resolve(siteDirectory, 'documents/Three-dimensional_power_and_training-response_model.html'),
+  'utf8'
+);
+const requiredThreeDimensionalGuideMarkers = [
+  'What is published and what is ours',
+  'Sports Lib engineering design informed by CP literature',
+  'doi.org/10.1371/journal.pone.0341721',
+  'f8dc4c0158ce8b8ccb0907fb1ec22e7ce3a031dc',
+  'GoldenCheetah or Stryd compatibility',
+  '42-completed-day history'
+];
+for (const marker of requiredThreeDimensionalGuideMarkers) {
+  if (!threeDimensionalGuide.includes(marker)) {
+    throw new Error(`The three-dimensional model guide is missing required provenance marker: ${marker}`);
+  }
 }
 
 console.log(`Verified ${requiredPages.length} generated documentation pages.`);

@@ -118,26 +118,40 @@ For each source curve:
 
 1. Durations and power must be finite and strictly positive.
 2. When a duration is duplicated, the strongest power is retained.
-3. An exact anchor point is preferred.
-4. A missing anchor may be interpolated linearly in reciprocal-duration (`1/t`) space only when it is bracketed by
+3. A 1–3-second sequence is removed when its ratios match the arithmetic decay of one isolated recorded power sample
+   surrounded by zero power (`P1/P2 >= 1.8` and `P1/P3 >= 2.5`).
+4. An exact anchor point is preferred.
+5. A missing anchor may be interpolated linearly in reciprocal-duration (`1/t`) space only when it is bracketed by
    recorded points whose duration ratio is no greater than `1.25`.
-5. The estimator never extrapolates.
-6. At each anchor, the strongest sampled value across the supplied history becomes the envelope point. Its source ID
+6. The estimator never extrapolates.
+7. At each anchor, the strongest sampled value across the supplied history becomes the envelope point. Its source ID
    and date are retained.
 
 Malformed individual points are counted in `rejectedPointCount` and ignored when the same curve still contains usable
-positive finite evidence. A curve with no usable points makes the whole input invalid rather than silently disappearing
-from provenance.
+positive finite evidence. A curve with no usable points for any other reason makes the whole input invalid rather than
+silently disappearing from provenance. When the recognized isolated-sample signature is the entire curve, the result is
+valid `no-evidence` rather than `invalid-power-curve`. Valid short points removed by that safeguard are reported
+separately in `rejectedShortPowerSpikePointCount`.
+
+Newly calculated default power curves include the 720-second point required by the sustained anchor policy. Their
+calculation applies the same isolated-sample safeguard to a copy of the input values; it never mutates the activity's
+power stream. The curve-level ratio check remains necessary because callers may supply historical curves without the
+continuous source stream.
 
 `sourceCount` is the number of curves with at least one usable standard-duration anchor. It is not the number of
 activities that determined the fitted envelope. `criticalPowerContributingSourceCount` and
 `maximumPowerContributingSourceCount` count the distinct source IDs that actually won the retained CP/W′ and Pmax
 anchors. A history can therefore contain many usable curves while one exceptional test or race supplies most of a
-component's envelope. The contributor counts are evidence-concentration diagnostics, not additional readiness gates:
-mean-max envelopes are allowed to preserve genuine best efforts, and Sports Lib does not invent a universal minimum
-number of winning activities.
+component's envelope.
 
-The fixed estimator-version-1 anchors are:
+For every CP/W′ envelope contributor, version 2 also refits after removing that complete source. The fit and failure
+counts plus the maximum relative CP and W′ changes are returned as source-removal diagnostics. They expose dependence
+on one exceptional workout without confusing an anchor with an independent effort: several durations from one activity
+still count as one source. Contributor concentration and source-removal sensitivity are diagnostics, not readiness
+gates; callers can apply a stricter domain-specific policy without Sports Lib inventing a universal minimum number of
+winning activities.
+
+The fixed estimator-version-2 anchors are:
 
 | Purpose | Durations |
 | --- | --- |
@@ -169,7 +183,7 @@ median consensus is a Sports Lib robustness policy. It is not a named published 
 come from the same challenger.
 
 All three challengers must produce positive finite values, and CP must remain below the lowest power among the fitted
-anchors. The consensus then passes these version-1 gates:
+anchors. The consensus then passes these version-2 gates:
 
 | Gate | Maximum |
 | --- | --- |
@@ -179,9 +193,15 @@ anchors. The consensus then passes these version-1 gates:
 | Maximum leave-one-anchor-out CP deviation from the full consensus | 5% |
 | Maximum leave-one-anchor-out W′ deviation from the full consensus | 20% |
 
-The wider W′ limit acknowledges that W′ is substantially less stable than CP in published field and test-retest work.
-The exact percentages remain conservative engineering thresholds, not confidence intervals or published universal
-cutoffs.
+The normalized error gate applies to the shared CP/W′ relation. After it passes, CP and W′ stability are decided
+independently. A CP spread failure makes the result `unstable`. A W′-only spread failure makes the result `partial`:
+CP remains `ready`, W′ is `unstable`, Pmax is `insufficient-evidence` because it depends on W′, and the complete model
+remains absent.
+
+This separation matters because error-domain choice can materially change W′ while leaving the CP asymptote closely
+clustered. The wider W′ limit acknowledges that W′ is substantially less stable than CP in published field and
+test-retest work. The exact percentages remain conservative engineering thresholds, not confidence intervals or
+published universal cutoffs.
 
 ### Conditional Pmax fit
 
@@ -203,8 +223,9 @@ Pmax = CP + W′ / median(t0_i)
 The short-anchor fit must have power-domain normalized RMSE no greater than 5%, leave-one-anchor-out Pmax deviation no
 greater than 10%, and a fitted Pmax greater than both CP and the highest observed short-anchor power.
 
-When CP and W′ pass but Pmax does not, the result is `partial`. CP and W′ remain visible with their diagnostics, but
-`model` remains `null`; a partial result cannot score three-dimensional strain.
+When W′ is unstable, or when CP and W′ pass but Pmax does not, the result is `partial`. Every component retains its own
+status and only `ready` components expose values. `model` remains `null`; a partial result cannot score
+three-dimensional strain.
 
 Anchor counts and both component contributor counts are populated from the complete envelope before the fit-quality
 gates run. Consumers can therefore distinguish missing short-duration evidence from a CP/W′ fit that exited early.
@@ -214,7 +235,7 @@ gates run. Consumers can therefore distinguish missing short-duration evidence f
 | Status | Meaning |
 | --- | --- |
 | `ready` | CP, W′, and Pmax passed every gate; `model` is present |
-| `partial` | CP and W′ passed, but Pmax evidence, fit, or stability did not |
+| `partial` | At least CP passed, but W′ or Pmax is not usable; component statuses identify the boundary |
 | `insufficient-evidence` | History or duration coverage was inadequate |
 | `poor-fit` | The observed envelope did not adequately follow the model |
 | `unstable` | Challenger or leave-one-out sensitivity exceeded a limit |
@@ -239,7 +260,8 @@ The reason codes identify the failed boundary:
 | `insufficient-critical-power-range` | CP/W′ anchor count or early/long coverage is inadequate |
 | `insufficient-maximum-power-range` | Short-anchor count or early/later coverage is inadequate |
 | `poor-critical-power-fit` | CP/W′ fitting failed or consensus normalized RMSE exceeds 5% |
-| `unstable-critical-power-fit` | CP/W′ challenger or leave-one-out spread exceeds its limit |
+| `unstable-critical-power-fit` | CP challenger or leave-one-anchor-out spread exceeds its limit |
+| `unstable-w-prime-fit` | W′ challenger or leave-one-anchor-out spread exceeds its limit after CP passed |
 | `poor-maximum-power-fit` | Conditional Pmax fitting failed or normalized RMSE exceeds 5% |
 | `unstable-maximum-power-fit` | Pmax leave-one-out sensitivity or physical ordering is invalid |
 
@@ -308,7 +330,7 @@ experience. It should not be presented as independently published validation. Co
 timing options alongside calculated scores.
 
 These two options change MPA evaluation and strain scoring only. They do not change W′ recovery, the Morton prediction
-utility, or the version-1 rolling capacity estimator. Sports Lib does not currently fit the authors' modified
+utility, or the version-2 rolling capacity estimator. Sports Lib does not currently fit the authors' modified
 exponent-two power-duration relation.
 
 ### Power allocation

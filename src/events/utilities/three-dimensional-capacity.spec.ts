@@ -283,6 +283,146 @@ describe('three-dimensional capacity estimation', () => {
     expect(normalized.points).toEqual(clean.points);
   });
 
+  it('rejects a historical isolated-spike curve signature before building the short-duration envelope', () => {
+    const clean = createCurve('clean', '2026-01-01', 0.8);
+    const contaminatedBase = createCurve('contaminated', '2026-01-10', 0.7);
+    const contaminated = {
+      ...contaminatedBase,
+      powerCurve: contaminatedBase.powerCurve.map(point => {
+        const duration = Number(point.duration);
+        const isolatedSpikeAverages = new Map([
+          [1, 1318],
+          [2, 659],
+          [3, 1318 / 3]
+        ]);
+        return isolatedSpikeAverages.has(duration) ? { duration, power: isolatedSpikeAverages.get(duration)! } : point;
+      })
+    };
+
+    const filtered = buildPowerDurationEnvelope([clean, contaminated], {
+      effectiveDate: '2026-01-22'
+    });
+    const withoutContaminatedShortPoints = buildPowerDurationEnvelope(
+      [
+        clean,
+        {
+          ...contaminated,
+          powerCurve: contaminated.powerCurve.filter(point => Number(point.duration) > 3)
+        }
+      ],
+      { effectiveDate: '2026-01-22' }
+    );
+
+    expect(filtered.rejectedShortPowerSpikePointCount).toBe(3);
+    expect(filtered.rejectedPointCount).toBe(0);
+    expect(filtered.points.filter(point => point.durationSeconds <= 3).map(point => point.sourceId)).toEqual([
+      'clean',
+      'clean',
+      'clean'
+    ]);
+    expect(filtered.sourceFingerprint).toBe(withoutContaminatedShortPoints.sourceFingerprint);
+  });
+
+  it('returns valid no-evidence diagnostics when an isolated spike is the entire curve', () => {
+    const spikeOnly: DatedActivityPowerCurve = {
+      sourceId: 'spike-only',
+      date: '2026-01-10',
+      activityType: ActivityTypes.Cycling,
+      powerCurve: [
+        { duration: 1, power: 900 },
+        { duration: 2, power: 450 },
+        { duration: 3, power: 300 }
+      ]
+    };
+
+    const fit = fitThreeDimensionalCapacityModel([spikeOnly], {
+      effectiveDate: '2026-01-22'
+    });
+
+    expect(fit).toMatchObject({
+      status: 'insufficient-evidence',
+      reason: 'no-evidence',
+      sourceFingerprint: null,
+      envelope: {
+        sourceCount: 0,
+        rejectedPointCount: 0,
+        rejectedShortPowerSpikePointCount: 3,
+        sourceFingerprint: null,
+        points: []
+      },
+      diagnostics: {
+        sourceCount: 0,
+        criticalPowerSourceRemovalFitCount: 0,
+        criticalPowerSourceRemovalFailureCount: 0
+      }
+    });
+  });
+
+  it('keeps stable CP available when the same evidence cannot identify W′ reliably', () => {
+    const productionShape = [
+      [1, 732],
+      [2, 732],
+      [3, 732],
+      [5, 590],
+      [8, 579.875],
+      [12, 564.5],
+      [20, 542.55],
+      [30, 508.1],
+      [120, 305.625],
+      [180, 291.25],
+      [240, 279.85],
+      [300, 272.86],
+      [480, 250.16458333333333],
+      [900, 238.61222222222221],
+      [1200, 233.68916666666667]
+    ] as const;
+    const curve = (sourceId: string, date: string, scale: number): DatedActivityPowerCurve => ({
+      sourceId,
+      date,
+      activityType: ActivityTypes.Cycling,
+      powerCurve: productionShape.map(([duration, power]) => ({ duration, power: power * scale }))
+    });
+
+    const fit = fitThreeDimensionalCapacityModel(
+      [
+        curve('strong-envelope', '2026-06-29', 1),
+        curve('earlier-a', '2026-06-08', 0.9),
+        curve('earlier-b', '2026-06-15', 0.88)
+      ],
+      { effectiveDate: '2026-07-01' }
+    );
+
+    expect(fit).toMatchObject({
+      status: 'partial',
+      reason: 'unstable-w-prime-fit',
+      model: null,
+      criticalPower: {
+        status: 'ready',
+        reason: null,
+        value: expect.any(Number)
+      },
+      wPrime: {
+        status: 'unstable',
+        reason: 'unstable-w-prime-fit',
+        value: null
+      },
+      maximumPower: {
+        status: 'insufficient-evidence',
+        reason: 'unstable-w-prime-fit',
+        value: null
+      },
+      diagnostics: {
+        criticalPowerSourceRemovalFitCount: 1,
+        criticalPowerSourceRemovalFailureCount: 0,
+        criticalPowerSourceRemovalMaximumChangeRatio: expect.any(Number),
+        wPrimeSourceRemovalMaximumChangeRatio: expect.any(Number)
+      }
+    });
+    expect(fit.criticalPower.value).toBeCloseTo(224.132966, 5);
+    expect(fit.diagnostics.criticalPowerSpreadRatio).toBeLessThan(0.05);
+    expect(fit.diagnostics.wPrimeSpreadRatio).toBeGreaterThan(0.2);
+  });
+
   it('rejects flat and poorly identified histories instead of manufacturing a boundary model', () => {
     const history = ['2026-01-01', '2026-01-10', '2026-01-20'].map((date, index) => ({
       sourceId: `flat-${index}`,

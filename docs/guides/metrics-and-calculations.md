@@ -146,13 +146,19 @@ and known limitations, read the
 short-duration and CP/W′ anchors. `fitThreeDimensionalCapacityModel` then applies evidence, fit-quality, and
 leave-one-anchor-out stability gates. The default contract requires at least three distinct activities spanning 14
 days, sufficient 2–20-minute evidence, and sufficient 1–30-second evidence. It returns a complete model only for
-`ready`; `partial` can expose credible CP/W′ while withholding Pmax and the complete model.
+`ready`; `partial` can expose a stable CP while withholding unstable W′ and dependent Pmax, or expose stable CP/W′
+while withholding Pmax and the complete model.
 
 Diagnostics distinguish usable input curves (`sourceCount`) from the distinct activities that actually supplied the
 retained sustained and short-duration envelope points (`criticalPowerContributingSourceCount` and
 `maximumPowerContributingSourceCount`). These contributor counts reveal when a component is concentrated in one
-workout; they do not impose an additional readiness threshold. Anchor and contributor coverage is reported even when
-an earlier CP/W′ quality gate stops the fit.
+workout. Whole-source removal diagnostics also report how much CP and W′ change when each sustained-envelope
+contributor is removed. These values do not impose an additional readiness threshold. Anchor and contributor coverage
+is reported even when an earlier CP/W′ quality gate stops the fit.
+
+Estimator contract version 1 also rejects the characteristic 1–3-second arithmetic-decay signature of one isolated
+power sample and includes a 720-second point in newly generated default power curves. Rejected short points are
+reported separately from malformed points.
 
 Inputs must all belong to one exact canonical activity type. Activity groups are not a pooling boundary: `Cycling`,
 `Indoor Cycling`, `Running`, rowing types, and every other power-bearing type maintain independent histories. Every

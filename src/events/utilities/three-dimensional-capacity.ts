@@ -30,6 +30,8 @@ const MAXIMUM_NORMALIZED_RMSE = 0.05;
 const MAXIMUM_CRITICAL_POWER_SPREAD_RATIO = 0.05;
 const MAXIMUM_W_PRIME_SPREAD_RATIO = 0.2;
 const MAXIMUM_MAXIMUM_POWER_SPREAD_RATIO = 0.1;
+const ISOLATED_SPIKE_ONE_TO_TWO_SECOND_RATIO = 1.8;
+const ISOLATED_SPIKE_ONE_TO_THREE_SECOND_RATIO = 2.5;
 const MILLISECONDS_PER_DAY = 86_400_000;
 const NUMERICAL_EPSILON = 1e-12;
 
@@ -82,6 +84,7 @@ export type ThreeDimensionalCapacityReason =
   | 'insufficient-maximum-power-range'
   | 'poor-critical-power-fit'
   | 'unstable-critical-power-fit'
+  | 'unstable-w-prime-fit'
   | 'poor-maximum-power-fit'
   | 'unstable-maximum-power-fit';
 
@@ -97,6 +100,8 @@ export interface PowerDurationEnvelope {
   historyEndDate: string | null;
   historySpanDays: number;
   rejectedPointCount: number;
+  /** Valid 1–3 second points rejected because they match an isolated sample spike. */
+  rejectedShortPowerSpikePointCount: number;
   sourceFingerprint: string | null;
   points: readonly PowerDurationEnvelopePoint[];
 }
@@ -152,6 +157,12 @@ export interface ThreeDimensionalCapacityDiagnostics {
   wPrimeSpreadRatio: number | null;
   criticalPowerLeaveOneOutSpreadRatio: number | null;
   wPrimeLeaveOneOutSpreadRatio: number | null;
+  /** Successful whole-source CP/W′ refits after removing one envelope contributor. */
+  criticalPowerSourceRemovalFitCount: number;
+  /** Contributor removals that left no physically valid CP/W′ refit. */
+  criticalPowerSourceRemovalFailureCount: number;
+  criticalPowerSourceRemovalMaximumChangeRatio: number | null;
+  wPrimeSourceRemovalMaximumChangeRatio: number | null;
   maximumPowerNormalizedRmse: number | null;
   maximumPowerLeaveOneOutSpreadRatio: number | null;
 }
@@ -285,19 +296,25 @@ export function fitThreeDimensionalCapacityModel(
     return createUnavailableCapacity('poor-fit', 'poor-critical-power-fit', envelope, diagnostics);
   }
   applyCriticalPowerDiagnostics(diagnostics, criticalPowerFit);
+  applyCriticalPowerSourceRemovalDiagnostics(diagnostics, curves, options, criticalPowerPoints, criticalPowerFit);
   if (criticalPowerFit.normalizedRmse > MAXIMUM_NORMALIZED_RMSE) {
     return createUnavailableCapacity('poor-fit', 'poor-critical-power-fit', envelope, diagnostics);
   }
   if (
     criticalPowerFit.criticalPowerSpreadRatio > MAXIMUM_CRITICAL_POWER_SPREAD_RATIO ||
-    criticalPowerFit.wPrimeSpreadRatio > MAXIMUM_W_PRIME_SPREAD_RATIO ||
-    criticalPowerFit.criticalPowerLeaveOneOutSpreadRatio > MAXIMUM_CRITICAL_POWER_SPREAD_RATIO ||
-    criticalPowerFit.wPrimeLeaveOneOutSpreadRatio > MAXIMUM_W_PRIME_SPREAD_RATIO
+    criticalPowerFit.criticalPowerLeaveOneOutSpreadRatio > MAXIMUM_CRITICAL_POWER_SPREAD_RATIO
   ) {
     return createUnavailableCapacity('unstable', 'unstable-critical-power-fit', envelope, diagnostics);
   }
 
   const criticalPower = readyComponent(criticalPowerFit.criticalPowerWatts);
+  if (
+    criticalPowerFit.wPrimeSpreadRatio > MAXIMUM_W_PRIME_SPREAD_RATIO ||
+    criticalPowerFit.wPrimeLeaveOneOutSpreadRatio > MAXIMUM_W_PRIME_SPREAD_RATIO
+  ) {
+    return createPartialWPrimeCapacity(envelope, diagnostics, criticalPower);
+  }
+
   const wPrime = readyComponent(criticalPowerFit.wPrimeJoules);
   const hasEarliestMaximumPowerEvidence = maximumPowerPoints.some(point => point.durationSeconds <= 5);
   const hasLaterMaximumPowerEvidence = maximumPowerPoints.some(point => point.durationSeconds >= 15);
@@ -398,6 +415,7 @@ function buildPowerDurationEnvelopeInternal(
     const seenSourceIds = new Set<string>();
     const normalizedCurves: NormalizedCurve[] = [];
     let rejectedPointCount = 0;
+    let rejectedShortPowerSpikePointCount = 0;
     let hasInvalidSource = false;
     let hasDuplicateSource = false;
     let hasInvalidDate = false;
@@ -433,10 +451,20 @@ function buildPowerDurationEnvelopeInternal(
         }
         const normalizedPoints = normalizePowerCurve(curveInput.powerCurve);
         rejectedPointCount += normalizedPoints.rejectedPointCount;
-        if (!normalizedPoints.points.length) {
+        rejectedShortPowerSpikePointCount += normalizedPoints.rejectedShortPowerSpikePointCount;
+        const hasOnlyRejectedShortSpikePoints =
+          !normalizedPoints.points.length &&
+          normalizedPoints.rejectedPointCount === 0 &&
+          normalizedPoints.rejectedShortPowerSpikePointCount > 0;
+        if (!normalizedPoints.points.length && !hasOnlyRejectedShortSpikePoints) {
           hasInvalidPowerCurve = true;
         }
-        if (date && date < effectiveDate && activityType && normalizedPoints.points.length) {
+        if (
+          date &&
+          date < effectiveDate &&
+          activityType &&
+          (normalizedPoints.points.length || hasOnlyRejectedShortSpikePoints)
+        ) {
           normalizedCurves.push({ sourceId, activityType, date, points: normalizedPoints.points });
         }
       } catch {
@@ -474,7 +502,8 @@ function buildPowerDurationEnvelopeInternal(
         ...createEmptyEnvelope('insufficient-evidence', 'no-evidence'),
         effectiveDate,
         activityType,
-        rejectedPointCount
+        rejectedPointCount,
+        rejectedShortPowerSpikePointCount
       };
     }
     curves.sort(compareNormalizedCurves);
@@ -495,6 +524,7 @@ function buildPowerDurationEnvelopeInternal(
       historyEndDate,
       historySpanDays,
       rejectedPointCount,
+      rejectedShortPowerSpikePointCount,
       sourceFingerprint: fingerprint,
       points
     };
@@ -524,6 +554,7 @@ function createEmptyEnvelope(
     historyEndDate: null,
     historySpanDays: 0,
     rejectedPointCount: 0,
+    rejectedShortPowerSpikePointCount: 0,
     sourceFingerprint: null,
     points: []
   };
@@ -558,9 +589,10 @@ function normalizeActivityType(value: unknown): ActivityTypes | null {
 function normalizePowerCurve(pointsInput: readonly PowerCurveSampleLike[]): {
   points: readonly NormalizedCurvePoint[];
   rejectedPointCount: number;
+  rejectedShortPowerSpikePointCount: number;
 } {
   if (!Array.isArray(pointsInput)) {
-    return { points: [], rejectedPointCount: 1 };
+    return { points: [], rejectedPointCount: 1, rejectedShortPowerSpikePointCount: 0 };
   }
   const strongestByDuration = new Map<number, number>();
   let rejectedPointCount = 0;
@@ -573,12 +605,33 @@ function normalizePowerCurve(pointsInput: readonly PowerCurveSampleLike[]): {
     }
     strongestByDuration.set(durationSeconds, Math.max(strongestByDuration.get(durationSeconds) || 0, powerWatts));
   });
+  const normalizedPoints = [...strongestByDuration.entries()]
+    .map(([durationSeconds, powerWatts]) => ({ durationSeconds, powerWatts }))
+    .sort((left, right) => left.durationSeconds - right.durationSeconds);
+  const rejectedShortPowerSpikePointCount = hasIsolatedShortPowerSpikeSignature(normalizedPoints)
+    ? normalizedPoints.filter(point => point.durationSeconds <= 3).length
+    : 0;
   return {
     rejectedPointCount,
-    points: [...strongestByDuration.entries()]
-      .map(([durationSeconds, powerWatts]) => ({ durationSeconds, powerWatts }))
-      .sort((left, right) => left.durationSeconds - right.durationSeconds)
+    rejectedShortPowerSpikePointCount,
+    points: rejectedShortPowerSpikePointCount
+      ? normalizedPoints.filter(point => point.durationSeconds > 3)
+      : normalizedPoints
   };
+}
+
+function hasIsolatedShortPowerSpikeSignature(points: readonly NormalizedCurvePoint[]): boolean {
+  const powerByDuration = new Map(points.map(point => [point.durationSeconds, point.powerWatts]));
+  const oneSecondPower = powerByDuration.get(1);
+  const twoSecondPower = powerByDuration.get(2);
+  const threeSecondPower = powerByDuration.get(3);
+  return (
+    isFinitePositive(oneSecondPower) &&
+    isFinitePositive(twoSecondPower) &&
+    isFinitePositive(threeSecondPower) &&
+    oneSecondPower / twoSecondPower >= ISOLATED_SPIKE_ONE_TO_TWO_SECOND_RATIO &&
+    oneSecondPower / threeSecondPower >= ISOLATED_SPIKE_ONE_TO_THREE_SECOND_RATIO
+  );
 }
 
 function unwrapFiniteNumber(value: unknown, seen = new Set<object>()): number | null {
@@ -1042,6 +1095,10 @@ function createEmptyDiagnostics(envelope: PowerDurationEnvelope): ThreeDimension
     wPrimeSpreadRatio: null,
     criticalPowerLeaveOneOutSpreadRatio: null,
     wPrimeLeaveOneOutSpreadRatio: null,
+    criticalPowerSourceRemovalFitCount: 0,
+    criticalPowerSourceRemovalFailureCount: 0,
+    criticalPowerSourceRemovalMaximumChangeRatio: null,
+    wPrimeSourceRemovalMaximumChangeRatio: null,
     maximumPowerNormalizedRmse: null,
     maximumPowerLeaveOneOutSpreadRatio: null
   };
@@ -1061,6 +1118,47 @@ function applyCriticalPowerDiagnostics(
   diagnostics.wPrimeSpreadRatio = fit.wPrimeSpreadRatio;
   diagnostics.criticalPowerLeaveOneOutSpreadRatio = fit.criticalPowerLeaveOneOutSpreadRatio;
   diagnostics.wPrimeLeaveOneOutSpreadRatio = fit.wPrimeLeaveOneOutSpreadRatio;
+}
+
+function applyCriticalPowerSourceRemovalDiagnostics(
+  diagnostics: ThreeDimensionalCapacityDiagnostics,
+  curves: readonly DatedActivityPowerCurve[],
+  options: FitThreeDimensionalCapacityOptions,
+  points: readonly PowerDurationEnvelopePoint[],
+  fit: CriticalPowerCoreFit
+): void {
+  const contributingSourceIds = [...new Set(points.map(point => point.sourceId))].sort();
+  const criticalPowerChanges: number[] = [];
+  const wPrimeChanges: number[] = [];
+  contributingSourceIds.forEach(sourceId => {
+    const reducedEnvelope = buildPowerDurationEnvelopeInternal(
+      curves.filter(curve => normalizeSourceId(curve.sourceId) !== sourceId),
+      options
+    );
+    if (reducedEnvelope.status !== 'ready') {
+      diagnostics.criticalPowerSourceRemovalFailureCount += 1;
+      return;
+    }
+    const reducedPoints = reducedEnvelope.points.filter(point =>
+      THREE_DIMENSIONAL_CAPACITY_CRITICAL_POWER_ANCHORS_SECONDS.includes(
+        point.durationSeconds as (typeof THREE_DIMENSIONAL_CAPACITY_CRITICAL_POWER_ANCHORS_SECONDS)[number]
+      )
+    );
+    const reducedFit = fitCriticalPowerCore(reducedPoints);
+    if (!reducedFit) {
+      diagnostics.criticalPowerSourceRemovalFailureCount += 1;
+      return;
+    }
+    diagnostics.criticalPowerSourceRemovalFitCount += 1;
+    criticalPowerChanges.push(
+      Math.abs(reducedFit.criticalPowerWatts - fit.criticalPowerWatts) / fit.criticalPowerWatts
+    );
+    wPrimeChanges.push(Math.abs(reducedFit.wPrimeJoules - fit.wPrimeJoules) / fit.wPrimeJoules);
+  });
+  diagnostics.criticalPowerSourceRemovalMaximumChangeRatio = criticalPowerChanges.length
+    ? Math.max(...criticalPowerChanges)
+    : null;
+  diagnostics.wPrimeSourceRemovalMaximumChangeRatio = wPrimeChanges.length ? Math.max(...wPrimeChanges) : null;
 }
 
 function readyComponent(value: number): ThreeDimensionalCapacityComponent {
@@ -1099,6 +1197,28 @@ function createUnavailableCapacity(
     criticalPower: component,
     wPrime: { ...component },
     maximumPower: { ...component },
+    model: null,
+    envelope,
+    diagnostics
+  };
+}
+
+function createPartialWPrimeCapacity(
+  envelope: PowerDurationEnvelope,
+  diagnostics: ThreeDimensionalCapacityDiagnostics,
+  criticalPower: ThreeDimensionalCapacityComponent
+): ThreeDimensionalCapacityFit {
+  const reason = 'unstable-w-prime-fit';
+  return {
+    status: 'partial',
+    reason,
+    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
+    effectiveDate: envelope.effectiveDate,
+    activityType: envelope.activityType,
+    sourceFingerprint: envelope.sourceFingerprint,
+    criticalPower,
+    wPrime: unavailableComponent('unstable', reason),
+    maximumPower: unavailableComponent('insufficient-evidence', reason),
     model: null,
     envelope,
     diagnostics

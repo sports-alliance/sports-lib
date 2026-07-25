@@ -2084,12 +2084,27 @@ export class ActivityUtilities {
         60, 75, 90, 120, 150, 180, 210, 240,
         // VO2 Max (5m - 10m)
         300, 360, 420, 480, 540, 600,
-        // Threshold & Endurance (15m - 5h)
-        900, 1200, 1500, 1800, 2400, 3600, 5400, 7200, 10800, 14400, 18000
+        // Threshold & Endurance (12m - 5h)
+        720, 900, 1200, 1500, 1800, 2400, 3600, 5400, 7200, 10800, 14400, 18000
       ];
     }
 
-    const powerData = activity.getStreamData(DataPower.type);
+    const rawPowerData = activity.getStreamData(DataPower.type);
+    const finitePowerData = rawPowerData.map(value =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
+    );
+    // A single positive sample bounded by zero-power samples is a common
+    // recording artifact. Exclude it from the derived curve while preserving
+    // the caller-owned activity stream unchanged.
+    const powerData = finitePowerData.map((value, index) =>
+      value > 0 &&
+      index > 0 &&
+      index < finitePowerData.length - 1 &&
+      finitePowerData[index - 1] === 0 &&
+      finitePowerData[index + 1] === 0
+        ? 0
+        : value
+    );
     const curvePoints: DataPowerCurvePoint[] = [];
 
     // Get user weight for W/kg calculation
@@ -2107,18 +2122,15 @@ export class ActivityUtilities {
       let maxAvgPower = 0;
       let currentSum = 0;
 
-      // Helper to treat null as 0
-      const getValue = (val: number | null) => (typeof val === 'number' ? val : 0);
-
       // Initial window
       for (let i = 0; i < duration; i++) {
-        currentSum += getValue(powerData[i]);
+        currentSum += powerData[i];
       }
       maxAvgPower = currentSum / duration;
 
       // Slide window
       for (let i = duration; i < powerData.length; i++) {
-        currentSum = currentSum - getValue(powerData[i - duration]) + getValue(powerData[i]);
+        currentSum = currentSum - powerData[i - duration] + powerData[i];
         const currentAvg = currentSum / duration;
         if (currentAvg > maxAvgPower) {
           maxAvgPower = currentAvg;

@@ -71,18 +71,23 @@ describe('power-capacity parsing boundary', () => {
     }
 
     expect(fitThreeDimensionalCapacityModel(history, { effectiveDate: '2026-02-09' })).toMatchObject({
-      status: 'unstable',
-      reason: 'unstable-critical-power-fit',
+      status: 'partial',
+      reason: 'unstable-w-prime-fit',
       model: null,
       activityType: ActivityTypes.Cycling,
+      criticalPower: { status: 'ready', value: expect.any(Number) },
+      wPrime: { status: 'unstable', value: null },
+      maximumPower: { status: 'insufficient-evidence', value: null },
       diagnostics: {
         sourceCount: 9,
         historySpanDays: 92,
-        criticalPowerAnchorCount: 7,
+        criticalPowerAnchorCount: 8,
         criticalPowerContributingSourceCount: 2,
         maximumPowerAnchorCount: 8,
-        maximumPowerContributingSourceCount: 3,
-        criticalPowerNormalizedRmse: expect.any(Number)
+        maximumPowerContributingSourceCount: 2,
+        criticalPowerNormalizedRmse: expect.any(Number),
+        criticalPowerSourceRemovalFitCount: expect.any(Number),
+        criticalPowerSourceRemovalFailureCount: expect.any(Number)
       }
     });
 
@@ -106,10 +111,10 @@ describe('power-capacity parsing boundary', () => {
       diagnostics: {
         sourceCount: 7,
         historySpanDays: 35,
-        criticalPowerAnchorCount: 7,
+        criticalPowerAnchorCount: 8,
         criticalPowerContributingSourceCount: 2,
         maximumPowerAnchorCount: 8,
-        maximumPowerContributingSourceCount: 3,
+        maximumPowerContributingSourceCount: 2,
         maximumPowerNormalizedRmse: expect.any(Number)
       }
     });

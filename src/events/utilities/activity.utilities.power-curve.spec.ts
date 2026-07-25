@@ -118,8 +118,8 @@ describe('ActivityUtilities Power Curve', () => {
     const powerCurve = ActivityUtilities.calculateMeanMaxPower(longActivity);
     const points = powerCurve.getValue();
 
-    // Expect 45 default points as per the "Best-in-Class" set
-    expect(points.length).toBe(45);
+    // Expect 46 default points as per the "Best-in-Class" set
+    expect(points.length).toBe(46);
 
     // Check a few key durations
     const durations = points.map(p => p.duration.getValue());
@@ -127,9 +127,21 @@ describe('ActivityUtilities Power Curve', () => {
     expect(durations).toContain(10); // 10s
     expect(durations).toContain(60); // 1m
     expect(durations).toContain(300); // 5m
+    expect(durations).toContain(720); // 12m
     expect(durations).toContain(1200); // 20m
     expect(durations).toContain(3600); // 1h
     expect(durations).toContain(18000); // 5h
+  });
+
+  it('rejects an isolated one-sample power spike without mutating the activity stream', () => {
+    const powerValues = [0, 1000, 0, 400, 400, 0];
+    activity = createActivity(powerValues);
+
+    const curve = ActivityUtilities.calculateMeanMaxPower(activity, [1, 2, 3]);
+    const points = curve.getValue();
+
+    expect(points.map(point => point.power.getValue())).toEqual([400, 400, 800 / 3]);
+    expect(activity.getStreamData(DataPower.type)).toEqual(powerValues);
   });
 
   it('should calculate W/kg if DataWeight is present', () => {

@@ -17,6 +17,6 @@ Publishing is handled by `.github/workflows/publish.yml`.
 
 1. Update `package.json` and `package-lock.json` to the intended semantic version in the same pull request.
 2. Merge that change into `main`.
-3. CI runs tests, documentation validation, and a package-content check, then publishes the new version to npm and creates the matching `v<version>` tag.
+3. The `Test` workflow runs tests and documentation validation. Only after it succeeds does the separate publish workflow verify package contents, publish the exact tested commit to npm, and create the matching `v<version>` tag.
 
-The workflow rejects mismatched manifest versions and refuses to republish a version from a branch push. A manually pushed `v<version>` tag is also supported for recovery or for publishing a version that was bumped before the workflow was introduced.
+The workflow rejects mismatched manifest versions and refuses to republish an existing npm version. Publishing never begins until `Test` has passed.

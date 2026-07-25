@@ -33,3 +33,14 @@ When adding, removing, renaming, or changing the signature or behavior of a supp
 - Update the affected guide in `docs/guides/` and the landing page in `docs/README.md` when consumer usage, inputs, outputs, or semantics change. Update the root `README.md` when its quick start or documentation links are affected.
 - Keep `typedoc.json`, `tsconfig.docs.json`, and package exports compatible, and never commit generated `site/` output.
 - Validate with `npm run docs:build`, plus the relevant build and tests for TypeScript API changes.
+
+## Quantified Self MCP consumer
+
+Quantified Self builds its MCP numeric event-metric catalog from the public `DataStore`, canonicalizes aliases through
+`DynamicDataLoader`, and exposes only canonical numeric stats actually persisted in a user's event documents. Sports Lib
+owns metric classes, canonical tokens, units, validators, parsing, and JSON behavior. Quantified Self owns user-specific
+availability, sensitive-field exclusions, OAuth scopes, query limits, privacy projection, and transport.
+
+A Sports Lib change must not assume that exporting a class alone is sufficient. Follow the metric-extension skill to
+verify public enumeration, canonical loading, numeric behavior, persistence, reparse implications, and the downstream
+Quantified Self contract.

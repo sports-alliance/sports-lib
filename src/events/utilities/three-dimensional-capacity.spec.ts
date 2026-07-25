@@ -95,6 +95,59 @@ describe('three-dimensional capacity estimation', () => {
     expect(fit.wPrime.status).toBe('ready');
     expect(fit.maximumPower.status).toBe('ready');
     expect(fit.diagnostics.criticalPowerCandidates).toHaveLength(3);
+    expect(fit.diagnostics).toMatchObject({
+      sourceCount: 3,
+      criticalPowerAnchorCount: 8,
+      criticalPowerContributingSourceCount: 1,
+      maximumPowerAnchorCount: 8,
+      maximumPowerContributingSourceCount: 1
+    });
+  });
+
+  it('reports distinct activity contributors for the sustained and short-duration envelopes', () => {
+    const history = [
+      createCurve('baseline', '2026-01-01', 0.9),
+      {
+        ...createCurve('early-sustained', '2026-01-08', 0.9),
+        powerCurve: ALL_DURATIONS.map(duration => ({
+          duration,
+          power:
+            predictThreeParameterCriticalPower(KNOWN_MODEL, duration)! *
+            (duration >= 120 && duration <= 300 ? 1.02 : 0.9)
+        }))
+      },
+      {
+        ...createCurve('long-sustained', '2026-01-15', 0.9),
+        powerCurve: ALL_DURATIONS.map(duration => ({
+          duration,
+          power: predictThreeParameterCriticalPower(KNOWN_MODEL, duration)! * (duration >= 480 ? 1.02 : 0.9)
+        }))
+      },
+      {
+        ...createCurve('short', '2026-01-20', 0.9),
+        powerCurve: ALL_DURATIONS.map(duration => ({
+          duration,
+          power: predictThreeParameterCriticalPower(KNOWN_MODEL, duration)! * (duration <= 30 ? 1.02 : 0.9)
+        }))
+      }
+    ];
+
+    const fit = fitThreeDimensionalCapacityModel(history, { effectiveDate: '2026-01-22' });
+
+    expect(fit.diagnostics).toMatchObject({
+      sourceCount: 4,
+      criticalPowerAnchorCount: 8,
+      criticalPowerContributingSourceCount: 2,
+      maximumPowerAnchorCount: 8,
+      maximumPowerContributingSourceCount: 1
+    });
+    expect(fit.envelope.points.filter(point => point.durationSeconds >= 120).map(point => point.sourceId)).toEqual([
+      ...Array(4).fill('early-sustained'),
+      ...Array(4).fill('long-sustained')
+    ]);
+    expect(fit.envelope.points.filter(point => point.durationSeconds <= 30).map(point => point.sourceId)).toEqual(
+      Array(8).fill('short')
+    );
   });
 
   it('returns partial CP/W′ evidence when short-duration Pmax evidence is absent', () => {
@@ -240,7 +293,13 @@ describe('three-dimensional capacity estimation', () => {
 
     expect(fitThreeDimensionalCapacityModel(history, { effectiveDate: '2026-01-22' })).toMatchObject({
       status: expect.stringMatching(/poor-fit|unstable/),
-      model: null
+      model: null,
+      diagnostics: {
+        criticalPowerAnchorCount: 8,
+        criticalPowerContributingSourceCount: 1,
+        maximumPowerAnchorCount: 8,
+        maximumPowerContributingSourceCount: 1
+      }
     });
   });
 

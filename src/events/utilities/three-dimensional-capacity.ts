@@ -135,12 +135,17 @@ export interface CriticalPowerFitCandidate {
 
 /** Diagnostics retained so consumers can audit every readiness gate. */
 export interface ThreeDimensionalCapacityDiagnostics {
+  /** Curves with at least one usable standard-duration anchor. */
   sourceCount: number;
   historySpanDays: number;
   criticalPowerAnchorCount: number;
   earlyCriticalPowerAnchorCount: number;
   longCriticalPowerAnchorCount: number;
+  /** Distinct activities that supplied the retained CP/W′ envelope anchors. */
+  criticalPowerContributingSourceCount: number;
   maximumPowerAnchorCount: number;
+  /** Distinct activities that supplied the retained Pmax envelope anchors. */
+  maximumPowerContributingSourceCount: number;
   criticalPowerCandidates: readonly CriticalPowerFitCandidate[];
   criticalPowerNormalizedRmse: number | null;
   criticalPowerSpreadRatio: number | null;
@@ -235,9 +240,6 @@ export function fitThreeDimensionalCapacityModel(
   if (envelope.status === 'insufficient-evidence') {
     return createUnavailableCapacity('insufficient-evidence', envelope.reason, envelope, diagnostics);
   }
-  if (envelope.sourceCount < MINIMUM_SOURCE_COUNT || envelope.historySpanDays < MINIMUM_HISTORY_SPAN_DAYS) {
-    return createUnavailableCapacity('insufficient-evidence', 'insufficient-history', envelope, diagnostics);
-  }
 
   const criticalPowerPoints = envelope.points.filter(point =>
     THREE_DIMENSIONAL_CAPACITY_CRITICAL_POWER_ANCHORS_SECONDS.includes(
@@ -253,6 +255,18 @@ export function fitThreeDimensionalCapacityModel(
   diagnostics.criticalPowerAnchorCount = criticalPowerPoints.length;
   diagnostics.earlyCriticalPowerAnchorCount = earlyCriticalPowerAnchorCount;
   diagnostics.longCriticalPowerAnchorCount = longCriticalPowerAnchorCount;
+  diagnostics.criticalPowerContributingSourceCount = countDistinctEnvelopeSources(criticalPowerPoints);
+  const maximumPowerPoints = envelope.points.filter(point =>
+    THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS.includes(
+      point.durationSeconds as (typeof THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS)[number]
+    )
+  );
+  diagnostics.maximumPowerAnchorCount = maximumPowerPoints.length;
+  diagnostics.maximumPowerContributingSourceCount = countDistinctEnvelopeSources(maximumPowerPoints);
+
+  if (envelope.sourceCount < MINIMUM_SOURCE_COUNT || envelope.historySpanDays < MINIMUM_HISTORY_SPAN_DAYS) {
+    return createUnavailableCapacity('insufficient-evidence', 'insufficient-history', envelope, diagnostics);
+  }
   if (
     criticalPowerPoints.length < MINIMUM_CRITICAL_POWER_ANCHOR_COUNT ||
     earlyCriticalPowerAnchorCount < MINIMUM_CRITICAL_POWER_EARLY_ANCHOR_COUNT ||
@@ -285,12 +299,6 @@ export function fitThreeDimensionalCapacityModel(
 
   const criticalPower = readyComponent(criticalPowerFit.criticalPowerWatts);
   const wPrime = readyComponent(criticalPowerFit.wPrimeJoules);
-  const maximumPowerPoints = envelope.points.filter(point =>
-    THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS.includes(
-      point.durationSeconds as (typeof THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS)[number]
-    )
-  );
-  diagnostics.maximumPowerAnchorCount = maximumPowerPoints.length;
   const hasEarliestMaximumPowerEvidence = maximumPowerPoints.some(point => point.durationSeconds <= 5);
   const hasLaterMaximumPowerEvidence = maximumPowerPoints.some(point => point.durationSeconds >= 15);
   if (
@@ -1025,7 +1033,9 @@ function createEmptyDiagnostics(envelope: PowerDurationEnvelope): ThreeDimension
     criticalPowerAnchorCount: 0,
     earlyCriticalPowerAnchorCount: 0,
     longCriticalPowerAnchorCount: 0,
+    criticalPowerContributingSourceCount: 0,
     maximumPowerAnchorCount: 0,
+    maximumPowerContributingSourceCount: 0,
     criticalPowerCandidates: [],
     criticalPowerNormalizedRmse: null,
     criticalPowerSpreadRatio: null,
@@ -1035,6 +1045,10 @@ function createEmptyDiagnostics(envelope: PowerDurationEnvelope): ThreeDimension
     maximumPowerNormalizedRmse: null,
     maximumPowerLeaveOneOutSpreadRatio: null
   };
+}
+
+function countDistinctEnvelopeSources(points: readonly PowerDurationEnvelopePoint[]): number {
+  return new Set(points.map(point => point.sourceId)).size;
 }
 
 function applyCriticalPowerDiagnostics(

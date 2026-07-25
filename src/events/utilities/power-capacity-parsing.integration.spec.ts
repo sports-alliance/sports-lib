@@ -79,6 +79,9 @@ describe('power-capacity parsing boundary', () => {
         sourceCount: 9,
         historySpanDays: 92,
         criticalPowerAnchorCount: 7,
+        criticalPowerContributingSourceCount: 2,
+        maximumPowerAnchorCount: 8,
+        maximumPowerContributingSourceCount: 3,
         criticalPowerNormalizedRmse: expect.any(Number)
       }
     });
@@ -104,7 +107,9 @@ describe('power-capacity parsing boundary', () => {
         sourceCount: 7,
         historySpanDays: 35,
         criticalPowerAnchorCount: 7,
+        criticalPowerContributingSourceCount: 2,
         maximumPowerAnchorCount: 8,
+        maximumPowerContributingSourceCount: 3,
         maximumPowerNormalizedRmse: expect.any(Number)
       }
     });

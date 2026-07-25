@@ -148,6 +148,12 @@ leave-one-anchor-out stability gates. The default contract requires at least thr
 days, sufficient 2–20-minute evidence, and sufficient 1–30-second evidence. It returns a complete model only for
 `ready`; `partial` can expose credible CP/W′ while withholding Pmax and the complete model.
 
+Diagnostics distinguish usable input curves (`sourceCount`) from the distinct activities that actually supplied the
+retained sustained and short-duration envelope points (`criticalPowerContributingSourceCount` and
+`maximumPowerContributingSourceCount`). These contributor counts reveal when a component is concentrated in one
+workout; they do not impose an additional readiness threshold. Anchor and contributor coverage is reported even when
+an earlier CP/W′ quality gate stops the fit.
+
 Inputs must all belong to one exact canonical activity type. Activity groups are not a pooling boundary: `Cycling`,
 `Indoor Cycling`, `Running`, rowing types, and every other power-bearing type maintain independent histories. Every
 curve must also predate `effectiveDate`, so accidentally supplied future evidence returns `invalid-input` instead of

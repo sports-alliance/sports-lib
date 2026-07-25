@@ -129,6 +129,14 @@ Malformed individual points are counted in `rejectedPointCount` and ignored when
 positive finite evidence. A curve with no usable points makes the whole input invalid rather than silently disappearing
 from provenance.
 
+`sourceCount` is the number of curves with at least one usable standard-duration anchor. It is not the number of
+activities that determined the fitted envelope. `criticalPowerContributingSourceCount` and
+`maximumPowerContributingSourceCount` count the distinct source IDs that actually won the retained CP/W′ and Pmax
+anchors. A history can therefore contain many usable curves while one exceptional test or race supplies most of a
+component's envelope. The contributor counts are evidence-concentration diagnostics, not additional readiness gates:
+mean-max envelopes are allowed to preserve genuine best efforts, and Sports Lib does not invent a universal minimum
+number of winning activities.
+
 The fixed estimator-version-1 anchors are:
 
 | Purpose | Durations |
@@ -142,8 +150,8 @@ durations.
 
 ### CP and W′ challenger fits
 
-The estimator requires at least three contributing activities spanning at least 14 calendar days. It then requires at
-least five CP/W′ anchors, including:
+The estimator requires at least three usable source curves spanning at least 14 calendar days. Those curves need not
+all win an envelope anchor. It then requires at least five CP/W′ anchors, including:
 
 - at least two anchors from 120–300 seconds; and
 - at least two anchors from 720–1,200 seconds.
@@ -197,6 +205,9 @@ greater than 10%, and a fitted Pmax greater than both CP and the highest observe
 
 When CP and W′ pass but Pmax does not, the result is `partial`. CP and W′ remain visible with their diagnostics, but
 `model` remains `null`; a partial result cannot score three-dimensional strain.
+
+Anchor counts and both component contributor counts are populated from the complete envelope before the fit-quality
+gates run. Consumers can therefore distinguish missing short-duration evidence from a CP/W′ fit that exited early.
 
 ### Result meanings
 

@@ -2,9 +2,6 @@ import { ActivityTypesHelper, type ActivityTypes } from '../../activities/activi
 import type { PowerCurveSampleLike } from './power-curve-sampling';
 import type { ThreeParameterCriticalPowerModel } from './three-dimensional-impulse-response';
 
-/** Version of the dated power-duration capacity estimation contract. */
-export const THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION = 1 as const;
-
 /** Standard durations used to identify short-duration maximum-power evidence. */
 export const THREE_DIMENSIONAL_CAPACITY_MAXIMUM_POWER_ANCHORS_SECONDS = Object.freeze([
   1, 2, 3, 5, 8, 12, 20, 30
@@ -92,7 +89,6 @@ export type ThreeDimensionalCapacityReason =
 export interface PowerDurationEnvelope {
   status: PowerDurationEnvelopeStatus;
   reason: ThreeDimensionalCapacityReason | null;
-  estimatorVersion: typeof THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION;
   effectiveDate: string | null;
   activityType: ActivityTypes | null;
   sourceCount: number;
@@ -171,7 +167,6 @@ export interface ThreeDimensionalCapacityDiagnostics {
 export interface ThreeDimensionalCapacityFit {
   status: ThreeDimensionalCapacityStatus;
   reason: ThreeDimensionalCapacityReason | null;
-  estimatorVersion: typeof THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION;
   effectiveDate: string | null;
   activityType: ActivityTypes | null;
   sourceFingerprint: string | null;
@@ -377,7 +372,6 @@ export function fitThreeDimensionalCapacityModel(
   return {
     status: 'ready',
     reason: null,
-    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
     effectiveDate: envelope.effectiveDate,
     activityType: envelope.activityType,
     sourceFingerprint: envelope.sourceFingerprint,
@@ -516,7 +510,6 @@ function buildPowerDurationEnvelopeInternal(
     return {
       status: points.length ? 'ready' : 'insufficient-evidence',
       reason: points.length ? null : 'no-evidence',
-      estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
       effectiveDate,
       activityType,
       sourceCount: curves.length,
@@ -546,7 +539,6 @@ function createEmptyEnvelope(
   return {
     status,
     reason,
-    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
     effectiveDate: null,
     activityType: null,
     sourceCount: 0,
@@ -1033,7 +1025,6 @@ function calculateCapacityFingerprint(
   activityType: ActivityTypes
 ): string {
   const hash = new CapacityFingerprint();
-  hash.add('version', THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION);
   hash.add('effective-date', effectiveDate);
   hash.add('activity-type', activityType);
   curves.forEach(curve => {
@@ -1060,9 +1051,7 @@ class CapacityFingerprint {
   }
 
   digest(): string {
-    return `three-dimensional-capacity-v${THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION}:${toHex(
-      this.first
-    )}${toHex(this.second)}`;
+    return `three-dimensional-capacity:${toHex(this.first)}${toHex(this.second)}`;
   }
 
   private update(value: string): void {
@@ -1190,7 +1179,6 @@ function createUnavailableCapacity(
   return {
     status,
     reason,
-    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
     effectiveDate: envelope.effectiveDate,
     activityType: envelope.activityType,
     sourceFingerprint: envelope.sourceFingerprint,
@@ -1212,7 +1200,6 @@ function createPartialWPrimeCapacity(
   return {
     status: 'partial',
     reason,
-    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
     effectiveDate: envelope.effectiveDate,
     activityType: envelope.activityType,
     sourceFingerprint: envelope.sourceFingerprint,
@@ -1236,7 +1223,6 @@ function createPartialCapacity(
   return {
     status: 'partial',
     reason,
-    estimatorVersion: THREE_DIMENSIONAL_CAPACITY_ESTIMATOR_VERSION,
     effectiveDate: envelope.effectiveDate,
     activityType: envelope.activityType,
     sourceFingerprint: envelope.sourceFingerprint,

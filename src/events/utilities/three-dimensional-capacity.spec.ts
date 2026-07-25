@@ -79,7 +79,8 @@ describe('three-dimensional capacity estimation', () => {
         expect.objectContaining({ durationSeconds: 1200, sourceId: 'activity-b' })
       ])
     });
-    expect(forward.sourceFingerprint).toMatch(/^three-dimensional-capacity-v1:[0-9a-f]{16}$/);
+    expect(forward.sourceFingerprint).toMatch(/^three-dimensional-capacity:[0-9a-f]{16}$/);
+    expect(forward).not.toHaveProperty('estimatorVersion');
   });
 
   it('recovers a complete model from a dated multi-activity history', () => {
@@ -87,6 +88,8 @@ describe('three-dimensional capacity estimation', () => {
 
     expect(fit.status).toBe('ready');
     expect(fit.reason).toBeNull();
+    expect(fit).not.toHaveProperty('estimatorVersion');
+    expect(fit.envelope).not.toHaveProperty('estimatorVersion');
     expect(fit.model).not.toBeNull();
     expect(relativeError(fit.model!.criticalPowerWatts, KNOWN_MODEL.criticalPowerWatts)).toBeLessThan(0.02);
     expect(relativeError(fit.model!.wPrimeJoules, KNOWN_MODEL.wPrimeJoules)).toBeLessThan(0.2);

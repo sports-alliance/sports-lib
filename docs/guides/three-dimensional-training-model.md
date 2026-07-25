@@ -37,7 +37,7 @@ constructs even when an illustrative comparison assumes they are equal. Sports L
 | Three-parameter CP relation | Morton's model | Implemented as prediction and direct-fit utilities |
 | MPA, power allocation, and strain score | Kontro et al. Equations 4 and 8–13 | Implemented, with the documented main and workbook variants |
 | Three parallel fitness-fatigue responses | Kontro et al., extending the Banister/Morton response model | Implemented |
-| Rolling field-data capacity estimator | Sports Lib engineering design informed by CP literature | Implemented as estimator contract version 1 |
+| Rolling field-data capacity estimator | Sports Lib engineering design informed by CP literature | Implemented |
 | Capacity anchors and readiness thresholds | Sports Lib engineering policy | Implemented; not claimed as published physiological constants |
 | Chronological response-calibration holdout | Sports Lib validation policy | Implemented; intentionally differs from the authors' example R fitter |
 | Automatic parser CP/W′/Pmax or strain | Rejected design | Not generated during activity parsing |
@@ -108,9 +108,10 @@ All sources must precede `effectiveDate`. Aliases are canonicalized, but distinc
 For example, `Cycling`, `Indoor Cycling`, `Running`, and `Rowing` require separate histories even when an application
 displays them in a shared group. Rejecting evidence on or after the effective date prevents future-data leakage.
 
-Source IDs must be unique. Input order does not affect the result. The source fingerprint covers the estimator version,
-effective date, canonical activity type, normalized source IDs, dates, durations, and powers. It is a deterministic
-change detector, not a cryptographic integrity or authentication mechanism.
+Source IDs must be unique. Input order does not affect the result. The source fingerprint covers the effective date,
+canonical activity type, normalized source IDs, dates, durations, and powers. It is a deterministic change detector,
+not a cryptographic integrity or authentication mechanism. It identifies the supplied evidence, not the package
+release; consumers must invalidate cached results when upgrading across a release that changes fitting behavior.
 
 ### Curve normalization and envelope
 
@@ -144,14 +145,14 @@ activities that determined the fitted envelope. `criticalPowerContributingSource
 anchors. A history can therefore contain many usable curves while one exceptional test or race supplies most of a
 component's envelope.
 
-For every CP/W′ envelope contributor, version 2 also refits after removing that complete source. The fit and failure
-counts plus the maximum relative CP and W′ changes are returned as source-removal diagnostics. They expose dependence
-on one exceptional workout without confusing an anchor with an independent effort: several durations from one activity
-still count as one source. Contributor concentration and source-removal sensitivity are diagnostics, not readiness
-gates; callers can apply a stricter domain-specific policy without Sports Lib inventing a universal minimum number of
-winning activities.
+For every CP/W′ envelope contributor, the estimator also refits after removing that complete source. The fit and
+failure counts plus the maximum relative CP and W′ changes are returned as source-removal diagnostics. They expose
+dependence on one exceptional workout without confusing an anchor with an independent effort: several durations from
+one activity still count as one source. Contributor concentration and source-removal sensitivity are diagnostics, not
+readiness gates; callers can apply a stricter domain-specific policy without Sports Lib inventing a universal minimum
+number of winning activities.
 
-The fixed estimator-version-2 anchors are:
+The fixed estimator anchors are:
 
 | Purpose | Durations |
 | --- | --- |
@@ -183,7 +184,7 @@ median consensus is a Sports Lib robustness policy. It is not a named published 
 come from the same challenger.
 
 All three challengers must produce positive finite values, and CP must remain below the lowest power among the fitted
-anchors. The consensus then passes these version-2 gates:
+anchors. The consensus then passes these gates:
 
 | Gate | Maximum |
 | --- | --- |
@@ -330,8 +331,8 @@ experience. It should not be presented as independently published validation. Co
 timing options alongside calculated scores.
 
 These two options change MPA evaluation and strain scoring only. They do not change W′ recovery, the Morton prediction
-utility, or the version-2 rolling capacity estimator. Sports Lib does not currently fit the authors' modified
-exponent-two power-duration relation.
+utility, or the rolling capacity estimator. Sports Lib does not currently fit the authors' modified exponent-two
+power-duration relation.
 
 ### Power allocation
 
@@ -532,8 +533,8 @@ A consuming application should:
 
 1. Partition activities by exact canonical activity type.
 2. Select only historical curves before a snapshot's effective date.
-3. Choose and version a trailing-window and refresh policy.
-4. Persist the source IDs, dates, estimator version, fingerprint, result, and diagnostics.
+3. Choose and document a trailing-window and refresh policy.
+4. Persist the source IDs, dates, fingerprint, result, and diagnostics.
 5. Score a workout with the most recent `ready` snapshot that was already effective on that workout's date.
 6. Persist the strain algorithm options and model snapshot used for each score.
 7. Aggregate the three components on UTC calendar days without combining activity types.

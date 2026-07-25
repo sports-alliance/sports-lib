@@ -156,9 +156,9 @@ workout. Whole-source removal diagnostics also report how much CP and W′ chang
 contributor is removed. These values do not impose an additional readiness threshold. Anchor and contributor coverage
 is reported even when an earlier CP/W′ quality gate stops the fit.
 
-Estimator contract version 1 also rejects the characteristic 1–3-second arithmetic-decay signature of one isolated
-power sample and includes a 720-second point in newly generated default power curves. Rejected short points are
-reported separately from malformed points.
+The estimator also rejects the characteristic 1–3-second arithmetic-decay signature of one isolated power sample and
+includes a 720-second point in newly generated default power curves. Rejected short points are reported separately
+from malformed points.
 
 Inputs must all belong to one exact canonical activity type. Activity groups are not a pooling boundary: `Cycling`,
 `Indoor Cycling`, `Running`, rowing types, and every other power-bearing type maintain independent histories. Every
@@ -167,8 +167,8 @@ changing an older capacity snapshot.
 
 The consuming application owns window selection and persistence. A practical policy is to fit each Monday from the
 previous 42 completed UTC days, use that snapshot for workouts until the next Monday, and retain the input dates,
-source IDs, estimator version, source fingerprint, result, and diagnostics. Do not use a later snapshot to rescore an
-earlier workout as though that capacity had been known at the time.
+source IDs, source fingerprint, result, and diagnostics. Do not use a later snapshot to rescore an earlier workout as
+though that capacity had been known at the time.
 
 ```ts
 import {

@@ -1,16 +1,15 @@
 name: Publish npm package
 
+# A workflow_run is deliberately used instead of a second push trigger: publishing
+# begins only after Test has succeeded for the exact commit that landed on main.
 on:
-  push:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
     branches: [main]
-    tags: ["v*"]
-    paths:
-      - package.json
-      - package-lock.json
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: npm-publish
@@ -18,21 +17,27 @@ concurrency:
 
 jobs:
   detect-release:
+    # Test also runs for pull requests, but only successful push runs may release.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     outputs:
       publish: ${{ steps.release.outputs.publish }}
-      create_tag: ${{ steps.release.outputs.create_tag }}
       version: ${{ steps.release.outputs.version }}
 
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          # Do not publish whatever happens to be at main when this starts.
+          # Publish the precise commit whose Test run completed successfully.
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
 
       - id: release
         name: Detect a publishable version
         env:
-          BEFORE: ${{ github.event.before }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           version="$(node -p "require('./package.json').version")"
           node <<'NODE'
@@ -49,41 +54,33 @@ jobs:
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            if [ "$GITHUB_REF_NAME" != "v$version" ]; then
-              echo "Tag $GITHUB_REF_NAME does not match package version $version" >&2
-              exit 1
-            fi
-
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "create_tag=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "Unable to compare this push with its previous package version" >&2
+          if ! git cat-file -e "$TARGET_SHA^:package.json" 2> /dev/null; then
+            echo "Unable to compare this commit with its parent package version" >&2
             exit 1
           fi
 
-          previous_version="$(git show "$BEFORE:package.json" | node -e "let input=''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => process.stdout.write(JSON.parse(input).version));")"
+          previous_version="$(git show "$TARGET_SHA^:package.json" | node -e "let input=''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => process.stdout.write(JSON.parse(input).version));")"
 
           if [ "$previous_version" = "$version" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "create_tag=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "publish=true" >> "$GITHUB_OUTPUT"
-          echo "create_tag=true" >> "$GITHUB_OUTPUT"
 
   publish:
     needs: detect-release
     if: needs.detect-release.outputs.publish == 'true' && vars.NPM_PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: npm
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v6
         with:
@@ -92,8 +89,6 @@ jobs:
           package-manager-cache: false
 
       - run: npm ci
-      - run: npm test
-      - run: npm run docs:build
 
       - name: Verify the publishable package
         run: |
@@ -116,29 +111,20 @@ jobs:
           console.log(`Validated ${pack.entryCount} files (${pack.unpackedSize} bytes unpacked).`);
           NODE
 
-      - id: publish
-        name: Publish to npm
+      - name: Publish to npm
         env:
           VERSION: ${{ needs.detect-release.outputs.version }}
         run: |
           package_name="$(node -p "require('./package.json').name")"
 
           if npm view "$package_name@$VERSION" version > /dev/null 2>&1; then
-            if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-              echo "Version $VERSION is already published; nothing to do."
-              echo "published=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
             echo "Version $VERSION is already published." >&2
             exit 1
           fi
 
           npm publish
-          echo "published=true" >> "$GITHUB_OUTPUT"
 
       - name: Tag the published release
-        if: needs.detect-release.outputs.create_tag == 'true' && steps.publish.outputs.published == 'true'
         env:
           VERSION: ${{ needs.detect-release.outputs.version }}
         run: |

@@ -21,6 +21,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "types": "lib/esm/index.d.ts",
@@ -41,20 +46,21 @@
     "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "prepack": "npm run build",
     "report:tss": "npx --yes tsx scripts/generate-tss-validation-report.ts",
     "prettier:fix": "prettier --write .",
     "prepare": "husky install"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/sports-alliance/sports-lib.git"
+    "url": "https://github.com/sports-alliance/sports-lib.git"
   },
   "bugs": {
     "url": "https://github.com/sports-alliance/sports-lib/issues"
   },
   "homepage": "https://sports-alliance.github.io/sports-lib/",
   "author": "Sports-Alliance",
-  "license": "SEE LICENSE IN LICENSE.md",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@googlemaps/polyline-codec": "^1.0.28",
     "fast-xml-parser": "^5.3.3",

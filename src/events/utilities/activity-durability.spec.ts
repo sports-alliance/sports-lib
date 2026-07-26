@@ -450,6 +450,20 @@ describe('activity durability', () => {
     expect(calculateActivityDurabilitySourceFingerprint(pool)).not.toBe(originalPool);
   });
 
+  it('preserves the protocol-v1 fingerprint for all supported numeric edge values', () => {
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 8,
+      streams: {
+        [DataPower.type]: [null, NaN, Infinity, -Infinity, -0, 0, 123.456789, 200],
+        [DataHeartRate.type]: [100, null, 101.5, 0, -0, NaN, Infinity, -Infinity]
+      },
+      stats: { [DataHeartRateZoneOneDuration.type]: 123 }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:e7472eb7e027f402');
+  });
+
   it('reuses current evidence, regenerates stale evidence, and preserves compact summary-only data', () => {
     const start = new Date(0);
     const activity = new Activity(start, new Date(3600 * 1000), ActivityTypes.Cycling, new Creator('Test'));

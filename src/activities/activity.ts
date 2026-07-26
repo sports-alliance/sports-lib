@@ -335,13 +335,23 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     const timeStream = new Stream(DataTime.type, Array(this.getTimeGridLength(streams)).fill(null));
     const timeStreamData = timeStream.getData();
     streams.forEach(stream => {
-      this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
-        const timeIndex =
-          stream.type === DataIBI.type ? Activity.projectMillisecondsToSecondGrid(data.time) : data.time / 1000;
-        if (Number.isInteger(timeIndex) && timeIndex >= 0 && timeIndex < timeStreamData.length) {
-          timeStreamData[timeIndex] = timeIndex;
+      if (stream.type === DataIBI.type) {
+        this.getStreamDataByDuration(stream.type, true, false).forEach((data: StreamDataItem) => {
+          const timeIndex = Activity.projectMillisecondsToSecondGrid(data.time);
+          if (Number.isInteger(timeIndex) && timeIndex >= 0 && timeIndex < timeStreamData.length) {
+            timeStreamData[timeIndex] = timeIndex;
+          }
+        });
+        return;
+      }
+
+      const streamData = stream.getData();
+      const dataLength = Math.min(streamData.length, timeStreamData.length);
+      for (let index = 0; index < dataLength; index++) {
+        if (isNumber(streamData[index])) {
+          timeStreamData[index] = index;
         }
-      });
+      }
     });
     return timeStream;
   }

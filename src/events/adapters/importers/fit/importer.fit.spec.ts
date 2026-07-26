@@ -69,6 +69,41 @@ describe('EventImporterFIT', () => {
       expect(mapper).toHaveBeenCalledTimes(2);
     });
 
+    it('caches timestamp indexes across mappings and accepts supported timestamp representations', () => {
+      const startDate = new Date('2023-03-01T09:00:45.000Z');
+      const activity = new Activity(
+        startDate,
+        new Date(startDate.getTime() + 3000),
+        ActivityTypes.Running,
+        new Creator('Test')
+      );
+      const samples = [
+        { timestamp: startDate.toISOString(), alpha: 1, beta: 10 },
+        { timestamp: startDate.getTime() + 1000, alpha: 2, beta: 20 },
+        { timestamp: new Date(startDate.getTime() + 2000), alpha: 3, beta: 30 }
+      ];
+      const getDateIndex = jest.spyOn(activity, 'getDateIndex');
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        samples,
+        [
+          { dataType: 'Alpha', getSampleValue: (sample: any) => sample.alpha },
+          { dataType: 'Beta', getSampleValue: (sample: any) => sample.beta }
+        ],
+        { hasPowerMeter: false }
+      );
+
+      expect(activity.getStreamData('Alpha')).toEqual([1, 2, 3, null]);
+      expect(activity.getStreamData('Beta')).toEqual([10, 20, 30, null]);
+      expect(getDateIndex).toHaveBeenCalledTimes(samples.length);
+      expect(getDateIndex.mock.calls.map(([date]) => date.getTime())).toEqual([
+        startDate.getTime(),
+        startDate.getTime() + 1000,
+        startDate.getTime() + 2000
+      ]);
+    });
+
     it('does not read timestamps for samples that produce no stream values', () => {
       const activity = new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('Test'));
       const timestampGetter = jest.fn(() => new Date(0));

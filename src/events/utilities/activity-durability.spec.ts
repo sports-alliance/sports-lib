@@ -480,6 +480,26 @@ describe('activity durability', () => {
     expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:2b17188ff73f3967');
   });
 
+  it('preserves protocol-v1 fingerprints across multiple hash batching boundaries', () => {
+    const power = Array.from({ length: 4096 }, (_value, index) => (index % 17 === 0 ? null : index * 0.25));
+    const sparseHeartRate = new Array<number | null>(4096);
+    for (let index = 0; index < sparseHeartRate.length; index++) {
+      if (index % 3 !== 0) {
+        sparseHeartRate[index] = 90 + (index % 120);
+      }
+    }
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 4096,
+      streams: {
+        [DataPower.type]: power,
+        [DataHeartRate.type]: sparseHeartRate
+      }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:f7dd61d7aada0dc3');
+  });
+
   it('reuses current evidence, regenerates stale evidence, and preserves compact summary-only data', () => {
     const start = new Date(0);
     const activity = new Activity(start, new Date(3600 * 1000), ActivityTypes.Cycling, new Creator('Test'));

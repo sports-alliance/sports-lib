@@ -464,6 +464,22 @@ describe('activity durability', () => {
     expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:e7472eb7e027f402');
   });
 
+  it('preserves protocol-v1 sparse stream fingerprint behavior', () => {
+    const sparsePower = new Array<number | null>(6);
+    sparsePower[1] = 120;
+    sparsePower[4] = 250;
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 6,
+      streams: {
+        [DataPower.type]: sparsePower,
+        [DataHeartRate.type]: []
+      }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:2b17188ff73f3967');
+  });
+
   it('reuses current evidence, regenerates stale evidence, and preserves compact summary-only data', () => {
     const start = new Date(0);
     const activity = new Activity(start, new Date(3600 * 1000), ActivityTypes.Cycling, new Creator('Test'));

@@ -191,7 +191,11 @@ class DurabilityFingerprint {
     this.add(`${type}-length`, values.length);
 
     let chunk = '';
-    for (let index = 0; index < values.length; index++) {
+    const valuesLength = values.length;
+    for (let index = 0; index < valuesLength; index++) {
+      if (!(index in values)) {
+        continue;
+      }
       const indexText = `${index}`;
       const labelLength = type.length + 1 + indexText.length;
       chunk += `${labelLength}:${type}-${indexText}${fingerprintValue(values[index])}`;
@@ -733,12 +737,7 @@ function buildAerobicEvidence(
   const secondOutput = averageAccumulatorOutput(secondHalf);
   const firstHeartRate = averageAccumulatorHeartRate(firstHalf);
   const secondHeartRate = averageAccumulatorHeartRate(secondHalf);
-  if (
-    firstOutput === null ||
-    secondOutput === null ||
-    firstHeartRate === null ||
-    secondHeartRate === null
-  ) {
+  if (firstOutput === null || secondOutput === null || firstHeartRate === null || secondHeartRate === null) {
     return null;
   }
   // Persist canonical base values first, then calculate every derived value from those
@@ -760,10 +759,7 @@ function buildAerobicEvidence(
     kind: 'aerobic-efficiency',
     firstHalfEfficiency,
     secondHalfEfficiency,
-    decouplingPercent: round(
-      ((firstHalfEfficiency - secondHalfEfficiency) / firstHalfEfficiency) * 100,
-      3
-    ),
+    decouplingPercent: round(((firstHalfEfficiency - secondHalfEfficiency) / firstHalfEfficiency) * 100, 3),
     firstHalfOutput,
     secondHalfOutput,
     outputRetentionPercent: round((secondHalfOutput / firstHalfOutput) * 100, 3),

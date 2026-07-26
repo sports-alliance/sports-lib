@@ -49,6 +49,45 @@ describe('EventImporterFIT', () => {
       expect(beta).toHaveBeenCalledTimes(samples.length);
       expect(missing).toHaveBeenCalledTimes(samples.length);
     });
+
+    it('preserves sparse sample-array behavior', () => {
+      const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Running, new Creator('Test'));
+      activity.addStream(activity.createStream(DataDuration.type));
+      const samples = new Array<any>(4);
+      samples[0] = { timestamp: new Date(0), value: 1 };
+      samples[2] = { timestamp: new Date(2000), value: 3 };
+      const mapper = jest.fn((sample: any) => sample.value);
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        samples,
+        [{ dataType: 'Sparse', getSampleValue: mapper }],
+        { hasPowerMeter: false }
+      );
+
+      expect(activity.getStreamData('Sparse')).toEqual([1, null, 3, null]);
+      expect(mapper).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not read timestamps for samples that produce no stream values', () => {
+      const activity = new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('Test'));
+      const timestampGetter = jest.fn(() => new Date(0));
+      const sample = {
+        get timestamp() {
+          return timestampGetter();
+        }
+      };
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        [sample],
+        [{ dataType: 'Missing', getSampleValue: () => null }],
+        { hasPowerMeter: false }
+      );
+
+      expect(timestampGetter).not.toHaveBeenCalled();
+      expect(activity.hasStreamData('Missing')).toBe(false);
+    });
   });
 
   describe('Session normalization', () => {

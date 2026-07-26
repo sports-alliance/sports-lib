@@ -200,6 +200,7 @@ import { DataGroundContactTime } from '../../data/data.ground-contact-time';
 import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
+import { DataIBI } from '../../data/data.ibi';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
@@ -3273,6 +3274,21 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     shapeStreamData: (squashedStreamData: number[]) => number[]
   ): void {
+    if (streamType === DataIBI.type) {
+      const sourceItems = activity.getStreamDataByDuration(streamType, true, true);
+      const shapedValues = shapeStreamData(sourceItems.map(item => item.value) as number[]);
+      activity.removeStream(streamType);
+      const targetStream = activity.createStream(streamType);
+      activity.addStream(targetStream);
+      const targetData = targetStream.getData();
+
+      for (let index = 0; index < sourceItems.length; index++) {
+        targetData[activity.getDateIndex(new Date(activity.startDate.getTime() + sourceItems[index].time))] =
+          shapedValues[index];
+      }
+      return;
+    }
+
     const sourceData = activity.getStreamData(streamType);
     const sourceIndexes: number[] = [];
     const sourceValues: number[] = [];
@@ -3288,8 +3304,8 @@ export class ActivityUtilities {
     const shapedValues = shapeStreamData(sourceValues);
     activity.removeStream(streamType);
     const targetStream = activity.createStream(streamType);
-    const targetData = targetStream.getData();
     activity.addStream(targetStream);
+    const targetData = targetStream.getData();
 
     for (let index = 0; index < sourceIndexes.length; index++) {
       targetData[sourceIndexes[index]] = shapedValues[index];

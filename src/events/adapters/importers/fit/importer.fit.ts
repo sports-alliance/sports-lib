@@ -196,18 +196,15 @@ export class EventImporterFIT {
     samplesInfo: SampleInfo
   ): void {
     const sampleIndexes = new Array<number>(samples.length);
-    for (let samplePosition = 0; samplePosition < samples.length; samplePosition++) {
-      const timestamp = samples[samplePosition].timestamp;
-      sampleIndexes[samplePosition] = activity.getDateIndex(
-        timestamp instanceof Date ? timestamp : new Date(timestamp)
-      );
-    }
 
     for (const sampleMapping of sampleMappings) {
       let stream: StreamInterface | undefined;
       let streamData: (number | null)[] | undefined;
 
       for (let samplePosition = 0; samplePosition < samples.length; samplePosition++) {
+        if (!(samplePosition in samples)) {
+          continue;
+        }
         const value = sampleMapping.getSampleValue(samples[samplePosition], samplesInfo);
         if (!isNumber(value)) {
           continue;
@@ -216,6 +213,12 @@ export class EventImporterFIT {
         if (!stream) {
           stream = activity.createStream(sampleMapping.dataType);
           streamData = stream.getData();
+        }
+        if (!(samplePosition in sampleIndexes)) {
+          const timestamp = samples[samplePosition].timestamp;
+          sampleIndexes[samplePosition] = activity.getDateIndex(
+            timestamp instanceof Date ? timestamp : new Date(timestamp)
+          );
         }
         streamData![sampleIndexes[samplePosition]] = value;
       }
@@ -1082,9 +1085,7 @@ export class EventImporterFIT {
       const recoveredStartDate =
         firstRecordTimestamp ||
         (activity.startDate < rawEndDate ? activity.startDate : null) ||
-        (totalElapsedTime && totalElapsedTime > 0
-          ? new Date(rawEndDate.getTime() - totalElapsedTime * 1000)
-          : null);
+        (totalElapsedTime && totalElapsedTime > 0 ? new Date(rawEndDate.getTime() - totalElapsedTime * 1000) : null);
 
       if (recoveredStartDate && recoveredStartDate < rawEndDate) {
         return {
@@ -1135,9 +1136,7 @@ export class EventImporterFIT {
 
     return {
       startDate: activity.startDate,
-      endDate: activity.endDate > activity.startDate
-        ? activity.endDate
-        : new Date(activity.startDate.getTime() + 1000)
+      endDate: activity.endDate > activity.startDate ? activity.endDate : new Date(activity.startDate.getTime() + 1000)
     };
   }
 

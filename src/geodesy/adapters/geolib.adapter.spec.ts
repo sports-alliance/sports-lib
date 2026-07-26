@@ -20,7 +20,7 @@ describe('GeoLibAdapter', () => {
     }));
     const adapter = new GeoLibAdapter();
 
-    for (const accuracy of [0.1, 1, 10]) {
+    for (const accuracy of [Number.NaN, 0, -0, -1, Number.MIN_VALUE, 0.1, 1, 10, Infinity, -Infinity]) {
       let expected = 0;
       for (let index = 1; index < positions.length; index++) {
         expected += getDistance(asGeolibPosition(positions[index - 1]), asGeolibPosition(positions[index]), accuracy);

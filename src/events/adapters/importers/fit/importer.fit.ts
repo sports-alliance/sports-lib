@@ -176,7 +176,9 @@ import {
   isStreamTypeAllowedForImport,
   pruneActivityStreamsBySelection
 } from '../../../../streams/stream.selection';
+import { StreamInterface } from '../../../../streams/stream.interface';
 import { StatsUtilities } from '../../../../stats/stats.utilities';
+import { SampleInfo } from '../sample-info.interface';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -186,6 +188,46 @@ export class EventImporterFIT {
   private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
   private static readonly MIN_VALID_VO2_MAX = 10;
   private static readonly MAX_VALID_VO2_MAX = 100;
+
+  private static addSampleStreamsToActivity(
+    activity: ActivityInterface,
+    samples: any[],
+    sampleMappings: typeof FITSampleMapper,
+    samplesInfo: SampleInfo
+  ): void {
+    const sampleIndexes = new Array<number>(samples.length);
+
+    for (const sampleMapping of sampleMappings) {
+      let stream: StreamInterface | undefined;
+      let streamData: (number | null)[] | undefined;
+
+      for (let samplePosition = 0; samplePosition < samples.length; samplePosition++) {
+        if (!(samplePosition in samples)) {
+          continue;
+        }
+        const value = sampleMapping.getSampleValue(samples[samplePosition], samplesInfo);
+        if (!isNumber(value)) {
+          continue;
+        }
+
+        if (!stream) {
+          stream = activity.createStream(sampleMapping.dataType);
+          streamData = stream.getData();
+        }
+        if (!(samplePosition in sampleIndexes)) {
+          const timestamp = samples[samplePosition].timestamp;
+          sampleIndexes[samplePosition] = activity.getDateIndex(
+            timestamp instanceof Date ? timestamp : new Date(timestamp)
+          );
+        }
+        streamData![sampleIndexes[samplePosition]] = value;
+      }
+
+      if (stream) {
+        activity.addStream(stream);
+      }
+    }
+  }
 
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
@@ -472,24 +514,7 @@ export class EventImporterFIT {
             ) !== -1;
           const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
-          allowedSampleMappings.forEach(sampleMapping => {
-            // @todo not sure if we need to check for number only ...
-            const subjectSamples = <any[]>(
-              samples.filter((sample: any) => isNumber(sampleMapping.getSampleValue(sample, samplesInfo)))
-            );
-            if (subjectSamples.length) {
-              // When we create a stream here it has the length of the activity elapsed time (end-start) filled with nulls.
-              // We keep nulls in order to preserve the array length.
-              activity.addStream(activity.createStream(sampleMapping.dataType));
-              subjectSamples.forEach(subjectSample => {
-                activity.addDataToStream(
-                  sampleMapping.dataType,
-                  new Date(subjectSample.timestamp),
-                  <number>sampleMapping.getSampleValue(subjectSample, samplesInfo)
-                );
-              });
-            }
-          });
+          this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings, samplesInfo);
 
           return activity;
         });
@@ -1060,9 +1085,7 @@ export class EventImporterFIT {
       const recoveredStartDate =
         firstRecordTimestamp ||
         (activity.startDate < rawEndDate ? activity.startDate : null) ||
-        (totalElapsedTime && totalElapsedTime > 0
-          ? new Date(rawEndDate.getTime() - totalElapsedTime * 1000)
-          : null);
+        (totalElapsedTime && totalElapsedTime > 0 ? new Date(rawEndDate.getTime() - totalElapsedTime * 1000) : null);
 
       if (recoveredStartDate && recoveredStartDate < rawEndDate) {
         return {
@@ -1113,9 +1136,7 @@ export class EventImporterFIT {
 
     return {
       startDate: activity.startDate,
-      endDate: activity.endDate > activity.startDate
-        ? activity.endDate
-        : new Date(activity.startDate.getTime() + 1000)
+      endDate: activity.endDate > activity.startDate ? activity.endDate : new Date(activity.startDate.getTime() + 1000)
     };
   }
 

@@ -14,6 +14,117 @@ import { Activity } from '../../../../activities/activity';
 import { Creator } from '../../../../creators/creator';
 
 describe('EventImporterFIT', () => {
+  describe('Sample stream construction', () => {
+    it('maps each sample once, preserves mapping order, and keeps the last duplicate timestamp value', () => {
+      const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Running, new Creator('Test'));
+      activity.addStream(activity.createStream(DataDuration.type));
+
+      const samples = [
+        { timestamp: new Date(0), alpha: 1 },
+        { timestamp: new Date(1000), alpha: 2, beta: 10 },
+        { timestamp: new Date(1000), alpha: 3, beta: 20 },
+        { timestamp: new Date(2000), alpha: Number.NaN, beta: Infinity },
+        { timestamp: new Date(3000) }
+      ];
+      const alpha = jest.fn((sample: any) => sample.alpha);
+      const beta = jest.fn((sample: any) => sample.beta);
+      const missing = jest.fn(() => null);
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        samples,
+        [
+          { dataType: 'Alpha', getSampleValue: alpha },
+          { dataType: 'Beta', getSampleValue: beta },
+          { dataType: 'Missing', getSampleValue: missing }
+        ],
+        { hasPowerMeter: false }
+      );
+
+      expect(activity.getAllStreams().map(stream => stream.type)).toEqual([DataDuration.type, 'Alpha', 'Beta']);
+      expect(activity.getStreamData('Alpha')).toEqual([1, 3, null, null]);
+      expect(activity.getStreamData('Beta')).toEqual([null, 20, Infinity, null]);
+      expect(activity.hasStreamData('Missing')).toBe(false);
+      expect(alpha).toHaveBeenCalledTimes(samples.length);
+      expect(beta).toHaveBeenCalledTimes(samples.length);
+      expect(missing).toHaveBeenCalledTimes(samples.length);
+    });
+
+    it('preserves sparse sample-array behavior', () => {
+      const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Running, new Creator('Test'));
+      activity.addStream(activity.createStream(DataDuration.type));
+      const samples = new Array<any>(4);
+      samples[0] = { timestamp: new Date(0), value: 1 };
+      samples[2] = { timestamp: new Date(2000), value: 3 };
+      const mapper = jest.fn((sample: any) => sample.value);
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        samples,
+        [{ dataType: 'Sparse', getSampleValue: mapper }],
+        { hasPowerMeter: false }
+      );
+
+      expect(activity.getStreamData('Sparse')).toEqual([1, null, 3, null]);
+      expect(mapper).toHaveBeenCalledTimes(2);
+    });
+
+    it('caches timestamp indexes across mappings and accepts supported timestamp representations', () => {
+      const startDate = new Date('2023-03-01T09:00:45.000Z');
+      const activity = new Activity(
+        startDate,
+        new Date(startDate.getTime() + 3000),
+        ActivityTypes.Running,
+        new Creator('Test')
+      );
+      const samples = [
+        { timestamp: startDate.toISOString(), alpha: 1, beta: 10 },
+        { timestamp: startDate.getTime() + 1000, alpha: 2, beta: 20 },
+        { timestamp: new Date(startDate.getTime() + 2000), alpha: 3, beta: 30 }
+      ];
+      const getDateIndex = jest.spyOn(activity, 'getDateIndex');
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        samples,
+        [
+          { dataType: 'Alpha', getSampleValue: (sample: any) => sample.alpha },
+          { dataType: 'Beta', getSampleValue: (sample: any) => sample.beta }
+        ],
+        { hasPowerMeter: false }
+      );
+
+      expect(activity.getStreamData('Alpha')).toEqual([1, 2, 3, null]);
+      expect(activity.getStreamData('Beta')).toEqual([10, 20, 30, null]);
+      expect(getDateIndex).toHaveBeenCalledTimes(samples.length);
+      expect(getDateIndex.mock.calls.map(([date]) => date.getTime())).toEqual([
+        startDate.getTime(),
+        startDate.getTime() + 1000,
+        startDate.getTime() + 2000
+      ]);
+    });
+
+    it('does not read timestamps for samples that produce no stream values', () => {
+      const activity = new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('Test'));
+      const timestampGetter = jest.fn(() => new Date(0));
+      const sample = {
+        get timestamp() {
+          return timestampGetter();
+        }
+      };
+
+      (EventImporterFIT as any).addSampleStreamsToActivity(
+        activity,
+        [sample],
+        [{ dataType: 'Missing', getSampleValue: () => null }],
+        { hasPowerMeter: false }
+      );
+
+      expect(timestampGetter).not.toHaveBeenCalled();
+      expect(activity.hasStreamData('Missing')).toBe(false);
+    });
+  });
+
   describe('Session normalization', () => {
     it('should synthesize a fallback session when sessions are missing but top-level messages exist', () => {
       const startDate = new Date('2026-03-06T08:14:19.000Z');

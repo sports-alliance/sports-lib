@@ -187,24 +187,49 @@ class DurabilityFingerprint {
     this.update(`${label.length}:${label}${fingerprintValue(value)}`);
   }
 
+  addStream(type: string, values: (number | null)[]): void {
+    this.add(`${type}-length`, values.length);
+
+    let chunk = '';
+    const valuesLength = values.length;
+    for (let index = 0; index < valuesLength; index++) {
+      if (!(index in values)) {
+        continue;
+      }
+      const indexText = `${index}`;
+      const labelLength = type.length + 1 + indexText.length;
+      chunk += `${labelLength}:${type}-${indexText}${fingerprintValue(values[index])}`;
+
+      if (chunk.length >= 16_384) {
+        this.update(chunk);
+        chunk = '';
+      }
+    }
+    if (chunk.length) {
+      this.update(chunk);
+    }
+  }
+
   digest(): string {
     return `durability-v1:${toHex(this.first)}${toHex(this.second)}`;
   }
 
   private update(value: string): void {
+    let first = this.first;
+    let second = this.second;
     for (let index = 0; index < value.length; index += 1) {
       const code = value.charCodeAt(index);
-      this.first = Math.imul(this.first ^ code, 0x01000193);
-      this.second = Math.imul(this.second ^ code, 0x85ebca6b);
-      this.second ^= this.second >>> 13;
+      first = Math.imul(first ^ code, 0x01000193);
+      second = Math.imul(second ^ code, 0x85ebca6b);
+      second ^= second >>> 13;
     }
+    this.first = first;
+    this.second = second;
   }
 }
 
 function addStreamFingerprint(fingerprint: DurabilityFingerprint, activity: ActivityInterface, type: string): void {
-  const values = safeGetStream(activity, type);
-  fingerprint.add(`${type}-length`, values.length);
-  values.forEach((value, index) => fingerprint.add(`${type}-${index}`, value));
+  fingerprint.addStream(type, safeGetStream(activity, type));
 }
 
 function addStatFingerprints(
@@ -712,12 +737,7 @@ function buildAerobicEvidence(
   const secondOutput = averageAccumulatorOutput(secondHalf);
   const firstHeartRate = averageAccumulatorHeartRate(firstHalf);
   const secondHeartRate = averageAccumulatorHeartRate(secondHalf);
-  if (
-    firstOutput === null ||
-    secondOutput === null ||
-    firstHeartRate === null ||
-    secondHeartRate === null
-  ) {
+  if (firstOutput === null || secondOutput === null || firstHeartRate === null || secondHeartRate === null) {
     return null;
   }
   // Persist canonical base values first, then calculate every derived value from those
@@ -739,10 +759,7 @@ function buildAerobicEvidence(
     kind: 'aerobic-efficiency',
     firstHalfEfficiency,
     secondHalfEfficiency,
-    decouplingPercent: round(
-      ((firstHalfEfficiency - secondHalfEfficiency) / firstHalfEfficiency) * 100,
-      3
-    ),
+    decouplingPercent: round(((firstHalfEfficiency - secondHalfEfficiency) / firstHalfEfficiency) * 100, 3),
     firstHalfOutput,
     secondHalfOutput,
     outputRetentionPercent: round((secondHalfOutput / firstHalfOutput) * 100, 3),

@@ -450,6 +450,56 @@ describe('activity durability', () => {
     expect(calculateActivityDurabilitySourceFingerprint(pool)).not.toBe(originalPool);
   });
 
+  it('preserves the protocol-v1 fingerprint for all supported numeric edge values', () => {
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 8,
+      streams: {
+        [DataPower.type]: [null, NaN, Infinity, -Infinity, -0, 0, 123.456789, 200],
+        [DataHeartRate.type]: [100, null, 101.5, 0, -0, NaN, Infinity, -Infinity]
+      },
+      stats: { [DataHeartRateZoneOneDuration.type]: 123 }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:e7472eb7e027f402');
+  });
+
+  it('preserves protocol-v1 sparse stream fingerprint behavior', () => {
+    const sparsePower = new Array<number | null>(6);
+    sparsePower[1] = 120;
+    sparsePower[4] = 250;
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 6,
+      streams: {
+        [DataPower.type]: sparsePower,
+        [DataHeartRate.type]: []
+      }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:2b17188ff73f3967');
+  });
+
+  it('preserves protocol-v1 fingerprints across multiple hash batching boundaries', () => {
+    const power = Array.from({ length: 4096 }, (_value, index) => (index % 17 === 0 ? null : index * 0.25));
+    const sparseHeartRate = new Array<number | null>(4096);
+    for (let index = 0; index < sparseHeartRate.length; index++) {
+      if (index % 3 !== 0) {
+        sparseHeartRate[index] = 90 + (index % 120);
+      }
+    }
+    const activity = mockActivity({
+      type: ActivityTypes.Cycling,
+      durationSeconds: 4096,
+      streams: {
+        [DataPower.type]: power,
+        [DataHeartRate.type]: sparseHeartRate
+      }
+    });
+
+    expect(calculateActivityDurabilitySourceFingerprint(activity)).toBe('durability-v1:f7dd61d7aada0dc3');
+  });
+
   it('reuses current evidence, regenerates stale evidence, and preserves compact summary-only data', () => {
     const start = new Date(0);
     const activity = new Activity(start, new Date(3600 * 1000), ActivityTypes.Cycling, new Creator('Test'));

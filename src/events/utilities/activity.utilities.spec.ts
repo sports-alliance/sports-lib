@@ -141,6 +141,113 @@ describe('Activity Utilities', () => {
     expect(ActivityUtilities.getDataTypeAvg(event.getFirstActivity(), DataAltitude.type)).toBe(300);
   });
 
+  it('should calculate stream aggregates without changing numeric filtering semantics', () => {
+    event.getFirstActivity().addStream(new Stream(DataHeartRate.type, [null, NaN, Infinity, -Infinity, -0, 0, 2, 4]));
+
+    expect(ActivityUtilities.getDataTypeAvg(event.getFirstActivity(), DataHeartRate.type)).toBe(1.5);
+    expect(Object.is(ActivityUtilities.getDataTypeMin(event.getFirstActivity(), DataHeartRate.type), -0)).toBe(true);
+    expect(ActivityUtilities.getDataTypeMax(event.getFirstActivity(), DataHeartRate.type)).toBe(4);
+    expect(
+      ActivityUtilities.getDataTypeAvg(event.getFirstActivity(), DataHeartRate.type, undefined, undefined, 0)
+    ).toBe(3);
+    expect(
+      ActivityUtilities.getDataTypeMin(event.getFirstActivity(), DataHeartRate.type, undefined, undefined, 0)
+    ).toBe(2);
+    expect(ActivityUtilities.getDataTypeFirst(event.getFirstActivity(), DataHeartRate.type)).toBe(Infinity);
+    expect(ActivityUtilities.getDataTypeLast(event.getFirstActivity(), DataHeartRate.type)).toBe(4);
+  });
+
+  it('should preserve empty and date-bounded aggregate results', () => {
+    event.getFirstActivity().addStream(new Stream(DataHeartRate.type, [null, NaN, Infinity, -Infinity]));
+    event.getFirstActivity().addStream(new Stream(DataAltitude.type, [1, 2, 3, 4]));
+
+    expect(ActivityUtilities.getDataTypeAvg(event.getFirstActivity(), DataHeartRate.type)).toBeNaN();
+    expect(ActivityUtilities.getDataTypeMin(event.getFirstActivity(), DataHeartRate.type)).toBe(Infinity);
+    expect(ActivityUtilities.getDataTypeMax(event.getFirstActivity(), DataHeartRate.type)).toBe(-Infinity);
+    expect(
+      ActivityUtilities.getDataTypeAvg(event.getFirstActivity(), DataAltitude.type, new Date(1000), new Date(3000))
+    ).toBe(3);
+    expect(
+      ActivityUtilities.getDataTypeFirst(event.getFirstActivity(), DataAltitude.type, new Date(1000), new Date(3000))
+    ).toBe(2);
+    expect(
+      ActivityUtilities.getDataTypeLast(event.getFirstActivity(), DataAltitude.type, new Date(1000), new Date(3000))
+    ).toBe(4);
+  });
+
+  it('should match legacy aggregates for deterministic sparse and non-finite streams', () => {
+    let randomState = 0x5f3759df;
+    const random = () => {
+      randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0;
+      return randomState / 0x1_0000_0000;
+    };
+    const specialValues: (number | null)[] = [null, NaN, Infinity, -Infinity, -0, 0, -10, 2.5, 100];
+
+    for (let iteration = 0; iteration < 64; iteration++) {
+      const values = new Array<number | null>(1 + Math.floor(random() * 80));
+      for (let index = 0; index < values.length; index++) {
+        if (random() >= 0.15) {
+          values[index] = specialValues[Math.floor(random() * specialValues.length)];
+        }
+      }
+      const activity = new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('Test'));
+      activity.addStream(new Stream(DataHeartRate.type, values));
+      const numeric = values.filter(value => typeof value === 'number' && !isNaN(value)) as number[];
+      const finite = numeric.filter(value => value !== Infinity && value !== -Infinity);
+
+      for (const filterOver of [undefined, NaN, -Infinity, -0, 2.5, Infinity]) {
+        const filtered = finite.filter(value => (Number.isFinite(filterOver) ? value > (filterOver as number) : true));
+        const expectedAverage = filtered.reduce((sum, value) => sum + value, 0) / filtered.length;
+        const expectedMinimum = filtered.reduce((minimum, value) => Math.min(minimum, value), Infinity);
+
+        expect(ActivityUtilities.getDataTypeAvg(activity, DataHeartRate.type, undefined, undefined, filterOver)).toBe(
+          expectedAverage
+        );
+        expect(ActivityUtilities.getDataTypeMin(activity, DataHeartRate.type, undefined, undefined, filterOver)).toBe(
+          expectedMinimum
+        );
+      }
+
+      expect(ActivityUtilities.getDataTypeMax(activity, DataHeartRate.type)).toBe(
+        finite.reduce((maximum, value) => Math.max(maximum, value), -Infinity)
+      );
+      expect(ActivityUtilities.getDataTypeFirst(activity, DataHeartRate.type)).toBe(numeric[0]);
+      expect(ActivityUtilities.getDataTypeLast(activity, DataHeartRate.type)).toBe(numeric[numeric.length - 1]);
+    }
+  });
+
+  it('should shape only finite samples and preserve their original indexes', () => {
+    const activity = event.getFirstActivity();
+    activity.addStream(new Stream(DataAltitude.type, [1, null, Infinity, 3, NaN, -Infinity, 5]));
+    activity.addStream(new Stream(DataDistance.type, [0, 1, 2, 3, 4, 5, 6]));
+
+    ActivityUtilities.shapeStream(DataAltitude.type, activity, values => values.map(value => value * 10));
+
+    expect(activity.getStreamData(DataAltitude.type)).toEqual([
+      10,
+      null,
+      null,
+      30,
+      null,
+      null,
+      50,
+      null,
+      null,
+      null,
+      null
+    ]);
+    expect(activity.getAllStreams().map(stream => stream.type)).toEqual([DataDistance.type, DataAltitude.type]);
+  });
+
+  it('should preserve irregular IBI timing when shaping the stream', () => {
+    const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Running, new Creator('Test'));
+    activity.addStream(new IBIStream([823, 823, 823]));
+
+    ActivityUtilities.shapeStream(DataIBI.type, activity, () => [100, 200, 300]);
+
+    expect(activity.getStreamData(DataIBI.type)).toEqual([null, 100, 300, null]);
+  });
+
   it('should get the correct gain for a DataType', () => {
     event.getFirstActivity().addStream(new Stream(DataAltitude.type, [200, 300, 400]));
     expect(ActivityUtilities.getActivityDataTypeGain(event.getFirstActivity(), DataAltitude.type)).toBe(200);

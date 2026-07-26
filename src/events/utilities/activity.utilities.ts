@@ -200,6 +200,7 @@ import { DataGroundContactTime } from '../../data/data.ground-contact-time';
 import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
+import { DataIBI } from '../../data/data.ibi';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
@@ -471,6 +472,22 @@ export class ActivityUtilities {
     endDate?: Date,
     filterOver?: number
   ): number {
+    if (startDate === undefined && endDate === undefined) {
+      const data = activity.getStreamData(streamType);
+      const shouldFilterOver = Number.isFinite(filterOver);
+      let sum = 0;
+      let count = 0;
+
+      for (const value of data) {
+        if (Number.isFinite(value) && (!shouldFilterOver || (value as number) > (filterOver as number))) {
+          sum += value as number;
+          count++;
+        }
+      }
+
+      return sum / count;
+    }
+
     const data = <number[]>(
       activity
         .getSquashedStreamData(streamType, startDate, endDate)
@@ -574,6 +591,16 @@ export class ActivityUtilities {
     startDate?: Date,
     endDate?: Date
   ): number {
+    if (startDate === undefined && endDate === undefined) {
+      const data = activity.getStreamData(streamType);
+      for (const value of data) {
+        if (isNumber(value)) {
+          return value as number;
+        }
+      }
+      return undefined as unknown as number;
+    }
+
     const data = <number[]>activity.getSquashedStreamData(streamType, startDate, endDate);
     return data[0];
   }
@@ -584,6 +611,17 @@ export class ActivityUtilities {
     startDate?: Date,
     endDate?: Date
   ): number {
+    if (startDate === undefined && endDate === undefined) {
+      const data = activity.getStreamData(streamType);
+      for (let index = data.length - 1; index >= 0; index--) {
+        const value = data[index];
+        if (isNumber(value)) {
+          return value as number;
+        }
+      }
+      return undefined as unknown as number;
+    }
+
     const data = <number[]>activity.getSquashedStreamData(streamType, startDate, endDate);
     return data[data.length - 1];
   }
@@ -3236,25 +3274,42 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     shapeStreamData: (squashedStreamData: number[]) => number[]
   ): void {
-    let streamDataByDuration = activity.getStreamDataByDuration(streamType, true, true);
+    if (streamType === DataIBI.type) {
+      const sourceItems = activity.getStreamDataByDuration(streamType, true, true);
+      const shapedValues = shapeStreamData(sourceItems.map(item => item.value) as number[]);
+      activity.removeStream(streamType);
+      const targetStream = activity.createStream(streamType);
+      activity.addStream(targetStream);
+      const targetData = targetStream.getData();
 
-    // Shape data along function param
-    const streamData = shapeStreamData(streamDataByDuration.map(item => item.value) as number[]);
+      for (let index = 0; index < sourceItems.length; index++) {
+        targetData[activity.getDateIndex(new Date(activity.startDate.getTime() + sourceItems[index].time))] =
+          shapedValues[index];
+      }
+      return;
+    }
 
-    // Update streamDataByDuration with shaped data
-    streamDataByDuration = streamDataByDuration.map((item: StreamDataItem, index: number) => {
-      item.value = streamData[index];
-      return item;
-    });
+    const sourceData = activity.getStreamData(streamType);
+    const sourceIndexes: number[] = [];
+    const sourceValues: number[] = [];
 
-    // Rebuild/replace stream with new shaped value
+    for (let index = 0; index < sourceData.length; index++) {
+      const value = sourceData[index];
+      if (Number.isFinite(value)) {
+        sourceIndexes.push(index);
+        sourceValues.push(value as number);
+      }
+    }
+
+    const shapedValues = shapeStreamData(sourceValues);
     activity.removeStream(streamType);
-    activity.addStream(activity.createStream(streamType));
+    const targetStream = activity.createStream(streamType);
+    activity.addStream(targetStream);
+    const targetData = targetStream.getData();
 
-    const activityStartTime = activity.startDate.getTime();
-    streamDataByDuration.forEach(item => {
-      activity.addDataToStream(streamType, new Date(activityStartTime + item.time), item.value as number);
-    });
+    for (let index = 0; index < sourceIndexes.length; index++) {
+      targetData[sourceIndexes[index]] = shapedValues[index];
+    }
   }
 
   public static cloneStream(activity: ActivityInterface, sourceStreamType: string, targetStreamType: string): void {
@@ -3478,6 +3533,20 @@ export class ActivityUtilities {
     endDate?: Date,
     filterOver?: number
   ): number {
+    if (startDate === undefined && endDate === undefined) {
+      const data = activity.getStreamData(streamType);
+      const shouldFilterOver = Number.isFinite(filterOver);
+      let result = max ? -Infinity : Infinity;
+
+      for (const value of data) {
+        if (Number.isFinite(value) && (!shouldFilterOver || (value as number) > (filterOver as number))) {
+          result = max ? Math.max(result, value as number) : Math.min(result, value as number);
+        }
+      }
+
+      return result;
+    }
+
     const data = activity
       .getSquashedStreamData(streamType, startDate, endDate)
       .filter(

@@ -1,6 +1,112 @@
 export const CLAMP = 50;
 export const LOOK_AHEAD_IN_METERS = 10;
 
+type AheadIndexFinder = (startIndex: number) => number;
+
+const isFiniteNonDecreasing = (values: number[]): boolean => {
+  if (!values.length) {
+    return true;
+  }
+
+  if (!Number.isFinite(values[0])) {
+    return false;
+  }
+
+  for (let index = 1; index < values.length; index++) {
+    if (!Number.isFinite(values[index]) || values[index] < values[index - 1]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * Finds the first finite value at or after a requested index that reaches a threshold.
+ *
+ * A max segment tree keeps this lookup O(log n) for corrupt/non-monotonic distance
+ * streams while preserving Array.findIndex's first-match behavior.
+ */
+class FirstDistanceAtLeastIndex {
+  private readonly length: number;
+  private readonly treeSize: number;
+  private readonly maximums: Array<number | undefined>;
+
+  constructor(values: number[]) {
+    this.length = values.length;
+    this.treeSize = this.getTreeSize(values.length);
+    this.maximums = Array(this.treeSize * 2).fill(undefined);
+
+    values.forEach((value, index) => {
+      if (Number.isFinite(value)) {
+        this.maximums[this.treeSize + index] = value;
+      }
+    });
+
+    for (let node = this.treeSize - 1; node > 0; node--) {
+      const left = this.maximums[node * 2];
+      const right = this.maximums[node * 2 + 1];
+      this.maximums[node] = left === undefined ? right : right === undefined ? left : Math.max(left, right);
+    }
+  }
+
+  public findFirst(startIndex: number, threshold: number): number {
+    return this.findFirstInNode(1, 0, this.treeSize, startIndex, threshold);
+  }
+
+  private getTreeSize(length: number): number {
+    let size = 1;
+    while (size < length) {
+      size *= 2;
+    }
+    return size;
+  }
+
+  private findFirstInNode(
+    node: number,
+    leftIndex: number,
+    rightIndex: number,
+    startIndex: number,
+    threshold: number
+  ): number {
+    const maximum = this.maximums[node];
+    if (rightIndex <= startIndex || maximum === undefined || !(threshold <= maximum)) {
+      return -1;
+    }
+
+    if (rightIndex - leftIndex === 1) {
+      return leftIndex < this.length ? leftIndex : -1;
+    }
+
+    const middleIndex = (leftIndex + rightIndex) >> 1;
+    const leftResult = this.findFirstInNode(node * 2, leftIndex, middleIndex, startIndex, threshold);
+    return leftResult >= 0
+      ? leftResult
+      : this.findFirstInNode(node * 2 + 1, middleIndex, rightIndex, startIndex, threshold);
+  }
+}
+
+const createAheadIndexFinder = (distances: number[], aheadMeters: number): AheadIndexFinder => {
+  const lastIndex = distances.length - 1;
+
+  if (isFiniteNonDecreasing(distances)) {
+    let aheadIndex = 0;
+    return (startIndex: number): number => {
+      aheadIndex = Math.max(aheadIndex, startIndex);
+      const threshold = distances[startIndex] + aheadMeters;
+      while (aheadIndex < distances.length && !(threshold <= distances[aheadIndex])) {
+        aheadIndex++;
+      }
+      return aheadIndex < distances.length ? aheadIndex : lastIndex;
+    };
+  }
+
+  const distanceIndex = new FirstDistanceAtLeastIndex(distances);
+  return (startIndex: number): number => {
+    const matchIndex = distanceIndex.findFirst(startIndex, distances[startIndex] + aheadMeters);
+    return matchIndex >= 0 ? matchIndex : lastIndex;
+  };
+};
+
 export class GradeCalculator {
   public static computeGradeStream(
     timeStream: (number | null)[],
@@ -16,33 +122,21 @@ export class GradeCalculator {
     );
 
     const squashedAlignedGrade = [];
-    let indexNow = 0;
-    do {
-      // Remove first index of distances & altitudes stream at every loop
-      const aheadDistances = squashedAlignedDist.slice(indexNow);
-      const aheadAltitudes = squashedAlignedAlt.slice(indexNow);
-
-      // Take our current distance travelled & altitude
-      const distanceNow = aheadDistances[0];
-      const altitudeNow = aheadAltitudes[0];
-
-      // Find ahead index matching minimal distance travelled
-      let aheadIndex = aheadDistances.findIndex(dist => distanceNow + aheadMeters <= dist);
-
-      // Validate we find an index with distance ahead for sure, else use last index of ahead distances
-      aheadIndex = aheadIndex >= 0 ? aheadIndex : aheadDistances.length - 1;
+    const findAheadIndex = createAheadIndexFinder(squashedAlignedDist, aheadMeters);
+    for (let indexNow = 0; indexNow < squashedAlignedTime.length; indexNow++) {
+      const distanceNow = squashedAlignedDist[indexNow];
+      const altitudeNow = squashedAlignedAlt[indexNow];
+      const aheadIndex = findAheadIndex(indexNow);
 
       // Compute deltas & grade
-      const aheadDeltaDistance = aheadDistances[aheadIndex] - distanceNow;
-      const aheadDeltaAltitude = aheadAltitudes[aheadIndex] - altitudeNow;
+      const aheadDeltaDistance = squashedAlignedDist[aheadIndex] - distanceNow;
+      const aheadDeltaAltitude = squashedAlignedAlt[aheadIndex] - altitudeNow;
 
       const aheadGrade =
         aheadDeltaDistance > 0 ? Math.min(Math.max((aheadDeltaAltitude / aheadDeltaDistance) * 100, -clamp), clamp) : 0;
 
       squashedAlignedGrade.push(Math.round(aheadGrade * 10) / 10);
-
-      indexNow++;
-    } while (indexNow < squashedAlignedTime.length);
+    }
 
     // Rebuild grade stream with empty values using computed squashed/aligned time & grade streams
     const gradeStream = Array(altitudeStream.length).fill(null);
@@ -66,15 +160,13 @@ export class GradeCalculator {
     }
 
     const squashedAlignedGrade = [];
-    let indexNow = 0;
-    do {
-      const aheadPoints = squashedAlignedPoints.slice(indexNow);
-      const pointNow = aheadPoints[0];
-
-      let aheadIndex = aheadPoints.findIndex(point => pointNow.distance + aheadMeters <= point.distance);
-      aheadIndex = aheadIndex >= 0 ? aheadIndex : aheadPoints.length - 1;
-
-      const aheadPoint = aheadPoints[aheadIndex];
+    const findAheadIndex = createAheadIndexFinder(
+      squashedAlignedPoints.map(point => point.distance),
+      aheadMeters
+    );
+    for (let indexNow = 0; indexNow < squashedAlignedPoints.length; indexNow++) {
+      const pointNow = squashedAlignedPoints[indexNow];
+      const aheadPoint = squashedAlignedPoints[findAheadIndex(indexNow)];
       const aheadDeltaDistance = aheadPoint.distance - pointNow.distance;
       const aheadDeltaAltitude = aheadPoint.altitude - pointNow.altitude;
 
@@ -82,9 +174,7 @@ export class GradeCalculator {
         aheadDeltaDistance > 0 ? Math.min(Math.max((aheadDeltaAltitude / aheadDeltaDistance) * 100, -clamp), clamp) : 0;
 
       squashedAlignedGrade.push(Math.round(aheadGrade * 10) / 10);
-
-      indexNow++;
-    } while (indexNow < squashedAlignedPoints.length);
+    }
 
     for (const [index, point] of squashedAlignedPoints.entries()) {
       gradeStream[point.index] = squashedAlignedGrade[index];

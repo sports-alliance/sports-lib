@@ -38,6 +38,10 @@ const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
 
+Native JSON hydration preserves explicit stats and fills missing pace, swim-pace, and grade-adjusted-pace summaries
+from compatible speed summaries on events, activities, and laps. This keeps older speed-only exports readable with the
+same derived-stat behavior as newly parsed files; serializing the hydrated model includes the additive derived stats.
+
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with `getDisplayValue()`.
 
 For stream filtering, generated streams, training-stress settings, and FIT device compaction, see [Configure parsing](parsing-options.md). Planned courses are separate models; see [Work with routes](routes.md).

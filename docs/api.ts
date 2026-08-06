@@ -7,7 +7,12 @@
  * @module API
  */
 
-/** @category Import and export */
+/**
+ * Primary import/export facade. Native JSON restoration preserves explicit stats and adds missing
+ * speed-derived pace summaries on events, activities, and laps.
+ *
+ * @category Import and export
+ */
 export { SportsLib } from '../src/index';
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';

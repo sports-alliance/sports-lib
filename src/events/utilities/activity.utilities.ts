@@ -290,6 +290,7 @@ import {
 import { type ActivityParsingTssOverridesOptions } from '../../activities/activity-parsing-options';
 import { DataMovingTime } from '../../data/data.moving-time';
 import { StatsClassInterface } from '../../stats/stats.class.interface';
+import { hydrateMissingSpeedDerivedStats } from '../../stats/speed-derived-stats';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataElapsedTime } from '../../data/data.elapsed-time';
 import { DataNumber } from '../../data/data.number';
@@ -885,11 +886,16 @@ export class ActivityUtilities {
     return stats;
   }
 
+  /**
+   * Fills missing activity streams and summary stats, including speed-derived pace summaries on
+   * the activity and its existing laps. Explicit stats are preserved.
+   */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.generateMissingStreams(activity);
     this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
-    this.generateMissingSpeedDerivedStatsForActivity(activity);
+    hydrateMissingSpeedDerivedStats(activity);
+    activity.getLaps().forEach(lap => hydrateMissingSpeedDerivedStats(lap));
     const existingDurability = activity.getStat<DurabilityEvidenceValue>(DataDurabilityEvidence.type)?.getValue();
     const canonicalExistingDurability = normalizeDurabilityEvidenceValue(existingDurability);
     const hasSourceData = canonicalExistingDurability ? hasActivityDurabilitySourceData(activity) : false;
@@ -4079,62 +4085,6 @@ export class ActivityUtilities {
     }
 
     this.addMissingJumpStatsFromEvents(activity);
-  }
-
-  private static generateMissingSpeedDerivedStatsForActivity(activity: ActivityInterface) {
-    const getFiniteStatValue = (type: string): number | null => {
-      const stat = activity.getStat(type);
-      if (!stat) {
-        return null;
-      }
-      const value = Number(stat.getValue());
-      return Number.isFinite(value) ? value : null;
-    };
-
-    const speedMax = getFiniteStatValue(DataSpeedMax.type);
-    const speedMin = getFiniteStatValue(DataSpeedMin.type);
-    const speedAvg = getFiniteStatValue(DataSpeedAvg.type);
-
-    // Pace is inverse of speed:
-    // min pace <- max speed, max pace <- min speed.
-    if (speedMin !== null && !activity.getStat(DataPaceMax.type)) {
-      activity.addStat(new DataPaceMax(convertSpeedToPace(speedMin)));
-    }
-    if (speedMax !== null && !activity.getStat(DataPaceMin.type)) {
-      activity.addStat(new DataPaceMin(convertSpeedToPace(speedMax)));
-    }
-    if (speedAvg !== null && !activity.getStat(DataPaceAvg.type)) {
-      activity.addStat(new DataPaceAvg(convertSpeedToPace(speedAvg)));
-    }
-
-    const gradeAdjustedSpeedMax = getFiniteStatValue(DataGradeAdjustedSpeedMax.type);
-    const gradeAdjustedSpeedMin = getFiniteStatValue(DataGradeAdjustedSpeedMin.type);
-    const gradeAdjustedSpeedAvg = getFiniteStatValue(DataGradeAdjustedSpeedAvg.type);
-
-    // GAP pace follows the same inverse rule as pace.
-    if (gradeAdjustedSpeedMin !== null && !activity.getStat(DataGradeAdjustedPaceMax.type)) {
-      const targetAdjustedSpeed = speedMin !== null ? Math.min(speedMin, gradeAdjustedSpeedMin) : gradeAdjustedSpeedMin;
-      activity.addStat(new DataGradeAdjustedPaceMax(convertSpeedToPace(targetAdjustedSpeed)));
-    }
-    if (gradeAdjustedSpeedMax !== null && !activity.getStat(DataGradeAdjustedPaceMin.type)) {
-      const targetAdjustedSpeed = speedMax !== null ? Math.max(speedMax, gradeAdjustedSpeedMax) : gradeAdjustedSpeedMax;
-      activity.addStat(new DataGradeAdjustedPaceMin(convertSpeedToPace(targetAdjustedSpeed)));
-    }
-    if (gradeAdjustedSpeedAvg !== null && !activity.getStat(DataGradeAdjustedPaceAvg.type)) {
-      const targetAdjustedSpeed = speedAvg !== null ? Math.max(speedAvg, gradeAdjustedSpeedAvg) : gradeAdjustedSpeedAvg;
-      activity.addStat(new DataGradeAdjustedPaceAvg(convertSpeedToPace(targetAdjustedSpeed)));
-    }
-
-    // Swim pace is also inverse of speed.
-    if (speedMin !== null && !activity.getStat(DataSwimPaceMax.type)) {
-      activity.addStat(new DataSwimPaceMax(convertSpeedToSwimPace(speedMin)));
-    }
-    if (speedMax !== null && !activity.getStat(DataSwimPaceMin.type)) {
-      activity.addStat(new DataSwimPaceMin(convertSpeedToSwimPace(speedMax)));
-    }
-    if (speedAvg !== null && !activity.getStat(DataSwimPaceAvg.type)) {
-      activity.addStat(new DataSwimPaceAvg(convertSpeedToSwimPace(speedAvg)));
-    }
   }
 
   // @todo move to factory

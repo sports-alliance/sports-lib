@@ -57,6 +57,11 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 - Distance/GNSS distance are generated from latitude/longitude when missing.
 - Speed is generated from distance deltas and time deltas.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
+- Missing minimum, maximum, and average pace-family stats are hydrated from canonical speed stats for events, activities,
+  and laps. Pace and swim pace invert the speed extrema (`maximum speed -> minimum pace`); grade-adjusted pace follows
+  the same rule while retaining the existing raw-speed bounds. Explicit pace stats are never replaced. Native JSON
+  applies this hydration after canonical and legacy stat keys have been resolved, so older speed-only summaries gain the
+  same in-memory behavior without requiring a stored-data migration.
 
 2) Altitude smoothing, grade, grade smoothing, grade-adjusted speed/pace
 

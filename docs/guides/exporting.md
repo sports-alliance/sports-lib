@@ -19,7 +19,9 @@ const file = new Blob([gpxText], { type: exporter.fileType });
 
 ## Native JSON round trips
 
-Native JSON is the lossless persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore it with the corresponding `SportsLib` method.
+Native JSON is the persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore
+it with the corresponding `SportsLib` method. Restoration preserves explicit stats, canonicalizes compatible legacy
+keys, and may add missing speed-derived pace summaries on events, activities, and laps.
 
 ```ts
 import { EventExporterJSON, SportsLib } from '@sports-alliance/sports-lib';

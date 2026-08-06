@@ -27,9 +27,14 @@ import { DataEvent } from '../../../../data/data.event';
 import { DataTime } from '../../../../data/data.time';
 import { DataPowerCurve } from '../../../../data/data.power-curve';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
-import { DataInterface } from '../../../../data/data.interface';
+import { StatsClassInterface } from '../../../../stats/stats.class.interface';
+import { hydrateMissingSpeedDerivedStats } from '../../../../stats/speed-derived-stats';
 
 export class EventImporterJSON {
+  /**
+   * Restores a native JSON event, canonicalizing stat keys and hydrating missing speed-derived
+   * pace summaries on the event, its activities, and their laps.
+   */
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     const event = new Event(
       json.name,
@@ -147,6 +152,7 @@ export class EventImporterJSON {
     return device;
   }
 
+  /** Restores a native JSON lap and hydrates any missing speed-derived pace summaries. */
   static getLapFromJSON(json: LapJSONInterface, lapIndex: number): LapInterface {
     const lap = new Lap(
       new Date(json.startDate),
@@ -190,12 +196,13 @@ export class EventImporterJSON {
   }
 
   private static addStatsFromJSON(
-    target: { addStat: (stat: DataInterface) => void },
+    target: Pick<StatsClassInterface, 'addStat' | 'getStat'>,
     stats: DataJSONInterface = {}
   ): void {
     this.getCanonicalJSONMap(stats).forEach((entry, canonicalType) => {
       target.addStat(DynamicDataLoader.getDataInstanceFromDataType(canonicalType, entry.value));
     });
+    hydrateMissingSpeedDerivedStats(target);
   }
 
   static getStreamFromJSON(json: StreamJSONInterface): StreamInterface {
@@ -264,6 +271,7 @@ export class EventImporterJSON {
     );
   }
 
+  /** Restores a native JSON activity and hydrates missing speed-derived pace summaries on it and its laps. */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),

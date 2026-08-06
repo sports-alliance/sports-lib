@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { EventImporterFIT } from './importer.fit';
+import { DataPaceAvg } from '../../../../data/data.pace-avg';
+import { DataSpeedAvg } from '../../../../data/data.speed-avg';
+import { convertSpeedToPace } from '../../../utilities/helpers';
 
 describe('EventImporterFIT lap boundaries', () => {
   const importer = EventImporterFIT as unknown as {
@@ -44,6 +47,13 @@ describe('EventImporterFIT lap boundaries', () => {
     expect(laps.every(lap => lap.endDate > lap.startDate)).toBe(true);
     expect(laps[0].endDate <= laps[1].startDate).toBe(true);
     expect(laps[1].endDate <= laps[2].startDate).toBe(true);
+
+    laps.forEach(lap => {
+      const averageSpeed = lap.getStat(DataSpeedAvg.type)?.getValue();
+      const averagePace = lap.getStat(DataPaceAvg.type)?.getValue();
+      expect(typeof averageSpeed).toBe('number');
+      expect(averagePace).toBeCloseTo(convertSpeedToPace(averageSpeed as number), 10);
+    });
   });
 
   it('should recover inverted session bounds from timer duration when records are missing', () => {

@@ -22,10 +22,12 @@ import { FileType } from '../adapters/file-type.enum';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataPace, DataPaceMinutesPerMile } from '../../data/data.pace';
+import { DataPaceAvg } from '../../data/data.pace-avg';
 import { DataPaceMax } from '../../data/data.pace-max';
 import { DataPaceMin } from '../../data/data.pace-min';
 import { DataSpeedKilometersPerHour } from '../../data/data.speed';
 import { DataSwimPace } from '../../data/data.swim-pace';
+import { DataSwimPaceAvg } from '../../data/data.swim-pace-avg';
 import { DataSwimPaceMax } from '../../data/data.swim-pace-max';
 import { DataSwimPaceMin } from '../../data/data.swim-pace-min';
 import { DataGradeAdjustedSpeed } from '../../data/data.grade-adjusted-speed';
@@ -702,6 +704,18 @@ describe('Activity Utilities', () => {
   });
 
   describe('generateMissingStreamsAndStatsForActivity', () => {
+    it('hydrates missing pace-family stats on speed-only laps', () => {
+      const activity = new Activity(new Date(0), new Date(1000), ActivityTypes.Running, new Creator('test'));
+      const lap = new Lap(new Date(0), new Date(1000), 1, LapTypes.Manual);
+      lap.addStat(new DataSpeedAvg(4));
+      activity.addLap(lap);
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(lap.getStat(DataPaceAvg.type)?.getValue()).toBe(250);
+      expect(lap.getStat(DataSwimPaceAvg.type)?.getValue()).toBe(25);
+    });
+
     it('should generate PowerWattsPerKg when average power and weight are available', () => {
       const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
       activity.addStream(new Stream(DataPower.type, [280, 280, 280]));

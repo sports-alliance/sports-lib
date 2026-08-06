@@ -8,7 +8,10 @@ import { DataTime } from './data/data.time';
 import { FileType } from './events/adapters/file-type.enum';
 import { Privacy } from './privacy/privacy.class.interface';
 import { DataDuration } from './data/data.duration';
+import { DataPaceAvg } from './data/data.pace-avg';
 import { DataPower } from './data/data.power';
+import { DataSpeedAvg } from './data/data.speed-avg';
+import { LapTypes } from './laps/lap.types';
 
 describe('SportsLib', () => {
   it('should import native JSON events through the public API with activities and power curves intact', () => {
@@ -42,7 +45,17 @@ describe('SportsLib', () => {
             { type: DataDistance.type, data: [0, null, null, 30] },
             { type: DataIBI.type, data: [823, 823, 823] }
           ],
-          laps: [],
+          laps: [
+            {
+              lapId: 1,
+              startDate: 0,
+              endDate: 3000,
+              startIndex: null,
+              endIndex: null,
+              type: LapTypes.Manual,
+              stats: { [DataSpeedAvg.type]: 4 }
+            }
+          ],
           creator: { name: 'test', devices: [] },
           intensityZones: [],
           events: []
@@ -60,5 +73,6 @@ describe('SportsLib', () => {
     expect(activity.generateTimeStream([DataIBI.type]).getData(true)).toEqual([1, 2]);
     expect(activity.powerCurve?.toJSON()).toEqual(activityCurve);
     expect(activity.getStat(DataPowerCurve.type)?.toJSON()).toEqual(activityCurve);
+    expect(activity.getLaps()[0].getStat(DataPaceAvg.type)?.getValue()).toBe(250);
   });
 });

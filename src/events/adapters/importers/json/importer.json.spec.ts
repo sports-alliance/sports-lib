@@ -12,8 +12,75 @@ import { DataDuration } from '../../../../data/data.duration';
 import { DataPower } from '../../../../data/data.power';
 import { IBIStream } from '../../../../streams/ibi-stream';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { DataPaceAvg } from '../../../../data/data.pace-avg';
+import { DataSpeedAvg } from '../../../../data/data.speed-avg';
+import { DataSwimPaceAvg } from '../../../../data/data.swim-pace-avg';
+import { LapTypes } from '../../../../laps/lap.types';
 
 describe('EventImporterJSON', () => {
+  it('hydrates speed-derived stats for events, activities, and laps without replacing explicit pace', () => {
+    const event = EventImporterJSON.getEventFromJSON({
+      name: 'speed-only-laps',
+      startDate: 0,
+      endDate: 2000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: { [DataSpeedAvg.type]: 5 },
+      activities: [
+        {
+          name: null,
+          startDate: 0,
+          endDate: 2000,
+          type: ActivityTypes.Running,
+          powerMeter: false,
+          trainer: false,
+          powerCurve: null,
+          stats: { [DataSpeedAvg.type]: 4 },
+          streams: [],
+          laps: [
+            {
+              lapId: 1,
+              startDate: 0,
+              endDate: 1000,
+              startIndex: null,
+              endIndex: null,
+              type: LapTypes.Manual,
+              stats: { [DataSpeedAvg.type]: 3 }
+            },
+            {
+              lapId: 2,
+              startDate: 1000,
+              endDate: 2000,
+              startIndex: null,
+              endIndex: null,
+              type: LapTypes.Manual,
+              stats: { [DataSpeedAvg.type]: 2, [DataPaceAvg.type]: 321 }
+            }
+          ],
+          creator: { name: 'test', devices: [] },
+          intensityZones: [],
+          events: []
+        }
+      ]
+    });
+
+    const activity = event.getFirstActivity();
+    const [derivedLap, explicitLap] = activity.getLaps();
+
+    expect(event.getStat(DataPaceAvg.type)?.getValue()).toBe(200);
+    expect(activity.getStat(DataPaceAvg.type)?.getValue()).toBe(250);
+    expect(derivedLap.getStat(DataPaceAvg.type)?.getValue()).toBeCloseTo(1000 / 3, 10);
+    expect(derivedLap.getStat(DataSwimPaceAvg.type)?.getValue()).toBeCloseTo(100 / 3, 10);
+    expect(explicitLap.getStat(DataPaceAvg.type)?.getValue()).toBe(321);
+
+    const serialized = event.toJSON();
+    expect(serialized.activities[0].laps[0].stats[DataPaceAvg.type]).toBeCloseTo(1000 / 3, 10);
+    expect(EventImporterJSON.getEventFromJSON(serialized).toJSON()).toEqual(serialized);
+  });
+
   it('should hydrate full event JSON including activities and power curves', () => {
     const eventCurve = new DataPowerCurve([{ duration: new DataDuration(1), power: new DataPower(320) }]).toJSON();
     const activityCurve = new DataPowerCurve([{ duration: new DataDuration(5), power: new DataPower(280) }]).toJSON();

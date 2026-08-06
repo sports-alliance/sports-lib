@@ -125,11 +125,14 @@ Monod-Scherrer calculation for callers who deliberately supply a maximal test cu
 arbitrary workout measured current athlete capacity. Existing `CriticalPower` and `WPrime` data classes and historical
 JSON remain readable.
 
-`Durability Evidence` is a compact, versioned activity stat. Running, cycling/MTB, and open-water evidence compares
-output/heart-rate efficiency across fixed early and late time halves after warm-up/cool-down exclusion. Pool evidence
-compares the outer thirds of like-for-like active lengths using the dominant stroke and pool length. Timelines and source
-streams are never stored in the stat; a deterministic protocol-input fingerprint invalidates stale evidence, and
-ineligible activities retain an explicit reason and coverage instead of zero values.
+`Durability Evidence` is a compact, versioned activity stat. Running, cycling, standard mountain biking, and open-water
+evidence compares output/heart-rate efficiency across fixed early and late time halves after warm-up/cool-down exclusion.
+Enduro MTB and Downhill Cycling remain part of the mountain-biking activity family, but their whole-activity context is
+not comparable through this steady aerobic protocol; they persist explicit `unsupported-context` evidence instead of a
+durability result. Pool evidence compares the outer thirds of like-for-like active lengths using the dominant stroke and
+pool length. Timelines and source streams are never stored in the stat; a deterministic protocol-input fingerprint
+invalidates stale evidence, including earlier gravity-MTB evidence, and ineligible activities retain an explicit reason
+and coverage instead of zero values. This policy remains protocol version 1 and does not change the persisted shape.
 
 `Three Dimensional Strain Evidence` is a legacy, versioned activity stat retained only so historical native JSON remains
 readable. FIT, TCX, GPX, and provider parsing no longer generates or regenerates it: one workout cannot establish a

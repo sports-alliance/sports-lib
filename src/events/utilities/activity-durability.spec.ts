@@ -20,7 +20,8 @@ import { SwimLengthInterface } from '../../swim-lengths/swim-length.interface';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
-  calculateAerobicEfficiency
+  calculateAerobicEfficiency,
+  hasActivityDurabilitySourceData
 } from './activity-durability';
 import { ActivityUtilities } from './activity.utilities';
 
@@ -225,6 +226,55 @@ describe('activity durability', () => {
       })
     );
     expect(result.summary).toMatchObject({ discipline, eligibility: { eligible: true } });
+  });
+
+  it.each([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling])(
+    'keeps gravity MTB type %s as explicit unsupported durability evidence',
+    type => {
+      const result = analyzeActivityDurability(
+        mockActivity({
+          type,
+          streams: {
+            [DataPower.type]: Array(3600).fill(200),
+            [DataHeartRate.type]: Array(3600).fill(140)
+          }
+        })
+      );
+
+      expect(result.timeline).toEqual([]);
+      expect(result.summary).toMatchObject({
+        protocolVersion: 1,
+        discipline: 'cycling',
+        outputSource: 'power',
+        outputUnit: 'W',
+        qualifyingDurationSeconds: 0,
+        coverageRatio: 0,
+        eligibility: {
+          eligible: false,
+          reason: 'unsupported-context',
+          validSampleCount: 0,
+          earlySampleCount: 0,
+          lateSampleCount: 0
+        },
+        evidence: null
+      });
+    }
+  );
+
+  it('treats gravity MTB policy inputs as sufficient to replace stale evidence without retained streams', () => {
+    const downhillWithoutStreams = mockActivity({ type: ActivityTypes.DownhillCycling });
+    const downhillWithStreams = mockActivity({
+      type: ActivityTypes.DownhillCycling,
+      streams: {
+        [DataPower.type]: Array(3600).fill(200),
+        [DataHeartRate.type]: Array(3600).fill(140)
+      }
+    });
+
+    expect(hasActivityDurabilitySourceData(downhillWithoutStreams)).toBe(true);
+    expect(calculateActivityDurabilitySourceFingerprint(downhillWithoutStreams)).toBe(
+      calculateActivityDurabilitySourceFingerprint(downhillWithStreams)
+    );
   });
 
   it('keeps unsupported activities out of the persisted metric', () => {
@@ -524,6 +574,36 @@ describe('activity durability', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(summaryOnly);
     expect(summaryOnly.getStat(DataDurabilityEvidence.type)).toBe(compactStat);
     expect(JSON.stringify(compactStat.toJSON())).not.toContain('timeline');
+  });
+
+  it('replaces stale summary-only gravity MTB evidence with the current unsupported-context policy', () => {
+    const start = new Date(0);
+    const staleEligibleSummary = analyzeActivityDurability(
+      mockActivity({
+        type: ActivityTypes.Cycling,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(140)
+        }
+      }),
+      { includeTimeline: false }
+    ).summary!;
+    const activity = new Activity(start, new Date(3600 * 1000), ActivityTypes.DownhillCycling, new Creator('Test'));
+    const staleStat = new DataDurabilityEvidence(staleEligibleSummary);
+    activity.addStat(staleStat);
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const replacement = activity.getStat<DurabilityEvidenceValue>(DataDurabilityEvidence.type);
+    expect(replacement).not.toBe(staleStat);
+    expect(replacement?.getValue()).toMatchObject({
+      protocolVersion: 1,
+      discipline: 'cycling',
+      outputSource: 'power',
+      eligibility: { eligible: false, reason: 'unsupported-context' },
+      evidence: null
+    });
+    expect(replacement?.getValue().sourceFingerprint).not.toBe(staleEligibleSummary.sourceFingerprint);
   });
 
   it('persists only the compact activity stat and does not promote it to an event summary', () => {

@@ -86,6 +86,15 @@ interface ResolvedOutput {
   unavailableReason?: DurabilityEligibilityReason;
 }
 
+type ActivityDurabilityAdapter =
+  | 'cycling-power'
+  | 'gravity-mtb-unsupported'
+  | 'running-speed'
+  | 'open-water-speed'
+  | 'pool-consistency';
+
+const GRAVITY_MTB_ACTIVITY_TYPES = new Set<ActivityTypes>([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling]);
+
 interface AerobicSegmentAccumulator {
   count: number;
   outputSum: number;
@@ -133,36 +142,47 @@ export function calculateActivityDurabilitySourceFingerprint(activity: ActivityI
   fingerprint.add('activity-type', activity.type);
   fingerprint.add('duration-seconds', resolveActivityDurationSeconds(activity));
 
-  const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-  if (group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup) {
+  const adapter = resolveActivityDurabilityAdapter(activity.type);
+  if (adapter === 'gravity-mtb-unsupported') {
+    // Gravity MTB used to inherit the general cycling adapter. This policy key
+    // invalidates that evidence without changing the protocol-v1 payload.
+    fingerprint.add('durability-adapter', adapter);
+  } else if (adapter === 'cycling-power') {
     addStreamFingerprint(fingerprint, activity, DataPower.type);
     addStreamFingerprint(fingerprint, activity, DataHeartRate.type);
     addStatFingerprints(fingerprint, activity, POWER_ZONE_TYPES);
     addStatFingerprints(fingerprint, activity, HEART_RATE_ZONE_TYPES);
-  } else if (group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup) {
+  } else if (adapter === 'running-speed') {
     addStreamFingerprint(fingerprint, activity, DataGradeAdjustedSpeed.type);
     addStreamFingerprint(fingerprint, activity, DataSpeed.type);
     addStreamFingerprint(fingerprint, activity, DataGrade.type);
     addStreamFingerprint(fingerprint, activity, DataHeartRate.type);
     addStatFingerprints(fingerprint, activity, HEART_RATE_ZONE_TYPES);
-  } else if (group === ActivityTypeGroups.SwimmingGroup && activity.type === ActivityTypes.OpenWaterSwimming) {
+  } else if (adapter === 'open-water-speed') {
     addStreamFingerprint(fingerprint, activity, DataSpeed.type);
     addStreamFingerprint(fingerprint, activity, DataHeartRate.type);
     addStatFingerprints(fingerprint, activity, HEART_RATE_ZONE_TYPES);
-  } else if (group === ActivityTypeGroups.SwimmingGroup) {
+  } else if (adapter === 'pool-consistency') {
     addSwimLengthFingerprints(fingerprint, activity);
     addStatFingerprints(fingerprint, activity, HEART_RATE_ZONE_TYPES);
   }
   return fingerprint.digest();
 }
 
-/** True when the activity still contains raw inputs from which durability can be recalculated. */
+/**
+ * True when the activity still contains the inputs needed to recalculate durability.
+ * Policy-only adapters can recalculate explicit ineligibility from type and duration
+ * even when long source streams are no longer retained.
+ */
 export function hasActivityDurabilitySourceData(activity: ActivityInterface): boolean {
-  const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-  if (group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup) {
+  const adapter = resolveActivityDurabilityAdapter(activity.type);
+  if (adapter === 'gravity-mtb-unsupported') {
+    return true;
+  }
+  if (adapter === 'cycling-power') {
     return hasAnyStreamValues(activity, [DataPower.type, DataHeartRate.type]);
   }
-  if (group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup) {
+  if (adapter === 'running-speed') {
     return hasAnyStreamValues(activity, [
       DataGradeAdjustedSpeed.type,
       DataSpeed.type,
@@ -170,13 +190,31 @@ export function hasActivityDurabilitySourceData(activity: ActivityInterface): bo
       DataHeartRate.type
     ]);
   }
-  if (group === ActivityTypeGroups.SwimmingGroup && activity.type === ActivityTypes.OpenWaterSwimming) {
+  if (adapter === 'open-water-speed') {
     return hasAnyStreamValues(activity, [DataSpeed.type, DataHeartRate.type]);
   }
-  if (group === ActivityTypeGroups.SwimmingGroup) {
+  if (adapter === 'pool-consistency') {
     return safeGetSwimLengths(activity).length > 0;
   }
   return false;
+}
+
+function resolveActivityDurabilityAdapter(activityType: ActivityTypes): ActivityDurabilityAdapter | null {
+  if (GRAVITY_MTB_ACTIVITY_TYPES.has(activityType)) {
+    return 'gravity-mtb-unsupported';
+  }
+
+  const group = ActivityTypesHelper.getActivityGroupForActivityType(activityType);
+  if (group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup) {
+    return 'cycling-power';
+  }
+  if (group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup) {
+    return 'running-speed';
+  }
+  if (group === ActivityTypeGroups.SwimmingGroup) {
+    return activityType === ActivityTypes.OpenWaterSwimming ? 'open-water-speed' : 'pool-consistency';
+  }
+  return null;
 }
 
 class DurabilityFingerprint {
@@ -334,12 +372,12 @@ export function analyzeActivityDurability(
 ): ActivityDurabilityAnalysis {
   const protocol = DEFAULT_DURABILITY_PROTOCOL;
   const sourceFingerprint = calculateActivityDurabilitySourceFingerprint(activity);
-  const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-  if (group === ActivityTypeGroups.SwimmingGroup && activity.type !== ActivityTypes.OpenWaterSwimming) {
+  const adapter = resolveActivityDurabilityAdapter(activity.type);
+  if (adapter === 'pool-consistency') {
     return analyzePoolDurability(activity, protocol, sourceFingerprint);
   }
 
-  const resolvedOutput = resolveAerobicOutput(activity, protocol);
+  const resolvedOutput = resolveAerobicOutput(activity, protocol, adapter);
   if (!resolvedOutput) {
     return { timeline: [], summary: null };
   }
@@ -605,12 +643,23 @@ function buildPoolEvidence(
   };
 }
 
-function resolveAerobicOutput(activity: ActivityInterface, protocol: DurabilityProtocol): ResolvedOutput | null {
-  const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-  if (group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup) {
+function resolveAerobicOutput(
+  activity: ActivityInterface,
+  protocol: DurabilityProtocol,
+  adapter: ActivityDurabilityAdapter | null
+): ResolvedOutput | null {
+  if (adapter === 'gravity-mtb-unsupported') {
+    return {
+      discipline: 'cycling',
+      source: 'power',
+      values: [],
+      unavailableReason: 'unsupported-context'
+    };
+  }
+  if (adapter === 'cycling-power') {
     return { discipline: 'cycling', source: 'power', values: safeGetStream(activity, DataPower.type) };
   }
-  if (group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup) {
+  if (adapter === 'running-speed') {
     const gradeAdjusted = safeGetStream(activity, DataGradeAdjustedSpeed.type);
     if (hasComparisonWindowCoverage(gradeAdjusted, resolveActivityDurationSeconds(activity), protocol)) {
       return { discipline: 'running', source: 'grade-adjusted-speed', values: gradeAdjusted };
@@ -625,7 +674,7 @@ function resolveAerobicOutput(activity: ActivityInterface, protocol: DurabilityP
       unavailableReason: 'unsupported-context'
     };
   }
-  if (group === ActivityTypeGroups.SwimmingGroup && activity.type === ActivityTypes.OpenWaterSwimming) {
+  if (adapter === 'open-water-speed') {
     return { discipline: 'open-water-swimming', source: 'speed', values: safeGetStream(activity, DataSpeed.type) };
   }
   return null;

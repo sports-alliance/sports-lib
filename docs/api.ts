@@ -112,6 +112,10 @@ export type {
 export { UnitSystem } from '../src/data/data.interface';
 export {
   DataCadence,
+  DataDepth,
+  DataDepthFeet,
+  DataDepthMax,
+  DataDepthMaxFeet,
   DataDistance,
   DataDuration,
   DataEvent,

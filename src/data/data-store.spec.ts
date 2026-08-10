@@ -71,6 +71,8 @@ import {
 } from '../events/utilities/helpers';
 import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
 import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
+import { DataDepth, DataDepthFeet } from './data.depth';
+import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -120,7 +122,9 @@ describe('DataStore', () => {
     DataJumpSpeedMaxKnots.type,
     DataDistanceFeet.type,
     DataDistanceMiles.type,
-    DataGNSSDistanceMiles.type
+    DataGNSSDistanceMiles.type,
+    DataDepthFeet.type,
+    DataDepthMaxFeet.type
   ];
 
   const _speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
@@ -137,6 +141,54 @@ describe('DataStore', () => {
   });
 
   describe('getUnitBasedDataTypesFromDataTypes', () => {
+    it('uses the first swim pace preference to select one depth unit family', () => {
+      const metricSettings: any = {
+        speedUnits: [],
+        swimPaceUnits: [DataSwimPace.type, DataSwimPaceMinutesPer100Yard.type],
+        paceUnits: [],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: DistanceUnits.Kilometers
+      };
+      const imperialSettings = {
+        ...metricSettings,
+        swimPaceUnits: [DataSwimPaceMinutesPer100Yard.type, DataSwimPace.type]
+      };
+
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataDepth.type, DataDepthMax.type], metricSettings)
+      ).toEqual([DataDepth.type, DataDepthMax.type]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataDepth.type, DataDepthMax.type], imperialSettings)
+      ).toEqual([DataDepthFeet.type, DataDepthMaxFeet.type]);
+    });
+
+    it('converts depth streams and maximum-depth stats without changing canonical JSON', () => {
+      const settings: any = {
+        speedUnits: [],
+        swimPaceUnits: [DataSwimPaceMinutesPer100Yard.type],
+        paceUnits: [],
+        gradeAdjustedSpeedUnits: [],
+        gradeAdjustedPaceUnits: [],
+        verticalSpeedUnits: [],
+        distanceUnits: DistanceUnits.Miles
+      };
+
+      const depth = new DataDepth(3.86);
+      const maximumDepth = new DataDepthMax(3.86);
+      const convertedDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(depth, settings)[0];
+      const convertedMaximumDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(maximumDepth, settings)[0];
+
+      expect(convertedDepth.getType()).toBe(DataDepthFeet.type);
+      expect(convertedDepth.getValue()).toBeCloseTo(12.664, 3);
+      expect(convertedDepth.getDisplayValue()).toBe('12.66');
+      expect(convertedMaximumDepth.getType()).toBe(DataDepthMaxFeet.type);
+      expect(convertedMaximumDepth.getDisplayValue()).toBe('12.66');
+      expect(depth.toJSON()).toEqual({ [DataDepth.type]: 3.86 });
+      expect(maximumDepth.toJSON()).toEqual({ [DataDepthMax.type]: 3.86 });
+    });
+
     it('should include derived types by default', () => {
       const _types = [DataSpeedKilometersPerHour.type, DataPace.type];
       const settings: any = {

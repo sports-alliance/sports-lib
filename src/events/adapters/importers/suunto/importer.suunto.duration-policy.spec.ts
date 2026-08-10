@@ -1,9 +1,18 @@
-import { EventImporterSuuntoJSON } from './importer.suunto.json';
+import { EventImporterSuuntoJSON, SuuntoSampleMapper } from './importer.suunto.json';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
+import { DataDepth } from '../../../../data/data.depth';
 
 describe('EventImporterSuuntoJSON duration policy', () => {
+  it('continues to treat Suunto sample depth as canonical meters', () => {
+    const mapper = SuuntoSampleMapper.find(item => item.dataType === DataDepth.type);
+
+    expect(mapper).toBeDefined();
+    expect(mapper!.sampleField).toBe('Depth');
+    expect(mapper!.convertSampleValue(3.86)).toBe(3.86);
+  });
+
   it('keeps Duration as active time and exposes elapsed time separately', async () => {
     const payload = {
       DeviceLog: {

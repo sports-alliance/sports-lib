@@ -3,6 +3,7 @@ import { DataAltitude } from '../../../../data/data.altitude';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataCadence } from '../../../../data/data.cadence';
 import { DataTemperature } from '../../../../data/data.temperature';
+import { DataDepth } from '../../../../data/data.depth';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataSpeed } from '../../../../data/data.speed';
 import { DataVerticalSpeed } from '../../../../data/data.vertical-speed';
@@ -195,6 +196,12 @@ export const FITSampleMapper: {
     dataType: DataTemperature.type,
     getSampleValue: (sample: any) => {
       return sample.temperature;
+    }
+  },
+  {
+    dataType: DataDepth.type,
+    getSampleValue: (sample: any) => {
+      return isNumber(sample.depth) && sample.depth >= 0 ? sample.depth / 1000 : null;
     }
   },
   {

@@ -6,6 +6,9 @@ preserving explicit values. Supported activity aliases are normalized to canonic
 Snorkeling and Mermaiding. The API reference documents the supported consumer API; implementation adapters and parsers
 remain available for compatibility but are intentionally outside this reference.
 
+FIT imports normalize record-level depth samples to canonical meters and retain session maximum depth. Depth and
+maximum-depth display variants follow the first swim-pace preference, using meters for `/100m` and feet for `/100yd`.
+
 ## Start here
 
 Install the package:

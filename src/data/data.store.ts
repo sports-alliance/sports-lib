@@ -207,7 +207,11 @@ import { DataVerticalRatioMin } from './data.vertical-ratio-min';
 import { DataVerticalRatioMax } from './data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from './data.vertical-ratio-avg';
 import { DataDescription } from './data.description';
-import { DistanceUnits, UserUnitSettingsInterface } from '../users/settings/user.unit.settings.interface';
+import {
+  DistanceUnits,
+  SwimPaceUnits,
+  UserUnitSettingsInterface
+} from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
 import { DataAirPowerMax } from './data.air-power-max';
@@ -382,8 +386,8 @@ import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
 import { DataFitnessAge } from './data.fitness-age';
 import { DataMaxHRSetting } from './data.max-hr-setting';
 
-import { DataDepth } from './data.depth';
-import { DataDepthMax } from './data.depth-max';
+import { DataDepth, DataDepthFeet } from './data.depth';
+import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMax,
@@ -832,7 +836,9 @@ export const DataStore: any = {
   DataFitnessAge,
   DataMaxHRSetting,
   DataDepth,
+  DataDepthFeet,
   DataDepthMax,
+  DataDepthMaxFeet,
   DataJumpHangTimeMin,
   DataJumpHangTimeMax,
   DataJumpHangTimeAvg,
@@ -997,6 +1003,7 @@ export class DynamicDataLoader {
   ];
 
   static advancedDataTypes = [
+    DataDepth.type,
     DataGrade.type,
     DataVerticalSpeed.type,
     DataTemperature.type,
@@ -1047,6 +1054,12 @@ export class DynamicDataLoader {
 
   // @todo perhaps this can be simplified with using getValue if it becomes static of the data it self
   static dataTypeUnitGroups: DataTypeUnitGroups = {
+    [DataDepth.type]: {
+      [DataDepthFeet.type]: convertMetersToFeet
+    },
+    [DataDepthMax.type]: {
+      [DataDepthMaxFeet.type]: convertMetersToFeet
+    },
     [DataSpeed.type]: {
       [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
       [DataSpeedMilesPerHour.type]: convertSpeedToSpeedInMilesPerHour,
@@ -1499,6 +1512,17 @@ export class DynamicDataLoader {
     return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Miles ? distanceImperialDataType : dataType;
   }
 
+  private static getDepthUnitDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string | null {
+    const usesYards = userUnitSettings?.swimPaceUnits?.[0] === SwimPaceUnits.MinutesPer100Yard;
+    if (dataType === DataDepth.type) {
+      return usesYards ? DataDepthFeet.type : DataDepth.type;
+    }
+    if (dataType === DataDepthMax.type) {
+      return usesYards ? DataDepthMaxFeet.type : DataDepthMax.type;
+    }
+    return null;
+  }
+
   private static getJumpSpeedUnitMappings(
     dataType: string,
     userUnitSettings?: UserUnitSettingsInterface
@@ -1637,6 +1661,15 @@ export class DynamicDataLoader {
     }
     unitBasedDataTypes = unitBasedDataTypes.concat(
       dataTypes.reduce((accu: string[], dataType: string) => {
+        const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
+        if (depthDataType && accu.indexOf(depthDataType) === -1) {
+          accu.push(depthDataType);
+        }
+        return accu;
+      }, [])
+    );
+    unitBasedDataTypes = unitBasedDataTypes.concat(
+      dataTypes.reduce((accu: string[], dataType: string) => {
         const jumpSpeedDataTypes = this.getJumpSpeedUnitDataTypes(dataType, userUnitSettings);
         if (!jumpSpeedDataTypes) {
           return accu;
@@ -1684,6 +1717,10 @@ export class DynamicDataLoader {
   static getUnitBasedDataTypesFromDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string[] {
     if (!userUnitSettings) {
       return [dataType];
+    }
+    const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
+    if (depthDataType) {
+      return [depthDataType];
     }
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
     if (distanceDataType) {
@@ -1737,6 +1774,18 @@ export class DynamicDataLoader {
       return [data];
     }
     const dataType = data.getType();
+    const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
+    if (depthDataType) {
+      if (depthDataType === dataType) {
+        return [data];
+      }
+      return [
+        this.getDataInstanceFromDataType(
+          depthDataType,
+          DynamicDataLoader.dataTypeUnitGroups[dataType][depthDataType](<number>data.getValue())
+        )
+      ];
+    }
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
     const distanceImperialDataType = this.getDistanceImperialDataType(dataType);
     const distanceUnitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];

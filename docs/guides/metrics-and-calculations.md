@@ -30,7 +30,7 @@ Time metric semantics:
 - `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
 
 High-level metric domains include:
-- Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, grade, vertical metrics
+- Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, depth, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
 - Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, legacy three-dimensional strain evidence
@@ -57,6 +57,9 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 - Distance/GNSS distance are generated from latitude/longitude when missing.
 - Speed is generated from distance deltas and time deltas.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
+- FIT record depth uses the FIT profile scale (`Depth(m) = record.depth / 1000`). Canonical depth streams and maximum
+  depth stats remain meters. The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
+  while `Swim Pace in minutes per 100 yard` selects feet.
 - Missing minimum, maximum, and average pace-family stats are hydrated from canonical speed stats for events, activities,
   and laps. Pace and swim pace invert the speed extrema (`maximum speed -> minimum pace`); grade-adjusted pace follows
   the same rule while retaining the existing raw-speed bounds. Explicit pace stats are never replaced. Native JSON
@@ -398,6 +401,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Cycling Seated Time` (unit: `s`)
 - `Cycling Standing Time` (unit: `s`)
 - `Depth` (unit: `m`)
+- `Depth in feet` (unit: `ft`)
 - `Descent`
 - `Descent Time`
 - `Description`
@@ -626,6 +630,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum Altitude`
 - `Maximum Cadence`
 - `Maximum Depth` (unit: `m`)
+- `Maximum Depth in feet` (unit: `ft`)
 - `Maximum Effort Pace`
 - `Maximum Effort Pace in minutes per mile`
 - `Maximum EHPE`

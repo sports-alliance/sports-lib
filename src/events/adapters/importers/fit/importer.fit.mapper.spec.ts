@@ -10,6 +10,7 @@ import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
 import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
+import { DataDepth } from '../../../../data/data.depth';
 import { EventImporterFIT } from './importer.fit';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 import {
@@ -22,6 +23,31 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
+  it('maps FIT record depth from millimeters to canonical meters', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
+
+    expect(mapper).toBeDefined();
+    expect(mapper!.getSampleValue({ depth: 3860 })).toBe(3.86);
+    expect(mapper!.getSampleValue({ depth: 0 })).toBe(0);
+    expect(mapper!.getSampleValue({ depth: -1 })).toBeNull();
+    expect(mapper!.getSampleValue({ depth: Number.NaN })).toBeNull();
+  });
+
+  it('imports the Garmin snorkeling fixture as a meter-based depth stream', async () => {
+    const fixturePath = path.resolve(__dirname, '../../../../../samples/fit/2025-08-27_10-52.fit');
+    const fileBuffer = fs.readFileSync(fixturePath);
+    const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+
+    const event = await EventImporterFIT.getFromArrayBuffer(arrayBuffer);
+    const values = event
+      .getFirstActivity()
+      .getStreamData(DataDepth.type)
+      .filter(value => Number.isFinite(value)) as number[];
+
+    expect(values.length).toBeGreaterThan(700);
+    expect(Math.max(...values)).toBeCloseTo(3.86, 2);
+  });
+
   it('should map Ground Time as milliseconds without scaling', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataGroundTime.type);
     expect(mapper).toBeDefined();

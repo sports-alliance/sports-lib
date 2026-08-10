@@ -35,6 +35,8 @@ describe('ActivityTypes', () => {
       ActivityTypeGroups.WaterSportsGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Diving)).toBe(ActivityTypeGroups.DivingGroup);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Snorkeling)).toBe(ActivityTypeGroups.DivingGroup);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Mermaiding)).toBe(ActivityTypeGroups.DivingGroup);
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Tennis)).toBe(
       ActivityTypeGroups.TeamRacketGroup
     );
@@ -71,6 +73,13 @@ describe('ActivityTypes', () => {
   it('should resolve HIIT aliases to canonical HIIT', () => {
     expect(ActivityTypes.hiit).toBe(ActivityTypes.HIIT);
     expect(ActivityTypesHelper.resolveActivityType('HIIT')).toBe(ActivityTypes.HIIT);
+  });
+
+  it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {
+    expect(ActivityTypes.snorkeling).toBe(ActivityTypes.Snorkeling);
+    expect(ActivityTypesHelper.resolveActivityType('snorkeling')).toBe(ActivityTypes.Snorkeling);
+    expect(ActivityTypes.mermaiding).toBe(ActivityTypes.Mermaiding);
+    expect(ActivityTypesHelper.resolveActivityType('mermaiding')).toBe(ActivityTypes.Mermaiding);
   });
 
   it('should derive pace and speed for hiking activities', () => {
@@ -117,6 +126,10 @@ describe('ActivityTypes', () => {
     });
     it('should return true for ScubaDiving', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.ScubaDiving)).toBe(true);
+    });
+    it('should return true for Snorkeling and Mermaiding', () => {
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Snorkeling)).toBe(true);
+      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Mermaiding)).toBe(true);
     });
     it('should return false for Kayaking', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Kayaking)).toBe(false);

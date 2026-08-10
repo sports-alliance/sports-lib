@@ -632,7 +632,13 @@ export enum ActivityTypes {
   /**
    * Snorkeling
    */
+  'snorkeling' = 'Snorkeling',
   'Snorkeling' = 'Snorkeling',
+  /**
+   * Mermaiding
+   */
+  'mermaiding' = 'Mermaiding',
+  'Mermaiding' = 'Mermaiding',
   /**
    * Swimrun
    */
@@ -1017,7 +1023,9 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
-  ActivityTypes.FreeDiving
+  ActivityTypes.FreeDiving,
+  ActivityTypes.Snorkeling,
+  ActivityTypes.Mermaiding
 ];
 
 export const ACTIVITIES_WITH_SPEED_METRICS_HIDDEN_BY_DEFAULT = [
@@ -1133,7 +1141,9 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.DivingGroup]: [
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
-      ActivityTypes.FreeDiving
+      ActivityTypes.FreeDiving,
+      ActivityTypes.Snorkeling,
+      ActivityTypes.Mermaiding
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
       ActivityTypes.Golf,

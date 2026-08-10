@@ -2,7 +2,8 @@
 
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
 and native JSON hydration consistently fill missing speed-derived pace summaries on events, activities, and laps while
-preserving explicit values. The API reference documents the supported consumer API; implementation adapters and parsers
+preserving explicit values. Supported activity aliases are normalized to canonical types, including Diving-group
+Snorkeling and Mermaiding. The API reference documents the supported consumer API; implementation adapters and parsers
 remain available for compatibility but are intentionally outside this reference.
 
 ## Start here

@@ -7,6 +7,11 @@ summary: Parse supported activity formats into Sports Lib's shared event model.
 
 Use `SportsLib` to import recorded activities. GPX accepts a DOM parser in Node.js, TCX accepts a parsed XML document, FIT accepts binary data, and native JSON restores a previous Sports Lib export.
 
+Activity types are normalized through `ActivityTypesHelper.resolveActivityType()` before they are stored on
+activities. For example, `snorkeling` resolves to `Snorkeling`; `Mermaiding` is a canonical diving activity
+when a provider supplies that sport name. A provider-specific numeric FIT mapping is added only when the FIT
+profile or a representative file establishes one.
+
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom
 ```

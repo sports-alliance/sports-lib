@@ -164,6 +164,7 @@ import { DataHeartRateUsed } from './data.heart-rate-used';
 import { DataPowerPodUsed } from './data.power-pod-used';
 import { DataAltiBaroProfile } from './data.alti-baro-profile';
 import { DataIBI } from './data.ibi';
+import { DataIntensity } from './data.intensity';
 import { DataSteps } from './data.steps';
 import { DataPoolLength } from './data.pool-length';
 import { DataSwimDistance } from './data.swim-distance';
@@ -687,6 +688,7 @@ export const DataStore: any = {
   DataVerticalSpeedMinKilometerPerHour,
   DataVerticalSpeedMinMilesPerHour,
   DataIBI,
+  DataIntensity,
   DataSteps,
   DataStepsOld, // @todo find way to make this easy to migrate for projects that persist data based on types
   DataStrydAltitude,

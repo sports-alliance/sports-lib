@@ -23,6 +23,7 @@ import { DataAltiBaroProfile } from './data.alti-baro-profile';
 import { DataActivityTypes } from './data.activity-types';
 import { DataDeviceNames } from './data.device-names';
 import { DataDescription } from './data.description';
+import { DataIntensity } from './data.intensity';
 import { DataPosition } from './data.position';
 import { DataActiveLap } from './data-active-lap';
 import { DataBalance } from './data.balance';
@@ -109,6 +110,7 @@ describe('Data Serialization Safety', () => {
     [DataActivityTypes, [['Running', 'Cycling']]],
     [DataDeviceNames, [['Garmin', 'Suunto']]],
     [DataDescription, ['Test Description']],
+    [DataIntensity, ['active']],
     [DataPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
     [DataActiveLap, [true]],
     [DataBalance, [50]],

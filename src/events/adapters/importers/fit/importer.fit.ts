@@ -13,6 +13,7 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
 import { GarminSports, GarminSubSports } from '../../../../fit/garmin-profile.data';
 import { DataPause } from '../../../../data/data.pause';
+import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
 import { DataCadence } from '../../../../data/data.cadence';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
@@ -2254,6 +2255,10 @@ export class EventImporterFIT {
 
     if (Number.isFinite(object.intensity_factor)) {
       stats.push(new DataPowerIntensityFactor(object.intensity_factor));
+    }
+
+    if (isNumberOrString(object.intensity)) {
+      stats.push(new DataIntensity(object.intensity));
     }
 
     if (Number.isFinite(object.training_stress_score)) {

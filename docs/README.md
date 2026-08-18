@@ -8,6 +8,7 @@ remain available for compatibility but are intentionally outside this reference.
 
 FIT imports normalize record-level depth samples to canonical meters and retain session maximum depth. Depth and
 maximum-depth display variants follow the first swim-pace preference, using meters for `/100m` and feet for `/100yd`.
+FIT session and lap intensity enums are retained as the string-valued `Intensity` stat.
 
 ## Start here
 

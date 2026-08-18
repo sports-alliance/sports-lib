@@ -445,6 +445,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Heart Rate Used`
 - `Height` (unit: `m`)
 - `IBI` (unit: `ms`)
+- `Intensity`
 - `Impact Loading Rate Balance Left`
 - `Impact Loading Rate Balance Right`
 - `Jump Count`

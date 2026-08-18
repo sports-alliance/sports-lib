@@ -135,6 +135,7 @@ export * from './data.heart-rate-zone-two-duration';
 export * from './data.heart-rate';
 export * from './data.height';
 export * from './data.ibi';
+export * from './data.intensity';
 export * from './data.interface';
 export * from './data.json.interface';
 export * from './data.jump-count';

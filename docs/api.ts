@@ -121,6 +121,7 @@ export {
   DataEvent,
   DataEnergy,
   DataHeartRate,
+  DataIntensity,
   DataMovingTime,
   DataPause,
   DataPower,

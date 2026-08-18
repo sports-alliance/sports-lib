@@ -45,6 +45,9 @@ FIT record-level `depth` values are normalized from the profile's millimeter sca
 meters. FIT session `max_depth` and Suunto depth values remain canonical meters. Depth is available as an advanced chart
 metric; callers can request `Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
 
+FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
+such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.
+
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
 
 Native JSON hydration preserves explicit stats and fills missing pace, swim-pace, and grade-adjusted-pace summaries

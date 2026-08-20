@@ -20,6 +20,9 @@ import { DataHeartRateAvg } from '../data/data.heart-rate-avg';
 import { DataCadenceMax } from '../data/data.cadence-max';
 import { DataPowerAvg } from '../data/data.power-avg';
 import { DataCadenceAvg } from '../data/data.cadence-avg';
+import { DataStrokeRate } from '../data/data.stroke-rate';
+import { DataStrokeRateAvg } from '../data/data.stroke-rate-avg';
+import { DataStrokeRateMax } from '../data/data.stroke-rate-max';
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataPowerMax } from '../data/data.power-max';
 import { DataDescent } from '../data/data.descent';
@@ -136,8 +139,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.type).toEqual(ActivityTypes.Swimming);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(2300);
             expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(458);
-            expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(20);
-            expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(23);
+            expect((activity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(20);
+            expect((activity.getStat(DataStrokeRateMax.type) as DataNumber).getValue()).toEqual(23);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(126);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(146);
             expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(50);
@@ -154,7 +157,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             expect(activity.hasStreamData(DataSpeed.type)).toBeTruthy();
             expect(activity.hasStreamData(DataHeartRate.type)).toBeTruthy();
-            expect(activity.hasStreamData(DataCadence.type)).toBeTruthy();
+            expect(activity.hasStreamData(DataStrokeRate.type)).toBeTruthy();
+            expect(activity.hasStreamData(DataCadence.type)).toBeFalsy();
             expect(activity.hasStreamData(DataDistance.type)).toBeTruthy();
 
             SpecUtils.assertNearEqualTime(
@@ -187,8 +191,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.type).toEqual(ActivityTypes.Swimming);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(780);
             expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(235);
-            expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(26);
-            expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(28);
+            expect((activity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(26);
+            expect((activity.getStat(DataStrokeRateMax.type) as DataNumber).getValue()).toEqual(28);
             expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(20);
             expect((activity.getStat(DataActiveLengths.type) as DataNumber).getValue()).toEqual(39);
             expect((activity.getStat(DataSWOLF25m.type) as DataSWOLF25m).getValue()).toEqual(63.9);
@@ -230,7 +234,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.type).toEqual(ActivityTypes.Swimming);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(2000);
             expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(401);
-            expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(28);
+            expect((activity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(28);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(131);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(157);
             expect((activity.getStat(DataPoolLength.type) as DataNumber).getValue()).toEqual(25);
@@ -302,8 +306,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.type).toEqual(ActivityTypes.OpenWaterSwimming);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(1505.03);
             expect((activity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(403);
-            expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(32);
-            expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(48);
+            expect((activity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(32);
+            expect((activity.getStat(DataStrokeRateMax.type) as DataNumber).getValue()).toEqual(48);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(158);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(170);
             expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(993);
@@ -433,14 +437,15 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           .then((event: EventInterface) => {
             // Swim
             const swimActivity = event.getFirstActivity();
-            // expect(swimActivity.type).toEqual(ActivityTypes.OpenWaterSwimming); // TODO To be auto-detected by sports-data-science library (work in progress)
+            expect(swimActivity.type).toEqual(ActivityTypes.Swimming);
             expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3689);
             expect(swimActivity.startDate.toISOString()).toEqual('2018-10-13T17:05:01.000Z');
             expect(swimActivity.endDate.toISOString()).toEqual('2018-10-13T18:06:29.000Z');
 
             expect((swimActivity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(3869, 0);
-            expect((swimActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(36);
-            expect((swimActivity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(39);
+            expect((swimActivity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(36);
+            expect((swimActivity.getStat(DataStrokeRateMax.type) as DataNumber).getValue()).toEqual(39);
+            expect(swimActivity.getStat(DataCadenceAvg.type)).toBeUndefined();
             expect((swimActivity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(74);
             expect((swimActivity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(115);
 
@@ -2218,8 +2223,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             expect((swimActivity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(3933.3);
             expect((swimActivity.getStat(DataEnergy.type) as DataNumber).getValue()).toEqual(869);
-            expect((swimActivity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(37);
-            expect((swimActivity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(48);
+            expect((swimActivity.getStat(DataStrokeRateAvg.type) as DataNumber).getValue()).toEqual(37);
+            expect((swimActivity.getStat(DataStrokeRateMax.type) as DataNumber).getValue()).toEqual(48);
             expect((swimActivity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(93);
             expect((swimActivity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(112);
             expect((swimActivity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(2294);

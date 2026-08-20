@@ -48,11 +48,25 @@ metric; callers can request `Depth` explicitly through `ActivityParsingOptions.s
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.
 
+Cadence-shaped source fields are normalized by activity context. Swimming, open-water swimming, rowing, indoor rowing,
+kayaking, canoeing, paddling, and stand-up paddling expose `Stroke Rate` in `spm`; other activities continue to expose
+`Cadence` in `rpm`. The same rule covers streams plus activity and lap summaries, and prevents both semantic families
+from being emitted for one activity.
+
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
 
 Native JSON hydration preserves explicit stats and fills missing pace, swim-pace, and grade-adjusted-pace summaries
 from compatible speed summaries on events, activities, and laps. This keeps older speed-only exports readable with the
 same derived-stat behavior as newly parsed files; serializing the hydrated model includes the additive derived stats.
+It also converts cadence-shaped data to stroke rate for the supported activity types, so stored native JSON does not
+require reparsing from FIT, TCX, or GPX. Pool-swim length JSON keeps its existing `avgCadence` property name while
+hydrating that value as `DataStrokeRate`.
+
+Complete native event JSON contains the activities that determine event-summary semantics. Applications that persist
+summary-only projections separately from their activities should opt in after hydration by calling
+`normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`. The helper changes only unambiguous
+homogeneous stroke-rate summaries; empty, unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not
+infer relationships omitted by an application-specific persistence layout.
 
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`

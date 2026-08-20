@@ -30,7 +30,7 @@ Time metric semantics:
 - `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
 
 High-level metric domains include:
-- Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, power, altitude, depth, grade, vertical metrics
+- Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, stroke rate, power, altitude, depth, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
 - Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, legacy three-dimensional strain evidence
@@ -106,8 +106,26 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
-- Cadence minimum/average exclude zero values.
+- Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
+
+Cadence and stroke-rate semantics are activity-aware:
+
+- `Cadence` uses revolutions per minute (`rpm`) for activities such as running and cycling.
+- `Stroke Rate` uses strokes or paddle cycles per minute (`spm`) for `Swimming`, `Open Water Swimming`, `Rowing`,
+  `Indoor Rowing`, `Kayaking`, `Canoeing`, `Paddling`, and `Stand Up Paddling`.
+- Source formats may call both concepts cadence. Importers retain those protocol field names, then one centralized
+  activity-type resolver produces the canonical metric family. The canonical activity has one family, not duplicate
+  cadence and stroke-rate streams or summaries.
+- Native JSON hydration applies the same resolver to activity and lap streams/stats. Existing stored Sports Lib JSON
+  therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
+  A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
+  while newly generated mixed events aggregate cadence and stroke rate separately.
+- Applications that persist summary-only projections without their contributing activities can call
+  `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)` after hydration. This opt-in boundary
+  keeps application persistence concerns outside Sports Lib while reusing its centralized sport-family policy.
+- Pool-swim length JSON retains the `avgCadence` key for storage compatibility, but its in-memory value is
+  `DataStrokeRate` and its unit is `spm`.
 
 5) Power analytics (NP, power curve, FTP, IF, and capacity models)
 
@@ -344,6 +362,8 @@ BatteryConsumption = max(BatteryCharge) - min(BatteryCharge)
 BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
 ```
 
+SWOLF uses `Average Stroke Rate`; the naming change does not alter the calculation.
+
 - Moving time fallback order: lap moving time -> speed-threshold integration -> timer time fallback.
 - Jump families (height, distance, speed, rotations, score, hang time) compute min/max/avg from jump events when available.
 
@@ -354,6 +374,7 @@ BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
   - Sums duration, pause, distance, ascent, descent, energy.
   - Aggregates zone durations by summation.
   - Averages many average-like stats using iterative pairwise averaging.
+  - Keeps cadence and stroke-rate min/avg/max families separate.
   - Aggregates power curves by duration-wise maxima (power and W/kg) without inferring event-level CP/W′.
 
 Full Metric Catalog (Appendix)
@@ -511,6 +532,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Steps`
 - `Stop ALL Event`
 - `Stop Event`
+- `Stroke Rate` (unit: `spm`)
 - `Swim Pace` (unit: `min/100m`)
 - `Temperature` (unit: `°C`)
 - `Time`
@@ -611,6 +633,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average Stride Length`
 - `Average Stroke Count`
 - `Average Stroke Distance`
+- `Average Stroke Rate` (unit: `spm`)
 - `Average Swim Pace`
 - `Average swim pace in minutes per 100 yard`
 - `Average SWOLF 25m`
@@ -675,6 +698,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum speed in knots`
 - `Maximum speed in meters per minute`
 - `Maximum speed in miles per hour`
+- `Maximum Stroke Rate` (unit: `spm`)
 - `Maximum Swim Pace`
 - `Maximum swim pace in minutes per 100 yard`
 - `Maximum Temperature`
@@ -733,6 +757,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Minimum speed in knot`
 - `Minimum speed in meters per minute`
 - `Minimum speed in miles per hour`
+- `Minimum Stroke Rate` (unit: `spm`)
 - `Minimum Swim Pace`
 - `Minimum swim pace in minutes per 100 yard`
 - `Minimum Temperature`

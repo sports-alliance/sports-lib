@@ -14,6 +14,10 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
 import { ActivityTypes } from '../../../../activities/activity.types';
+import {
+  normalizeActivityMetricSemanticsForStats,
+  normalizeStrokeRateSemanticsForActivity
+} from '../../../../activities/activity.metric-semantics';
 import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
 import { StreamInterface } from '../../../../streams/stream.interface';
 import { Stream, StreamJSONInterface } from '../../../../streams/stream';
@@ -32,8 +36,9 @@ import { hydrateMissingSpeedDerivedStats } from '../../../../stats/speed-derived
 
 export class EventImporterJSON {
   /**
-   * Restores a native JSON event, canonicalizing stat keys and hydrating missing speed-derived
-   * pace summaries on the event, its activities, and their laps.
+   * Restores a native JSON event, canonicalizing stat keys and activity-aware stroke-rate
+   * semantics while hydrating missing speed-derived pace summaries on the event, its activities,
+   * and their laps.
    */
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     const event = new Event(
@@ -53,6 +58,11 @@ export class EventImporterJSON {
     (json.activities || []).forEach(activityJSON => {
       event.addActivity(this.getActivityFromJSON(activityJSON));
     });
+    const activities = event.getActivities();
+    normalizeActivityMetricSemanticsForStats(
+      event,
+      activities.map(activity => activity.type)
+    );
     return event;
   }
 
@@ -271,7 +281,10 @@ export class EventImporterJSON {
     );
   }
 
-  /** Restores a native JSON activity and hydrates missing speed-derived pace summaries on it and its laps. */
+  /**
+   * Restores a native JSON activity, normalizes activity-aware stroke-rate semantics, and hydrates
+   * missing speed-derived pace summaries on it and its laps.
+   */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),
@@ -305,6 +318,7 @@ export class EventImporterJSON {
         activity.addEvent(this.getActivityEventFromJSON(activityEvent));
       });
     }
+    normalizeStrokeRateSemanticsForActivity(activity);
     return activity;
   }
 }

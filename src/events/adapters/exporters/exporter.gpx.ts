@@ -4,6 +4,7 @@ import { DataLatitudeDegrees } from '../../../data/data.latitude-degrees';
 import { DataDistance } from '../../../data/data.distance';
 import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataCadence } from '../../../data/data.cadence';
+import { DataStrokeRate } from '../../../data/data.stroke-rate';
 import { DataTemperature } from '../../../data/data.temperature';
 import { DataPower } from '../../../data/data.power';
 import { DataAltitude } from '../../../data/data.altitude';
@@ -40,6 +41,7 @@ export class EventExporterGPX implements EventExporter {
               DataDistance.type,
               DataHeartRate.type,
               DataCadence.type,
+              DataStrokeRate.type,
               DataTemperature.type,
               DataPower.type,
               DataAltitude.type,
@@ -54,7 +56,7 @@ export class EventExporterGPX implements EventExporter {
                   power: data[DataPower.type] || undefined,
                   speed: data[DataSpeed.type] || undefined,
                   atemp: data[DataTemperature.type] || undefined,
-                  cad: data[DataCadence.type] || undefined,
+                  cad: data[DataStrokeRate.type] || data[DataCadence.type] || undefined,
                   extensions: {
                     power: data[DataPower.type] || undefined,
                     distance: data[DataDistance.type] || undefined

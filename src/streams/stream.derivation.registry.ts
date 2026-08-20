@@ -18,6 +18,8 @@ import { DataSpeed } from '../data/data.speed';
 import { DataStanceTimeBalanceLeft } from '../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../data/data-stance-time-balance-right';
 import { DataSwimPace } from '../data/data.swim-pace';
+import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 
 export interface StreamDerivationRule {
   provides: string;
@@ -26,6 +28,11 @@ export interface StreamDerivationRule {
 }
 
 const STREAM_DERIVATION_RULES: StreamDerivationRule[] = [
+  {
+    // Source protocols commonly name this field cadence; activity semantics perform the relabel.
+    provides: DataStrokeRate.type,
+    requiresAll: [DataCadence.type]
+  },
   {
     provides: DataAltitudeSmooth.type,
     requiresAll: [DataAltitude.type]

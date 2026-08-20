@@ -4,6 +4,8 @@ import { DataDistance } from '../data/data.distance';
 import { DataGrade } from '../data/data.grade';
 import { DataPace } from '../data/data.pace';
 import { DataSpeed } from '../data/data.speed';
+import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 import {
   canDeriveStreamType,
   getDependencyTypesForResolution,
@@ -22,6 +24,12 @@ describe('stream.derivation.registry', () => {
     const rule = getStreamDerivationRule(DataPace.type);
     expect(rule).not.toBeNull();
     expect(rule?.requiresAll).toEqual([DataSpeed.type]);
+  });
+
+  it('should define Stroke Rate as an activity-aware semantic projection of Cadence', () => {
+    const rule = getStreamDerivationRule(DataStrokeRate.type);
+    expect(rule).not.toBeNull();
+    expect(rule?.requiresAll).toEqual([DataCadence.type]);
   });
 
   it('should resolve Grade dependencies including one-of candidates', () => {

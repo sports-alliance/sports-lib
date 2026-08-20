@@ -29,6 +29,7 @@ import { DataAbsolutePressureMax } from './data.absolute-pressure-max';
 import { DataAbsolutePressureAvg } from './data.absolute-pressure-avg';
 import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
+import { DataStrokeRate } from './data.stroke-rate';
 import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataElapsedTime } from './data.elapsed-time';
@@ -127,6 +128,9 @@ import { DataDescent } from './data.descent';
 import { DataCadenceMin } from './data.cadence-min';
 import { DataCadenceMax } from './data.cadence-max';
 import { DataCadenceAvg } from './data.cadence-avg';
+import { DataStrokeRateMin } from './data.stroke-rate-min';
+import { DataStrokeRateMax } from './data.stroke-rate-max';
+import { DataStrokeRateAvg } from './data.stroke-rate-avg';
 import { DataAscentTime } from './data.ascent-time';
 import { DataAscent } from './data.ascent';
 import { DataAltitudeAvg } from './data.altitude-avg';
@@ -498,6 +502,7 @@ export const DataStore: any = {
   DataElapsedTime,
   DataDistance,
   DataCadence,
+  DataStrokeRate,
   DataGPSAltitude,
   DataAltitude,
   DataAbsolutePressure,
@@ -548,6 +553,9 @@ export const DataStore: any = {
   DataCadenceMin,
   DataCadenceMax,
   DataCadenceAvg,
+  DataStrokeRateMin,
+  DataStrokeRateMax,
+  DataStrokeRateAvg,
   DataAscentTime,
   DataAscent,
   DataAltitudeMin,
@@ -894,6 +902,11 @@ export class DynamicDataLoader {
       max: DataEffortPaceMax.type,
       avg: DataEffortPaceAvg.type
     },
+    [DataStrokeRate.type]: {
+      min: DataStrokeRateMin.type,
+      max: DataStrokeRateMax.type,
+      avg: DataStrokeRateAvg.type
+    },
     [DataJumpDistance.type]: {
       min: DataJumpDistanceMin.type,
       max: DataJumpDistanceMax.type,
@@ -993,6 +1006,7 @@ export class DynamicDataLoader {
     DataHeartRate.type,
     DataAltitude.type,
     DataCadence.type,
+    DataStrokeRate.type,
     DataPower.type,
     DataPace.type,
     DataGradeAdjustedSpeed.type,

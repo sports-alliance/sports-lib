@@ -13,6 +13,8 @@ import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { DataPace } from '../data/data.pace';
 import { DataPowerBalanceLeft } from '../data/data.power-balance-left';
 import { DataSpeed, DataSpeedKilometersPerHour } from '../data/data.speed';
+import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 import { Stream } from './stream';
 import { getStreamSelectionFromOptions, isStreamTypeAllowedForImport, pruneActivityStreamsBySelection } from './stream.selection';
 
@@ -70,6 +72,16 @@ describe('stream.selection', () => {
     expect(selection?.outputAllowSet.has(DataPace.type)).toBe(true);
     expect(selection?.importAllowSet.has(DataPace.type)).toBe(true);
     expect(selection?.importAllowSet.has(DataSpeed.type)).toBe(true);
+  });
+
+  it('should import cadence-shaped source fields when Stroke Rate is requested', () => {
+    const selection = getStreamSelectionFromOptions(
+      new ActivityParsingOptions({ streams: { includeTypes: [DataStrokeRate.type] } })
+    );
+
+    expect(selection?.outputAllowSet).toEqual(new Set([DataStrokeRate.type]));
+    expect(selection?.importAllowSet.has(DataStrokeRate.type)).toBe(true);
+    expect(selection?.importAllowSet.has(DataCadence.type)).toBe(true);
   });
 
   it('should expand deep dependencies for grade adjusted pace unit requests', () => {

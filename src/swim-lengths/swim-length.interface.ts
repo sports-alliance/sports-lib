@@ -1,5 +1,5 @@
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
-import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
 import { DataEnergy } from '../data/data.energy';
@@ -20,7 +20,8 @@ export interface SwimLengthInterface extends SerializableClassInterface {
   distance: DataDistance | null;
   poolLength: DataDistance | null;
   avgSpeed: DataSpeed | null;
-  avgCadence: DataCadence | null;
+  /** Average stroke rate. The property name is retained for native JSON compatibility. */
+  avgCadence: DataStrokeRate | null;
   avgHeartRate: DataHeartRate | null;
   maxHeartRate: DataHeartRate | null;
   swolf: number | null;

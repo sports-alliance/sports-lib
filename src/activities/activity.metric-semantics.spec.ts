@@ -9,12 +9,18 @@ import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataStrokeRateAvg } from '../data/data.stroke-rate-avg';
 import { DataStrokeRateMax } from '../data/data.stroke-rate-max';
 import { DataStrokeRateMin } from '../data/data.stroke-rate-min';
+import { Event } from '../events/event';
+import { FileType } from '../events/adapters/file-type.enum';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { Lap } from '../laps/lap';
 import { LapTypes } from '../laps/lap.types';
+import { Privacy } from '../privacy/privacy.class.interface';
 import { Stream } from '../streams/stream';
 import { Activity } from './activity';
-import { normalizeStrokeRateSemanticsForActivity } from './activity.metric-semantics';
+import {
+  normalizeActivityMetricSemanticsForStats,
+  normalizeStrokeRateSemanticsForActivity
+} from './activity.metric-semantics';
 import { ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 const strokeRateActivityTypes = [
@@ -37,6 +43,36 @@ describe('activity metric semantics', () => {
     expect(ActivityTypesHelper.usesStrokeRate(ActivityTypes.Cycling)).toBe(false);
     expect(ActivityTypesHelper.usesStrokeRate(ActivityTypes.Running)).toBe(false);
     expect(ActivityTypesHelper.usesStrokeRate(ActivityTypes.Rafting)).toBe(false);
+  });
+
+  it('normalizes summary-only stats when every supplied activity type uses stroke rate', () => {
+    const event = new Event('Summary projection', new Date(0), new Date(1000), FileType.FIT, Privacy.Private);
+    event.addStat(new DataCadenceAvg(32));
+    event.addStat(new DataCadenceMin(30));
+    event.addStat(new DataCadenceMax(34));
+
+    normalizeActivityMetricSemanticsForStats(event, ['open_water', ActivityTypes.Rowing]);
+
+    expect(event.getStat(DataCadenceAvg.type)).toBeUndefined();
+    expect(event.getStat(DataCadenceMin.type)).toBeUndefined();
+    expect(event.getStat(DataCadenceMax.type)).toBeUndefined();
+    expect(event.getStat(DataStrokeRateAvg.type)?.getValue()).toBe(32);
+    expect(event.getStat(DataStrokeRateMin.type)?.getValue()).toBe(30);
+    expect(event.getStat(DataStrokeRateMax.type)?.getValue()).toBe(34);
+  });
+
+  it.each([
+    { label: 'empty', activityTypes: [] },
+    { label: 'unknown', activityTypes: [ActivityTypes.Rowing, 'Unregistered Water Sport'] },
+    { label: 'mixed', activityTypes: [ActivityTypes.Rowing, ActivityTypes.Cycling] }
+  ])('preserves $label summary-only cadence because its semantics are ambiguous', ({ activityTypes }) => {
+    const event = new Event('Summary projection', new Date(0), new Date(1000), FileType.FIT, Privacy.Private);
+    event.addStat(new DataCadenceAvg(32));
+
+    normalizeActivityMetricSemanticsForStats(event, activityTypes);
+
+    expect(event.getStat(DataCadenceAvg.type)?.getValue()).toBe(32);
+    expect(event.getStat(DataStrokeRateAvg.type)).toBeUndefined();
   });
 
   it.each(strokeRateActivityTypes)('normalizes cadence streams and summaries for %s', activityType => {

@@ -121,6 +121,9 @@ Cadence and stroke-rate semantics are activity-aware:
   therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
   A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
   while newly generated mixed events aggregate cadence and stroke rate separately.
+- Applications that persist summary-only projections without their contributing activities can call
+  `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)` after hydration. This opt-in boundary
+  keeps application persistence concerns outside Sports Lib while reusing its centralized sport-family policy.
 - Pool-swim length JSON retains the `avgCadence` key for storage compatibility, but its in-memory value is
   `DataStrokeRate` and its unit is `spm`.
 

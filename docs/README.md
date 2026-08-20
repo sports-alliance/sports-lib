@@ -6,6 +6,10 @@ preserving explicit values. Supported activity aliases are normalized to canonic
 Snorkeling and Mermaiding. The API reference documents the supported consumer API; implementation adapters and parsers
 remain available for compatibility but are intentionally outside this reference.
 
+Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
+summaries separately from activities can explicitly canonicalize those projections with
+`normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.
+
 FIT imports normalize record-level depth samples to canonical meters and retain session maximum depth. Depth and
 maximum-depth display variants follow the first swim-pace preference, using meters for `/100m` and feet for `/100yd`.
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat.

@@ -13,10 +13,10 @@ import { LapJSONInterface } from '../../../../laps/lap.json.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
-import { ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
+import { ActivityTypes } from '../../../../activities/activity.types';
 import {
-  normalizeStrokeRateSemanticsForActivity,
-  normalizeStrokeRateStats
+  normalizeActivityMetricSemanticsForStats,
+  normalizeStrokeRateSemanticsForActivity
 } from '../../../../activities/activity.metric-semantics';
 import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
 import { StreamInterface } from '../../../../streams/stream.interface';
@@ -59,9 +59,10 @@ export class EventImporterJSON {
       event.addActivity(this.getActivityFromJSON(activityJSON));
     });
     const activities = event.getActivities();
-    if (activities.length > 0 && activities.every(activity => ActivityTypesHelper.usesStrokeRate(activity.type))) {
-      normalizeStrokeRateStats(event);
-    }
+    normalizeActivityMetricSemanticsForStats(
+      event,
+      activities.map(activity => activity.type)
+    );
     return event;
   }
 

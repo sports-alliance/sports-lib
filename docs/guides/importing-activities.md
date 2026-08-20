@@ -62,6 +62,12 @@ It also converts cadence-shaped data to stroke rate for the supported activity t
 require reparsing from FIT, TCX, or GPX. Pool-swim length JSON keeps its existing `avgCadence` property name while
 hydrating that value as `DataStrokeRate`.
 
+Complete native event JSON contains the activities that determine event-summary semantics. Applications that persist
+summary-only projections separately from their activities should opt in after hydration by calling
+`normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`. The helper changes only unambiguous
+homogeneous stroke-rate summaries; empty, unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not
+infer relationships omitted by an application-specific persistence layout.
+
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`
 selects feet, while serialized source values remain meters.

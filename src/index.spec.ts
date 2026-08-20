@@ -1,4 +1,4 @@
-import { SportsLib } from './index';
+import { normalizeActivityMetricSemanticsForStats, SportsLib } from './index';
 import { ActivityTypes } from './activities/activity.types';
 import { DataActivityTypes } from './data/data.activity-types';
 import { DataDistance } from './data/data.distance';
@@ -11,9 +11,36 @@ import { DataDuration } from './data/data.duration';
 import { DataPaceAvg } from './data/data.pace-avg';
 import { DataPower } from './data/data.power';
 import { DataSpeedAvg } from './data/data.speed-avg';
+import { DataCadenceAvg } from './data/data.cadence-avg';
+import { DataStrokeRateAvg } from './data/data.stroke-rate-avg';
 import { LapTypes } from './laps/lap.types';
 
 describe('SportsLib', () => {
+  it('exports opt-in metric normalization for summary-only consumer projections', () => {
+    const event = SportsLib.importFromJSON({
+      name: 'summary-only-open-water-swim',
+      startDate: 0,
+      endDate: 3000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {
+        [DataActivityTypes.type]: [ActivityTypes.OpenWaterSwimming],
+        [DataCadenceAvg.type]: 32
+      },
+      activities: []
+    });
+
+    expect(event.getStat(DataCadenceAvg.type)?.getValue()).toBe(32);
+
+    normalizeActivityMetricSemanticsForStats(event, event.getActivityTypesAsArray());
+
+    expect(event.getStat(DataCadenceAvg.type)).toBeUndefined();
+    expect(event.getStat(DataStrokeRateAvg.type)?.getValue()).toBe(32);
+  });
+
   it('should import native JSON events through the public API with activities and power curves intact', () => {
     const eventCurve = new DataPowerCurve([{ duration: new DataDuration(1), power: new DataPower(300) }]).toJSON();
     const activityCurve = new DataPowerCurve([{ duration: new DataDuration(5), power: new DataPower(250) }]).toJSON();

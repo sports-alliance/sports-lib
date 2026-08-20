@@ -36,6 +36,7 @@ export type {
 /** @category Activities and events */
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
+export { normalizeActivityMetricSemanticsForStats } from '../src/activities/activity.metric-semantics';
 /**
  * Canonical activity types, activity groups, and alias resolution. Snorkeling and Mermaiding
  * are canonical diving activities.

@@ -10,7 +10,7 @@ import { DataStrokeRateMin } from '../data/data.stroke-rate-min';
 import { StatsClassInterface } from '../stats/stats.class.interface';
 import { Stream } from '../streams/stream';
 import { ActivityInterface } from './activity.interface';
-import { ActivityTypesHelper } from './activity.types';
+import { ActivityTypes, ActivityTypesHelper } from './activity.types';
 
 type NumericDataConstructor = {
   new (value: number): DataInterface<number>;
@@ -33,7 +33,7 @@ const CADENCE_TO_STROKE_RATE_STATS: MetricSemanticMapping[] = [
  * Re-labels cadence-shaped stats as stroke rate while preferring an explicitly supplied
  * stroke-rate value when both semantic families are present.
  */
-export function normalizeStrokeRateStats(target: StatsClassInterface): void {
+function normalizeStrokeRateStats(target: StatsClassInterface): void {
   CADENCE_TO_STROKE_RATE_STATS.forEach(mapping => {
     const sourceStat = target.getStat<number>(mapping.source.type);
     if (!sourceStat) {
@@ -45,6 +45,38 @@ export function normalizeStrokeRateStats(target: StatsClassInterface): void {
     }
     target.removeStat(mapping.source.type);
   });
+}
+
+/**
+ * Canonicalizes summary metric semantics using every activity type represented by the stats.
+ *
+ * The target is mutated only when the supplied activity types are non-empty, all resolve to
+ * canonical Sports Lib activity types, and all use stroke-rate semantics. Empty, unknown, and
+ * mixed-family inputs are preserved because their cadence summaries are ambiguous. Explicit
+ * stroke-rate stats take precedence over cadence-shaped compatibility values.
+ *
+ * Host applications that persist summary-only projections can call this after restoring the
+ * projection and determining the activity types that contributed to it.
+ *
+ * @param target Stats-bearing model whose summary values should be canonicalized.
+ * @param activityTypes Activity types represented by the target summary.
+ * @category Activities and events
+ */
+export function normalizeActivityMetricSemanticsForStats(
+  target: StatsClassInterface,
+  activityTypes: readonly unknown[]
+): void {
+  const resolvedActivityTypes = activityTypes
+    .map(activityType => ActivityTypesHelper.resolveActivityType(activityType))
+    .filter((activityType): activityType is ActivityTypes => activityType !== null);
+
+  if (resolvedActivityTypes.length === 0 || resolvedActivityTypes.length !== activityTypes.length) {
+    return;
+  }
+
+  if (resolvedActivityTypes.every(activityType => ActivityTypesHelper.usesStrokeRate(activityType))) {
+    normalizeStrokeRateStats(target);
+  }
 }
 
 /**
@@ -71,6 +103,6 @@ export function normalizeStrokeRateSemanticsForActivity(activity: ActivityInterf
     activity.addStreams(normalizedStreams);
   }
 
-  normalizeStrokeRateStats(activity);
-  activity.getLaps().forEach(lap => normalizeStrokeRateStats(lap));
+  normalizeActivityMetricSemanticsForStats(activity, [activity.type]);
+  activity.getLaps().forEach(lap => normalizeActivityMetricSemanticsForStats(lap, [activity.type]));
 }

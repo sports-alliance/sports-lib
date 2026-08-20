@@ -4,6 +4,7 @@ import { EventImporterFIT } from './importer.fit';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ActivityTypes } from '../../../../activities/activity.types';
 import { DataCadence } from '../../../../data/data.cadence';
+import { DataStrokeRate } from '../../../../data/data.stroke-rate';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
@@ -421,7 +422,8 @@ describe('EventImporterFIT', () => {
       expect(swimLength.distance).toBeInstanceOf(DataDistance);
       expect(swimLength.poolLength).toBeInstanceOf(DataDistance);
       expect(swimLength.avgSpeed).toBeInstanceOf(DataSpeed);
-      expect(swimLength.avgCadence).toBeInstanceOf(DataCadence);
+      expect(swimLength.avgCadence).toBeInstanceOf(DataStrokeRate);
+      expect(swimLength.avgCadence?.getUnit()).toBe('spm');
 
       expect(activity.getSwimLengths().map(length => length.toJSON())).toEqual([
         expect.objectContaining({
@@ -973,6 +975,22 @@ describe('EventImporterFIT', () => {
       );
 
       expect(streamTypes).toEqual(new Set([DataDistance.type, DataHeartRate.type]));
+    });
+
+    it('should expose only Stroke Rate when requested for open-water swimming', async () => {
+      const swimFitPath = path.resolve(__dirname, '../../../../specs/fixtures/swim/fit/6788312639-1.fit');
+      const fileBuffer = fs.readFileSync(swimFitPath);
+      const event = await EventImporterFIT.getFromArrayBuffer(
+        toArrayBuffer(fileBuffer),
+        new ActivityParsingOptions({ streams: { includeTypes: [DataStrokeRate.type] } }),
+        'open-water-stroke-rate.fit'
+      );
+      const activity = event.getFirstActivity();
+
+      expect(activity.type).toBe(ActivityTypes.OpenWaterSwimming);
+      expect(activity.getAllStreams().map(stream => stream.type)).toEqual([DataStrokeRate.type]);
+      expect(activity.getSquashedStreamData(DataStrokeRate.type).length).toBeGreaterThan(0);
+      expect(activity.hasStreamData(DataCadence.type)).toBe(false);
     });
 
     it('should return only requested derived streams', async () => {

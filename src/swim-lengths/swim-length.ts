@@ -1,4 +1,4 @@
-import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
 import { DataEnergy } from '../data/data.energy';
@@ -22,7 +22,8 @@ export class SwimLength implements SwimLengthInterface {
   distance!: DataDistance | null;
   poolLength!: DataDistance | null;
   avgSpeed!: DataSpeed | null;
-  avgCadence!: DataCadence | null;
+  /** Average stroke rate. The property name is retained for native JSON compatibility. */
+  avgCadence!: DataStrokeRate | null;
   avgHeartRate!: DataHeartRate | null;
   maxHeartRate!: DataHeartRate | null;
   swolf!: number | null;
@@ -68,7 +69,7 @@ export class SwimLength implements SwimLengthInterface {
       distance: nullableData(json.distance, DataDistance),
       poolLength: nullableData(json.poolLength, DataDistance),
       avgSpeed: nullableData(json.avgSpeed, DataSpeed),
-      avgCadence: nullableData(json.avgCadence, DataCadence),
+      avgCadence: nullableData(json.avgCadence, DataStrokeRate),
       avgHeartRate: nullableData(json.avgHeartRate, DataHeartRate),
       maxHeartRate: nullableData(json.maxHeartRate, DataHeartRate),
       swolf: nullableNumber(json.swolf),

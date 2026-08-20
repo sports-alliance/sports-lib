@@ -44,6 +44,10 @@ import { DataHeartRateAvg } from '../../data/data.heart-rate-avg';
 import { DataCadenceMax } from '../../data/data.cadence-max';
 import { DataCadenceMin } from '../../data/data.cadence-min';
 import { DataCadenceAvg } from '../../data/data.cadence-avg';
+import { DataStrokeRate } from '../../data/data.stroke-rate';
+import { DataStrokeRateMax } from '../../data/data.stroke-rate-max';
+import { DataStrokeRateMin } from '../../data/data.stroke-rate-min';
+import { DataStrokeRateAvg } from '../../data/data.stroke-rate-avg';
 import {
   DataSpeedMax,
   DataSpeedMaxFeetPerMinute,
@@ -298,6 +302,7 @@ import { DataAltitudeSmooth } from '../../data/data.altitude-smooth';
 import { DataGradeSmooth } from '../../data/data.grade-smooth';
 import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
+import { normalizeStrokeRateSemanticsForActivity } from '../../activities/activity.metric-semantics';
 
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
@@ -891,6 +896,7 @@ export class ActivityUtilities {
    * the activity and its existing laps. Explicit stats are preserved.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
+    normalizeStrokeRateSemanticsForActivity(activity);
     this.generateMissingStreams(activity);
     this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
@@ -994,6 +1000,7 @@ export class ActivityUtilities {
     let averagePowerNormalized = 0;
     let hasAveragePowerNormalized = false;
     let averageCadence = 0;
+    let averageStrokeRate = 0;
     let averageSpeed = 0;
     let averageGradeAdjustedSpeed = 0;
     let averagePace = 0;
@@ -1151,6 +1158,20 @@ export class ActivityUtilities {
     });
     if (averageCadence) {
       stats.push(new DataCadenceAvg(averageCadence));
+    }
+
+    // Avg Avg Stroke Rate
+    activities.forEach(activity => {
+      const activityAvgStrokeRate = activity.getStat(DataStrokeRateAvg.type);
+      if (activityAvgStrokeRate) {
+        // Preserve the existing event-summary averaging behavior used by cadence.
+        averageStrokeRate = averageStrokeRate
+          ? (averageStrokeRate + <number>activityAvgStrokeRate.getValue()) / 2
+          : <number>activityAvgStrokeRate.getValue();
+      }
+    });
+    if (averageStrokeRate) {
+      stats.push(new DataStrokeRateAvg(averageStrokeRate));
     }
 
     // Avg Avg Speed
@@ -1589,6 +1610,31 @@ export class ActivityUtilities {
     });
     if (minCadence !== null) {
       stats.push(new DataCadenceMin(minCadence));
+    }
+
+    // Max Stroke Rate
+    let maxStrokeRate = 0;
+    activities.forEach(activity => {
+      const activityMaxStrokeRate = activity.getStat(DataStrokeRateMax.type);
+      if (activityMaxStrokeRate) {
+        maxStrokeRate = Math.max(maxStrokeRate, <number>activityMaxStrokeRate.getValue());
+      }
+    });
+    if (maxStrokeRate) {
+      stats.push(new DataStrokeRateMax(maxStrokeRate));
+    }
+
+    // Min Stroke Rate
+    let minStrokeRate: number | null = null;
+    activities.forEach(activity => {
+      const activityMinStrokeRate = activity.getStat(DataStrokeRateMin.type);
+      if (activityMinStrokeRate) {
+        const val = <number>activityMinStrokeRate.getValue();
+        minStrokeRate = minStrokeRate === null ? val : Math.min(minStrokeRate, val);
+      }
+    });
+    if (minStrokeRate !== null) {
+      stats.push(new DataStrokeRateMin(minStrokeRate));
     }
 
     // Max Altitude
@@ -3360,6 +3406,7 @@ export class ActivityUtilities {
    *  [DataAltitude.type,
    * DataHeartRate.type,
    * DataCadence.type,
+   * DataStrokeRate.type,
    * DataDistance.type]
    *
    * Example
@@ -3383,6 +3430,7 @@ export class ActivityUtilities {
       DataAltitude.type,
       DataHeartRate.type,
       DataCadence.type,
+      DataStrokeRate.type,
       DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
@@ -3738,6 +3786,28 @@ export class ActivityUtilities {
       const avgCadenceOver = 0;
       const avgCadence = this.getDataTypeAvg(activity, DataCadence.type, undefined, undefined, avgCadenceOver);
       activity.addStat(new DataCadenceAvg(this.round(avgCadence)));
+    }
+
+    // Stroke Rate Max
+    if (!activity.getStat(DataStrokeRateMax.type) && activity.hasStreamData(DataStrokeRate.type)) {
+      activity.addStat(new DataStrokeRateMax(this.getDataTypeMax(activity, DataStrokeRate.type)));
+    }
+    // Stroke Rate Min
+    if (!activity.getStat(DataStrokeRateMin.type) && activity.hasStreamData(DataStrokeRate.type)) {
+      // A zero stroke rate is not meaningful for summary minimums.
+      const minStrokeRateOver = 0;
+      activity.addStat(
+        new DataStrokeRateMin(
+          this.getDataTypeMin(activity, DataStrokeRate.type, undefined, undefined, minStrokeRateOver)
+        )
+      );
+    }
+    // Stroke Rate Avg
+    if (!activity.getStat(DataStrokeRateAvg.type) && activity.hasStreamData(DataStrokeRate.type)) {
+      // Match cadence behavior by excluding zero values from source-platform averages.
+      const avgStrokeRateOver = 0;
+      const avgStrokeRate = this.getDataTypeAvg(activity, DataStrokeRate.type, undefined, undefined, avgStrokeRateOver);
+      activity.addStat(new DataStrokeRateAvg(this.round(avgStrokeRate)));
     }
 
     // Speed Max
@@ -4709,18 +4779,18 @@ export class ActivityUtilities {
       (activity.type === ActivityTypes.Swimming || activity.type === ActivityTypes.OpenWaterSwimming) &&
       (!activity.getStat(DataSWOLF25m.type) || !activity.getStat(DataSWOLF50m.type)) &&
       (<DataSpeedAvg>activity.getStat(DataSpeedAvg.type))?.getValue() &&
-      (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type))?.getValue()
+      (<DataStrokeRateAvg>activity.getStat(DataStrokeRateAvg.type))?.getValue()
     ) {
       const avgPace100m = convertSpeedToSwimPace((<DataSpeedAvg>activity.getStat(DataSpeedAvg.type)).getValue());
-      const avgCadence = (<DataCadenceAvg>activity.getStat(DataCadenceAvg.type)).getValue();
+      const avgStrokeRate = (<DataStrokeRateAvg>activity.getStat(DataStrokeRateAvg.type)).getValue();
 
       if (!activity.getStat(DataSWOLF25m.type)) {
-        const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 25);
+        const swolf25m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgStrokeRate, 25);
         activity.addStat(new DataSWOLF25m(swolf25m));
       }
 
       if (!activity.getStat(DataSWOLF50m.type)) {
-        const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgCadence, 50);
+        const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgStrokeRate, 50);
         activity.addStat(new DataSWOLF50m(swolf50m));
       }
     }

@@ -10,8 +10,86 @@ import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
 import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataTime } from '../../../../data/data.time';
 import { IBIStream } from '../../../../streams/ibi-stream';
+import { DataCadence } from '../../../../data/data.cadence';
+import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
+import { DataStrokeRate } from '../../../../data/data.stroke-rate';
+import { DataStrokeRateAvg } from '../../../../data/data.stroke-rate-avg';
+import { LapTypes } from '../../../../laps/lap.types';
+import { FileType } from '../../file-type.enum';
+import { Privacy } from '../../../../privacy/privacy.class.interface';
 
 describe('EventImporterJSON legacy type compatibility', () => {
+  it('normalizes stored cadence streams and summaries using activity semantics', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'stored-open-water-swim',
+      startDate: 0,
+      endDate: 2000,
+      type: ActivityTypes.OpenWaterSwimming,
+      powerMeter: false,
+      trainer: false,
+      stats: { [DataCadenceAvg.type]: 32 },
+      streams: [{ type: DataCadence.type, data: [30, 32, 34] }],
+      laps: [
+        {
+          lapId: 1,
+          startDate: 0,
+          endDate: 2000,
+          startIndex: null,
+          endIndex: null,
+          type: LapTypes.Manual,
+          stats: { [DataCadenceAvg.type]: 31 }
+        }
+      ],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.hasStreamData(DataCadence.type)).toBe(false);
+    expect(activity.getStream(DataStrokeRate.type).getData()).toEqual([30, 32, 34]);
+    expect(activity.getStat(DataCadenceAvg.type)).toBeUndefined();
+    expect(activity.getStat(DataStrokeRateAvg.type)?.getValue()).toBe(32);
+    expect(activity.getLaps()[0].getStat(DataStrokeRateAvg.type)?.getValue()).toBe(31);
+    const serialized = activity.toJSON();
+    expect(serialized.streams).toContainEqual({ type: DataStrokeRate.type, data: [30, 32, 34] });
+    expect(EventImporterJSON.getActivityFromJSON(serialized).toJSON()).toEqual(serialized);
+  });
+
+  it('normalizes homogeneous stroke-rate event summaries without reparsing source files', () => {
+    const event = EventImporterJSON.getEventFromJSON({
+      name: 'stored-rowing-event',
+      startDate: 0,
+      endDate: 1000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: { [DataCadenceAvg.type]: 28 },
+      activities: [
+        {
+          name: null,
+          startDate: 0,
+          endDate: 1000,
+          type: ActivityTypes.Rowing,
+          powerMeter: false,
+          trainer: false,
+          powerCurve: null,
+          stats: { [DataCadenceAvg.type]: 28 },
+          streams: [],
+          laps: [],
+          creator: { name: 'test', devices: [] },
+          intensityZones: [],
+          events: []
+        }
+      ]
+    });
+
+    expect(event.getStat(DataCadenceAvg.type)).toBeUndefined();
+    expect(event.getStat(DataStrokeRateAvg.type)?.getValue()).toBe(28);
+    expect(event.getFirstActivity().getStat(DataStrokeRateAvg.type)?.getValue()).toBe(28);
+  });
+
   it('maps legacy stat keys to canonical types via DynamicDataLoader aliases', () => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'legacy-json',

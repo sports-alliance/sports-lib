@@ -11,6 +11,7 @@ export interface SwimLengthJSONInterface {
   distance: number | null;
   poolLength: number | null;
   avgSpeed: number | null;
+  /** Average stroke rate in spm. The key is retained for stored JSON compatibility. */
   avgCadence: number | null;
   avgHeartRate: number | null;
   maxHeartRate: number | null;

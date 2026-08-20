@@ -15,7 +15,7 @@ import { GarminSports, GarminSubSports } from '../../../../fit/garmin-profile.da
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
-import { DataCadence } from '../../../../data/data.cadence';
+import { DataStrokeRate } from '../../../../data/data.stroke-rate';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
 import { DataPowerAvg } from '../../../../data/data.power-avg';
 import { DataSpeedAvg } from '../../../../data/data.speed-avg';
@@ -1970,7 +1970,7 @@ export class EventImporterFIT {
           })(),
           avgCadence: (() => {
             const avgCadence = this.getFirstNumericValue(length?.avg_cadence, length?.avg_swimming_cadence);
-            return avgCadence === null ? null : new DataCadence(avgCadence);
+            return avgCadence === null ? null : new DataStrokeRate(avgCadence);
           })(),
           avgHeartRate: (() => {
             const avgHeartRate = this.getNumericValue(length?.avg_heart_rate);

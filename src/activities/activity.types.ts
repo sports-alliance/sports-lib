@@ -179,6 +179,11 @@ export class ActivityTypesHelper {
   static isIndoorActivityType(activityType: ActivityTypes): boolean {
     return EXPLICIT_INDOOR_ACTIVITY_TYPES.includes(activityType);
   }
+
+  /** Returns whether cadence-shaped source data should use stroke-rate semantics. */
+  static usesStrokeRate(activityType: ActivityTypes): boolean {
+    return STROKE_RATE_ACTIVITY_TYPES.has(activityType);
+  }
 }
 
 /**
@@ -993,6 +998,21 @@ export enum ActivityTypes {
   'generic_match' = 'Match',
   'Match' = 'Match'
 }
+
+/**
+ * Activities whose cadence-shaped source fields represent strokes or paddle cycles per minute.
+ * Keep this centralized so support for another sport is a single explicit addition.
+ */
+const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
+  ActivityTypes.Swimming,
+  ActivityTypes.OpenWaterSwimming,
+  ActivityTypes.Rowing,
+  ActivityTypes.IndoorRowing,
+  ActivityTypes.Kayaking,
+  ActivityTypes.Canoeing,
+  ActivityTypes.Paddling,
+  ActivityTypes.StandUpPaddling
+]);
 
 export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.Sailing,

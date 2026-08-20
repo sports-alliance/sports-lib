@@ -1,4 +1,4 @@
-import { DataCadence } from '../data/data.cadence';
+import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
 import { DataEnergy } from '../data/data.energy';
@@ -71,7 +71,8 @@ describe('SwimLength', () => {
     expect(swimLength.distance).toBeInstanceOf(DataDistance);
     expect(swimLength.poolLength).toBeInstanceOf(DataDistance);
     expect(swimLength.avgSpeed).toBeInstanceOf(DataSpeed);
-    expect(swimLength.avgCadence).toBeInstanceOf(DataCadence);
+    expect(swimLength.avgCadence).toBeInstanceOf(DataStrokeRate);
+    expect(swimLength.avgCadence?.getUnit()).toBe('spm');
     expect(swimLength.avgHeartRate).toBeInstanceOf(DataHeartRate);
     expect(swimLength.maxHeartRate).toBeInstanceOf(DataHeartRate);
     expect(swimLength.calories).toBeInstanceOf(DataEnergy);

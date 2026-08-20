@@ -15,6 +15,10 @@ import { DataSpeedMax } from '../../data/data.speed-max';
 import { DataSpeedMin } from '../../data/data.speed-min';
 import { DataCadenceMax } from '../../data/data.cadence-max';
 import { DataCadenceMin } from '../../data/data.cadence-min';
+import { DataCadenceAvg } from '../../data/data.cadence-avg';
+import { DataStrokeRateAvg } from '../../data/data.stroke-rate-avg';
+import { DataStrokeRateMax } from '../../data/data.stroke-rate-max';
+import { DataStrokeRateMin } from '../../data/data.stroke-rate-min';
 import { DataAltitudeMax } from '../../data/data.altitude-max';
 import { DataAltitudeMin } from '../../data/data.altitude-min';
 import { DataAltitudeAvg } from '../../data/data.altitude-avg';
@@ -160,6 +164,28 @@ describe('ActivityUtilities', () => {
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
         expect((stats.find(s => s.getType() === DataMovingTime.type) as DataMovingTime).getValue()).toBe(100);
       });
+    });
+
+    it('keeps cadence and stroke-rate summary families separate in mixed events', () => {
+      const cadenceActivity = createMockActivity({
+        [DataCadenceAvg.type]: new DataCadenceAvg(85),
+        [DataCadenceMin.type]: new DataCadenceMin(70),
+        [DataCadenceMax.type]: new DataCadenceMax(100)
+      });
+      const strokeRateActivity = createMockActivity({
+        [DataStrokeRateAvg.type]: new DataStrokeRateAvg(30),
+        [DataStrokeRateMin.type]: new DataStrokeRateMin(24),
+        [DataStrokeRateMax.type]: new DataStrokeRateMax(38)
+      });
+
+      const stats = ActivityUtilities.getSummaryStatsForActivities([cadenceActivity, strokeRateActivity]);
+
+      expect(getSummaryValue(stats, DataCadenceAvg.type)).toBe(85);
+      expect(getSummaryValue(stats, DataCadenceMin.type)).toBe(70);
+      expect(getSummaryValue(stats, DataCadenceMax.type)).toBe(100);
+      expect(getSummaryValue(stats, DataStrokeRateAvg.type)).toBe(30);
+      expect(getSummaryValue(stats, DataStrokeRateMin.type)).toBe(24);
+      expect(getSummaryValue(stats, DataStrokeRateMax.type)).toBe(38);
     });
 
     describe('Jump Aggregations', () => {

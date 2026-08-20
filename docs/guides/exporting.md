@@ -17,11 +17,15 @@ const gpxText = await exporter.getAsString(event);
 const file = new Blob([gpxText], { type: exporter.fileType });
 ```
 
+GPX represents both cadence and stroke rate through its cadence extension. `EventExporterGPX` writes the canonical
+`Stroke Rate` stream there for supported stroke-rate activities so the values survive a GPX round trip.
+
 ## Native JSON round trips
 
 Native JSON is the persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore
 it with the corresponding `SportsLib` method. Restoration preserves explicit stats, canonicalizes compatible legacy
-keys, and may add missing speed-derived pace summaries on events, activities, and laps.
+keys, may add missing speed-derived pace summaries on events, activities, and laps, and applies activity-aware
+cadence-to-stroke-rate normalization without requiring the original source file.
 
 ```ts
 import { EventExporterJSON, SportsLib } from '@sports-alliance/sports-lib';

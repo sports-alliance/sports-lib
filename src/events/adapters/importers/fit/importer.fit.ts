@@ -141,7 +141,6 @@ import { DataAvgFlow } from '../../../../data/data.avg-flow';
 import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
 import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
 import { DataSportProfileName } from '../../../../data/data.sport-profile-name';
-import { DataRestingCalories } from '../../../../data/data.resting-calories';
 import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
 import { DataAvgVAM } from '../../../../data/data.avg-vam';
 import { DataEndPosition } from '../../../../data/data.end-position';
@@ -335,7 +334,7 @@ export class EventImporterFIT {
         // Iterate over the sessions and create their activities
         const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
           // Get the activity from the sessionObject
-          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options);
+          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
           this.addDiveSummaryStats(
             activity,
             this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject, sessionIndex)
@@ -1314,7 +1313,8 @@ export class EventImporterFIT {
   private static getActivityFromSessionObject(
     sessionObject: any,
     fitDataObject: any,
-    options: ActivityParsingOptions
+    options: ActivityParsingOptions,
+    sessionIndex: number
   ): ActivityInterface {
     /**
      * Provides start/end date based on records available in given session object first, then in parent fit object
@@ -1521,12 +1521,16 @@ export class EventImporterFIT {
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
-        // Find session-level time_in_zone message (reference_mesg = 18 for session, reference_index = 0 for first session)
+        // FIT SDK output identifies the target with the session enum and a
+        // message-index mask. An omitted index can only identify the first
+        // session, because there is no source reference for any later one.
         const manufacturer =
           (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
         const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
         const sessionTimeInZone = fitDataObject.time_in_zone.find(
-          (z: any) => z.reference_mesg === 18 && (z.reference_index === 0 || z.reference_index === undefined)
+          (z: any) =>
+            z.reference_mesg === 'session' &&
+            (z.reference_index?.value === sessionIndex || (sessionIndex === 0 && z.reference_index === undefined))
         );
         if (
           sessionTimeInZone &&
@@ -2656,14 +2660,11 @@ export class EventImporterFIT {
       );
     }
 
-    // Resting Calories
-    if (isNumberOrString(object.resting_calories)) {
-      stats.push(new DataRestingCalories(object.resting_calories));
-    }
-
     // Avg VAM
     if (isNumberOrString(object.avg_vam)) {
-      stats.push(new DataAvgVAM(object.avg_vam));
+      // The FIT SDK defines avg_vam in m/s. Sports Lib exposes Average VAM in
+      // m/h, so convert the parsed source unit to the public metric unit.
+      stats.push(new DataAvgVAM(Number(object.avg_vam) * 60 * 60));
     }
 
     // Jump Statistics

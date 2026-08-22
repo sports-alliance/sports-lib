@@ -59,7 +59,7 @@ describe('FITSampleMapper', () => {
       pressure_sac: 12.34,
       volume_sac: 23.45,
       rmv: 34.56,
-      po_2: 0.21,
+      po2: 0.21,
       ascent_rate: -0.287
     };
     const valueFor = (dataType: string) => {

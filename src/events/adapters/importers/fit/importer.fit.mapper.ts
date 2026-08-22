@@ -262,7 +262,7 @@ export const FITSampleMapper: {
   },
   {
     dataType: DataPO2.type,
-    getSampleValue: (sample: any) => sample.po_2
+    getSampleValue: (sample: any) => sample.po2
   },
   {
     dataType: DataDiveAscentRate.type,

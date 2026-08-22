@@ -672,7 +672,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average SWOLF 25m`
 - `Average SWOLF 50m`
 - `Average Temperature`
-- `Average VAM` (unit: `m/h`)
+- `Average VAM` (unit: `m/h`; FIT `avg_vam` source values in `m/s` are converted to this public unit)
 - `Average Vertical Oscillation` (unit: `mm`)
 - `Average Vertical Speed`
 - `Average vertical speed in feet per hour`

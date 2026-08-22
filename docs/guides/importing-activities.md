@@ -43,6 +43,9 @@ const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 
 The FIT parser applies the profile scale to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
 fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
+The parser emits FIT `avg_vam` in meters per second; Sports Lib converts that present source value to its public
+`Average VAM` metric unit of meters per hour.
+FIT `resting_calories` was a parser compatibility field, not a FIT SDK profile field, and is no longer imported.
 Suunto depth values also remain canonical meters. Depth is available as an advanced chart metric; callers can request
 `Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
 

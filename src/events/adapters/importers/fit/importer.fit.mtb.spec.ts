@@ -16,7 +16,6 @@ import { DataMaxRespirationRate } from '../../../../data/data.max-respiration-ra
 import { DataMinRespirationRate } from '../../../../data/data.min-respiration-rate';
 import { DataWeight } from '../../../../data/data.weight';
 import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
-import { DataRestingCalories } from '../../../../data/data.resting-calories';
 import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
 import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
 import { DataSportProfileName } from '../../../../data/data.sport-profile-name';
@@ -81,7 +80,7 @@ describe('EventImporterFIT MTB Jumps', () => {
     // Verify Avg VAM
     const avgVam = activity.getStat(DataAvgVAM.type) as DataAvgVAM;
     expect(avgVam).toBeDefined();
-    expect(avgVam.getValue()).toBeCloseTo(100, 1);
+    expect(avgVam.getValue()).toBeCloseTo(360, 1);
 
     // Verify Jump Count
     const jumpCount = activity.getStat(DataJumpCount.type) as DataJumpCount;
@@ -91,12 +90,7 @@ describe('EventImporterFIT MTB Jumps', () => {
     // Verify Training Load Peak
     const trainingLoadPeak = activity.getStat(DataTrainingLoadPeak.type) as DataTrainingLoadPeak;
     expect(trainingLoadPeak).toBeDefined();
-    expect(trainingLoadPeak.getValue()).toBe(6079174);
-
-    // Verify Resting Calories
-    const restingCalories = activity.getStat(DataRestingCalories.type) as DataRestingCalories;
-    expect(restingCalories).toBeDefined();
-    expect(restingCalories.getValue()).toBe(159);
+    expect(trainingLoadPeak.getValue()).toBeCloseTo(92.7608, 4);
 
     // Verify Est Sweat Loss
     const sweatLoss = activity.getStat(DataEstSweatLoss.type) as DataEstSweatLoss;
@@ -142,8 +136,6 @@ describe('EventImporterFIT MTB Jumps', () => {
     const weight = activity.getStat(DataWeight.type) as DataWeight;
     expect(weight).toBeDefined();
 
-    // Resting Calories
-    expect((activity.getStat(DataRestingCalories.type) as DataRestingCalories).getValue()).toBe(159);
     expect((activity.getStat(DataAerobicTrainingEffect.type) as DataAerobicTrainingEffect).getValue()).toBe(3);
     expect((activity.getStat(DataAnaerobicTrainingEffect.type) as DataAnaerobicTrainingEffect).getValue()).toBe(2);
     expect((activity.getStat(DataEnergy.type) as DataEnergy).getValue()).toBe(853);

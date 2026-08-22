@@ -243,7 +243,7 @@ export class DataAirTimeRemaining extends DataFiniteDuration {
   static type = 'Air Time Remaining';
 }
 
-/** Native FIT `po_2` value, retaining the profile's percent representation. */
+/** Native FIT `po2` value, retaining the profile's percent representation. */
 export class DataPO2 extends DataFinitePercent {
   static type = 'PO2';
   static displayType = 'PO₂';

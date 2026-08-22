@@ -81,8 +81,9 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 - Distance/GNSS distance are generated from latitude/longitude when missing.
 - Speed is generated from distance deltas and time deltas.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
-- FIT record depth and next-stop depth use the FIT profile scale (`Depth(m) = record.depth / 1000`). Canonical depth
-  streams and maximum depth stats remain meters. The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
+- The FIT parser applies the profile's `1000` depth scale before import; Sports Lib stores record depth and next-stop
+  depth directly in meters without another conversion. Canonical depth streams and maximum depth stats remain meters.
+  The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
   while `Swim Pace in minutes per 100 yard` selects feet.
 - Missing minimum, maximum, and average pace-family stats are hydrated from canonical speed stats for events, activities,
   and laps. Pace and swim pace invert the speed extrema (`maximum speed -> minimum pace`); grade-adjusted pace follows

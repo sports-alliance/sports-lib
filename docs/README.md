@@ -10,10 +10,11 @@ Activity-aware cadence semantics produce stroke rate for swimming, rowing, and p
 summaries separately from activities can explicitly canonicalize those projections with
 `normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.
 
-FIT imports normalize record-level depth samples to canonical meters and retain native session/lap dive summaries plus
+FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
 decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. These values follow
 the FIT profile without record-to-summary calculation, interpolation, clamping, or gas/tank flattening. Depth and
 maximum-depth display variants follow the first swim-pace preference, using meters for `/100m` and feet for `/100yd`.
+Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apnea sub-sports import as `Free Diving`.
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
 derive elevation ascent or descent from altitude streams; their vertical movement is represented by depth.
 

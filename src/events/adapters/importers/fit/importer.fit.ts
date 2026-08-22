@@ -2169,6 +2169,21 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
+    // Garmin's diving sub-sports are explicit protocol classifications. Map
+    // them before generic activity alias resolution so they retain the
+    // canonical scuba/free-diving distinction already modeled by Sports Lib.
+    if (resolvedSport === 'diving') {
+      switch (resolvedSubSport) {
+        case 'single_gas_diving':
+        case 'multi_gas_diving':
+        case 'gauge_diving':
+          return ActivityTypes.ScubaDiving;
+        case 'apnea_diving':
+        case 'apnea_hunting':
+          return ActivityTypes.FreeDiving;
+      }
+    }
+
     // 1. Try composite key: sport_subSport (e.g. "rock_climbing_indoor_climbing")
     let activityType: ActivityTypes | null = null;
     if (resolvedSport && resolvedSubSport) {

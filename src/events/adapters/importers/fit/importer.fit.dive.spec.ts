@@ -1,4 +1,5 @@
 import { FitBaseType, FitEncoder, FitEncoderField } from 'fit-file-parser';
+import { ActivityTypes } from '../../../../activities/activity.types';
 import { DataDepthMax } from '../../../../data/data.depth-max';
 import {
   DataAirTimeRemaining,
@@ -154,6 +155,7 @@ describe('EventImporterFIT native diving messages', () => {
     const activity = event.getFirstActivity();
     const streamValue = (type: string) => activity.getStreamData(type).find(value => Number.isFinite(value));
 
+    expect(activity.type).toBe(ActivityTypes.ScubaDiving);
     expect(activity.getStat(DataDepthAvg.type)?.getValue()).toBe(12.345);
     expect(activity.getStat(DataDepthMax.type)?.getValue()).toBe(20);
     expect(activity.getStat(DataSurfaceInterval.type)?.getValue()).toBe(600);

@@ -41,9 +41,14 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
-FIT record-level `depth` values are normalized from the profile's millimeter scale to the canonical `Depth` stream in
-meters. FIT session `max_depth` and Suunto depth values remain canonical meters. Depth is available as an advanced chart
-metric; callers can request `Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
+The FIT parser applies the profile scale to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
+fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
+Suunto depth values also remain canonical meters. Depth is available as an advanced chart metric; callers can request
+`Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
+
+Garmin `single_gas_diving`, `multi_gas_diving`, and `gauge_diving` sub-sports resolve to `Scuba Diving`;
+`apnea_diving` and `apnea_hunting` resolve to `Free Diving`. These are direct FIT profile mappings and all remain in the
+Diving activity group.
 
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.

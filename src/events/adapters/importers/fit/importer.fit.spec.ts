@@ -449,6 +449,21 @@ describe('EventImporterFIT', () => {
       expect(activityType).toEqual(ActivityTypes.Snorkeling);
     });
 
+    it.each([
+      [53, ActivityTypes.ScubaDiving],
+      [54, ActivityTypes.ScubaDiving],
+      [55, ActivityTypes.ScubaDiving],
+      [56, ActivityTypes.FreeDiving],
+      [57, ActivityTypes.FreeDiving]
+    ])('should map Garmin diving sub-sport id %s to its canonical type', (subSport, expectedType) => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 53,
+        sub_sport: subSport
+      });
+
+      expect(activityType).toEqual(expectedType);
+    });
+
     it('should map Garmin HIIT sport id 62 to canonical HIIT when sport is numeric', () => {
       const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
         sport: 62,

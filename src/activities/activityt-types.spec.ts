@@ -124,12 +124,16 @@ describe('ActivityTypes', () => {
     it('should return true for OpenWaterSwimming', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.OpenWaterSwimming)).toBe(true);
     });
-    it('should return true for ScubaDiving', () => {
-      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.ScubaDiving)).toBe(true);
-    });
-    it('should return true for Snorkeling and Mermaiding', () => {
-      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Snorkeling)).toBe(true);
-      expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Mermaiding)).toBe(true);
+    it('should return true for every Diving-group activity', () => {
+      [
+        ActivityTypes.Diving,
+        ActivityTypes.ScubaDiving,
+        ActivityTypes.FreeDiving,
+        ActivityTypes.Snorkeling,
+        ActivityTypes.Mermaiding
+      ].forEach((activityType) => {
+        expect(ActivityTypesHelper.shouldExcludeAscent(activityType)).toBe(true);
+      });
     });
     it('should return false for Kayaking', () => {
       expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Kayaking)).toBe(false);
@@ -164,8 +168,16 @@ describe('ActivityTypes', () => {
     it('should return true for OpenWaterSwimming', () => {
       expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.OpenWaterSwimming)).toBe(true);
     });
-    it('should return false for ScubaDiving', () => {
-      expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.ScubaDiving)).toBe(false);
+    it('should return true for every Diving-group activity', () => {
+      [
+        ActivityTypes.Diving,
+        ActivityTypes.ScubaDiving,
+        ActivityTypes.FreeDiving,
+        ActivityTypes.Snorkeling,
+        ActivityTypes.Mermaiding
+      ].forEach((activityType) => {
+        expect(ActivityTypesHelper.shouldExcludeDescent(activityType)).toBe(true);
+      });
     });
     it('should return false for Running', () => {
       expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Running)).toBe(false);

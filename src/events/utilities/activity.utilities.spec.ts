@@ -929,7 +929,7 @@ describe('Activity Utilities', () => {
       expect(activity.getStat(DataDescent.type)).toBeUndefined();
     });
 
-    it('should NOT generate ascent but SHOULD generate descent for Diving', () => {
+    it('should NOT generate ascent OR descent for Diving', () => {
       const activity = new Activity(
         new Date(),
         new Date(),
@@ -945,8 +945,7 @@ describe('Activity Utilities', () => {
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
       expect(activity.getStat(DataAscent.type)).toBeUndefined();
-      expect(activity.getStat(DataDescent.type)).toBeDefined();
-      expect((activity.getStat(DataDescent.type) as DataDescent).getValue()).toBe(10);
+      expect(activity.getStat(DataDescent.type)).toBeUndefined();
     });
 
     it('should generate min/max/avg stats for Absolute Pressure when pressure stream exists', () => {

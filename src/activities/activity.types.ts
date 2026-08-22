@@ -143,13 +143,19 @@ export class ActivityTypesHelper {
   }
 
   /**
-   * Identifies activities where ascent should be ignored/excluded (e.g. assisted ascent)
+   * Identifies activities for which elevation descent should not be derived or summarized.
+   * This includes water and diving activities, where altitude loss is not terrain descent.
    * @param activityType
    */
   static shouldExcludeDescent(activityType: ActivityTypes): boolean {
     return ACTIVITIES_EXCLUDED_FROM_DESCENT.includes(activityType);
   }
 
+  /**
+   * Identifies activities for which elevation ascent should not be derived or summarized.
+   * This includes assisted and water/diving activities, where altitude gain is not terrain ascent.
+   * @param activityType
+   */
   static shouldExcludeAscent(activityType: ActivityTypes): boolean {
     return ACTIVITIES_EXCLUDED_FROM_ASCENT.includes(activityType);
   }
@@ -1024,7 +1030,12 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.WaterSkiing,
   ActivityTypes.Wakeboarding,
   ActivityTypes.Swimming,
-  ActivityTypes.OpenWaterSwimming
+  ActivityTypes.OpenWaterSwimming,
+  ActivityTypes.Diving,
+  ActivityTypes.ScubaDiving,
+  ActivityTypes.FreeDiving,
+  ActivityTypes.Snorkeling,
+  ActivityTypes.Mermaiding
 ];
 
 export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [

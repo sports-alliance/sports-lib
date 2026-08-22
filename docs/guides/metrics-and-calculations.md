@@ -106,6 +106,8 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
+- Elevation ascent and descent are intentionally not derived for the Diving activity group (Diving, Scuba Diving,
+  Free Diving, Snorkeling, and Mermaiding). Their vertical movement is represented by depth, not terrain elevation.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 

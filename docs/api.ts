@@ -39,7 +39,8 @@ export type { ActivityJSONInterface } from '../src/activities/activity.json.inte
 export { normalizeActivityMetricSemanticsForStats } from '../src/activities/activity.metric-semantics';
 /**
  * Canonical activity types, activity groups, and alias resolution. Snorkeling and Mermaiding
- * are canonical diving activities.
+ * are canonical diving activities. `ActivityTypesHelper` excludes all Diving-group activities
+ * from derived elevation ascent and descent.
  *
  * @category Activities and events
  */

@@ -102,6 +102,27 @@ import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataDepthMax } from '../../../../data/data.depth-max';
+import {
+  DataBottomTime,
+  DataDepthAvg,
+  DataDiveAscentRateAvg,
+  DataDiveAscentRateMax,
+  DataDiveAscentTime,
+  DataDiveDescentRateAvg,
+  DataDiveDescentRateMax,
+  DataDiveDescentTime,
+  DataDiveHangTime,
+  DataDiveNumber,
+  DataEndingCNSLoad,
+  DataEndingN2Load,
+  DataOxygenToxicity,
+  DataPressureSACAvg,
+  DataRMVAvg,
+  DataStartingCNSLoad,
+  DataStartingN2Load,
+  DataSurfaceInterval,
+  DataVolumeSACAvg
+} from '../../../../data/data.dive';
 import { DataEffortPaceAvg } from '../../../../data/data.effort-pace-avg';
 import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
 import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
@@ -179,6 +200,7 @@ import {
 } from '../../../../streams/stream.selection';
 import { StreamInterface } from '../../../../streams/stream.interface';
 import { StatsUtilities } from '../../../../stats/stats.utilities';
+import { StatsClassInterface } from '../../../../stats/stats.class.interface';
 import { SampleInfo } from '../sample-info.interface';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
@@ -311,12 +333,18 @@ export class EventImporterFIT {
         );
 
         // Iterate over the sessions and create their activities
-        const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
+        const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options);
+          this.addDiveSummaryStats(
+            activity,
+            this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject, sessionIndex)
+          );
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
-            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index, options));
+            const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
+            this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject, index));
+            activity.addLap(lap);
           });
 
           const manufacturer =
@@ -518,7 +546,8 @@ export class EventImporterFIT {
           this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings, samplesInfo);
 
           return activity;
-        });
+        };
+        const activities: ActivityInterface[] = fitDataObject.sessions.map(createActivity);
 
         // If there are no activities to parse ....
         if (!activities.length) {
@@ -819,6 +848,84 @@ export class EventImporterFIT {
     }
 
     return numericValue;
+  }
+
+  private static getMessageIndexValue(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isInteger(value)) {
+      return value;
+    }
+
+    if (value && typeof value === 'object' && 'value' in value) {
+      const indexedValue = (value as { value?: unknown }).value;
+      return typeof indexedValue === 'number' && Number.isInteger(indexedValue) ? indexedValue : null;
+    }
+
+    return null;
+  }
+
+  private static getReferencedDiveSummary(
+    fitDataObject: any,
+    referenceMessage: 'session' | 'lap',
+    targetMessage: any,
+    fallbackIndex: number
+  ): any | null {
+    const summaries = fitDataObject?.messages?.dive_summary;
+    if (!Array.isArray(summaries)) {
+      return null;
+    }
+
+    const targetIndex = this.getMessageIndexValue(targetMessage?.message_index) ?? fallbackIndex;
+    const referenceMessageNumber = referenceMessage === 'session' ? 18 : 19;
+
+    return (
+      summaries.find((summary: any) => {
+        const summaryIndex = this.getMessageIndexValue(summary?.reference_index);
+        const matchesMessage =
+          summary?.reference_mesg === referenceMessage || summary?.reference_mesg === referenceMessageNumber;
+        return matchesMessage && summaryIndex === targetIndex;
+      }) ?? null
+    );
+  }
+
+  private static addDiveSummaryStats(target: StatsClassInterface, summary: any | null): void {
+    if (!summary) {
+      return;
+    }
+
+    const mappings: Array<{
+      field: string;
+      create: (value: number) => DataInterface<unknown>;
+      scale?: number;
+    }> = [
+      { field: 'avg_depth', create: value => new DataDepthAvg(value), scale: 1000 },
+      { field: 'max_depth', create: value => new DataDepthMax(value), scale: 1000 },
+      { field: 'surface_interval', create: value => new DataSurfaceInterval(value) },
+      { field: 'bottom_time', create: value => new DataBottomTime(value), scale: 1000 },
+      { field: 'dive_number', create: value => new DataDiveNumber(value) },
+      { field: 'descent_time', create: value => new DataDiveDescentTime(value) },
+      { field: 'ascent_time', create: value => new DataDiveAscentTime(value) },
+      { field: 'avg_ascent_rate', create: value => new DataDiveAscentRateAvg(value) },
+      { field: 'avg_descent_rate', create: value => new DataDiveDescentRateAvg(value) },
+      { field: 'max_ascent_rate', create: value => new DataDiveAscentRateMax(value) },
+      { field: 'max_descent_rate', create: value => new DataDiveDescentRateMax(value) },
+      { field: 'hang_time', create: value => new DataDiveHangTime(value) },
+      { field: 'start_cns', create: value => new DataStartingCNSLoad(value) },
+      { field: 'end_cns', create: value => new DataEndingCNSLoad(value) },
+      { field: 'start_n2', create: value => new DataStartingN2Load(value) },
+      { field: 'end_n2', create: value => new DataEndingN2Load(value) },
+      { field: 'o2_toxicity', create: value => new DataOxygenToxicity(value) },
+      { field: 'avg_pressure_sac', create: value => new DataPressureSACAvg(value) },
+      { field: 'avg_volume_sac', create: value => new DataVolumeSACAvg(value) },
+      { field: 'avg_rmv', create: value => new DataRMVAvg(value) }
+    ];
+
+    mappings.forEach(mapping => {
+      const sourceValue = summary[mapping.field];
+      if (!Number.isFinite(sourceValue)) {
+        return;
+      }
+      target.addStat(mapping.create(mapping.scale ? sourceValue / mapping.scale : sourceValue));
+    });
   }
 
   private static getDateFromValue(value: unknown): Date | null {

@@ -66,6 +66,7 @@ export * from './data.cycling-seated-time';
 export * from './data.cycling-standing-time';
 export * from './data.depth-max';
 export * from './data.depth';
+export * from './data.dive';
 export * from './data.descent-time';
 export * from './data.descent';
 export * from './data.description';

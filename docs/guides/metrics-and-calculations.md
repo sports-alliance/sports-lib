@@ -37,6 +37,30 @@ High-level metric domains include:
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
+Source-native diving metrics
+---
+FIT imports attach each `dive_summary` to the session or lap identified by its native `reference_mesg` and
+`reference_index`. Message order is irrelevant, lap summaries are never promoted to their activity, and missing summary
+fields are not calculated from record streams. The parser's compatibility-shaped depth and bottom-time fields receive
+only their FIT profile scale when Sports Lib creates canonical values.
+
+Native dive-summary statistics are:
+
+- `Average Depth` (`m`), `Maximum Depth` (`m`), `Surface Interval` (`s`), `Bottom Time` (`s`), and `Dive Number`
+- `Dive Descent Time` (`s`), `Dive Ascent Time` (`s`), and `Dive Hang Time` (`s`)
+- `Average Dive Ascent Rate`, `Average Dive Descent Rate`, `Maximum Dive Ascent Rate`, and
+  `Maximum Dive Descent Rate` (`m/s`)
+- `Starting CNS Load`, `Ending CNS Load`, `Starting N2 Load`, and `Ending N2 Load` (`%`)
+- `Oxygen Toxicity` (`OTUs`), `Average Pressure SAC` (`bar/min`), `Average Volume SAC` (`L/min`), and
+  `Average RMV` (`L/min`)
+
+Native record streams are `Depth` and `Next Stop Depth` (`m`), `Next Stop Time`, `Time to Surface`,
+`No-Decompression Limit`, and `Air Time Remaining` (`s`), `CNS Load` and `N2 Load` (`%`), `Pressure SAC` (`bar/min`),
+`Volume SAC` and `RMV` (`L/min`), `PO2` (`%`, displayed as `PO₂`), and `Dive Ascent Rate` (`m/s`). These streams retain
+only samples present in the source file: Sports Lib does not fill, smooth, clamp, or derive them. In particular,
+`Air Time Remaining` preserves every non-invalid unsigned FIT value exactly as decoded. Multi-gas and tank messages
+remain structured parser output and are not flattened into scalar statistics.
+
 Calculations / Derivations
 ---
 The following formulas describe how missing streams/stats are computed in:
@@ -57,8 +81,8 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 - Distance/GNSS distance are generated from latitude/longitude when missing.
 - Speed is generated from distance deltas and time deltas.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
-- FIT record depth uses the FIT profile scale (`Depth(m) = record.depth / 1000`). Canonical depth streams and maximum
-  depth stats remain meters. The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
+- FIT record depth and next-stop depth use the FIT profile scale (`Depth(m) = record.depth / 1000`). Canonical depth
+  streams and maximum depth stats remain meters. The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
   while `Swim Pace in minutes per 100 yard` selects feet.
 - Missing minimum, maximum, and average pace-family stats are hydrated from canonical speed stats for events, activities,
   and laps. Pace and swim pace invert the speed extrema (`maximum speed -> minimum pace`); grade-adjusted pace follows

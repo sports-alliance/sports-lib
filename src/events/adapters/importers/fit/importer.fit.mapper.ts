@@ -4,6 +4,20 @@ import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataCadence } from '../../../../data/data.cadence';
 import { DataTemperature } from '../../../../data/data.temperature';
 import { DataDepth } from '../../../../data/data.depth';
+import {
+  DataAirTimeRemaining,
+  DataCNSLoad,
+  DataDiveAscentRate,
+  DataN2Load,
+  DataNextStopDepth,
+  DataNextStopTime,
+  DataNoDecompressionLimit,
+  DataPO2,
+  DataPressureSAC,
+  DataRMV,
+  DataTimeToSurface,
+  DataVolumeSAC
+} from '../../../../data/data.dive';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataSpeed } from '../../../../data/data.speed';
 import { DataVerticalSpeed } from '../../../../data/data.vertical-speed';
@@ -203,6 +217,56 @@ export const FITSampleMapper: {
     getSampleValue: (sample: any) => {
       return isNumber(sample.depth) && sample.depth >= 0 ? sample.depth / 1000 : null;
     }
+  },
+  {
+    dataType: DataNextStopDepth.type,
+    getSampleValue: (sample: any) => {
+      return isNumber(sample.next_stop_depth) && sample.next_stop_depth >= 0 ? sample.next_stop_depth / 1000 : null;
+    }
+  },
+  {
+    dataType: DataNextStopTime.type,
+    getSampleValue: (sample: any) => sample.next_stop_time
+  },
+  {
+    dataType: DataTimeToSurface.type,
+    getSampleValue: (sample: any) => sample.time_to_surface
+  },
+  {
+    dataType: DataNoDecompressionLimit.type,
+    getSampleValue: (sample: any) => sample.ndl_time
+  },
+  {
+    dataType: DataCNSLoad.type,
+    getSampleValue: (sample: any) => sample.cns_load
+  },
+  {
+    dataType: DataN2Load.type,
+    getSampleValue: (sample: any) => sample.n2_load
+  },
+  {
+    dataType: DataAirTimeRemaining.type,
+    getSampleValue: (sample: any) => sample.air_time_remaining
+  },
+  {
+    dataType: DataPressureSAC.type,
+    getSampleValue: (sample: any) => sample.pressure_sac
+  },
+  {
+    dataType: DataVolumeSAC.type,
+    getSampleValue: (sample: any) => sample.volume_sac
+  },
+  {
+    dataType: DataRMV.type,
+    getSampleValue: (sample: any) => sample.rmv
+  },
+  {
+    dataType: DataPO2.type,
+    getSampleValue: (sample: any) => sample.po_2
+  },
+  {
+    dataType: DataDiveAscentRate.type,
+    getSampleValue: (sample: any) => sample.ascent_rate
   },
   {
     dataType: DataFormPower.type,

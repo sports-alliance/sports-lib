@@ -61,6 +61,12 @@ only samples present in the source file: Sports Lib does not fill, smooth, clamp
 `Air Time Remaining` preserves every non-invalid unsigned FIT value exactly as decoded. Multi-gas and tank messages
 remain structured parser output and are not flattened into scalar statistics.
 
+Presentation preserves the FIT profile precision: depth values and dive rates use three decimal places,
+pressure/volume SAC and RMV use two, and PO₂ uses two rather than the generic one-decimal percentage format. The first
+swim-pace preference selects a single coherent dive unit family: `/100m` keeps depth and rates in `m` and `m/s`, while
+`/100yd` converts depth and rates to `ft` and `ft/s`. Canonical stored values and serialized JSON remain in the FIT
+profile units above.
+
 Calculations / Derivations
 ---
 The following formulas describe how missing streams/stats are computed in:

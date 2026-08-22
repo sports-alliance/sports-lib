@@ -12,8 +12,10 @@ summaries separately from activities can explicitly canonicalize those projectio
 
 FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
 decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. These values follow
-the FIT profile without record-to-summary calculation, interpolation, clamping, or gas/tank flattening. Depth and
-maximum-depth display variants follow the first swim-pace preference, using meters for `/100m` and feet for `/100yd`.
+the FIT profile without record-to-summary calculation, interpolation, clamping, or gas/tank flattening. Depth,
+average/maximum depth, next-stop depth, and dive-rate display variants follow the first swim-pace preference, using
+meters and meters per second for `/100m` or feet and feet per second for `/100yd`. Dive depths display to three decimal
+places, rates to three, SAC/RMV values to two, and PO₂ retains both FIT decimal places.
 Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apnea sub-sports import as `Free Diving`.
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
 derive elevation ascent or descent from altitude streams; their vertical movement is represented by depth.

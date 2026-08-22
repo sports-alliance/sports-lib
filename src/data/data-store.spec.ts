@@ -73,6 +73,22 @@ import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
 import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
 import { DataDepth, DataDepthFeet } from './data.depth';
 import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
+import {
+  DataDepthAvg,
+  DataDepthAvgFeet,
+  DataDiveAscentRate,
+  DataDiveAscentRateAvg,
+  DataDiveAscentRateAvgFeetPerSecond,
+  DataDiveAscentRateFeetPerSecond,
+  DataDiveAscentRateMax,
+  DataDiveAscentRateMaxFeetPerSecond,
+  DataDiveDescentRateAvg,
+  DataDiveDescentRateAvgFeetPerSecond,
+  DataDiveDescentRateMax,
+  DataDiveDescentRateMaxFeetPerSecond,
+  DataNextStopDepth,
+  DataNextStopDepthFeet
+} from './data.dive';
 
 describe('DataStore', () => {
   const unitDerivedDataTypes = [
@@ -124,7 +140,14 @@ describe('DataStore', () => {
     DataDistanceMiles.type,
     DataGNSSDistanceMiles.type,
     DataDepthFeet.type,
-    DataDepthMaxFeet.type
+    DataDepthMaxFeet.type,
+    DataDepthAvgFeet.type,
+    DataNextStopDepthFeet.type,
+    DataDiveAscentRateFeetPerSecond.type,
+    DataDiveAscentRateAvgFeetPerSecond.type,
+    DataDiveAscentRateMaxFeetPerSecond.type,
+    DataDiveDescentRateAvgFeetPerSecond.type,
+    DataDiveDescentRateMaxFeetPerSecond.type
   ];
 
   const _speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
@@ -141,7 +164,7 @@ describe('DataStore', () => {
   });
 
   describe('getUnitBasedDataTypesFromDataTypes', () => {
-    it('uses the first swim pace preference to select one depth unit family', () => {
+    it('uses the first swim pace preference to select one dive unit family', () => {
       const metricSettings: any = {
         speedUnits: [],
         swimPaceUnits: [DataSwimPace.type, DataSwimPaceMinutesPer100Yard.type],
@@ -157,14 +180,32 @@ describe('DataStore', () => {
       };
 
       expect(
-        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataDepth.type, DataDepthMax.type], metricSettings)
-      ).toEqual([DataDepth.type, DataDepthMax.type]);
+        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
+          [DataDepth.type, DataDepthMax.type, DataDepthAvg.type, DataNextStopDepth.type, DataDiveAscentRate.type],
+          metricSettings
+        )
+      ).toEqual([
+        DataDepth.type,
+        DataDepthMax.type,
+        DataDepthAvg.type,
+        DataNextStopDepth.type,
+        DataDiveAscentRate.type
+      ]);
       expect(
-        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataDepth.type, DataDepthMax.type], imperialSettings)
-      ).toEqual([DataDepthFeet.type, DataDepthMaxFeet.type]);
+        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes(
+          [DataDepth.type, DataDepthMax.type, DataDepthAvg.type, DataNextStopDepth.type, DataDiveAscentRate.type],
+          imperialSettings
+        )
+      ).toEqual([
+        DataDepthFeet.type,
+        DataDepthMaxFeet.type,
+        DataDepthAvgFeet.type,
+        DataNextStopDepthFeet.type,
+        DataDiveAscentRateFeetPerSecond.type
+      ]);
     });
 
-    it('converts depth streams and maximum-depth stats without changing canonical JSON', () => {
+    it('converts dive depths and rates without changing canonical JSON', () => {
       const settings: any = {
         speedUnits: [],
         swimPaceUnits: [DataSwimPaceMinutesPer100Yard.type],
@@ -177,16 +218,63 @@ describe('DataStore', () => {
 
       const depth = new DataDepth(3.86);
       const maximumDepth = new DataDepthMax(3.86);
+      const averageDepth = new DataDepthAvg(3.86);
+      const nextStopDepth = new DataNextStopDepth(3.86);
+      const ascentRate = new DataDiveAscentRate(-0.287);
+      const averageAscentRate = new DataDiveAscentRateAvg(0.044);
+      const maximumAscentRate = new DataDiveAscentRateMax(0.287);
+      const averageDescentRate = new DataDiveDescentRateAvg(0.311);
+      const maximumDescentRate = new DataDiveDescentRateMax(0.522);
       const convertedDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(depth, settings)[0];
       const convertedMaximumDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(maximumDepth, settings)[0];
+      const convertedAverageDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(averageDepth, settings)[0];
+      const convertedNextStopDepth = DynamicDataLoader.getUnitBasedDataFromDataInstance(nextStopDepth, settings)[0];
+      const convertedAscentRate = DynamicDataLoader.getUnitBasedDataFromDataInstance(ascentRate, settings)[0];
+      const convertedAverageAscentRate = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        averageAscentRate,
+        settings
+      )[0];
+      const convertedMaximumAscentRate = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        maximumAscentRate,
+        settings
+      )[0];
+      const convertedAverageDescentRate = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        averageDescentRate,
+        settings
+      )[0];
+      const convertedMaximumDescentRate = DynamicDataLoader.getUnitBasedDataFromDataInstance(
+        maximumDescentRate,
+        settings
+      )[0];
 
       expect(convertedDepth.getType()).toBe(DataDepthFeet.type);
       expect(convertedDepth.getValue()).toBeCloseTo(12.664, 3);
-      expect(convertedDepth.getDisplayValue()).toBe('12.66');
+      expect(convertedDepth.getDisplayValue()).toBe('12.664');
+      expect(convertedDepth.getDisplayType()).toBe(DataDepth.type);
       expect(convertedMaximumDepth.getType()).toBe(DataDepthMaxFeet.type);
-      expect(convertedMaximumDepth.getDisplayValue()).toBe('12.66');
+      expect(convertedMaximumDepth.getDisplayValue()).toBe('12.664');
+      expect(convertedMaximumDepth.getDisplayType()).toBe(DataDepthMax.type);
+      expect(convertedAverageDepth.getType()).toBe(DataDepthAvgFeet.type);
+      expect(convertedAverageDepth.getDisplayValue()).toBe('12.664');
+      expect(convertedAverageDepth.getDisplayType()).toBe(DataDepthAvg.type);
+      expect(convertedNextStopDepth.getType()).toBe(DataNextStopDepthFeet.type);
+      expect(convertedNextStopDepth.getDisplayValue()).toBe('12.664');
+      expect(convertedNextStopDepth.getDisplayType()).toBe(DataNextStopDepth.type);
+      expect(convertedAscentRate.getType()).toBe(DataDiveAscentRateFeetPerSecond.type);
+      expect(convertedAscentRate.getDisplayValue()).toBe('-0.942');
+      expect(convertedAverageAscentRate.getType()).toBe(DataDiveAscentRateAvgFeetPerSecond.type);
+      expect(convertedAverageAscentRate.getDisplayValue()).toBe('0.144');
+      expect(convertedMaximumAscentRate.getType()).toBe(DataDiveAscentRateMaxFeetPerSecond.type);
+      expect(convertedMaximumAscentRate.getDisplayValue()).toBe('0.942');
+      expect(convertedAverageDescentRate.getType()).toBe(DataDiveDescentRateAvgFeetPerSecond.type);
+      expect(convertedAverageDescentRate.getDisplayValue()).toBe('1.020');
+      expect(convertedMaximumDescentRate.getType()).toBe(DataDiveDescentRateMaxFeetPerSecond.type);
+      expect(convertedMaximumDescentRate.getDisplayValue()).toBe('1.713');
       expect(depth.toJSON()).toEqual({ [DataDepth.type]: 3.86 });
       expect(maximumDepth.toJSON()).toEqual({ [DataDepthMax.type]: 3.86 });
+      expect(averageDepth.toJSON()).toEqual({ [DataDepthAvg.type]: 3.86 });
+      expect(nextStopDepth.toJSON()).toEqual({ [DataNextStopDepth.type]: 3.86 });
+      expect(ascentRate.toJSON()).toEqual({ [DataDiveAscentRate.type]: -0.287 });
     });
 
     it('should include derived types by default', () => {
@@ -333,11 +421,12 @@ describe('DataStore', () => {
       .filter((DataClass: any) => typeof DataClass === 'function')
       .filter((DataClass: any) => DataClass === DataDistance || DataClass.prototype instanceof DataDistance)
       .map((DataClass: any) => DataClass.type as string)
-      .filter((dataType: string) => (
-        dataType !== DataDistanceFeet.type &&
-        dataType !== DataDistanceMiles.type &&
-        dataType !== DataGNSSDistanceMiles.type
-      ));
+      .filter(
+        (dataType: string) =>
+          dataType !== DataDistanceFeet.type &&
+          dataType !== DataDistanceMiles.type &&
+          dataType !== DataGNSSDistanceMiles.type
+      );
 
     const getExpectedImperialDistanceType = (dataType: string): string => {
       if (
@@ -355,9 +444,7 @@ describe('DataStore', () => {
       expect(allDistanceTypes.length).toBeGreaterThan(0);
       allDistanceTypes.forEach(dataType => {
         expect(DynamicDataLoader.dataTypeUnitGroups[dataType]).toBeDefined();
-        expect(
-          DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedImperialDistanceType(dataType)]
-        ).toBeDefined();
+        expect(DynamicDataLoader.dataTypeUnitGroups[dataType][getExpectedImperialDistanceType(dataType)]).toBeDefined();
       });
     });
 
@@ -496,15 +583,15 @@ describe('DataStore', () => {
     });
 
     it('keeps jump speed canonical types when selected speed unit is canonical m/s', () => {
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, canonicalSpeedSettings)).toEqual([
-        DataJumpSpeedAvg.type
-      ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, canonicalSpeedSettings)).toEqual([
-        DataJumpSpeedMin.type
-      ]);
-      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, canonicalSpeedSettings)).toEqual([
-        DataJumpSpeedMax.type
-      ]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedAvg.type, canonicalSpeedSettings)
+      ).toEqual([DataJumpSpeedAvg.type]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMin.type, canonicalSpeedSettings)
+      ).toEqual([DataJumpSpeedMin.type]);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataJumpSpeedMax.type, canonicalSpeedSettings)
+      ).toEqual([DataJumpSpeedMax.type]);
     });
 
     it('returns converted jump speed data instances with selected speed unit display variants', () => {

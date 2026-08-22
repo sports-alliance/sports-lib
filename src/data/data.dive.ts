@@ -1,5 +1,6 @@
 import { DataDepth } from './data.depth';
 import { DataDuration } from './data.duration';
+import { UnitSystem } from './data.interface';
 import { DataNumber } from './data.number';
 import { DataPercent } from './data.percent';
 
@@ -21,6 +22,20 @@ abstract class DataFinitePercent extends DataPercent {
   }
 }
 
+abstract class DataFiniteDiveRate extends DataFiniteNumber {
+  static unit = 'm/s';
+
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(3);
+  }
+}
+
+abstract class DataFiniteDiveConsumptionRate extends DataFiniteNumber {
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(2);
+  }
+}
+
 /** Native FIT dive-summary average depth in meters. */
 export class DataDepthAvg extends DataDepth {
   static override type = 'Average Depth';
@@ -28,6 +43,14 @@ export class DataDepthAvg extends DataDepth {
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
+}
+
+/** Imperial presentation variant of the canonical meter-based average-depth stat. */
+export class DataDepthAvgFeet extends DataDepthAvg {
+  static override type = 'Average Depth in feet';
+  static override displayType = DataDepthAvg.type;
+  static override unit = 'ft';
+  static override unitSystem = UnitSystem.Imperial;
 }
 
 /** Native FIT surface interval in seconds. */
@@ -43,6 +66,10 @@ export class DataBottomTime extends DataFiniteDuration {
 /** Native FIT dive number. */
 export class DataDiveNumber extends DataFiniteNumber {
   static type = 'Dive Number';
+
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(0);
+  }
 }
 
 /** Native FIT dive descent time in seconds. */
@@ -56,9 +83,16 @@ export class DataDiveAscentTime extends DataFiniteDuration {
 }
 
 /** Native FIT record ascent-rate stream in meters per second. */
-export class DataDiveAscentRate extends DataFiniteNumber {
+export class DataDiveAscentRate extends DataFiniteDiveRate {
   static type = 'Dive Ascent Rate';
-  static unit = 'm/s';
+}
+
+/** Imperial presentation variant of the canonical meter-per-second ascent-rate stream. */
+export class DataDiveAscentRateFeetPerSecond extends DataDiveAscentRate {
+  static override type = 'Dive ascent rate in feet per second';
+  static override displayType = DataDiveAscentRate.type;
+  static override unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
 }
 
 /** Native FIT dive-summary average ascent rate in meters per second. */
@@ -66,21 +100,47 @@ export class DataDiveAscentRateAvg extends DataDiveAscentRate {
   static override type = 'Average Dive Ascent Rate';
 }
 
+export class DataDiveAscentRateAvgFeetPerSecond extends DataDiveAscentRateAvg {
+  static override type = 'Average dive ascent rate in feet per second';
+  static override displayType = DataDiveAscentRateAvg.type;
+  static override unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
+}
+
 /** Native FIT dive-summary maximum ascent rate in meters per second. */
 export class DataDiveAscentRateMax extends DataDiveAscentRate {
   static override type = 'Maximum Dive Ascent Rate';
 }
 
+export class DataDiveAscentRateMaxFeetPerSecond extends DataDiveAscentRateMax {
+  static override type = 'Maximum dive ascent rate in feet per second';
+  static override displayType = DataDiveAscentRateMax.type;
+  static override unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
+}
+
 /** Native FIT dive-summary average descent rate in meters per second. */
-export class DataDiveDescentRateAvg extends DataFiniteNumber {
+export class DataDiveDescentRateAvg extends DataFiniteDiveRate {
   static type = 'Average Dive Descent Rate';
-  static unit = 'm/s';
+}
+
+export class DataDiveDescentRateAvgFeetPerSecond extends DataDiveDescentRateAvg {
+  static override type = 'Average dive descent rate in feet per second';
+  static override displayType = DataDiveDescentRateAvg.type;
+  static override unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
 }
 
 /** Native FIT dive-summary maximum descent rate in meters per second. */
-export class DataDiveDescentRateMax extends DataFiniteNumber {
+export class DataDiveDescentRateMax extends DataFiniteDiveRate {
   static type = 'Maximum Dive Descent Rate';
-  static unit = 'm/s';
+}
+
+export class DataDiveDescentRateMaxFeetPerSecond extends DataDiveDescentRateMax {
+  static override type = 'Maximum dive descent rate in feet per second';
+  static override displayType = DataDiveDescentRateMax.type;
+  static override unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
 }
 
 /** Native FIT dive-summary hang time in seconds. */
@@ -108,9 +168,13 @@ export class DataEndingN2Load extends DataFinitePercent {
 export class DataOxygenToxicity extends DataFiniteNumber {
   static type = 'Oxygen Toxicity';
   static unit = 'OTUs';
+
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(0);
+  }
 }
 
-export class DataPressureSAC extends DataFiniteNumber {
+export class DataPressureSAC extends DataFiniteDiveConsumptionRate {
   static type = 'Pressure SAC';
   static unit = 'bar/min';
 }
@@ -119,7 +183,7 @@ export class DataPressureSACAvg extends DataPressureSAC {
   static override type = 'Average Pressure SAC';
 }
 
-export class DataVolumeSAC extends DataFiniteNumber {
+export class DataVolumeSAC extends DataFiniteDiveConsumptionRate {
   static type = 'Volume SAC';
   static unit = 'L/min';
 }
@@ -128,7 +192,7 @@ export class DataVolumeSACAvg extends DataVolumeSAC {
   static override type = 'Average Volume SAC';
 }
 
-export class DataRMV extends DataFiniteNumber {
+export class DataRMV extends DataFiniteDiveConsumptionRate {
   static type = 'RMV';
   static unit = 'L/min';
 }
@@ -140,6 +204,18 @@ export class DataRMVAvg extends DataRMV {
 export class DataNextStopDepth extends DataFiniteNumber {
   static type = 'Next Stop Depth';
   static unit = 'm';
+
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(3);
+  }
+}
+
+/** Imperial presentation variant of the canonical meter-based next-stop-depth stream. */
+export class DataNextStopDepthFeet extends DataNextStopDepth {
+  static override type = 'Next Stop Depth in feet';
+  static override displayType = DataNextStopDepth.type;
+  static override unit = 'ft';
+  static override unitSystem = UnitSystem.Imperial;
 }
 
 export class DataNextStopTime extends DataFiniteDuration {
@@ -171,4 +247,8 @@ export class DataAirTimeRemaining extends DataFiniteDuration {
 export class DataPO2 extends DataFinitePercent {
   static type = 'PO2';
   static displayType = 'PO₂';
+
+  override getDisplayValue(): string {
+    return this.getValue().toFixed(2);
+  }
 }

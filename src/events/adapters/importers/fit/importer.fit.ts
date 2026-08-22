@@ -895,12 +895,11 @@ export class EventImporterFIT {
     const mappings: Array<{
       field: string;
       create: (value: number) => DataInterface<unknown>;
-      scale?: number;
     }> = [
-      { field: 'avg_depth', create: value => new DataDepthAvg(value), scale: 1000 },
-      { field: 'max_depth', create: value => new DataDepthMax(value), scale: 1000 },
+      { field: 'avg_depth', create: value => new DataDepthAvg(value) },
+      { field: 'max_depth', create: value => new DataDepthMax(value) },
       { field: 'surface_interval', create: value => new DataSurfaceInterval(value) },
-      { field: 'bottom_time', create: value => new DataBottomTime(value), scale: 1000 },
+      { field: 'bottom_time', create: value => new DataBottomTime(value) },
       { field: 'dive_number', create: value => new DataDiveNumber(value) },
       { field: 'descent_time', create: value => new DataDiveDescentTime(value) },
       { field: 'ascent_time', create: value => new DataDiveAscentTime(value) },
@@ -924,7 +923,7 @@ export class EventImporterFIT {
       if (!Number.isFinite(sourceValue)) {
         return;
       }
-      target.addStat(mapping.create(mapping.scale ? sourceValue / mapping.scale : sourceValue));
+      target.addStat(mapping.create(sourceValue));
     });
   }
 

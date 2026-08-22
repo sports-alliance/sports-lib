@@ -215,13 +215,13 @@ export const FITSampleMapper: {
   {
     dataType: DataDepth.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.depth) && sample.depth >= 0 ? sample.depth / 1000 : null;
+      return isNumber(sample.depth) ? sample.depth : null;
     }
   },
   {
     dataType: DataNextStopDepth.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.next_stop_depth) && sample.next_stop_depth >= 0 ? sample.next_stop_depth / 1000 : null;
+      return isNumber(sample.next_stop_depth) ? sample.next_stop_depth : null;
     }
   },
   {

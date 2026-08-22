@@ -37,19 +37,19 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
-  it('maps FIT record depth from millimeters to canonical meters', () => {
+  it('retains SDK-scaled FIT record depth in canonical meters', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
 
     expect(mapper).toBeDefined();
-    expect(mapper!.getSampleValue({ depth: 3860 })).toBe(3.86);
+    expect(mapper!.getSampleValue({ depth: 3.86 })).toBe(3.86);
     expect(mapper!.getSampleValue({ depth: 0 })).toBe(0);
-    expect(mapper!.getSampleValue({ depth: -1 })).toBeNull();
+    expect(mapper!.getSampleValue({ depth: -1 })).toBe(-1);
     expect(mapper!.getSampleValue({ depth: Number.NaN })).toBeNull();
   });
 
   it('maps native FIT dive record fields without deriving or plausibility filtering', () => {
     const sample = {
-      next_stop_depth: 3000,
+      next_stop_depth: 3,
       next_stop_time: 60,
       time_to_surface: 300,
       ndl_time: 900,

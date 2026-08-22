@@ -54,9 +54,9 @@ describe('EventImporterFIT session stats mapping', () => {
           {
             reference_mesg: 'session',
             reference_index: messageIndex,
-            avg_depth: 12_345,
-            max_depth: 20_000,
-            bottom_time: 900_000,
+            avg_depth: 12.345,
+            max_depth: 20,
+            bottom_time: 900,
             dive_number: 803,
             avg_ascent_rate: 0.044,
             end_n2: 61,
@@ -65,9 +65,9 @@ describe('EventImporterFIT session stats mapping', () => {
           {
             reference_mesg: 'lap',
             reference_index: messageIndex,
-            avg_depth: 10_000,
-            max_depth: 15_000,
-            bottom_time: 800_000
+            avg_depth: 10,
+            max_depth: 15,
+            bottom_time: 800
           }
         ]
       }

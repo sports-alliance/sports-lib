@@ -42,7 +42,7 @@ Source-native diving metrics
 FIT imports attach each `dive_summary` to the session or lap identified by its native `reference_mesg` and
 `reference_index`. Message order is irrelevant, lap summaries are never promoted to their activity, and missing summary
 fields are not calculated from record streams. The parser's compatibility-shaped depth and bottom-time fields receive
-only their FIT profile scale when Sports Lib creates canonical values.
+their Garmin FIT SDK scale before Sports Lib receives and stores those values without further conversion.
 
 Native dive-summary statistics are:
 

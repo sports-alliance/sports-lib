@@ -3,6 +3,7 @@ import { DataCadence } from '../data/data.cadence';
 import { DataCadenceAvg } from '../data/data.cadence-avg';
 import { DataCadenceMax } from '../data/data.cadence-max';
 import { DataCadenceMin } from '../data/data.cadence-min';
+import { DataAscent } from '../data/data.ascent';
 import { DataHeartRate } from '../data/data.heart-rate';
 import { DataPower } from '../data/data.power';
 import { DataStrokeRate } from '../data/data.stroke-rate';
@@ -73,6 +74,19 @@ describe('activity metric semantics', () => {
 
     expect(event.getStat(DataCadenceAvg.type)?.getValue()).toBe(32);
     expect(event.getStat(DataStrokeRateAvg.type)).toBeUndefined();
+  });
+
+  it('removes terrain summaries only for homogeneous Diving-group stat projections', () => {
+    const divingSummary = new Event('Diving summary', new Date(0), new Date(1000), FileType.FIT, Privacy.Private);
+    divingSummary.addStat(new DataAscent(20));
+    const mixedSummary = new Event('Mixed summary', new Date(0), new Date(1000), FileType.FIT, Privacy.Private);
+    mixedSummary.addStat(new DataAscent(20));
+
+    normalizeActivityMetricSemanticsForStats(divingSummary, [ActivityTypes.ScubaDiving]);
+    normalizeActivityMetricSemanticsForStats(mixedSummary, [ActivityTypes.ScubaDiving, ActivityTypes.Running]);
+
+    expect(divingSummary.getStat(DataAscent.type)).toBeUndefined();
+    expect(mixedSummary.getStat(DataAscent.type)?.getValue()).toBe(20);
   });
 
   it.each(strokeRateActivityTypes)('normalizes cadence streams and summaries for %s', activityType => {

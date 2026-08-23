@@ -8,8 +8,9 @@
  */
 
 /**
- * Primary import/export facade. Native JSON restoration preserves applicable explicit stats and adds
- * missing speed-derived pace summaries on events, activities, and laps.
+ * Primary import/export facade. Native JSON restoration preserves applicable explicit stats except
+ * Diving-group terrain summaries, and adds missing speed-derived pace summaries on events,
+ * activities, and laps.
  *
  * @category Import and export
  */
@@ -36,6 +37,12 @@ export type {
 /** @category Activities and events */
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
+/**
+ * Canonicalizes unambiguous activity-summary semantics: cadence-shaped stroke-rate summaries
+ * become `Stroke Rate`, and homogeneous Diving-group summaries omit terrain metrics.
+ *
+ * @category Activities and events
+ */
 export { normalizeActivityMetricSemanticsForStats } from '../src/activities/activity.metric-semantics';
 /**
  * Canonical activity types, activity groups, and alias resolution. Snorkeling and Mermaiding

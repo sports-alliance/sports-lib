@@ -28,6 +28,10 @@ for the Diving activity group, canonicalizes compatible legacy keys, may add mis
 events, activities, and laps, and applies activity-aware cadence-to-stroke-rate normalization without requiring the
 original source file.
 
+Starting with 20.0.2, restoring older Diving-group JSON also removes terrain ascent/descent, altitude min/max/avg,
+and grade min/max/avg summaries from events, activities, and laps. The restored model needs no source-file reparse;
+re-serializing it intentionally writes the corrected summary set while retaining any raw source streams.
+
 ```ts
 import { EventExporterJSON, SportsLib } from '@sports-alliance/sports-lib';
 

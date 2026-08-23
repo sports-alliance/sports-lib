@@ -2,9 +2,9 @@
 
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
 and native JSON hydration consistently fill missing speed-derived pace summaries on events, activities, and laps while
-preserving applicable explicit values. Supported activity aliases are normalized to canonical types, including Diving-group
-Snorkeling and Mermaiding. The API reference documents the supported consumer API; implementation adapters and parsers
-remain available for compatibility but are intentionally outside this reference.
+preserving applicable explicit values except Diving-group terrain summaries. Supported activity aliases are normalized to
+canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
+API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
 Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
 summaries separately from activities can explicitly canonicalize those projections with
@@ -18,8 +18,9 @@ meters and meters per second for `/100m` or feet and feet per second for `/100yd
 places, rates to three, SAC/RMV values to two, and PO₂ retains both FIT decimal places.
 Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apnea sub-sports import as `Free Diving`.
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
-retain or derive terrain ascent, descent, altitude min/max/avg, or grade min/max/avg summaries. Their vertical movement
-is represented by depth; raw altitude and grade streams remain available when provided by the source.
+retain or derive terrain ascent, descent, altitude min/max/avg, or grade min/max/avg summaries, including when older
+native JSON is restored. Their vertical movement is represented by depth; raw altitude and grade streams remain
+available when provided by the source.
 
 ## Start here
 

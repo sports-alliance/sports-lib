@@ -1,5 +1,6 @@
 import { EventImporterJSON } from './importer.json';
 import { ActivityTypes } from '../../../../activities/activity.types';
+import { DataActivityTypes } from '../../../../data/data.activity-types';
 import { DataAvgVAM } from '../../../../data/data.avg-vam';
 import { DataJumpHeightAvg } from '../../../../data/data.jump-stats';
 import { DataMaxHRSetting } from '../../../../data/data.max-hr-setting';
@@ -14,11 +15,43 @@ import { DataCadence } from '../../../../data/data.cadence';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
 import { DataStrokeRate } from '../../../../data/data.stroke-rate';
 import { DataStrokeRateAvg } from '../../../../data/data.stroke-rate-avg';
+import { DataAscent } from '../../../../data/data.ascent';
+import { DataDescent } from '../../../../data/data.descent';
+import { DataAltitudeMin } from '../../../../data/data.altitude-min';
+import { DataAltitudeMax } from '../../../../data/data.altitude-max';
+import { DataAltitudeAvg } from '../../../../data/data.altitude-avg';
+import { DataGradeMin } from '../../../../data/data.grade-min';
+import { DataGradeMax } from '../../../../data/data.grade-max';
+import { DataGradeAvg } from '../../../../data/data.grade-avg';
+import { DataAltitude } from '../../../../data/data.altitude';
+import { DataGrade } from '../../../../data/data.grade';
 import { LapTypes } from '../../../../laps/lap.types';
 import { FileType } from '../../file-type.enum';
 import { Privacy } from '../../../../privacy/privacy.class.interface';
 
 describe('EventImporterJSON legacy type compatibility', () => {
+  const divingTerrainSummaryTypes = [
+    DataAscent.type,
+    DataDescent.type,
+    DataAltitudeMin.type,
+    DataAltitudeMax.type,
+    DataAltitudeAvg.type,
+    DataGradeMin.type,
+    DataGradeMax.type,
+    DataGradeAvg.type
+  ];
+
+  const divingTerrainStats = {
+    [DataAscent.type]: 20,
+    [DataDescent.type]: 10,
+    [DataAltitudeMin.type]: -5,
+    [DataAltitudeMax.type]: 5,
+    [DataAltitudeAvg.type]: 0,
+    [DataGradeMin.type]: -10,
+    [DataGradeMax.type]: 10,
+    [DataGradeAvg.type]: 0
+  };
+
   it('normalizes stored cadence streams and summaries using activity semantics', () => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'stored-open-water-swim',
@@ -88,6 +121,103 @@ describe('EventImporterJSON legacy type compatibility', () => {
     expect(event.getStat(DataCadenceAvg.type)).toBeUndefined();
     expect(event.getStat(DataStrokeRateAvg.type)?.getValue()).toBe(28);
     expect(event.getFirstActivity().getStat(DataStrokeRateAvg.type)?.getValue()).toBe(28);
+  });
+
+  it.each([
+    ActivityTypes.Diving,
+    ActivityTypes.ScubaDiving,
+    ActivityTypes.FreeDiving,
+    ActivityTypes.Snorkeling,
+    ActivityTypes.Mermaiding
+  ])('removes stored terrain summaries for %s without removing source streams', activityType => {
+    const event = EventImporterJSON.getEventFromJSON({
+      name: 'stored-dive-event',
+      startDate: 0,
+      endDate: 1000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {
+        [DataActivityTypes.type]: [activityType],
+        ...divingTerrainStats
+      },
+      activities: [
+        {
+          name: null,
+          startDate: 0,
+          endDate: 1000,
+          type: activityType,
+          powerMeter: false,
+          trainer: false,
+          powerCurve: null,
+          stats: divingTerrainStats,
+          streams: [
+            { type: DataAltitude.type, data: [-5, 0, 5] },
+            { type: DataGrade.type, data: [-10, 0, 10] }
+          ],
+          laps: [
+            {
+              lapId: 1,
+              startDate: 0,
+              endDate: 1000,
+              startIndex: null,
+              endIndex: null,
+              type: LapTypes.Manual,
+              stats: divingTerrainStats
+            }
+          ],
+          creator: { name: 'test', devices: [] },
+          intensityZones: [],
+          events: []
+        }
+      ]
+    });
+    const activity = event.getFirstActivity();
+    const lap = activity.getLaps()[0];
+
+    [event, activity, lap].forEach(target => {
+      divingTerrainSummaryTypes.forEach(dataType => expect(target.getStat(dataType)).toBeUndefined());
+    });
+    expect(activity.getStreamData(DataAltitude.type)).toEqual([-5, 0, 5]);
+    expect(activity.getStreamData(DataGrade.type)).toEqual([-10, 0, 10]);
+  });
+
+  it('uses a summary-only event activity-type stat and preserves mixed terrain summaries', () => {
+    const divingEvent = EventImporterJSON.getEventFromJSON({
+      name: 'stored-summary-only-dive',
+      startDate: 0,
+      endDate: 1000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {
+        [DataActivityTypes.type]: [ActivityTypes.ScubaDiving],
+        ...divingTerrainStats
+      },
+      activities: []
+    });
+    const mixedEvent = EventImporterJSON.getEventFromJSON({
+      name: 'stored-mixed-summary',
+      startDate: 0,
+      endDate: 1000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {
+        [DataActivityTypes.type]: [ActivityTypes.ScubaDiving, ActivityTypes.Running],
+        ...divingTerrainStats
+      },
+      activities: []
+    });
+
+    divingTerrainSummaryTypes.forEach(dataType => expect(divingEvent.getStat(dataType)).toBeUndefined());
+    expect(mixedEvent.getStat(DataAscent.type)?.getValue()).toBe(20);
   });
 
   it('maps legacy stat keys to canonical types via DynamicDataLoader aliases', () => {

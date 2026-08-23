@@ -57,8 +57,8 @@ Garmin `single_gas_diving`, `multi_gas_diving`, and `gauge_diving` sub-sports re
 Diving activity group.
 
 Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
-they were imported from a FIT summary or would otherwise be hydrated from streams. Depth represents dive vertical
-movement. Any source altitude or grade stream remains available when explicitly requested.
+they were imported from a FIT summary, restored from native JSON, or would otherwise be hydrated from streams. Depth
+represents dive vertical movement. Any source altitude or grade stream remains available when explicitly requested.
 
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.
@@ -78,11 +78,18 @@ It also converts cadence-shaped data to stroke rate for the supported activity t
 require reparsing from FIT, TCX, or GPX. Pool-swim length JSON keeps its existing `avgCadence` property name while
 hydrating that value as `DataStrokeRate`.
 
-Complete native event JSON contains the activities that determine event-summary semantics. Applications that persist
-summary-only projections separately from their activities should opt in after hydration by calling
-`normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`. The helper changes only unambiguous
-homogeneous stroke-rate summaries; empty, unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not
-infer relationships omitted by an application-specific persistence layout.
+Complete native event JSON contains the activities that determine event-summary semantics. Summary-only native event
+JSON receives the same treatment when its `Activity Types` stat is present. When an application persists neither, it
+can opt in after hydration by calling `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`.
+The helper changes only unambiguous homogeneous stroke-rate summaries and removes terrain summaries from homogeneous
+Diving-group summaries; empty, unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not infer
+relationships omitted by an application-specific persistence layout.
+
+### 20.0.2 native-JSON migration
+
+Restoring existing Diving-group native JSON now removes terrain ascent/descent, altitude min/max/avg, and grade
+min/max/avg summary values from events, activities, and laps. No source-file reparse is needed for the restored
+in-memory model. Re-serializing that model intentionally omits those values; raw source streams remain untouched.
 
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`

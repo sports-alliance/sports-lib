@@ -32,10 +32,12 @@ jobs:
           # Do not publish whatever happens to be at main when this starts.
           # Publish the precise commit whose Test run completed successfully.
           ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 1
+          fetch-depth: 2
 
       - id: release
         name: Detect a publishable version
+        env:
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           version="$(node -p "require('./package.json').version")"
           node <<'NODE'
@@ -52,11 +54,14 @@ jobs:
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-          # A version bump may be followed by code fixes in the same push, so the
-          # immediate parent of TARGET_SHA is not a reliable release baseline.
-          # The release tag is created only after a successful npm publish and is
-          # therefore the durable marker that this version is already released.
-          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null 2>&1; then
+          if ! git cat-file -e "$TARGET_SHA^:package.json" 2> /dev/null; then
+            echo "Unable to compare this commit with its parent package version" >&2
+            exit 1
+          fi
+
+          previous_version="$(git show "$TARGET_SHA^:package.json" | node -e "let input=''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => process.stdout.write(JSON.parse(input).version));")"
+
+          if [ "$previous_version" = "$version" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi

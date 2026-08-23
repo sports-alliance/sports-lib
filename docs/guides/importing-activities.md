@@ -45,8 +45,8 @@ The FIT parser applies the profile scale to record-level `depth`, `next_stop_dep
 fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
 The parser emits FIT `avg_vam` in meters per second; Sports Lib converts that present source value to its public
 `Average VAM` metric unit of meters per hour.
-FIT `resting_calories` was an old parser compatibility field, not a FIT SDK profile field: it was not decoded from a
-standard FIT record. Parser 5 removes it, so Sports Lib no longer emits `Resting Calories` for new FIT imports or
+Parser 4 exposed FIT session field 196 (`metabolic_calories`) a second time as `resting_calories`. Parser 5 retains
+only the canonical `metabolic_calories` name, so Sports Lib no longer emits `Resting Calories` for new FIT imports or
 substitutes a different calorie metric. Existing `Resting Calories` values in native JSON remain readable.
 Suunto depth values also remain canonical meters. Depth is available as an advanced chart metric; callers can request
 `Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.

@@ -375,6 +375,7 @@ import { DataLeftTorqueEffectiveness } from './data.left-torque-effectiveness';
 import { DataMaxRespirationRate } from './data.max-respiration-rate';
 import { DataMinRespirationRate } from './data.min-respiration-rate';
 import { DataPrimaryBenefit } from './data.primary-benefit';
+import { DataMetabolicCalories } from './data.metabolic-calories';
 import { DataRestingCalories } from './data.resting-calories';
 import { DataRightPedalSmoothness } from './data.right-pedal-smoothness';
 import { DataRightTorqueEffectiveness } from './data.right-torque-effectiveness';
@@ -393,6 +394,46 @@ import { DataMaxHRSetting } from './data.max-hr-setting';
 
 import { DataDepth, DataDepthFeet } from './data.depth';
 import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
+import {
+  DataAirTimeRemaining,
+  DataBottomTime,
+  DataCNSLoad,
+  DataDepthAvg,
+  DataDepthAvgFeet,
+  DataDiveAscentRate,
+  DataDiveAscentRateAvg,
+  DataDiveAscentRateAvgFeetPerSecond,
+  DataDiveAscentRateFeetPerSecond,
+  DataDiveAscentRateMax,
+  DataDiveAscentRateMaxFeetPerSecond,
+  DataDiveAscentTime,
+  DataDiveDescentRateAvg,
+  DataDiveDescentRateAvgFeetPerSecond,
+  DataDiveDescentRateMax,
+  DataDiveDescentRateMaxFeetPerSecond,
+  DataDiveDescentTime,
+  DataDiveHangTime,
+  DataDiveNumber,
+  DataEndingCNSLoad,
+  DataEndingN2Load,
+  DataN2Load,
+  DataNextStopDepth,
+  DataNextStopDepthFeet,
+  DataNextStopTime,
+  DataNoDecompressionLimit,
+  DataOxygenToxicity,
+  DataPO2,
+  DataPressureSAC,
+  DataPressureSACAvg,
+  DataRMV,
+  DataRMVAvg,
+  DataStartingCNSLoad,
+  DataStartingN2Load,
+  DataSurfaceInterval,
+  DataTimeToSurface,
+  DataVolumeSAC,
+  DataVolumeSACAvg
+} from './data.dive';
 import {
   DataJumpDistanceAvg,
   DataJumpDistanceMax,
@@ -456,6 +497,18 @@ const JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpe
 const JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgMetersPerMinute.type);
 const JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgFeetPerMinute.type);
 const JUMP_SPEED_KNOTS_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgKnots.type);
+
+const DIVE_IMPERIAL_DATA_TYPE_BY_CANONICAL_TYPE: Readonly<Record<string, string>> = {
+  [DataDepth.type]: DataDepthFeet.type,
+  [DataDepthMax.type]: DataDepthMaxFeet.type,
+  [DataDepthAvg.type]: DataDepthAvgFeet.type,
+  [DataNextStopDepth.type]: DataNextStopDepthFeet.type,
+  [DataDiveAscentRate.type]: DataDiveAscentRateFeetPerSecond.type,
+  [DataDiveAscentRateAvg.type]: DataDiveAscentRateAvgFeetPerSecond.type,
+  [DataDiveAscentRateMax.type]: DataDiveAscentRateMaxFeetPerSecond.type,
+  [DataDiveDescentRateAvg.type]: DataDiveDescentRateAvgFeetPerSecond.type,
+  [DataDiveDescentRateMax.type]: DataDiveDescentRateMaxFeetPerSecond.type
+};
 
 // "Total Training effect" was renamed to "Aerobic Training Effect" in sports-lib 6.0
 export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
@@ -827,6 +880,7 @@ export const DataStore: any = {
   DataMaxRespirationRate,
   DataMinRespirationRate,
   DataPrimaryBenefit,
+  DataMetabolicCalories,
   DataRestingCalories,
   DataRightPedalSmoothness,
   DataRightTorqueEffectiveness,
@@ -849,6 +903,44 @@ export const DataStore: any = {
   DataDepthFeet,
   DataDepthMax,
   DataDepthMaxFeet,
+  DataDepthAvg,
+  DataDepthAvgFeet,
+  DataSurfaceInterval,
+  DataBottomTime,
+  DataDiveNumber,
+  DataDiveDescentTime,
+  DataDiveAscentTime,
+  DataDiveAscentRate,
+  DataDiveAscentRateFeetPerSecond,
+  DataDiveAscentRateAvg,
+  DataDiveAscentRateAvgFeetPerSecond,
+  DataDiveAscentRateMax,
+  DataDiveAscentRateMaxFeetPerSecond,
+  DataDiveDescentRateAvg,
+  DataDiveDescentRateAvgFeetPerSecond,
+  DataDiveDescentRateMax,
+  DataDiveDescentRateMaxFeetPerSecond,
+  DataDiveHangTime,
+  DataStartingCNSLoad,
+  DataEndingCNSLoad,
+  DataStartingN2Load,
+  DataEndingN2Load,
+  DataOxygenToxicity,
+  DataPressureSAC,
+  DataPressureSACAvg,
+  DataVolumeSAC,
+  DataVolumeSACAvg,
+  DataRMV,
+  DataRMVAvg,
+  DataNextStopDepth,
+  DataNextStopDepthFeet,
+  DataNextStopTime,
+  DataTimeToSurface,
+  DataNoDecompressionLimit,
+  DataCNSLoad,
+  DataN2Load,
+  DataAirTimeRemaining,
+  DataPO2,
   DataJumpHangTimeMin,
   DataJumpHangTimeMax,
   DataJumpHangTimeAvg,
@@ -1020,6 +1112,18 @@ export class DynamicDataLoader {
 
   static advancedDataTypes = [
     DataDepth.type,
+    DataNextStopDepth.type,
+    DataNextStopTime.type,
+    DataTimeToSurface.type,
+    DataNoDecompressionLimit.type,
+    DataCNSLoad.type,
+    DataN2Load.type,
+    DataAirTimeRemaining.type,
+    DataPressureSAC.type,
+    DataVolumeSAC.type,
+    DataRMV.type,
+    DataPO2.type,
+    DataDiveAscentRate.type,
     DataGrade.type,
     DataVerticalSpeed.type,
     DataTemperature.type,
@@ -1075,6 +1179,27 @@ export class DynamicDataLoader {
     },
     [DataDepthMax.type]: {
       [DataDepthMaxFeet.type]: convertMetersToFeet
+    },
+    [DataDepthAvg.type]: {
+      [DataDepthAvgFeet.type]: convertMetersToFeet
+    },
+    [DataNextStopDepth.type]: {
+      [DataNextStopDepthFeet.type]: convertMetersToFeet
+    },
+    [DataDiveAscentRate.type]: {
+      [DataDiveAscentRateFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond
+    },
+    [DataDiveAscentRateAvg.type]: {
+      [DataDiveAscentRateAvgFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond
+    },
+    [DataDiveAscentRateMax.type]: {
+      [DataDiveAscentRateMaxFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond
+    },
+    [DataDiveDescentRateAvg.type]: {
+      [DataDiveDescentRateAvgFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond
+    },
+    [DataDiveDescentRateMax.type]: {
+      [DataDiveDescentRateMaxFeetPerSecond.type]: convertSpeedToSpeedInFeetPerSecond
     },
     [DataSpeed.type]: {
       [DataSpeedKilometersPerHour.type]: convertSpeedToSpeedInKilometersPerHour,
@@ -1528,13 +1653,10 @@ export class DynamicDataLoader {
     return this.getDistanceUnits(userUnitSettings) === DistanceUnits.Miles ? distanceImperialDataType : dataType;
   }
 
-  private static getDepthUnitDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string | null {
+  private static getDiveUnitDataType(dataType: string, userUnitSettings?: UserUnitSettingsInterface): string | null {
     const usesYards = userUnitSettings?.swimPaceUnits?.[0] === SwimPaceUnits.MinutesPer100Yard;
-    if (dataType === DataDepth.type) {
-      return usesYards ? DataDepthFeet.type : DataDepth.type;
-    }
-    if (dataType === DataDepthMax.type) {
-      return usesYards ? DataDepthMaxFeet.type : DataDepthMax.type;
+    if (DIVE_IMPERIAL_DATA_TYPE_BY_CANONICAL_TYPE[dataType]) {
+      return usesYards ? DIVE_IMPERIAL_DATA_TYPE_BY_CANONICAL_TYPE[dataType] : dataType;
     }
     return null;
   }
@@ -1677,9 +1799,9 @@ export class DynamicDataLoader {
     }
     unitBasedDataTypes = unitBasedDataTypes.concat(
       dataTypes.reduce((accu: string[], dataType: string) => {
-        const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
-        if (depthDataType && accu.indexOf(depthDataType) === -1) {
-          accu.push(depthDataType);
+        const diveDataType = this.getDiveUnitDataType(dataType, userUnitSettings);
+        if (diveDataType && accu.indexOf(diveDataType) === -1) {
+          accu.push(diveDataType);
         }
         return accu;
       }, [])
@@ -1734,9 +1856,9 @@ export class DynamicDataLoader {
     if (!userUnitSettings) {
       return [dataType];
     }
-    const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
-    if (depthDataType) {
-      return [depthDataType];
+    const diveDataType = this.getDiveUnitDataType(dataType, userUnitSettings);
+    if (diveDataType) {
+      return [diveDataType];
     }
     const distanceDataType = this.getDistanceDerivedDataType(dataType, userUnitSettings);
     if (distanceDataType) {
@@ -1790,15 +1912,15 @@ export class DynamicDataLoader {
       return [data];
     }
     const dataType = data.getType();
-    const depthDataType = this.getDepthUnitDataType(dataType, userUnitSettings);
-    if (depthDataType) {
-      if (depthDataType === dataType) {
+    const diveDataType = this.getDiveUnitDataType(dataType, userUnitSettings);
+    if (diveDataType) {
+      if (diveDataType === dataType) {
         return [data];
       }
       return [
         this.getDataInstanceFromDataType(
-          depthDataType,
-          DynamicDataLoader.dataTypeUnitGroups[dataType][depthDataType](<number>data.getValue())
+          diveDataType,
+          DynamicDataLoader.dataTypeUnitGroups[dataType][diveDataType](<number>data.getValue())
         )
       ];
     }

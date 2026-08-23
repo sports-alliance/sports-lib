@@ -37,6 +37,40 @@ High-level metric domains include:
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
+Source-native diving metrics
+---
+FIT imports attach each `dive_summary` to the session or lap identified by its native `reference_mesg` and
+`reference_index`. Message order is irrelevant, lap summaries are never promoted to their activity, and missing summary
+fields are not calculated from record streams. The parser's compatibility-shaped depth and bottom-time fields receive
+their Garmin FIT SDK scale before Sports Lib receives and stores those values without further conversion.
+
+Native dive-summary statistics are:
+
+- `Average Depth` (`m`), `Maximum Depth` (`m`), `Surface Interval` (`s`), `Bottom Time` (`s`), and `Dive Number`
+- `Dive Descent Time` (`s`), `Dive Ascent Time` (`s`), and `Dive Hang Time` (`s`)
+- `Average Dive Ascent Rate`, `Average Dive Descent Rate`, `Maximum Dive Ascent Rate`, and
+  `Maximum Dive Descent Rate` (`m/s`)
+- `Starting CNS Load`, `Ending CNS Load`, `Starting N2 Load`, and `Ending N2 Load` (`%`)
+- `Oxygen Toxicity` (`OTUs`), `Average Pressure SAC` (`bar/min`), `Average Volume SAC` (`L/min`), and
+  `Average RMV` (`L/min`)
+
+Native record streams are `Depth` and `Next Stop Depth` (`m`), `Next Stop Time`, `Time to Surface`,
+`No-Decompression Limit`, and `Air Time Remaining` (`s`), `CNS Load` and `N2 Load` (`%`), `Pressure SAC` (`bar/min`),
+`Volume SAC` and `RMV` (`L/min`), `PO2` (`%`, displayed as `PO₂`), and `Dive Ascent Rate` (`m/s`). These streams retain
+only samples present in the source file: Sports Lib does not fill, smooth, clamp, or derive them. In particular,
+`Air Time Remaining` preserves every non-invalid unsigned FIT value exactly as decoded. Multi-gas and tank messages
+remain structured parser output and are not flattened into scalar statistics.
+
+Presentation preserves the FIT profile precision: depth values and dive rates use three decimal places,
+pressure/volume SAC and RMV use two, and PO₂ uses two rather than the generic one-decimal percentage format. The first
+swim-pace preference selects a single coherent dive unit family: `/100m` keeps depth and rates in `m` and `m/s`, while
+`/100yd` converts depth and rates to `ft` and `ft/s`. Canonical stored values and serialized JSON remain in the FIT
+profile units above.
+
+The presentation-only exported variants are `Average Depth in feet`, `Next Stop Depth in feet`, `Dive ascent rate in
+feet per second`, `Average dive ascent rate in feet per second`, `Maximum dive ascent rate in feet per second`,
+`Average dive descent rate in feet per second`, and `Maximum dive descent rate in feet per second`.
+
 Calculations / Derivations
 ---
 The following formulas describe how missing streams/stats are computed in:
@@ -57,8 +91,9 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 - Distance/GNSS distance are generated from latitude/longitude when missing.
 - Speed is generated from distance deltas and time deltas.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
-- FIT record depth uses the FIT profile scale (`Depth(m) = record.depth / 1000`). Canonical depth streams and maximum
-  depth stats remain meters. The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
+- The FIT parser applies the profile's `1000` depth scale before import; Sports Lib stores record depth and next-stop
+  depth directly in meters without another conversion. Canonical depth streams and maximum depth stats remain meters.
+  The first `swimPaceUnits` preference selects display variants: `Swim Pace` keeps meters,
   while `Swim Pace in minutes per 100 yard` selects feet.
 - Missing minimum, maximum, and average pace-family stats are hydrated from canonical speed stats for events, activities,
   and laps. Pace and swim pace invert the speed extrema (`maximum speed -> minimum pace`); grade-adjusted pace follows
@@ -106,8 +141,9 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
-- Elevation ascent and descent are intentionally not derived for the Diving activity group (Diving, Scuba Diving,
-  Free Diving, Snorkeling, and Mermaiding). Their vertical movement is represented by depth, not terrain elevation.
+- Terrain ascent/descent, altitude min/max/avg, and grade min/max/avg are intentionally excluded for the Diving
+  activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary
+  or otherwise derived from streams. Their vertical movement is represented by depth, not terrain elevation.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 
@@ -483,6 +519,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Leg Spring Stiffness Balance Right`
 - `Leg Stiffness` (unit: `"KN/m"`)
 - `Longitude` (unit: `degrees`)
+- `Metabolic Calories` (unit: `kcal`)
 - `Moving time`
 - `Number of Samples`
 - `Number of Satellites`
@@ -641,7 +678,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average SWOLF 25m`
 - `Average SWOLF 50m`
 - `Average Temperature`
-- `Average VAM` (unit: `m/h`)
+- `Average VAM` (unit: `m/h`; FIT `avg_vam` source values in `m/s` are converted to this public unit)
 - `Average Vertical Oscillation` (unit: `mm`)
 - `Average Vertical Speed`
 - `Average vertical speed in feet per hour`

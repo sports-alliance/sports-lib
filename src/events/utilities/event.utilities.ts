@@ -61,7 +61,7 @@ export class EventUtilities {
    * Interaction with `generateStatsForAll(event)`:
    * - `generateStatsForAll` calls activity generation first (`generateMissingStreamsAndStatsForActivity`),
    *   then calls this method.
-   * - Activity generation is "fill missing", not "replace existing": existing activity stats are preserved.
+   * - Activity generation is "fill missing", not "replace existing": applicable activity stats are preserved.
    * - If activity stats were cleared or removed by caller code before regeneration, missing stats are recomputed
    *   from streams (for example, Average Speed from speed stream mean, Ascent from altitude gain).
    *

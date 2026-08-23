@@ -27,12 +27,88 @@ import {
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { Lap } from '../../../../laps/lap';
+import { LapTypes } from '../../../../laps/lap.types';
+import {
+  DataBottomTime,
+  DataDepthAvg,
+  DataDiveAscentRateAvg,
+  DataDiveNumber,
+  DataEndingN2Load,
+  DataPressureSACAvg
+} from '../../../../data/data.dive';
 
 describe('EventImporterFIT session stats mapping', () => {
   const toArrayBuffer = (filePath: string): ArrayBuffer => {
     const fileContent = fs.readFileSync(filePath);
     return fileContent.buffer.slice(fileContent.byteOffset, fileContent.byteOffset + fileContent.byteLength);
   };
+
+  it('matches native dive summaries to their referenced session and lap regardless of message order', () => {
+    const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.Diving, new Creator('test'));
+    const lap = new Lap(new Date(0), new Date(10_000), 0, LapTypes.Manual);
+    const messageIndex = { value: 0 };
+    const fitDataObject = {
+      messages: {
+        dive_summary: [
+          {
+            reference_mesg: 'session',
+            reference_index: messageIndex,
+            avg_depth: 12.345,
+            max_depth: 20,
+            bottom_time: 900,
+            dive_number: 803,
+            avg_ascent_rate: 0.044,
+            end_n2: 61,
+            avg_pressure_sac: 1.67
+          },
+          {
+            reference_mesg: 'lap',
+            reference_index: messageIndex,
+            avg_depth: 10,
+            max_depth: 15,
+            bottom_time: 800
+          }
+        ]
+      }
+    };
+
+    const sessionSummary = (EventImporterFIT as any).getReferencedDiveSummary(fitDataObject, 'session', {
+      message_index: messageIndex
+    });
+    const lapSummary = (EventImporterFIT as any).getReferencedDiveSummary(fitDataObject, 'lap', {
+      message_index: messageIndex
+    });
+    (EventImporterFIT as any).addDiveSummaryStats(activity, sessionSummary);
+    (EventImporterFIT as any).addDiveSummaryStats(lap, lapSummary);
+
+    expect(activity.getStat(DataDepthAvg.type)?.getValue()).toBe(12.345);
+    expect(activity.getStat(DataDepthMax.type)?.getValue()).toBe(20);
+    expect(activity.getStat(DataBottomTime.type)?.getValue()).toBe(900);
+    expect(activity.getStat(DataDiveNumber.type)?.getValue()).toBe(803);
+    expect(activity.getStat(DataDiveAscentRateAvg.type)?.getValue()).toBe(0.044);
+    expect(activity.getStat(DataEndingN2Load.type)?.getValue()).toBe(61);
+    expect(activity.getStat(DataPressureSACAvg.type)?.getValue()).toBe(1.67);
+    expect(lap.getStat(DataDepthAvg.type)?.getValue()).toBe(10);
+    expect(lap.getStat(DataDepthMax.type)?.getValue()).toBe(15);
+    expect(lap.getStat(DataBottomTime.type)?.getValue()).toBe(800);
+    expect(lap.getStat(DataDiveNumber.type)).toBeUndefined();
+  });
+
+  it('requires native v5 reference enums and message-index masks', () => {
+    const getSummary = (summary: any, targetMessage: any) =>
+      (EventImporterFIT as any).getReferencedDiveSummary(
+        { messages: { dive_summary: [summary] } },
+        'session',
+        targetMessage
+      );
+
+    expect(
+      getSummary({ reference_mesg: 18, reference_index: { value: 0 } }, { message_index: { value: 0 } })
+    ).toBeNull();
+    expect(getSummary({ reference_mesg: 'session', reference_index: 0 }, { message_index: { value: 0 } })).toBeNull();
+    expect(getSummary({ reference_mesg: 'session', reference_index: { value: 0 } }, {})).toBeNull();
+  });
 
   it('should use session total_moving_time when available', async () => {
     const fitFilePath = path.join(__dirname, '../../../../specs/fixtures/rides/fit/971150603.fit');

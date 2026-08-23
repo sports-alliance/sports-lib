@@ -11,6 +11,20 @@ import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
 import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { DataPotentialStamina, DataStamina } from '../../../../data/data.stamina';
 import { DataDepth } from '../../../../data/data.depth';
+import {
+  DataAirTimeRemaining,
+  DataCNSLoad,
+  DataDiveAscentRate,
+  DataN2Load,
+  DataNextStopDepth,
+  DataNextStopTime,
+  DataNoDecompressionLimit,
+  DataPO2,
+  DataPressureSAC,
+  DataRMV,
+  DataTimeToSurface,
+  DataVolumeSAC
+} from '../../../../data/data.dive';
 import { EventImporterFIT } from './importer.fit';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 import {
@@ -23,14 +37,49 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
-  it('maps FIT record depth from millimeters to canonical meters', () => {
+  it('retains SDK-scaled FIT record depth in canonical meters', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
 
     expect(mapper).toBeDefined();
-    expect(mapper!.getSampleValue({ depth: 3860 })).toBe(3.86);
+    expect(mapper!.getSampleValue({ depth: 3.86 })).toBe(3.86);
     expect(mapper!.getSampleValue({ depth: 0 })).toBe(0);
-    expect(mapper!.getSampleValue({ depth: -1 })).toBeNull();
+    expect(mapper!.getSampleValue({ depth: -1 })).toBe(-1);
     expect(mapper!.getSampleValue({ depth: Number.NaN })).toBeNull();
+  });
+
+  it('maps native FIT dive record fields without deriving or plausibility filtering', () => {
+    const sample = {
+      next_stop_depth: 3,
+      next_stop_time: 60,
+      time_to_surface: 300,
+      ndl_time: 900,
+      cns_load: 12,
+      n2_load: 34,
+      air_time_remaining: 4_294_961_197,
+      pressure_sac: 12.34,
+      volume_sac: 23.45,
+      rmv: 34.56,
+      po2: 0.21,
+      ascent_rate: -0.287
+    };
+    const valueFor = (dataType: string) => {
+      const mapper = FITSampleMapper.find(item => item.dataType === dataType);
+      expect(mapper).toBeDefined();
+      return mapper!.getSampleValue(sample);
+    };
+
+    expect(valueFor(DataNextStopDepth.type)).toBe(3);
+    expect(valueFor(DataNextStopTime.type)).toBe(60);
+    expect(valueFor(DataTimeToSurface.type)).toBe(300);
+    expect(valueFor(DataNoDecompressionLimit.type)).toBe(900);
+    expect(valueFor(DataCNSLoad.type)).toBe(12);
+    expect(valueFor(DataN2Load.type)).toBe(34);
+    expect(valueFor(DataAirTimeRemaining.type)).toBe(4_294_961_197);
+    expect(valueFor(DataPressureSAC.type)).toBe(12.34);
+    expect(valueFor(DataVolumeSAC.type)).toBe(23.45);
+    expect(valueFor(DataRMV.type)).toBe(34.56);
+    expect(valueFor(DataPO2.type)).toBe(0.21);
+    expect(valueFor(DataDiveAscentRate.type)).toBe(-0.287);
   });
 
   it('imports the Garmin snorkeling fixture as a meter-based depth stream', async () => {

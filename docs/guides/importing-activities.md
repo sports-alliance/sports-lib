@@ -41,9 +41,24 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
-FIT record-level `depth` values are normalized from the profile's millimeter scale to the canonical `Depth` stream in
-meters. FIT session `max_depth` and Suunto depth values remain canonical meters. Depth is available as an advanced chart
-metric; callers can request `Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
+The FIT parser applies the profile scale to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
+fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
+The parser emits FIT `avg_vam` in meters per second; Sports Lib converts that present source value to its public
+`Average VAM` metric unit of meters per hour.
+Parser 4 exposed FIT session field 196 (`metabolic_calories`) a second time as `resting_calories`. Parser 5 retains
+only the canonical name, which Sports Lib imports as `Metabolic Calories`; it does not substitute the value into
+`Resting Calories`. Existing activities must be reparsed to gain `Metabolic Calories`; existing `Resting Calories`
+values in native JSON remain readable.
+Suunto depth values also remain canonical meters. Depth is available as an advanced chart metric; callers can request
+`Depth` explicitly through `ActivityParsingOptions.streams.includeTypes`.
+
+Garmin `single_gas_diving`, `multi_gas_diving`, and `gauge_diving` sub-sports resolve to `Scuba Diving`;
+`apnea_diving` and `apnea_hunting` resolve to `Free Diving`. These are direct FIT profile mappings and all remain in the
+Diving activity group.
+
+Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
+they were imported from a FIT summary or would otherwise be hydrated from streams. Depth represents dive vertical
+movement. Any source altitude or grade stream remains available when explicitly requested.
 
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.
@@ -55,9 +70,10 @@ from being emitted for one activity.
 
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
 
-Native JSON hydration preserves explicit stats and fills missing pace, swim-pace, and grade-adjusted-pace summaries
-from compatible speed summaries on events, activities, and laps. This keeps older speed-only exports readable with the
-same derived-stat behavior as newly parsed files; serializing the hydrated model includes the additive derived stats.
+Native JSON hydration preserves explicit stats, except terrain summaries excluded for the Diving activity group, and
+fills missing pace, swim-pace, and grade-adjusted-pace summaries from compatible speed summaries on events, activities,
+and laps. This keeps older speed-only exports readable with the same derived-stat behavior as newly parsed files;
+serializing the hydrated model includes the additive derived stats.
 It also converts cadence-shaped data to stroke rate for the supported activity types, so stored native JSON does not
 require reparsing from FIT, TCX, or GPX. Pool-swim length JSON keeps its existing `avgCadence` property name while
 hydrating that value as `DataStrokeRate`.

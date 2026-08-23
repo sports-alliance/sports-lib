@@ -102,6 +102,28 @@ import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataDepthMax } from '../../../../data/data.depth-max';
+import { DataMetabolicCalories } from '../../../../data/data.metabolic-calories';
+import {
+  DataBottomTime,
+  DataDepthAvg,
+  DataDiveAscentRateAvg,
+  DataDiveAscentRateMax,
+  DataDiveAscentTime,
+  DataDiveDescentRateAvg,
+  DataDiveDescentRateMax,
+  DataDiveDescentTime,
+  DataDiveHangTime,
+  DataDiveNumber,
+  DataEndingCNSLoad,
+  DataEndingN2Load,
+  DataOxygenToxicity,
+  DataPressureSACAvg,
+  DataRMVAvg,
+  DataStartingCNSLoad,
+  DataStartingN2Load,
+  DataSurfaceInterval,
+  DataVolumeSACAvg
+} from '../../../../data/data.dive';
 import { DataEffortPaceAvg } from '../../../../data/data.effort-pace-avg';
 import { DataAvgStrokeDistance } from '../../../../data/data.avg-stroke-distance';
 import { DataAvgStrokeCount } from '../../../../data/data.avg-stroke-count';
@@ -120,7 +142,6 @@ import { DataAvgFlow } from '../../../../data/data.avg-flow';
 import { DataEstSweatLoss } from '../../../../data/data.est-sweat-loss';
 import { DataPrimaryBenefit } from '../../../../data/data.primary-benefit';
 import { DataSportProfileName } from '../../../../data/data.sport-profile-name';
-import { DataRestingCalories } from '../../../../data/data.resting-calories';
 import { DataTrainingLoadPeak } from '../../../../data/data.training-load-peak';
 import { DataAvgVAM } from '../../../../data/data.avg-vam';
 import { DataEndPosition } from '../../../../data/data.end-position';
@@ -179,6 +200,7 @@ import {
 } from '../../../../streams/stream.selection';
 import { StreamInterface } from '../../../../streams/stream.interface';
 import { StatsUtilities } from '../../../../stats/stats.utilities';
+import { StatsClassInterface } from '../../../../stats/stats.class.interface';
 import { SampleInfo } from '../sample-info.interface';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
@@ -311,12 +333,15 @@ export class EventImporterFIT {
         );
 
         // Iterate over the sessions and create their activities
-        const activities: ActivityInterface[] = fitDataObject.sessions.map((sessionObject: any) => {
+        const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
           // Get the activity from the sessionObject
-          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options);
+          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
+          this.addDiveSummaryStats(activity, this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject));
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
-            activity.addLap(this.getLapFromSessionLapObject(sessionLapObject, activity, index, options));
+            const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
+            this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject));
+            activity.addLap(lap);
           });
 
           const manufacturer =
@@ -518,7 +543,8 @@ export class EventImporterFIT {
           this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings, samplesInfo);
 
           return activity;
-        });
+        };
+        const activities: ActivityInterface[] = fitDataObject.sessions.map(createActivity);
 
         // If there are no activities to parse ....
         if (!activities.length) {
@@ -819,6 +845,78 @@ export class EventImporterFIT {
     }
 
     return numericValue;
+  }
+
+  private static getMessageIndexValue(value: unknown): number | null {
+    if (value && typeof value === 'object' && 'value' in value) {
+      const indexedValue = (value as { value?: unknown }).value;
+      return typeof indexedValue === 'number' && Number.isInteger(indexedValue) ? indexedValue : null;
+    }
+
+    return null;
+  }
+
+  private static getReferencedDiveSummary(
+    fitDataObject: any,
+    referenceMessage: 'session' | 'lap',
+    targetMessage: any
+  ): any | null {
+    const summaries = fitDataObject?.messages?.dive_summary;
+    if (!Array.isArray(summaries)) {
+      return null;
+    }
+
+    const targetIndex = this.getMessageIndexValue(targetMessage?.message_index);
+    if (targetIndex === null) {
+      return null;
+    }
+
+    return (
+      summaries.find((summary: any) => {
+        const summaryIndex = this.getMessageIndexValue(summary?.reference_index);
+        return summary?.reference_mesg === referenceMessage && summaryIndex === targetIndex;
+      }) ?? null
+    );
+  }
+
+  private static addDiveSummaryStats(target: StatsClassInterface, summary: any | null): void {
+    if (!summary) {
+      return;
+    }
+
+    const mappings: Array<{
+      field: string;
+      create: (value: number) => DataInterface<unknown>;
+    }> = [
+      { field: 'avg_depth', create: value => new DataDepthAvg(value) },
+      { field: 'max_depth', create: value => new DataDepthMax(value) },
+      { field: 'surface_interval', create: value => new DataSurfaceInterval(value) },
+      { field: 'bottom_time', create: value => new DataBottomTime(value) },
+      { field: 'dive_number', create: value => new DataDiveNumber(value) },
+      { field: 'descent_time', create: value => new DataDiveDescentTime(value) },
+      { field: 'ascent_time', create: value => new DataDiveAscentTime(value) },
+      { field: 'avg_ascent_rate', create: value => new DataDiveAscentRateAvg(value) },
+      { field: 'avg_descent_rate', create: value => new DataDiveDescentRateAvg(value) },
+      { field: 'max_ascent_rate', create: value => new DataDiveAscentRateMax(value) },
+      { field: 'max_descent_rate', create: value => new DataDiveDescentRateMax(value) },
+      { field: 'hang_time', create: value => new DataDiveHangTime(value) },
+      { field: 'start_cns', create: value => new DataStartingCNSLoad(value) },
+      { field: 'end_cns', create: value => new DataEndingCNSLoad(value) },
+      { field: 'start_n2', create: value => new DataStartingN2Load(value) },
+      { field: 'end_n2', create: value => new DataEndingN2Load(value) },
+      { field: 'o2_toxicity', create: value => new DataOxygenToxicity(value) },
+      { field: 'avg_pressure_sac', create: value => new DataPressureSACAvg(value) },
+      { field: 'avg_volume_sac', create: value => new DataVolumeSACAvg(value) },
+      { field: 'avg_rmv', create: value => new DataRMVAvg(value) }
+    ];
+
+    mappings.forEach(mapping => {
+      const sourceValue = summary[mapping.field];
+      if (!Number.isFinite(sourceValue)) {
+        return;
+      }
+      target.addStat(mapping.create(sourceValue));
+    });
   }
 
   private static getDateFromValue(value: unknown): Date | null {
@@ -1208,7 +1306,8 @@ export class EventImporterFIT {
   private static getActivityFromSessionObject(
     sessionObject: any,
     fitDataObject: any,
-    options: ActivityParsingOptions
+    options: ActivityParsingOptions,
+    sessionIndex: number
   ): ActivityInterface {
     /**
      * Provides start/end date based on records available in given session object first, then in parent fit object
@@ -1415,12 +1514,16 @@ export class EventImporterFIT {
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
-        // Find session-level time_in_zone message (reference_mesg = 18 for session, reference_index = 0 for first session)
+        // FIT SDK output identifies the target with the session enum and a
+        // message-index mask. An omitted index can only identify the first
+        // session, because there is no source reference for any later one.
         const manufacturer =
           (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
         const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
         const sessionTimeInZone = fitDataObject.time_in_zone.find(
-          (z: any) => z.reference_mesg === 18 && (z.reference_index === 0 || z.reference_index === undefined)
+          (z: any) =>
+            z.reference_mesg === 'session' &&
+            (z.reference_index?.value === sessionIndex || (sessionIndex === 0 && z.reference_index === undefined))
         );
         if (
           sessionTimeInZone &&
@@ -2063,6 +2166,21 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
+    // Garmin's diving sub-sports are explicit protocol classifications. Map
+    // them before generic activity alias resolution so they retain the
+    // canonical scuba/free-diving distinction already modeled by Sports Lib.
+    if (resolvedSport === 'diving') {
+      switch (resolvedSubSport) {
+        case 'single_gas_diving':
+        case 'multi_gas_diving':
+        case 'gauge_diving':
+          return ActivityTypes.ScubaDiving;
+        case 'apnea_diving':
+        case 'apnea_hunting':
+          return ActivityTypes.FreeDiving;
+      }
+    }
+
     // 1. Try composite key: sport_subSport (e.g. "rock_climbing_indoor_climbing")
     let activityType: ActivityTypes | null = null;
     if (resolvedSport && resolvedSubSport) {
@@ -2107,6 +2225,7 @@ export class EventImporterFIT {
   // @todo move this to a mapper
   public static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
     const stats: DataInterface[] = [];
+    const shouldExcludeTerrainSummaryMetrics = ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type);
 
     // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
     // Just invert fields if that's the case
@@ -2325,22 +2444,28 @@ export class EventImporterFIT {
     }
     // Ascent
     const ascent = getStatValue(object, ['total_ascent', 'TotalAscent']);
-    if (ascent !== null) {
+    if (ascent !== null && !shouldExcludeTerrainSummaryMetrics) {
       stats.push(new DataAscent(ascent));
     }
     // Descent
     const descent = getStatValue(object, ['total_descent', 'TotalDescent']);
-    if (descent !== null) {
+    if (descent !== null && !shouldExcludeTerrainSummaryMetrics) {
       stats.push(new DataDescent(descent));
     }
 
     if (isNumberOrString(object.max_depth)) {
       stats.push(new DataDepthMax(object.max_depth));
     }
+    if (isNumberOrString(object.avg_depth)) {
+      stats.push(new DataDepthAvg(object.avg_depth));
+    }
 
     // Calories
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
+    }
+    if (isNumberOrString(object.metabolic_calories)) {
+      stats.push(new DataMetabolicCalories(object.metabolic_calories));
     }
 
     // Total training effect = Aerobic training effect
@@ -2450,13 +2575,13 @@ export class EventImporterFIT {
     }
 
     // Grade summary from session stats (if available)
-    if (isNumberOrString(object.avg_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.avg_grade)) {
       stats.push(new DataGradeAvg(object.avg_grade));
     }
-    if (isNumberOrString(object.max_pos_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.max_pos_grade)) {
       stats.push(new DataGradeMax(object.max_pos_grade));
     }
-    if (isNumberOrString(object.max_neg_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.max_neg_grade)) {
       stats.push(new DataGradeMin(object.max_neg_grade));
     }
 
@@ -2535,14 +2660,11 @@ export class EventImporterFIT {
       );
     }
 
-    // Resting Calories
-    if (isNumberOrString(object.resting_calories)) {
-      stats.push(new DataRestingCalories(object.resting_calories));
-    }
-
     // Avg VAM
     if (isNumberOrString(object.avg_vam)) {
-      stats.push(new DataAvgVAM(object.avg_vam));
+      // The FIT SDK defines avg_vam in m/s. Sports Lib exposes Average VAM in
+      // m/h, so convert the parsed source unit to the public metric unit.
+      stats.push(new DataAvgVAM(Number(object.avg_vam) * 60 * 60));
     }
 
     // Jump Statistics

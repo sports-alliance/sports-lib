@@ -13,6 +13,7 @@ import { LapJSONInterface } from '../../../../laps/lap.json.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
+import { deserializeDiveSourceRecords } from '../../../../activities/dive-source-records';
 import { ActivityTypes } from '../../../../activities/activity.types';
 import {
   normalizeActivityMetricSemanticsForStats,
@@ -311,6 +312,7 @@ export class EventImporterJSON {
         activity.addSwimLength(SwimLength.fromJSON(swimLengthJSON));
       });
     }
+    activity.setDiveSourceRecords(deserializeDiveSourceRecords(json.diveSourceRecords));
 
     this.getCanonicalStreamsFromJSON(json.streams).forEach(streamJson => {
       activity.addStream(EventImporterJSON.getStreamFromJSON(streamJson));

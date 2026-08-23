@@ -38,21 +38,26 @@ export type {
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
 /**
- * Structured FIT gas and tank records are source-hydration data, not numeric
- * metrics or native-JSON fields. `ActivityInterface.getDiveSourceRecords()`
- * preserves their source order and parser-decoded units without deriving a
- * gas-to-tank association or consumption summary.
+ * Structured FIT gas and tank records are native activity JSON data, not
+ * numeric metrics. `ActivityInterface.getDiveSourceRecords()` preserves their
+ * source order and parser-decoded units; native JSON uses UTC milliseconds for
+ * tank timestamps. Sports Lib does not derive a gas-to-tank association or
+ * consumption summary.
  *
  * @category Activities and events
  */
 export type {
   DiveGasMode,
+  DiveGasJSONInterface,
   DiveGasRecord,
   DiveGasStatus,
   DiveMessageIndex,
+  DiveSourceRecordsJSONInterface,
   DiveSourceRecords,
   DiveSourceRecordsInput,
+  DiveTankSummaryJSONInterface,
   DiveTankSummaryRecord,
+  DiveTankUpdateJSONInterface,
   DiveTankUpdateRecord
 } from '../src/activities/dive-source-records';
 /**

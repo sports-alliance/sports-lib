@@ -33,7 +33,12 @@ import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
 import { DurationExceededEventLibError } from '../errors/duration-exceeded-event-lib.error';
 import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
 import { SwimLengthJSONInterface } from '../swim-lengths/swim-length.json.interface';
-import { cloneDiveSourceRecords, DiveSourceRecords, DiveSourceRecordsInput } from './dive-source-records';
+import {
+  cloneDiveSourceRecords,
+  DiveSourceRecords,
+  DiveSourceRecordsInput,
+  serializeDiveSourceRecords
+} from './dive-source-records';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
@@ -422,6 +427,10 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
       const timeStream = this.generateTimeStream([stream.type]).toJSON();
       streams.push(timeStream);
     }
+    const hasDiveSourceRecords =
+      this.diveSourceRecords.gases.length > 0 ||
+      this.diveSourceRecords.tankSummaries.length > 0 ||
+      this.diveSourceRecords.tankUpdates.length > 0;
 
     const activityJSON: ActivityJSONInterface = {
       name: this.name || null,
@@ -439,6 +448,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         eventsArray.push(event.toJSON());
         return eventsArray;
       }, []),
+      ...(hasDiveSourceRecords ? { diveSourceRecords: serializeDiveSourceRecords(this.diveSourceRecords) } : {}),
       laps: this.getLaps().reduce((jsonLapsArray: LapJSONInterface[], lap: LapInterface) => {
         jsonLapsArray.push(lap.toJSON(this));
         return jsonLapsArray;

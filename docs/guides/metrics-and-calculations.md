@@ -62,7 +62,8 @@ only samples present in the source file: Sports Lib does not fill, smooth, clamp
 are exposed as ordered `ActivityInterface.getDiveSourceRecords()` records: gases retain message-index flags, mixture
 contents, status, and mode; tank summaries retain their timestamps, sensor IDs, pressures, and volume used; and tank
 updates retain their timestamps, sensor IDs, and pressures. They are not flattened into scalar statistics, linked to
-one another, derived into consumption values, or serialized in native JSON.
+one another, or derived into consumption values. They round-trip as structured
+`ActivityJSONInterface.diveSourceRecords` data rather than numeric metrics.
 
 Presentation preserves the FIT profile precision: depth values and dive rates use three decimal places,
 pressure/volume SAC and RMV use two, and PO₂ uses two rather than the generic one-decimal percentage format. The first

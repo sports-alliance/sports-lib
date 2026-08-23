@@ -18,6 +18,108 @@ import { DataSwimPaceAvg } from '../../../../data/data.swim-pace-avg';
 import { LapTypes } from '../../../../laps/lap.types';
 
 describe('EventImporterJSON', () => {
+  it('restores native structured dive records and leaves absent legacy fields empty', () => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'native-dive-records',
+      startDate: 1_000,
+      endDate: 2_000,
+      type: ActivityTypes.ScubaDiving,
+      powerMeter: false,
+      trainer: false,
+      stats: {},
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: [],
+      diveSourceRecords: {
+        gases: [
+          {
+            messageIndex: { value: 2, selected: true },
+            oxygenContent: 32,
+            heliumContent: 15,
+            status: 'enabled',
+            mode: 'open_circuit'
+          }
+        ],
+        tankSummaries: [
+          {
+            timestamp: 1_500,
+            sensor: 10_001,
+            startPressure: 199.46,
+            endPressure: 74.67,
+            volumeUsed: 1396.01
+          }
+        ],
+        tankUpdates: [{ timestamp: 1_600, sensor: 10_001, pressure: 198.4 }]
+      }
+    });
+
+    expect(activity.getDiveSourceRecords()).toEqual({
+      gases: [
+        {
+          messageIndex: { value: 2, selected: true },
+          oxygenContent: 32,
+          heliumContent: 15,
+          status: 'enabled',
+          mode: 'open_circuit'
+        }
+      ],
+      tankSummaries: [
+        {
+          timestamp: new Date(1_500),
+          sensor: 10_001,
+          startPressure: 199.46,
+          endPressure: 74.67,
+          volumeUsed: 1396.01
+        }
+      ],
+      tankUpdates: [{ timestamp: new Date(1_600), sensor: 10_001, pressure: 198.4 }]
+    });
+    expect(activity.toJSON().diveSourceRecords).toEqual({
+      gases: [
+        {
+          messageIndex: { value: 2, selected: true },
+          oxygenContent: 32,
+          heliumContent: 15,
+          status: 'enabled',
+          mode: 'open_circuit'
+        }
+      ],
+      tankSummaries: [
+        {
+          timestamp: 1_500,
+          sensor: 10_001,
+          startPressure: 199.46,
+          endPressure: 74.67,
+          volumeUsed: 1396.01
+        }
+      ],
+      tankUpdates: [{ timestamp: 1_600, sensor: 10_001, pressure: 198.4 }]
+    });
+
+    const legacyActivity = EventImporterJSON.getActivityFromJSON({
+      name: 'legacy-dive',
+      startDate: 1_000,
+      endDate: 2_000,
+      type: ActivityTypes.ScubaDiving,
+      powerMeter: false,
+      trainer: false,
+      stats: {},
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+    expect(legacyActivity.getDiveSourceRecords()).toEqual({
+      gases: [],
+      tankSummaries: [],
+      tankUpdates: []
+    });
+    expect(legacyActivity.toJSON()).not.toHaveProperty('diveSourceRecords');
+  });
+
   it('hydrates speed-derived stats for events, activities, and laps without replacing explicit pace', () => {
     const event = EventImporterJSON.getEventFromJSON({
       name: 'speed-only-laps',

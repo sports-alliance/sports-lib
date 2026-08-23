@@ -61,7 +61,8 @@ FIT `dive_gas`, `tank_summary`, and `tank_update` messages are available through
 Diving-group activity imported from that FIT file. Tank summaries and tank updates are retained only for the activity
 whose session window contains their source timestamp. Oxygen and helium contents are percentages; pressures are bar;
 and volume used is liters. Sports Lib does not infer a gas-to-tank relation, consumption, a gas name, or any missing
-field. These source-hydration records are deliberately not scalar metrics and are not serialized in native JSON.
+field. These records are deliberately not scalar metrics; they round-trip in the native
+`ActivityJSONInterface.diveSourceRecords` field, with tank timestamps stored as UTC milliseconds.
 
 Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
 they were imported from a FIT summary, restored from native JSON, regenerated into an all-diving event summary, or
@@ -113,6 +114,15 @@ FIT imports now expose the parser-provided gas and tank messages through `getDiv
 does not gain a persisted field and needs no schema migration. An application that wants to show the records for an
 already-stored activity must hydrate them again from its retained original FIT source; Sports Lib does not reconstruct
 them from summary metrics or streams.
+
+### 20.1.1 native-JSON gas and tank records
+
+`diveSourceRecords` is now a native `ActivityJSONInterface` field. JSON export preserves the ordered gas, tank-summary,
+and tank-update records, and JSON import restores tank timestamps as `Date` values. The records remain structured data,
+not numeric metrics: no gas/tank relationship, mixture name, nitrogen value, or consumption is inferred.
+
+Activities stored from 20.1.0 or earlier do not contain this new field. Reparse or import the retained original FIT
+source to backfill it; native JSON cannot reconstruct the records from existing summaries or streams.
 
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`

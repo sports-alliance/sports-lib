@@ -162,12 +162,16 @@ export * from './activities/activity.json.interface';
 export * from './activities/activity.types';
 export type {
   DiveGasMode,
+  DiveGasJSONInterface,
   DiveGasRecord,
   DiveGasStatus,
   DiveMessageIndex,
+  DiveSourceRecordsJSONInterface,
   DiveSourceRecords,
   DiveSourceRecordsInput,
+  DiveTankSummaryJSONInterface,
   DiveTankSummaryRecord,
+  DiveTankUpdateJSONInterface,
   DiveTankUpdateRecord
 } from './activities/dive-source-records';
 export * from './activities/devices/device.interface';

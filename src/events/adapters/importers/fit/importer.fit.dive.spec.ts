@@ -41,6 +41,7 @@ import {
   DataVolumeSACAvg
 } from '../../../../data/data.dive';
 import { EventImporterFIT } from './importer.fit';
+import { EventImporterJSON } from '../json/importer.json';
 
 const uint8 = (number: number, value: number): FitEncoderField => ({
   number,
@@ -361,5 +362,62 @@ describe('EventImporterFIT native diving messages', () => {
         timestamp: new Date(start.getTime() + 101_000)
       }
     ]);
+
+    const serialized = event.toJSON();
+    expect(serialized.activities[0].diveSourceRecords).toEqual({
+      gases: [
+        {
+          messageIndex: { value: 0, reserved: false, selected: false },
+          heliumContent: 0,
+          oxygenContent: 21,
+          status: 'enabled',
+          mode: 'open_circuit'
+        },
+        {
+          messageIndex: { value: 1, reserved: false, selected: false },
+          heliumContent: 0,
+          oxygenContent: 50,
+          status: 'enabled',
+          mode: 'open_circuit'
+        },
+        {
+          messageIndex: { value: 2, reserved: false, selected: false },
+          heliumContent: 0,
+          oxygenContent: 98,
+          status: 'backup_only',
+          mode: 'open_circuit'
+        }
+      ],
+      tankSummaries: [
+        {
+          sensor: 10_001,
+          startPressure: 200,
+          endPressure: 75,
+          volumeUsed: 1396.01,
+          timestamp: start.getTime() + 1_000_000
+        },
+        {
+          sensor: 10_002,
+          startPressure: 180,
+          endPressure: 95,
+          volumeUsed: 881,
+          timestamp: start.getTime() + 1_000_000
+        }
+      ],
+      tankUpdates: [
+        {
+          sensor: 10_001,
+          pressure: 199,
+          timestamp: start.getTime() + 100_000
+        },
+        {
+          sensor: 10_002,
+          pressure: 179,
+          timestamp: start.getTime() + 101_000
+        }
+      ]
+    });
+    expect(EventImporterJSON.getEventFromJSON(serialized).getFirstActivity().getDiveSourceRecords()).toEqual(records);
+    expect(EventImporterJSON.getEventFromJSON(serialized).toJSON()).toEqual(serialized);
   });
 });

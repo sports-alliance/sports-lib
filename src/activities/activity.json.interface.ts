@@ -5,6 +5,7 @@ import { DataJSONInterface } from '../data/data.json.interface';
 import { StreamJSONInterface } from '../streams/stream';
 import { ActivityTypes } from './activity.types';
 import { SwimLengthJSONInterface } from '../swim-lengths/swim-length.json.interface';
+import type { DiveSourceRecordsJSONInterface } from './dive-source-records';
 
 export interface ActivityJSONInterface {
   id?: string;
@@ -22,4 +23,6 @@ export interface ActivityJSONInterface {
   creator: CreatorJSONInterface;
   intensityZones: IntensityZonesJSONInterface[];
   events: DataJSONInterface[];
+  /** Structured FIT gas and tank records, when the activity includes them. */
+  diveSourceRecords?: DiveSourceRecordsJSONInterface;
 }

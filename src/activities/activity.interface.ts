@@ -220,7 +220,8 @@ export interface ActivityInterface
 
   /**
    * Returns source-native FIT dive gas and tank records. These records are
-   * separate from numeric summary stats and streams.
+   * separate from numeric summary stats and streams, and round-trip through
+   * native activity JSON.
    */
   getDiveSourceRecords(): DiveSourceRecords;
 

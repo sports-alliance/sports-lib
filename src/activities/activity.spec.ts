@@ -29,10 +29,12 @@ describe('Activity', () => {
   it('should serialize swim lengths as an activity JSON array like laps', () => {
     expect(activity.toJSON().laps).toEqual([]);
     expect(activity.toJSON().swimLengths).toEqual([]);
+    expect(activity.toJSON()).not.toHaveProperty('diveSourceRecords');
   });
 
-  it('keeps source-native dive gas and tank records out of native JSON', () => {
+  it('serializes source-native dive gas and tank records as native JSON', () => {
     const sourceTimestamp = new Date('2026-08-22T10:00:00.000Z');
+    const expectedTimestamp = sourceTimestamp.getTime();
     const sourceRecords = {
       gases: [
         {
@@ -83,7 +85,27 @@ describe('Activity', () => {
       ],
       tankUpdates: [{ timestamp: new Date('2026-08-22T10:00:00.000Z'), sensor: 10_001, pressure: 199 }]
     });
-    expect(activity.toJSON()).not.toHaveProperty('diveSourceRecords');
+    expect(activity.toJSON().diveSourceRecords).toEqual({
+      gases: [
+        {
+          messageIndex: { value: 2, reserved: false, selected: true },
+          oxygenContent: 50,
+          status: 'enabled',
+          mode: 'open_circuit'
+        }
+      ],
+      tankSummaries: [
+        {
+          timestamp: expectedTimestamp,
+          sensor: 10_001,
+          startPressure: 200,
+          endPressure: 75,
+          volumeUsed: 1396.01
+        }
+      ],
+      tankUpdates: [{ timestamp: expectedTimestamp, sensor: 10_001, pressure: 199 }]
+    });
+    expect(JSON.parse(JSON.stringify(activity.toJSON()))).toEqual(activity.toJSON());
   });
 
   it('should get streams based on time', () => {

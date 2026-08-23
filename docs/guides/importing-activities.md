@@ -79,11 +79,12 @@ require reparsing from FIT, TCX, or GPX. Pool-swim length JSON keeps its existin
 hydrating that value as `DataStrokeRate`.
 
 Complete native event JSON contains the activities that determine event-summary semantics. Summary-only native event
-JSON receives the same treatment when its `Activity Types` stat is present. When an application persists neither, it
-can opt in after hydration by calling `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`.
-The helper changes only unambiguous homogeneous stroke-rate summaries and removes terrain summaries from homogeneous
-Diving-group summaries; empty, unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not infer
-relationships omitted by an application-specific persistence layout.
+JSON removes Diving-group terrain summaries when its `Activity Types` stat is present, but preserves other summary
+semantics. An application can opt in after hydration by calling
+`normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)`. The helper changes only unambiguous
+homogeneous stroke-rate summaries and removes terrain summaries from homogeneous Diving-group summaries; empty,
+unknown, and mixed activity-type inputs remain unchanged. Sports Lib does not infer relationships omitted by an
+application-specific persistence layout.
 
 ### 20.0.2 native-JSON migration
 

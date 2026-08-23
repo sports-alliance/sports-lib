@@ -87,9 +87,7 @@ export function normalizeActivityMetricSemanticsForStats(
   target: StatsClassInterface,
   activityTypes: readonly unknown[]
 ): void {
-  const resolvedActivityTypes = activityTypes
-    .map(activityType => ActivityTypesHelper.resolveActivityType(activityType))
-    .filter((activityType): activityType is ActivityTypes => activityType !== null);
+  const resolvedActivityTypes = resolveActivityTypes(activityTypes);
 
   if (resolvedActivityTypes.length === 0 || resolvedActivityTypes.length !== activityTypes.length) {
     return;
@@ -98,11 +96,7 @@ export function normalizeActivityMetricSemanticsForStats(
   if (resolvedActivityTypes.every(activityType => ActivityTypesHelper.usesStrokeRate(activityType))) {
     normalizeStrokeRateStats(target);
   }
-  if (
-    resolvedActivityTypes.every(activityType => ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activityType))
-  ) {
-    DIVING_TERRAIN_SUMMARY_DATA_TYPES.forEach(dataType => target.removeStat(dataType));
-  }
+  removeExcludedTerrainSummaryMetricsForResolvedActivityTypes(target, resolvedActivityTypes);
 }
 
 /**
@@ -112,12 +106,23 @@ export function normalizeActivityMetricSemanticsForStats(
  */
 export function normalizeActivityMetricSemanticsForActivity(activity: ActivityInterface): void {
   normalizeStrokeRateSemanticsForActivity(activity);
-  if (!ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type)) {
+  removeExcludedTerrainSummaryMetricsForStats(activity, [activity.type]);
+  activity.getLaps().forEach(lap => removeExcludedTerrainSummaryMetricsForStats(lap, [activity.type]));
+}
+
+/**
+ * Removes terrain summaries that would misrepresent a homogeneous Diving-group
+ * summary. Source streams are deliberately left untouched.
+ */
+export function removeExcludedTerrainSummaryMetricsForStats(
+  target: StatsClassInterface,
+  activityTypes: readonly unknown[]
+): void {
+  const resolvedActivityTypes = resolveActivityTypes(activityTypes);
+  if (resolvedActivityTypes.length === 0 || resolvedActivityTypes.length !== activityTypes.length) {
     return;
   }
-
-  normalizeActivityMetricSemanticsForStats(activity, [activity.type]);
-  activity.getLaps().forEach(lap => normalizeActivityMetricSemanticsForStats(lap, [activity.type]));
+  removeExcludedTerrainSummaryMetricsForResolvedActivityTypes(target, resolvedActivityTypes);
 }
 
 /**
@@ -146,4 +151,20 @@ export function normalizeStrokeRateSemanticsForActivity(activity: ActivityInterf
 
   normalizeActivityMetricSemanticsForStats(activity, [activity.type]);
   activity.getLaps().forEach(lap => normalizeActivityMetricSemanticsForStats(lap, [activity.type]));
+}
+
+function resolveActivityTypes(activityTypes: readonly unknown[]): ActivityTypes[] {
+  return activityTypes
+    .map(activityType => ActivityTypesHelper.resolveActivityType(activityType))
+    .filter((activityType): activityType is ActivityTypes => activityType !== null);
+}
+
+function removeExcludedTerrainSummaryMetricsForResolvedActivityTypes(
+  target: StatsClassInterface,
+  activityTypes: readonly ActivityTypes[]
+): void {
+  if (!activityTypes.every(activityType => ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activityType))) {
+    return;
+  }
+  DIVING_TERRAIN_SUMMARY_DATA_TYPES.forEach(dataType => target.removeStat(dataType));
 }

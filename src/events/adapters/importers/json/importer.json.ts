@@ -16,7 +16,8 @@ import { ActivityJSONInterface } from '../../../../activities/activity.json.inte
 import { ActivityTypes } from '../../../../activities/activity.types';
 import {
   normalizeActivityMetricSemanticsForStats,
-  normalizeActivityMetricSemanticsForActivity
+  normalizeActivityMetricSemanticsForActivity,
+  removeExcludedTerrainSummaryMetricsForStats
 } from '../../../../activities/activity.metric-semantics';
 import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
 import { StreamInterface } from '../../../../streams/stream.interface';
@@ -60,12 +61,14 @@ export class EventImporterJSON {
       event.addActivity(this.getActivityFromJSON(activityJSON));
     });
     const activities = event.getActivities();
-    const activityTypes =
-      activities.length > 0
-        ? activities.map(activity => activity.type)
-        : event.getStat<unknown>(DataActivityTypes.type)?.getValue();
-    const resolvedActivityTypes = Array.isArray(activityTypes) ? activityTypes : [];
-    normalizeActivityMetricSemanticsForStats(event, resolvedActivityTypes);
+    const activityTypes = activities.map(activity => activity.type);
+    normalizeActivityMetricSemanticsForStats(event, activityTypes);
+    if (activityTypes.length === 0) {
+      const summaryActivityTypes = event.getStat<unknown>(DataActivityTypes.type)?.getValue();
+      if (Array.isArray(summaryActivityTypes)) {
+        removeExcludedTerrainSummaryMetricsForStats(event, summaryActivityTypes);
+      }
+    }
     return event;
   }
 

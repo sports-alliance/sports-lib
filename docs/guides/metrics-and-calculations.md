@@ -160,8 +160,8 @@ Cadence and stroke-rate semantics are activity-aware:
   therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
   A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
   while newly generated mixed events aggregate cadence and stroke rate separately.
-- Summary-only native event JSON receives the same normalization when its `Activity Types` stat is present.
-  Applications that persist neither activities nor that stat can call
+- Summary-only native event JSON removes Diving-group terrain summaries when its `Activity Types` stat is present,
+  while other summary semantics remain opt-in. Applications can call
   `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)` after hydration. This opt-in boundary
   canonicalizes unambiguous stroke-rate summaries and removes terrain summaries only for homogeneous Diving-group
   projections, keeping application persistence concerns outside Sports Lib while reusing its centralized sport-family

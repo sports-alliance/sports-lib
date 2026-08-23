@@ -11,8 +11,10 @@ summaries separately from activities can explicitly canonicalize those projectio
 `normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.
 
 FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
-decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. These values follow
-the FIT profile without record-to-summary calculation, interpolation, clamping, or gas/tank flattening. Depth,
+decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. Ordered FIT gas,
+tank-summary, and tank-update records are available separately through `ActivityInterface.getDiveSourceRecords()` and
+remain source-hydration-only rather than native JSON fields. These values follow the FIT profile without record-to-summary
+calculation, interpolation, clamping, gas/tank linking, or gas/tank flattening. Depth,
 average/maximum depth, next-stop depth, and dive-rate display variants follow the first swim-pace preference, using
 meters and meters per second for `/100m` or feet and feet per second for `/100yd`. Dive depths display to three decimal
 places, rates to three, SAC/RMV values to two, and PO₂ retains both FIT decimal places.

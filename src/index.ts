@@ -160,6 +160,16 @@ export { normalizeActivityMetricSemanticsForStats } from './activities/activity.
 export * from './activities/activity-parsing-options';
 export * from './activities/activity.json.interface';
 export * from './activities/activity.types';
+export type {
+  DiveGasMode,
+  DiveGasRecord,
+  DiveGasStatus,
+  DiveMessageIndex,
+  DiveSourceRecords,
+  DiveSourceRecordsInput,
+  DiveTankSummaryRecord,
+  DiveTankUpdateRecord
+} from './activities/dive-source-records';
 export * from './activities/devices/device.interface';
 export * from './activities/devices/device.json.interface';
 export * from './constants/constants';

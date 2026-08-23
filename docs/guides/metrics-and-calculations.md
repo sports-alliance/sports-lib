@@ -37,7 +37,7 @@ High-level metric domains include:
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 
-Source-native diving metrics
+Source-native diving data
 ---
 FIT imports attach each `dive_summary` to the session or lap identified by its native `reference_mesg` and
 `reference_index`. Message order is irrelevant, lap summaries are never promoted to their activity, and missing summary
@@ -59,7 +59,10 @@ Native record streams are `Depth` and `Next Stop Depth` (`m`), `Next Stop Time`,
 `Volume SAC` and `RMV` (`L/min`), `PO2` (`%`, displayed as `PO₂`), and `Dive Ascent Rate` (`m/s`). These streams retain
 only samples present in the source file: Sports Lib does not fill, smooth, clamp, or derive them. In particular,
 `Air Time Remaining` preserves every non-invalid unsigned FIT value exactly as decoded. Multi-gas and tank messages
-remain structured parser output and are not flattened into scalar statistics.
+are exposed as ordered `ActivityInterface.getDiveSourceRecords()` records: gases retain message-index flags, mixture
+contents, status, and mode; tank summaries retain their timestamps, sensor IDs, pressures, and volume used; and tank
+updates retain their timestamps, sensor IDs, and pressures. They are not flattened into scalar statistics, linked to
+one another, derived into consumption values, or serialized in native JSON.
 
 Presentation preserves the FIT profile precision: depth values and dive rates use three decimal places,
 pressure/volume SAC and RMV use two, and PO₂ uses two rather than the generic one-decimal percentage format. The first

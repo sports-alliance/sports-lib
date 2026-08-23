@@ -988,6 +988,10 @@ export class ActivityUtilities {
         );
     }
 
+    const terrainSummaryActivities = activities.filter(
+      activity => !ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type)
+    );
+
     let duration = 0;
     let ascent = 0;
     let descent = 0;
@@ -1051,22 +1055,26 @@ export class ActivityUtilities {
     stats.push(new DataDistance(distance));
 
     // Sum ascent
-    activities.forEach(activity => {
-      const activityAscent = activity.getStat(DataAscent.type);
-      if (activityAscent) {
-        ascent += <number>activityAscent.getValue();
-      }
-    });
-    stats.push(new DataAscent(ascent));
+    if (terrainSummaryActivities.length > 0) {
+      terrainSummaryActivities.forEach(activity => {
+        const activityAscent = activity.getStat(DataAscent.type);
+        if (activityAscent) {
+          ascent += <number>activityAscent.getValue();
+        }
+      });
+      stats.push(new DataAscent(ascent));
+    }
 
     // Sum descent
-    activities.forEach(activity => {
-      const activityDescent = activity.getStat(DataDescent.type);
-      if (activityDescent) {
-        descent += <number>activityDescent.getValue();
-      }
-    });
-    stats.push(new DataDescent(descent));
+    if (terrainSummaryActivities.length > 0) {
+      terrainSummaryActivities.forEach(activity => {
+        const activityDescent = activity.getStat(DataDescent.type);
+        if (activityDescent) {
+          descent += <number>activityDescent.getValue();
+        }
+      });
+      stats.push(new DataDescent(descent));
+    }
 
     // Sum energy
     activities.forEach(activity => {
@@ -1343,7 +1351,7 @@ export class ActivityUtilities {
     }
 
     // Avg Grade
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityAvgGrade = activity.getStat(DataGradeAvg.type);
       if (activityAvgGrade) {
         averageGrade = hasAverageGrade
@@ -1383,7 +1391,7 @@ export class ActivityUtilities {
     }
 
     // Avg Avg Altitude
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityAvgAltitude = activity.getStat(DataAltitudeAvg.type);
       if (activityAvgAltitude) {
         averageAltitude = averageAltitude
@@ -1640,7 +1648,7 @@ export class ActivityUtilities {
 
     // Max Altitude
     let maxAltitude = -Infinity;
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityMaxAltitude = activity.getStat(DataAltitudeMax.type);
       if (activityMaxAltitude) {
         maxAltitude = Math.max(maxAltitude, <number>activityMaxAltitude.getValue());
@@ -1652,7 +1660,7 @@ export class ActivityUtilities {
 
     // Min Altitude
     let minAltitude = Infinity;
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityMinAltitude = activity.getStat(DataAltitudeMin.type);
       if (activityMinAltitude) {
         minAltitude = Math.min(minAltitude, <number>activityMinAltitude.getValue());
@@ -1964,7 +1972,7 @@ export class ActivityUtilities {
 
     // Max Grade
     let maxGrade = -Infinity;
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityMaxGrade = activity.getStat(DataGradeMax.type);
       if (activityMaxGrade) {
         maxGrade = Math.max(maxGrade, <number>activityMaxGrade.getValue());
@@ -1976,7 +1984,7 @@ export class ActivityUtilities {
 
     // Min Grade
     let minGrade = Infinity;
-    activities.forEach(activity => {
+    terrainSummaryActivities.forEach(activity => {
       const activityMinGrade = activity.getStat(DataGradeMin.type);
       if (activityMinGrade) {
         minGrade = Math.min(minGrade, <number>activityMinGrade.getValue());

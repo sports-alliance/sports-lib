@@ -19,7 +19,8 @@ places, rates to three, SAC/RMV values to two, and PO₂ retains both FIT decima
 Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apnea sub-sports import as `Free Diving`.
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
 retain or derive terrain ascent, descent, altitude min/max/avg, or grade min/max/avg summaries, including when older
-native JSON is restored. Their vertical movement is represented by depth; raw altitude and grade streams remain
+native JSON is restored or an all-diving event summary is regenerated. Mixed event summaries use terrain values only
+from non-diving activities. Their vertical movement is represented by depth; raw altitude and grade streams remain
 available when provided by the source.
 
 ## Start here

@@ -32,8 +32,54 @@ import { DataDistance } from '../../data/data.distance';
 import { DataEffortPaceAvg } from '../../data/data.effort-pace-avg';
 import { DataEffortPaceMin } from '../../data/data.effort-pace-min';
 import { DataEffortPaceMax } from '../../data/data.effort-pace-max';
+import { Creator } from '../../creators/creator';
+import { FileType } from '../adapters/file-type.enum';
+import { DataAscent } from '../../data/data.ascent';
+import { DataDescent } from '../../data/data.descent';
+import { DataAltitudeMin } from '../../data/data.altitude-min';
+import { DataAltitudeMax } from '../../data/data.altitude-max';
+import { DataGradeMin } from '../../data/data.grade-min';
+import { DataGradeMax } from '../../data/data.grade-max';
+import { DataGradeAvg } from '../../data/data.grade-avg';
 
 describe('EventUtilities Power Curve Aggregation', () => {
+  const terrainSummaryTypes = [
+    DataAscent.type,
+    DataDescent.type,
+    DataAltitudeMin.type,
+    DataAltitudeMax.type,
+    DataAltitudeAvg.type,
+    DataGradeMin.type,
+    DataGradeMax.type,
+    DataGradeAvg.type
+  ];
+
+  const addTerrainSummaryStats = (activity: Activity, scale = 1) => {
+    [
+      new DataAscent(20 * scale),
+      new DataDescent(15 * scale),
+      new DataAltitudeMin(-5 * scale),
+      new DataAltitudeMax(5 * scale),
+      new DataAltitudeAvg(scale),
+      new DataGradeMin(-10 * scale),
+      new DataGradeMax(10 * scale),
+      new DataGradeAvg(scale)
+    ].forEach(stat => activity.addStat(stat));
+  };
+
+  const createDivingActivity = (activityType: ActivityTypes, offsetMilliseconds: number) => {
+    const startDate = new Date(offsetMilliseconds);
+    const activity = new Activity(
+      startDate,
+      new Date(offsetMilliseconds + 60_000),
+      activityType,
+      new Creator('Dive computer')
+    );
+    [new DataDuration(60), new DataPause(0), new DataDistance(25)].forEach(stat => activity.addStat(stat));
+    addTerrainSummaryStats(activity);
+    return activity;
+  };
+
   const createMockActivity = (powerValues: number[], weight?: number): Activity => {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + powerValues.length * 1000);
@@ -124,6 +170,43 @@ describe('EventUtilities Power Curve Aggregation', () => {
 
     expect(point10s.wattsPerKg).toBeDefined();
     expect(point10s.wattsPerKg.getValue()).toBe(4.0); // Should take the higher W/kg
+  });
+
+  it('omits terrain summaries when regenerating an event made entirely of Diving-group activities', () => {
+    const event = new Event('Two dives', new Date(0), new Date(120_000), FileType.FIT);
+    const activities = [
+      createDivingActivity(ActivityTypes.ScubaDiving, 0),
+      createDivingActivity(ActivityTypes.FreeDiving, 60_000)
+    ];
+    event.addActivities(activities);
+
+    const summaryStats = ActivityUtilities.getSummaryStatsForActivities(activities);
+    terrainSummaryTypes.forEach(type => expect(summaryStats.find(stat => stat.getType() === type)).toBeUndefined());
+
+    EventUtilities.reGenerateStatsForEvent(event);
+
+    terrainSummaryTypes.forEach(type => expect(event.getStat(type)).toBeUndefined());
+  });
+
+  it('retains terrain summaries for a mixed regenerated event', () => {
+    const event = new Event('Dive and run', new Date(0), new Date(120_000), FileType.FIT);
+    const running = new Activity(
+      new Date(60_000),
+      new Date(120_000),
+      ActivityTypes.Running,
+      new Creator('Running watch')
+    );
+    [new DataDuration(60), new DataPause(0), new DataDistance(100)].forEach(stat => running.addStat(stat));
+    addTerrainSummaryStats(running, 5);
+    event.addActivities([createDivingActivity(ActivityTypes.ScubaDiving, 0), running]);
+
+    EventUtilities.reGenerateStatsForEvent(event);
+
+    terrainSummaryTypes.forEach(type => expect(event.getStat(type)).toBeDefined());
+    expect(event.getStat(DataAscent.type)?.getValue()).toBe(100);
+    expect(event.getStat(DataDescent.type)?.getValue()).toBe(75);
+    expect(event.getStat(DataAltitudeAvg.type)?.getValue()).toBe(5);
+    expect(event.getStat(DataGradeAvg.type)?.getValue()).toBe(5);
   });
 
   describe('mergeEvents summary stats integration', () => {

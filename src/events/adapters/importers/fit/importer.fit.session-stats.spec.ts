@@ -73,18 +73,12 @@ describe('EventImporterFIT session stats mapping', () => {
       }
     };
 
-    const sessionSummary = (EventImporterFIT as any).getReferencedDiveSummary(
-      fitDataObject,
-      'session',
-      { message_index: messageIndex },
-      0
-    );
-    const lapSummary = (EventImporterFIT as any).getReferencedDiveSummary(
-      fitDataObject,
-      'lap',
-      { message_index: messageIndex },
-      0
-    );
+    const sessionSummary = (EventImporterFIT as any).getReferencedDiveSummary(fitDataObject, 'session', {
+      message_index: messageIndex
+    });
+    const lapSummary = (EventImporterFIT as any).getReferencedDiveSummary(fitDataObject, 'lap', {
+      message_index: messageIndex
+    });
     (EventImporterFIT as any).addDiveSummaryStats(activity, sessionSummary);
     (EventImporterFIT as any).addDiveSummaryStats(lap, lapSummary);
 
@@ -99,6 +93,21 @@ describe('EventImporterFIT session stats mapping', () => {
     expect(lap.getStat(DataDepthMax.type)?.getValue()).toBe(15);
     expect(lap.getStat(DataBottomTime.type)?.getValue()).toBe(800);
     expect(lap.getStat(DataDiveNumber.type)).toBeUndefined();
+  });
+
+  it('requires native v5 reference enums and message-index masks', () => {
+    const getSummary = (summary: any, targetMessage: any) =>
+      (EventImporterFIT as any).getReferencedDiveSummary(
+        { messages: { dive_summary: [summary] } },
+        'session',
+        targetMessage
+      );
+
+    expect(
+      getSummary({ reference_mesg: 18, reference_index: { value: 0 } }, { message_index: { value: 0 } })
+    ).toBeNull();
+    expect(getSummary({ reference_mesg: 'session', reference_index: 0 }, { message_index: { value: 0 } })).toBeNull();
+    expect(getSummary({ reference_mesg: 'session', reference_index: { value: 0 } }, {})).toBeNull();
   });
 
   it('should use session total_moving_time when available', async () => {

@@ -335,14 +335,11 @@ export class EventImporterFIT {
         const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
-          this.addDiveSummaryStats(
-            activity,
-            this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject, sessionIndex)
-          );
+          this.addDiveSummaryStats(activity, this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject));
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
             const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
-            this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject, index));
+            this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject));
             activity.addLap(lap);
           });
 
@@ -850,10 +847,6 @@ export class EventImporterFIT {
   }
 
   private static getMessageIndexValue(value: unknown): number | null {
-    if (typeof value === 'number' && Number.isInteger(value)) {
-      return value;
-    }
-
     if (value && typeof value === 'object' && 'value' in value) {
       const indexedValue = (value as { value?: unknown }).value;
       return typeof indexedValue === 'number' && Number.isInteger(indexedValue) ? indexedValue : null;
@@ -865,23 +858,22 @@ export class EventImporterFIT {
   private static getReferencedDiveSummary(
     fitDataObject: any,
     referenceMessage: 'session' | 'lap',
-    targetMessage: any,
-    fallbackIndex: number
+    targetMessage: any
   ): any | null {
     const summaries = fitDataObject?.messages?.dive_summary;
     if (!Array.isArray(summaries)) {
       return null;
     }
 
-    const targetIndex = this.getMessageIndexValue(targetMessage?.message_index) ?? fallbackIndex;
-    const referenceMessageNumber = referenceMessage === 'session' ? 18 : 19;
+    const targetIndex = this.getMessageIndexValue(targetMessage?.message_index);
+    if (targetIndex === null) {
+      return null;
+    }
 
     return (
       summaries.find((summary: any) => {
         const summaryIndex = this.getMessageIndexValue(summary?.reference_index);
-        const matchesMessage =
-          summary?.reference_mesg === referenceMessage || summary?.reference_mesg === referenceMessageNumber;
-        return matchesMessage && summaryIndex === targetIndex;
+        return summary?.reference_mesg === referenceMessage && summaryIndex === targetIndex;
       }) ?? null
     );
   }

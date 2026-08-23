@@ -57,8 +57,9 @@ Garmin `single_gas_diving`, `multi_gas_diving`, and `gauge_diving` sub-sports re
 Diving activity group.
 
 Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
-they were imported from a FIT summary, restored from native JSON, or would otherwise be hydrated from streams. Depth
-represents dive vertical movement. Any source altitude or grade stream remains available when explicitly requested.
+they were imported from a FIT summary, restored from native JSON, regenerated into an all-diving event summary, or
+would otherwise be hydrated from streams. Depth represents dive vertical movement. Any source altitude or grade stream
+remains available when explicitly requested.
 
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.

@@ -10,6 +10,7 @@ import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve
 import { DataDuration } from '../../data/data.duration';
 import { DataPower } from '../../data/data.power';
 import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
+import { normalizeActivityMetricSemanticsForStats } from '../../activities/activity.metric-semantics';
 
 export class EventUtilities {
   public static mergeEvents(events: EventInterface[]): EventInterface {
@@ -57,6 +58,8 @@ export class EventUtilities {
    * Regeneration model:
    * - Single-activity event: copies current summary-eligible activity stats into the event.
    * - Multi-activity event: recomputes event summary stats from activity stats and aggregates power curves.
+   * - The resulting event summary is canonicalized for its contributing activity types. In particular, an
+   *   all-Diving-group event omits terrain ascent/descent, altitude, and grade summaries.
    *
    * Interaction with `generateStatsForAll(event)`:
    * - `generateStatsForAll` calls activity generation first (`generateMissingStreamsAndStatsForActivity`),
@@ -73,13 +76,15 @@ export class EventUtilities {
     event.clearStats();
     event.startDate = event.getFirstActivity().startDate;
     event.endDate = event.getLastActivity().endDate;
+    const activities = event.getActivities();
+    const activityTypes = activities.map(activity => activity.type);
 
-    event.addStat(new DataActivityTypes(event.getActivities().map(activity => activity.type)));
-    event.addStat(new DataDeviceNames(event.getActivities().map(activity => activity.creator.name)));
+    event.addStat(new DataActivityTypes(activityTypes));
+    event.addStat(new DataDeviceNames(activities.map(activity => activity.creator.name)));
 
     // If only one
-    if (event.getActivities().length === 1) {
-      const firstActivity = event.getFirstActivity();
+    if (activities.length === 1) {
+      const firstActivity = activities[0];
       ActivityUtilities.getSummaryStatsForActivities([firstActivity]).forEach(stat => {
         event.addStat(stat);
       });
@@ -93,16 +98,15 @@ export class EventUtilities {
       if (description && description.getValue()) {
         event.description = <string>description.getValue();
       }
-      return;
+    } else {
+      // Standard stat summarization
+      ActivityUtilities.getSummaryStatsForActivities(activities).forEach(stat => event.addStat(stat));
+
+      // Special handling for Power Curve Aggregation
+      this.aggregatePowerCurves(event);
     }
-    event.startDate = event.getFirstActivity().startDate;
-    event.endDate = event.getLastActivity().endDate;
 
-    // Standard stat summarization
-    ActivityUtilities.getSummaryStatsForActivities(event.getActivities()).forEach(stat => event.addStat(stat));
-
-    // Special handling for Power Curve Aggregation
-    this.aggregatePowerCurves(event);
+    normalizeActivityMetricSemanticsForStats(event, activityTypes);
   }
 
   private static aggregatePowerCurves(event: EventInterface): void {

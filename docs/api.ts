@@ -328,7 +328,7 @@ export type {
 /**
  * Event aggregation and regeneration. Generated homogeneous Diving-group event summaries omit
  * terrain ascent/descent, altitude min/max/avg, and grade min/max/avg; mixed event summaries
- * retain their terrain metrics.
+ * aggregate those metrics only from their non-diving activities.
  *
  * @category Activities and events
  */

@@ -54,16 +54,16 @@ describe('EventUtilities Power Curve Aggregation', () => {
     DataGradeAvg.type
   ];
 
-  const addTerrainSummaryStats = (activity: Activity) => {
+  const addTerrainSummaryStats = (activity: Activity, scale = 1) => {
     [
-      new DataAscent(20),
-      new DataDescent(15),
-      new DataAltitudeMin(-5),
-      new DataAltitudeMax(5),
-      new DataAltitudeAvg(1),
-      new DataGradeMin(-10),
-      new DataGradeMax(10),
-      new DataGradeAvg(0)
+      new DataAscent(20 * scale),
+      new DataDescent(15 * scale),
+      new DataAltitudeMin(-5 * scale),
+      new DataAltitudeMax(5 * scale),
+      new DataAltitudeAvg(scale),
+      new DataGradeMin(-10 * scale),
+      new DataGradeMax(10 * scale),
+      new DataGradeAvg(scale)
     ].forEach(stat => activity.addStat(stat));
   };
 
@@ -174,10 +174,14 @@ describe('EventUtilities Power Curve Aggregation', () => {
 
   it('omits terrain summaries when regenerating an event made entirely of Diving-group activities', () => {
     const event = new Event('Two dives', new Date(0), new Date(120_000), FileType.FIT);
-    event.addActivities([
+    const activities = [
       createDivingActivity(ActivityTypes.ScubaDiving, 0),
       createDivingActivity(ActivityTypes.FreeDiving, 60_000)
-    ]);
+    ];
+    event.addActivities(activities);
+
+    const summaryStats = ActivityUtilities.getSummaryStatsForActivities(activities);
+    terrainSummaryTypes.forEach(type => expect(summaryStats.find(stat => stat.getType() === type)).toBeUndefined());
 
     EventUtilities.reGenerateStatsForEvent(event);
 
@@ -193,12 +197,16 @@ describe('EventUtilities Power Curve Aggregation', () => {
       new Creator('Running watch')
     );
     [new DataDuration(60), new DataPause(0), new DataDistance(100)].forEach(stat => running.addStat(stat));
-    addTerrainSummaryStats(running);
+    addTerrainSummaryStats(running, 5);
     event.addActivities([createDivingActivity(ActivityTypes.ScubaDiving, 0), running]);
 
     EventUtilities.reGenerateStatsForEvent(event);
 
     terrainSummaryTypes.forEach(type => expect(event.getStat(type)).toBeDefined());
+    expect(event.getStat(DataAscent.type)?.getValue()).toBe(100);
+    expect(event.getStat(DataDescent.type)?.getValue()).toBe(75);
+    expect(event.getStat(DataAltitudeAvg.type)?.getValue()).toBe(5);
+    expect(event.getStat(DataGradeAvg.type)?.getValue()).toBe(5);
   });
 
   describe('mergeEvents summary stats integration', () => {

@@ -59,7 +59,8 @@ export class EventUtilities {
    * - Single-activity event: copies current summary-eligible activity stats into the event.
    * - Multi-activity event: recomputes event summary stats from activity stats and aggregates power curves.
    * - The resulting event summary is canonicalized for its contributing activity types. In particular, an
-   *   all-Diving-group event omits terrain ascent/descent, altitude, and grade summaries.
+   *   all-Diving-group event omits terrain ascent/descent, altitude, and grade summaries; mixed events aggregate
+   *   those summaries only from their non-diving activities.
    *
    * Interaction with `generateStatsForAll(event)`:
    * - `generateStatsForAll` calls activity generation first (`generateMissingStreamsAndStatsForActivity`),

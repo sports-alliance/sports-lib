@@ -143,8 +143,9 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 
 - Terrain ascent/descent, altitude min/max/avg, and grade min/max/avg are intentionally excluded for the Diving
   activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary,
-  restored from native JSON, regenerated into an all-diving event summary, or otherwise derived from streams. Their
-  vertical movement is represented by depth, not terrain elevation.
+  restored from native JSON, regenerated into an all-diving event summary, or otherwise derived from streams. Mixed
+  event summaries aggregate these metrics only from non-diving activities. Their vertical movement is represented by
+  depth, not terrain elevation.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 

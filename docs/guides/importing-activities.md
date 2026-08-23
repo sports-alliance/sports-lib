@@ -58,8 +58,9 @@ Diving activity group.
 
 Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
 they were imported from a FIT summary, restored from native JSON, regenerated into an all-diving event summary, or
-would otherwise be hydrated from streams. Depth represents dive vertical movement. Any source altitude or grade stream
-remains available when explicitly requested.
+would otherwise be hydrated from streams. Mixed event summaries aggregate terrain values only from non-diving
+activities. Depth represents dive vertical movement. Any source altitude or grade stream remains available when
+explicitly requested.
 
 FIT session and lap `intensity` enums are retained as the string-valued `Intensity` stat. Values follow the FIT profile,
 such as `active`, `rest`, `warmup`, `cooldown`, `recovery`, `interval`, and `other`.
@@ -92,6 +93,12 @@ application-specific persistence layout.
 Restoring existing Diving-group native JSON now removes terrain ascent/descent, altitude min/max/avg, and grade
 min/max/avg summary values from events, activities, and laps. No source-file reparse is needed for the restored
 in-memory model. Re-serializing that model intentionally omits those values; raw source streams remain untouched.
+
+### 20.0.3 regenerated-event correction
+
+Regenerating an event from Diving-group activities now omits those terrain summaries, and a mixed event takes them only
+from its non-diving activities. No source-file reparse is needed; regenerate and reserialize the event summary when an
+application persists regenerated summaries.
 
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`

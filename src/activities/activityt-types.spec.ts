@@ -2,14 +2,76 @@ import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataPace } from '../data/data.pace';
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataSpeed } from '../data/data.speed';
-import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from './activity.types';
+import { DataVerticalSpeed } from '../data/data.vertical-speed';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
+
+const proposedGroupAssignments = [
+  [ActivityTypes.Aerobics, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Boxing, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.CardioTraining, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Cheerleading, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes['Circuit Training'], ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Combat, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.EllipticalTrainer, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.FitnessEquipment, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.IndoorTraining, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Pilates, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.StairStepper, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes['Adventure Racing'], ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.Aquathlon, ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.Duathlon, ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.Swimrun, ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.Fishing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Handcycle, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.Velomobile, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Volleyball, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.InlineSkating, ActivityTypeGroups.SkatingGroup],
+  [ActivityTypes.Skating, ActivityTypeGroups.SkatingGroup],
+  [ActivityTypes.Flying, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.HangGliding, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.Jumpmaster, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.Paragliding, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.SkyDiving, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.Boating, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Driving, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Motorcycling, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Motorsports, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Snowmobiling, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup]
+] as const;
+
+const intentionalUnspecifiedActivityTypes = [
+  ActivityTypes.Generic,
+  ActivityTypes.Match,
+  ActivityTypes.Other,
+  ActivityTypes.Route,
+  ActivityTypes.Tactical,
+  ActivityTypes.Transition,
+  ActivityTypes.UnknownSport,
+  ActivityTypes.Workout
+].sort();
 
 describe('ActivityTypes', () => {
   beforeEach(() => {});
 
   it('get the correct activity group', () => {
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(ActivityTypeGroups.RunningGroup);
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Cycling)).toBe(ActivityTypeGroups.CyclingGroup);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Running)).toBe(
+      ActivityTypeGroups.RunningGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Cycling)).toBe(
+      ActivityTypeGroups.CyclingGroup
+    );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.MountainBiking)).toBe(
       ActivityTypeGroups.MountainBikingGroup
     );
@@ -34,24 +96,55 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Wakeboarding)).toBe(
       ActivityTypeGroups.WaterSportsGroup
     );
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Diving)).toBe(ActivityTypeGroups.DivingGroup);
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Snorkeling)).toBe(ActivityTypeGroups.DivingGroup);
-    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Mermaiding)).toBe(ActivityTypeGroups.DivingGroup);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Diving)).toBe(
+      ActivityTypeGroups.DivingGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Snorkeling)).toBe(
+      ActivityTypeGroups.DivingGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Mermaiding)).toBe(
+      ActivityTypeGroups.DivingGroup
+    );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Tennis)).toBe(
       ActivityTypeGroups.TeamRacketGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.IceSkating)).toBe(
+      ActivityTypeGroups.WinterSportsGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Workout)).toBe(
       ActivityTypeGroups.UnspecifiedGroup
     );
     expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.HIIT)).toBe(
-      ActivityTypeGroups.UnspecifiedGroup
+      ActivityTypeGroups.IndoorSportsGroup
     );
+  });
+
+  it.each(proposedGroupAssignments)('assigns %s to %s', (activityType, activityGroup) => {
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(activityType)).toBe(activityGroup);
+  });
+
+  it('keeps only generic and structural labels unspecified', () => {
+    const unspecifiedActivityTypes = ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(
+      activityType =>
+        ActivityTypesHelper.getActivityGroupForActivityType(activityType as ActivityTypes) ===
+        ActivityTypeGroups.UnspecifiedGroup
+    );
+
+    expect(unspecifiedActivityTypes).toEqual(intentionalUnspecifiedActivityTypes);
   });
 
   it('exposes canonical group ids and members', () => {
     expect(ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray()).toContain(ActivityTypeGroups.WaterSportsGroup);
     expect(ActivityTypeGroups.WaterSportsGroup).toBe('water_sports_group');
-    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WaterSportsGroup)).toContain(ActivityTypes.Kayaking);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WaterSportsGroup)).toContain(
+      ActivityTypes.Kayaking
+    );
+    expect(ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray()).toContain(ActivityTypeGroups.SkatingGroup);
+    expect(ActivityTypeGroups.SkatingGroup).toBe('skating_group');
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.SkatingGroup)).toEqual([
+      ActivityTypes.InlineSkating,
+      ActivityTypes.Skating
+    ]);
   });
 
   it('should identify indoor activity types across indoor labels and indoor-group members', () => {
@@ -61,8 +154,42 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorClimbing)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Yoga)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Treadmill)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.FitnessEquipment)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Cycling)).toBe(false);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Running)).toBe(false);
+  });
+
+  it('applies the agreed family-specific metric behavior', () => {
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Flying)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Flying)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Flying)).toEqual([
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Flying)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.Flying)).toBe(false);
+
+    [
+      ActivityTypes.InlineSkating,
+      ActivityTypes.Skating,
+      ActivityTypes.Flying,
+      ActivityTypes.Driving,
+      ActivityTypes.Wheelchair
+    ].forEach(activityType => {
+      expect(ActivityTypesMoving.getSpeedThreshold(activityType)).toBe(0.3);
+    });
+
+    [ActivityTypes.InlineSkating, ActivityTypes.Driving, ActivityTypes.Wheelchair].forEach(activityType => {
+      expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(activityType)).toEqual([DataSpeed.type]);
+      expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(activityType)).toEqual([
+        DataSpeedAvg.type
+      ]);
+      expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(activityType)).toEqual([]);
+      expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(activityType)).toEqual([]);
+    });
   });
 
   it('should map alpine_skiing_downhill to AlpineSkiing', () => {
@@ -131,7 +258,7 @@ describe('ActivityTypes', () => {
         ActivityTypes.FreeDiving,
         ActivityTypes.Snorkeling,
         ActivityTypes.Mermaiding
-      ].forEach((activityType) => {
+      ].forEach(activityType => {
         expect(ActivityTypesHelper.shouldExcludeAscent(activityType)).toBe(true);
       });
     });
@@ -175,7 +302,7 @@ describe('ActivityTypes', () => {
         ActivityTypes.FreeDiving,
         ActivityTypes.Snorkeling,
         ActivityTypes.Mermaiding
-      ].forEach((activityType) => {
+      ].forEach(activityType => {
         expect(ActivityTypesHelper.shouldExcludeDescent(activityType)).toBe(true);
       });
     });

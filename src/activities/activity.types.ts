@@ -66,9 +66,7 @@ export class ActivityTypesHelper {
   }
 
   static getActivityTypeGroupsAsUniqueArray(): ActivityTypeGroup[] {
-    const activityTypeGroups = Array.from(
-      new Set(Object.values(ActivityTypeGroups))
-    ) as ActivityTypeGroup[];
+    const activityTypeGroups = Array.from(new Set(Object.values(ActivityTypeGroups))) as ActivityTypeGroup[];
 
     return activityTypeGroups.sort((left, right) => {
       if (left < right) {
@@ -136,6 +134,7 @@ export class ActivityTypesHelper {
       case ActivityTypeGroups.MountainBikingGroup:
       case ActivityTypeGroups.OutdoorAdventuresGroup:
       case ActivityTypeGroups.PerformanceGroup:
+      case ActivityTypeGroups.AerialSportsGroup:
         return [DataVerticalSpeed.type];
       default:
         return [];
@@ -189,8 +188,11 @@ export class ActivityTypesHelper {
    * This function can also be called: Fighting with a non functional language
    */
   static getActivityGroupForActivityType(activityType: ActivityTypes): ActivityTypeGroup {
-    return (Object.entries(ActivityTypesGroupMapping.map) as Array<[ActivityTypeGroup, ActivityTypes[]]>)
-      .find(([, activityTypes]) => activityTypes.includes(activityType))?.[0] || ActivityTypeGroups.UnspecifiedGroup;
+    return (
+      (Object.entries(ActivityTypesGroupMapping.map) as Array<[ActivityTypeGroup, ActivityTypes[]]>).find(
+        ([, activityTypes]) => activityTypes.includes(activityType)
+      )?.[0] || ActivityTypeGroups.UnspecifiedGroup
+    );
   }
 
   static isIndoorActivityType(activityType: ActivityTypes): boolean {
@@ -1088,13 +1090,17 @@ export const ActivityTypeGroups = {
   IndoorSportsGroup: 'indoor_sports_group',
   OutdoorAdventuresGroup: 'outdoor_adventures_group',
   WinterSportsGroup: 'winter_sports_group',
+  SkatingGroup: 'skating_group',
+  AerialSportsGroup: 'aerial_sports_group',
+  MotorizedGroup: 'motorized_group',
+  AdaptiveMobilityGroup: 'adaptive_mobility_group',
   WaterSportsGroup: 'water_sports_group',
   DivingGroup: 'diving_group',
   TeamRacketGroup: 'team_racket_group',
-  UnspecifiedGroup: 'unspecified_group',
+  UnspecifiedGroup: 'unspecified_group'
 } as const;
 
-export type ActivityTypeGroup = typeof ActivityTypeGroups[keyof typeof ActivityTypeGroups];
+export type ActivityTypeGroup = (typeof ActivityTypeGroups)[keyof typeof ActivityTypeGroups];
 
 export class ActivityTypesGroupMapping {
   public static readonly map: Record<ActivityTypeGroup, ActivityTypes[]> = {
@@ -1104,32 +1110,33 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning
     ],
-    [ActivityTypeGroups.TrailRunningGroup]: [
-      ActivityTypes.TrailRunning
-    ],
+    [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning],
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
       ActivityTypes.IndoorCycling,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,
-      ActivityTypes.EBiking
+      ActivityTypes.EBiking,
+      ActivityTypes.Handcycle,
+      ActivityTypes.Velomobile
     ],
     [ActivityTypeGroups.MountainBikingGroup]: [
       ActivityTypes.MountainBiking,
       ActivityTypes['Enduro MTB'],
       ActivityTypes.DownhillCycling
     ],
-    [ActivityTypeGroups.SwimmingGroup]: [
-      ActivityTypes.Swimming,
-      ActivityTypes.OpenWaterSwimming
-    ],
+    [ActivityTypeGroups.SwimmingGroup]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
     [ActivityTypeGroups.PerformanceGroup]: [
       ActivityTypes.Crossfit,
       ActivityTypes.Orienteering,
       ActivityTypes.RollerSki,
       ActivityTypes.TrackAndField,
       ActivityTypes.Triathlon,
-      ActivityTypes.Multisport
+      ActivityTypes.Multisport,
+      ActivityTypes['Adventure Racing'],
+      ActivityTypes.Aquathlon,
+      ActivityTypes.Duathlon,
+      ActivityTypes.Swimrun
     ],
     [ActivityTypeGroups.IndoorSportsGroup]: [
       ActivityTypes.Gymnastics,
@@ -1143,7 +1150,19 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.WeightTraining,
       ActivityTypes.StrengthTraining,
       ActivityTypes.Training,
-      ActivityTypes.FlexibilityTraining
+      ActivityTypes.FlexibilityTraining,
+      ActivityTypes.FitnessEquipment,
+      ActivityTypes.Aerobics,
+      ActivityTypes.Boxing,
+      ActivityTypes.CardioTraining,
+      ActivityTypes.Cheerleading,
+      ActivityTypes['Circuit Training'],
+      ActivityTypes.Combat,
+      ActivityTypes.EllipticalTrainer,
+      ActivityTypes.HIIT,
+      ActivityTypes.IndoorTraining,
+      ActivityTypes.Pilates,
+      ActivityTypes.StairStepper
     ],
     [ActivityTypeGroups.OutdoorAdventuresGroup]: [
       ActivityTypes.Walking,
@@ -1155,7 +1174,12 @@ export class ActivityTypesGroupMapping {
       ActivityTypes['Indoor Climbing'],
       ActivityTypes.Bouldering,
       ActivityTypes.Canyoning,
-      ActivityTypes.ViaFerrata
+      ActivityTypes.ViaFerrata,
+      ActivityTypes.Fishing,
+      ActivityTypes.FloorClimbing,
+      ActivityTypes.Hunting,
+      ActivityTypes.Mountaineering,
+      ActivityTypes.Trekking
     ],
     [ActivityTypeGroups.WinterSportsGroup]: [
       ActivityTypes.CrosscountrySkiing,
@@ -1169,6 +1193,22 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.BackCountrySki,
       ActivityTypes.NordicSki
     ],
+    [ActivityTypeGroups.SkatingGroup]: [ActivityTypes.InlineSkating, ActivityTypes.Skating],
+    [ActivityTypeGroups.AerialSportsGroup]: [
+      ActivityTypes.Flying,
+      ActivityTypes.HangGliding,
+      ActivityTypes.Jumpmaster,
+      ActivityTypes.Paragliding,
+      ActivityTypes.SkyDiving
+    ],
+    [ActivityTypeGroups.MotorizedGroup]: [
+      ActivityTypes.Boating,
+      ActivityTypes.Driving,
+      ActivityTypes.Motorcycling,
+      ActivityTypes.Motorsports,
+      ActivityTypes.Snowmobiling
+    ],
+    [ActivityTypeGroups.AdaptiveMobilityGroup]: [ActivityTypes.Wheelchair],
     [ActivityTypeGroups.WaterSportsGroup]: [
       ActivityTypes.Rowing,
       ActivityTypes.Surfing,
@@ -1178,7 +1218,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Canoeing,
       ActivityTypes.Kayaking,
       ActivityTypes.Paddling,
-      ActivityTypes.StandUpPaddling
+      ActivityTypes.StandUpPaddling,
+      ActivityTypes.Rafting,
+      ActivityTypes.WaterSkiing,
+      ActivityTypes.Windsurfing
     ],
     [ActivityTypeGroups.DivingGroup]: [
       ActivityTypes.Diving,
@@ -1202,9 +1245,13 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Squash,
       ActivityTypes.RacquetBall,
       ActivityTypes.TableTennis,
-      ActivityTypes.Tennis
+      ActivityTypes.Tennis,
+      ActivityTypes.Cricket,
+      ActivityTypes.Frisbee,
+      ActivityTypes.Soccer,
+      ActivityTypes.Volleyball
     ],
-    [ActivityTypeGroups.UnspecifiedGroup]: [],
+    [ActivityTypeGroups.UnspecifiedGroup]: []
   };
 }
 

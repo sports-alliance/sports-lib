@@ -68,9 +68,11 @@ export type {
  */
 export { normalizeActivityMetricSemanticsForStats } from '../src/activities/activity.metric-semantics';
 /**
- * Canonical activity types, activity groups, and alias resolution. Snorkeling and Mermaiding
- * are canonical diving activities. `ActivityTypesHelper` excludes all Diving-group activities
- * from terrain elevation and grade summaries while preserving their raw source streams.
+ * Canonical activity types, activity groups, and alias resolution. `Skating` and `Inline Skating`
+ * belong to `skating_group`, while `Ice Skating` remains a winter sport. Aerial activities expose
+ * vertical-speed derivation; Motorized and Adaptive Mobility activities do not receive calculated
+ * TSS or durability, but preserve source-imported TSS. Snorkeling and Mermaiding are canonical
+ * diving activities, whose terrain summaries are excluded while raw source streams remain available.
  *
  * @category Activities and events
  */

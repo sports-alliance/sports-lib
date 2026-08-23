@@ -358,6 +358,10 @@ Priority order:
 
 - POWER -> HR -> PACE/SWIM_PACE -> MET
 
+Motorized and Adaptive Mobility activities do not receive library-calculated TSS, even when calculation inputs are
+available. A source-provided TSS remains available and is labeled `IMPORTED`; no durability evidence is generated for
+either group.
+
 POWER TSS:
 
 ```text

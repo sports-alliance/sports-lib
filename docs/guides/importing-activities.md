@@ -12,6 +12,11 @@ activities. For example, `snorkeling` resolves to `Snorkeling`; `Mermaiding` is 
 when a provider supplies that sport name. A provider-specific numeric FIT mapping is added only when the FIT
 profile or a representative file establishes one.
 
+Canonical activity types also receive a stable activity group. `Skating` and `Inline Skating` belong to the dedicated
+Skating group, while `Ice Skating` remains in Winter Sports. Aerial activities retain altitude, ascent, and descent
+while exposing vertical speed. Motorized and Adaptive Mobility activities retain movement data but do not receive
+library-calculated Training Stress Score or durability evidence; a source-provided Training Stress Score remains intact.
+
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom
 ```

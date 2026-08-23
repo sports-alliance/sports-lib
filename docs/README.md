@@ -10,6 +10,10 @@ Activity-aware cadence semantics produce stroke rate for swimming, rowing, and p
 summaries separately from activities can explicitly canonicalize those projections with
 `normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.
 
+Activity groups distinguish generic and inline skating from Ice Skating, retain flight altitude metrics with vertical
+speed for aerial activities, and classify motorized and adaptive-mobility activities without deriving training stress or
+durability evidence.
+
 FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
 decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. Ordered FIT gas,
 tank-summary, and tank-update records are available separately through `ActivityInterface.getDiveSourceRecords()` and

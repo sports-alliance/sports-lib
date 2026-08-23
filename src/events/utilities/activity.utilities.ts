@@ -2696,6 +2696,13 @@ export class ActivityUtilities {
     return activity.type === ActivityTypes.TrackAndField;
   }
 
+  private static supportsCalculatedTrainingStressScore(activity: ActivityInterface): boolean {
+    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
+    return (
+      activityGroup !== ActivityTypeGroups.MotorizedGroup && activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup
+    );
+  }
+
   private static calculateTrainingStressScoreByPriority(activity: ActivityInterface): TssCalculationResult | null {
     const powerTss = this.calculatePowerTss(activity);
     if (powerTss) {
@@ -2745,6 +2752,23 @@ export class ActivityUtilities {
 
   private static generateTrainingStressScore(activity: ActivityInterface): void {
     const existingTss = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
+
+    if (!this.supportsCalculatedTrainingStressScore(activity)) {
+      const existingTssMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
+      const hasImportedTss =
+        existingTss !== null &&
+        (existingTssMethod === undefined || existingTssMethod === TrainingStressScoreMethod.IMPORTED);
+      if (hasImportedTss) {
+        if (existingTssMethod === undefined) {
+          this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
+        }
+      } else {
+        activity.removeStat(DataTrainingStressScore.type);
+        activity.removeStat(DataTrainingStressScoreMethod.type);
+      }
+      return;
+    }
+
     const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
 
     if (existingTss !== null && preserveImportedTss) {

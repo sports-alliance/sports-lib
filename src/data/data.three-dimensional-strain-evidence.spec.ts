@@ -1,4 +1,4 @@
-import { ActivityTypes, ActivityTypesHelper } from '../activities/activity.types';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../activities/activity.types';
 import {
   DataThreeDimensionalStrainEvidence,
   THREE_DIMENSIONAL_STRAIN_LEGACY_PROTOCOL_VERSION,
@@ -70,6 +70,25 @@ describe('DataThreeDimensionalStrainEvidence legacy compatibility', () => {
     };
 
     expect(normalizeThreeDimensionalStrainEvidenceValue(legacy)).toEqual(legacy);
+  });
+
+  it.each([
+    [ActivityTypes.InlineSkating, ActivityTypeGroups.SkatingGroup],
+    [ActivityTypes.Flying, ActivityTypeGroups.AerialSportsGroup],
+    [ActivityTypes.Driving, ActivityTypeGroups.MotorizedGroup],
+    [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup],
+    [ActivityTypes.FitnessEquipment, ActivityTypeGroups.IndoorSportsGroup]
+  ])('rehydrates %s evidence with the current %s classification', (activityType, activityGroup) => {
+    const stale = {
+      ...createCurrentEvidence(),
+      activityType,
+      activityGroup: ActivityTypeGroups.UnspecifiedGroup
+    };
+
+    expect(normalizeThreeDimensionalStrainEvidenceValue(stale)).toEqual({
+      ...stale,
+      activityGroup
+    });
   });
 
   it.each([

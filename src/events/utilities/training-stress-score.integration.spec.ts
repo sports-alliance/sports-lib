@@ -249,6 +249,61 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+    'does not calculate TSS for %s even when power inputs are available',
+    activityType => {
+      const activity = createActivity(
+        activityType,
+        1200,
+        new ActivityParsingOptions({
+          tss: {
+            preserveImportedTss: false,
+            overrides: {
+              functionalThresholdPower: 250
+            }
+          }
+        })
+      );
+      addNumericStream(activity, DataPower.type, new Array(1200).fill(250));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+      expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    }
+  );
+
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+    'preserves imported TSS for %s even when imported-TSS preservation is disabled',
+    activityType => {
+      const activity = createActivity(
+        activityType,
+        1200,
+        new ActivityParsingOptions({ tss: { preserveImportedTss: false } })
+      );
+      activity.addStat(new DataTrainingStressScore(42.5));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
+      expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
+    }
+  );
+
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+    'removes stale calculated TSS for %s after its group no longer supports calculation',
+    activityType => {
+      const activity = createActivity(activityType, 1200);
+      activity.addStat(new DataTrainingStressScore(42.5));
+      activity.addStat(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.POWER));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+      expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    }
+  );
+
   it('recomputes imported TSS when preserveImportedTss is disabled', () => {
     const activity = createActivity(
       ActivityTypes.Cycling,

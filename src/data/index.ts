@@ -209,6 +209,7 @@ export * from './data.power-zone-two-duration';
 export * from './data.power';
 export * from './data.primary-benefit';
 export * from './data.recovery-time';
+export * from './data.metabolic-calories';
 export * from './data.resting-calories';
 export * from './data.rider-position-change-event';
 export * from './data.right-balance';

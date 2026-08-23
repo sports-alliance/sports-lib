@@ -5,6 +5,9 @@ import { Activity } from '../../activities/activity';
 import { ActivityParsingOptions } from '../../activities/activity-parsing-options';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataAltitude } from '../../data/data.altitude';
+import { DataAltitudeAvg } from '../../data/data.altitude-avg';
+import { DataAltitudeMax } from '../../data/data.altitude-max';
+import { DataAltitudeMin } from '../../data/data.altitude-min';
 import { DataPower } from '../../data/data.power';
 import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
 import { DataDuration } from '../../data/data.duration';
@@ -946,6 +949,49 @@ describe('Activity Utilities', () => {
 
       expect(activity.getStat(DataAscent.type)).toBeUndefined();
       expect(activity.getStat(DataDescent.type)).toBeUndefined();
+    });
+
+    it.each([
+      ActivityTypes.Diving,
+      ActivityTypes.ScubaDiving,
+      ActivityTypes.FreeDiving,
+      ActivityTypes.Snorkeling,
+      ActivityTypes.Mermaiding
+    ])('removes terrain summaries for %s while retaining source streams', activityType => {
+      const activity = new Activity(new Date(0), new Date(3000), activityType, new Creator('test'));
+      const lap = new Lap(new Date(0), new Date(3000), 1, LapTypes.Manual);
+      const terrainSummaryTypes = [
+        DataAscent.type,
+        DataDescent.type,
+        DataAltitudeMin.type,
+        DataAltitudeMax.type,
+        DataAltitudeAvg.type,
+        DataGradeMin.type,
+        DataGradeMax.type,
+        DataGradeAvg.type
+      ];
+
+      [activity, lap].forEach(target => {
+        target.addStat(new DataAscent(20));
+        target.addStat(new DataDescent(10));
+        target.addStat(new DataAltitudeMin(-5));
+        target.addStat(new DataAltitudeMax(5));
+        target.addStat(new DataAltitudeAvg(0));
+        target.addStat(new DataGradeMin(-10));
+        target.addStat(new DataGradeMax(10));
+        target.addStat(new DataGradeAvg(0));
+      });
+      activity.addLap(lap);
+      activity.addStream(new Stream(DataAltitude.type, [-5, 0, 5]));
+      activity.addStream(new Stream(DataGrade.type, [-10, 0, 10]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      [activity, lap].forEach(target => {
+        terrainSummaryTypes.forEach(dataType => expect(target.getStat(dataType)).toBeUndefined());
+      });
+      expect(activity.hasStreamData(DataAltitude.type)).toBe(true);
+      expect(activity.hasStreamData(DataGrade.type)).toBe(true);
     });
 
     it('should generate min/max/avg stats for Absolute Pressure when pressure stream exists', () => {

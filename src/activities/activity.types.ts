@@ -161,6 +161,17 @@ export class ActivityTypesHelper {
   }
 
   /**
+   * Identifies activities for which terrain elevation summaries are not meaningful.
+   * Diving activities use depth for vertical movement, so terrain ascent, descent,
+   * altitude, and grade summaries must not be imported or derived for them.
+   * Source streams remain available to callers that explicitly request them.
+   * @param activityType
+   */
+  static shouldExcludeTerrainSummaryMetrics(activityType: ActivityTypes): boolean {
+    return this.getActivityGroupForActivityType(activityType) === ActivityTypeGroups.DivingGroup;
+  }
+
+  /**
    * Returns metric display families that consumers may hide by default for a given activity type.
    * This is a presentation hint only and must not be used to suppress imported/raw metrics.
    */

@@ -186,4 +186,21 @@ describe('ActivityTypes', () => {
       expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Kitesurfing)).toBe(false);
     });
   });
+
+  describe('shouldExcludeTerrainSummaryMetrics', () => {
+    it('should return true for every Diving-group activity only', () => {
+      [
+        ActivityTypes.Diving,
+        ActivityTypes.ScubaDiving,
+        ActivityTypes.FreeDiving,
+        ActivityTypes.Snorkeling,
+        ActivityTypes.Mermaiding
+      ].forEach(activityType => {
+        expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activityType)).toBe(true);
+      });
+
+      expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.Swimming)).toBe(false);
+      expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.Running)).toBe(false);
+    });
+  });
 });

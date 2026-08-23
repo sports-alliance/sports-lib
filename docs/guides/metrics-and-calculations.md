@@ -67,6 +67,10 @@ swim-pace preference selects a single coherent dive unit family: `/100m` keeps d
 `/100yd` converts depth and rates to `ft` and `ft/s`. Canonical stored values and serialized JSON remain in the FIT
 profile units above.
 
+The presentation-only exported variants are `Average Depth in feet`, `Next Stop Depth in feet`, `Dive ascent rate in
+feet per second`, `Average dive ascent rate in feet per second`, `Maximum dive ascent rate in feet per second`,
+`Average dive descent rate in feet per second`, and `Maximum dive descent rate in feet per second`.
+
 Calculations / Derivations
 ---
 The following formulas describe how missing streams/stats are computed in:
@@ -137,8 +141,9 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
-- Elevation ascent and descent are intentionally not derived for the Diving activity group (Diving, Scuba Diving,
-  Free Diving, Snorkeling, and Mermaiding). Their vertical movement is represented by depth, not terrain elevation.
+- Terrain ascent/descent, altitude min/max/avg, and grade min/max/avg are intentionally excluded for the Diving
+  activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary
+  or otherwise derived from streams. Their vertical movement is represented by depth, not terrain elevation.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 
@@ -514,6 +519,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Leg Spring Stiffness Balance Right`
 - `Leg Stiffness` (unit: `"KN/m"`)
 - `Longitude` (unit: `degrees`)
+- `Metabolic Calories` (unit: `kcal`)
 - `Moving time`
 - `Number of Samples`
 - `Number of Satellites`

@@ -376,6 +376,16 @@ export class ActivityUtilities {
   private static readonly FTP_FACTOR = 0.95;
   private static readonly INTENSITY_FACTOR_DECIMALS = 3;
   private static readonly TRAINING_STRESS_SCORE_DECIMALS = 1;
+  private static readonly DIVING_TERRAIN_SUMMARY_DATA_TYPES = [
+    DataAscent.type,
+    DataDescent.type,
+    DataAltitudeMin.type,
+    DataAltitudeMax.type,
+    DataAltitudeAvg.type,
+    DataGradeMin.type,
+    DataGradeMax.type,
+    DataGradeAvg.type
+  ];
   private static readonly jumpStatFamilies: Array<{
     key: string;
     minType: string;
@@ -893,10 +903,12 @@ export class ActivityUtilities {
 
   /**
    * Fills missing activity streams and summary stats, including speed-derived pace summaries on
-   * the activity and its existing laps. Explicit stats are preserved.
+   * the activity and its existing laps. Explicit stats are preserved except terrain summaries
+   * excluded for Diving activities.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     normalizeStrokeRateSemanticsForActivity(activity);
+    this.removeExcludedTerrainSummaryMetrics(activity);
     this.generateMissingStreams(activity);
     this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
@@ -925,6 +937,22 @@ export class ActivityUtilities {
     }
 
     this.generateMissingUnitStatsForActivity(activity); // Perhaps this needs to happen on user level so needs to go out of here
+  }
+
+  /**
+   * Removes terrain summaries that would misrepresent a diving activity. This is
+   * intentionally applied before hydration so all importers and restored activities
+   * share the same rule, including their lap summaries.
+   */
+  private static removeExcludedTerrainSummaryMetrics(activity: ActivityInterface): void {
+    if (!ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type)) {
+      return;
+    }
+
+    const summaryTargets: StatsClassInterface[] = [activity, ...activity.getLaps()];
+    summaryTargets.forEach(target => {
+      this.DIVING_TERRAIN_SUMMARY_DATA_TYPES.forEach(dataType => target.removeStat(dataType));
+    });
   }
 
   public static fixAbnormalStreamData(activity: ActivityInterface): void {
@@ -3200,6 +3228,7 @@ export class ActivityUtilities {
 
     // Check if we can get a grade stream
     if (
+      !ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type) &&
       activity.parseOptions?.streams?.smooth?.grade &&
       !activity.hasStreamData(DataGrade.type) &&
       this.canGenerateDerivedStream(activity, DataGrade.type)
@@ -3621,6 +3650,7 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
+    const shouldExcludeTerrainSummaryMetrics = ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type);
     // If there is no distance or distance for some reason is 0
     const activityDistanceStat = activity.getStat(DataDistance.type);
     if (!activityDistanceStat || activityDistanceStat.getValue() === 0) {
@@ -3677,6 +3707,7 @@ export class ActivityUtilities {
     }
     // Altitude Max
     if (
+      !shouldExcludeTerrainSummaryMetrics &&
       !activity.getStat(DataAltitudeMax.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
@@ -3691,6 +3722,7 @@ export class ActivityUtilities {
     }
     // Altitude Min
     if (
+      !shouldExcludeTerrainSummaryMetrics &&
       !activity.getStat(DataAltitudeMin.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
@@ -3705,6 +3737,7 @@ export class ActivityUtilities {
     }
     // Altitude Avg
     if (
+      !shouldExcludeTerrainSummaryMetrics &&
       !activity.getStat(DataAltitudeAvg.type) &&
       (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
     ) {
@@ -3855,7 +3888,7 @@ export class ActivityUtilities {
       : activity.hasStreamData(DataGrade.type)
         ? DataGrade.type
         : null;
-    if (gradeStreamType) {
+    if (!shouldExcludeTerrainSummaryMetrics && gradeStreamType) {
       if (!activity.getStat(DataGradeMax.type)) {
         activity.addStat(new DataGradeMax(this.getDataTypeMax(activity, gradeStreamType)));
       }

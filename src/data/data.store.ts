@@ -375,6 +375,7 @@ import { DataLeftTorqueEffectiveness } from './data.left-torque-effectiveness';
 import { DataMaxRespirationRate } from './data.max-respiration-rate';
 import { DataMinRespirationRate } from './data.min-respiration-rate';
 import { DataPrimaryBenefit } from './data.primary-benefit';
+import { DataMetabolicCalories } from './data.metabolic-calories';
 import { DataRestingCalories } from './data.resting-calories';
 import { DataRightPedalSmoothness } from './data.right-pedal-smoothness';
 import { DataRightTorqueEffectiveness } from './data.right-torque-effectiveness';
@@ -879,6 +880,7 @@ export const DataStore: any = {
   DataMaxRespirationRate,
   DataMinRespirationRate,
   DataPrimaryBenefit,
+  DataMetabolicCalories,
   DataRestingCalories,
   DataRightPedalSmoothness,
   DataRightTorqueEffectiveness,

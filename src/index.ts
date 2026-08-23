@@ -67,8 +67,9 @@ export class SportsLib {
   /**
    * Restores an event from Sports Lib's native JSON format.
    *
-   * Explicit stats are preserved. Missing pace, swim-pace, and grade-adjusted-pace summaries are hydrated from
-   * compatible speed summaries on the event, its activities, and their laps.
+   * Explicit stats are preserved except terrain summaries excluded for Diving activities. Missing pace, swim-pace,
+   * and grade-adjusted-pace summaries are hydrated from compatible speed summaries on the event, its activities,
+   * and their laps.
    *
    * @param json Sports Lib's native event representation.
    * @returns The restored event with canonical stat keys and additive speed-derived summaries.

@@ -102,6 +102,7 @@ import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataDepthMax } from '../../../../data/data.depth-max';
+import { DataMetabolicCalories } from '../../../../data/data.metabolic-calories';
 import {
   DataBottomTime,
   DataDepthAvg,
@@ -2224,6 +2225,7 @@ export class EventImporterFIT {
   // @todo move this to a mapper
   public static getStatsFromObject(object: any, activity: ActivityInterface, isLap: boolean): DataInterface[] {
     const stats: DataInterface[] = [];
+    const shouldExcludeTerrainSummaryMetrics = ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type);
 
     // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
     // Just invert fields if that's the case
@@ -2442,22 +2444,28 @@ export class EventImporterFIT {
     }
     // Ascent
     const ascent = getStatValue(object, ['total_ascent', 'TotalAscent']);
-    if (ascent !== null) {
+    if (ascent !== null && !shouldExcludeTerrainSummaryMetrics) {
       stats.push(new DataAscent(ascent));
     }
     // Descent
     const descent = getStatValue(object, ['total_descent', 'TotalDescent']);
-    if (descent !== null) {
+    if (descent !== null && !shouldExcludeTerrainSummaryMetrics) {
       stats.push(new DataDescent(descent));
     }
 
     if (isNumberOrString(object.max_depth)) {
       stats.push(new DataDepthMax(object.max_depth));
     }
+    if (isNumberOrString(object.avg_depth)) {
+      stats.push(new DataDepthAvg(object.avg_depth));
+    }
 
     // Calories
     if (isNumberOrString(object.total_calories)) {
       stats.push(new DataEnergy(object.total_calories));
+    }
+    if (isNumberOrString(object.metabolic_calories)) {
+      stats.push(new DataMetabolicCalories(object.metabolic_calories));
     }
 
     // Total training effect = Aerobic training effect
@@ -2567,13 +2575,13 @@ export class EventImporterFIT {
     }
 
     // Grade summary from session stats (if available)
-    if (isNumberOrString(object.avg_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.avg_grade)) {
       stats.push(new DataGradeAvg(object.avg_grade));
     }
-    if (isNumberOrString(object.max_pos_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.max_pos_grade)) {
       stats.push(new DataGradeMax(object.max_pos_grade));
     }
-    if (isNumberOrString(object.max_neg_grade)) {
+    if (!shouldExcludeTerrainSummaryMetrics && isNumberOrString(object.max_neg_grade)) {
       stats.push(new DataGradeMin(object.max_neg_grade));
     }
 

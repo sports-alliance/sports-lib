@@ -328,7 +328,11 @@ export function serializeDiveSourceRecords(records?: DiveSourceRecordsInput | nu
 
 /** Restores native dive records from JSON timestamps and JSON-safe values. */
 export function deserializeDiveSourceRecords(records?: DiveSourceRecordsJSONInterface | null): DiveSourceRecords {
-  return cloneDiveSourceRecords({
+  // Each mapper allocates fresh records (and fresh Date instances), so avoid a
+  // second full clone here. Activity#setDiveSourceRecords still establishes
+  // the Activity's ownership boundary. This matters for long dives with many
+  // tank-pressure updates.
+  return {
     gases: Array.isArray(records?.gases)
       ? records.gases.filter(isRecord).map(record => deserializeDiveGasRecord(record))
       : [],
@@ -338,5 +342,5 @@ export function deserializeDiveSourceRecords(records?: DiveSourceRecordsJSONInte
     tankUpdates: Array.isArray(records?.tankUpdates)
       ? records.tankUpdates.filter(isRecord).map(record => deserializeDiveTankUpdateRecord(record))
       : []
-  });
+  };
 }

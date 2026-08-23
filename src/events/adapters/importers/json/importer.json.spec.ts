@@ -18,7 +18,7 @@ import { DataSwimPaceAvg } from '../../../../data/data.swim-pace-avg';
 import { LapTypes } from '../../../../laps/lap.types';
 
 describe('EventImporterJSON', () => {
-  it('restores native structured dive records and leaves absent legacy fields empty', () => {
+  it('restores native structured dive records and leaves an absent optional field empty', () => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'native-dive-records',
       startDate: 1_000,
@@ -98,8 +98,8 @@ describe('EventImporterJSON', () => {
       tankUpdates: [{ timestamp: 1_600, sensor: 10_001, pressure: 198.4 }]
     });
 
-    const legacyActivity = EventImporterJSON.getActivityFromJSON({
-      name: 'legacy-dive',
+    const activityWithoutSourceRecords = EventImporterJSON.getActivityFromJSON({
+      name: 'dive-without-source-records',
       startDate: 1_000,
       endDate: 2_000,
       type: ActivityTypes.ScubaDiving,
@@ -112,12 +112,12 @@ describe('EventImporterJSON', () => {
       intensityZones: [],
       events: []
     });
-    expect(legacyActivity.getDiveSourceRecords()).toEqual({
+    expect(activityWithoutSourceRecords.getDiveSourceRecords()).toEqual({
       gases: [],
       tankSummaries: [],
       tankUpdates: []
     });
-    expect(legacyActivity.toJSON()).not.toHaveProperty('diveSourceRecords');
+    expect(activityWithoutSourceRecords.toJSON()).not.toHaveProperty('diveSourceRecords');
   });
 
   it('hydrates speed-derived stats for events, activities, and laps without replacing explicit pace', () => {

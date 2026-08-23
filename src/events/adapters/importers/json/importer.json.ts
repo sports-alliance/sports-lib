@@ -16,7 +16,8 @@ import { ActivityJSONInterface } from '../../../../activities/activity.json.inte
 import { ActivityTypes } from '../../../../activities/activity.types';
 import {
   normalizeActivityMetricSemanticsForStats,
-  normalizeStrokeRateSemanticsForActivity
+  normalizeActivityMetricSemanticsForActivity,
+  removeExcludedTerrainSummaryMetricsForStats
 } from '../../../../activities/activity.metric-semantics';
 import { IntensityZonesJSONInterface } from '../../../../intensity-zones/intensity-zones.json.interface';
 import { StreamInterface } from '../../../../streams/stream.interface';
@@ -30,15 +31,16 @@ import { DataJSONInterface } from '../../../../data/data.json.interface';
 import { DataEvent } from '../../../../data/data.event';
 import { DataTime } from '../../../../data/data.time';
 import { DataPowerCurve } from '../../../../data/data.power-curve';
+import { DataActivityTypes } from '../../../../data/data.activity-types';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
 import { StatsClassInterface } from '../../../../stats/stats.class.interface';
 import { hydrateMissingSpeedDerivedStats } from '../../../../stats/speed-derived-stats';
 
 export class EventImporterJSON {
   /**
-   * Restores a native JSON event, canonicalizing stat keys and activity-aware stroke-rate
-   * semantics while hydrating missing speed-derived pace summaries on the event, its activities,
-   * and their laps.
+   * Restores a native JSON event, canonicalizing stat keys and activity-aware summary semantics
+   * while hydrating missing speed-derived pace summaries on the event, its activities, and their
+   * laps.
    */
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     const event = new Event(
@@ -59,10 +61,14 @@ export class EventImporterJSON {
       event.addActivity(this.getActivityFromJSON(activityJSON));
     });
     const activities = event.getActivities();
-    normalizeActivityMetricSemanticsForStats(
-      event,
-      activities.map(activity => activity.type)
-    );
+    const activityTypes = activities.map(activity => activity.type);
+    normalizeActivityMetricSemanticsForStats(event, activityTypes);
+    if (activityTypes.length === 0) {
+      const summaryActivityTypes = event.getStat<unknown>(DataActivityTypes.type)?.getValue();
+      if (Array.isArray(summaryActivityTypes)) {
+        removeExcludedTerrainSummaryMetricsForStats(event, summaryActivityTypes);
+      }
+    }
     return event;
   }
 
@@ -282,7 +288,7 @@ export class EventImporterJSON {
   }
 
   /**
-   * Restores a native JSON activity, normalizes activity-aware stroke-rate semantics, and hydrates
+   * Restores a native JSON activity, normalizes activity-aware summary semantics, and hydrates
    * missing speed-derived pace summaries on it and its laps.
    */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
@@ -318,7 +324,7 @@ export class EventImporterJSON {
         activity.addEvent(this.getActivityEventFromJSON(activityEvent));
       });
     }
-    normalizeStrokeRateSemanticsForActivity(activity);
+    normalizeActivityMetricSemanticsForActivity(activity);
     return activity;
   }
 }

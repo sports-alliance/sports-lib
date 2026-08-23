@@ -142,8 +142,9 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 ```
 
 - Terrain ascent/descent, altitude min/max/avg, and grade min/max/avg are intentionally excluded for the Diving
-  activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary
-  or otherwise derived from streams. Their vertical movement is represented by depth, not terrain elevation.
+  activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary,
+  restored from native JSON, or otherwise derived from streams. Their vertical movement is represented by depth, not
+  terrain elevation.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 
@@ -159,9 +160,12 @@ Cadence and stroke-rate semantics are activity-aware:
   therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
   A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
   while newly generated mixed events aggregate cadence and stroke rate separately.
-- Applications that persist summary-only projections without their contributing activities can call
+- Summary-only native event JSON removes Diving-group terrain summaries when its `Activity Types` stat is present,
+  while other summary semantics remain opt-in. Applications can call
   `normalizeActivityMetricSemanticsForStats(summary, contributingActivityTypes)` after hydration. This opt-in boundary
-  keeps application persistence concerns outside Sports Lib while reusing its centralized sport-family policy.
+  canonicalizes unambiguous stroke-rate summaries and removes terrain summaries only for homogeneous Diving-group
+  projections, keeping application persistence concerns outside Sports Lib while reusing its centralized sport-family
+  policy.
 - Pool-swim length JSON retains the `avgCadence` key for storage compatibility, but its in-memory value is
   `DataStrokeRate` and its unit is `spm`.
 

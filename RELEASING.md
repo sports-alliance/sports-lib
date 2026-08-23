@@ -19,4 +19,4 @@ Publishing is handled by `.github/workflows/publish.yml`.
 2. Merge that change into `main`.
 3. The `Test` workflow runs tests and documentation validation. Only after it succeeds does the separate publish workflow verify package contents, publish the exact tested commit to npm, and create the matching `v<version>` tag.
 
-The workflow rejects mismatched manifest versions and refuses to republish an existing npm version. Publishing never begins until `Test` has passed.
+The workflow rejects mismatched manifest versions and uses the matching release tag as the published-state marker. This means a version bump may be followed by additional commits in the same push without losing the release; once the matching tag exists, later pushes do not republish that version. Publishing never begins until `Test` has passed.

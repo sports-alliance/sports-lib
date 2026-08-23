@@ -38,6 +38,24 @@ export type {
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
 /**
+ * Structured FIT gas and tank records are source-hydration data, not numeric
+ * metrics or native-JSON fields. `ActivityInterface.getDiveSourceRecords()`
+ * preserves their source order and parser-decoded units without deriving a
+ * gas-to-tank association or consumption summary.
+ *
+ * @category Activities and events
+ */
+export type {
+  DiveGasMode,
+  DiveGasRecord,
+  DiveGasStatus,
+  DiveMessageIndex,
+  DiveSourceRecords,
+  DiveSourceRecordsInput,
+  DiveTankSummaryRecord,
+  DiveTankUpdateRecord
+} from '../src/activities/dive-source-records';
+/**
  * Canonicalizes unambiguous activity-summary semantics: cadence-shaped stroke-rate summaries
  * become `Stroke Rate`, and homogeneous Diving-group summaries omit terrain metrics.
  *

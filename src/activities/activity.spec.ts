@@ -31,6 +31,61 @@ describe('Activity', () => {
     expect(activity.toJSON().swimLengths).toEqual([]);
   });
 
+  it('keeps source-native dive gas and tank records out of native JSON', () => {
+    const sourceTimestamp = new Date('2026-08-22T10:00:00.000Z');
+    const sourceRecords = {
+      gases: [
+        {
+          messageIndex: { value: 2, reserved: false, selected: true },
+          oxygenContent: 50,
+          status: 'enabled' as const,
+          mode: 'open_circuit' as const
+        }
+      ],
+      tankSummaries: [
+        {
+          timestamp: sourceTimestamp,
+          sensor: 10_001,
+          startPressure: 200,
+          endPressure: 75,
+          volumeUsed: 1396.01
+        }
+      ],
+      tankUpdates: [{ timestamp: sourceTimestamp, sensor: 10_001, pressure: 199 }]
+    };
+
+    activity.setDiveSourceRecords(sourceRecords);
+    sourceRecords.gases[0].oxygenContent = 99;
+    sourceRecords.tankSummaries[0].timestamp.setUTCFullYear(2000);
+
+    const returnedRecords = activity.getDiveSourceRecords();
+    returnedRecords.gases[0].oxygenContent = 88;
+    returnedRecords.gases[0].messageIndex!.value = 8;
+    returnedRecords.tankSummaries[0].timestamp!.setUTCFullYear(1999);
+
+    expect(activity.getDiveSourceRecords()).toEqual({
+      gases: [
+        {
+          messageIndex: { value: 2, reserved: false, selected: true },
+          oxygenContent: 50,
+          status: 'enabled',
+          mode: 'open_circuit'
+        }
+      ],
+      tankSummaries: [
+        {
+          timestamp: new Date('2026-08-22T10:00:00.000Z'),
+          sensor: 10_001,
+          startPressure: 200,
+          endPressure: 75,
+          volumeUsed: 1396.01
+        }
+      ],
+      tankUpdates: [{ timestamp: new Date('2026-08-22T10:00:00.000Z'), sensor: 10_001, pressure: 199 }]
+    });
+    expect(activity.toJSON()).not.toHaveProperty('diveSourceRecords');
+  });
+
   it('should get streams based on time', () => {
     activity.addStream(new Stream(DataAltitude.type, [200, 500, null, 502, null, 600, 700]));
     activity.addStream(new Stream(DataDistance.type, [0, 10, 20, 30, 40, 50, 60]));

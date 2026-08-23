@@ -56,6 +56,13 @@ Garmin `single_gas_diving`, `multi_gas_diving`, and `gauge_diving` sub-sports re
 `apnea_diving` and `apnea_hunting` resolve to `Free Diving`. These are direct FIT profile mappings and all remain in the
 Diving activity group.
 
+FIT `dive_gas`, `tank_summary`, and `tank_update` messages are available through
+`activity.getDiveSourceRecords()`. Gas messages are file-level source records and retain source order on each
+Diving-group activity imported from that FIT file. Tank summaries and tank updates are retained only for the activity
+whose session window contains their source timestamp. Oxygen and helium contents are percentages; pressures are bar;
+and volume used is liters. Sports Lib does not infer a gas-to-tank relation, consumption, a gas name, or any missing
+field. These source-hydration records are deliberately not scalar metrics and are not serialized in native JSON.
+
 Diving activities exclude terrain summaries—`Ascent`, `Descent`, altitude min/max/avg, and grade min/max/avg—whether
 they were imported from a FIT summary, restored from native JSON, regenerated into an all-diving event summary, or
 would otherwise be hydrated from streams. Mixed event summaries aggregate terrain values only from non-diving
@@ -99,6 +106,13 @@ in-memory model. Re-serializing that model intentionally omits those values; raw
 Regenerating an event from Diving-group activities now omits those terrain summaries, and a mixed event takes them only
 from its non-diving activities. No source-file reparse is needed; regenerate and reserialize the event summary when an
 application persists regenerated summaries.
+
+### 20.1.0 source-hydrated gas and tank records
+
+FIT imports now expose the parser-provided gas and tank messages through `getDiveSourceRecords()`. Existing native JSON
+does not gain a persisted field and needs no schema migration. An application that wants to show the records for an
+already-stored activity must hydrate them again from its retained original FIT source; Sports Lib does not reconstruct
+them from summary metrics or streams.
 
 Activities expose one-second streams and typed stats. Read numeric values with `getValue()` and display-ready values with
 `getDisplayValue()`. Depth presentation follows the first swim-pace preference: `/100m` selects meters and `/100yd`

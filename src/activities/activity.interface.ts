@@ -17,6 +17,7 @@ import { DataStopAllEvent } from '../data/data.stop-all-event';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 import { ActivityParsingOptions } from './activity-parsing-options';
 import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
+import { DiveSourceRecords, DiveSourceRecordsInput } from './dive-source-records';
 
 /**
  * A recorded activity within an event. Activities own time-indexed streams, metrics, laps,
@@ -216,6 +217,17 @@ export interface ActivityInterface
    * Checks whether the activity has pool swim length rows.
    */
   hasSwimLengths(): boolean;
+
+  /**
+   * Returns source-native FIT dive gas and tank records. These records are
+   * separate from numeric summary stats and streams.
+   */
+  getDiveSourceRecords(): DiveSourceRecords;
+
+  /**
+   * Replaces source-native FIT dive gas and tank records.
+   */
+  setDiveSourceRecords(records: DiveSourceRecordsInput): this;
 
   /**
    * Gets all the timebased events of the activity

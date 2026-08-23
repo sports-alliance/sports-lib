@@ -4,7 +4,20 @@ import { SwimLength } from '../../../../swim-lengths/swim-length';
 import { Lap } from '../../../../laps/lap';
 import { EventInterface } from '../../../event.interface';
 import { CreatorInterface } from '../../../../creators/creator.interface';
-import { ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from '../../../../activities/activity.types';
+import {
+  ActivityTypeGroups,
+  ActivityTypes,
+  ActivityTypesHelper,
+  ActivityTypesMoving
+} from '../../../../activities/activity.types';
+import {
+  DiveGasMode,
+  DiveGasRecord,
+  DiveGasStatus,
+  DiveMessageIndex,
+  DiveTankSummaryRecord,
+  DiveTankUpdateRecord
+} from '../../../../activities/dive-source-records';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataElapsedTime } from '../../../../data/data.elapsed-time';
 import { DataEnergy } from '../../../../data/data.energy';
@@ -337,6 +350,7 @@ export class EventImporterFIT {
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
           this.addDiveSummaryStats(activity, this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject));
+          this.addDiveSourceRecords(activity, fitDataObject);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
             const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
@@ -854,6 +868,177 @@ export class EventImporterFIT {
     }
 
     return null;
+  }
+
+  /**
+   * Keeps FIT gas and tank messages as structured source records. They do not
+   * become scalar stats and no relation between a gas and a tank is inferred.
+   */
+  private static addDiveSourceRecords(
+    activity: ActivityInterface,
+    fitDataObject: { dive_gases?: unknown; tank_summaries?: unknown; tank_updates?: unknown }
+  ): void {
+    if (ActivityTypesHelper.getActivityGroupForActivityType(activity.type) !== ActivityTypeGroups.DivingGroup) {
+      return;
+    }
+
+    activity.setDiveSourceRecords({
+      gases: this.getDiveGasRecords(fitDataObject?.dive_gases),
+      tankSummaries: this.getDiveTankSummariesForActivity(fitDataObject?.tank_summaries, activity),
+      tankUpdates: this.getDiveTankUpdatesForActivity(fitDataObject?.tank_updates, activity)
+    });
+  }
+
+  private static getDiveGasRecords(records: unknown): DiveGasRecord[] {
+    if (!Array.isArray(records)) {
+      return [];
+    }
+
+    return records
+      .filter((record: unknown): record is Record<string, unknown> => !!record && typeof record === 'object')
+      .map(record => {
+        const mappedRecord: DiveGasRecord = {};
+        const messageIndex = this.getDiveMessageIndex(record.message_index);
+        const heliumContent = this.getNumericValue(record.helium_content);
+        const oxygenContent = this.getNumericValue(record.oxygen_content);
+        const status = this.getDiveGasStatus(record.status);
+        const mode = this.getDiveGasMode(record.mode);
+
+        if (messageIndex) {
+          mappedRecord.messageIndex = messageIndex;
+        }
+        if (heliumContent !== null) {
+          mappedRecord.heliumContent = heliumContent;
+        }
+        if (oxygenContent !== null) {
+          mappedRecord.oxygenContent = oxygenContent;
+        }
+        if (status !== null) {
+          mappedRecord.status = status;
+        }
+        if (mode !== null) {
+          mappedRecord.mode = mode;
+        }
+
+        return mappedRecord;
+      });
+  }
+
+  private static getDiveTankSummariesForActivity(
+    records: unknown,
+    activity: ActivityInterface
+  ): DiveTankSummaryRecord[] {
+    if (!Array.isArray(records)) {
+      return [];
+    }
+
+    return records
+      .filter((record: unknown): record is Record<string, unknown> => this.isDiveRecordWithinActivity(record, activity))
+      .map(record => {
+        const mappedRecord: DiveTankSummaryRecord = {
+          timestamp: this.getDateFromValue(record.timestamp)!
+        };
+        const sensor = this.getNumericValue(record.sensor);
+        const startPressure = this.getNumericValue(record.start_pressure);
+        const endPressure = this.getNumericValue(record.end_pressure);
+        const volumeUsed = this.getNumericValue(record.volume_used);
+
+        if (sensor !== null) {
+          mappedRecord.sensor = sensor;
+        }
+        if (startPressure !== null) {
+          mappedRecord.startPressure = startPressure;
+        }
+        if (endPressure !== null) {
+          mappedRecord.endPressure = endPressure;
+        }
+        if (volumeUsed !== null) {
+          mappedRecord.volumeUsed = volumeUsed;
+        }
+
+        return mappedRecord;
+      });
+  }
+
+  private static getDiveTankUpdatesForActivity(records: unknown, activity: ActivityInterface): DiveTankUpdateRecord[] {
+    if (!Array.isArray(records)) {
+      return [];
+    }
+
+    return records
+      .filter((record: unknown): record is Record<string, unknown> => this.isDiveRecordWithinActivity(record, activity))
+      .map(record => {
+        const mappedRecord: DiveTankUpdateRecord = {
+          timestamp: this.getDateFromValue(record.timestamp)!
+        };
+        const sensor = this.getNumericValue(record.sensor);
+        const pressure = this.getNumericValue(record.pressure);
+
+        if (sensor !== null) {
+          mappedRecord.sensor = sensor;
+        }
+        if (pressure !== null) {
+          mappedRecord.pressure = pressure;
+        }
+
+        return mappedRecord;
+      });
+  }
+
+  private static isDiveRecordWithinActivity(
+    record: unknown,
+    activity: ActivityInterface
+  ): record is Record<string, unknown> {
+    if (!record || typeof record !== 'object') {
+      return false;
+    }
+
+    const timestamp = this.getDateFromValue((record as { timestamp?: unknown }).timestamp);
+    return (
+      !!timestamp &&
+      timestamp.getTime() >= activity.startDate.getTime() &&
+      timestamp.getTime() <= activity.endDate.getTime()
+    );
+  }
+
+  private static getDiveMessageIndex(value: unknown): DiveMessageIndex | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    const sourceValue = value as { value?: unknown; reserved?: unknown; selected?: unknown };
+    const messageIndex = this.getNumericValue(sourceValue.value);
+    if (messageIndex === null || !Number.isInteger(messageIndex)) {
+      return null;
+    }
+
+    const mappedIndex: DiveMessageIndex = { value: messageIndex };
+    if (typeof sourceValue.reserved === 'boolean') {
+      mappedIndex.reserved = sourceValue.reserved;
+    }
+    if (typeof sourceValue.selected === 'boolean') {
+      mappedIndex.selected = sourceValue.selected;
+    }
+
+    return mappedIndex;
+  }
+
+  private static getDiveGasStatus(value: unknown): DiveGasStatus | null {
+    if (value === 'disabled' || value === 'enabled' || value === 'backup_only') {
+      return value;
+    }
+
+    const numericValue = this.getNumericValue(value);
+    return numericValue !== null && Number.isInteger(numericValue) ? numericValue : null;
+  }
+
+  private static getDiveGasMode(value: unknown): DiveGasMode | null {
+    if (value === 'open_circuit' || value === 'closed_circuit_diluent') {
+      return value;
+    }
+
+    const numericValue = this.getNumericValue(value);
+    return numericValue !== null && Number.isInteger(numericValue) ? numericValue : null;
   }
 
   private static getReferencedDiveSummary(

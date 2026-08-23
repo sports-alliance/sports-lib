@@ -66,6 +66,12 @@ const uint32 = (number: number, value: number): FitEncoderField => ({
   baseType: FitBaseType.Uint32,
   value
 });
+const uint32z = (number: number, value: number): FitEncoderField => ({
+  number,
+  size: 4,
+  baseType: FitBaseType.Uint32z,
+  value
+});
 const sint32 = (number: number, value: number): FitEncoderField => ({
   number,
   size: 4,
@@ -253,5 +259,107 @@ describe('EventImporterFIT native diving messages', () => {
 
     expect(activity.getStat(DataDepthAvg.type)?.getValue()).toBe(0.07);
     expect(activity.getStat(DataMetabolicCalories.type)?.getValue()).toBe(159);
+  });
+
+  it('retains multiple source-native gases and tank records without creating a derived summary', async () => {
+    const encoder = new FitEncoder();
+    const start = new Date('2026-08-22T10:00:00.000Z');
+    const startTime = FitEncoder.toFitTimestamp(start);
+    const endTime = startTime + 1_000;
+    const firstTankUpdateTime = startTime + 100;
+
+    encoder.writeMessage(0, [enum8(0, 4), uint16(1, 1), uint32(4, startTime)]);
+    encoder.writeMessage(
+      18,
+      [
+        uint16(254, 0),
+        uint32(253, endTime),
+        uint32(2, startTime),
+        enum8(5, 53),
+        enum8(6, 54),
+        uint32(7, 1_000_000),
+        uint32(8, 1_000_000)
+      ],
+      1
+    );
+    encoder.writeMessage(259, [uint8(0, 0), uint8(1, 21), enum8(2, 1), enum8(3, 0), uint16(254, 0)], 2);
+    encoder.writeMessage(259, [uint8(0, 0), uint8(1, 50), enum8(2, 1), enum8(3, 0), uint16(254, 1)], 2);
+    encoder.writeMessage(259, [uint8(0, 0), uint8(1, 98), enum8(2, 2), enum8(3, 0), uint16(254, 2)], 2);
+    encoder.writeMessage(
+      323,
+      [uint32z(0, 10_001), uint16(1, 20_000), uint16(2, 7_500), uint32(3, 139_601), uint32(253, endTime)],
+      3
+    );
+    encoder.writeMessage(
+      323,
+      [uint32z(0, 10_002), uint16(1, 18_000), uint16(2, 9_500), uint32(3, 88_100), uint32(253, endTime)],
+      3
+    );
+    encoder.writeMessage(319, [uint32z(0, 10_001), uint16(1, 19_900), uint32(253, firstTankUpdateTime)], 4);
+    encoder.writeMessage(319, [uint32z(0, 10_002), uint16(1, 17_900), uint32(253, firstTankUpdateTime + 1)], 4);
+    // A separate session's tank summary must not be assigned to this activity.
+    encoder.writeMessage(
+      323,
+      [uint32z(0, 10_003), uint16(1, 20_000), uint16(2, 10_000), uint32(3, 100_000), uint32(253, endTime + 1)],
+      3
+    );
+
+    const encoded = encoder.close();
+    const event = await EventImporterFIT.getFromArrayBuffer(
+      encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength) as ArrayBuffer
+    );
+    const records = event.getFirstActivity().getDiveSourceRecords();
+
+    expect(records.gases).toEqual([
+      {
+        messageIndex: { value: 0, reserved: false, selected: false },
+        heliumContent: 0,
+        oxygenContent: 21,
+        status: 'enabled',
+        mode: 'open_circuit'
+      },
+      {
+        messageIndex: { value: 1, reserved: false, selected: false },
+        heliumContent: 0,
+        oxygenContent: 50,
+        status: 'enabled',
+        mode: 'open_circuit'
+      },
+      {
+        messageIndex: { value: 2, reserved: false, selected: false },
+        heliumContent: 0,
+        oxygenContent: 98,
+        status: 'backup_only',
+        mode: 'open_circuit'
+      }
+    ]);
+    expect(records.tankSummaries).toEqual([
+      {
+        sensor: 10_001,
+        startPressure: 200,
+        endPressure: 75,
+        volumeUsed: 1396.01,
+        timestamp: new Date(start.getTime() + 1_000_000)
+      },
+      {
+        sensor: 10_002,
+        startPressure: 180,
+        endPressure: 95,
+        volumeUsed: 881,
+        timestamp: new Date(start.getTime() + 1_000_000)
+      }
+    ]);
+    expect(records.tankUpdates).toEqual([
+      {
+        sensor: 10_001,
+        pressure: 199,
+        timestamp: new Date(start.getTime() + 100_000)
+      },
+      {
+        sensor: 10_002,
+        pressure: 179,
+        timestamp: new Date(start.getTime() + 101_000)
+      }
+    ]);
   });
 });

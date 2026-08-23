@@ -33,6 +33,7 @@ import { ParsingEventLibError } from '../errors/parsing-event-lib.error';
 import { DurationExceededEventLibError } from '../errors/duration-exceeded-event-lib.error';
 import { SwimLengthInterface } from '../swim-lengths/swim-length.interface';
 import { SwimLengthJSONInterface } from '../swim-lengths/swim-length.json.interface';
+import { cloneDiveSourceRecords, DiveSourceRecords, DiveSourceRecordsInput } from './dive-source-records';
 
 export class Activity extends DurationClassAbstract implements ActivityInterface {
   private static readonly TRAINER_TYPES: ActivityTypes[] = [
@@ -58,6 +59,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
   private laps: LapInterface[] = [];
   private swimLengths: SwimLengthInterface[] = [];
   private streams: StreamInterface[] = [];
+  private diveSourceRecords: DiveSourceRecords = cloneDiveSourceRecords();
 
   private events: DataEvent[] = [];
 
@@ -292,6 +294,15 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
   hasSwimLengths(): boolean {
     return this.swimLengths.length > 0;
+  }
+
+  getDiveSourceRecords(): DiveSourceRecords {
+    return cloneDiveSourceRecords(this.diveSourceRecords);
+  }
+
+  setDiveSourceRecords(records: DiveSourceRecordsInput): this {
+    this.diveSourceRecords = cloneDiveSourceRecords(records);
+    return this;
   }
 
   getAllEvents(): DataEvent[] {

@@ -52,6 +52,15 @@ serialization. Score, count, category, and duration units remain available throu
 category, and duration display units intentionally omit a suffix. Duration display uses the standard Sports Lib
 human-readable duration formatter.
 
+Each Health and sleep scalar supports a storage-safe round trip through its canonical JSON object. `toJSON()` emits one
+canonical type key, while the concrete class's `fromJSON()` validates that exact single-key shape before constructing the
+metric. Alias keys and objects with additional properties are rejected instead of being persisted ambiguously.
+
+```ts
+const stored = JSON.stringify(new DataSleepDuration(28_800).toJSON());
+const restored = DataSleepDuration.fromJSON(JSON.parse(stored));
+```
+
 The provider-neutral Health catalog is:
 
 | Canonical type | Stored unit | Display behavior |

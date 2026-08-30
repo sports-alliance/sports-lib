@@ -1,8 +1,18 @@
 import { DataDuration } from './data.duration';
 import { DataNumber } from './data.number';
 import { DataPercent } from './data.percent';
+import { DataJSONInterface } from './data.json.interface';
+import { scalarDataFromJSON } from './data.scalar-json';
 
 abstract class DataFiniteSleepNumber extends DataNumber {
+  /** Rehydrates the concrete sleep metric from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
+
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -21,6 +31,14 @@ abstract class DataOneDecimalSleepNumber extends DataFiniteSleepNumber {
 }
 
 abstract class DataSleepDurationBase extends DataDuration {
+  /** Rehydrates the concrete sleep duration from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
+
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -139,6 +157,14 @@ export class DataSleepBloodOxygenSaturationMax extends DataPercent {
   static override type = 'Maximum Sleep Blood Oxygen Saturation';
   static override displayType = 'Maximum Sleep SpO₂';
   static aliases = ['Maximum Sleep SpO2', 'sleep_maximum_spo2', 'vitals.maxSpo2Percent'];
+
+  /** Rehydrates the sleep SpO₂ aggregate from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
 
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);

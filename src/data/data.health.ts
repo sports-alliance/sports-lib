@@ -2,9 +2,19 @@ import { DataDistance } from './data.distance';
 import { DataDuration } from './data.duration';
 import { DataNumber } from './data.number';
 import { DataPercent } from './data.percent';
+import { DataJSONInterface } from './data.json.interface';
+import { scalarDataFromJSON } from './data.scalar-json';
 import { DataString } from './data.string';
 
 abstract class DataFiniteHealthNumber extends DataNumber {
+  /** Rehydrates the concrete Health metric from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
+
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -37,6 +47,14 @@ abstract class DataHealthCount extends DataRoundedHealthNumber {
 }
 
 abstract class DataHealthDuration extends DataDuration {
+  /** Rehydrates the concrete Health duration from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
+
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -51,6 +69,14 @@ abstract class DataHealthHeartRate extends DataRoundedHealthNumber {
 }
 
 abstract class DataHealthPercent extends DataPercent {
+  /** Rehydrates the concrete Health percentage from its canonical JSON object. */
+  static fromJSON<TData extends DataNumber>(
+    this: { readonly type: string; new (value: number): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
+
   override isValueTypeValid(value: unknown): boolean {
     return typeof value === 'number' && Number.isFinite(value);
   }
@@ -161,6 +187,14 @@ export class DataStressState extends DataString {
   static override type = 'Stress State';
   static override unit = 'category';
   static aliases = ['stress_state'];
+
+  /** Rehydrates a stress-state category from its canonical JSON object. */
+  static fromJSON<TData extends DataString>(
+    this: { readonly type: string; new (value: string): TData },
+    json: DataJSONInterface
+  ): TData {
+    return scalarDataFromJSON(this, json);
+  }
 
   override getDisplayUnit(): string {
     return '';

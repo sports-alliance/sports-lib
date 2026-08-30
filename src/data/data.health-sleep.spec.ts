@@ -3,6 +3,7 @@ import { DataAltitude } from './data.altitude';
 import { DataDistance } from './data.distance';
 import { DataFitnessAge } from './data.fitness-age';
 import { DataHeartRate } from './data.heart-rate';
+import { DataJSONInterface } from './data.json.interface';
 import * as HealthData from './data.health';
 import * as SleepData from './data.sleep';
 import { DataSteps } from './data.steps';
@@ -16,6 +17,7 @@ interface DataConstructor<T extends number | string> {
   readonly name: string;
   readonly type: string;
   readonly unit: string;
+  fromJSON(json: DataJSONInterface): Data<T>;
 }
 
 interface DisplayCase {
@@ -34,6 +36,15 @@ const numericHealthDataClasses = healthDataClasses.filter(
   dataClass => dataClass !== (HealthData.DataStressState as DataConstructor<number | string>)
 ) as Array<DataConstructor<number>>;
 const numericDataClasses = [...numericHealthDataClasses, ...sleepDataClasses];
+const reusedHealthDataClasses: Array<DataConstructor<number>> = [
+  DataSteps,
+  DataDistance,
+  DataAltitude,
+  DataHeartRate,
+  DataWeight,
+  DataVO2Max,
+  DataFitnessAge
+];
 
 const healthDataClassByMetricId: Readonly<Record<string, HealthDataConstructor>> = {
   active_duration: HealthData.DataActiveDuration,
@@ -193,6 +204,7 @@ describe('Health and sleep data types', () => {
     [...healthDataClasses, ...sleepDataClasses].forEach(dataClass => {
       expect(DataStore[dataClass.name]).toBe(dataClass);
       expect(DynamicDataLoader.getDataClassFromDataType(dataClass.type)).toBe(dataClass);
+      expect(dataClass.fromJSON).toEqual(expect.any(Function));
       dataClass.aliases?.forEach(alias => {
         expect(DynamicDataLoader.getDataClassFromDataType(alias)).toBe(dataClass);
       });
@@ -212,13 +224,55 @@ describe('Health and sleep data types', () => {
       const value = 42.25;
       const instance = new dataClass(value);
       const json = instance.toJSON();
-      const restored = DynamicDataLoader.getDataInstanceFromDataType(dataClass.type, json[dataClass.type]);
+      const persistedJSON = JSON.parse(JSON.stringify(json)) as DataJSONInterface;
+      const restored = dataClass.fromJSON(persistedJSON);
+      const dynamicallyLoaded = DynamicDataLoader.getDataInstanceFromDataType(dataClass.type, json[dataClass.type]);
 
       expect(Number.isFinite(instance.getValue())).toBe(true);
       expect(json).toEqual({ [dataClass.type]: value });
       expect(restored).toBeInstanceOf(dataClass);
       expect(restored.getValue()).toBe(value);
+      expect(restored.toJSON()).toEqual(json);
+      expect(dynamicallyLoaded).toBeInstanceOf(dataClass);
+      expect(dynamicallyLoaded.getValue()).toBe(value);
     });
+  });
+
+  it('rejects noncanonical or ambiguous scalar JSON during rehydration', () => {
+    const expectRejectedJSON = <T extends number | string>(dataClass: DataConstructor<T>, value: T): void => {
+      const noncanonicalKey = dataClass.aliases?.[0] || `noncanonical_${dataClass.type}`;
+      expect(() => dataClass.fromJSON({ [noncanonicalKey]: value })).toThrow(
+        `expected only the canonical '${dataClass.type}' key`
+      );
+      expect(() => dataClass.fromJSON({ [dataClass.type]: value, extra: value })).toThrow(
+        `expected only the canonical '${dataClass.type}' key`
+      );
+    };
+
+    numericDataClasses.forEach(dataClass => expectRejectedJSON(dataClass, 42.25));
+    expectRejectedJSON(HealthData.DataStressState, 'rest');
+    expect(() => SleepData.DataSleepScore.fromJSON({ [SleepData.DataSleepScore.type]: Number.NaN })).toThrow(
+      'expected a finite number'
+    );
+    expect(() => HealthData.DataStressState.fromJSON({ [HealthData.DataStressState.type]: null })).toThrow(
+      'expected a scalar value'
+    );
+  });
+
+  it('preserves each concrete class type when rehydrating inherited scalar methods', () => {
+    const sleepDuration: SleepData.DataSleepDuration = SleepData.DataSleepDuration.fromJSON({
+      [SleepData.DataSleepDuration.type]: 28_800
+    });
+    const wheelchairDistance: HealthData.DataWheelchairPushDistance = HealthData.DataWheelchairPushDistance.fromJSON({
+      [HealthData.DataWheelchairPushDistance.type]: 1_234
+    });
+    const stressState: HealthData.DataStressState = HealthData.DataStressState.fromJSON({
+      [HealthData.DataStressState.type]: 'rest'
+    });
+
+    expect(sleepDuration).toBeInstanceOf(SleepData.DataSleepDuration);
+    expect(wheelchairDistance).toBeInstanceOf(HealthData.DataWheelchairPushDistance);
+    expect(stressState).toBeInstanceOf(HealthData.DataStressState);
   });
 
   it('rejects non-finite numeric values before persistence', () => {
@@ -247,14 +301,19 @@ describe('Health and sleep data types', () => {
 
   it('formats and round-trips the nonnumeric stress-state category', () => {
     const instance = new HealthData.DataStressState('rest');
-    const restored = DynamicDataLoader.getDataInstanceFromDataType('stress_state', 'rest');
+    const json = instance.toJSON();
+    const restored = HealthData.DataStressState.fromJSON(JSON.parse(JSON.stringify(json)) as DataJSONInterface);
+    const dynamicallyLoaded = DynamicDataLoader.getDataInstanceFromDataType('stress_state', 'rest');
 
     expect(instance.getDisplayValue()).toBe('rest');
     expect(instance.getUnit()).toBe('category');
     expect(instance.getDisplayUnit()).toBe('');
-    expect(instance.toJSON()).toEqual({ 'Stress State': 'rest' });
+    expect(json).toEqual({ 'Stress State': 'rest' });
     expect(restored).toBeInstanceOf(HealthData.DataStressState);
     expect(restored.getValue()).toBe('rest');
+    expect(restored.toJSON()).toEqual(json);
+    expect(dynamicallyLoaded).toBeInstanceOf(HealthData.DataStressState);
+    expect(dynamicallyLoaded.getValue()).toBe('rest');
   });
 
   it('uses familiar Health abbreviations only as display labels', () => {
@@ -265,12 +324,16 @@ describe('Health and sleep data types', () => {
   });
 
   it('keeps the pre-existing Health primitives in the public registry', () => {
-    [DataSteps, DataDistance, DataAltitude, DataHeartRate, DataWeight, DataVO2Max, DataFitnessAge].forEach(
-      dataClass => {
-        expect(DataStore[dataClass.name]).toBe(dataClass);
-        expect(DynamicDataLoader.getDataClassFromDataType(dataClass.type)).toBe(dataClass);
-      }
-    );
+    reusedHealthDataClasses.forEach(dataClass => {
+      expect(DataStore[dataClass.name]).toBe(dataClass);
+      expect(DynamicDataLoader.getDataClassFromDataType(dataClass.type)).toBe(dataClass);
+
+      const instance = new dataClass(42.25);
+      const persistedJSON = JSON.parse(JSON.stringify(instance.toJSON())) as DataJSONInterface;
+      const restored = dataClass.fromJSON(persistedJSON);
+      expect(restored).toBeInstanceOf(dataClass);
+      expect(restored.toJSON()).toEqual(instance.toJSON());
+    });
 
     expect(new DataSteps(1234.6).getDisplayValue()).toBe(1235);
     expect(new DataSteps(1234.6).getUnit()).toBe('count');

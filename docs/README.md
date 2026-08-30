@@ -6,6 +6,11 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Provider-neutral Health and sleep `Data*` classes cover movement, energy, cardiovascular values, wellness, body
+composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. Their canonical tokens, units, display
+formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain
+consumer responsibilities.
+
 Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
 summaries separately from activities can explicitly canonicalize those projections with
 `normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.

@@ -36,6 +36,100 @@ High-level metric domains include:
 - Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, legacy three-dimensional strain evidence
 - Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
+- Provider-neutral Health and sleep: daily movement and energy, cardiovascular samples, wellness, body composition,
+  sleep stages, sleep scores, and sleep-qualified vital aggregates
+
+Health and sleep metric semantics
+---
+
+Sports Lib exposes provider-neutral scalar `Data*` classes for Health and sleep values. These classes define stable
+canonical type tokens, units, display formatting, aliases, `DataStore` enumeration, dynamic loading, and native JSON
+round trips. They do not add a provider transport, a Health record container, or a sleep-session container. A consumer
+decides whether a value belongs in a stream, statistic, Health source record, or sleep session.
+
+Numeric classes in the Health and sleep catalog accept finite numbers only, including reused activity primitives such
+as steps, distance, altitude, heart rate, weight, VO₂ max, and fitness age. `NaN` and infinite values are rejected before
+JSON serialization. Score, count, category, and duration units remain available through `getUnit()`, while count, score,
+category, and duration display units intentionally omit a suffix. Duration display uses the standard Sports Lib
+human-readable duration formatter.
+
+Each Health and sleep scalar supports a storage-safe round trip through its canonical JSON object. `toJSON()` emits one
+canonical type key, while the concrete class's `fromJSON()` validates that exact single-key shape before constructing the
+metric. Alias keys and objects with additional properties are rejected instead of being persisted ambiguously.
+
+```ts
+const stored = JSON.stringify(new DataSleepDuration(28_800).toJSON());
+const restored = DataSleepDuration.fromJSON(JSON.parse(stored));
+```
+
+The provider-neutral Health catalog is:
+
+| Canonical type | Stored unit | Display behavior |
+| --- | --- | --- |
+| `Steps` | `count` | Rounded count, no suffix |
+| `Wheelchair Pushes` | `count` | Rounded count, no suffix |
+| `Distance` | `m` | Existing meter/kilometer distance display |
+| `Wheelchair Push Distance` | `m` | Existing meter/kilometer distance display |
+| `Floors Climbed` | `count` | Rounded count, no suffix |
+| `Active Duration` | `s` | Human-readable duration |
+| `Moderate Intensity Duration` | `s` | Human-readable duration |
+| `Vigorous Intensity Duration` | `s` | Human-readable duration |
+| `Altitude` | `m` | Existing rounded altitude display |
+| `Active Energy` | `kcal` | Rounded kilocalories |
+| `Basal Energy` | `kcal` | Rounded kilocalories |
+| `Total Energy` | `kcal` | Rounded kilocalories |
+| `Heart Rate` | `bpm` | Existing rounded heart-rate display |
+| `Resting Heart Rate` | `bpm` | Rounded beats per minute |
+| `Heart Rate Variability` | `ms` | One decimal; displayed as `HRV` |
+| `Blood Oxygen Saturation` | `%` | One decimal; displayed as `SpO₂` |
+| `Respiration Rate` | `br/min` | One decimal |
+| `Stress Level` | `score` | One decimal, no suffix |
+| `Stress State` | `category` | Source category, no suffix |
+| `Stress Duration` | `s` | Human-readable duration |
+| `Body Energy` | `%` | One decimal; `Body Battery` is an alias |
+| `Body Energy Change` | `%` | Signed, one decimal |
+| `Recovery Score` | `score` | One decimal, no suffix |
+| `Weight` | `kg` | Existing one-decimal display; `Body Weight` is an alias |
+| `Body Mass Index` | `kg/m²` | One decimal; displayed as `BMI` |
+| `Body Fat` | `%` | One decimal |
+| `Body Water` | `%` | One decimal |
+| `Muscle Mass` | `kg` | One decimal |
+| `Bone Mass` | `kg` | Two decimals |
+| `Systolic Blood Pressure` | `mmHg` | Rounded millimeters of mercury |
+| `Diastolic Blood Pressure` | `mmHg` | Rounded millimeters of mercury |
+| `Pulse Rate` | `bpm` | Rounded beats per minute |
+| `Skin Temperature Deviation` | `°C` | Signed, one decimal |
+| `VO2 Max` | `ml/kg/min` | Two decimals; displayed as `VO₂ Max` |
+| `Fitness Age` | `years` | Numeric years |
+
+Sleep sessions use the following aggregate types:
+
+| Canonical type | Stored unit | Source meaning |
+| --- | --- | --- |
+| `Sleep Duration` | `s` | Total sleep duration |
+| `Sleep In-Bed Duration` | `s` | Total time in bed |
+| `Deep Sleep Duration` | `s` | Deep-stage duration |
+| `Light Sleep Duration` | `s` | Light-stage duration |
+| `REM Sleep Duration` | `s` | Rapid-eye-movement-stage duration |
+| `Awake Sleep Duration` | `s` | Awake duration within the session |
+| `Unmeasurable Sleep Duration` | `s` | Provider-marked unmeasurable duration |
+| `Unknown Sleep Duration` | `s` | Unknown-stage duration |
+| `Sleep Score` | `score` | One-decimal provider-normalized score |
+| `Average Sleep Heart Rate` | `bpm` | Average sleep heart rate |
+| `Minimum Sleep Heart Rate` | `bpm` | Minimum sleep heart rate |
+| `Sleep Resting Heart Rate` | `bpm` | Sleep-session resting heart rate |
+| `Average Sleep HRV` | `ms` | Average sleep HRV |
+| `Overnight HRV` | `ms` | Provider overnight HRV aggregate |
+| `Sleep HRV Sample Count` | `count` | Rounded contributing-sample count |
+| `Maximum Sleep Blood Oxygen Saturation` | `%` | Maximum sleep SpO₂; displayed as `Maximum Sleep SpO₂` |
+| `Average Sleep Respiration Rate` | `br/min` | Average sleep respiration |
+
+Sleep respiration, SpO₂, and HRV sample series use the generic `Respiration Rate`, `Blood Oxygen Saturation`, and
+`Heart Rate Variability` classes. Sleep-qualified classes are reserved for aggregates so a sample is not confused with
+a whole-session statistic. Canonical Health snake-case identifiers and the documented `sleep_*` identifiers are loader
+aliases; sleep vital aggregates additionally accept their corresponding `vitals.*` field paths. Serialization always
+writes the canonical type shown above. Adding the classes alone does not change previously stored activities, so no
+activity reparse is required.
 
 Source-native diving data
 ---
@@ -581,7 +675,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Start Position`
 - `Starting Altitude`
 - `Step Length`
-- `Steps`
+- `Steps` (unit: `count`)
 - `Stop ALL Event`
 - `Stop Event`
 - `Stroke Rate` (unit: `spm`)
@@ -601,9 +695,56 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Vertical Oscillation Balance Right`
 - `Vertical Ratio` (unit: `%`)
 - `Vertical Speed` (unit: `m/s`)
-- `VO2 Max`
+- `VO2 Max` (unit: `ml/kg/min`)
 - `Weight` (unit: `kg`)
 - `WPrime`
+
+#### Health & Sleep Types
+- `Active Duration` (unit: `s`)
+- `Active Energy` (unit: `kcal`)
+- `Average Sleep Heart Rate` (unit: `bpm`)
+- `Average Sleep HRV` (unit: `ms`)
+- `Average Sleep Respiration Rate` (unit: `br/min`)
+- `Awake Sleep Duration` (unit: `s`)
+- `Basal Energy` (unit: `kcal`)
+- `Blood Oxygen Saturation` (unit: `%`)
+- `Body Energy` (unit: `%`)
+- `Body Energy Change` (unit: `%`)
+- `Body Fat` (unit: `%`)
+- `Body Mass Index` (unit: `kg/m²`)
+- `Body Water` (unit: `%`)
+- `Bone Mass` (unit: `kg`)
+- `Deep Sleep Duration` (unit: `s`)
+- `Diastolic Blood Pressure` (unit: `mmHg`)
+- `Floors Climbed` (unit: `count`)
+- `Heart Rate Variability` (unit: `ms`)
+- `Light Sleep Duration` (unit: `s`)
+- `Maximum Sleep Blood Oxygen Saturation` (unit: `%`)
+- `Minimum Sleep Heart Rate` (unit: `bpm`)
+- `Moderate Intensity Duration` (unit: `s`)
+- `Muscle Mass` (unit: `kg`)
+- `Overnight HRV` (unit: `ms`)
+- `Pulse Rate` (unit: `bpm`)
+- `Recovery Score` (unit: `score`)
+- `REM Sleep Duration` (unit: `s`)
+- `Respiration Rate` (unit: `br/min`)
+- `Resting Heart Rate` (unit: `bpm`)
+- `Skin Temperature Deviation` (unit: `°C`)
+- `Sleep Duration` (unit: `s`)
+- `Sleep HRV Sample Count` (unit: `count`)
+- `Sleep In-Bed Duration` (unit: `s`)
+- `Sleep Resting Heart Rate` (unit: `bpm`)
+- `Sleep Score` (unit: `score`)
+- `Stress Duration` (unit: `s`)
+- `Stress Level` (unit: `score`)
+- `Stress State` (unit: `category`)
+- `Systolic Blood Pressure` (unit: `mmHg`)
+- `Total Energy` (unit: `kcal`)
+- `Unknown Sleep Duration` (unit: `s`)
+- `Unmeasurable Sleep Duration` (unit: `s`)
+- `Vigorous Intensity Duration` (unit: `s`)
+- `Wheelchair Push Distance` (unit: `m`)
+- `Wheelchair Pushes` (unit: `count`)
 
 #### Zone & Target Types
 - `Distance Target`

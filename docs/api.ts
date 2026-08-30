@@ -144,6 +144,67 @@ export type {
   DefaultDataValue
 } from '../src/data';
 export { UnitSystem } from '../src/data/data.interface';
+/**
+ * Provider-neutral Health and sleep scalar data classes.
+ *
+ * @category Health and sleep
+ * @category Streams, stats, and data
+ */
+export {
+  DataActiveDuration,
+  DataActiveEnergy,
+  DataAltitude,
+  DataBasalEnergy,
+  DataBloodOxygenSaturation,
+  DataBloodPressureDiastolic,
+  DataBloodPressureSystolic,
+  DataBodyEnergy,
+  DataBodyEnergyChange,
+  DataBodyFat,
+  DataBodyMassIndex,
+  DataBodyWater,
+  DataBoneMass,
+  DataDistance,
+  DataFitnessAge,
+  DataFloorsClimbed,
+  DataHeartRate,
+  DataHeartRateVariability,
+  DataModerateIntensityDuration,
+  DataMuscleMass,
+  DataPulseRate,
+  DataRecoveryScore,
+  DataRespirationRate,
+  DataRestingHeartRate,
+  DataSkinTemperatureDeviation,
+  DataSleepAwakeDuration,
+  DataSleepBloodOxygenSaturationMax,
+  DataSleepDeepDuration,
+  DataSleepDuration,
+  DataSleepHeartRateAvg,
+  DataSleepHeartRateMin,
+  DataSleepHRVAvg,
+  DataSleepHRVOvernight,
+  DataSleepHRVSampleCount,
+  DataSleepInBedDuration,
+  DataSleepLightDuration,
+  DataSleepRemDuration,
+  DataSleepRespirationRateAvg,
+  DataSleepRestingHeartRate,
+  DataSleepScore,
+  DataSleepUnknownDuration,
+  DataSleepUnmeasurableDuration,
+  DataSteps,
+  DataStressDuration,
+  DataStressLevel,
+  DataStressState,
+  DataTotalEnergy,
+  DataVigorousIntensityDuration,
+  DataVO2Max,
+  DataWeight,
+  DataWheelchairPushDistance,
+  DataWheelchairPushes
+} from '../src/data';
+
 export {
   DataCadence,
   DataStrokeRate,
@@ -192,12 +253,10 @@ export {
   DataTimeToSurface,
   DataVolumeSAC,
   DataVolumeSACAvg,
-  DataDistance,
   DataDuration,
   DataEvent,
   DataEnergy,
   DataMetabolicCalories,
-  DataHeartRate,
   DataIntensity,
   DataMovingTime,
   DataPause,

@@ -1,6 +1,8 @@
 # Sports Lib
 
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models.
+It also exposes provider-neutral Health and sleep scalar data classes with canonical units, display formatting, aliases,
+and JSON round-trip behavior.
 
 ## Documentation
 

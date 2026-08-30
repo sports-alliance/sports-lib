@@ -45,6 +45,7 @@ import { DataGroundContactTimeBalance as _DataGroundContactTimeBalance } from '.
 import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 import { DataJumpDistance } from './data.jump-distance';
+import { DataStressState } from './data.health';
 
 describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
@@ -128,6 +129,7 @@ describe('Data Serialization Safety', () => {
     [DataHeartRateUsed, [true]],
     [DataPowerPodUsed, [true]],
     [DataTrainingStressScoreMethod, [TrainingStressScoreMethod.POWER]],
+    [DataStressState, ['rest']],
     [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
     [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]]
   ]);

@@ -391,6 +391,55 @@ import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
 import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
 import { DataFitnessAge } from './data.fitness-age';
 import { DataMaxHRSetting } from './data.max-hr-setting';
+import {
+  DataActiveDuration,
+  DataActiveEnergy,
+  DataBasalEnergy,
+  DataBloodOxygenSaturation,
+  DataBloodPressureDiastolic,
+  DataBloodPressureSystolic,
+  DataBodyEnergy,
+  DataBodyEnergyChange,
+  DataBodyFat,
+  DataBodyMassIndex,
+  DataBodyWater,
+  DataBoneMass,
+  DataFloorsClimbed,
+  DataHeartRateVariability,
+  DataModerateIntensityDuration,
+  DataMuscleMass,
+  DataPulseRate,
+  DataRecoveryScore,
+  DataRespirationRate,
+  DataRestingHeartRate,
+  DataSkinTemperatureDeviation,
+  DataStressDuration,
+  DataStressLevel,
+  DataStressState,
+  DataTotalEnergy,
+  DataVigorousIntensityDuration,
+  DataWheelchairPushDistance,
+  DataWheelchairPushes
+} from './data.health';
+import {
+  DataSleepAwakeDuration,
+  DataSleepBloodOxygenSaturationMax,
+  DataSleepDeepDuration,
+  DataSleepDuration,
+  DataSleepHeartRateAvg,
+  DataSleepHeartRateMin,
+  DataSleepHRVAvg,
+  DataSleepHRVOvernight,
+  DataSleepHRVSampleCount,
+  DataSleepInBedDuration,
+  DataSleepLightDuration,
+  DataSleepRemDuration,
+  DataSleepRespirationRateAvg,
+  DataSleepRestingHeartRate,
+  DataSleepScore,
+  DataSleepUnknownDuration,
+  DataSleepUnmeasurableDuration
+} from './data.sleep';
 
 import { DataDepth, DataDepthFeet } from './data.depth';
 import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
@@ -899,6 +948,51 @@ export const DataStore: any = {
   DataVerticalOscillationMin,
   DataFitnessAge,
   DataMaxHRSetting,
+  DataWheelchairPushes,
+  DataWheelchairPushDistance,
+  DataFloorsClimbed,
+  DataActiveDuration,
+  DataModerateIntensityDuration,
+  DataVigorousIntensityDuration,
+  DataActiveEnergy,
+  DataBasalEnergy,
+  DataTotalEnergy,
+  DataRestingHeartRate,
+  DataHeartRateVariability,
+  DataBloodOxygenSaturation,
+  DataRespirationRate,
+  DataStressLevel,
+  DataStressState,
+  DataStressDuration,
+  DataBodyEnergy,
+  DataBodyEnergyChange,
+  DataRecoveryScore,
+  DataBodyMassIndex,
+  DataBodyFat,
+  DataBodyWater,
+  DataMuscleMass,
+  DataBoneMass,
+  DataBloodPressureSystolic,
+  DataBloodPressureDiastolic,
+  DataPulseRate,
+  DataSkinTemperatureDeviation,
+  DataSleepDuration,
+  DataSleepInBedDuration,
+  DataSleepDeepDuration,
+  DataSleepLightDuration,
+  DataSleepRemDuration,
+  DataSleepAwakeDuration,
+  DataSleepUnmeasurableDuration,
+  DataSleepUnknownDuration,
+  DataSleepScore,
+  DataSleepHeartRateAvg,
+  DataSleepHeartRateMin,
+  DataSleepRestingHeartRate,
+  DataSleepHRVAvg,
+  DataSleepHRVOvernight,
+  DataSleepHRVSampleCount,
+  DataSleepBloodOxygenSaturationMax,
+  DataSleepRespirationRateAvg,
   DataDepth,
   DataDepthFeet,
   DataDepthMax,
@@ -983,8 +1077,18 @@ export const DataStore: any = {
 export class DynamicDataLoader {
   // @todo Convert to enums please and use them on Stream types
 
+  private static readonly canonicalHealthTypeAliases: Readonly<Record<string, string>> = {
+    altitude: DataAltitude.type,
+    distance: DataDistance.type,
+    heart_rate: DataHeartRate.type
+  };
+
+  private static resolveCanonicalHealthTypeAlias(dataType: string): string {
+    return DynamicDataLoader.canonicalHealthTypeAliases[dataType] || dataType;
+  }
+
   private static readonly dataTypeFamilyTriplets: Record<string, { min: string; max: string; avg: string }> = {
-    'Respiration Rate': {
+    [DataRespirationRate.type]: {
       min: DataMinRespirationRate.type,
       max: DataMaxRespirationRate.type,
       avg: DataAvgRespirationRate.type
@@ -1286,6 +1390,9 @@ export class DynamicDataLoader {
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
     },
+    [DataWheelchairPushDistance.type]: {
+      [DataDistanceMiles.type]: convertMetersToMiles
+    },
     [DataGNSSDistance.type]: {
       [DataGNSSDistanceMiles.type]: convertMetersToMiles
     },
@@ -1555,6 +1662,8 @@ export class DynamicDataLoader {
   ];
 
   static getDataInstanceFromDataType(dataType: string, opts: any): DataInterface {
+    dataType = DynamicDataLoader.resolveCanonicalHealthTypeAlias(dataType);
+
     // Redirect legacy Stance Time types to Ground Contact Time
     if (dataType === DataStanceTime.type) {
       dataType = DataGroundContactTime.type;
@@ -1586,6 +1695,8 @@ export class DynamicDataLoader {
   }
 
   static getDataClassFromDataType(dataType: string): typeof Data {
+    dataType = DynamicDataLoader.resolveCanonicalHealthTypeAlias(dataType);
+
     if (dataType === 'Ground Contact Time Avg') {
       dataType = DataGroundContactTimeAvg.type;
     } else if (dataType === 'Ground Contact Time Min') {

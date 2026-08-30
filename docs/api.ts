@@ -147,6 +147,7 @@ export { UnitSystem } from '../src/data/data.interface';
 export {
   DataActiveDuration,
   DataActiveEnergy,
+  DataAltitude,
   DataBasalEnergy,
   DataBloodOxygenSaturation,
   DataBloodPressureDiastolic,

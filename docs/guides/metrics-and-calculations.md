@@ -116,9 +116,10 @@ Sleep sessions use the following aggregate types:
 
 Sleep respiration, SpO₂, and HRV sample series use the generic `Respiration Rate`, `Blood Oxygen Saturation`, and
 `Heart Rate Variability` classes. Sleep-qualified classes are reserved for aggregates so a sample is not confused with
-a whole-session statistic. Canonical Health snake-case identifiers and documented sleep-field paths are loader aliases;
-serialization always writes the canonical type shown above. Adding the classes alone does not change previously stored
-activities, so no activity reparse is required.
+a whole-session statistic. Canonical Health snake-case identifiers and the documented `sleep_*` identifiers are loader
+aliases; sleep vital aggregates additionally accept their corresponding `vitals.*` field paths. Serialization always
+writes the canonical type shown above. Adding the classes alone does not change previously stored activities, so no
+activity reparse is required.
 
 Source-native diving data
 ---

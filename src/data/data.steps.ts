@@ -2,7 +2,10 @@ import { DataNumber } from './data.number';
 import { DataJSONInterface } from './data.json.interface';
 import { scalarDataFromJSON } from './data.scalar-json';
 
-/** A step count, stored as a count and displayed as a rounded integer without a suffix. */
+/**
+ * A step count, stored as a count and displayed as a rounded integer without a suffix.
+ * @category Health and sleep
+ */
 export class DataSteps extends DataNumber {
   static type = 'Steps';
   static unit = 'count';

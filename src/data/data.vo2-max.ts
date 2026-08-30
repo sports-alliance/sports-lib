@@ -2,7 +2,10 @@ import { DataNumber } from './data.number';
 import { DataJSONInterface } from './data.json.interface';
 import { scalarDataFromJSON } from './data.scalar-json';
 
-/** Maximum oxygen uptake in milliliters per kilogram per minute. */
+/**
+ * Maximum oxygen uptake in milliliters per kilogram per minute.
+ * @category Health and sleep
+ */
 export class DataVO2Max extends DataNumber {
   static type = 'VO2 Max';
   static displayType = 'VO₂ Max';

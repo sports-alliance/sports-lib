@@ -2,7 +2,10 @@ import { DataNumber } from './data.number';
 import { DataJSONInterface } from './data.json.interface';
 import { scalarDataFromJSON } from './data.scalar-json';
 
-/** Body weight in kilograms. */
+/**
+ * Body weight in kilograms.
+ * @category Health and sleep
+ */
 export class DataWeight extends DataNumber {
   static type = 'Weight';
   static unit = 'kg';

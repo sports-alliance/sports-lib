@@ -144,6 +144,12 @@ export type {
   DefaultDataValue
 } from '../src/data';
 export { UnitSystem } from '../src/data/data.interface';
+/**
+ * Provider-neutral Health and sleep scalar data classes.
+ *
+ * @category Health and sleep
+ * @category Streams, stats, and data
+ */
 export {
   DataActiveDuration,
   DataActiveEnergy,
@@ -158,9 +164,10 @@ export {
   DataBodyMassIndex,
   DataBodyWater,
   DataBoneMass,
-  DataCadence,
+  DataDistance,
   DataFitnessAge,
   DataFloorsClimbed,
+  DataHeartRate,
   DataHeartRateVariability,
   DataModerateIntensityDuration,
   DataMuscleMass,
@@ -190,6 +197,16 @@ export {
   DataStressDuration,
   DataStressLevel,
   DataStressState,
+  DataTotalEnergy,
+  DataVigorousIntensityDuration,
+  DataVO2Max,
+  DataWeight,
+  DataWheelchairPushDistance,
+  DataWheelchairPushes
+} from '../src/data';
+
+export {
+  DataCadence,
   DataStrokeRate,
   DataStrokeRateAvg,
   DataStrokeRateMax,
@@ -236,12 +253,10 @@ export {
   DataTimeToSurface,
   DataVolumeSAC,
   DataVolumeSACAvg,
-  DataDistance,
   DataDuration,
   DataEvent,
   DataEnergy,
   DataMetabolicCalories,
-  DataHeartRate,
   DataIntensity,
   DataMovingTime,
   DataPause,
@@ -254,13 +269,7 @@ export {
   DataStopAllEvent,
   DataStopEvent,
   DataThreeDimensionalStrainEvidence,
-  DataTimerTime,
-  DataTotalEnergy,
-  DataVigorousIntensityDuration,
-  DataVO2Max,
-  DataWeight,
-  DataWheelchairPushDistance,
-  DataWheelchairPushes
+  DataTimerTime
 } from '../src/data';
 export type { DataPowerCurvePoint } from '../src/data/data.power-curve';
 export type {

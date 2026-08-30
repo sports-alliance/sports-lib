@@ -2,7 +2,10 @@ import { DataNumber } from './data.number';
 import { DataJSONInterface } from './data.json.interface';
 import { scalarDataFromJSON } from './data.scalar-json';
 
-/** Provider-calculated fitness age in years. */
+/**
+ * Provider-calculated fitness age in years.
+ * @category Health and sleep
+ */
 export class DataFitnessAge extends DataNumber {
   static type = 'Fitness Age';
   static unit = 'years';

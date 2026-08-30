@@ -52,55 +52,82 @@ abstract class DataSleepHRV extends DataOneDecimalSleepNumber {
   static override unit = 'ms';
 }
 
-/** Total sleep duration in seconds. */
+/**
+ * Total sleep duration in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepDuration extends DataSleepDurationBase {
   static override type = 'Sleep Duration';
   static aliases = ['sleep_duration'];
 }
 
-/** Total time in bed in seconds. */
+/**
+ * Total time in bed in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepInBedDuration extends DataSleepDurationBase {
   static override type = 'Sleep In-Bed Duration';
   static aliases = ['in_bed_duration', 'sleep_in_bed_duration'];
 }
 
-/** Time in the deep-sleep stage, in seconds. */
+/**
+ * Time in the deep-sleep stage, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepDeepDuration extends DataSleepDurationBase {
   static override type = 'Deep Sleep Duration';
   static aliases = ['deep_sleep_duration'];
 }
 
-/** Time in the light-sleep stage, in seconds. */
+/**
+ * Time in the light-sleep stage, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepLightDuration extends DataSleepDurationBase {
   static override type = 'Light Sleep Duration';
   static aliases = ['light_sleep_duration'];
 }
 
-/** Time in the rapid-eye-movement sleep stage, in seconds. */
+/**
+ * Time in the rapid-eye-movement sleep stage, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepRemDuration extends DataSleepDurationBase {
   static override type = 'REM Sleep Duration';
   static aliases = ['rem_sleep_duration'];
 }
 
-/** Time awake during a sleep session, in seconds. */
+/**
+ * Time awake during a sleep session, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepAwakeDuration extends DataSleepDurationBase {
   static override type = 'Awake Sleep Duration';
   static aliases = ['awake_sleep_duration'];
 }
 
-/** Time the provider explicitly marked as unmeasurable, in seconds. */
+/**
+ * Time the provider explicitly marked as unmeasurable, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepUnmeasurableDuration extends DataSleepDurationBase {
   static override type = 'Unmeasurable Sleep Duration';
   static aliases = ['unmeasurable_sleep_duration'];
 }
 
-/** Time with an unknown sleep stage, in seconds. */
+/**
+ * Time with an unknown sleep stage, in seconds.
+ * @category Health and sleep
+ */
 export class DataSleepUnknownDuration extends DataSleepDurationBase {
   static override type = 'Unknown Sleep Duration';
   static aliases = ['unknown_sleep_duration'];
 }
 
-/** Provider-normalized sleep score. */
+/**
+ * Provider-normalized sleep score.
+ * @category Health and sleep
+ */
 export class DataSleepScore extends DataOneDecimalSleepNumber {
   static override type = 'Sleep Score';
   static override unit = 'score';
@@ -111,37 +138,55 @@ export class DataSleepScore extends DataOneDecimalSleepNumber {
   }
 }
 
-/** Average heart rate during a sleep session. */
+/**
+ * Average heart rate during a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepHeartRateAvg extends DataSleepHeartRate {
   static override type = 'Average Sleep Heart Rate';
   static aliases = ['sleep_average_heart_rate', 'vitals.averageHeartRateBpm'];
 }
 
-/** Minimum heart rate during a sleep session. */
+/**
+ * Minimum heart rate during a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepHeartRateMin extends DataSleepHeartRate {
   static override type = 'Minimum Sleep Heart Rate';
   static aliases = ['sleep_minimum_heart_rate', 'vitals.minimumHeartRateBpm'];
 }
 
-/** Resting heart rate reported for a sleep session. */
+/**
+ * Resting heart rate reported for a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepRestingHeartRate extends DataSleepHeartRate {
   static override type = 'Sleep Resting Heart Rate';
   static aliases = ['sleep_resting_heart_rate', 'vitals.restingHeartRateBpm'];
 }
 
-/** Average heart-rate variability during a sleep session. */
+/**
+ * Average heart-rate variability during a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepHRVAvg extends DataSleepHRV {
   static override type = 'Average Sleep HRV';
   static aliases = ['sleep_average_hrv', 'vitals.averageHrvMs'];
 }
 
-/** Overnight heart-rate variability reported for a sleep session. */
+/**
+ * Overnight heart-rate variability reported for a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepHRVOvernight extends DataSleepHRV {
   static override type = 'Overnight HRV';
   static aliases = ['sleep_overnight_hrv', 'vitals.overnightHrvMs'];
 }
 
-/** Number of HRV samples contributing to the sleep aggregate. */
+/**
+ * Number of HRV samples contributing to the sleep aggregate.
+ * @category Health and sleep
+ */
 export class DataSleepHRVSampleCount extends DataRoundedSleepNumber {
   static override type = 'Sleep HRV Sample Count';
   static override unit = 'count';
@@ -152,7 +197,10 @@ export class DataSleepHRVSampleCount extends DataRoundedSleepNumber {
   }
 }
 
-/** Maximum blood oxygen saturation during a sleep session. */
+/**
+ * Maximum blood oxygen saturation during a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepBloodOxygenSaturationMax extends DataPercent {
   static override type = 'Maximum Sleep Blood Oxygen Saturation';
   static override displayType = 'Maximum Sleep SpO₂';
@@ -171,7 +219,10 @@ export class DataSleepBloodOxygenSaturationMax extends DataPercent {
   }
 }
 
-/** Average respiration rate during a sleep session. */
+/**
+ * Average respiration rate during a sleep session.
+ * @category Health and sleep
+ */
 export class DataSleepRespirationRateAvg extends DataOneDecimalSleepNumber {
   static override type = 'Average Sleep Respiration Rate';
   static override unit = 'br/min';

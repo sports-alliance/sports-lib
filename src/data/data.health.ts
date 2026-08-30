@@ -90,13 +90,19 @@ abstract class DataHealthScore extends DataOneDecimalHealthNumber {
   }
 }
 
-/** Total wheelchair pushes recorded for an interval. */
+/**
+ * Total wheelchair pushes recorded for an interval.
+ * @category Health and sleep
+ */
 export class DataWheelchairPushes extends DataHealthCount {
   static override type = 'Wheelchair Pushes';
   static aliases = ['wheelchair_pushes'];
 }
 
-/** Wheelchair travel distance, stored canonically in meters. */
+/**
+ * Wheelchair travel distance, stored canonically in meters.
+ * @category Health and sleep
+ */
 export class DataWheelchairPushDistance extends DataDistance {
   static override type = 'Wheelchair Push Distance';
   static aliases = ['wheelchair_push_distance'];
@@ -106,55 +112,82 @@ export class DataWheelchairPushDistance extends DataDistance {
   }
 }
 
-/** Number of floors climbed for an interval. */
+/**
+ * Number of floors climbed for an interval.
+ * @category Health and sleep
+ */
 export class DataFloorsClimbed extends DataHealthCount {
   static override type = 'Floors Climbed';
   static aliases = ['floors_climbed'];
 }
 
-/** Active time in seconds. */
+/**
+ * Active time in seconds.
+ * @category Health and sleep
+ */
 export class DataActiveDuration extends DataHealthDuration {
   static override type = 'Active Duration';
   static aliases = ['active_duration'];
 }
 
-/** Moderate-intensity time in seconds. */
+/**
+ * Moderate-intensity time in seconds.
+ * @category Health and sleep
+ */
 export class DataModerateIntensityDuration extends DataHealthDuration {
   static override type = 'Moderate Intensity Duration';
   static aliases = ['moderate_intensity_duration'];
 }
 
-/** Vigorous-intensity time in seconds. */
+/**
+ * Vigorous-intensity time in seconds.
+ * @category Health and sleep
+ */
 export class DataVigorousIntensityDuration extends DataHealthDuration {
   static override type = 'Vigorous Intensity Duration';
   static aliases = ['vigorous_intensity_duration'];
 }
 
-/** Active energy expenditure in kilocalories. */
+/**
+ * Active energy expenditure in kilocalories.
+ * @category Health and sleep
+ */
 export class DataActiveEnergy extends DataHealthEnergy {
   static override type = 'Active Energy';
   static aliases = ['active_energy'];
 }
 
-/** Basal energy expenditure in kilocalories. */
+/**
+ * Basal energy expenditure in kilocalories.
+ * @category Health and sleep
+ */
 export class DataBasalEnergy extends DataHealthEnergy {
   static override type = 'Basal Energy';
   static aliases = ['basal_energy'];
 }
 
-/** Total energy expenditure in kilocalories. */
+/**
+ * Total energy expenditure in kilocalories.
+ * @category Health and sleep
+ */
 export class DataTotalEnergy extends DataHealthEnergy {
   static override type = 'Total Energy';
   static aliases = ['total_energy'];
 }
 
-/** Resting heart rate in beats per minute. */
+/**
+ * Resting heart rate in beats per minute.
+ * @category Health and sleep
+ */
 export class DataRestingHeartRate extends DataHealthHeartRate {
   static override type = 'Resting Heart Rate';
   static aliases = ['resting_heart_rate'];
 }
 
-/** Heart-rate variability in milliseconds. */
+/**
+ * Heart-rate variability in milliseconds.
+ * @category Health and sleep
+ */
 export class DataHeartRateVariability extends DataOneDecimalHealthNumber {
   static override type = 'Heart Rate Variability';
   static override displayType = 'HRV';
@@ -162,27 +195,39 @@ export class DataHeartRateVariability extends DataOneDecimalHealthNumber {
   static aliases = ['HRV', 'hrv', 'heart_rate_variability'];
 }
 
-/** Blood oxygen saturation as a percentage. */
+/**
+ * Blood oxygen saturation as a percentage.
+ * @category Health and sleep
+ */
 export class DataBloodOxygenSaturation extends DataHealthPercent {
   static override type = 'Blood Oxygen Saturation';
   static override displayType = 'SpO₂';
   static aliases = ['Blood Oxygen', 'Pulse Ox', 'SpO2', 'SpO₂', 'blood_oxygen_saturation'];
 }
 
-/** Respiration rate in breaths per minute. */
+/**
+ * Respiration rate in breaths per minute.
+ * @category Health and sleep
+ */
 export class DataRespirationRate extends DataOneDecimalHealthNumber {
   static override type = 'Respiration Rate';
   static override unit = 'br/min';
   static aliases = ['Breathing Rate', 'respiration_rate'];
 }
 
-/** Provider-normalized stress score. */
+/**
+ * Provider-normalized stress score.
+ * @category Health and sleep
+ */
 export class DataStressLevel extends DataHealthScore {
   static override type = 'Stress Level';
   static aliases = ['stress_level'];
 }
 
-/** Provider stress-state category, such as rest or activity. */
+/**
+ * Provider stress-state category, such as rest or activity.
+ * @category Health and sleep
+ */
 export class DataStressState extends DataString {
   static override type = 'Stress State';
   static override unit = 'category';
@@ -201,31 +246,46 @@ export class DataStressState extends DataString {
   }
 }
 
-/** Time spent in a stress state, in seconds. */
+/**
+ * Time spent in a stress state, in seconds.
+ * @category Health and sleep
+ */
 export class DataStressDuration extends DataHealthDuration {
   static override type = 'Stress Duration';
   static aliases = ['stress_duration'];
 }
 
-/** Provider-neutral body-energy level, as a percentage. */
+/**
+ * Provider-neutral body-energy level, as a percentage.
+ * @category Health and sleep
+ */
 export class DataBodyEnergy extends DataHealthPercent {
   static override type = 'Body Energy';
   static aliases = ['Body Battery', 'body_energy'];
 }
 
-/** Signed change in provider-neutral body energy, in percentage points. */
+/**
+ * Signed change in provider-neutral body energy, in percentage points.
+ * @category Health and sleep
+ */
 export class DataBodyEnergyChange extends DataHealthPercent {
   static override type = 'Body Energy Change';
   static aliases = ['Body Battery Change', 'body_energy_change'];
 }
 
-/** Provider-normalized recovery score. */
+/**
+ * Provider-normalized recovery score.
+ * @category Health and sleep
+ */
 export class DataRecoveryScore extends DataHealthScore {
   static override type = 'Recovery Score';
   static aliases = ['recovery_score'];
 }
 
-/** Body mass index in kilograms per square meter. */
+/**
+ * Body mass index in kilograms per square meter.
+ * @category Health and sleep
+ */
 export class DataBodyMassIndex extends DataOneDecimalHealthNumber {
   static override type = 'Body Mass Index';
   static override displayType = 'BMI';
@@ -233,53 +293,77 @@ export class DataBodyMassIndex extends DataOneDecimalHealthNumber {
   static aliases = ['BMI', 'body_mass_index'];
 }
 
-/** Body-fat percentage. */
+/**
+ * Body-fat percentage.
+ * @category Health and sleep
+ */
 export class DataBodyFat extends DataHealthPercent {
   static override type = 'Body Fat';
   static aliases = ['Body Fat Percentage', 'body_fat'];
 }
 
-/** Body-water percentage. */
+/**
+ * Body-water percentage.
+ * @category Health and sleep
+ */
 export class DataBodyWater extends DataHealthPercent {
   static override type = 'Body Water';
   static aliases = ['Body Water Percentage', 'body_water'];
 }
 
-/** Muscle mass in kilograms. */
+/**
+ * Muscle mass in kilograms.
+ * @category Health and sleep
+ */
 export class DataMuscleMass extends DataOneDecimalHealthNumber {
   static override type = 'Muscle Mass';
   static override unit = 'kg';
   static aliases = ['muscle_mass'];
 }
 
-/** Bone mass in kilograms. */
+/**
+ * Bone mass in kilograms.
+ * @category Health and sleep
+ */
 export class DataBoneMass extends DataTwoDecimalHealthNumber {
   static override type = 'Bone Mass';
   static override unit = 'kg';
   static aliases = ['bone_mass'];
 }
 
-/** Systolic blood pressure in millimeters of mercury. */
+/**
+ * Systolic blood pressure in millimeters of mercury.
+ * @category Health and sleep
+ */
 export class DataBloodPressureSystolic extends DataRoundedHealthNumber {
   static override type = 'Systolic Blood Pressure';
   static override unit = 'mmHg';
   static aliases = ['blood_pressure_systolic'];
 }
 
-/** Diastolic blood pressure in millimeters of mercury. */
+/**
+ * Diastolic blood pressure in millimeters of mercury.
+ * @category Health and sleep
+ */
 export class DataBloodPressureDiastolic extends DataRoundedHealthNumber {
   static override type = 'Diastolic Blood Pressure';
   static override unit = 'mmHg';
   static aliases = ['blood_pressure_diastolic'];
 }
 
-/** Pulse rate associated with a cardiovascular measurement. */
+/**
+ * Pulse rate associated with a cardiovascular measurement.
+ * @category Health and sleep
+ */
 export class DataPulseRate extends DataHealthHeartRate {
   static override type = 'Pulse Rate';
   static aliases = ['pulse_rate'];
 }
 
-/** Signed skin-temperature deviation from baseline in degrees Celsius. */
+/**
+ * Signed skin-temperature deviation from baseline in degrees Celsius.
+ * @category Health and sleep
+ */
 export class DataSkinTemperatureDeviation extends DataOneDecimalHealthNumber {
   static override type = 'Skin Temperature Deviation';
   static override unit = '°C';

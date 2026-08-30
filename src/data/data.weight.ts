@@ -11,6 +11,10 @@ export class DataWeight extends DataNumber {
   static unit = 'kg';
   static aliases = ['Body Weight', 'body_weight'];
 
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
   /** Rehydrates body weight from its canonical JSON object. */
   static fromJSON<TData extends DataNumber>(
     this: { readonly type: string; new (value: number): TData },

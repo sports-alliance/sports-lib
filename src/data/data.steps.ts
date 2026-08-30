@@ -11,6 +11,10 @@ export class DataSteps extends DataNumber {
   static unit = 'count';
   static aliases = ['steps'];
 
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
   /** Rehydrates a step count from its canonical JSON object. */
   static fromJSON<TData extends DataNumber>(
     this: { readonly type: string; new (value: number): TData },

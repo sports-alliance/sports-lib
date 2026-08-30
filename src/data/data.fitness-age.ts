@@ -11,6 +11,10 @@ export class DataFitnessAge extends DataNumber {
   static unit = 'years';
   static aliases = ['fitness_age'];
 
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
   /** Rehydrates fitness age from its canonical JSON object. */
   static fromJSON<TData extends DataNumber>(
     this: { readonly type: string; new (value: number): TData },

@@ -6,6 +6,10 @@ export class DataDistance extends DataNumber {
   static type = 'Distance';
   static unit = 'm';
 
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
   /** Rehydrates the concrete distance metric from its canonical JSON object. */
   static fromJSON<TData extends DataNumber>(
     this: { readonly type: string; new (value: number): TData },

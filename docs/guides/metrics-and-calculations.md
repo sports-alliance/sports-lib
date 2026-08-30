@@ -47,8 +47,9 @@ canonical type tokens, units, display formatting, aliases, `DataStore` enumerati
 round trips. They do not add a provider transport, a Health record container, or a sleep-session container. A consumer
 decides whether a value belongs in a stream, statistic, Health source record, or sleep session.
 
-New numeric Health and sleep classes accept finite numbers only; `NaN` and infinite values are rejected before JSON
-serialization. Score, count, category, and duration units remain available through `getUnit()`, while count, score,
+Numeric classes in the Health and sleep catalog accept finite numbers only, including reused activity primitives such
+as steps, distance, altitude, heart rate, weight, VO₂ max, and fitness age. `NaN` and infinite values are rejected before
+JSON serialization. Score, count, category, and duration units remain available through `getUnit()`, while count, score,
 category, and duration display units intentionally omit a suffix. Duration display uses the standard Sports Lib
 human-readable duration formatter.
 

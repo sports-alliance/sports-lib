@@ -35,7 +35,6 @@ const sleepDataClasses = Object.values(SleepData) as Array<DataConstructor<numbe
 const numericHealthDataClasses = healthDataClasses.filter(
   dataClass => dataClass !== (HealthData.DataStressState as DataConstructor<number | string>)
 ) as Array<DataConstructor<number>>;
-const numericDataClasses = [...numericHealthDataClasses, ...sleepDataClasses];
 const reusedHealthDataClasses: Array<DataConstructor<number>> = [
   DataSteps,
   DataDistance,
@@ -45,6 +44,7 @@ const reusedHealthDataClasses: Array<DataConstructor<number>> = [
   DataVO2Max,
   DataFitnessAge
 ];
+const numericDataClasses = [...numericHealthDataClasses, ...sleepDataClasses, ...reusedHealthDataClasses];
 
 const healthDataClassByMetricId: Readonly<Record<string, HealthDataConstructor>> = {
   active_duration: HealthData.DataActiveDuration,
@@ -279,6 +279,14 @@ describe('Health and sleep data types', () => {
     numericDataClasses.forEach(dataClass => {
       [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY].forEach(value => {
         expect(() => new dataClass(value)).toThrow('Value is not boolean or number or string or Date or position');
+        expect(() => DynamicDataLoader.getDataInstanceFromDataType(dataClass.type, value)).toThrow(
+          'Value is not boolean or number or string or Date or position'
+        );
+        dataClass.aliases?.forEach(alias => {
+          expect(() => DynamicDataLoader.getDataInstanceFromDataType(alias, value)).toThrow(
+            'Value is not boolean or number or string or Date or position'
+          );
+        });
       });
     });
   });

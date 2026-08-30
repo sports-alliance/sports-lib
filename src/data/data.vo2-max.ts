@@ -12,6 +12,10 @@ export class DataVO2Max extends DataNumber {
   static unit = 'ml/kg/min';
   static aliases = ['VO₂ Max', 'vo2_max'];
 
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
   /** Rehydrates VO₂ max from its canonical JSON object. */
   static fromJSON<TData extends DataNumber>(
     this: { readonly type: string; new (value: number): TData },

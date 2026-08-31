@@ -69,7 +69,8 @@ export class ActivityParsingOptions {
    * which can generate very large payloads.
    *
    * - `raw`: Keep all parsed `device_info` rows (backwards-compatible default).
-   * - `changes`: Keep only state transitions by collapsing contiguous rows that differ by timestamp only.
+   * - `changes`: Keep only state transitions by collapsing contiguous rows that differ by timestamp only. An
+   *   untimestamped row explicitly marked as the creator or local device is retained as activity-wide identity data.
    *
    * `summary` is intentionally not exposed for now to avoid changing payload semantics beyond
    * run-compaction and to keep this release backwards-safe.

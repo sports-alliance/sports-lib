@@ -36,6 +36,11 @@ FIT files can repeat equivalent `device_info` rows every second. `deviceInfoMode
 - `raw` is the backwards-compatible default and keeps every parsed row.
 - `changes` collapses contiguous rows that differ only by timestamp, retaining the first and last entry of a run.
 
+Creator attribution prefers fields from the FIT `file_id` message. If that message omits identity fields, Sports Lib
+fills only the missing values from a `device_info` row explicitly marked as the creator or local device. Accessory
+sensor rows are not used as the activity creator. In `changes` mode, an untimestamped creator/local row is retained as
+activity-wide identity data; battery consumption and lifetime calculations continue to use timestamped rows only.
+
 ## Route options
 
 `RouteParsingOptions` applies the same generated-stream controls to point-indexed route streams. Its `includeTypes` filter accepts only route-supported stream types; unknown or activity-only tokens throw a parsing error.

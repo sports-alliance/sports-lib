@@ -28,10 +28,7 @@ const signatureWithoutTimestamp = (device: DeviceInterface): string => {
 };
 
 describe('EventImporterFIT Device Info Mode', () => {
-  const fitFilePath = path.join(
-    __dirname,
-    '../../../../specs/fixtures/rides/fit/garmin-device-info-spam.fit'
-  );
+  const fitFilePath = path.join(__dirname, '../../../../specs/fixtures/rides/fit/garmin-device-info-spam.fit');
 
   it('should keep raw behavior and compact timestamp-only device_info repeats in changes mode', async () => {
     const fileContent = fs.readFileSync(fitFilePath);
@@ -106,5 +103,37 @@ describe('EventImporterFIT Device Info Mode', () => {
       '2024-01-01T10:00:05.000Z',
       '2024-01-01T10:00:06.000Z'
     ]);
+  });
+
+  it('should keep untimestamped creator device_info without using it for timed calculations', () => {
+    const untimestampedCreator = {
+      device_index: 'creator',
+      source_type: 'local',
+      manufacturer: 'garmin',
+      product: 3570
+    };
+    const untimestampedAccessory = {
+      device_index: 1,
+      source_type: 'antplus',
+      manufacturer: 'garmin',
+      product: 1208
+    };
+    const timedAccessory = {
+      ...untimestampedAccessory,
+      timestamp: '2024-01-01T10:30:00.000Z'
+    };
+    const outOfRangeDevice = {
+      ...untimestampedAccessory,
+      timestamp: '2024-01-02T10:30:00.000Z'
+    };
+
+    const selection = (EventImporterFIT as any).selectActivityDeviceInfos(
+      [untimestampedCreator, untimestampedAccessory, timedAccessory, outOfRangeDevice],
+      new Date('2024-01-01T10:00:00.000Z'),
+      new Date('2024-01-01T11:00:00.000Z')
+    );
+
+    expect(selection.activityDeviceInfos).toEqual([untimestampedCreator, timedAccessory]);
+    expect(selection.timedActivityDeviceInfos).toEqual([timedAccessory]);
   });
 });

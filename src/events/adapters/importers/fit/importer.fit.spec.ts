@@ -602,6 +602,95 @@ describe('EventImporterFIT', () => {
         done();
       });
 
+      it('should use creator device_info when file_id omits the manufacturer', () => {
+        const fitDataObject = {
+          file_ids: [{ product: 3570 }],
+          device_infos: [
+            {
+              device_index: 'creator',
+              source_type: 'local',
+              manufacturer: 'garmin',
+              product: 3570,
+              software_version: 20.19,
+              hardware_version: 7,
+              serial_number: 424242
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator).toMatchObject({
+          name: 'Garmin Edge 1030 Plus',
+          manufacturer: 'garmin',
+          productId: 3570,
+          serialNumber: '424242',
+          swInfo: '20.19',
+          hwInfo: '7',
+          isRecognized: true
+        });
+      });
+
+      it('should prefer complete file_id identity over creator device_info', () => {
+        const fitDataObject = {
+          file_ids: [{ manufacturer: 'suunto', product: 22 }],
+          device_infos: [
+            {
+              device_index: 'creator',
+              source_type: 'local',
+              manufacturer: 'garmin',
+              product: 3570
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator.name).toEqual('Suunto Ambit3 Peak');
+        expect(creator.manufacturer).toEqual('suunto');
+        expect(creator.productId).toEqual(22);
+      });
+
+      it('should not mix missing file_id fields with a conflicting creator identity', () => {
+        const fitDataObject = {
+          file_ids: [{ manufacturer: 'suunto' }],
+          device_infos: [
+            {
+              device_index: 'creator',
+              source_type: 'local',
+              manufacturer: 'garmin',
+              product: 3570
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator.name).toEqual('Suunto');
+        expect(creator.manufacturer).toEqual('suunto');
+        expect(creator.productId).toBeUndefined();
+      });
+
+      it('should not use an accessory device_info as the activity creator', () => {
+        const fitDataObject = {
+          file_ids: [{ product: 3570 }],
+          device_infos: [
+            {
+              device_index: 1,
+              source_type: 'antplus',
+              manufacturer: 'garmin',
+              product: 1208
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator.name).toEqual('Unknown');
+        expect(creator.manufacturer).toBeUndefined();
+        expect(creator.isRecognized).toBeFalsy();
+      });
+
       it('should recognize a known Wahoo device', done => {
         const manufacturer = 'wahoo_fitness';
         const expectedName = 'Wahoo ELEMNT BOLT';

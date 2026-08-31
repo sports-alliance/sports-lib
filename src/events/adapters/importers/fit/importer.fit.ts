@@ -578,17 +578,11 @@ export class EventImporterFIT {
         if (fitDataObject.device_infos && fitDataObject.device_infos.length) {
           const fitDeviceInfos = fitDataObject.device_infos;
           activities.forEach(activity => {
-            // Filter device infos to find those relevant to this activity's timeframe.
-            // This list is used by `changes` mode compaction and battery stats.
-            const activityDeviceInfos = fitDeviceInfos
-              .filter((di: any) => {
-                const timestamp = new Date(di.timestamp).getTime();
-                // Allow a small margin (e.g. 1 minute) before/after activity
-                return (
-                  timestamp >= activity.startDate.getTime() - 60000 && timestamp <= activity.endDate.getTime() + 60000
-                );
-              })
-              .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            const { activityDeviceInfos, timedActivityDeviceInfos } = this.selectActivityDeviceInfos(
+              fitDeviceInfos,
+              activity.startDate,
+              activity.endDate
+            );
 
             /**
              * FIT `device_info` often repeats the same device identity every second with only timestamp changing.
@@ -608,7 +602,7 @@ export class EventImporterFIT {
             // We focus on the device that has recorded the activity (usually index 0 or source_type 'local')
             // Group by device index to track individual devices
             const deviceGroups = new Map<number, any[]>();
-            activityDeviceInfos.forEach((di: any) => {
+            timedActivityDeviceInfos.forEach((di: any) => {
               // Default to index 0 if undefined
               const index = di.device_index !== undefined ? di.device_index : 0;
               if (!deviceGroups.has(index)) {
@@ -783,6 +777,40 @@ export class EventImporterFIT {
       }
       return device;
     });
+  }
+
+  private static selectActivityDeviceInfos(
+    fitDeviceInfos: any[],
+    activityStartDate: Date,
+    activityEndDate: Date
+  ): { activityDeviceInfos: any[]; timedActivityDeviceInfos: any[] } {
+    const activityStartTime = activityStartDate.getTime() - 60000;
+    const activityEndTime = activityEndDate.getTime() + 60000;
+    const untimestampedCreatorDeviceInfos: any[] = [];
+    const timedActivityDeviceInfos: any[] = [];
+
+    fitDeviceInfos.forEach((deviceInfo: any) => {
+      const timestamp = deviceInfo?.timestamp == null ? Number.NaN : new Date(deviceInfo.timestamp).getTime();
+      if (!Number.isFinite(timestamp)) {
+        if (FITCreatorMapper.isCreatorDeviceInfo(deviceInfo)) {
+          untimestampedCreatorDeviceInfos.push(deviceInfo);
+        }
+        return;
+      }
+
+      if (timestamp >= activityStartTime && timestamp <= activityEndTime) {
+        timedActivityDeviceInfos.push(deviceInfo);
+      }
+    });
+
+    timedActivityDeviceInfos.sort(
+      (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    return {
+      activityDeviceInfos: [...untimestampedCreatorDeviceInfos, ...timedActivityDeviceInfos],
+      timedActivityDeviceInfos
+    };
   }
 
   private static deviceSignatureWithoutTimestamp(device: DeviceInterface): string {

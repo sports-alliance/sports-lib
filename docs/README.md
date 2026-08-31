@@ -19,6 +19,10 @@ Activity groups distinguish generic and inline skating from Ice Skating, retain 
 speed for aerial activities, and classify motorized and adaptive-mobility activities without deriving training stress or
 durability evidence.
 
+FIT creator attribution prefers `file_id` metadata and recovers only missing identity fields from a `device_info` row
+explicitly marked as the creator or local device. Compacted device metadata retains that identity row even when it has
+no timestamp, while timed battery calculations remain unchanged.
+
 FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
 decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. Ordered FIT gas,
 tank-summary, and tank-update records are available separately through `ActivityInterface.getDiveSourceRecords()` and

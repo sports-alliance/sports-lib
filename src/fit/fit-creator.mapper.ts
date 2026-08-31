@@ -17,10 +17,14 @@ export class FITCreatorMapper {
   static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
     const fileId = fitDataObject?.file_ids?.[0] || {};
     const fileCreator = fitDataObject?.file_creator || {};
-    const deviceInfo = fitDataObject?.device_info || {};
-    const manufacturer = fileId.manufacturer;
-    const productId = fileId.product || null;
-    let productName = fileId.product_name || null;
+    const creatorDeviceInfo = this.getCreatorDeviceInfo(fitDataObject);
+    const creatorIdentityDeviceInfo = this.isCompatibleCreatorIdentity(fileId, creatorDeviceInfo)
+      ? creatorDeviceInfo
+      : null;
+    const deviceInfo = creatorDeviceInfo || fitDataObject?.device_info || {};
+    const manufacturer = fileId.manufacturer ?? creatorIdentityDeviceInfo?.manufacturer;
+    const productId = fileId.product ?? creatorIdentityDeviceInfo?.product ?? null;
+    let productName = fileId.product_name || creatorIdentityDeviceInfo?.product_name || null;
     let recognizedName = null;
     let creator: CreatorInterface;
 
@@ -116,7 +120,7 @@ export class FITCreatorMapper {
         if (manufacturerName === 'garmin') {
           recognizedName = GarminProfileMapper.getDeviceName(productId);
         }
-        productName = fileId.product_name || null;
+        productName = fileId.product_name || creatorIdentityDeviceInfo?.product_name || null;
         creator = new Creator(
           this.formatDeviceName(
             manufacturerName,
@@ -134,6 +138,8 @@ export class FITCreatorMapper {
 
     if (isNumberOrString(fileCreator.hardware_version)) {
       creator.hwInfo = String(fileCreator.hardware_version);
+    } else if (isNumberOrString(creatorDeviceInfo?.hardware_version)) {
+      creator.hwInfo = String(creatorDeviceInfo.hardware_version);
     }
     if (isNumberOrString(fileCreator.software_version)) {
       creator.swInfo = String(fileCreator.software_version);
@@ -142,6 +148,8 @@ export class FITCreatorMapper {
     }
     if (isNumberOrString(fileId.serial_number)) {
       creator.serialNumber = fileId.serial_number;
+    } else if (isNumberOrString(creatorIdentityDeviceInfo?.serial_number)) {
+      creator.serialNumber = String(creatorIdentityDeviceInfo.serial_number);
     }
 
     if (Number.isFinite(creator.name) || creator.name.match(/^\d+$/)) {
@@ -149,6 +157,46 @@ export class FITCreatorMapper {
     }
 
     return creator;
+  }
+
+  static isCreatorDeviceInfo(deviceInfo: any): boolean {
+    return (
+      !!deviceInfo &&
+      (deviceInfo.device_index === 'creator' || deviceInfo.device_index === 0 || deviceInfo.source_type === 'local')
+    );
+  }
+
+  private static getCreatorDeviceInfo(fitDataObject: any): any | null {
+    const deviceInfos = Array.isArray(fitDataObject?.device_infos) ? fitDataObject.device_infos : [];
+    const creatorDeviceInfo = deviceInfos.find((deviceInfo: any) => this.isCreatorDeviceInfo(deviceInfo));
+    if (creatorDeviceInfo) {
+      return creatorDeviceInfo;
+    }
+
+    const legacyDeviceInfo = fitDataObject?.device_info;
+    return this.isCreatorDeviceInfo(legacyDeviceInfo) ? legacyDeviceInfo : null;
+  }
+
+  private static isCompatibleCreatorIdentity(fileId: any, creatorDeviceInfo: any): boolean {
+    if (!creatorDeviceInfo) {
+      return false;
+    }
+
+    const fileManufacturer = this.normalizeManufacturer(fileId?.manufacturer);
+    const deviceManufacturer = this.normalizeManufacturer(creatorDeviceInfo.manufacturer);
+    return fileManufacturer === null || deviceManufacturer === null || fileManufacturer === deviceManufacturer;
+  }
+
+  private static normalizeManufacturer(manufacturer: any): string | null {
+    if (!isNumberOrString(manufacturer)) {
+      return null;
+    }
+
+    const manufacturerString = String(manufacturer);
+    const manufacturerName = /^\d+$/.test(manufacturerString)
+      ? GarminProfileMapper.getManufacturerName(manufacturerString)
+      : manufacturerString;
+    return String(manufacturerName || manufacturerString).toLowerCase();
   }
 
   private static formatDeviceName(

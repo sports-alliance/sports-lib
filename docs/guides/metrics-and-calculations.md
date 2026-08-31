@@ -520,6 +520,8 @@ SWOLF uses `Average Stroke Rate`; the naming change does not alter the calculati
   - Aggregates zone durations by summation.
   - Averages many average-like stats using iterative pairwise averaging.
   - Keeps cadence and stroke-rate min/avg/max families separate.
+  - Copies a positive `Recovery Time` from the chronologically final activity. Recovery is a post-activity estimate,
+    so it is not summed, averaged, maximized, or promoted from an earlier activity when the final activity omits it.
   - Aggregates power curves by duration-wise maxima (power and W/kg) without inferring event-level CP/W′.
 
 Full Metric Catalog (Appendix)

@@ -10,6 +10,7 @@ import { DataPowerCurve, DataPowerCurvePoint } from '../../data/data.power-curve
 import { DataDuration } from '../../data/data.duration';
 import { DataPower } from '../../data/data.power';
 import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
+import { DataRecoveryTime } from '../../data/data.recovery-time';
 import { normalizeActivityMetricSemanticsForStats } from '../../activities/activity.metric-semantics';
 
 export class EventUtilities {
@@ -57,7 +58,8 @@ export class EventUtilities {
    *
    * Regeneration model:
    * - Single-activity event: copies current summary-eligible activity stats into the event.
-   * - Multi-activity event: recomputes event summary stats from activity stats and aggregates power curves.
+   * - Multi-activity event: recomputes event summary stats from activity stats, copies a positive recovery estimate
+   *   from the chronologically final activity, and aggregates power curves.
    * - The resulting event summary is canonicalized for its contributing activity types. In particular, an
    *   all-Diving-group event omits terrain ascent/descent, altitude, and grade summaries; mixed events aggregate
    *   those summaries only from their non-diving activities.
@@ -103,11 +105,27 @@ export class EventUtilities {
       // Standard stat summarization
       ActivityUtilities.getSummaryStatsForActivities(activities).forEach(stat => event.addStat(stat));
 
+      // Recovery Time describes the state after an activity, so only the final child's source observation is valid
+      // for the event boundary. It must not be summed, averaged, maximized, or inferred from an earlier child.
+      this.addFinalActivityRecoveryTime(event);
+
       // Special handling for Power Curve Aggregation
       this.aggregatePowerCurves(event);
     }
 
     normalizeActivityMetricSemanticsForStats(event, activityTypes);
+  }
+
+  private static addFinalActivityRecoveryTime(event: EventInterface): void {
+    const recoveryTime = event.getLastActivity().getStat(DataRecoveryTime.type);
+    if (!recoveryTime) {
+      return;
+    }
+
+    const value = Number(recoveryTime.getValue());
+    if (Number.isFinite(value) && value > 0) {
+      event.addStat(new DataRecoveryTime(value));
+    }
   }
 
   private static aggregatePowerCurves(event: EventInterface): void {

@@ -17,11 +17,7 @@ export class FITCreatorMapper {
   static getCreatorFromFitDataObject(fitDataObject: any): CreatorInterface {
     const fileId = fitDataObject?.file_ids?.[0] || {};
     const fileCreator = fitDataObject?.file_creator || {};
-    const creatorDeviceInfo = this.getCreatorDeviceInfo(fitDataObject);
-    const creatorIdentityDeviceInfo = this.isCompatibleCreatorIdentity(fileId, creatorDeviceInfo)
-      ? creatorDeviceInfo
-      : null;
-    const deviceInfo = creatorDeviceInfo || fitDataObject?.device_info || {};
+    const creatorIdentityDeviceInfo = this.getCreatorDeviceInfo(fitDataObject, fileId);
     const manufacturer = fileId.manufacturer ?? creatorIdentityDeviceInfo?.manufacturer;
     const productId = fileId.product ?? creatorIdentityDeviceInfo?.product ?? null;
     let productName = fileId.product_name || creatorIdentityDeviceInfo?.product_name || null;
@@ -138,13 +134,13 @@ export class FITCreatorMapper {
 
     if (isNumberOrString(fileCreator.hardware_version)) {
       creator.hwInfo = String(fileCreator.hardware_version);
-    } else if (isNumberOrString(creatorDeviceInfo?.hardware_version)) {
-      creator.hwInfo = String(creatorDeviceInfo.hardware_version);
+    } else if (isNumberOrString(creatorIdentityDeviceInfo?.hardware_version)) {
+      creator.hwInfo = String(creatorIdentityDeviceInfo.hardware_version);
     }
     if (isNumberOrString(fileCreator.software_version)) {
       creator.swInfo = String(fileCreator.software_version);
-    } else if (isNumberOrString(deviceInfo.software_version)) {
-      creator.swInfo = String(deviceInfo.software_version);
+    } else if (isNumberOrString(creatorIdentityDeviceInfo?.software_version)) {
+      creator.swInfo = String(creatorIdentityDeviceInfo.software_version);
     }
     if (isNumberOrString(fileId.serial_number)) {
       creator.serialNumber = fileId.serial_number;
@@ -162,19 +158,31 @@ export class FITCreatorMapper {
   static isCreatorDeviceInfo(deviceInfo: any): boolean {
     return (
       !!deviceInfo &&
-      (deviceInfo.device_index === 'creator' || deviceInfo.device_index === 0 || deviceInfo.source_type === 'local')
+      (deviceInfo.device_index === 'creator' ||
+        deviceInfo.device_index === 0 ||
+        deviceInfo.device_index === '0' ||
+        deviceInfo.source_type === 'local')
     );
   }
 
-  private static getCreatorDeviceInfo(fitDataObject: any): any | null {
+  private static getCreatorDeviceInfo(fitDataObject: any, fileId: any): any | null {
     const deviceInfos = Array.isArray(fitDataObject?.device_infos) ? fitDataObject.device_infos : [];
-    const creatorDeviceInfo = deviceInfos.find((deviceInfo: any) => this.isCreatorDeviceInfo(deviceInfo));
-    if (creatorDeviceInfo) {
-      return creatorDeviceInfo;
+    const candidates = deviceInfos.filter((deviceInfo: any) => this.isCreatorDeviceInfo(deviceInfo));
+    const legacyDeviceInfo = fitDataObject?.device_info;
+    if (this.isCreatorDeviceInfo(legacyDeviceInfo) && !candidates.includes(legacyDeviceInfo)) {
+      candidates.push(legacyDeviceInfo);
     }
 
-    const legacyDeviceInfo = fitDataObject?.device_info;
-    return this.isCreatorDeviceInfo(legacyDeviceInfo) ? legacyDeviceInfo : null;
+    return candidates
+      .filter((deviceInfo: any) => this.isCompatibleCreatorIdentity(fileId, deviceInfo))
+      .reduce((bestCandidate: any | null, deviceInfo: any) => {
+        if (!bestCandidate) {
+          return deviceInfo;
+        }
+        return this.getCreatorDeviceInfoScore(deviceInfo) > this.getCreatorDeviceInfoScore(bestCandidate)
+          ? deviceInfo
+          : bestCandidate;
+      }, null);
   }
 
   private static isCompatibleCreatorIdentity(fileId: any, creatorDeviceInfo: any): boolean {
@@ -184,7 +192,35 @@ export class FITCreatorMapper {
 
     const fileManufacturer = this.normalizeManufacturer(fileId?.manufacturer);
     const deviceManufacturer = this.normalizeManufacturer(creatorDeviceInfo.manufacturer);
-    return fileManufacturer === null || deviceManufacturer === null || fileManufacturer === deviceManufacturer;
+    if (fileManufacturer !== null && deviceManufacturer !== null && fileManufacturer !== deviceManufacturer) {
+      return false;
+    }
+
+    const fileProduct = this.normalizeIdentityValue(fileId?.product);
+    const deviceProduct = this.normalizeIdentityValue(creatorDeviceInfo.product);
+    return fileProduct === null || deviceProduct === null || fileProduct === deviceProduct;
+  }
+
+  private static getCreatorDeviceInfoScore(deviceInfo: any): number {
+    let score = 0;
+    if (deviceInfo?.device_index === 'creator' || deviceInfo?.device_index === 0 || deviceInfo?.device_index === '0') {
+      score += 100;
+    }
+    if (deviceInfo?.source_type === 'local') {
+      score += 10;
+    }
+    ['manufacturer', 'product', 'product_name', 'serial_number', 'software_version', 'hardware_version'].forEach(
+      field => {
+        if (isNumberOrString(deviceInfo?.[field])) {
+          score += 1;
+        }
+      }
+    );
+    return score;
+  }
+
+  private static normalizeIdentityValue(value: any): string | null {
+    return isNumberOrString(value) ? String(value).trim().toLowerCase() || null : null;
   }
 
   private static normalizeManufacturer(manufacturer: any): string | null {

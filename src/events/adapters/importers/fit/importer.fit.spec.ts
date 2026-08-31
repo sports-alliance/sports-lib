@@ -659,7 +659,10 @@ describe('EventImporterFIT', () => {
               device_index: 'creator',
               source_type: 'local',
               manufacturer: 'garmin',
-              product: 3570
+              product: 3570,
+              software_version: 20.19,
+              hardware_version: 7,
+              serial_number: 424242
             }
           ]
         };
@@ -669,6 +672,68 @@ describe('EventImporterFIT', () => {
         expect(creator.name).toEqual('Suunto');
         expect(creator.manufacturer).toEqual('suunto');
         expect(creator.productId).toBeUndefined();
+        expect(creator.swInfo).toBeUndefined();
+        expect(creator.hwInfo).toBeUndefined();
+        expect(creator.serialNumber).toBeUndefined();
+      });
+
+      it('should choose a compatible creator row after an earlier conflicting local row', () => {
+        const fitDataObject = {
+          file_ids: [{ manufacturer: 'garmin', product: 3570 }],
+          device_infos: [
+            {
+              device_index: 1,
+              source_type: 'local',
+              manufacturer: 'suunto',
+              product: 22,
+              software_version: 2.1
+            },
+            {
+              device_index: 'creator',
+              source_type: 'local',
+              manufacturer: 'garmin',
+              product: 3570,
+              software_version: 20.19,
+              hardware_version: 7,
+              serial_number: 424242
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator).toMatchObject({
+          name: 'Garmin Edge 1030 Plus',
+          manufacturer: 'garmin',
+          productId: 3570,
+          swInfo: '20.19',
+          hwInfo: '7',
+          serialNumber: '424242'
+        });
+      });
+
+      it('should not mix auxiliary metadata from a different product by the same manufacturer', () => {
+        const fitDataObject = {
+          file_ids: [{ manufacturer: 'garmin', product: 3570 }],
+          device_infos: [
+            {
+              device_index: 'creator',
+              source_type: 'local',
+              manufacturer: 'garmin',
+              product: 1208,
+              software_version: 9.9,
+              hardware_version: 8,
+              serial_number: 111111
+            }
+          ]
+        };
+
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(fitDataObject);
+
+        expect(creator.name).toEqual('Garmin Edge 1030 Plus');
+        expect(creator.swInfo).toBeUndefined();
+        expect(creator.hwInfo).toBeUndefined();
+        expect(creator.serialNumber).toBeUndefined();
       });
 
       it('should not use an accessory device_info as the activity creator', () => {

@@ -57,7 +57,8 @@ Ground Contact Time is the canonical Sports Lib terminology. FIT protocol names 
 FIT ground-contact-time percentage is the fraction of the running cycle spent in ground contact. Suunto contact time
 to flight time ratio is a separate source measurement and may exceed 100%; Sports Lib neither aliases nor converts it
 to FIT ground-contact-time percentage. Running flight time is also distinct from jump hang time and Stryd ground time.
-Suunto zero flight-time samples are preserved because a missing aerial phase can be meaningful.
+Suunto non-positive flight-time and contact-time-ratio values are treated as missing provider sentinels; the corpus
+contains running files with all-zero flight samples and null flight summaries.
 
 Suunto running-dynamics summaries accept both header objects (`{ Avg, Min, Max }`) and window arrays containing that
 object. Deprecated Stance Time classes remain loadable for historical native JSON, but FIT imports emit only the

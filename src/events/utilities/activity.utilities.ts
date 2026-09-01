@@ -569,24 +569,34 @@ export class ActivityUtilities {
     AvgDataClass: { type: string; new (value: number): DataInterface },
     MinDataClass: { type: string; new (value: number): DataInterface },
     MaxDataClass: { type: string; new (value: number): DataInterface },
-    filterOver?: number
+    filterOver?: number,
+    isValueValid: (value: number) => boolean = () => true
   ): void {
     if (!activity.hasStreamData(BaseDataClass.type)) {
       return;
     }
 
+    const values = activity
+      .getStreamData(BaseDataClass.type)
+      .filter(
+        (value): value is number =>
+          typeof value === 'number' &&
+          Number.isFinite(value) &&
+          (!Number.isFinite(filterOver) || value > (filterOver as number)) &&
+          isValueValid(value)
+      );
+    if (values.length === 0) {
+      return;
+    }
+
     if (!activity.getStat(MaxDataClass.type)) {
-      activity.addStat(new MaxDataClass(this.getDataTypeMax(activity, BaseDataClass.type)));
+      activity.addStat(new MaxDataClass(values.reduce((maximum, value) => Math.max(maximum, value), -Infinity)));
     }
     if (!activity.getStat(MinDataClass.type)) {
-      activity.addStat(
-        new MinDataClass(this.getDataTypeMin(activity, BaseDataClass.type, undefined, undefined, filterOver))
-      );
+      activity.addStat(new MinDataClass(values.reduce((minimum, value) => Math.min(minimum, value), Infinity)));
     }
     if (!activity.getStat(AvgDataClass.type)) {
-      activity.addStat(
-        new AvgDataClass(this.getDataTypeAvg(activity, BaseDataClass.type, undefined, undefined, filterOver))
-      );
+      activity.addStat(new AvgDataClass(this.getAverage(values)));
     }
   }
 
@@ -4230,21 +4240,26 @@ export class ActivityUtilities {
       DataGroundContactTimePercentageAvg,
       DataGroundContactTimePercentageMin,
       DataGroundContactTimePercentageMax,
-      0
+      0,
+      value => value <= 100
     );
     this.addMissingNumericFamilyStatsFromStream(
       activity,
       DataRunningFlightTime,
       DataRunningFlightTimeAvg,
       DataRunningFlightTimeMin,
-      DataRunningFlightTimeMax
+      DataRunningFlightTimeMax,
+      undefined,
+      value => value >= 0
     );
     this.addMissingNumericFamilyStatsFromStream(
       activity,
       DataContactTimeToFlightTimeRatio,
       DataContactTimeToFlightTimeRatioAvg,
       DataContactTimeToFlightTimeRatioMin,
-      DataContactTimeToFlightTimeRatioMax
+      DataContactTimeToFlightTimeRatioMax,
+      undefined,
+      value => value >= 0
     );
 
     // Leg Stiffness

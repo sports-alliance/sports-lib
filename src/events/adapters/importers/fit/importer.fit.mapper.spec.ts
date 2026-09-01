@@ -136,6 +136,8 @@ describe('FITSampleMapper', () => {
     expect(mapper!.getSampleValue({ stance_time_percent: 37.11 })).toBe(37.11);
     expect(mapper!.getSampleValue({ stance_time_percent: 0 })).toBeNull();
     expect(mapper!.getSampleValue({ stance_time_percent: Number.NaN })).toBeNull();
+    expect(mapper!.getSampleValue({ stance_time_percent: Number.POSITIVE_INFINITY })).toBeNull();
+    expect(mapper!.getSampleValue({ stance_time_percent: 100.01 })).toBeNull();
   });
 
   it('should treat zero Ground Contact Time balance samples as missing', () => {
@@ -148,6 +150,8 @@ describe('FITSampleMapper', () => {
     expect(rightMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(48.75);
     expect(leftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(rightMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
+    expect(leftMapper!.getSampleValue({ stance_time_balance: Number.POSITIVE_INFINITY })).toBeNull();
+    expect(rightMapper!.getSampleValue({ stance_time_balance: 100.01 })).toBeNull();
   });
 
   it('should map FIT left_right_balance to canonical power balance fields', () => {

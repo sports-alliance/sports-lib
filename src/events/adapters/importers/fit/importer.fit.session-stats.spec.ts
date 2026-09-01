@@ -325,6 +325,24 @@ describe('EventImporterFIT session stats mapping', () => {
     expect(getStat(DataGradeMax.type)?.getValue()).toBe(4.47);
   });
 
+  it('should reject invalid FIT running-dynamics percentages from session summaries', () => {
+    const activity = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
+    const stats = EventImporterFIT.getStatsFromObject(
+      {
+        total_elapsed_time: 10,
+        total_timer_time: 10,
+        avg_stance_time_percent: 101,
+        avg_stance_time_balance: Number.POSITIVE_INFINITY
+      },
+      activity,
+      false
+    );
+
+    expect(stats.find(stat => stat.getType() === DataGroundContactTimePercentageAvg.type)).toBeUndefined();
+    expect(stats.find(stat => stat.getType() === DataGroundContactTimeBalanceLeft.type)).toBeUndefined();
+    expect(stats.find(stat => stat.getType() === DataGroundContactTimeBalanceRight.type)).toBeUndefined();
+  });
+
   it('should map grade min/max/avg from FIT session summary when fields exist', async () => {
     const fitFilePath = path.join(__dirname, '../../../../specs/fixtures/rides/fit/7739869618.fit');
     const event = await EventImporterFIT.getFromArrayBuffer(toArrayBuffer(fitFilePath));

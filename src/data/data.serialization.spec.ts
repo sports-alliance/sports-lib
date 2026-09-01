@@ -46,6 +46,12 @@ import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataStressState } from './data.health';
+import {
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin
+} from './data.running-dynamics';
 
 describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
@@ -130,6 +136,10 @@ describe('Data Serialization Safety', () => {
     [DataPowerPodUsed, [true]],
     [DataTrainingStressScoreMethod, [TrainingStressScoreMethod.POWER]],
     [DataStressState, ['rest']],
+    [DataGroundContactTimePercentage, [37.11]],
+    [DataGroundContactTimePercentageAvg, [37.11]],
+    [DataGroundContactTimePercentageMin, [30.25]],
+    [DataGroundContactTimePercentageMax, [44]],
     [DataStartPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
     [DataEndPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]]
   ]);

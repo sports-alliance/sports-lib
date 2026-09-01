@@ -11,6 +11,7 @@ import { DataAltitudeMin } from '../../data/data.altitude-min';
 import { DataPower } from '../../data/data.power';
 import { DataDistance, DataDistanceMiles } from '../../data/data.distance';
 import { DataDuration } from '../../data/data.duration';
+import { DataPause } from '../../data/data.pause';
 import { EventInterface } from '../event.interface';
 import { Creator } from '../../creators/creator';
 import { ActivityTypes } from '../../activities/activity.types';
@@ -97,6 +98,20 @@ import {
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
 } from '../../data/data.running-dynamics-balance';
+import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from '../../data/data.running-dynamics';
 
 describe('Activity Utilities', () => {
   let event: EventInterface;
@@ -470,6 +485,49 @@ describe('Activity Utilities', () => {
     expect(activityDeserialized.getStream(DataHeartRate.type)).toEqual(activity.getStream(DataHeartRate.type));
     expect(activityDeserialized.getStream(DataAltitude.type)).toEqual(activity.getStream(DataAltitude.type));
     expect(activityDeserialized.hasStreamData(DataTime.type)).toBeFalsy();
+  });
+
+  it('should aggregate canonical running-dynamics families across multiple activities', () => {
+    const first = new Activity(new Date(0), new Date(10_000), ActivityTypes.Running, new Creator('test'));
+    const second = new Activity(new Date(10_000), new Date(20_000), ActivityTypes.Running, new Creator('test'));
+    [first, second].forEach(activity => {
+      activity.setDuration(new DataDuration(10));
+      activity.setPause(new DataPause(0));
+      activity.setDistance(new DataDistance(100));
+    });
+
+    first.addStat(new DataGroundContactTimePercentageAvg(30));
+    first.addStat(new DataGroundContactTimePercentageMin(20));
+    first.addStat(new DataGroundContactTimePercentageMax(40));
+    first.addStat(new DataRunningFlightTimeAvg(100));
+    first.addStat(new DataRunningFlightTimeMin(80));
+    first.addStat(new DataRunningFlightTimeMax(120));
+    first.addStat(new DataContactTimeToFlightTimeRatioAvg(110));
+    first.addStat(new DataContactTimeToFlightTimeRatioMin(90));
+    first.addStat(new DataContactTimeToFlightTimeRatioMax(130));
+
+    second.addStat(new DataGroundContactTimePercentageAvg(50));
+    second.addStat(new DataGroundContactTimePercentageMin(35));
+    second.addStat(new DataGroundContactTimePercentageMax(60));
+    second.addStat(new DataRunningFlightTimeAvg(200));
+    second.addStat(new DataRunningFlightTimeMin(160));
+    second.addStat(new DataRunningFlightTimeMax(240));
+    second.addStat(new DataContactTimeToFlightTimeRatioAvg(150));
+    second.addStat(new DataContactTimeToFlightTimeRatioMin(125));
+    second.addStat(new DataContactTimeToFlightTimeRatioMax(175));
+
+    const stats = ActivityUtilities.getSummaryStatsForActivities([first, second]);
+    const getValue = (type: string) => stats.find(stat => stat.getType() === type)?.getValue();
+
+    expect(getValue(DataGroundContactTimePercentageAvg.type)).toBe(40);
+    expect(getValue(DataGroundContactTimePercentageMin.type)).toBe(20);
+    expect(getValue(DataGroundContactTimePercentageMax.type)).toBe(60);
+    expect(getValue(DataRunningFlightTimeAvg.type)).toBe(150);
+    expect(getValue(DataRunningFlightTimeMin.type)).toBe(80);
+    expect(getValue(DataRunningFlightTimeMax.type)).toBe(240);
+    expect(getValue(DataContactTimeToFlightTimeRatioAvg.type)).toBe(130);
+    expect(getValue(DataContactTimeToFlightTimeRatioMin.type)).toBe(90);
+    expect(getValue(DataContactTimeToFlightTimeRatioMax.type)).toBe(175);
   });
 
   it('should serialize time from the primary regular stream even when IBI is also present', () => {
@@ -1119,6 +1177,31 @@ describe('Activity Utilities', () => {
       expect(
         (activity.getStat(DataImpactLoadingRateBalanceRight.type) as DataImpactLoadingRateBalanceRight).getValue()
       ).toBe(50);
+    });
+
+    it('should skip all-sentinel running dynamics streams without constructing non-finite stats', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataGroundContactTimePercentage.type, [0, null, -1, 100.01]));
+      activity.addStream(new Stream(DataContactTimeToFlightTimeRatio.type, [-1, null, -2]));
+
+      expect(() => ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity)).not.toThrow();
+      expect(activity.getStat(DataGroundContactTimePercentageAvg.type)).toBeUndefined();
+      expect(activity.getStat(DataGroundContactTimePercentageMin.type)).toBeUndefined();
+      expect(activity.getStat(DataGroundContactTimePercentageMax.type)).toBeUndefined();
+      expect(activity.getStat(DataContactTimeToFlightTimeRatioAvg.type)).toBeUndefined();
+      expect(activity.getStat(DataContactTimeToFlightTimeRatioMin.type)).toBeUndefined();
+      expect(activity.getStat(DataContactTimeToFlightTimeRatioMax.type)).toBeUndefined();
+    });
+
+    it('should retain zero as a valid running flight time when generating stats', () => {
+      const activity = new Activity(new Date(), new Date(), ActivityTypes.Running, new Creator('test'));
+      activity.addStream(new Stream(DataRunningFlightTime.type, [0, null, 0]));
+
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+      expect(activity.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(0);
+      expect(activity.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(0);
+      expect(activity.getStat(DataRunningFlightTimeMax.type)?.getValue()).toBe(0);
     });
 
     it('should generate min/max/avg stats for Vertical Ratio when stream exists', () => {

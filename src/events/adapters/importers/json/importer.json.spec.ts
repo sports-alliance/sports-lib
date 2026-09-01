@@ -16,8 +16,84 @@ import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { DataSpeedAvg } from '../../../../data/data.speed-avg';
 import { DataSwimPaceAvg } from '../../../../data/data.swim-pace-avg';
 import { LapTypes } from '../../../../laps/lap.types';
+import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg
+} from '../../../../data/data.running-dynamics';
 
 describe('EventImporterJSON', () => {
+  it('round-trips canonical running-dynamics stats and streams without renaming or dropping them', () => {
+    const event = EventImporterJSON.getEventFromJSON({
+      name: 'running-dynamics-round-trip',
+      startDate: 0,
+      endDate: 2000,
+      srcFileType: FileType.FIT,
+      description: null,
+      isMerge: false,
+      privacy: Privacy.Private,
+      powerCurve: null,
+      stats: {
+        [DataGroundContactTimePercentageAvg.type]: 37.11,
+        [DataRunningFlightTimeAvg.type]: 207.086,
+        [DataContactTimeToFlightTimeRatioAvg.type]: 139
+      },
+      activities: [
+        {
+          name: null,
+          startDate: 0,
+          endDate: 2000,
+          type: ActivityTypes.Running,
+          powerMeter: false,
+          trainer: false,
+          powerCurve: null,
+          stats: {
+            [DataGroundContactTimePercentageAvg.type]: 37.11,
+            [DataRunningFlightTimeAvg.type]: 207.086,
+            [DataContactTimeToFlightTimeRatioAvg.type]: 139
+          },
+          streams: [
+            { type: DataGroundContactTimePercentage.type, data: [37.11, null, 38.2] },
+            { type: DataRunningFlightTime.type, data: [207.086, 0, 201.5] },
+            { type: DataContactTimeToFlightTimeRatio.type, data: [139, null, 141] }
+          ],
+          laps: [],
+          creator: { name: 'test', devices: [] },
+          intensityZones: [],
+          events: []
+        }
+      ]
+    });
+
+    const activity = event.getFirstActivity();
+    expect(event.getStat(DataGroundContactTimePercentageAvg.type)?.getValue()).toBe(37.11);
+    expect(event.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(207.086);
+    expect(event.getStat(DataContactTimeToFlightTimeRatioAvg.type)?.getValue()).toBe(139);
+    expect(activity.getStreamData(DataGroundContactTimePercentage.type)).toEqual([37.11, null, 38.2]);
+    expect(activity.getStreamData(DataRunningFlightTime.type)).toEqual([207.086, 0, 201.5]);
+    expect(activity.getStreamData(DataContactTimeToFlightTimeRatio.type)).toEqual([139, null, 141]);
+
+    const serialized = event.toJSON();
+    expect(serialized.stats).toEqual(
+      expect.objectContaining({
+        [DataGroundContactTimePercentageAvg.type]: 37.11,
+        [DataRunningFlightTimeAvg.type]: 207.086,
+        [DataContactTimeToFlightTimeRatioAvg.type]: 139
+      })
+    );
+    expect(serialized.activities[0].stats).toEqual(
+      expect.objectContaining({
+        [DataGroundContactTimePercentageAvg.type]: 37.11,
+        [DataRunningFlightTimeAvg.type]: 207.086,
+        [DataContactTimeToFlightTimeRatioAvg.type]: 139
+      })
+    );
+    expect(EventImporterJSON.getEventFromJSON(serialized).toJSON()).toEqual(serialized);
+  });
+
   it('restores native structured dive records and leaves an absent optional field empty', () => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'native-dive-records',

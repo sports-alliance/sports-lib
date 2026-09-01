@@ -2783,14 +2783,16 @@ export class EventImporterFIT {
     }
 
     const averageGroundContactTimePercentage = this.getPositiveNumericValue(object.avg_stance_time_percent);
-    if (averageGroundContactTimePercentage !== null) {
+    if (averageGroundContactTimePercentage !== null && averageGroundContactTimePercentage <= 100) {
       stats.push(new DataGroundContactTimePercentageAvg(averageGroundContactTimePercentage));
     }
 
     const averageGroundContactTimeBalanceLeft = this.getPositiveNumericValue(object.avg_stance_time_balance);
-    if (averageGroundContactTimeBalanceLeft !== null) {
+    if (averageGroundContactTimeBalanceLeft !== null && averageGroundContactTimeBalanceLeft <= 100) {
       stats.push(new DataGroundContactTimeBalanceLeft(averageGroundContactTimeBalanceLeft));
-      stats.push(new DataGroundContactTimeBalanceRight(100 - averageGroundContactTimeBalanceLeft));
+      stats.push(
+        new DataGroundContactTimeBalanceRight(Math.round((100 - averageGroundContactTimeBalanceLeft) * 100) / 100)
+      );
     }
 
     if (isNumberOrString(object.avg_vertical_oscillation)) {

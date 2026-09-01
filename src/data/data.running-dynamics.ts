@@ -16,6 +16,10 @@ abstract class DataFiniteRunningDynamicsPercent extends DataPercent {
 /** FIT running-dynamics ground-contact duration expressed as a percentage of the running cycle. */
 export class DataGroundContactTimePercentage extends DataFiniteRunningDynamicsPercent {
   static type = 'Ground Contact Time Percentage';
+
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100;
+  }
 }
 
 /** Average ground-contact-time percentage. */
@@ -40,6 +44,10 @@ export class DataGroundContactTimePercentageMax extends DataGroundContactTimePer
 export class DataRunningFlightTime extends DataFiniteRunningDynamicsNumber {
   static type = 'Running Flight Time';
   static unit = 'ms';
+
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  }
 
   override getDisplayValue(): number {
     return Math.round(this.getValue());
@@ -67,6 +75,10 @@ export class DataRunningFlightTimeMax extends DataRunningFlightTime {
 /** Suunto source-provided contact-time-to-flight-time ratio, expressed as a percentage. */
 export class DataContactTimeToFlightTimeRatio extends DataFiniteRunningDynamicsPercent {
   static type = 'Contact Time to Flight Time Ratio';
+
+  override isValueTypeValid(value: unknown): boolean {
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  }
 }
 
 /** Average contact-time-to-flight-time ratio. */

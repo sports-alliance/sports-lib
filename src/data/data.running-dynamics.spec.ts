@@ -77,4 +77,14 @@ describe('canonical running-dynamics metrics', () => {
     expect(DataContactTimeToFlightTimeRatio.type).not.toBe(DataGroundContactTimePercentage.type);
     expect(new DataContactTimeToFlightTimeRatio(139).getValue()).toBe(139);
   });
+
+  it('rejects values outside each canonical metric domain', () => {
+    expect(() => new DataGroundContactTimePercentage(-1)).toThrow();
+    expect(() => new DataGroundContactTimePercentage(100.01)).toThrow();
+    expect(() => new DataRunningFlightTime(-1)).toThrow();
+    expect(() => new DataContactTimeToFlightTimeRatio(-1)).toThrow();
+    expect(new DataGroundContactTimePercentage(100).getValue()).toBe(100);
+    expect(new DataRunningFlightTime(0).getValue()).toBe(0);
+    expect(new DataContactTimeToFlightTimeRatio(139).getValue()).toBe(139);
+  });
 });

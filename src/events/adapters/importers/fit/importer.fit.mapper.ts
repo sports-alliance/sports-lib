@@ -66,7 +66,7 @@ import { SampleInfo } from '../sample-info.interface';
 
 const getPositiveBalanceValue = (sample: any, fieldName: string): number | null => {
   const value = sample[fieldName];
-  return isNumber(value) && value > 0 ? value : null;
+  return Number.isFinite(value) && value > 0 && value <= 100 ? value : null;
 };
 
 const getPositiveBalanceComplementValue = (sample: any, fieldName: string): number | null => {
@@ -334,7 +334,11 @@ export const FITSampleMapper: {
   {
     dataType: DataGroundContactTimePercentage.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.stance_time_percent) && sample.stance_time_percent > 0 ? sample.stance_time_percent : null;
+      return Number.isFinite(sample.stance_time_percent) &&
+        sample.stance_time_percent > 0 &&
+        sample.stance_time_percent <= 100
+        ? sample.stance_time_percent
+        : null;
     }
   },
 

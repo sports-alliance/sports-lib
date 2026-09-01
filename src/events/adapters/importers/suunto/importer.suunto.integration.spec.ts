@@ -197,7 +197,8 @@ describe('EventImporterSuuntoJSON Integration', () => {
     const sampleValues = [
       { FlightTime: 0.2, ContactTimeRatio: 100, LeftGroundContactBalance: 49, RightGroundContactBalance: 51 },
       { FlightTime: 0, ContactTimeRatio: 120, LeftGroundContactBalance: 50, RightGroundContactBalance: 50 },
-      { FlightTime: 0.25, ContactTimeRatio: 80, LeftGroundContactBalance: 51, RightGroundContactBalance: 49 }
+      { FlightTime: 0.25, ContactTimeRatio: 80, LeftGroundContactBalance: 51, RightGroundContactBalance: 49 },
+      { FlightTime: -0.1, ContactTimeRatio: 0, LeftGroundContactBalance: 101, RightGroundContactBalance: -1 }
     ];
     source.DeviceLog.Samples.filter(({ GroundContactTime }: any) => Number.isFinite(GroundContactTime))
       .slice(0, sampleValues.length)
@@ -206,13 +207,13 @@ describe('EventImporterSuuntoJSON Integration', () => {
     const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(source));
     const activity = getPrimaryActivityForStreamRegression(event);
 
-    expect(finiteNumbers(activity.getStreamData(DataRunningFlightTime.type))).toEqual([200, 0, 250]);
+    expect(finiteNumbers(activity.getStreamData(DataRunningFlightTime.type))).toEqual([200, 250]);
     expect(finiteNumbers(activity.getStreamData(DataContactTimeToFlightTimeRatio.type))).toEqual([100, 120, 80]);
     expect(finiteNumbers(activity.getStreamData(DataGroundContactTimeBalanceLeft.type))).toEqual([49, 50, 51]);
     expect(finiteNumbers(activity.getStreamData(DataGroundContactTimeBalanceRight.type))).toEqual([51, 50, 49]);
 
     expect(activity.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(150);
-    expect(activity.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(0);
+    expect(activity.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(200);
     expect(activity.getStat(DataRunningFlightTimeMax.type)?.getValue()).toBe(250);
     expect(activity.getStat(DataContactTimeToFlightTimeRatioAvg.type)?.getValue()).toBe(100);
     expect(activity.getStat(DataContactTimeToFlightTimeRatioMin.type)?.getValue()).toBe(80);
@@ -223,11 +224,22 @@ describe('EventImporterSuuntoJSON Integration', () => {
     expect(event.getStat(DataGroundContactTimeAvg.type)?.getValue()).toBe(300);
     expect(event.getStat(DataVerticalOscillationAvg.type)?.getValue()).toBe(70);
     expect(event.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(200);
-    expect(event.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(0);
+    expect(event.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(200);
     expect(event.getStat(DataRunningFlightTimeMax.type)?.getValue()).toBe(250);
     expect(event.getStat(DataContactTimeToFlightTimeRatioAvg.type)?.getValue()).toBe(100);
     expect(event.getStat(DataGroundContactTimeBalanceLeft.type)?.getValue()).toBe(49);
     expect(event.getStat(DataGroundContactTimeBalanceRight.type)?.getValue()).toBe(51);
+  });
+
+  it('should ignore the corpus flight-time zero sentinel instead of creating an empty metric family', async () => {
+    const filePath = path.join(samplesDir, 'ym780_Chengdu___3.27.4+2026-05-14_04.13.18-Running-2522C0000220.json');
+    const event = await parseSuuntoFile(filePath, new ActivityParsingOptions({ generateUnitStreams: false }));
+    const activity = getPrimaryActivityForStreamRegression(event);
+
+    expect(activity.hasStreamData(DataRunningFlightTime.type)).toBe(false);
+    expect(activity.getStat(DataRunningFlightTimeAvg.type)).toBeUndefined();
+    expect(activity.getStat(DataRunningFlightTimeMin.type)).toBeUndefined();
+    expect(activity.getStat(DataRunningFlightTimeMax.type)).toBeUndefined();
   });
 
   describe('running-with-extra-data.json', () => {

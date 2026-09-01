@@ -386,6 +386,20 @@ import { DataGroundContactTime } from './data.ground-contact-time';
 import { DataGroundContactTimeAvg } from './data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from './data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from './data.ground-contact-time-min';
+import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from './data.running-dynamics';
 import { DataVerticalOscillationAvg } from './data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from './data.vertical-oscillation-max';
 import { DataVerticalOscillationMin } from './data.vertical-oscillation-min';
@@ -943,6 +957,18 @@ export const DataStore: any = {
   DataGroundContactTimeBalance,
   DataGroundContactTimeBalanceLeft,
   DataGroundContactTimeBalanceRight,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin,
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
   DataVerticalOscillationAvg,
   DataVerticalOscillationMax,
   DataVerticalOscillationMin,
@@ -1117,6 +1143,21 @@ export class DynamicDataLoader {
       min: DataPotentialStaminaMin.type,
       max: DataPotentialStaminaMax.type,
       avg: DataPotentialStaminaAvg.type
+    },
+    [DataGroundContactTimePercentage.type]: {
+      min: DataGroundContactTimePercentageMin.type,
+      max: DataGroundContactTimePercentageMax.type,
+      avg: DataGroundContactTimePercentageAvg.type
+    },
+    [DataRunningFlightTime.type]: {
+      min: DataRunningFlightTimeMin.type,
+      max: DataRunningFlightTimeMax.type,
+      avg: DataRunningFlightTimeAvg.type
+    },
+    [DataContactTimeToFlightTimeRatio.type]: {
+      min: DataContactTimeToFlightTimeRatioMin.type,
+      max: DataContactTimeToFlightTimeRatioMax.type,
+      avg: DataContactTimeToFlightTimeRatioAvg.type
     },
     'Jump Hang Time': {
       min: DataJumpHangTimeMin.type,

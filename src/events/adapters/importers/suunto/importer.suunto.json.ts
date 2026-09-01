@@ -107,6 +107,18 @@ import { DataGroundContactTime } from '../../../../data/data.ground-contact-time
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../../../data/data.ground-contact-time-min';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
+import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from '../../../../data/data.running-dynamics';
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../../../data/data.vertical-oscillation-max';
@@ -524,6 +536,12 @@ export class EventImporterSuuntoJSON {
     return stats;
   }
 
+  private static getSummaryObject(object: any, fieldName: string): any | null {
+    const sourceValue = object?.[fieldName];
+    const summaryValue = Array.isArray(sourceValue) ? sourceValue[0] : sourceValue;
+    return summaryValue && typeof summaryValue === 'object' ? summaryValue : null;
+  }
+
   // @todo convert this to a mapping as well
   private static getStats(object: any): DataInterface[] {
     const stats = [];
@@ -701,32 +719,66 @@ export class EventImporterSuuntoJSON {
     }
 
     // Ground Contact Time (Running Dynamics)
-    if (Object.prototype.hasOwnProperty.call(object, 'GroundContactTime')) {
-      if (Array.isArray(object.GroundContactTime)) {
-        if (isNumber(object.GroundContactTime[0].Avg)) {
-          stats.push(new DataGroundContactTimeAvg(object.GroundContactTime[0].Avg * 1000)); // Convert s to ms
-        }
-        if (isNumber(object.GroundContactTime[0].Max)) {
-          stats.push(new DataGroundContactTimeMax(object.GroundContactTime[0].Max * 1000));
-        }
-        if (isNumber(object.GroundContactTime[0].Min)) {
-          stats.push(new DataGroundContactTimeMin(object.GroundContactTime[0].Min * 1000));
-        }
+    const groundContactTimeSummary = this.getSummaryObject(object, 'GroundContactTime');
+    if (groundContactTimeSummary) {
+      if (isNumber(groundContactTimeSummary.Avg)) {
+        stats.push(new DataGroundContactTimeAvg(groundContactTimeSummary.Avg * 1000)); // Convert s to ms
+      }
+      if (isNumber(groundContactTimeSummary.Max)) {
+        stats.push(new DataGroundContactTimeMax(groundContactTimeSummary.Max * 1000));
+      }
+      if (isNumber(groundContactTimeSummary.Min)) {
+        stats.push(new DataGroundContactTimeMin(groundContactTimeSummary.Min * 1000));
+      }
+    }
+
+    const leftGroundContactBalanceSummary = this.getSummaryObject(object, 'LeftGroundContactBalance');
+    if (leftGroundContactBalanceSummary && isNumber(leftGroundContactBalanceSummary.Avg)) {
+      stats.push(new DataGroundContactTimeBalanceLeft(leftGroundContactBalanceSummary.Avg));
+    }
+
+    const rightGroundContactBalanceSummary = this.getSummaryObject(object, 'RightGroundContactBalance');
+    if (rightGroundContactBalanceSummary && isNumber(rightGroundContactBalanceSummary.Avg)) {
+      stats.push(new DataGroundContactTimeBalanceRight(rightGroundContactBalanceSummary.Avg));
+    }
+
+    const runningFlightTimeSummary = this.getSummaryObject(object, 'FlightTime');
+    if (runningFlightTimeSummary) {
+      if (isNumber(runningFlightTimeSummary.Avg)) {
+        stats.push(new DataRunningFlightTimeAvg(runningFlightTimeSummary.Avg * 1000)); // Convert s to ms
+      }
+      if (isNumber(runningFlightTimeSummary.Max)) {
+        stats.push(new DataRunningFlightTimeMax(runningFlightTimeSummary.Max * 1000));
+      }
+      if (isNumber(runningFlightTimeSummary.Min)) {
+        stats.push(new DataRunningFlightTimeMin(runningFlightTimeSummary.Min * 1000));
+      }
+    }
+
+    const contactTimeToFlightTimeRatioSummary = this.getSummaryObject(object, 'ContactTimeRatio');
+    if (contactTimeToFlightTimeRatioSummary) {
+      if (isNumber(contactTimeToFlightTimeRatioSummary.Avg)) {
+        stats.push(new DataContactTimeToFlightTimeRatioAvg(contactTimeToFlightTimeRatioSummary.Avg));
+      }
+      if (isNumber(contactTimeToFlightTimeRatioSummary.Max)) {
+        stats.push(new DataContactTimeToFlightTimeRatioMax(contactTimeToFlightTimeRatioSummary.Max));
+      }
+      if (isNumber(contactTimeToFlightTimeRatioSummary.Min)) {
+        stats.push(new DataContactTimeToFlightTimeRatioMin(contactTimeToFlightTimeRatioSummary.Min));
       }
     }
 
     // Vertical Oscillation (Running Dynamics)
-    if (Object.prototype.hasOwnProperty.call(object, 'VerticalOscillation')) {
-      if (Array.isArray(object.VerticalOscillation)) {
-        if (isNumber(object.VerticalOscillation[0].Avg)) {
-          stats.push(new DataVerticalOscillationAvg(object.VerticalOscillation[0].Avg * 1000)); // Convert m to mm
-        }
-        if (isNumber(object.VerticalOscillation[0].Max)) {
-          stats.push(new DataVerticalOscillationMax(object.VerticalOscillation[0].Max * 1000));
-        }
-        if (isNumber(object.VerticalOscillation[0].Min)) {
-          stats.push(new DataVerticalOscillationMin(object.VerticalOscillation[0].Min * 1000));
-        }
+    const verticalOscillationSummary = this.getSummaryObject(object, 'VerticalOscillation');
+    if (verticalOscillationSummary) {
+      if (isNumber(verticalOscillationSummary.Avg)) {
+        stats.push(new DataVerticalOscillationAvg(verticalOscillationSummary.Avg * 1000)); // Convert m to mm
+      }
+      if (isNumber(verticalOscillationSummary.Max)) {
+        stats.push(new DataVerticalOscillationMax(verticalOscillationSummary.Max * 1000));
+      }
+      if (isNumber(verticalOscillationSummary.Min)) {
+        stats.push(new DataVerticalOscillationMin(verticalOscillationSummary.Min * 1000));
       }
     }
 
@@ -981,6 +1033,26 @@ export const SuuntoSampleMapper: {
     dataType: DataGroundContactTime.type,
     sampleField: 'GroundContactTime',
     convertSampleValue: (value: number) => Number(value * 1000) // Convert s to ms
+  },
+  {
+    dataType: DataGroundContactTimeBalanceLeft.type,
+    sampleField: 'LeftGroundContactBalance',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataGroundContactTimeBalanceRight.type,
+    sampleField: 'RightGroundContactBalance',
+    convertSampleValue: (value: number) => Number(value)
+  },
+  {
+    dataType: DataRunningFlightTime.type,
+    sampleField: 'FlightTime',
+    convertSampleValue: (value: number) => Number(value * 1000) // Convert s to ms
+  },
+  {
+    dataType: DataContactTimeToFlightTimeRatio.type,
+    sampleField: 'ContactTimeRatio',
+    convertSampleValue: (value: number) => Number(value)
   },
   {
     dataType: DataDepth.type,

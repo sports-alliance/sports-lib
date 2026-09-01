@@ -15,6 +15,9 @@ import { Creator } from '../../../../creators/creator';
 import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
 import { DataVerticalRatioAvg } from '../../../../data/data.vertical-ratio-avg';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
+import { DataGroundContactTimePercentageAvg } from '../../../../data/data.running-dynamics';
 import { DataGradeAvg } from '../../../../data/data.grade-avg';
 import { DataGradeMin } from '../../../../data/data.grade-min';
 import { DataGradeMax } from '../../../../data/data.grade-max';
@@ -294,6 +297,8 @@ describe('EventImporterFIT session stats mapping', () => {
         total_elapsed_time: 10,
         total_timer_time: 10,
         avg_stance_time: 271.3,
+        avg_stance_time_percent: 37.11,
+        avg_stance_time_balance: 49.91,
         avg_vertical_oscillation: 97.2,
         avg_vertical_ratio: 9.57,
         avg_grade: 0.13,
@@ -307,6 +312,9 @@ describe('EventImporterFIT session stats mapping', () => {
     const getStat = (type: string) => stats.find(stat => stat.getType() === type);
 
     expect(getStat(DataGroundContactTimeAvg.type)?.getValue()).toBe(271.3);
+    expect(getStat(DataGroundContactTimePercentageAvg.type)?.getValue()).toBe(37.11);
+    expect(getStat(DataGroundContactTimeBalanceLeft.type)?.getValue()).toBe(49.91);
+    expect(getStat(DataGroundContactTimeBalanceRight.type)?.getValue()).toBe(50.09);
 
     expect(getStat(DataVerticalOscillationAvg.type)?.getValue()).toBe(97.2);
 

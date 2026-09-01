@@ -34,10 +34,35 @@ High-level metric domains include:
 - Zones and targets: heart-rate/power/speed zone durations and zone targets
 - Device/context: battery, pressure, satellites, sensor/pod flags, fused location flags, device metadata
 - Performance analytics: normalized power, power curve, FTP, IF, TSS, critical power, W', power work, stamina, durability evidence, legacy three-dimensional strain evidence
-- Running/cycling/swim dynamics: ground contact, stance balance, oscillation, ratio, SWOLF, efficiency-related metrics
+- Running/cycling/swim dynamics: ground contact, flight time, ground-contact balance, oscillation, ratio, SWOLF, efficiency-related metrics
 - Jump analytics: jump count/events and min/max/avg families for jump height, distance, speed, score, rotations, hang time
 - Provider-neutral Health and sleep: daily movement and energy, cardiovascular samples, wellness, body composition,
   sleep stages, sleep scores, and sleep-qualified vital aggregates
+
+Running-dynamics metric semantics
+---
+
+Ground Contact Time is the canonical Sports Lib terminology. FIT protocol names remain importer details:
+
+| Source field | Canonical metric | Source unit | Stored unit |
+| --- | --- | --- | --- |
+| FIT `stance_time` / `avg_stance_time` | `Ground Contact Time` / `Average Ground Contact Time` | `ms` | `ms` |
+| FIT `stance_time_percent` / `avg_stance_time_percent` | `Ground Contact Time Percentage` / `Average Ground Contact Time Percentage` | `%` | `%` |
+| FIT `stance_time_balance` / `avg_stance_time_balance` | `Ground Contact Time Balance Left` and `Ground Contact Time Balance Right` | `%` | `%` |
+| Suunto `GroundContactTime` | `Ground Contact Time` | `s` | `ms` |
+| Suunto `LeftGroundContactBalance` / `RightGroundContactBalance` | `Ground Contact Time Balance Left` / `Ground Contact Time Balance Right` | `%` | `%` |
+| Suunto `FlightTime` | `Running Flight Time` | `s` | `ms` |
+| Suunto `ContactTimeRatio` | `Contact Time to Flight Time Ratio` | `%` | `%` |
+
+FIT ground-contact-time percentage is the fraction of the running cycle spent in ground contact. Suunto contact time
+to flight time ratio is a separate source measurement and may exceed 100%; Sports Lib neither aliases nor converts it
+to FIT ground-contact-time percentage. Running flight time is also distinct from jump hang time and Stryd ground time.
+Suunto zero flight-time samples are preserved because a missing aerial phase can be meaningful.
+
+Suunto running-dynamics summaries accept both header objects (`{ Avg, Min, Max }`) and window arrays containing that
+object. Deprecated Stance Time classes remain loadable for historical native JSON, but FIT imports emit only the
+canonical Ground Contact Time streams. Existing persisted activities must be reparsed from their FIT or Suunto source
+files to gain metrics newly supported here; no existing canonical values require migration.
 
 Health and sleep metric semantics
 ---
@@ -219,12 +244,12 @@ GradeAdjustedSpeed = Speed * (kA + kB*g + kC*g^2 + kD*g^3 + kE*g^4 + kF*g^5)
 GradeAdjustedPace = 1000 / GradeAdjustedSpeed
 ```
 
-3) Left/right split and stance balance
+3) Left/right split and ground-contact balance
 
 ```text
 PowerRight = Power * (RightBalance / 100)
 PowerLeft  = Power * (LeftBalance / 100)
-StanceTimeBalanceRight = 100 - StanceTimeBalanceLeft
+GroundContactTimeBalanceRight = 100 - GroundContactTimeBalanceLeft
 ```
 
 4) Generic stat families and ascent/descent gain-loss
@@ -561,6 +586,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Beginning Potential Stamina` (unit: `%`)
 - `Bike Pod`
 - `Cadence` (unit: `rpm`)
+- `Contact Time to Flight Time Ratio` (unit: `%`)
 - `CriticalPower`
 - `Cycling Avg Seated Power` (unit: `watt`)
 - `Cycling Avg Standing Power` (unit: `watt`)
@@ -608,6 +634,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Ground Contact Time` (unit: `ms`)
 - `Ground Contact Time Balance Left`
 - `Ground Contact Time Balance Right`
+- `Ground Contact Time Percentage` (unit: `%`)
 - `Ground Time` (unit: `ms`)
 - `Heart Rate` (unit: `bpm`)
 - `Heart Rate Used`
@@ -664,15 +691,16 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Right Pedal Smoothness` (unit: `%`)
 - `Right Torque Effectiveness` (unit: `%`)
 - `Rotations`
+- `Running Flight Time` (unit: `ms`)
 - `Satellite 5 Best SNR`
 - `Sea Level Pressure` (unit: `hpa`)
 - `Speed` (unit: `m/s`)
 - `Speed (Stryd)`
 - `Sport Profile Name`
 - `Stamina` (unit: `%`)
-- `Stance Time` (unit: `ms`)
-- `Stance Time Balance Left`
-- `Stance Time Balance Right`
+- `Stance Time` (deprecated historical compatibility token; unit: `ms`)
+- `Stance Time Balance Left` (deprecated historical compatibility token)
+- `Stance Time Balance Right` (deprecated historical compatibility token)
 - `Start Event`
 - `Start Position`
 - `Starting Altitude`
@@ -781,6 +809,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average Air Power`
 - `Average Altitude`
 - `Average Cadence`
+- `Average Contact Time to Flight Time Ratio` (unit: `%`)
 - `Average Effort Pace`
 - `Average Effort Pace in minutes per mile`
 - `Average EHPE`
@@ -797,6 +826,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average Grade Adjusted Speed in miles per hour`
 - `Average Grit`
 - `Average Ground Contact Time` (unit: `ms`)
+- `Average Ground Contact Time Percentage` (unit: `%`)
 - `Average Heart Rate`
 - `Average Jump Distance`
 - `Average Jump Hang Time`
@@ -816,6 +846,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Average Power`
 - `Average Potential Stamina` (unit: `%`)
 - `Average Respiration Rate` (unit: `br/min`)
+- `Average Running Flight Time` (unit: `ms`)
 - `Average Satellite 5 Best SNR`
 - `Average Speed`
 - `Average Stamina` (unit: `%`)
@@ -848,6 +879,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum Air Power`
 - `Maximum Altitude`
 - `Maximum Cadence`
+- `Maximum Contact Time to Flight Time Ratio` (unit: `%`)
 - `Maximum Depth` (unit: `m`)
 - `Maximum Depth in feet` (unit: `ft`)
 - `Maximum Effort Pace`
@@ -864,6 +896,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum Grade Adjusted Speed in meters per minute`
 - `Maximum Grade Adjusted Speed in miles per hour`
 - `Maximum Ground Contact Time` (unit: `ms`)
+- `Maximum Ground Contact Time Percentage` (unit: `%`)
 - `Maximum Heart Rate`
 - `Maximum HR Setting` (unit: `bpm`)
 - `Maximum Jump Distance`
@@ -884,6 +917,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Maximum Power`
 - `Maximum Potential Stamina` (unit: `%`)
 - `Maximum Respiration Rate` (unit: `br/min`)
+- `Maximum Running Flight Time` (unit: `ms`)
 - `Maximum Satellite 5 Best SNR`
 - `Maximum Speed`
 - `Maximum Stamina` (unit: `%`)
@@ -910,6 +944,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Minimum Air Power`
 - `Minimum Altitude`
 - `Minimum Cadence`
+- `Minimum Contact Time to Flight Time Ratio` (unit: `%`)
 - `Minimum Effort Pace`
 - `Minimum Effort Pace in minutes per mile`
 - `Minimum EHPE`
@@ -924,6 +959,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Minimum Grade Adjusted Speed in meters per minute`
 - `Minimum Grade Adjusted Speed in miles per hour`
 - `Minimum Ground Contact Time` (unit: `ms`)
+- `Minimum Ground Contact Time Percentage` (unit: `%`)
 - `Minimum Heart Rate`
 - `Minimum Jump Distance`
 - `Minimum Jump Hang Time`
@@ -943,6 +979,7 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Minimum Power`
 - `Minimum Potential Stamina` (unit: `%`)
 - `Minimum Respiration Rate` (unit: `br/min`)
+- `Minimum Running Flight Time` (unit: `ms`)
 - `Minimum Satellite 5 Best SNR`
 - `Minimum Speed`
 - `Minimum Stamina` (unit: `%`)

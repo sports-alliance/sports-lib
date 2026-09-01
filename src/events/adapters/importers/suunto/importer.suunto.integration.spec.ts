@@ -7,6 +7,18 @@ import { DataGroundContactTime } from '../../../../data/data.ground-contact-time
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../../../data/data.ground-contact-time-min';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
+import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from '../../../../data/data.running-dynamics';
 import { DataVerticalOscillation } from '../../../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../../../data/data.vertical-oscillation-max';
@@ -150,10 +162,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
   });
 
   it('should map Suunto Endurance to Stamina without creating Potential Stamina', async () => {
-    const filePath = path.join(
-      samplesDir,
-      'ym780_Chengdu___3.27.4+2026-05-14_04.13.18-Running-2522C0000220.json'
-    );
+    const filePath = path.join(samplesDir, 'ym780_Chengdu___3.27.4+2026-05-14_04.13.18-Running-2522C0000220.json');
     const event = await parseSuuntoFile(filePath, new ActivityParsingOptions({ generateUnitStreams: false }));
     const activity = getPrimaryActivityForStreamRegression(event);
     const staminaValues = finiteNumbers(activity.getStreamData(DataStamina.type));
@@ -166,6 +175,59 @@ describe('EventImporterSuuntoJSON Integration', () => {
     expect(activity.getStat(DataStaminaMax.type)?.getValue()).toBe(Math.max(...staminaValues));
     expect(activity.getStat(DataStaminaAvg.type)?.getValue()).toBeCloseTo(avgStamina, 10);
     expect(activity.hasStreamData(DataPotentialStamina.type)).toBe(false);
+  });
+
+  it('should map Suunto running flight, contact ratio, and ground-contact balance with both summary shapes', async () => {
+    const filePath = path.join(samplesDir, 'running-with-extra-data.json');
+    const source = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const header = source.DeviceLog.Header;
+    header.GroundContactTime = { Avg: 0.3, Min: 0.2, Max: 0.4 };
+    header.VerticalOscillation = { Avg: 0.07, Min: 0.05, Max: 0.09 };
+    header.FlightTime = { Avg: 0.2, Min: 0, Max: 0.25 };
+    header.ContactTimeRatio = { Avg: 100, Min: 80, Max: 120 };
+    header.LeftGroundContactBalance = { Avg: 49, Min: 48, Max: 50 };
+    header.RightGroundContactBalance = { Avg: 51, Min: 50, Max: 52 };
+
+    const activityWindow = source.DeviceLog.Windows.find(({ Window }: any) => Window.Type === 'Activity').Window;
+    activityWindow.FlightTime = [{ Avg: 0.15, Min: 0, Max: 0.25 }];
+    activityWindow.ContactTimeRatio = [{ Avg: 100, Min: 80, Max: 120 }];
+    activityWindow.LeftGroundContactBalance = [{ Avg: 50, Min: 49, Max: 51 }];
+    activityWindow.RightGroundContactBalance = [{ Avg: 50, Min: 49, Max: 51 }];
+
+    const sampleValues = [
+      { FlightTime: 0.2, ContactTimeRatio: 100, LeftGroundContactBalance: 49, RightGroundContactBalance: 51 },
+      { FlightTime: 0, ContactTimeRatio: 120, LeftGroundContactBalance: 50, RightGroundContactBalance: 50 },
+      { FlightTime: 0.25, ContactTimeRatio: 80, LeftGroundContactBalance: 51, RightGroundContactBalance: 49 }
+    ];
+    source.DeviceLog.Samples.filter(({ GroundContactTime }: any) => Number.isFinite(GroundContactTime))
+      .slice(0, sampleValues.length)
+      .forEach((sample: any, index: number) => Object.assign(sample, sampleValues[index]));
+
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(source));
+    const activity = getPrimaryActivityForStreamRegression(event);
+
+    expect(finiteNumbers(activity.getStreamData(DataRunningFlightTime.type))).toEqual([200, 0, 250]);
+    expect(finiteNumbers(activity.getStreamData(DataContactTimeToFlightTimeRatio.type))).toEqual([100, 120, 80]);
+    expect(finiteNumbers(activity.getStreamData(DataGroundContactTimeBalanceLeft.type))).toEqual([49, 50, 51]);
+    expect(finiteNumbers(activity.getStreamData(DataGroundContactTimeBalanceRight.type))).toEqual([51, 50, 49]);
+
+    expect(activity.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(150);
+    expect(activity.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(0);
+    expect(activity.getStat(DataRunningFlightTimeMax.type)?.getValue()).toBe(250);
+    expect(activity.getStat(DataContactTimeToFlightTimeRatioAvg.type)?.getValue()).toBe(100);
+    expect(activity.getStat(DataContactTimeToFlightTimeRatioMin.type)?.getValue()).toBe(80);
+    expect(activity.getStat(DataContactTimeToFlightTimeRatioMax.type)?.getValue()).toBe(120);
+    expect(activity.getStat(DataGroundContactTimeBalanceLeft.type)?.getValue()).toBe(50);
+    expect(activity.getStat(DataGroundContactTimeBalanceRight.type)?.getValue()).toBe(50);
+
+    expect(event.getStat(DataGroundContactTimeAvg.type)?.getValue()).toBe(300);
+    expect(event.getStat(DataVerticalOscillationAvg.type)?.getValue()).toBe(70);
+    expect(event.getStat(DataRunningFlightTimeAvg.type)?.getValue()).toBe(200);
+    expect(event.getStat(DataRunningFlightTimeMin.type)?.getValue()).toBe(0);
+    expect(event.getStat(DataRunningFlightTimeMax.type)?.getValue()).toBe(250);
+    expect(event.getStat(DataContactTimeToFlightTimeRatioAvg.type)?.getValue()).toBe(100);
+    expect(event.getStat(DataGroundContactTimeBalanceLeft.type)?.getValue()).toBe(49);
+    expect(event.getStat(DataGroundContactTimeBalanceRight.type)?.getValue()).toBe(51);
   });
 
   describe('running-with-extra-data.json', () => {

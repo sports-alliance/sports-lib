@@ -5,7 +5,7 @@ import { DataGroundTime } from '../../../../data/data.ground-time';
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
-import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
+import { DataGroundContactTimePercentage } from '../../../../data/data.running-dynamics';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
 import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
 import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
@@ -129,20 +129,25 @@ describe('FITSampleMapper', () => {
     expect(mapped).toBe(296);
   });
 
+  it('should map positive FIT stance_time_percent values to Ground Contact Time Percentage', () => {
+    const mapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTimePercentage.type);
+    expect(mapper).toBeDefined();
+
+    expect(mapper!.getSampleValue({ stance_time_percent: 37.11 })).toBe(37.11);
+    expect(mapper!.getSampleValue({ stance_time_percent: 0 })).toBeNull();
+    expect(mapper!.getSampleValue({ stance_time_percent: Number.NaN })).toBeNull();
+  });
+
   it('should treat zero Ground Contact Time balance samples as missing', () => {
     const leftMapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTimeBalanceLeft.type);
     const rightMapper = FITSampleMapper.find(m => m.dataType === DataGroundContactTimeBalanceRight.type);
-    const legacyLeftMapper = FITSampleMapper.find(m => m.dataType === DataStanceTimeBalanceLeft.type);
 
     expect(leftMapper).toBeDefined();
     expect(rightMapper).toBeDefined();
-    expect(legacyLeftMapper).toBeDefined();
     expect(leftMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(51.25);
     expect(rightMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(48.75);
-    expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 51.25 })).toBe(51.25);
     expect(leftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
     expect(rightMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
-    expect(legacyLeftMapper!.getSampleValue({ stance_time_balance: 0 })).toBeNull();
   });
 
   it('should map FIT left_right_balance to canonical power balance fields', () => {

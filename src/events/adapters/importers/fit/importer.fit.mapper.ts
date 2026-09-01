@@ -36,8 +36,7 @@ import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right
 import { DataGroundContactTime } from '../../../../data/data.ground-contact-time';
 import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
-import { DataStanceTime } from '../../../../data/data.stance-time';
-import { DataStanceTimeBalanceLeft } from '../../../../data/data-stance-time-balance-left';
+import { DataGroundContactTimePercentage } from '../../../../data/data.running-dynamics';
 
 import { DataStepLength } from '../../../../data/data.step-length';
 import { DataEffortPace } from '../../../../data/data.effort-pace';
@@ -332,15 +331,10 @@ export const FITSampleMapper: {
           : null;
     }
   },
-  // Keep DataStanceTime for backward compatibility
   {
-    dataType: DataStanceTime.type,
+    dataType: DataGroundContactTimePercentage.type,
     getSampleValue: (sample: any) => {
-      return isNumber(sample.stance_time)
-        ? sample.stance_time
-        : isNumber(sample['Ground Time'])
-          ? sample['Ground Time']
-          : null;
+      return isNumber(sample.stance_time_percent) && sample.stance_time_percent > 0 ? sample.stance_time_percent : null;
     }
   },
 
@@ -393,15 +387,6 @@ export const FITSampleMapper: {
       return getPositiveBalanceComplementValue(sample, 'Impact Loading Rate Balance');
     }
   },
-  // Keep DataStanceTimeBalanceLeft for backward compatibility
-  {
-    dataType: DataStanceTimeBalanceLeft.type,
-    getSampleValue: (sample: any) => {
-      // The FIT stance_time_balance field refers to the balance on the left leg.
-      return getPositiveBalanceValue(sample, 'stance_time_balance');
-    }
-  },
-
   {
     dataType: DataStepLength.type,
     getSampleValue: (sample: any) => {

@@ -249,6 +249,7 @@ export * from './data.store';
 export * from './data.string';
 export * from './data.stryd-altitude';
 export * from './data.running-dynamics-balance';
+export * from './data.running-dynamics';
 export * from './data.stryd-distance';
 export * from './data.stryd-speed';
 export * from './data.swim-distance';

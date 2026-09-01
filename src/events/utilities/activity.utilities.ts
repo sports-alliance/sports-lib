@@ -208,6 +208,20 @@ import { DataIBI } from '../../data/data.ibi';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from '../../data/data.running-dynamics';
+import {
   DataImpactLoadingRateBalanceLeft,
   DataImpactLoadingRateBalanceRight,
   DataLegSpringStiffnessBalanceLeft,
@@ -549,6 +563,33 @@ export class ActivityUtilities {
     }
   }
 
+  private static addMissingNumericFamilyStatsFromStream(
+    activity: ActivityInterface,
+    BaseDataClass: { type: string },
+    AvgDataClass: { type: string; new (value: number): DataInterface },
+    MinDataClass: { type: string; new (value: number): DataInterface },
+    MaxDataClass: { type: string; new (value: number): DataInterface },
+    filterOver?: number
+  ): void {
+    if (!activity.hasStreamData(BaseDataClass.type)) {
+      return;
+    }
+
+    if (!activity.getStat(MaxDataClass.type)) {
+      activity.addStat(new MaxDataClass(this.getDataTypeMax(activity, BaseDataClass.type)));
+    }
+    if (!activity.getStat(MinDataClass.type)) {
+      activity.addStat(
+        new MinDataClass(this.getDataTypeMin(activity, BaseDataClass.type, undefined, undefined, filterOver))
+      );
+    }
+    if (!activity.getStat(AvgDataClass.type)) {
+      activity.addStat(
+        new AvgDataClass(this.getDataTypeAvg(activity, BaseDataClass.type, undefined, undefined, filterOver))
+      );
+    }
+  }
+
   public static getAverage(data: number[]): number {
     return this.getSum(data) / data.length;
   }
@@ -885,6 +926,51 @@ export class ActivityUtilities {
       }
       if (aggregate.count > 0) {
         stats.push(family.createAvg(aggregate.sum / aggregate.count));
+      }
+    });
+
+    return stats;
+  }
+
+  private static getSummaryRunningDynamicsStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
+    const families: {
+      avg: { type: string; new (value: number): DataInterface };
+      min: { type: string; new (value: number): DataInterface };
+      max: { type: string; new (value: number): DataInterface };
+    }[] = [
+      {
+        avg: DataGroundContactTimePercentageAvg,
+        min: DataGroundContactTimePercentageMin,
+        max: DataGroundContactTimePercentageMax
+      },
+      { avg: DataRunningFlightTimeAvg, min: DataRunningFlightTimeMin, max: DataRunningFlightTimeMax },
+      {
+        avg: DataContactTimeToFlightTimeRatioAvg,
+        min: DataContactTimeToFlightTimeRatioMin,
+        max: DataContactTimeToFlightTimeRatioMax
+      }
+    ];
+    const stats: DataInterface[] = [];
+
+    families.forEach(family => {
+      const averages = activities
+        .map(activity => this.getFiniteStatValue(activity, family.avg.type))
+        .filter((value): value is number => value !== null);
+      const minima = activities
+        .map(activity => this.getFiniteStatValue(activity, family.min.type))
+        .filter((value): value is number => value !== null);
+      const maxima = activities
+        .map(activity => this.getFiniteStatValue(activity, family.max.type))
+        .filter((value): value is number => value !== null);
+
+      if (averages.length > 0) {
+        stats.push(new family.avg(averages.reduce((sum, value) => sum + value, 0) / averages.length));
+      }
+      if (minima.length > 0) {
+        stats.push(new family.min(Math.min(...minima)));
+      }
+      if (maxima.length > 0) {
+        stats.push(new family.max(Math.max(...maxima)));
       }
     });
 
@@ -2142,6 +2228,7 @@ export class ActivityUtilities {
       stats.push(new DataVerticalOscillationAvg(averageVerticalOscillation));
     }
 
+    stats.push(...this.getSummaryRunningDynamicsStatsForActivities(activities));
     stats.push(...this.getIntensityZonesStatsAggregated(activities));
 
     // Add start and end position
@@ -4136,6 +4223,29 @@ export class ActivityUtilities {
     if (!activity.getStat(DataGroundContactTimeAvg.type) && activity.hasStreamData(DataGroundContactTime.type)) {
       activity.addStat(new DataGroundContactTimeAvg(this.getDataTypeAvg(activity, DataGroundContactTime.type)));
     }
+
+    this.addMissingNumericFamilyStatsFromStream(
+      activity,
+      DataGroundContactTimePercentage,
+      DataGroundContactTimePercentageAvg,
+      DataGroundContactTimePercentageMin,
+      DataGroundContactTimePercentageMax,
+      0
+    );
+    this.addMissingNumericFamilyStatsFromStream(
+      activity,
+      DataRunningFlightTime,
+      DataRunningFlightTimeAvg,
+      DataRunningFlightTimeMin,
+      DataRunningFlightTimeMax
+    );
+    this.addMissingNumericFamilyStatsFromStream(
+      activity,
+      DataContactTimeToFlightTimeRatio,
+      DataContactTimeToFlightTimeRatioAvg,
+      DataContactTimeToFlightTimeRatioMin,
+      DataContactTimeToFlightTimeRatioMax
+    );
 
     // Leg Stiffness
     if (!activity.getStat(DataLegStiffnessMax.type) && activity.hasStreamData(DataLegStiffness.type)) {

@@ -145,6 +145,34 @@ export type {
 } from '../src/data';
 export { UnitSystem } from '../src/data/data.interface';
 /**
+ * Canonical running-dynamics metrics. FIT protocol fields named `stance_time*` map to the
+ * Ground Contact Time family; those protocol names are not public metric tokens. Suunto running
+ * flight time and contact-time-to-flight-time ratio remain distinct from jump hang time and FIT
+ * ground-contact-time percentage.
+ *
+ * @category Streams, stats, and data
+ */
+export {
+  DataContactTimeToFlightTimeRatio,
+  DataContactTimeToFlightTimeRatioAvg,
+  DataContactTimeToFlightTimeRatioMax,
+  DataContactTimeToFlightTimeRatioMin,
+  DataGroundContactTime,
+  DataGroundContactTimeAvg,
+  DataGroundContactTimeBalanceLeft,
+  DataGroundContactTimeBalanceRight,
+  DataGroundContactTimeMax,
+  DataGroundContactTimeMin,
+  DataGroundContactTimePercentage,
+  DataGroundContactTimePercentageAvg,
+  DataGroundContactTimePercentageMax,
+  DataGroundContactTimePercentageMin,
+  DataRunningFlightTime,
+  DataRunningFlightTimeAvg,
+  DataRunningFlightTimeMax,
+  DataRunningFlightTimeMin
+} from '../src/data';
+/**
  * Provider-neutral Health and sleep scalar data classes.
  *
  * @category Health and sleep

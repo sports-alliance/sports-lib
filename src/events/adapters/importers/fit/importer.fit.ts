@@ -114,6 +114,9 @@ import { DataCyclingSeatedTime } from '../../../../data/data.cycling-seated-time
 import { RiderPosition } from '../../../../data/data.cycling-position';
 import { DataRiderPositionChangeEvent } from '../../../../data/data.rider-position-change-event';
 import { DataGroundContactTimeAvg } from '../../../../data/data.ground-contact-time-avg';
+import { DataGroundContactTimeBalanceLeft } from '../../../../data/data-ground-contact-time-balance-left';
+import { DataGroundContactTimeBalanceRight } from '../../../../data/data-ground-contact-time-balance-right';
+import { DataGroundContactTimePercentageAvg } from '../../../../data/data.running-dynamics';
 import { DataDepthMax } from '../../../../data/data.depth-max';
 import { DataMetabolicCalories } from '../../../../data/data.metabolic-calories';
 import {
@@ -2777,6 +2780,17 @@ export class EventImporterFIT {
     // Running dynamics
     if (isNumberOrString(object.avg_stance_time)) {
       stats.push(new DataGroundContactTimeAvg(object.avg_stance_time));
+    }
+
+    const averageGroundContactTimePercentage = this.getPositiveNumericValue(object.avg_stance_time_percent);
+    if (averageGroundContactTimePercentage !== null) {
+      stats.push(new DataGroundContactTimePercentageAvg(averageGroundContactTimePercentage));
+    }
+
+    const averageGroundContactTimeBalanceLeft = this.getPositiveNumericValue(object.avg_stance_time_balance);
+    if (averageGroundContactTimeBalanceLeft !== null) {
+      stats.push(new DataGroundContactTimeBalanceLeft(averageGroundContactTimeBalanceLeft));
+      stats.push(new DataGroundContactTimeBalanceRight(100 - averageGroundContactTimeBalanceLeft));
     }
 
     if (isNumberOrString(object.avg_vertical_oscillation)) {

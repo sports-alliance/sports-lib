@@ -39,7 +39,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:metadata",
-    "build:esm": "tsc --project tsconfig.types.json && tsc --project tsconfig.esm.json && node scripts/rewrite-esm-specifiers.mjs && rollup --silent --config rollup.config.mjs && rimraf ./out-tsc/esm/",
+    "build:esm": "tsc --project tsconfig.types.json && tsc --project tsconfig.esm.json && node scripts/rewrite-esm-specifiers.mjs out-tsc/esm .js && rollup --silent --config rollup.config.mjs && node scripts/rewrite-esm-specifiers.mjs lib/esm .d.ts && rimraf ./out-tsc/esm/",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:metadata": "node scripts/write-build-package-metadata.mjs",
     "watch": "npm run build -- --watch",

@@ -2,17 +2,22 @@ import { readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import ts from 'typescript';
 
-const esmOutputDirectory = path.resolve('out-tsc/esm');
+const outputDirectory = path.resolve(process.argv[2] || 'out-tsc/esm');
+const moduleFileSuffix = process.argv[3] || '.js';
 
-async function listJavaScriptFiles(directory) {
+if (!['.js', '.d.ts'].includes(moduleFileSuffix)) {
+  throw new Error(`Unsupported module file suffix: ${moduleFileSuffix}`);
+}
+
+async function listModuleFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const nestedFiles = await Promise.all(
     entries.map(entry => {
       const entryPath = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        return listJavaScriptFiles(entryPath);
+        return listModuleFiles(entryPath);
       }
-      return entryPath.endsWith('.js') ? [entryPath] : [];
+      return entryPath.endsWith(moduleFileSuffix) ? [entryPath] : [];
     })
   );
   return nestedFiles.flat();
@@ -65,6 +70,18 @@ function collectModuleSpecifiers(sourceFile) {
       ts.isStringLiteral(node.arguments[0])
     ) {
       specifiers.push(node.arguments[0]);
+    } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+      const literal = node.argument.literal;
+      if (ts.isStringLiteral(literal)) {
+        specifiers.push(literal);
+      }
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      node.moduleReference.expression &&
+      ts.isStringLiteral(node.moduleReference.expression)
+    ) {
+      specifiers.push(node.moduleReference.expression);
     }
     ts.forEachChild(node, visit);
   }
@@ -75,7 +92,8 @@ function collectModuleSpecifiers(sourceFile) {
 
 async function rewriteFile(filePath) {
   const sourceText = await readFile(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const scriptKind = moduleFileSuffix === '.d.ts' ? ts.ScriptKind.TS : ts.ScriptKind.JS;
+  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKind);
   const replacements = [];
 
   for (const moduleSpecifier of collectModuleSpecifiers(sourceFile)) {
@@ -104,8 +122,10 @@ async function rewriteFile(filePath) {
   return replacements.length;
 }
 
-const javascriptFiles = await listJavaScriptFiles(esmOutputDirectory);
-const rewrittenSpecifierCounts = await Promise.all(javascriptFiles.map(rewriteFile));
+const moduleFiles = await listModuleFiles(outputDirectory);
+const rewrittenSpecifierCounts = await Promise.all(moduleFiles.map(rewriteFile));
 const rewrittenSpecifierCount = rewrittenSpecifierCounts.reduce((total, count) => total + count, 0);
 
-console.log(`Rewrote ${rewrittenSpecifierCount} relative specifiers across ${javascriptFiles.length} ESM modules.`);
+console.log(
+  `Rewrote ${rewrittenSpecifierCount} relative specifiers across ${moduleFiles.length} ${moduleFileSuffix} files.`
+);

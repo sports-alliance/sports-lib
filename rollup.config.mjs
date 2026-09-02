@@ -13,10 +13,12 @@ async function listJavaScriptFiles(directory) {
 }
 
 const stagingRoot = path.resolve('out-tsc/esm');
-const inputFiles = await listJavaScriptFiles(stagingRoot);
+const inputFiles = (await listJavaScriptFiles(stagingRoot)).sort();
 
 // Keep every staged module as an independent strict entry. Linking the root barrel lets Rollup
 // expand its wildcard exports and prevents downstream esbuild consumers from pruning the graph.
+// Each relative edge stays external because its target is emitted by its own module configuration;
+// bare dependencies stay external as well.
 export default inputFiles.map(input => ({
   input,
   makeAbsoluteExternalsRelative: false,

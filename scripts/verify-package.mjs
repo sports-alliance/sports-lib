@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { access, copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
+import { access, copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import ts from 'typescript';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packageJson = JSON.parse(await readFile(path.join(packageRoot, 'package.json'), 'utf8'));
 const packageLock = JSON.parse(await readFile(path.join(packageRoot, 'package-lock.json'), 'utf8'));
 const esmIndexPath = path.join(packageRoot, packageJson.exports['.'].import);
-const cjsIndexPath = path.join(packageRoot, packageJson.exports['.'].require);
 const declaredDependencyNames = Object.keys(packageJson.dependencies || {});
 const bundleExternalDependencies = declaredDependencyNames.flatMap(dependencyName => [
   dependencyName,
@@ -29,6 +29,63 @@ async function listFiles(directory) {
     })
   );
   return nestedFiles.flat();
+}
+
+function collectModuleSpecifiers(filePath, sourceText) {
+  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true);
+  const specifiers = [];
+
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      specifiers.push(node.moduleSpecifier.text);
+    } else if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0])
+    ) {
+      specifiers.push(node.arguments[0].text);
+    } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+      const literal = node.argument.literal;
+      if (ts.isStringLiteral(literal)) {
+        specifiers.push(literal.text);
+      }
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      node.moduleReference.expression &&
+      ts.isStringLiteral(node.moduleReference.expression)
+    ) {
+      specifiers.push(node.moduleReference.expression.text);
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return specifiers;
+}
+
+async function verifyRelativeModuleSpecifiers(files, declarationFiles) {
+  for (const filePath of files) {
+    const sourceText = await readFile(filePath, 'utf8');
+    const relativeSpecifiers = collectModuleSpecifiers(filePath, sourceText).filter(specifier =>
+      specifier.startsWith('.')
+    );
+
+    for (const specifier of relativeSpecifiers) {
+      assert.ok(specifier.endsWith('.js'), `${normalizePath(filePath)} contains unstable specifier ${specifier}`);
+      const emittedTargetPath = path.resolve(path.dirname(filePath), specifier);
+      const targetPath = declarationFiles ? emittedTargetPath.replace(/\.js$/, '.d.ts') : emittedTargetPath;
+      await assert.doesNotReject(
+        access(targetPath),
+        `${normalizePath(filePath)} references missing module ${specifier}`
+      );
+    }
+  }
 }
 
 function findEntryOutput(metafile, entryFileName) {
@@ -104,16 +161,107 @@ function assertDependenciesExcluded(outputs) {
 }
 
 async function verifyModuleFormats() {
-  const esmExports = await import(`${pathToFileURL(esmIndexPath).href}?package-verification=${Date.now()}`);
+  const esmExports = await import(packageJson.name);
   const require = createRequire(import.meta.url);
-  const cjsExports = require(cjsIndexPath);
+  const cjsExports = require(packageJson.name);
 
   assert.deepEqual(Object.keys(esmExports).sort(), Object.keys(cjsExports).sort(), 'ESM and CommonJS exports differ');
   assert.equal(new esmExports.User('esm-smoke-test').uid, 'esm-smoke-test');
   assert.equal(new cjsExports.User('cjs-smoke-test').uid, 'cjs-smoke-test');
+  assert.equal(new esmExports.DataDistance(123).getValue(), 123);
+  assert.equal(new cjsExports.DataDistance(123).getValue(), 123);
+
+  const createNativeEventJson = () => ({
+    activities: [],
+    description: null,
+    endDate: 1,
+    isMerge: false,
+    name: 'package-smoke-test',
+    powerCurve: null,
+    privacy: esmExports.Privacy.Private,
+    srcFileType: esmExports.FileType.FIT,
+    startDate: 0,
+    stats: {}
+  });
+  assert.equal(esmExports.SportsLib.importFromJSON(createNativeEventJson()).name, 'package-smoke-test');
+  assert.equal(cjsExports.SportsLib.importFromJSON(createNativeEventJson()).name, 'package-smoke-test');
+
+  return Object.keys(esmExports).length;
+}
+
+async function verifyTypeDeclarations(temporaryDirectory) {
+  const typeScriptPath = path.join(packageRoot, 'node_modules/typescript/bin/tsc');
+  const fixtureNames = ['package-types.cts', 'package-types.mts'];
+  const fixturePaths = fixtureNames.map(fixtureName => path.join(temporaryDirectory, fixtureName));
+  await Promise.all(
+    fixtureNames.map((fixtureName, index) =>
+      copyFile(path.join(packageRoot, 'scripts/fixtures', fixtureName), fixturePaths[index])
+    )
+  );
+
+  const compile = (module, moduleResolution, fixtures) =>
+    execFileSync(
+      process.execPath,
+      [
+        typeScriptPath,
+        '--lib',
+        'es2020,dom',
+        '--module',
+        module,
+        '--moduleResolution',
+        moduleResolution,
+        '--noEmit',
+        '--skipLibCheck',
+        '--strict',
+        '--target',
+        'es2020',
+        '--typeRoots',
+        path.join(packageRoot, 'node_modules/@types'),
+        ...fixtures
+      ],
+      { cwd: temporaryDirectory, stdio: 'inherit' }
+    );
+
+  compile('NodeNext', 'NodeNext', fixturePaths);
+  compile('commonjs', 'node', [fixturePaths[0]]);
+  compile('esnext', 'bundler', [fixturePaths[1]]);
+}
+
+async function verifySpecifierRewriter(temporaryDirectory) {
+  const fixtureDirectory = path.join(temporaryDirectory, 'specifier-rewriter');
+  const inputPath = path.join(fixtureDirectory, 'input.d.ts');
+  await mkdir(fixtureDirectory);
+  await Promise.all([
+    writeFile(
+      inputPath,
+      [
+        'export type InlineType = import("./target").Target;',
+        'import Alias = require("./target");',
+        'export { Alias };',
+        ''
+      ].join('\n'),
+      'utf8'
+    ),
+    writeFile(path.join(fixtureDirectory, 'target.js'), 'export {};\n', 'utf8'),
+    writeFile(path.join(fixtureDirectory, 'target.d.ts'), 'export interface Target {}\n', 'utf8')
+  ]);
+
+  execFileSync(
+    process.execPath,
+    [path.join(packageRoot, 'scripts/rewrite-esm-specifiers.mjs'), fixtureDirectory, '.d.ts'],
+    { stdio: 'pipe' }
+  );
+  const rewrittenDeclaration = await readFile(inputPath, 'utf8');
+  assert.ok(rewrittenDeclaration.includes('import("./target.js")'));
+  assert.ok(rewrittenDeclaration.includes('require("./target.js")'));
 }
 
 async function verifyBuildLayout() {
+  const sourceRoot = path.join(packageRoot, 'src');
+  const sourceFiles = (await listFiles(sourceRoot)).filter(filePath => {
+    const relativeSourcePath = normalizePath(path.relative(sourceRoot, filePath));
+    return filePath.endsWith('.ts') && !filePath.endsWith('.spec.ts') && !relativeSourcePath.startsWith('specs/');
+  });
   const esmFiles = await listFiles(path.join(packageRoot, 'lib/esm'));
   const cjsFiles = await listFiles(path.join(packageRoot, 'lib/cjs'));
   const allBuildFiles = [...esmFiles, ...cjsFiles].map(normalizePath);
@@ -122,8 +270,7 @@ async function verifyBuildLayout() {
   const cjsJavaScriptFiles = cjsFiles.filter(filePath => filePath.endsWith('.js'));
   const cjsDeclarationFiles = cjsFiles.filter(filePath => filePath.endsWith('.d.ts'));
 
-  assert.ok(esmJavaScriptFiles.length > 100, 'ESM output was not emitted as separate modules');
-  assert.ok(esmDeclarationFiles.length > 100, 'ESM declarations are missing');
+  assert.equal(esmJavaScriptFiles.length, sourceFiles.length, 'Not every source module was emitted as ESM');
   assert.equal(esmJavaScriptFiles.length, esmDeclarationFiles.length, 'ESM modules and declarations differ');
   assert.equal(cjsJavaScriptFiles.length, esmJavaScriptFiles.length, 'ESM and CommonJS module counts differ');
   assert.equal(cjsDeclarationFiles.length, 0, 'CommonJS contains duplicate declarations');
@@ -133,6 +280,8 @@ async function verifyBuildLayout() {
     'Tests leaked into lib'
   );
   assert.ok((await stat(esmIndexPath)).size < 100_000, 'ESM entry point appears to be bundled');
+  await verifyRelativeModuleSpecifiers(esmJavaScriptFiles, false);
+  await verifyRelativeModuleSpecifiers(esmDeclarationFiles, true);
   for (const format of ['esm', 'cjs']) {
     const formatPackageJson = JSON.parse(await readFile(path.join(packageRoot, `lib/${format}/package.json`), 'utf8'));
     assert.equal(formatPackageJson.sideEffects, false, `${format} package metadata masks side-effect information`);
@@ -229,7 +378,6 @@ function verifyPackContents() {
   return pack;
 }
 
-assert.equal(packageJson.version, '21.0.0');
 assert.equal(packageLock.version, packageJson.version);
 assert.equal(packageLock.packages[''].version, packageJson.version);
 assert.equal(packageJson.sideEffects, false);
@@ -237,6 +385,9 @@ assert.deepEqual(Object.keys(packageJson.exports), ['.']);
 assert.equal(packageJson.main, 'lib/cjs/index.js');
 assert.equal(packageJson.module, 'lib/esm/index.js');
 assert.equal(packageJson.types, 'lib/esm/index.d.ts');
+assert.equal(packageJson.exports['.'].types, './lib/esm/index.d.ts');
+assert.equal(packageJson.exports['.'].import, './lib/esm/index.js');
+assert.equal(packageJson.exports['.'].require, './lib/cjs/index.js');
 
 const temporaryDirectory = await mkdtemp(path.join(tmpdir(), 'sports-lib-package-verification-'));
 try {
@@ -248,13 +399,15 @@ try {
   await cp(path.join(packageRoot, 'lib'), path.join(packageLink, 'lib'), { recursive: true });
 
   await verifyBuildLayout();
-  await verifyModuleFormats();
+  const rootExportCount = await verifyModuleFormats();
+  await verifySpecifierRewriter(temporaryDirectory);
+  await verifyTypeDeclarations(temporaryDirectory);
   const representativeBundleBytes = await verifyRepresentativeTreeShaking(temporaryDirectory);
   const pack = verifyPackContents();
 
   console.log(
-    `Verified ${Object.keys(await import(pathToFileURL(esmIndexPath).href)).length} exports, ` +
-      `${representativeBundleBytes} startup bytes, and ${pack.entryCount} packed files.`
+    `Verified ${rootExportCount} exports, ${representativeBundleBytes} startup bytes, ` +
+      `and ${pack.entryCount} packed files.`
   );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });

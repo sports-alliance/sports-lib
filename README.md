@@ -49,5 +49,5 @@ when an application imports focused root exports such as `User`, settings, or da
 facade retains its complete import/export feature set in the initial bundle, so startup-sensitive consumers should use
 focused root imports.
 
-The 21.0.1 packaging change does not alter parsed values, native JSON, or persisted metric representations. Consumers do
+The 21.0.2 packaging change does not alter parsed values, native JSON, or persisted metric representations. Consumers do
 not need to reparse source files, regenerate summaries, or migrate stored data.

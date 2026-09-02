@@ -92,7 +92,7 @@ jobs:
 
       - name: Verify the publishable package
         run: |
-          npm pack --dry-run --json > "$RUNNER_TEMP/npm-pack.json"
+          npm pack --dry-run --json --silent > "$RUNNER_TEMP/npm-pack.json"
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
 

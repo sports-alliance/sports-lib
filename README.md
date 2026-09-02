@@ -40,3 +40,14 @@ const distanceMetres = activity.getDistance().getValue();
 ```
 
 See [Import activities](https://sports-alliance.github.io/sports-lib/documents/Import_activities.html) for the other supported formats and parsing options.
+
+## Package formats
+
+Sports Lib 21 publishes module-preserving ESM for `import` consumers and per-module CommonJS for `require` consumers.
+The package-root API remains supported; bundlers can discard unrelated parser, exporter, geodesy, and filtering modules
+when an application imports focused root exports such as `User`, settings, or data classes. Importing the `SportsLib`
+facade retains its complete import/export feature set in the initial bundle, so startup-sensitive consumers should use
+focused root imports.
+
+The 21.0.0 packaging change does not alter parsed values, native JSON, or persisted metric representations. Consumers do
+not need to reparse source files, regenerate summaries, or migrate stored data.

@@ -25,7 +25,10 @@ jobs:
         node-version: 24.x
         cache: 'npm'
     - run: npm ci
+    - run: npm run lint:package
     - run: npm run test
+    - run: npm run build
+    - run: npm run test:package
 
   docs:
     runs-on: ubuntu-latest

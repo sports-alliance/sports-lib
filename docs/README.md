@@ -55,6 +55,11 @@ When parsing GPX in Node.js, also install a DOM parser implementation:
 npm install @xmldom/xmldom
 ```
 
+Version 21 provides module-preserving ESM and CommonJS output through the existing package-root API. Bundlers can remove
+unrelated importers and utilities when focused exports are used; the `SportsLib` facade continues to expose the complete
+format surface in the initial bundle. Startup-sensitive consumers should use focused root imports. Upgrading does not
+require reparsing activities or routes, regenerating summaries, or migrating native JSON and persisted metrics.
+
 ## Guides
 
 - [Import activities](guides/importing-activities.md) — parse GPX, TCX, FIT, Suunto JSON, and native JSON.

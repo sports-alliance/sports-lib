@@ -1,10 +1,10 @@
 {
     "extends": "./tsconfig.lib.json",
     "compilerOptions": {
-        "declaration": false,
+        "emitDeclarationOnly": true,
         "module": "es2020",
         "moduleResolution": "node",
-        "outDir": "./out-tsc/esm",
+        "outDir": "./lib/esm",
         "target": "es2020"
     }
 }

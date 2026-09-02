@@ -1,4 +1,4 @@
-import { decode, encode } from '@googlemaps/polyline-codec';
+import * as polylineCodecModule from '@googlemaps/polyline-codec';
 import { RouteFileInterface } from './route-file.interface';
 import { RouteInterface } from './route.interface';
 import {
@@ -10,6 +10,16 @@ import {
   RoutePreviewRouteSourceInterface,
   RoutePreviewSegmentJSONInterface
 } from './route-preview.interface';
+
+type PolylineCodec = typeof import('@googlemaps/polyline-codec');
+
+const polylineCodecNamespace = polylineCodecModule as unknown as Partial<PolylineCodec> & {
+  default?: PolylineCodec;
+};
+const polylineCodec = (
+  typeof polylineCodecNamespace.decode === 'function' ? polylineCodecNamespace : polylineCodecNamespace.default
+) as PolylineCodec;
+const { decode, encode } = polylineCodec;
 
 export const ROUTE_PREVIEW_VERSION = 1 as const;
 export const ROUTE_PREVIEW_ENCODING = 'polyline5' as const;

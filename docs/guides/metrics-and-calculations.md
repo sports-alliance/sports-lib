@@ -265,6 +265,30 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
+Activity and lap min/max/average derivation uses one explicit internal policy registry. It currently covers altitude,
+heart rate, cadence, stroke rate, speed, effort pace, grade-adjusted speed, grade, vertical speed, power, air power,
+absolute pressure, EVPE/EHPE, satellite SNR/count, temperature, ground contact time and its percentage, running flight
+time, contact-time-to-flight-time ratio, leg stiffness, vertical oscillation/ratio, stamina, and potential stamina.
+Registering a metric relationship in `DataStore` alone does not opt a new family into stream-summary generation.
+
+- Every target is filled independently. An imported minimum, maximum, or average remains authoritative while missing
+  siblings may still be derived.
+- Only finite samples that pass the family policy contribute. No summary is added when no eligible samples exist.
+- Heart-rate, cadence, and stroke-rate averages are rounded to whole values. Cadence and stroke-rate minimums and
+  averages exclude zero. Ground-contact-time percentages must be greater than zero and at most 100; running flight
+  time and contact-time-to-flight-time ratio accept non-negative values.
+- Altitude and grade prefer their smoothed streams when present. Their summary families remain excluded for Diving
+  activity types.
+- Existing laps use their activity's normalized 1 Hz streams. Lap windows are half-open (`[start, end)`), assigning an
+  exact shared boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint. Overlapping
+  laps are evaluated independently.
+- Generated lap summaries store canonical stats only. Unit variants are resolved by consumers from the canonical stat
+  and current unit settings; activity unit-stat generation remains unchanged for compatibility.
+- Native JSON restoration remains snapshot-based and does not regenerate these lap summaries from included streams.
+  Newly imported source files, or callers that explicitly run activity stat generation, receive the additional lap
+  summaries. Existing persisted activities therefore require source-file reparsing when their JSON has neither the
+  summaries nor the source streams needed for explicit regeneration.
+
 - Terrain ascent/descent, altitude min/max/avg, and grade min/max/avg are intentionally excluded for the Diving
   activity group (Diving, Scuba Diving, Free Diving, Snorkeling, and Mermaiding), whether present in a source summary,
   restored from native JSON, regenerated into an all-diving event summary, or otherwise derived from streams. Mixed

@@ -15,21 +15,15 @@ import {
   DataVerticalSpeedMetersPerMinute,
   DataVerticalSpeedMilesPerHour
 } from '../../data/data.vertical-speed';
-import { DataTemperature } from '../../data/data.temperature';
-import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
-import { DataEVPE } from '../../data/data.evpe';
 import { DataEVPEMin } from '../../data/data.evpe-min';
 import { DataEVPEMax } from '../../data/data.evpe-max';
 import { DataEVPEAvg } from '../../data/data.evpe-avg';
-import { DataEHPE } from '../../data/data.ehpe';
 import { DataEHPEMin } from '../../data/data.ehpe-min';
 import { DataEHPEMax } from '../../data/data.ehpe-max';
 import { DataEHPEAvg } from '../../data/data.ehpe-avg';
-import { DataSatellite5BestSNR } from '../../data/data.satellite-5-best-snr';
 import { DataSatellite5BestSNRMin } from '../../data/data.satellite-5-best-snr-min';
 import { DataSatellite5BestSNRMax } from '../../data/data.satellite-5-best-snr-max';
 import { DataSatellite5BestSNRAvg } from '../../data/data.satellite-5-best-snr-avg';
-import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
 import { DataNumberOfSatellitesMin } from '../../data/data.number-of-satellites-min';
 import { DataNumberOfSatellitesMax } from '../../data/data.number-of-satellites-max';
 import { DataNumberOfSatellitesAvg } from '../../data/data.number-of-satellites-avg';
@@ -124,7 +118,6 @@ import { DataPaceMax, DataPaceMaxMinutesPerMile } from '../../data/data.pace-max
 import { DataPace } from '../../data/data.pace';
 import { DataPaceMin, DataPaceMinMinutesPerMile } from '../../data/data.pace-min';
 import { DataPaceAvg, DataPaceAvgMinutesPerMile } from '../../data/data.pace-avg';
-import { DataEffortPace } from '../../data/data.effort-pace';
 import { DataEffortPaceAvg, DataEffortPaceAvgMinutesPerMile } from '../../data/data.effort-pace-avg';
 import { DataEffortPaceMin, DataEffortPaceMinMinutesPerMile } from '../../data/data.effort-pace-min';
 import { DataEffortPaceMax, DataEffortPaceMaxMinutesPerMile } from '../../data/data.effort-pace-max';
@@ -173,10 +166,8 @@ import { DataPowerBalanceLeft } from '../../data/data.power-balance-left';
 import { DataPowerBalanceRight } from '../../data/data.power-balance-right';
 import { DataPowerRight } from '../../data/data.power-right';
 import { DataAirPowerMin } from '../../data/data.air-power-min';
-import { DataAirPower } from '../../data/data.air-power';
 import { DataAirPowerMax } from '../../data/data.air-power-max';
 import { DataAirPowerAvg } from '../../data/data.air-power-avg';
-import { DataLegStiffness } from '../../data/data.leg-stiffness';
 import { DataLegStiffnessMin } from '../../data/data.leg-stiffness-min';
 import { DataLegStiffnessMax } from '../../data/data.leg-stiffness-max';
 import { DataLegStiffnessAvg } from '../../data/data.leg-stiffness-avg';
@@ -200,7 +191,6 @@ import { DataSpeedZoneTwoDuration } from '../../data/data.speed-zone-two-duratio
 import { DataSpeedZoneThreeDuration } from '../../data/data.speed-zone-three-duration';
 import { DataSpeedZoneFourDuration } from '../../data/data.speed-zone-four-duration';
 import { DataSpeedZoneFiveDuration } from '../../data/data.speed-zone-five-duration';
-import { DataGroundContactTime } from '../../data/data.ground-contact-time';
 import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-avg';
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
@@ -208,15 +198,12 @@ import { DataIBI } from '../../data/data.ibi';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
-  DataContactTimeToFlightTimeRatio,
   DataContactTimeToFlightTimeRatioAvg,
   DataContactTimeToFlightTimeRatioMax,
   DataContactTimeToFlightTimeRatioMin,
-  DataGroundContactTimePercentage,
   DataGroundContactTimePercentageAvg,
   DataGroundContactTimePercentageMax,
   DataGroundContactTimePercentageMin,
-  DataRunningFlightTime,
   DataRunningFlightTimeAvg,
   DataRunningFlightTimeMax,
   DataRunningFlightTimeMin
@@ -229,24 +216,12 @@ import {
   DataVerticalOscillationBalanceLeft,
   DataVerticalOscillationBalanceRight
 } from '../../data/data.running-dynamics-balance';
-import { DataVerticalOscillation } from '../../data/data.vertical-oscillation';
 import { DataVerticalOscillationAvg } from '../../data/data.vertical-oscillation-avg';
 import { DataVerticalOscillationMax } from '../../data/data.vertical-oscillation-max';
 import { DataVerticalOscillationMin } from '../../data/data.vertical-oscillation-min';
-import { DataVerticalRatio } from '../../data/data.vertical-ratio';
 import { DataVerticalRatioMin } from '../../data/data.vertical-ratio-min';
 import { DataVerticalRatioMax } from '../../data/data.vertical-ratio-max';
 import { DataVerticalRatioAvg } from '../../data/data.vertical-ratio-avg';
-import {
-  DataPotentialStamina,
-  DataPotentialStaminaAvg,
-  DataPotentialStaminaMax,
-  DataPotentialStaminaMin,
-  DataStamina,
-  DataStaminaAvg,
-  DataStaminaMax,
-  DataStaminaMin
-} from '../../data/data.stamina';
 import { DataStanceTimeBalanceLeft } from '../../data/data-stance-time-balance-left';
 import { DataStanceTimeBalanceRight } from '../../data/data-stance-time-balance-right';
 
@@ -317,6 +292,7 @@ import { DataGradeSmooth } from '../../data/data.grade-smooth';
 import { DataSWOLF25m } from '../../data/data.swolf-25m';
 import { DataSWOLF50m } from '../../data/data.swolf-50m';
 import { normalizeActivityMetricSemanticsForActivity } from '../../activities/activity.metric-semantics';
+import { addMissingStreamSummaryStats } from './stream-summary-policies';
 
 import { LowPassFilter } from './grade-calculator/low-pass-filter';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
@@ -560,43 +536,6 @@ export class ActivityUtilities {
       const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
       activity.addStat(new RightDataClass(avgRightBalance));
       activity.addStat(new LeftDataClass(this.round(100 - avgRightBalance, 2)));
-    }
-  }
-
-  private static addMissingNumericFamilyStatsFromStream(
-    activity: ActivityInterface,
-    BaseDataClass: { type: string },
-    AvgDataClass: { type: string; new (value: number): DataInterface },
-    MinDataClass: { type: string; new (value: number): DataInterface },
-    MaxDataClass: { type: string; new (value: number): DataInterface },
-    filterOver?: number,
-    isValueValid: (value: number) => boolean = () => true
-  ): void {
-    if (!activity.hasStreamData(BaseDataClass.type)) {
-      return;
-    }
-
-    const values = activity
-      .getStreamData(BaseDataClass.type)
-      .filter(
-        (value): value is number =>
-          typeof value === 'number' &&
-          Number.isFinite(value) &&
-          (!Number.isFinite(filterOver) || value > (filterOver as number)) &&
-          isValueValid(value)
-      );
-    if (values.length === 0) {
-      return;
-    }
-
-    if (!activity.getStat(MaxDataClass.type)) {
-      activity.addStat(new MaxDataClass(values.reduce((maximum, value) => Math.max(maximum, value), -Infinity)));
-    }
-    if (!activity.getStat(MinDataClass.type)) {
-      activity.addStat(new MinDataClass(values.reduce((minimum, value) => Math.min(minimum, value), Infinity)));
-    }
-    if (!activity.getStat(AvgDataClass.type)) {
-      activity.addStat(new AvgDataClass(this.getAverage(values)));
     }
   }
 
@@ -988,9 +927,10 @@ export class ActivityUtilities {
   }
 
   /**
-   * Fills missing activity streams and summary stats, including speed-derived pace summaries on
-   * the activity and its existing laps. Explicit stats are preserved except terrain summaries
-   * excluded for Diving activities.
+   * Fills missing activity streams and summary stats, then derives canonical min/max/average and
+   * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
+   * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
+   * Explicit stats are preserved except terrain summaries excluded for Diving activities.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     normalizeActivityMetricSemanticsForActivity(activity);
@@ -998,7 +938,33 @@ export class ActivityUtilities {
     this.fixAbnormalStreamData(activity);
     this.generateMissingStatsForActivity(activity);
     hydrateMissingSpeedDerivedStats(activity);
-    activity.getLaps().forEach(lap => hydrateMissingSpeedDerivedStats(lap));
+    activity.getLaps().forEach(lap => {
+      const activityStart = activity.startDate.getTime();
+      const activityEnd = activity.endDate.getTime();
+      const lapStart = lap.startDate.getTime();
+      const lapEnd = lap.endDate.getTime();
+      const includesActivityEndpoint = lapEnd >= activityEnd;
+      const startIndex = Math.max(0, Math.ceil((lapStart - activityStart) / 1000));
+      const boundedEnd = Math.min(lapEnd, activityEnd);
+      const endIndex = Math.max(
+        0,
+        includesActivityEndpoint
+          ? Math.floor((boundedEnd - activityStart) / 1000) + 1
+          : Math.ceil((boundedEnd - activityStart) / 1000)
+      );
+
+      addMissingStreamSummaryStats({
+        activityType: activity.type,
+        target: lap,
+        readStream: streamType => {
+          if (!activity.hasStreamData(streamType)) {
+            return undefined;
+          }
+          return activity.getStreamData(streamType).slice(startIndex, endIndex);
+        }
+      });
+      hydrateMissingSpeedDerivedStats(lap);
+    });
     const existingDurability = activity.getStat<DurabilityEvidenceValue>(DataDurabilityEvidence.type)?.getValue();
     const canonicalExistingDurability = normalizeDurabilityEvidenceValue(existingDurability);
     const hasSourceData = canonicalExistingDurability ? hasActivityDurabilitySourceData(activity) : false;
@@ -3752,7 +3718,11 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
-    const shouldExcludeTerrainSummaryMetrics = ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(activity.type);
+    addMissingStreamSummaryStats({
+      activityType: activity.type,
+      target: activity,
+      readStream: streamType => (activity.hasStreamData(streamType) ? activity.getStreamData(streamType) : undefined)
+    });
     // If there is no distance or distance for some reason is 0
     const activityDistanceStat = activity.getStat(DataDistance.type);
     if (!activityDistanceStat || activityDistanceStat.getValue() === 0) {
@@ -3807,52 +3777,6 @@ export class ActivityUtilities {
         activity.addStat(new DataDescent(loss));
       }
     }
-    // Altitude Max
-    if (
-      !shouldExcludeTerrainSummaryMetrics &&
-      !activity.getStat(DataAltitudeMax.type) &&
-      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
-    ) {
-      activity.addStat(
-        new DataAltitudeMax(
-          this.getDataTypeMax(
-            activity,
-            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
-          )
-        )
-      );
-    }
-    // Altitude Min
-    if (
-      !shouldExcludeTerrainSummaryMetrics &&
-      !activity.getStat(DataAltitudeMin.type) &&
-      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
-    ) {
-      activity.addStat(
-        new DataAltitudeMin(
-          this.getDataTypeMin(
-            activity,
-            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
-          )
-        )
-      );
-    }
-    // Altitude Avg
-    if (
-      !shouldExcludeTerrainSummaryMetrics &&
-      !activity.getStat(DataAltitudeAvg.type) &&
-      (activity.hasStreamData(DataAltitudeSmooth.type) || activity.hasStreamData(DataAltitude.type))
-    ) {
-      activity.addStat(
-        new DataAltitudeAvg(
-          this.getDataTypeAvg(
-            activity,
-            activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
-          )
-        )
-      );
-    }
-
     // Altitude start
     if (
       !activity.getStat(DataStartAltitude.type) &&
@@ -3891,141 +3815,6 @@ export class ActivityUtilities {
       );
     }
 
-    // Heart Rate  Max
-    if (!activity.getStat(DataHeartRateMax.type) && activity.hasStreamData(DataHeartRate.type)) {
-      activity.addStat(new DataHeartRateMax(this.getDataTypeMax(activity, DataHeartRate.type)));
-    }
-    // Heart Rate Min
-    if (!activity.getStat(DataHeartRateMin.type) && activity.hasStreamData(DataHeartRate.type)) {
-      activity.addStat(new DataHeartRateMin(this.getDataTypeMin(activity, DataHeartRate.type)));
-    }
-    // Heart Rate Avg
-    if (!activity.getStat(DataHeartRateAvg.type) && activity.hasStreamData(DataHeartRate.type)) {
-      activity.addStat(new DataHeartRateAvg(this.round(this.getDataTypeAvg(activity, DataHeartRate.type))));
-    }
-    // Cadence Max
-    if (!activity.getStat(DataCadenceMax.type) && activity.hasStreamData(DataCadence.type)) {
-      activity.addStat(new DataCadenceMax(this.getDataTypeMax(activity, DataCadence.type)));
-    }
-    // Cadence Min
-    if (!activity.getStat(DataCadenceMin.type) && activity.hasStreamData(DataCadence.type)) {
-      // Get min cadence except 0. A 0 cadence is not meaningful.
-      const minCadenceOver = 0;
-      activity.addStat(
-        new DataCadenceMin(this.getDataTypeMin(activity, DataCadence.type, undefined, undefined, minCadenceOver))
-      );
-    }
-    // Cadence Avg
-    if (!activity.getStat(DataCadenceAvg.type) && activity.hasStreamData(DataCadence.type)) {
-      // Get avg cadence except 0 values. Platforms like garmin/strava don't include 0 cadences in their averages.
-      const avgCadenceOver = 0;
-      const avgCadence = this.getDataTypeAvg(activity, DataCadence.type, undefined, undefined, avgCadenceOver);
-      activity.addStat(new DataCadenceAvg(this.round(avgCadence)));
-    }
-
-    // Stroke Rate Max
-    if (!activity.getStat(DataStrokeRateMax.type) && activity.hasStreamData(DataStrokeRate.type)) {
-      activity.addStat(new DataStrokeRateMax(this.getDataTypeMax(activity, DataStrokeRate.type)));
-    }
-    // Stroke Rate Min
-    if (!activity.getStat(DataStrokeRateMin.type) && activity.hasStreamData(DataStrokeRate.type)) {
-      // A zero stroke rate is not meaningful for summary minimums.
-      const minStrokeRateOver = 0;
-      activity.addStat(
-        new DataStrokeRateMin(
-          this.getDataTypeMin(activity, DataStrokeRate.type, undefined, undefined, minStrokeRateOver)
-        )
-      );
-    }
-    // Stroke Rate Avg
-    if (!activity.getStat(DataStrokeRateAvg.type) && activity.hasStreamData(DataStrokeRate.type)) {
-      // Match cadence behavior by excluding zero values from source-platform averages.
-      const avgStrokeRateOver = 0;
-      const avgStrokeRate = this.getDataTypeAvg(activity, DataStrokeRate.type, undefined, undefined, avgStrokeRateOver);
-      activity.addStat(new DataStrokeRateAvg(this.round(avgStrokeRate)));
-    }
-
-    // Speed Max
-    if (!activity.getStat(DataSpeedMax.type) && activity.hasStreamData(DataSpeed.type)) {
-      activity.addStat(new DataSpeedMax(this.getDataTypeMax(activity, DataSpeed.type)));
-    }
-    // Speed Min
-    if (!activity.getStat(DataSpeedMin.type) && activity.hasStreamData(DataSpeed.type)) {
-      activity.addStat(new DataSpeedMin(this.getDataTypeMin(activity, DataSpeed.type)));
-    }
-    // Speed Avg
-    if (!activity.getStat(DataSpeedAvg.type) && activity.hasStreamData(DataSpeed.type)) {
-      activity.addStat(new DataSpeedAvg(this.getDataTypeAvg(activity, DataSpeed.type)));
-    }
-
-    // Effort Pace Max
-    if (!activity.getStat(DataEffortPaceMax.type) && activity.hasStreamData(DataEffortPace.type)) {
-      activity.addStat(new DataEffortPaceMax(this.getDataTypeMax(activity, DataEffortPace.type)));
-    }
-    // Effort Pace Min
-    if (!activity.getStat(DataEffortPaceMin.type) && activity.hasStreamData(DataEffortPace.type)) {
-      activity.addStat(new DataEffortPaceMin(this.getDataTypeMin(activity, DataEffortPace.type)));
-    }
-    // Effort Pace Avg
-    if (!activity.getStat(DataEffortPaceAvg.type) && activity.hasStreamData(DataEffortPace.type)) {
-      activity.addStat(new DataEffortPaceAvg(this.getDataTypeAvg(activity, DataEffortPace.type)));
-    }
-
-    // Grade Adjusted Speed Max
-    if (!activity.getStat(DataGradeAdjustedSpeedMax.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
-      activity.addStat(new DataGradeAdjustedSpeedMax(this.getDataTypeMax(activity, DataGradeAdjustedSpeed.type)));
-    }
-    // Grade Adjusted Speed Min
-    if (!activity.getStat(DataGradeAdjustedSpeedMin.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
-      activity.addStat(new DataGradeAdjustedSpeedMin(this.getDataTypeMin(activity, DataGradeAdjustedSpeed.type)));
-    }
-    // Grade Adjusted Speed Avg
-    if (!activity.getStat(DataGradeAdjustedSpeedAvg.type) && activity.hasStreamData(DataGradeAdjustedSpeed.type)) {
-      activity.addStat(new DataGradeAdjustedSpeedAvg(this.getDataTypeAvg(activity, DataGradeAdjustedSpeed.type)));
-    }
-
-    // Grade Max/Min/Avg (prefer smoothed grade when available)
-    const gradeStreamType = activity.hasStreamData(DataGradeSmooth.type)
-      ? DataGradeSmooth.type
-      : activity.hasStreamData(DataGrade.type)
-        ? DataGrade.type
-        : null;
-    if (!shouldExcludeTerrainSummaryMetrics && gradeStreamType) {
-      if (!activity.getStat(DataGradeMax.type)) {
-        activity.addStat(new DataGradeMax(this.getDataTypeMax(activity, gradeStreamType)));
-      }
-      if (!activity.getStat(DataGradeMin.type)) {
-        activity.addStat(new DataGradeMin(this.getDataTypeMin(activity, gradeStreamType)));
-      }
-      if (!activity.getStat(DataGradeAvg.type)) {
-        activity.addStat(new DataGradeAvg(this.getDataTypeAvg(activity, gradeStreamType)));
-      }
-    }
-
-    // Vertical Speed Max
-    if (!activity.getStat(DataVerticalSpeedMax.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
-      activity.addStat(new DataVerticalSpeedMax(this.getDataTypeMax(activity, DataVerticalSpeed.type)));
-    }
-    // Vertical Speed Min
-    if (!activity.getStat(DataVerticalSpeedMin.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
-      activity.addStat(new DataVerticalSpeedMin(this.getDataTypeMin(activity, DataVerticalSpeed.type)));
-    }
-    // Vertical Speed Avg
-    if (!activity.getStat(DataVerticalSpeedAvg.type) && activity.hasStreamData(DataVerticalSpeed.type)) {
-      activity.addStat(new DataVerticalSpeedAvg(this.getDataTypeAvg(activity, DataVerticalSpeed.type)));
-    }
-    // Power Max
-    if (!activity.getStat(DataPowerMax.type) && activity.hasStreamData(DataPower.type)) {
-      activity.addStat(new DataPowerMax(this.getDataTypeMax(activity, DataPower.type)));
-    }
-    // Power Min
-    if (!activity.getStat(DataPowerMin.type) && activity.hasStreamData(DataPower.type)) {
-      activity.addStat(new DataPowerMin(this.getDataTypeMin(activity, DataPower.type)));
-    }
-    // Power AVG
-    if (!activity.getStat(DataPowerAvg.type) && activity.hasStreamData(DataPower.type)) {
-      activity.addStat(new DataPowerAvg(this.getDataTypeAvg(activity, DataPower.type)));
-    }
     // Power-to-Weight Ratio (W/kg) from average power and body weight
     if (!activity.getStat(DataPowerWattsPerKg.type)) {
       const powerWattsPerKg = this.resolvePowerWattsPerKg(activity);
@@ -4070,97 +3859,6 @@ export class ActivityUtilities {
 
     // Training Stress Score (priority: POWER -> HR -> PACE/SWIM_PACE -> MET)
     this.generateTrainingStressScore(activity);
-
-    // Air AirPower Max
-    if (!activity.getStat(DataAirPowerMax.type) && activity.hasStreamData(DataAirPower.type)) {
-      activity.addStat(new DataAirPowerMax(this.getDataTypeMax(activity, DataAirPower.type)));
-    }
-    // Air AirPower Min
-    if (!activity.getStat(DataAirPowerMin.type) && activity.hasStreamData(DataAirPower.type)) {
-      activity.addStat(new DataAirPowerMin(this.getDataTypeMin(activity, DataAirPower.type)));
-    }
-    // Air AirPower AVG
-    if (!activity.getStat(DataAirPowerAvg.type) && activity.hasStreamData(DataAirPower.type)) {
-      activity.addStat(new DataAirPowerAvg(this.getDataTypeAvg(activity, DataAirPower.type)));
-    }
-
-    // Absolute Pressure Max
-    if (!activity.getStat(DataAbsolutePressureMax.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
-      activity.addStat(new DataAbsolutePressureMax(this.getDataTypeMax(activity, DataAbsolutePressure.type)));
-    }
-    // Absolute Pressure Min
-    if (!activity.getStat(DataAbsolutePressureMin.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
-      activity.addStat(new DataAbsolutePressureMin(this.getDataTypeMin(activity, DataAbsolutePressure.type)));
-    }
-    // Absolute Pressure Avg
-    if (!activity.getStat(DataAbsolutePressureAvg.type) && activity.hasStreamData(DataAbsolutePressure.type)) {
-      activity.addStat(new DataAbsolutePressureAvg(this.getDataTypeAvg(activity, DataAbsolutePressure.type)));
-    }
-
-    // EVPE Max
-    if (!activity.getStat(DataEVPEMax.type) && activity.hasStreamData(DataEVPE.type)) {
-      activity.addStat(new DataEVPEMax(this.getDataTypeMax(activity, DataEVPE.type)));
-    }
-    // EVPE Min
-    if (!activity.getStat(DataEVPEMin.type) && activity.hasStreamData(DataEVPE.type)) {
-      activity.addStat(new DataEVPEMin(this.getDataTypeMin(activity, DataEVPE.type)));
-    }
-    // EVPE Avg
-    if (!activity.getStat(DataEVPEAvg.type) && activity.hasStreamData(DataEVPE.type)) {
-      activity.addStat(new DataEVPEAvg(this.getDataTypeAvg(activity, DataEVPE.type)));
-    }
-
-    // EHPE Max
-    if (!activity.getStat(DataEHPEMax.type) && activity.hasStreamData(DataEHPE.type)) {
-      activity.addStat(new DataEHPEMax(this.getDataTypeMax(activity, DataEHPE.type)));
-    }
-    // EHPE Min
-    if (!activity.getStat(DataEHPEMin.type) && activity.hasStreamData(DataEHPE.type)) {
-      activity.addStat(new DataEHPEMin(this.getDataTypeMin(activity, DataEHPE.type)));
-    }
-    // EHPE Avg
-    if (!activity.getStat(DataEHPEAvg.type) && activity.hasStreamData(DataEHPE.type)) {
-      activity.addStat(new DataEHPEAvg(this.getDataTypeAvg(activity, DataEHPE.type)));
-    }
-
-    // Satellite 5 Best SNR Max
-    if (!activity.getStat(DataSatellite5BestSNRMax.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
-      activity.addStat(new DataSatellite5BestSNRMax(this.getDataTypeMax(activity, DataSatellite5BestSNR.type)));
-    }
-    // Satellite 5 Best SNR Min
-    if (!activity.getStat(DataSatellite5BestSNRMin.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
-      activity.addStat(new DataSatellite5BestSNRMin(this.getDataTypeMin(activity, DataSatellite5BestSNR.type)));
-    }
-    // Satellite 5 Best SNR Avg
-    if (!activity.getStat(DataSatellite5BestSNRAvg.type) && activity.hasStreamData(DataSatellite5BestSNR.type)) {
-      activity.addStat(new DataSatellite5BestSNRAvg(this.getDataTypeAvg(activity, DataSatellite5BestSNR.type)));
-    }
-
-    // Number of Satellites Max
-    if (!activity.getStat(DataNumberOfSatellitesMax.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
-      activity.addStat(new DataNumberOfSatellitesMax(this.getDataTypeMax(activity, DataNumberOfSatellites.type)));
-    }
-    // Number of Satellites Min
-    if (!activity.getStat(DataNumberOfSatellitesMin.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
-      activity.addStat(new DataNumberOfSatellitesMin(this.getDataTypeMin(activity, DataNumberOfSatellites.type)));
-    }
-    // Number of Satellites Avg
-    if (!activity.getStat(DataNumberOfSatellitesAvg.type) && activity.hasStreamData(DataNumberOfSatellites.type)) {
-      activity.addStat(new DataNumberOfSatellitesAvg(this.getDataTypeAvg(activity, DataNumberOfSatellites.type)));
-    }
-
-    // Temperature Max
-    if (!activity.getStat(DataTemperatureMax.type) && activity.hasStreamData(DataTemperature.type)) {
-      activity.addStat(new DataTemperatureMax(this.getDataTypeMax(activity, DataTemperature.type)));
-    }
-    // Temperature Min
-    if (!activity.getStat(DataTemperatureMin.type) && activity.hasStreamData(DataTemperature.type)) {
-      activity.addStat(new DataTemperatureMin(this.getDataTypeMin(activity, DataTemperature.type)));
-    }
-    // Temperature Avg
-    if (!activity.getStat(DataTemperatureAvg.type) && activity.hasStreamData(DataTemperature.type)) {
-      activity.addStat(new DataTemperatureAvg(this.getDataTypeAvg(activity, DataTemperature.type)));
-    }
 
     // Battery Consumption Avg
     if (!activity.getStat(DataBatteryConsumption.type) && activity.hasStreamData(DataBatteryCharge.type)) {
@@ -4222,100 +3920,6 @@ export class ActivityUtilities {
 
     // Backward compatibility for Stance Time Balance
     this.addLeftRightBalanceStatsFromStreams(activity, DataStanceTimeBalanceLeft, DataStanceTimeBalanceRight);
-
-    // Ground Contact Time
-    if (!activity.getStat(DataGroundContactTimeMax.type) && activity.hasStreamData(DataGroundContactTime.type)) {
-      activity.addStat(new DataGroundContactTimeMax(this.getDataTypeMax(activity, DataGroundContactTime.type)));
-    }
-    if (!activity.getStat(DataGroundContactTimeMin.type) && activity.hasStreamData(DataGroundContactTime.type)) {
-      activity.addStat(new DataGroundContactTimeMin(this.getDataTypeMin(activity, DataGroundContactTime.type)));
-    }
-    if (!activity.getStat(DataGroundContactTimeAvg.type) && activity.hasStreamData(DataGroundContactTime.type)) {
-      activity.addStat(new DataGroundContactTimeAvg(this.getDataTypeAvg(activity, DataGroundContactTime.type)));
-    }
-
-    this.addMissingNumericFamilyStatsFromStream(
-      activity,
-      DataGroundContactTimePercentage,
-      DataGroundContactTimePercentageAvg,
-      DataGroundContactTimePercentageMin,
-      DataGroundContactTimePercentageMax,
-      0,
-      value => value <= 100
-    );
-    this.addMissingNumericFamilyStatsFromStream(
-      activity,
-      DataRunningFlightTime,
-      DataRunningFlightTimeAvg,
-      DataRunningFlightTimeMin,
-      DataRunningFlightTimeMax,
-      undefined,
-      value => value >= 0
-    );
-    this.addMissingNumericFamilyStatsFromStream(
-      activity,
-      DataContactTimeToFlightTimeRatio,
-      DataContactTimeToFlightTimeRatioAvg,
-      DataContactTimeToFlightTimeRatioMin,
-      DataContactTimeToFlightTimeRatioMax,
-      undefined,
-      value => value >= 0
-    );
-
-    // Leg Stiffness
-    if (!activity.getStat(DataLegStiffnessMax.type) && activity.hasStreamData(DataLegStiffness.type)) {
-      activity.addStat(new DataLegStiffnessMax(this.getDataTypeMax(activity, DataLegStiffness.type)));
-    }
-    if (!activity.getStat(DataLegStiffnessMin.type) && activity.hasStreamData(DataLegStiffness.type)) {
-      activity.addStat(new DataLegStiffnessMin(this.getDataTypeMin(activity, DataLegStiffness.type)));
-    }
-    if (!activity.getStat(DataLegStiffnessAvg.type) && activity.hasStreamData(DataLegStiffness.type)) {
-      activity.addStat(new DataLegStiffnessAvg(this.getDataTypeAvg(activity, DataLegStiffness.type)));
-    }
-
-    // Vertical Oscillation
-    if (!activity.getStat(DataVerticalOscillationMax.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
-      activity.addStat(new DataVerticalOscillationMax(this.getDataTypeMax(activity, DataVerticalOscillation.type)));
-    }
-    if (!activity.getStat(DataVerticalOscillationMin.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
-      activity.addStat(new DataVerticalOscillationMin(this.getDataTypeMin(activity, DataVerticalOscillation.type)));
-    }
-    if (!activity.getStat(DataVerticalOscillationAvg.type) && activity.hasStreamData(DataVerticalOscillation.type)) {
-      activity.addStat(new DataVerticalOscillationAvg(this.getDataTypeAvg(activity, DataVerticalOscillation.type)));
-    }
-
-    // Vertical Ratio
-    if (!activity.getStat(DataVerticalRatioMax.type) && activity.hasStreamData(DataVerticalRatio.type)) {
-      activity.addStat(new DataVerticalRatioMax(this.getDataTypeMax(activity, DataVerticalRatio.type)));
-    }
-    if (!activity.getStat(DataVerticalRatioMin.type) && activity.hasStreamData(DataVerticalRatio.type)) {
-      activity.addStat(new DataVerticalRatioMin(this.getDataTypeMin(activity, DataVerticalRatio.type)));
-    }
-    if (!activity.getStat(DataVerticalRatioAvg.type) && activity.hasStreamData(DataVerticalRatio.type)) {
-      activity.addStat(new DataVerticalRatioAvg(this.getDataTypeAvg(activity, DataVerticalRatio.type)));
-    }
-
-    // Stamina
-    if (!activity.getStat(DataStaminaMax.type) && activity.hasStreamData(DataStamina.type)) {
-      activity.addStat(new DataStaminaMax(this.getDataTypeMax(activity, DataStamina.type)));
-    }
-    if (!activity.getStat(DataStaminaMin.type) && activity.hasStreamData(DataStamina.type)) {
-      activity.addStat(new DataStaminaMin(this.getDataTypeMin(activity, DataStamina.type)));
-    }
-    if (!activity.getStat(DataStaminaAvg.type) && activity.hasStreamData(DataStamina.type)) {
-      activity.addStat(new DataStaminaAvg(this.getDataTypeAvg(activity, DataStamina.type)));
-    }
-
-    // Potential Stamina
-    if (!activity.getStat(DataPotentialStaminaMax.type) && activity.hasStreamData(DataPotentialStamina.type)) {
-      activity.addStat(new DataPotentialStaminaMax(this.getDataTypeMax(activity, DataPotentialStamina.type)));
-    }
-    if (!activity.getStat(DataPotentialStaminaMin.type) && activity.hasStreamData(DataPotentialStamina.type)) {
-      activity.addStat(new DataPotentialStaminaMin(this.getDataTypeMin(activity, DataPotentialStamina.type)));
-    }
-    if (!activity.getStat(DataPotentialStaminaAvg.type) && activity.hasStreamData(DataPotentialStamina.type)) {
-      activity.addStat(new DataPotentialStaminaAvg(this.getDataTypeAvg(activity, DataPotentialStamina.type)));
-    }
 
     this.addMissingJumpStatsFromEvents(activity);
   }

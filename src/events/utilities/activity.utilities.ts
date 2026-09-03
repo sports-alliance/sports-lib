@@ -945,12 +945,11 @@ export class ActivityUtilities {
       const lapEnd = lap.endDate.getTime();
       const includesActivityEndpoint = lapEnd >= activityEnd;
       const startIndex = Math.max(0, Math.ceil((lapStart - activityStart) / 1000));
-      const boundedEnd = Math.min(lapEnd, activityEnd);
       const endIndex = Math.max(
         0,
         includesActivityEndpoint
-          ? Math.floor((boundedEnd - activityStart) / 1000) + 1
-          : Math.ceil((boundedEnd - activityStart) / 1000)
+          ? activity.getDateIndex(activity.endDate) + 1
+          : Math.ceil((lapEnd - activityStart) / 1000)
       );
 
       addMissingStreamSummaryStats({

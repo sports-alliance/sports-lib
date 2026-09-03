@@ -326,6 +326,25 @@ describe('lap stream-summary derivation', () => {
     expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataSpeed.type])?.getValue()).toBe(4);
   });
 
+  it('includes a fractional activity endpoint projected onto the terminal 1 Hz slot', () => {
+    const activity = new Activity(
+      new Date(0),
+      new Date(4500),
+      ActivityTypes.Running,
+      new Creator('test'),
+      defaultOptions
+    );
+    const lap = new Lap(new Date(2000), activity.endDate, 1, LapTypes.Manual);
+    activity.addLap(lap);
+    activity.addStream(new Stream(DataPower.type, [1, 2, 3, 4, 5, 100]));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(lap.getStat(DynamicDataLoader.dataTypeMinDataType[DataPower.type])?.getValue()).toBe(3);
+    expect(lap.getStat(DynamicDataLoader.dataTypeMaxDataType[DataPower.type])?.getValue()).toBe(100);
+    expect(lap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(28);
+  });
+
   it('calculates overlapping laps independently', () => {
     const activity = new Activity(
       new Date(0),

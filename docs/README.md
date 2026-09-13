@@ -63,7 +63,7 @@ require reparsing activities or routes, regenerating summaries, or migrating nat
 ## Guides
 
 - [Import activities](guides/importing-activities.md) — parse GPX, TCX, FIT, Suunto JSON, and native JSON.
-- [Work with routes](guides/routes.md) — import, export, convert, and preview planned routes.
+- [Work with routes](guides/routes.md) — import, export, convert, and preview planned routes, including GPX 1.1 metadata ordering.
 - [Configure parsing](guides/parsing-options.md) — control stream output and FIT device metadata.
 - [Export and persist data](guides/exporting.md) — create GPX or native JSON and restore it later.
 - [Metrics and calculations](guides/metrics-and-calculations.md) — canonical metric tokens, units, and derivation rules.

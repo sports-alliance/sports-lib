@@ -235,8 +235,8 @@ describe('RouteImporterGPX', () => {
           <name>Metadata Route</name>
           <cmt>route comment</cmt>
           <desc>route description</desc>
-          <number>7</number>
           <link href="https://example.test/route"><text>Route link</text><type>text/html</type></link>
+          <number>7</number>
           <type>Hiking</type>
           <extensions><cue><value>left</value></cue></extensions>
           <rtept lat="1" lon="2">
@@ -244,9 +244,9 @@ describe('RouteImporterGPX', () => {
             <name>Point 1</name>
             <cmt>point comment</cmt>
             <desc>point description</desc>
+            <link href="https://example.test/point"><text>Point link</text></link>
             <sym>Flag</sym>
             <type>Waypoint</type>
-            <link href="https://example.test/point"><text>Point link</text></link>
           </rtept>
           <rtept lat="1.1" lon="2.1"><ele>20</ele></rtept>
         </rte>
@@ -273,6 +273,57 @@ describe('RouteImporterGPX', () => {
     const reparsed = await RouteImporterGPX.getFromString(exportedGPX, DOMParser);
     expect(reparsed.getFirstRoute().comment).toEqual('route comment');
     expect(reparsed.getFirstRoute().getPointData()[0].symbol).toEqual('Flag');
+  });
+
+  it.each([
+    ['rte', ['name', 'link', 'link', 'number', 'type', 'rtept', 'rtept']],
+    ['wpt', ['ele', 'name', 'link', 'link', 'sym', 'type']],
+    ['rtept', ['ele', 'name', 'link', 'link', 'sym', 'type']]
+  ])('exports %s links in GPX 1.1 schema order', async (tagName: string, expectedOrder: string[]) => {
+    const gpxString = `<?xml version="1.0" encoding="UTF-8"?>
+      <gpx creator="Route planner" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+        <wpt lat="1" lon="2">
+          <ele>10</ele>
+          <name>Meeting point</name>
+          <link href="https://example.test/meeting?a=1&amp;b=2"><text>Meet &amp; start</text><type>text/html</type></link>
+          <link href="https://example.test/map"/>
+          <sym>Flag</sym>
+          <type>Waypoint</type>
+        </wpt>
+        <rte>
+          <name>Walking route</name>
+          <link href="https://example.test/route"><text>Route link</text><type>text/html</type></link>
+          <link href="https://example.test/alternative"/>
+          <number>0</number>
+          <type>Hiking</type>
+          <rtept lat="1" lon="2">
+            <ele>10</ele>
+            <name>Start</name>
+            <link href="https://example.test/start"><text>Start link</text></link>
+            <link href="https://example.test/guide"/>
+            <sym>Flag</sym>
+            <type>Waypoint</type>
+          </rtept>
+          <rtept lat="1.1" lon="2.1"><ele>20</ele></rtept>
+        </rte>
+      </gpx>`;
+
+    const routeFile = await SportsLib.importRoutesFromGPX(gpxString, DOMParser);
+    const exportedGPX = await SportsLib.exportRoutesToGPX(routeFile);
+    const document = new DOMParser().parseFromString(exportedGPX, 'application/xml');
+    const element = document.getElementsByTagName(tagName)[0];
+    const childNames = Array.from(element.childNodes)
+      .filter(node => node.nodeType === node.ELEMENT_NODE)
+      .map(node => node.nodeName);
+
+    // GPX 1.1 rteType and wptType require links before number and sym/type, respectively.
+    expect(childNames).toEqual(expectedOrder);
+
+    const reparsed = await SportsLib.importRoutesFromGPX(exportedGPX, DOMParser);
+    expect(reparsed.getFirstRoute().number).toBe(0);
+    expect(reparsed.getFirstRoute().links).toEqual(routeFile.getFirstRoute().links);
+    expect(reparsed.getWaypoints()).toEqual(routeFile.getWaypoints());
+    expect(reparsed.getFirstRoute().getPointData()[0]).toEqual(routeFile.getFirstRoute().getPointData()[0]);
   });
 
   it('supports route stream includeTypes for route-safe derived streams', async () => {

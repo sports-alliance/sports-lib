@@ -113,7 +113,7 @@ export class SportsLib {
   }
 
   /**
-   * Exports first-class routes using GPX route format.
+   * Exports first-class routes using GPX 1.1 route format, with metadata in schema order.
    * @param routeFile
    */
   public static exportRoutesToGPX(routeFile: RouteFileInterface): Promise<string> {

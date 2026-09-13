@@ -29,7 +29,7 @@ const waypoints = routeFile.getWaypoints();
 - `importRoutesFromGPX` imports planned GPX route geometry. Route-only GPX files are intentionally rejected by the activity GPX importer; use this method instead.
 - `importRoutesFromFit` imports a FIT Course.
 - `importRoutesFromJSON` restores a native `RouteFileJSONInterface` value.
-- `exportRoutesToGPX` returns a GPX route string.
+- `exportRoutesToGPX` returns a GPX 1.1 route string, with links before route numbers and waypoint symbols/types as required by the schema.
 - `exportRoutesToFit` returns a FIT Course `ArrayBuffer` and requires exactly one route.
 - `convertRoutesFromGPXToFit` and `convertRoutesFromFitToGPX` compose the matching import and export operations.
 
@@ -39,6 +39,8 @@ const gpxRoute = await SportsLib.exportRoutesToGPX(routeFile);
 
 const restoredRouteFile = SportsLib.importRoutesFromJSON(routeFile.toJSON());
 ```
+
+Previously exported GPX files containing both links and route numbers or waypoint symbols/types need to be exported again for schema-validating consumers. Native JSON, metric values, and public method signatures are unchanged; no reparse or stored-data migration is required.
 
 Route imports generate point-indexed latitude, longitude, distance, GNSS distance, altitude, and grade streams when the source supports them. They also generate distance, ascent/descent, altitude, and grade statistics.
 

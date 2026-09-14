@@ -28,8 +28,8 @@ export class RouteExporterGPX {
         const name = route.name ? `<name>${this.escapeXml(route.name)}</name>` : '';
         const comment = route.comment ? `<cmt>${this.escapeXml(route.comment)}</cmt>` : '';
         const description = route.description ? `<desc>${this.escapeXml(route.description)}</desc>` : '';
-        const number = route.number !== null ? `<number>${route.number}</number>` : '';
         const links = route.links.map(link => this.getLinkXml(link)).join('');
+        const number = route.number !== null ? `<number>${route.number}</number>` : '';
         const type =
           route.activityType && route.activityType !== ActivityTypes.route
             ? `<type>${this.escapeXml(route.activityType)}</type>`
@@ -39,7 +39,7 @@ export class RouteExporterGPX {
           .getPointData()
           .map(point => this.getWaypointXml(point, 'rtept'))
           .join('');
-        return `<rte>${name}${comment}${description}${number}${links}${type}${extensions}${points}</rte>`;
+        return `<rte>${name}${comment}${description}${links}${number}${type}${extensions}${points}</rte>`;
       })
       .join('');
 
@@ -58,11 +58,11 @@ export class RouteExporterGPX {
     const name = point.name ? `<name>${this.escapeXml(point.name)}</name>` : '';
     const comment = point.comment ? `<cmt>${this.escapeXml(point.comment)}</cmt>` : '';
     const description = point.description ? `<desc>${this.escapeXml(point.description)}</desc>` : '';
+    const links = (point.links || []).map(link => this.getLinkXml(link)).join('');
     const symbol = point.symbol ? `<sym>${this.escapeXml(point.symbol)}</sym>` : '';
     const type = point.type ? `<type>${this.escapeXml(point.type)}</type>` : '';
-    const links = (point.links || []).map(link => this.getLinkXml(link)).join('');
     const extensions = this.getExtensionsXml(point.extensions);
-    return `<${tagName} lat="${point.latitudeDegrees}" lon="${point.longitudeDegrees}">${altitude}${name}${comment}${description}${symbol}${type}${links}${extensions}</${tagName}>`;
+    return `<${tagName} lat="${point.latitudeDegrees}" lon="${point.longitudeDegrees}">${altitude}${name}${comment}${description}${links}${symbol}${type}${extensions}</${tagName}>`;
   }
 
   private getLinkXml(link: { href: string; text?: string | null; type?: string | null }): string {

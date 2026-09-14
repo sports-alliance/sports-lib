@@ -10,7 +10,8 @@
 /**
  * Primary import/export facade. Native JSON restoration preserves applicable explicit stats except
  * Diving-group terrain summaries, and adds missing speed-derived pace summaries on events,
- * activities, and laps.
+ * activities, and laps. GPX route exports emit links before route numbers and waypoint symbols/types,
+ * following the GPX 1.1 metadata sequence.
  *
  * @category Import and export
  */

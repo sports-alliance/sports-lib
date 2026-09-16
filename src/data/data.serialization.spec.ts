@@ -47,6 +47,14 @@ import { DataEndPosition } from './data.end-position';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataStressState } from './data.health';
 import {
+  DataFITTrainingFileReferences,
+  DataFITWorkoutDefinitions,
+  DataSuuntoPlusGuideReferences,
+  type FITTrainingFileReferencesValue,
+  type FITWorkoutDefinitionsValue,
+  type SuuntoPlusGuideReferencesValue
+} from './data.workout-references';
+import {
   DataGroundContactTimePercentage,
   DataGroundContactTimePercentageAvg,
   DataGroundContactTimePercentageMax,
@@ -57,6 +65,54 @@ describe('Data Serialization Safety', () => {
   // Map of classes that require specific constructor arguments or complex data
   const knownProviders = new Map<typeof Data | any, any[]>([
     [DataPowerCurve, [[{ duration: new DataDuration(1), power: new DataPower(100) }]]],
+    [
+      DataFITTrainingFileReferences,
+      [
+        {
+          references: [
+            {
+              type: 5,
+              manufacturer: 1,
+              product: 42,
+              serialNumber: 4294967295,
+              timeCreatedUnixMs: 1700000000000,
+              timestampUnixMs: 1700000001000
+            }
+          ]
+        } satisfies FITTrainingFileReferencesValue
+      ]
+    ],
+    [
+      DataFITWorkoutDefinitions,
+      [
+        {
+          definitions: [{ name: 'Synthetic intervals 🚴', sport: 2, subSport: 0, numValidSteps: 3 }]
+        } satisfies FITWorkoutDefinitionsValue
+      ]
+    ],
+    [
+      DataSuuntoPlusGuideReferences,
+      [
+        {
+          references: [
+            {
+              sessionIndex: 0,
+              developerDataIndex: 1,
+              applicationId: 'SuuntoFitExport1',
+              ownerId: 'test-owner',
+              externalId: 'test-guide-a'
+            },
+            {
+              sessionIndex: 1,
+              developerDataIndex: 2,
+              applicationId: 'SuuntoplusFitExt',
+              ownerId: 'test-owner',
+              externalId: 'test-guide-b'
+            }
+          ]
+        } satisfies SuuntoPlusGuideReferencesValue
+      ]
+    ],
     [
       DataThreeDimensionalStrainEvidence,
       [

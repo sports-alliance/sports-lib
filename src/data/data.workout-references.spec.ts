@@ -34,16 +34,29 @@ function items(value: unknown, key: string): Record<string, unknown>[] {
 }
 
 describe.each(cases)('$Class.type', ({ Class, key, item }) => {
-  const value = () => ({ schemaVersion: 1, [key]: [{ ...item }] });
+  const value = () => ({ [key]: [{ ...item }] });
 
   it('round-trips canonical JSON through an explicit static factory and dynamic loading', () => {
     const instance = new Class(value());
     const json = JSON.parse(JSON.stringify(instance));
+    expect(json).toEqual({ [Class.type]: value() });
     expect(Class.fromJSON(json).toJSON()).toEqual(json);
     expect(instance.getUnit()).toBe('');
     expect(instance.getDisplayValue()).toBe(Class.type);
     expect(DataStore[Class.name]).toBe(Class);
     expect(DynamicDataLoader.getDataInstanceFromDataType(Class.type, value()).toJSON()).toEqual(json);
+  });
+
+  it('round-trips empty collections without additional envelope fields', () => {
+    const empty = { [key]: [] };
+    const json = { [Class.type]: empty };
+    const instance = new Class(empty);
+    expect(JSON.parse(JSON.stringify(instance))).toEqual(json);
+    expect(Class.fromJSON(json).getValue()).toEqual(empty);
+    expect(DynamicDataLoader.getDataInstanceFromDataType(Class.type, empty).toJSON()).toEqual(json);
+    instance.setValue(value() as never);
+    instance.setValue(empty as never);
+    expect(instance.toJSON()).toEqual(json);
   });
 
   it('owns construction, getter, setValue and serialized data independently', () => {
@@ -61,11 +74,11 @@ describe.each(cases)('$Class.type', ({ Class, key, item }) => {
     instance.setValue(next as never);
     items(next, key).length = 0;
     expect(instance.toJSON()).toEqual(expected);
-    expect(() => instance.setValue({ schemaVersion: 2 } as never)).toThrow();
+    expect(() => instance.setValue({ [key]: null } as never)).toThrow();
     expect(instance.toJSON()).toEqual(expected);
   });
 
-  it.each([null, 0, NaN, Infinity, '1', {}, [], { schemaVersion: 2 }, { schemaVersion: 1 }])(
+  it.each([null, 0, NaN, Infinity, '1', {}, [], { [key]: null }, { [key]: {} }])(
     'rejects invalid values %p',
     invalid => {
       expect(() => new Class(invalid)).toThrow();
@@ -74,12 +87,22 @@ describe.each(cases)('$Class.type', ({ Class, key, item }) => {
 
   it('rejects unknown keys, invalid envelopes, sparse lists and invalid members', () => {
     expect(() => new Class({ ...value(), unexpected: true })).toThrow();
-    expect(() => new Class({ schemaVersion: 1, [key]: [{ ...item, extra: 1 }] })).toThrow();
-    expect(() => new Class({ schemaVersion: 1, [key]: [undefined] })).toThrow();
-    expect(() => new Class({ schemaVersion: 1, [key]: new Array(1) })).toThrow();
+    expect(() => new Class({ [key]: [{ ...item, extra: 1 }] })).toThrow();
+    expect(() => new Class({ [key]: [undefined] })).toThrow();
+    expect(() => new Class({ [key]: new Array(1) })).toThrow();
     expect(() => Class.fromJSON({ ...new Class(value()).toJSON(), extra: 1 })).toThrow();
     expect(() => Class.fromJSON({ wrong: value() })).toThrow();
     expect(() => Class.fromJSON(value())).toThrow();
+  });
+
+  it('rejects the unpublished schema-version field like any other unknown field', () => {
+    const instance = new Class(value());
+    const expected = instance.toJSON();
+    const obsolete = { ...value(), schemaVersion: 1 };
+    expect(() => new Class(obsolete)).toThrow();
+    expect(() => Class.fromJSON({ [Class.type]: obsolete })).toThrow();
+    expect(() => instance.setValue(obsolete as never)).toThrow();
+    expect(instance.toJSON()).toEqual(expected);
   });
 
   it('is not eligible for QS numeric metric discovery', () => {
@@ -95,26 +118,26 @@ describe.each(cases)('$Class.type', ({ Class, key, item }) => {
     const expected = instance.toJSON();
     const entries = [{ ...item, unexpected: true }];
     Object.setPrototypeOf(entries, { map: () => [] });
-    const invalid = { schemaVersion: 1, [key]: entries };
+    const invalid = { [key]: entries };
     expect(() => new Class(invalid)).toThrow();
     expect(() => instance.setValue(invalid as never)).toThrow();
     expect(instance.toJSON()).toEqual(expected);
 
     const validEntries = [{ ...item }];
     Object.setPrototypeOf(validEntries, { map: () => [] });
-    expect(new Class({ schemaVersion: 1, [key]: validEntries }).toJSON()).toEqual(expected);
+    expect(new Class({ [key]: validEntries }).toJSON()).toEqual(expected);
   });
 });
 
 describe('reference constraints', () => {
   it('validates and stores the same exporter value when supplied by an accessor', () => {
-    const instance = new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: [cases[2].item] });
+    const instance = new DataSuuntoPlusGuideReferences({ references: [cases[2].item] });
     let reads = 0;
     const item = Object.defineProperty({ ...cases[2].item }, 'applicationId', {
       enumerable: true,
       get: () => (reads++ === 0 ? 'SuuntoFitExport1' : 'unsupported')
     });
-    instance.setValue({ schemaVersion: 1, references: [item] } as never);
+    instance.setValue({ references: [item] } as never);
     expect(reads).toBe(1);
     const json = instance.toJSON();
     expect(instance.getValue().references[0].applicationId).toBe('SuuntoFitExport1');
@@ -122,25 +145,20 @@ describe('reference constraints', () => {
   });
 
   it.each([0, -1, 4294967296, 1.5, NaN])('rejects invalid uint32z serial %p', serialNumber => {
-    expect(() => new DataFITTrainingFileReferences({ schemaVersion: 1, references: [{ serialNumber }] })).toThrow();
+    expect(() => new DataFITTrainingFileReferences({ references: [{ serialNumber }] })).toThrow();
   });
   it('preserves missing native values and duplicate records without inventing identities', () => {
-    const value = { schemaVersion: 1, references: [{}, {}] };
+    const value = { references: [{}, {}] };
     expect(new DataFITTrainingFileReferences(value).getValue()).toEqual(value);
   });
   it.each(['', 'a\0b', '\ud800', 'a\ufffdb', 'x'.repeat(65)])('rejects malformed Guide IDs %p', externalId => {
-    expect(
-      () => new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: [{ ...cases[2].item, externalId }] })
-    ).toThrow();
+    expect(() => new DataSuuntoPlusGuideReferences({ references: [{ ...cases[2].item, externalId }] })).toThrow();
   });
   it('bounds each paired group and rejects unsupported exporters', () => {
-    expect(
-      () => new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: Array(11).fill(cases[2].item) })
-    ).toThrow();
+    expect(() => new DataSuuntoPlusGuideReferences({ references: Array(11).fill(cases[2].item) })).toThrow();
     expect(
       () =>
         new DataSuuntoPlusGuideReferences({
-          schemaVersion: 1,
           references: [{ ...cases[2].item, applicationId: 'other' }]
         })
     ).toThrow();
@@ -149,11 +167,10 @@ describe('reference constraints', () => {
   it('rejects sparse arrays disguised by extra properties and conflicting exporter identities', () => {
     const sparse = new Array(1);
     Object.assign(sparse, { extra: {} });
-    expect(() => new DataFITTrainingFileReferences({ schemaVersion: 1, references: sparse })).toThrow();
+    expect(() => new DataFITTrainingFileReferences({ references: sparse })).toThrow();
     expect(
       () =>
         new DataSuuntoPlusGuideReferences({
-          schemaVersion: 1,
           references: [cases[2].item, { ...cases[2].item, sessionIndex: 1, applicationId: 'SuuntoFitExport1' }]
         })
     ).toThrow();
@@ -168,6 +185,6 @@ describe('reference constraints', () => {
     { timestampUnixMs: 1700000000001 },
     { serialNumber: undefined }
   ])('rejects invalid or non-JSON-stable native fields %p', reference => {
-    expect(() => new DataFITTrainingFileReferences({ schemaVersion: 1, references: [reference] })).toThrow();
+    expect(() => new DataFITTrainingFileReferences({ references: [reference] })).toThrow();
   });
 });

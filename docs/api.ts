@@ -31,7 +31,10 @@ export type {
   FITWorkoutReferenceSession,
   FITWorkoutReferenceDiagnostic
 } from '../src/fit/fit-workout-references';
-/** @category FIT workout references */
+/**
+ * Serializable source metadata with unversioned references or definitions values and strict JSON validation.
+ * @category FIT workout references
+ */
 export {
   DataFITTrainingFileReferences,
   DataFITWorkoutDefinitions,

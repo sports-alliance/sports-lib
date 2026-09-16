@@ -138,9 +138,9 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
   const sessions: FITWorkoutReferenceSession[] = [];
   const result = (invalid = false): FITWorkoutReferencesResult => ({
     status: invalid ? 'invalid' : diagnostics.size ? 'partial' : 'ok',
-    trainingFiles: new DataFITTrainingFileReferences({ schemaVersion: 1, references: invalid ? [] : training }),
-    workouts: new DataFITWorkoutDefinitions({ schemaVersion: 1, definitions: invalid ? [] : workouts }),
-    suuntoGuides: new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: invalid ? [] : guides }),
+    trainingFiles: new DataFITTrainingFileReferences({ references: invalid ? [] : training }),
+    workouts: new DataFITWorkoutDefinitions({ definitions: invalid ? [] : workouts }),
+    suuntoGuides: new DataSuuntoPlusGuideReferences({ references: invalid ? [] : guides }),
     sessions: invalid ? [] : sessions,
     diagnostics: [...diagnostics]
   });
@@ -268,9 +268,7 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           assign(item, 'subSport', number(11, 0, 1));
           assign(item, 'numValidSteps', number(6, 0x84, 2));
           // Use the same validation as public construction, including malformed strings.
-          workouts.push(
-            new DataFITWorkoutDefinitions({ schemaVersion: 1, definitions: [item] }).getValue().definitions[0]
-          );
+          workouts.push(new DataFITWorkoutDefinitions({ definitions: [item] }).getValue().definitions[0]);
         } else if (def.global === 207) {
           const index = number(3, 2, 1);
           const app = values.get(1);
@@ -375,7 +373,7 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
                 ownerId,
                 externalId: ids[i]
               }));
-              const validated = new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: pairs });
+              const validated = new DataSuuntoPlusGuideReferences({ references: pairs });
               for (const reference of validated.getValue().references) {
                 guides.push(reference);
                 guideDependencies.set(reference, groupDependencies.get(index)!);

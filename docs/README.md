@@ -16,7 +16,8 @@ consumer responsibilities.
 
 The opt-in [FIT workout-reference reader](guides/importing-activities.md#fit-workout-references) exposes standard FIT
 training-file references, embedded workout summaries and paired SuuntoPlus Guide IDs as serializable `DataBare`
-classes. These are nonnumeric source metadata, separate from normal activity JSON; consumers own account validation,
+classes with unversioned `references` or `definitions` values. These are nonnumeric source metadata, separate from
+normal activity JSON; consumers own account validation,
 privacy and completion matching. Developer indexes and field numbers resolve dynamically; unsupported exporters and
 malformed metadata have distinct diagnostics, and unrelated developer errors or malformed optional session fields do
 not discard independent valid reference groups. Ambiguous Guide groups are rejected rather than partially paired.

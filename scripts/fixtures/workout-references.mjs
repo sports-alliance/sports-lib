@@ -7,10 +7,9 @@ import {
 
 const classes = [DataFITTrainingFileReferences, DataFITWorkoutDefinitions, DataSuuntoPlusGuideReferences];
 const values = [
-  { schemaVersion: 1, references: [{ type: 5, serialNumber: 4294967295 }] },
-  { schemaVersion: 1, definitions: [{ name: 'Synthetic', sport: 2 }] },
+  { references: [{ type: 5, serialNumber: 4294967295 }] },
+  { definitions: [{ name: 'Synthetic', sport: 2 }] },
   {
-    schemaVersion: 1,
     references: [
       {
         sessionIndex: 0,
@@ -24,7 +23,10 @@ const values = [
 ];
 globalThis.workoutReferenceSmoke = classes.map((Class, i) => {
   const json = JSON.parse(JSON.stringify(new Class(values[i])));
-  return JSON.stringify(Class.fromJSON(json).toJSON()) === JSON.stringify(json);
+  return (
+    JSON.stringify(json) === JSON.stringify({ [Class.type]: values[i] }) &&
+    JSON.stringify(Class.fromJSON(json).toJSON()) === JSON.stringify(json)
+  );
 });
 // Valid, empty FIT file with a 12-byte header. No Buffer or Node globals are supplied by the browser test.
 const bytes = new Uint8Array([12, 32, 0, 0, 0, 0, 0, 0, 46, 70, 73, 84, 0, 0]);

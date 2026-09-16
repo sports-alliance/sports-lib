@@ -64,8 +64,8 @@ if (result.status !== 'invalid') {
 `trainingFiles`, `workouts` and `suuntoGuides` are respectively `DataFITTrainingFileReferences`,
 `DataFITWorkoutDefinitions` and `DataSuuntoPlusGuideReferences`. Every class has validated construction and `setValue`,
 defensive-copy getters, canonical `toJSON()` and strict static `fromJSON(unknown)`. JSON envelopes use the canonical
-type as their only key; values contain `schemaVersion: 1` and ordered `references` or `definitions` arrays. Unknown
-versions/fields, invalid numbers and malformed strings are rejected rather than silently normalized.
+type as their only key; values contain only an ordered `references` or `definitions` array, with no schema-version
+field. Unknown fields, invalid numbers and malformed strings are rejected rather than silently normalized.
 Validation snapshots array members without invoking caller-provided array methods, and stores the same scalar values
 it validates. A rejected `setValue()` leaves the previous value intact.
 

@@ -6,12 +6,23 @@ import {
   DataFITWorkoutDefinitions,
   DataSuuntoPlusGuideReferences
 } from '@sports-alliance/sports-lib';
-import type { FITWorkoutReferencesResult } from '@sports-alliance/sports-lib';
+import type {
+  FITWorkoutReferencesResult,
+  FITTrainingFileReferencesValue,
+  FITWorkoutDefinitionsValue,
+  SuuntoPlusGuideReferencesValue
+} from '@sports-alliance/sports-lib';
 
 const references: FITWorkoutReferencesResult = readFITWorkoutReferences(new Uint8Array());
 const files: DataFITTrainingFileReferences = DataFITTrainingFileReferences.fromJSON(references.trainingFiles.toJSON());
 const definitions: DataFITWorkoutDefinitions = DataFITWorkoutDefinitions.fromJSON(references.workouts.toJSON());
 const guides: DataSuuntoPlusGuideReferences = DataSuuntoPlusGuideReferences.fromJSON(references.suuntoGuides.toJSON());
+const emptyFiles: FITTrainingFileReferencesValue = { references: [] };
+const emptyDefinitions: FITWorkoutDefinitionsValue = { definitions: [] };
+const emptyGuides: SuuntoPlusGuideReferencesValue = { references: [] };
+files.setValue(emptyFiles);
+definitions.setValue(emptyDefinitions);
+guides.setValue(emptyGuides);
 export { references, files, definitions, guides };
 
 const user: User = new User('commonjs-types');

@@ -32,12 +32,12 @@ export type SuuntoPlusGuideReference = {
   externalId: string;
 };
 
-/** Versioned, ordered file-level references. */
-export type FITTrainingFileReferencesValue = { schemaVersion: 1; references: FITTrainingFileReference[] };
-/** Versioned, ordered embedded workout summaries. */
-export type FITWorkoutDefinitionsValue = { schemaVersion: 1; definitions: FITWorkoutDefinition[] };
-/** Versioned, session-scoped Guide references. */
-export type SuuntoPlusGuideReferencesValue = { schemaVersion: 1; references: SuuntoPlusGuideReference[] };
+/** Ordered file-level references. */
+export type FITTrainingFileReferencesValue = { references: FITTrainingFileReference[] };
+/** Ordered embedded workout summaries. */
+export type FITWorkoutDefinitionsValue = { definitions: FITWorkoutDefinition[] };
+/** Session-scoped Guide references. */
+export type SuuntoPlusGuideReferencesValue = { references: SuuntoPlusGuideReference[] };
 
 const MAX_RECORDS = 10_000;
 const FIT_EPOCH_UNIX_MS = Date.UTC(1989, 11, 31);
@@ -84,13 +84,12 @@ function timestamp(value: unknown): number {
 }
 
 function list(value: unknown, key: string): unknown[] {
-  const input = record(value, ['schemaVersion', key]);
+  const input = record(value, [key]);
   const entries = input[key];
   if (!Array.isArray(entries)) throw new TypeError('Invalid workout reference list');
   const length = entries.length;
   const keys = Reflect.ownKeys(entries);
   if (
-    input.schemaVersion !== 1 ||
     !Number.isSafeInteger(length) ||
     length < 0 ||
     length > MAX_RECORDS ||
@@ -101,7 +100,7 @@ function list(value: unknown, key: string): unknown[] {
         (typeof property !== 'string' || !/^(0|[1-9][0-9]*)$/.test(property) || Number(property) >= length)
     )
   ) {
-    throw new TypeError('Invalid workout reference version or list');
+    throw new TypeError('Invalid workout reference list');
   }
   // Do not dispatch validation through a caller's map/iterator or Array species constructor.
   return Array.from({ length }, (_, index) => entries[index]);
@@ -109,7 +108,6 @@ function list(value: unknown, key: string): unknown[] {
 
 function trainingFiles(value: unknown): FITTrainingFileReferencesValue {
   return {
-    schemaVersion: 1,
     references: list(value, 'references').map(item => {
       const input = record(item, [
         'type',
@@ -134,7 +132,6 @@ function trainingFiles(value: unknown): FITTrainingFileReferencesValue {
 
 function workouts(value: unknown): FITWorkoutDefinitionsValue {
   return {
-    schemaVersion: 1,
     definitions: list(value, 'definitions').map(item => {
       const input = record(item, ['name', 'sport', 'subSport', 'numValidSteps']);
       const output: FITWorkoutDefinition = {};
@@ -151,7 +148,6 @@ function guides(value: unknown): SuuntoPlusGuideReferencesValue {
   const groupCounts = new Map<string, number>();
   const applications = new Map<number, SuuntoPlusGuideExporter>();
   return {
-    schemaVersion: 1,
     references: list(value, 'references').map(item => {
       const input = record(item, ['sessionIndex', 'developerDataIndex', 'applicationId', 'ownerId', 'externalId']);
       const applicationId = input.applicationId;
@@ -228,7 +224,7 @@ export class DataFITTrainingFileReferences extends WorkoutReferenceData<FITTrain
   protected normalize(value: unknown): FITTrainingFileReferencesValue {
     return trainingFiles(value);
   }
-  /** Restores only this class's canonical, versioned JSON envelope. */
+  /** Restores only this class's canonical JSON envelope. */
   static fromJSON(json: unknown): DataFITTrainingFileReferences {
     return new DataFITTrainingFileReferences(unwrap(json, this.type));
   }
@@ -243,7 +239,7 @@ export class DataFITWorkoutDefinitions extends WorkoutReferenceData<FITWorkoutDe
   protected normalize(value: unknown): FITWorkoutDefinitionsValue {
     return workouts(value);
   }
-  /** Restores only this class's canonical, versioned JSON envelope. */
+  /** Restores only this class's canonical JSON envelope. */
   static fromJSON(json: unknown): DataFITWorkoutDefinitions {
     return new DataFITWorkoutDefinitions(unwrap(json, this.type));
   }
@@ -258,7 +254,7 @@ export class DataSuuntoPlusGuideReferences extends WorkoutReferenceData<SuuntoPl
   protected normalize(value: unknown): SuuntoPlusGuideReferencesValue {
     return guides(value);
   }
-  /** Restores only this class's canonical, versioned JSON envelope. */
+  /** Restores only this class's canonical JSON envelope. */
   static fromJSON(json: unknown): DataSuuntoPlusGuideReferences {
     return new DataSuuntoPlusGuideReferences(unwrap(json, this.type));
   }

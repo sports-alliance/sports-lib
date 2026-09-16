@@ -89,9 +89,38 @@ describe.each(cases)('$Class.type', ({ Class, key, item }) => {
     expect(instance.isValueTypeValid(0)).toBe(false);
     expect(typeof instance.getValue()).toBe('object');
   });
+
+  it('validates array members without calling caller-provided array methods', () => {
+    const instance = new Class(value());
+    const expected = instance.toJSON();
+    const entries = [{ ...item, unexpected: true }];
+    Object.setPrototypeOf(entries, { map: () => [] });
+    const invalid = { schemaVersion: 1, [key]: entries };
+    expect(() => new Class(invalid)).toThrow();
+    expect(() => instance.setValue(invalid as never)).toThrow();
+    expect(instance.toJSON()).toEqual(expected);
+
+    const validEntries = [{ ...item }];
+    Object.setPrototypeOf(validEntries, { map: () => [] });
+    expect(new Class({ schemaVersion: 1, [key]: validEntries }).toJSON()).toEqual(expected);
+  });
 });
 
 describe('reference constraints', () => {
+  it('validates and stores the same exporter value when supplied by an accessor', () => {
+    const instance = new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: [cases[2].item] });
+    let reads = 0;
+    const item = Object.defineProperty({ ...cases[2].item }, 'applicationId', {
+      enumerable: true,
+      get: () => (reads++ === 0 ? 'SuuntoFitExport1' : 'unsupported')
+    });
+    instance.setValue({ schemaVersion: 1, references: [item] } as never);
+    expect(reads).toBe(1);
+    const json = instance.toJSON();
+    expect(instance.getValue().references[0].applicationId).toBe('SuuntoFitExport1');
+    expect(DataSuuntoPlusGuideReferences.fromJSON(JSON.parse(JSON.stringify(json))).toJSON()).toEqual(json);
+  });
+
   it.each([0, -1, 4294967296, 1.5, NaN])('rejects invalid uint32z serial %p', serialNumber => {
     expect(() => new DataFITTrainingFileReferences({ schemaVersion: 1, references: [{ serialNumber }] })).toThrow();
   });

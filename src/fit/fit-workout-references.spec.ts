@@ -201,6 +201,21 @@ describe('FIT workout reference reader', () => {
     }
   );
 
+  it.each(['suuntoplus_plugin_owner_id', 'suuntoplus_plugin_external_id'])(
+    'rejects an extra %s even when its base-type metadata cannot be decoded',
+    name => {
+      const fixture = new FITWorkoutFixture()
+        .application()
+        .descriptions()
+        .message(206, [byte(0, 1), byte(1, 12), stringField(2, 'bad-type'), stringField(3, name)])
+        .message(18, [], [developer(2, 1, 'client'), developer(3, 1, 'guide'), developer(12, 1, 'ambiguous')]);
+      const result = readFITWorkoutReferences(fixture.finish());
+      expect(result.status).toBe('partial');
+      expect(result.diagnostics).toContain('invalid_metadata');
+      expect(result.suuntoGuides.getValue().references).toEqual([]);
+    }
+  );
+
   it('preserves a supported group alongside an unsupported exporter and a malformed unrelated app', () => {
     const fixture = new FITWorkoutFixture()
       .application()
@@ -465,6 +480,42 @@ describe('FIT workout reference reader', () => {
       .message(18, [byte(2, 1)]);
     session(fixture);
     expect(references(fixture)[0].sessionIndex).toBe(1);
+  });
+
+  it.each([
+    [2, 'startTimeUnixMs'],
+    [253, 'endTimeUnixMs'],
+    [5, 'sport'],
+    [6, 'subSport']
+  ] as const)('isolates malformed native session field %p from other context and Guide evidence', (field, key) => {
+    const fixture = new FITWorkoutFixture().application().descriptions();
+    const validFields = [numeric(253, TIME + 60), numeric(2, TIME), byte(5, 2, 0), byte(6, 8, 0)];
+    fixture.message(
+      18,
+      validFields.map(value => (value.number === field ? stringField(field, 'invalid') : value)),
+      [developer(2, 1, 'client'), developer(3, 1, 'guide')]
+    );
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.status).toBe('partial');
+    expect(result.diagnostics).toEqual(['invalid_metadata']);
+    const expected: Record<string, number> = {
+      sessionIndex: 0,
+      startTimeUnixMs: ms(TIME),
+      endTimeUnixMs: ms(TIME + 60),
+      sport: 2,
+      subSport: 8
+    };
+    delete expected[key];
+    expect(result.sessions).toEqual([expected]);
+    expect(result.suuntoGuides.getValue().references).toEqual([
+      {
+        sessionIndex: 0,
+        developerDataIndex: 1,
+        applicationId: 'SuuntoplusFitExt',
+        ownerId: 'client',
+        externalId: 'guide'
+      }
+    ]);
   });
 
   it.each([12, 14])('supports header size %p, offset views, Buffers and ArrayBuffers without mutation', header => {

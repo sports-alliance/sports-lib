@@ -66,13 +66,16 @@ if (result.status !== 'invalid') {
 defensive-copy getters, canonical `toJSON()` and strict static `fromJSON(unknown)`. JSON envelopes use the canonical
 type as their only key; values contain `schemaVersion: 1` and ordered `references` or `definitions` arrays. Unknown
 versions/fields, invalid numbers and malformed strings are rejected rather than silently normalized.
+Validation snapshots array members without invoking caller-provided array methods, and stores the same scalar values
+it validates. A rejected `setValue()` leaves the previous value intact.
 
 Training-file references retain FIT message 72 fields: `type`, `manufacturer`, `product`, `serialNumber`,
 `timeCreatedUnixMs` and `timestampUnixMs`. The serial is native uint32z: zero is missing, while 4294967295 is valid.
 Workout definitions retain message 26 `name`, `sport`, `subSport` and `numValidSteps`, not full recipes. Native enums
 remain numeric FIT codes; timestamps are UTC Unix milliseconds. Missing source fields are absent, not inferred.
 Both lists remain file-scoped. `sessions` separately records zero-based source order, start/end timestamps and native
-sport/sub-sport, including an index-only entry when optional session context is malformed. Do not blindly equate a
+sport/sub-sport. Malformed optional fields are omitted individually with diagnostics, preserving other valid context
+and independently valid Guide pairs in that session; an index-only entry is retained if no context is usable. Do not blindly equate a
 session ordinal with a consumer activity ID or assign every file reference to every session.
 
 Suunto Guide pairs preserve `sessionIndex`, `developerDataIndex`, `applicationId`, `ownerId` and `externalId`.
@@ -88,6 +91,8 @@ observations. Malformed/conflicting field descriptions invalidate only reference
 unrelated fields sharing the exporter. Unresolvable malformed messages report diagnostics without invalidating other
 identified groups. Unrelated developer IDs may omit an application ID. Strings are not trimmed, case-folded or
 Unicode-normalized. All valid owners are returned; consumers filter their own identities.
+Malformed extra Guide owner/external-ID fields make their session/index group ambiguous; they cannot be silently
+dropped to accept a remaining apparent pair, even when their type metadata cannot be decoded.
 
 The result is `ok`, `partial` (some optional metadata rejected or unsupported), or `invalid` (no evidence returned).
 `unsupported_exporter` means Guide-named fields came from a well-formed but unrecognized application ID, not malformed

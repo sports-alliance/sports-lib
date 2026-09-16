@@ -22,6 +22,7 @@ export type { EventExporter } from '../src/events/adapters/exporters/exporter.in
 
 /**
  * Opt-in source metadata reader with dynamic developer-field resolution, isolated diagnostics and no activity writes.
+ * Invalid optional session context does not discard independent Guide evidence; ambiguous Guide groups are rejected.
  * @category FIT workout references
  */
 export { readFITWorkoutReferences } from '../src/fit/fit-workout-references';

@@ -86,20 +86,25 @@ function timestamp(value: unknown): number {
 function list(value: unknown, key: string): unknown[] {
   const input = record(value, ['schemaVersion', key]);
   const entries = input[key];
+  if (!Array.isArray(entries)) throw new TypeError('Invalid workout reference list');
+  const length = entries.length;
+  const keys = Reflect.ownKeys(entries);
   if (
     input.schemaVersion !== 1 ||
-    !Array.isArray(entries) ||
-    entries.length > MAX_RECORDS ||
-    Reflect.ownKeys(entries).length !== entries.length + 1 ||
-    Reflect.ownKeys(entries).some(
+    !Number.isSafeInteger(length) ||
+    length < 0 ||
+    length > MAX_RECORDS ||
+    keys.length !== length + 1 ||
+    keys.some(
       property =>
         property !== 'length' &&
-        (typeof property !== 'string' || !/^(0|[1-9][0-9]*)$/.test(property) || Number(property) >= entries.length)
+        (typeof property !== 'string' || !/^(0|[1-9][0-9]*)$/.test(property) || Number(property) >= length)
     )
   ) {
     throw new TypeError('Invalid workout reference version or list');
   }
-  return entries;
+  // Do not dispatch validation through a caller's map/iterator or Array species constructor.
+  return Array.from({ length }, (_, index) => entries[index]);
 }
 
 function trainingFiles(value: unknown): FITTrainingFileReferencesValue {
@@ -149,13 +154,14 @@ function guides(value: unknown): SuuntoPlusGuideReferencesValue {
     schemaVersion: 1,
     references: list(value, 'references').map(item => {
       const input = record(item, ['sessionIndex', 'developerDataIndex', 'applicationId', 'ownerId', 'externalId']);
-      if (input.applicationId !== 'SuuntoFitExport1' && input.applicationId !== 'SuuntoplusFitExt') {
+      const applicationId = input.applicationId;
+      if (applicationId !== 'SuuntoFitExport1' && applicationId !== 'SuuntoplusFitExt') {
         throw new TypeError('Invalid Suunto Guide exporter');
       }
       const output: SuuntoPlusGuideReference = {
         sessionIndex: integer(input.sessionIndex, 0, MAX_RECORDS - 1),
         developerDataIndex: integer(input.developerDataIndex, 0, 254),
-        applicationId: input.applicationId,
+        applicationId,
         ownerId: text(input.ownerId, 64),
         externalId: text(input.externalId, 64)
       };
@@ -192,6 +198,7 @@ abstract class WorkoutReferenceData<T extends DataJSONValue> extends DataBare<T>
     }
   }
 
+  /** Validates an owned snapshot before replacing the previous value; failure leaves it unchanged. */
   override setValue(value: T): this {
     this.value = this.normalize(value);
     return this;

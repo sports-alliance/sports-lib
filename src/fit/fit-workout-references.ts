@@ -8,7 +8,10 @@ import {
   SuuntoPlusGuideReference
 } from '../data/data.workout-references';
 
-/** Native session context. Index is source order, not a consumer activity ID. Enums are FIT codes. */
+/**
+ * Native session context. Index is source order, not a consumer activity ID. Enums are FIT codes.
+ * Malformed optional fields are omitted individually without discarding valid Guide evidence for that session.
+ */
 export interface FITWorkoutReferenceSession {
   sessionIndex: number;
   startTimeUnixMs?: number;
@@ -294,8 +297,10 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           const key = `${index}:${field}`;
           try {
             const name = fieldString(values.get(3)) || '';
-            const type = number(2, 2, 1);
+            // Retain Guide semantics even if decoding the accompanying type throws. Otherwise an
+            // ambiguous extra owner/external-ID field could be skipped in favor of another pair.
             if (name === OWNER || name === EXTERNAL) guideDescriptionKeys.add(key);
+            const type = number(2, 2, 1);
             if (type === undefined) throw new ReadError('invalid_metadata');
             const description = { name, type };
             const previous = descriptions.get(key);
@@ -310,12 +315,21 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           }
         } else if (def.global === 18) {
           const session: FITWorkoutReferenceSession = { sessionIndex: sessions.length };
-          // Keep source session ordinals even when optional native fields are malformed.
+          // Optional context must not discard other native fields or independently valid Guide pairs.
           sessions.push(session);
-          assign(session, 'startTimeUnixMs', milliseconds(number(2, 0x86, 4)));
-          assign(session, 'endTimeUnixMs', milliseconds(messageTimestamp));
-          assign(session, 'sport', number(5, 0, 1));
-          assign(session, 'subSport', number(6, 0, 1));
+          for (const [key, field, type, size] of [
+            ['startTimeUnixMs', 2, 0x86, 4],
+            ['endTimeUnixMs', 253, 0x86, 4],
+            ['sport', 5, 0, 1],
+            ['subSport', 6, 0, 1]
+          ] as const) {
+            try {
+              const value = field === 253 ? messageTimestamp : number(field, type, size);
+              assign(session, key, type === 0x86 ? milliseconds(value) : value);
+            } catch {
+              diagnostics.add('invalid_metadata');
+            }
+          }
           const groups = new Map<number, Map<string, Uint8Array>>();
           const groupDependencies = new Map<number, string[]>();
           const invalidGroups = new Set<number>();

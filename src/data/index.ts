@@ -44,6 +44,7 @@ export * from './data.avg-stroke-distance';
 export * from './data.avg-vam';
 export * from './data.balance';
 export * from './data.bare';
+export * from './data.workout-references';
 export * from './data.battery-charge';
 export * from './data.battery-consumption';
 export * from './data.battery-current';

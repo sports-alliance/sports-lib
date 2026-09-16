@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { access, copyFile, cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { runInNewContext } from 'node:vm';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -170,6 +171,16 @@ async function verifyModuleFormats() {
   assert.equal(new cjsExports.User('cjs-smoke-test').uid, 'cjs-smoke-test');
   assert.equal(new esmExports.DataDistance(123).getValue(), 123);
   assert.equal(new cjsExports.DataDistance(123).getValue(), 123);
+  for (const exports of [esmExports, cjsExports]) {
+    const parsed = exports.readFITWorkoutReferences(new Uint8Array());
+    assert.equal(parsed.status, 'invalid');
+    for (const instance of [parsed.trainingFiles, parsed.workouts, parsed.suuntoGuides]) {
+      const json = JSON.parse(JSON.stringify(instance));
+      assert.deepEqual(instance.constructor.fromJSON(json).toJSON(), json);
+      assert.throws(() => new instance.constructor(0));
+      assert.equal(exports.DataStore[instance.constructor.name], instance.constructor);
+    }
+  }
 
   const createNativeEventJson = () => ({
     activities: [],
@@ -354,6 +365,26 @@ async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   return initialBytes;
 }
 
+async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
+  const fixturePath = path.join(temporaryDirectory, 'workout-references.mjs');
+  await copyFile(path.join(packageRoot, 'scripts/fixtures/workout-references.mjs'), fixturePath);
+  const bundle = await build({
+    entryPoints: [fixturePath],
+    bundle: true,
+    external: bundleExternalDependencies,
+    metafile: true,
+    platform: 'browser',
+    target: 'es2020',
+    format: 'iife',
+    write: false,
+    logLevel: 'silent'
+  });
+  assertDependenciesExcluded(new Map(Object.entries(bundle.metafile.outputs)));
+  const context = { ArrayBuffer, Uint8Array, DataView, TextDecoder, TextEncoder };
+  runInNewContext(bundle.outputFiles[0].text, context, { timeout: 5000 });
+  assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true]);
+}
+
 function verifyPackContents() {
   const packOutput = execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
     cwd: packageRoot,
@@ -402,6 +433,7 @@ try {
   const rootExportCount = await verifyModuleFormats();
   await verifySpecifierRewriter(temporaryDirectory);
   await verifyTypeDeclarations(temporaryDirectory);
+  await verifyWorkoutReferenceBrowser(temporaryDirectory);
   const representativeBundleBytes = await verifyRepresentativeTreeShaking(temporaryDirectory);
   const pack = verifyPackContents();
 

@@ -15,6 +15,8 @@ import { RouteParsingOptions } from './routes/route-parsing-options';
 import { RouteFileInterface } from './routes/route-file.interface';
 import { RouteFileJSONInterface } from './routes/route-file.json.interface';
 
+export * from './fit/fit-workout-references';
+
 /**
  * Primary facade for importing activities and routes, exporting route files, and restoring
  * Sports Lib's native JSON representation.

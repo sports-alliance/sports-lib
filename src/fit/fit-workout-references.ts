@@ -1,0 +1,365 @@
+import {
+  DataFITTrainingFileReferences,
+  DataFITWorkoutDefinitions,
+  DataSuuntoPlusGuideReferences,
+  FITTrainingFileReference,
+  FITWorkoutDefinition,
+  SuuntoPlusGuideExporter,
+  SuuntoPlusGuideReference
+} from '../data/data.workout-references';
+
+/** Native session context. Index is source order, not a consumer activity ID. Enums are FIT codes. */
+export interface FITWorkoutReferenceSession {
+  sessionIndex: number;
+  startTimeUnixMs?: number;
+  endTimeUnixMs?: number;
+  sport?: number;
+  subSport?: number;
+}
+
+/** Allowlisted codes contain no identifiers, file content or provider account information. */
+export type FITWorkoutReferenceDiagnostic =
+  | 'invalid_input'
+  | 'input_limit'
+  | 'invalid_header'
+  | 'invalid_crc'
+  | 'invalid_structure'
+  | 'record_limit'
+  | 'invalid_metadata'
+  | 'conflicting_developer_definition'
+  | 'invalid_guide_pairs'
+  | 'unresolved_developer_field'
+  | 'unsupported_exporter';
+
+/** Metadata is deliberately separate from Event/Activity JSON and numeric stats. */
+export interface FITWorkoutReferencesResult {
+  /** Invalid structural input returns no evidence. Partial means optional metadata was rejected. */
+  status: 'ok' | 'partial' | 'invalid';
+  trainingFiles: DataFITTrainingFileReferences;
+  workouts: DataFITWorkoutDefinitions;
+  suuntoGuides: DataSuuntoPlusGuideReferences;
+  sessions: FITWorkoutReferenceSession[];
+  diagnostics: FITWorkoutReferenceDiagnostic[];
+}
+
+interface Field {
+  number: number;
+  size: number;
+  type: number;
+}
+interface Definition {
+  global: number;
+  little: boolean;
+  fields: Field[];
+  developers: Field[];
+}
+interface FieldValue {
+  field: Field;
+  bytes: Uint8Array;
+}
+interface Description {
+  name: string;
+  type: number;
+}
+class ReadError extends Error {
+  constructor(readonly code: FITWorkoutReferenceDiagnostic) {
+    super(code);
+  }
+}
+
+const OWNER = 'suuntoplus_plugin_owner_id';
+const EXTERNAL = 'suuntoplus_plugin_external_id';
+const EPOCH = Date.UTC(1989, 11, 31);
+const MAX_BYTES = 64 * 1024 * 1024;
+const MAX_RECORDS = 10_000;
+const CRC_TABLE = [
+  0, 0xcc01, 0xd801, 0x1400, 0xf001, 0x3c00, 0x2800, 0xe401, 0xa001, 0x6c00, 0x7800, 0xb401, 0x5000, 0x9c01, 0x8801,
+  0x4400
+];
+
+function crc(bytes: Uint8Array): number {
+  let value = 0;
+  for (const byte of bytes) {
+    value = (value >>> 4) ^ CRC_TABLE[value & 15] ^ CRC_TABLE[byte & 15];
+    value = (value >>> 4) ^ CRC_TABLE[value & 15] ^ CRC_TABLE[byte >>> 4];
+  }
+  return value;
+}
+
+function uint(value: FieldValue | undefined, type: number, size: number, little: boolean): number | undefined {
+  if (!value) return undefined;
+  const compatibleByte = size === 1 && [0, 2, 13].includes(type) && [0, 2, 13].includes(value.field.type);
+  if (value.field.size !== size || (value.field.type !== type && !compatibleByte)) {
+    throw new ReadError('invalid_metadata');
+  }
+  const view = new DataView(value.bytes.buffer, value.bytes.byteOffset, value.bytes.byteLength);
+  const result = size === 1 ? view.getUint8(0) : size === 2 ? view.getUint16(0, little) : view.getUint32(0, little);
+  const invalid = type === 0x8c ? 0 : size === 1 ? 0xff : size === 2 ? 0xffff : 0xffffffff;
+  return result === invalid ? undefined : result;
+}
+
+function string(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes).replace(/\0+$/, '');
+  } catch {
+    throw new ReadError('invalid_metadata');
+  }
+}
+
+function fieldString(value: FieldValue | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.field.type !== 7) throw new ReadError('invalid_metadata');
+  const result = string(value.bytes);
+  return result || undefined;
+}
+
+function exporter(bytes: Uint8Array): SuuntoPlusGuideExporter | undefined {
+  const id = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+  return id === 'SuuntoFitExport1' || id === 'SuuntoplusFitExt' ? id : undefined;
+}
+
+/**
+ * Reads optional FIT workout-reference evidence without importing activity streams or changing event JSON.
+ * Supports browser ArrayBuffers/Uint8Arrays and Node buffers (including views with nonzero offsets).
+ * Validates CRC and structure; invalid files return empty data classes, never partial trusted evidence.
+ * Optional malformed metadata is omitted with diagnostic codes. No names or IDs are logged.
+ * Source safety bounds are 64 MiB and 10,000 records per returned collection; overflow is invalid, not truncated.
+ * References indicate source-described usage, not account authentication or completion of prescribed targets.
+ */
+export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWorkoutReferencesResult {
+  const diagnostics = new Set<FITWorkoutReferenceDiagnostic>();
+  const training: FITTrainingFileReference[] = [];
+  const workouts: FITWorkoutDefinition[] = [];
+  const guides: SuuntoPlusGuideReference[] = [];
+  const sessions: FITWorkoutReferenceSession[] = [];
+  const result = (invalid = false): FITWorkoutReferencesResult => ({
+    status: invalid ? 'invalid' : diagnostics.size ? 'partial' : 'ok',
+    trainingFiles: new DataFITTrainingFileReferences({ schemaVersion: 1, references: invalid ? [] : training }),
+    workouts: new DataFITWorkoutDefinitions({ schemaVersion: 1, definitions: invalid ? [] : workouts }),
+    suuntoGuides: new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: invalid ? [] : guides }),
+    sessions: invalid ? [] : sessions,
+    diagnostics: [...diagnostics]
+  });
+  try {
+    if (!(input instanceof ArrayBuffer) && !(input instanceof Uint8Array)) throw new ReadError('invalid_input');
+    const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+    if (bytes.length > MAX_BYTES) throw new ReadError('input_limit');
+    if (bytes.length < 14) throw new ReadError('invalid_header');
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const header = bytes[0];
+    const end = header + view.getUint32(4, true);
+    if (
+      ![12, 14].includes(header) ||
+      ![1, 2].includes(bytes[1] >>> 4) ||
+      bytes[8] !== 46 ||
+      bytes[9] !== 70 ||
+      bytes[10] !== 73 ||
+      bytes[11] !== 84 ||
+      end + 2 !== bytes.length
+    )
+      throw new ReadError('invalid_header');
+    if (
+      (header === 14 && view.getUint16(12, true) !== 0 && crc(bytes.subarray(0, 12)) !== view.getUint16(12, true)) ||
+      crc(bytes.subarray(0, end)) !== view.getUint16(end, true)
+    )
+      throw new ReadError('invalid_crc');
+
+    let cursor = header;
+    let lastTimestamp: number | undefined;
+    const definitions = new Map<number, Definition>();
+    const applications = new Map<number, Uint8Array>();
+    const descriptions = new Map<string, Description>();
+    const conflicted = new Set<number>();
+    let uncertainDeveloperMetadata = false;
+    const take = (size: number): Uint8Array => {
+      if (cursor + size > end) throw new ReadError('invalid_structure');
+      const data = bytes.subarray(cursor, cursor + size);
+      cursor += size;
+      return data;
+    };
+    const conflict = (index: number) => {
+      conflicted.add(index);
+      diagnostics.add('conflicting_developer_definition');
+    };
+    while (cursor < end) {
+      const record = take(1)[0];
+      const compressed = !!(record & 0x80);
+      const local = compressed ? (record >> 5) & 3 : record & 15;
+      if (!compressed && record & 0x10) throw new ReadError('invalid_structure');
+      if (!compressed && record & 0x40) {
+        const base = take(5);
+        if (base[0] !== 0 || base[1] > 1) throw new ReadError('invalid_structure');
+        const little = base[1] === 0;
+        const global = little ? base[2] | (base[3] << 8) : (base[2] << 8) | base[3];
+        const readFields = (count: number, developer: boolean): Field[] => {
+          const fields: Field[] = [];
+          const keys = new Set<string>();
+          for (let n = 0; n < count; n++) {
+            const raw = take(3);
+            const key = developer ? `${raw[2]}:${raw[0]}` : `${raw[0]}`;
+            if (!raw[1] || keys.has(key)) throw new ReadError('invalid_structure');
+            keys.add(key);
+            fields.push({ number: raw[0], size: raw[1], type: raw[2] });
+          }
+          return fields;
+        };
+        const fields = readFields(base[4], false);
+        const developers = record & 0x20 ? readFields(take(1)[0], true) : [];
+        definitions.set(local, { global, little, fields, developers });
+        continue;
+      }
+      if (!compressed && record & 0x20) throw new ReadError('invalid_structure');
+      const def = definitions.get(local);
+      if (!def) throw new ReadError('invalid_structure');
+      let messageTimestamp: number | undefined;
+      if (compressed) {
+        const first = def.fields[0];
+        if (!first || first.number !== 253 || first.type !== 0x86 || first.size !== 4 || lastTimestamp === undefined) {
+          throw new ReadError('invalid_structure');
+        }
+        messageTimestamp = Math.floor(lastTimestamp / 32) * 32 + (record & 31);
+        if (messageTimestamp < lastTimestamp) messageTimestamp += 32;
+        if (messageTimestamp >= 0xffffffff) throw new ReadError('invalid_structure');
+        lastTimestamp = messageTimestamp;
+      }
+      const values = new Map<number, FieldValue>();
+      for (const field of def.fields) {
+        if (compressed && field.number === 253) continue;
+        const raw = take(field.size);
+        if ([18, 26, 72, 206, 207].includes(def.global) || field.number === 253) {
+          values.set(field.number, { field, bytes: raw });
+        }
+      }
+      const developerValues: { field: Field; bytes: Uint8Array }[] = [];
+      for (const field of def.developers) {
+        const raw = take(field.size);
+        if (def.global === 18) developerValues.push({ field, bytes: raw });
+      }
+      const number = (field: number, type: number, size: number) => uint(values.get(field), type, size, def.little);
+      const assign = <T extends object>(target: T, key: keyof T, value: unknown) => {
+        if (value !== undefined) target[key] = value as T[keyof T];
+      };
+      if (!compressed && values.has(253)) {
+        try {
+          messageTimestamp = number(253, 0x86, 4);
+          lastTimestamp = messageTimestamp;
+        } catch {
+          lastTimestamp = undefined;
+          diagnostics.add('invalid_metadata');
+        }
+      }
+      const milliseconds = (value: number | undefined) => (value === undefined ? undefined : EPOCH + value * 1000);
+      try {
+        if (def.global === 72) {
+          const item: FITTrainingFileReference = {};
+          assign(item, 'type', number(0, 0, 1));
+          assign(item, 'manufacturer', number(1, 0x84, 2));
+          assign(item, 'product', number(2, 0x84, 2));
+          assign(item, 'serialNumber', number(3, 0x8c, 4));
+          assign(item, 'timeCreatedUnixMs', milliseconds(number(4, 0x86, 4)));
+          assign(item, 'timestampUnixMs', milliseconds(messageTimestamp));
+          training.push(item);
+        } else if (def.global === 26) {
+          const item: FITWorkoutDefinition = {};
+          assign(item, 'name', fieldString(values.get(8)));
+          assign(item, 'sport', number(4, 0, 1));
+          assign(item, 'subSport', number(11, 0, 1));
+          assign(item, 'numValidSteps', number(6, 0x84, 2));
+          // Use the same validation as public construction, including malformed strings.
+          workouts.push(
+            new DataFITWorkoutDefinitions({ schemaVersion: 1, definitions: [item] }).getValue().definitions[0]
+          );
+        } else if (def.global === 207) {
+          const index = number(3, 2, 1);
+          const app = values.get(1);
+          if (index !== undefined) {
+            if (!app || app.field.type !== 13 || app.bytes.length !== 16) {
+              conflict(index);
+              continue;
+            }
+            const previous = applications.get(index);
+            if (previous && previous.some((byte, i) => byte !== app.bytes[i])) conflict(index);
+            applications.set(index, app.bytes);
+          } else throw new ReadError('invalid_metadata');
+        } else if (def.global === 206) {
+          const index = number(0, 2, 1);
+          if (index === undefined) throw new ReadError('invalid_metadata');
+          try {
+            const field = number(1, 2, 1);
+            if (field === undefined) throw new ReadError('invalid_metadata');
+            const key = `${index}:${field}`;
+            const description = { name: fieldString(values.get(3)) || '', type: number(2, 2, 1) ?? -1 };
+            const previous = descriptions.get(key);
+            if (previous && (previous.name !== description.name || previous.type !== description.type)) conflict(index);
+            descriptions.set(key, description);
+          } catch {
+            conflict(index);
+          }
+        } else if (def.global === 18) {
+          const session: FITWorkoutReferenceSession = { sessionIndex: sessions.length };
+          // Keep source session ordinals even when optional native fields are malformed.
+          sessions.push(session);
+          assign(session, 'startTimeUnixMs', milliseconds(number(2, 0x86, 4)));
+          assign(session, 'endTimeUnixMs', milliseconds(messageTimestamp));
+          assign(session, 'sport', number(5, 0, 1));
+          assign(session, 'subSport', number(6, 0, 1));
+          const groups = new Map<number, Map<string, Uint8Array>>();
+          const invalidGroups = new Set<number>();
+          for (const { field, bytes: raw } of developerValues) {
+            const index = field.type;
+            const description = descriptions.get(`${index}:${field.number}`);
+            const app = applications.get(index);
+            const application = app && exporter(app);
+            if (!description) {
+              if (application) diagnostics.add('unresolved_developer_field');
+              continue;
+            }
+            if (description.name !== OWNER && description.name !== EXTERNAL) continue;
+            if (!application) {
+              diagnostics.add('unsupported_exporter');
+              continue;
+            }
+            const group = groups.get(index) || new Map<string, Uint8Array>();
+            if (description.type !== 7 || group.has(description.name)) invalidGroups.add(index);
+            group.set(description.name, raw);
+            groups.set(index, group);
+          }
+          for (const [index, group] of groups) {
+            if (conflicted.has(index)) continue;
+            try {
+              if (invalidGroups.has(index) || !group.has(OWNER) || !group.has(EXTERNAL)) throw new Error();
+              const owners = string(group.get(OWNER)!).split('\0');
+              const ids = string(group.get(EXTERNAL)!).split('\0');
+              if (owners.length !== ids.length || owners.length > 10) throw new Error();
+              const pairs = owners.map((ownerId, i) => ({
+                sessionIndex: session.sessionIndex,
+                developerDataIndex: index,
+                applicationId: exporter(applications.get(index)!)!,
+                ownerId,
+                externalId: ids[i]
+              }));
+              const validated = new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: pairs });
+              guides.push(...validated.getValue().references);
+            } catch {
+              diagnostics.add('invalid_guide_pairs');
+            }
+          }
+        }
+      } catch {
+        diagnostics.add('invalid_metadata');
+        if (def.global === 206 || def.global === 207) uncertainDeveloperMetadata = true;
+      }
+      if ([training.length, workouts.length, guides.length, sessions.length].some(count => count > MAX_RECORDS)) {
+        throw new ReadError('record_limit');
+      }
+    }
+    // A later conflicting developer definition invalidates earlier evidence for that index too.
+    for (let i = guides.length - 1; i >= 0; i--) {
+      if (uncertainDeveloperMetadata || conflicted.has(guides[i].developerDataIndex)) guides.splice(i, 1);
+    }
+    return result();
+  } catch (error) {
+    diagnostics.add(error instanceof ReadError ? error.code : 'invalid_input');
+    return result(true);
+  }
+}

@@ -14,6 +14,11 @@ composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. T
 formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain
 consumer responsibilities.
 
+The opt-in [FIT workout-reference reader](guides/importing-activities.md#fit-workout-references) exposes standard FIT
+training-file references, embedded workout summaries and paired SuuntoPlus Guide IDs as serializable `DataBare`
+classes. These are nonnumeric source metadata, separate from normal activity JSON; consumers own account validation,
+privacy and completion matching.
+
 Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
 summaries separately from activities can explicitly canonicalize those projections with
 `normalizeActivityMetricSemanticsForStats` after determining the contributing activity types.

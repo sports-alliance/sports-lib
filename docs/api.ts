@@ -20,6 +20,29 @@ export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx'
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
 export type { EventExporter } from '../src/events/adapters/exporters/exporter.interface';
 
+/** @category FIT workout references */
+export { readFITWorkoutReferences } from '../src/fit/fit-workout-references';
+export type {
+  FITWorkoutReferencesResult,
+  FITWorkoutReferenceSession,
+  FITWorkoutReferenceDiagnostic
+} from '../src/fit/fit-workout-references';
+/** @category FIT workout references */
+export {
+  DataFITTrainingFileReferences,
+  DataFITWorkoutDefinitions,
+  DataSuuntoPlusGuideReferences
+} from '../src/data/data.workout-references';
+export type {
+  FITTrainingFileReference,
+  FITWorkoutDefinition,
+  SuuntoPlusGuideReference,
+  SuuntoPlusGuideExporter,
+  FITTrainingFileReferencesValue,
+  FITWorkoutDefinitionsValue,
+  SuuntoPlusGuideReferencesValue
+} from '../src/data/data.workout-references';
+
 /** @category Parsing options */
 export { ActivityParsingOptions } from '../src/activities/activity-parsing-options';
 export type {

@@ -629,6 +629,9 @@ Generated from modules re-exported by `src/data/index.ts`, then resolved to each
 - `Distance` (unit: `m`)
 - `Distance (Stryd)`
 - `Durability Evidence`
+- `FIT Training File References` (nonnumeric, explicit metadata reader only)
+- `FIT Workout Definitions` (nonnumeric, explicit metadata reader only)
+- `SuuntoPlus Guide References` (nonnumeric, explicit metadata reader only)
 - `Duration` (unit: `s`)
 - `Elapsed time` (unit: `s`)
 - `Effort Pace`

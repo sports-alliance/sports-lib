@@ -46,6 +46,66 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
+### FIT workout references
+
+Read optional source references independently of activity imports:
+
+```ts
+import { readFITWorkoutReferences, DataSuuntoPlusGuideReferences } from '@sports-alliance/sports-lib';
+
+const result = readFITWorkoutReferences(fitArrayBuffer); // also accepts Uint8Array / Node Buffer views
+if (result.status !== 'invalid') {
+  const pairs = result.suuntoGuides.getValue().references;
+  const stored = JSON.parse(JSON.stringify(result.suuntoGuides.toJSON()));
+  const restored = DataSuuntoPlusGuideReferences.fromJSON(stored);
+}
+```
+
+`trainingFiles`, `workouts` and `suuntoGuides` are respectively `DataFITTrainingFileReferences`,
+`DataFITWorkoutDefinitions` and `DataSuuntoPlusGuideReferences`. Every class has validated construction and `setValue`,
+defensive-copy getters, canonical `toJSON()` and strict static `fromJSON(unknown)`. JSON envelopes use the canonical
+type as their only key; values contain `schemaVersion: 1` and ordered `references` or `definitions` arrays. Unknown
+versions/fields, invalid numbers and malformed strings are rejected rather than silently normalized.
+
+Training-file references retain FIT message 72 fields: `type`, `manufacturer`, `product`, `serialNumber`,
+`timeCreatedUnixMs` and `timestampUnixMs`. The serial is native uint32z: zero is missing, while 4294967295 is valid.
+Workout definitions retain message 26 `name`, `sport`, `subSport` and `numValidSteps`, not full recipes. Native enums
+remain numeric FIT codes; timestamps are UTC Unix milliseconds. Missing source fields are absent, not inferred.
+Both lists remain file-scoped. `sessions` separately records zero-based source order, start/end timestamps and native
+sport/sub-sport, including an index-only entry when optional session context is malformed. Do not blindly equate a
+session ordinal with a consumer activity ID or assign every file reference to every session.
+
+Suunto Guide pairs preserve `sessionIndex`, `developerDataIndex`, `applicationId`, `ownerId` and `externalId`.
+The owner is an OAuth client ID, not the Guide owner's display name. The reader resolves developer field descriptions
+and preserves NUL-separated positional arrays, grouping strictly within one session and developer index. It accepts
+the documented `SuuntoFitExport1` exporter and the observed `SuuntoplusFitExt` exporter. Conflicting identity/field
+definitions invalidate affected indexes, including earlier observations. Strings are not trimmed, case-folded or
+Unicode-normalized. All valid owners are returned; consumers filter their own identities.
+
+The result is `ok`, `partial` (optional metadata rejected), or `invalid` (no evidence returned). `diagnostics` contains
+only a bounded set of codes, never IDs or raw bytes. The metadata walker checks headers, CRC, lengths, field types,
+endianness and compressed timestamps, and skips unrelated samples. Safety bounds are 64 MiB per file and 10,000 records
+per result collection; exceeding a bound is invalid, never silent truncation. Each Suunto developer group allows up
+to ten paired IDs of up to 64 Unicode characters, following the documented format. Invalid metadata does not throw
+into or otherwise change the ordinary activity importer. No credentials or provider requests are involved.
+
+These classes are registered for dynamic loading but are **not numeric metrics**. The reader never adds them to
+Event/Activity stats or default JSON. Treat identifiers as private: validate source provenance and account ownership,
+then persist only through an explicitly authorized metadata path. A standard FIT serial is not a universal Garmin
+Training API workout ID or schedule ID; embedded names are not identity proof. References may show selected workout
+or Guide usage but do not prove all prescribed targets or steps were completed.
+
+No existing activity/route migration, derived-summary regeneration or global reparse is required. Consumers can read
+selected retained originals for historical evidence without rewriting activity data. Quantified Self adoption and
+completion matching are separate work under #651; its numeric MCP catalog must continue excluding these structured
+classes (numeric construction with `0` is rejected). No QS private source references are automatically exposed.
+
+Sources: [Garmin FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) and
+[Suunto FIT description](https://apizone.suunto.com/fit-description). The latter documents owner/external-ID pairing;
+`SuuntoplusFitExt` support additionally reflects observed exporter behavior, not a claim that the documentation names it.
+
+### Recorded FIT metrics
+
 The FIT parser applies the profile scale to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
 fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
 The parser emits FIT `avg_vam` in meters per second; Sports Lib converts that present source value to its public

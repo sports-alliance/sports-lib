@@ -342,6 +342,11 @@ import { DataGroundContactTimeBalance } from './data-ground-contact-time-balance
 import { DataCriticalPower } from './data.critical-power';
 import { DataFTP } from './data.ftp';
 import { DataPowerCurve } from './data.power-curve';
+import {
+  DataFITTrainingFileReferences,
+  DataFITWorkoutDefinitions,
+  DataSuuntoPlusGuideReferences
+} from './data.workout-references';
 import { DataDurabilityEvidence } from './data.durability-evidence';
 import { DataThreeDimensionalStrainEvidence } from './data.three-dimensional-strain-evidence';
 import { DataPowerWattsPerKg } from './data.power-watts-per-kg';
@@ -595,6 +600,9 @@ export const DataStore: any = {
   DataCriticalPower,
   DataFTP,
   DataPowerCurve,
+  DataFITTrainingFileReferences,
+  DataFITWorkoutDefinitions,
+  DataSuuntoPlusGuideReferences,
   DataDurabilityEvidence,
   DataThreeDimensionalStrainEvidence,
   DataPowerWattsPerKg,

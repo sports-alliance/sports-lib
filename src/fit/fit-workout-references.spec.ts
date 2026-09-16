@@ -34,6 +34,16 @@ describe('FIT workout reference reader', () => {
     }
   );
 
+  it('normalizes the FIT endian flag on the developer application ID base type', () => {
+    const fixture = new FITWorkoutFixture()
+      .message(207, [byte(3, 1), { number: 1, type: 0x8d, bytes: [...new TextEncoder().encode('SuuntoplusFitExt')] }])
+      .descriptions();
+    session(fixture);
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.status).toBe('ok');
+    expect(result.suuntoGuides.getValue().references).toHaveLength(1);
+  });
+
   it('keeps both exporters and successive sessions separate', () => {
     const fixture = new FITWorkoutFixture()
       .application(0, 'SuuntoFitExport1')
@@ -412,7 +422,7 @@ describe('FIT workout reference reader', () => {
   it('keeps multiple workout/course references and missing fields without invalid sentinels', () => {
     const fixture = new FITWorkoutFixture()
       .message(72, [byte(0, 5, 0), numeric(3, 0, 4, 0x8c), numeric(4, 0xffffffff)])
-      .message(72, [byte(0, 6, 0), numeric(3, 4000000000, 4, 0x8c)])
+      .message(72, [byte(0, 6, 0), numeric(3, 4000000000, 4, 12)])
       .message(72, []);
     expect(readFITWorkoutReferences(fixture.finish()).trainingFiles.getValue().references).toEqual([
       { type: 5 },
@@ -426,6 +436,28 @@ describe('FIT workout reference reader', () => {
     const result = readFITWorkoutReferences(fixture.finish());
     expect(result.trainingFiles.getValue().references).toEqual([]);
     expect(result.status).toBe('partial');
+  });
+
+  it.each([
+    { fields: [{ number: 1, type: 17, bytes: [1] }] },
+    { fields: [{ number: 1, type: 0x2c, bytes: [0, 0, 0, 0] }] },
+    { fields: [numeric(1, 1, 2, 0x86)] }
+  ])('rejects unsupported native base types and invalid element widths in definitions', ({ fields }) => {
+    const result = readFITWorkoutReferences(new FITWorkoutFixture().message(20, fields).finish());
+    expect(result.status).toBe('invalid');
+    expect(result.diagnostics).toEqual(['invalid_structure']);
+  });
+
+  it('rejects unsupported developer field-description base-type IDs', () => {
+    const fixture = new FITWorkoutFixture()
+      .application()
+      .message(206, [byte(0, 1), byte(1, 2), byte(2, 17), stringField(3, 'suuntoplus_plugin_owner_id')])
+      .description(1, 3, 'suuntoplus_plugin_external_id')
+      .message(18, [], [developer(2, 1, 'client'), developer(3, 1, 'guide')]);
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.status).toBe('partial');
+    expect(result.diagnostics).toContain('invalid_metadata');
+    expect(result.suuntoGuides.getValue().references).toEqual([]);
   });
 
   it('reconstructs compressed timestamps with rollover and reused local definitions', () => {

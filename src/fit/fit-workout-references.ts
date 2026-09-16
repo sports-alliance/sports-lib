@@ -75,6 +75,25 @@ const EXTERNAL = 'suuntoplus_plugin_external_id';
 const EPOCH = Date.UTC(1989, 11, 31);
 const MAX_BYTES = 64 * 1024 * 1024;
 const MAX_RECORDS = 10_000;
+const FIT_BASE_TYPE_WIDTHS = new Map<number, number>([
+  [0, 1],
+  [1, 1],
+  [2, 1],
+  [3, 2],
+  [4, 2],
+  [5, 4],
+  [6, 4],
+  [7, 1],
+  [8, 4],
+  [9, 8],
+  [10, 1],
+  [11, 2],
+  [12, 4],
+  [13, 1],
+  [14, 8],
+  [15, 8],
+  [16, 8]
+]);
 const CRC_TABLE = [
   0, 0xcc01, 0xd801, 0x1400, 0xf001, 0x3c00, 0x2800, 0xe401, 0xa001, 0x6c00, 0x7800, 0xb401, 0x5000, 0x9c01, 0x8801,
   0x4400
@@ -91,13 +110,15 @@ function crc(bytes: Uint8Array): number {
 
 function uint(value: FieldValue | undefined, type: number, size: number, little: boolean): number | undefined {
   if (!value) return undefined;
-  const compatibleByte = size === 1 && [0, 2, 13].includes(type) && [0, 2, 13].includes(value.field.type);
-  if (value.field.size !== size || (value.field.type !== type && !compatibleByte)) {
+  const expectedType = type & 0x1f;
+  const actualType = value.field.type & 0x1f;
+  const compatibleByte = size === 1 && [0, 2, 13].includes(expectedType) && [0, 2, 13].includes(actualType);
+  if (value.field.size !== size || (actualType !== expectedType && !compatibleByte)) {
     throw new ReadError('invalid_metadata');
   }
   const view = new DataView(value.bytes.buffer, value.bytes.byteOffset, value.bytes.byteLength);
   const result = size === 1 ? view.getUint8(0) : size === 2 ? view.getUint16(0, little) : view.getUint32(0, little);
-  const invalid = type === 0x8c ? 0 : size === 1 ? 0xff : size === 2 ? 0xffff : 0xffffffff;
+  const invalid = expectedType === 12 ? 0 : size === 1 ? 0xff : size === 2 ? 0xffff : 0xffffffff;
   return result === invalid ? undefined : result;
 }
 
@@ -111,7 +132,7 @@ function string(bytes: Uint8Array): string {
 
 function fieldString(value: FieldValue | undefined): string | undefined {
   if (!value) return undefined;
-  if (value.field.type !== 7) throw new ReadError('invalid_metadata');
+  if ((value.field.type & 0x1f) !== 7) throw new ReadError('invalid_metadata');
   const result = string(value.bytes);
   return result || undefined;
 }
@@ -119,6 +140,20 @@ function fieldString(value: FieldValue | undefined): string | undefined {
 function exporter(bytes: Uint8Array): SuuntoPlusGuideExporter | undefined {
   const id = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
   return id === 'SuuntoFitExport1' || id === 'SuuntoplusFitExt' ? id : undefined;
+}
+
+function baseTypeId(type: number): number | undefined {
+  // FIT decoders identify the base type from the low five bits. Accept the
+  // optional endian-capability flag used by encoders, but not reserved bits.
+  if (type & 0x60) return undefined;
+  const id = type & 0x1f;
+  return FIT_BASE_TYPE_WIDTHS.has(id) ? id : undefined;
+}
+
+function validNativeField(field: Field): boolean {
+  const id = baseTypeId(field.type);
+  const width = id === undefined ? undefined : FIT_BASE_TYPE_WIDTHS.get(id);
+  return width !== undefined && (id === 7 || field.size % width === 0);
 }
 
 /**
@@ -201,7 +236,9 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
             const key = developer ? `${raw[2]}:${raw[0]}` : `${raw[0]}`;
             if (!raw[1] || keys.has(key)) throw new ReadError('invalid_structure');
             keys.add(key);
-            fields.push({ number: raw[0], size: raw[1], type: raw[2] });
+            const field = { number: raw[0], size: raw[1], type: raw[2] };
+            if (!developer && !validNativeField(field)) throw new ReadError('invalid_structure');
+            fields.push(field);
           }
           return fields;
         };
@@ -275,7 +312,7 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           if (index !== undefined) {
             // Application IDs are optional for unrelated FIT developer data. Absence alone is not a conflict.
             if (!app && !applications.has(index)) continue;
-            if (!app || app.field.type !== 13 || app.bytes.length !== 16) {
+            if (!app || (app.field.type & 0x1f) !== 13 || app.bytes.length !== 16) {
               invalidApplications.add(index);
               diagnostics.add('invalid_metadata');
               continue;
@@ -299,8 +336,11 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
             // ambiguous extra owner/external-ID field could be skipped in favor of another pair.
             if (name === OWNER || name === EXTERNAL) guideDescriptionKeys.add(key);
             const type = number(2, 2, 1);
-            if (type === undefined) throw new ReadError('invalid_metadata');
-            const description = { name, type };
+            // field_description.fit_base_type_id carries the same FIT profile
+            // base-type byte used by native definitions.
+            const describedType = type === undefined ? undefined : baseTypeId(type);
+            if (describedType === undefined) throw new ReadError('invalid_metadata');
+            const description = { name, type: describedType };
             const previous = descriptions.get(key);
             if (previous && (previous.name !== description.name || previous.type !== description.type)) {
               invalidDescriptions.add(key);

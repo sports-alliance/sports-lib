@@ -20,7 +20,10 @@ export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx'
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
 export type { EventExporter } from '../src/events/adapters/exporters/exporter.interface';
 
-/** @category FIT workout references */
+/**
+ * Opt-in source metadata reader with dynamic developer-field resolution, isolated diagnostics and no activity writes.
+ * @category FIT workout references
+ */
 export { readFITWorkoutReferences } from '../src/fit/fit-workout-references';
 export type {
   FITWorkoutReferencesResult,

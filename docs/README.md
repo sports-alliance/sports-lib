@@ -17,7 +17,8 @@ consumer responsibilities.
 The opt-in [FIT workout-reference reader](guides/importing-activities.md#fit-workout-references) exposes standard FIT
 training-file references, embedded workout summaries and paired SuuntoPlus Guide IDs as serializable `DataBare`
 classes. These are nonnumeric source metadata, separate from normal activity JSON; consumers own account validation,
-privacy and completion matching.
+privacy and completion matching. Developer indexes and field numbers resolve dynamically; unsupported exporters and
+malformed metadata have distinct diagnostics, and unrelated developer errors do not discard valid reference groups.
 
 Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
 summaries separately from activities can explicitly canonicalize those projections with

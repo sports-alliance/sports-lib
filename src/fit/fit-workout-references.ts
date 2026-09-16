@@ -33,7 +33,7 @@ export type FITWorkoutReferenceDiagnostic =
 
 /** Metadata is deliberately separate from Event/Activity JSON and numeric stats. */
 export interface FITWorkoutReferencesResult {
-  /** Invalid structural input returns no evidence. Partial means optional metadata was rejected. */
+  /** Invalid structural input returns no evidence. Partial means some optional metadata was rejected or unsupported. */
   status: 'ok' | 'partial' | 'invalid';
   trainingFiles: DataFITTrainingFileReferences;
   workouts: DataFITWorkoutDefinitions;
@@ -122,7 +122,8 @@ function exporter(bytes: Uint8Array): SuuntoPlusGuideExporter | undefined {
  * Reads optional FIT workout-reference evidence without importing activity streams or changing event JSON.
  * Supports browser ArrayBuffers/Uint8Arrays and Node buffers (including views with nonzero offsets).
  * Validates CRC and structure; invalid files return empty data classes, never partial trusted evidence.
- * Optional malformed metadata is omitted with diagnostic codes. No names or IDs are logged.
+ * Optional malformed metadata is isolated to its identifiable application/field dependencies.
+ * Unknown exporter identities are unsupported, not malformed. No names or IDs are logged.
  * Source safety bounds are 64 MiB and 10,000 records per returned collection; overflow is invalid, not truncated.
  * References indicate source-described usage, not account authentication or completion of prescribed targets.
  */
@@ -169,17 +170,15 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
     const definitions = new Map<number, Definition>();
     const applications = new Map<number, Uint8Array>();
     const descriptions = new Map<string, Description>();
-    const conflicted = new Set<number>();
-    let uncertainDeveloperMetadata = false;
+    const invalidApplications = new Set<number>();
+    const invalidDescriptions = new Set<string>();
+    const guideDescriptionKeys = new Set<string>();
+    const guideDependencies = new Map<SuuntoPlusGuideReference, string[]>();
     const take = (size: number): Uint8Array => {
       if (cursor + size > end) throw new ReadError('invalid_structure');
       const data = bytes.subarray(cursor, cursor + size);
       cursor += size;
       return data;
-    };
-    const conflict = (index: number) => {
-      conflicted.add(index);
-      diagnostics.add('conflicting_developer_definition');
     };
     while (cursor < end) {
       const record = take(1)[0];
@@ -273,27 +272,41 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           const index = number(3, 2, 1);
           const app = values.get(1);
           if (index !== undefined) {
+            // Application IDs are optional for unrelated FIT developer data. Absence alone is not a conflict.
+            if (!app && !applications.has(index)) continue;
             if (!app || app.field.type !== 13 || app.bytes.length !== 16) {
-              conflict(index);
+              invalidApplications.add(index);
+              diagnostics.add('invalid_metadata');
               continue;
             }
             const previous = applications.get(index);
-            if (previous && previous.some((byte, i) => byte !== app.bytes[i])) conflict(index);
+            if (previous && previous.some((byte, i) => byte !== app.bytes[i])) {
+              invalidApplications.add(index);
+              diagnostics.add('conflicting_developer_definition');
+            }
             applications.set(index, app.bytes);
           } else throw new ReadError('invalid_metadata');
         } else if (def.global === 206) {
           const index = number(0, 2, 1);
           if (index === undefined) throw new ReadError('invalid_metadata');
+          const field = number(1, 2, 1);
+          if (field === undefined) throw new ReadError('invalid_metadata');
+          const key = `${index}:${field}`;
           try {
-            const field = number(1, 2, 1);
-            if (field === undefined) throw new ReadError('invalid_metadata');
-            const key = `${index}:${field}`;
-            const description = { name: fieldString(values.get(3)) || '', type: number(2, 2, 1) ?? -1 };
+            const name = fieldString(values.get(3)) || '';
+            const type = number(2, 2, 1);
+            if (name === OWNER || name === EXTERNAL) guideDescriptionKeys.add(key);
+            if (type === undefined) throw new ReadError('invalid_metadata');
+            const description = { name, type };
             const previous = descriptions.get(key);
-            if (previous && (previous.name !== description.name || previous.type !== description.type)) conflict(index);
+            if (previous && (previous.name !== description.name || previous.type !== description.type)) {
+              invalidDescriptions.add(key);
+              diagnostics.add('conflicting_developer_definition');
+            }
             descriptions.set(key, description);
           } catch {
-            conflict(index);
+            invalidDescriptions.add(key);
+            diagnostics.add('invalid_metadata');
           }
         } else if (def.global === 18) {
           const session: FITWorkoutReferenceSession = { sessionIndex: sessions.length };
@@ -304,28 +317,38 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           assign(session, 'sport', number(5, 0, 1));
           assign(session, 'subSport', number(6, 0, 1));
           const groups = new Map<number, Map<string, Uint8Array>>();
+          const groupDependencies = new Map<number, string[]>();
           const invalidGroups = new Set<number>();
           for (const { field, bytes: raw } of developerValues) {
             const index = field.type;
-            const description = descriptions.get(`${index}:${field.number}`);
+            const key = `${index}:${field.number}`;
+            const description = descriptions.get(key);
             const app = applications.get(index);
             const application = app && exporter(app);
+            if (invalidApplications.has(index)) continue;
+            if (invalidDescriptions.has(key)) {
+              // A rejected Guide field cannot be silently dropped in favor of another apparent pair.
+              if (guideDescriptionKeys.has(key)) invalidGroups.add(index);
+              continue;
+            }
             if (!description) {
               if (application) diagnostics.add('unresolved_developer_field');
               continue;
             }
             if (description.name !== OWNER && description.name !== EXTERNAL) continue;
             if (!application) {
-              diagnostics.add('unsupported_exporter');
+              diagnostics.add(app ? 'unsupported_exporter' : 'unresolved_developer_field');
               continue;
             }
             const group = groups.get(index) || new Map<string, Uint8Array>();
             if (description.type !== 7 || group.has(description.name)) invalidGroups.add(index);
             group.set(description.name, raw);
             groups.set(index, group);
+            const dependencies = groupDependencies.get(index) || [];
+            dependencies.push(key);
+            groupDependencies.set(index, dependencies);
           }
           for (const [index, group] of groups) {
-            if (conflicted.has(index)) continue;
             try {
               if (invalidGroups.has(index) || !group.has(OWNER) || !group.has(EXTERNAL)) throw new Error();
               const owners = string(group.get(OWNER)!).split('\0');
@@ -339,7 +362,10 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
                 externalId: ids[i]
               }));
               const validated = new DataSuuntoPlusGuideReferences({ schemaVersion: 1, references: pairs });
-              guides.push(...validated.getValue().references);
+              for (const reference of validated.getValue().references) {
+                guides.push(reference);
+                guideDependencies.set(reference, groupDependencies.get(index)!);
+              }
             } catch {
               diagnostics.add('invalid_guide_pairs');
             }
@@ -347,15 +373,19 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
         }
       } catch {
         diagnostics.add('invalid_metadata');
-        if (def.global === 206 || def.global === 207) uncertainDeveloperMetadata = true;
       }
       if ([training.length, workouts.length, guides.length, sessions.length].some(count => count > MAX_RECORDS)) {
         throw new ReadError('record_limit');
       }
     }
-    // A later conflicting developer definition invalidates earlier evidence for that index too.
+    // Later identity conflicts invalidate the application; field conflicts invalidate only their dependents.
+    // A malformed message with no resolvable index cannot redefine other valid developer groups.
     for (let i = guides.length - 1; i >= 0; i--) {
-      if (uncertainDeveloperMetadata || conflicted.has(guides[i].developerDataIndex)) guides.splice(i, 1);
+      if (
+        invalidApplications.has(guides[i].developerDataIndex) ||
+        guideDependencies.get(guides[i])!.some(key => invalidDescriptions.has(key))
+      )
+        guides.splice(i, 1);
     }
     return result();
   } catch (error) {

@@ -78,12 +78,23 @@ session ordinal with a consumer activity ID or assign every file reference to ev
 Suunto Guide pairs preserve `sessionIndex`, `developerDataIndex`, `applicationId`, `ownerId` and `externalId`.
 The owner is an OAuth client ID, not the Guide owner's display name. The reader resolves developer field descriptions
 and preserves NUL-separated positional arrays, grouping strictly within one session and developer index. It accepts
-the documented `SuuntoFitExport1` exporter and the observed `SuuntoplusFitExt` exporter. Conflicting identity/field
-definitions invalidate affected indexes, including earlier observations. Strings are not trimmed, case-folded or
+`SuuntoFitExport1` and `SuuntoplusFitExt`, both identified in Suunto's decoder example. Developer indexes and field
+numbers are resolved from each file, not hard-coded. Different indexes, field numbers, Guide identifiers or unrelated
+SuuntoPlus apps do not require a library update. Changed Guide semantics or a new metadata exporter require reviewed
+support; arbitrary field names or app IDs do not establish Guide usage.
+
+Malformed or conflicting application identities invalidate references for that developer index, including earlier
+observations. Malformed/conflicting field descriptions invalidate only references depending on those fields, not
+unrelated fields sharing the exporter. Unresolvable malformed messages report diagnostics without invalidating other
+identified groups. Unrelated developer IDs may omit an application ID. Strings are not trimmed, case-folded or
 Unicode-normalized. All valid owners are returned; consumers filter their own identities.
 
-The result is `ok`, `partial` (optional metadata rejected), or `invalid` (no evidence returned). `diagnostics` contains
-only a bounded set of codes, never IDs or raw bytes. The metadata walker checks headers, CRC, lengths, field types,
+The result is `ok`, `partial` (some optional metadata rejected or unsupported), or `invalid` (no evidence returned).
+`unsupported_exporter` means Guide-named fields came from a well-formed but unrecognized application ID, not malformed
+data. Missing application/field definitions report `unresolved_developer_field`; malformed definitions report
+`invalid_metadata`, and contradictory definitions report `conflicting_developer_definition`. None of these diagnostics
+establishes completion. Valid independent references can remain in a `partial` result. `diagnostics` contains only a
+bounded set of codes, never IDs or raw bytes. The metadata walker checks headers, CRC, lengths, field types,
 endianness and compressed timestamps, and skips unrelated samples. Safety bounds are 64 MiB per file and 10,000 records
 per result collection; exceeding a bound is invalid, never silent truncation. Each Suunto developer group allows up
 to ten paired IDs of up to 64 Unicode characters, following the documented format. Invalid metadata does not throw
@@ -100,9 +111,16 @@ selected retained originals for historical evidence without rewriting activity d
 completion matching are separate work under #651; its numeric MCP catalog must continue excluding these structured
 classes (numeric construction with `0` is rejected). No QS private source references are automatically exposed.
 
-Sources: [Garmin FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) and
-[Suunto FIT description](https://apizone.suunto.com/fit-description). The latter documents owner/external-ID pairing;
-`SuuntoplusFitExt` support additionally reflects observed exporter behavior, not a claim that the documentation names it.
+Regression fixtures reproduce the metadata topology of an inspected Guide-bearing Suunto export using synthetic
+values: standard metrics on one developer index and Guide pairs on a separate `SuuntoplusFitExt` index. A renumbered
+variant exercises dynamic resolution. Tests also cover unrelated application-less metadata in existing Garmin/Wahoo
+samples. No private recordings or identifiers are embedded in these fixtures.
+
+Sources: [Garmin FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js),
+[Suunto FIT description](https://apizone.suunto.com/fit-description) and
+[Suunto decoder example](https://aspartnercontent.blob.core.windows.net/apizone/docs/SuuntoDeveloperFieldsDecodingExample.java).
+The description documents positional owner/external-ID pairing; the example identifies both metadata exporters and
+distinguishes them from the variable IDs of individual SuuntoPlus apps.
 
 ### Recorded FIT metrics
 

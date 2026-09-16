@@ -61,6 +61,176 @@ describe('FIT workout reference reader', () => {
     expect(references(fixture)[0]).toMatchObject({ developerDataIndex: 9, ownerId: 'client', externalId: 'external' });
   });
 
+  it.each([
+    [0, 1, 2, 3],
+    [2, 9, 21, 22]
+  ])(
+    'reads a source-shaped Suunto session with independent metric and Guide definitions (%p, %p)',
+    (metricIndex, guideIndex, ownerField, externalField) => {
+      // Reproduces an inspected export's metadata topology, not its personal values or recording.
+      const fixture = new FITWorkoutFixture().application(metricIndex, 'SuuntoFitExport1');
+      for (const [field, name, type] of [
+        [2, 'recovery_time', 0x86],
+        [4, 'peak_epoc', 0x88],
+        [11, 'aerobic_baseline', 0x88],
+        [12, 'cumulative_baseline', 0x88],
+        [13, 'aerobic_threshold', 0x88],
+        [15, 'time_in_aerobic_zone', 0x88],
+        [16, 'time_in_anaerobic_zone', 0x88],
+        [17, 'time_in_vo2max_zone', 0x88],
+        [18, 'ddfa', 0x88]
+      ] as const)
+        fixture.description(metricIndex, field, name, type);
+      fixture.application(guideIndex).descriptions(guideIndex, ownerField, externalField);
+      fixture.message(
+        18,
+        [numeric(253, TIME + 60), numeric(2, TIME), byte(5, 2, 0)],
+        [
+          { number: 2, index: metricIndex, bytes: [60, 0, 0, 0] },
+          developer(ownerField, guideIndex, 'synthetic-client-a\0synthetic-client-b'),
+          developer(externalField, guideIndex, 'synthetic-guide-a\0synthetic-guide-b')
+        ]
+      );
+      const result = readFITWorkoutReferences(fixture.finish());
+      expect(result.status).toBe('ok');
+      expect(result.diagnostics).toEqual([]);
+      expect(result.suuntoGuides.getValue().references).toEqual(
+        ['a', 'b'].map(suffix => ({
+          sessionIndex: 0,
+          developerDataIndex: guideIndex,
+          applicationId: 'SuuntoplusFitExt',
+          ownerId: `synthetic-client-${suffix}`,
+          externalId: `synthetic-guide-${suffix}`
+        }))
+      );
+      expect(result.sessions).toEqual([
+        { sessionIndex: 0, startTimeUnixMs: ms(TIME), endTimeUnixMs: ms(TIME + 60), sport: 2 }
+      ]);
+    }
+  );
+
+  it('allows unrelated developer IDs without application IDs', () => {
+    const fixture = new FITWorkoutFixture()
+      .message(207, [byte(3, 0)])
+      .description(0, 0, 'calibration', 0x85)
+      .application()
+      .descriptions();
+    session(fixture);
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.status).toBe('ok');
+    expect(result.diagnostics).toEqual([]);
+    expect(result.suuntoGuides.getValue().references).toHaveLength(1);
+  });
+
+  it('ignores unnamed unrelated fields and accepts an identity supplied before first Guide use', () => {
+    const fixture = new FITWorkoutFixture()
+      .message(207, [byte(3, 1)])
+      .message(206, [byte(0, 1), byte(1, 12), byte(2, 0x88)])
+      .application()
+      .descriptions();
+    session(fixture);
+    expect(readFITWorkoutReferences(fixture.finish()).status).toBe('ok');
+    expect(references(fixture)).toHaveLength(1);
+  });
+
+  it.each(['samples/fit/2025-10-22_08-55.fit', 'src/specs/fixtures/rides/fit/7739869618.fit'])(
+    'ignores unrelated application-less metadata in existing sample %s',
+    path => {
+      const result = readFITWorkoutReferences(readFileSync(resolve(__dirname, '../..', path)));
+      expect(result.status).toBe('ok');
+      expect(result.diagnostics).toEqual([]);
+      expect(result.suuntoGuides.getValue().references).toEqual([]);
+    }
+  );
+
+  it.each([206, 207])('does not discard valid evidence for an unresolvable unrelated message %p', global => {
+    const fixture = new FITWorkoutFixture().application().descriptions();
+    session(fixture);
+    fixture.message(global, [stringField(global === 206 ? 0 : 3, 'bad-index')]);
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.status).toBe('partial');
+    expect(result.diagnostics).toEqual(['invalid_metadata']);
+    expect(result.suuntoGuides.getValue().references).toHaveLength(1);
+  });
+
+  it.each([false, true])(
+    'isolates unrelated malformed/conflicting fields inside a Guide exporter (conflict=%p)',
+    conflict => {
+      const fixture = new FITWorkoutFixture().application().descriptions().description(1, 12, 'unrelated');
+      session(fixture);
+      if (conflict) fixture.description(1, 12, 'changed_unrelated');
+      else fixture.message(206, [byte(0, 1), byte(1, 12), byte(2, 7), { number: 3, type: 7, bytes: [0xc3, 0x28] }]);
+      const result = readFITWorkoutReferences(fixture.finish());
+      expect(result.status).toBe('partial');
+      expect(result.suuntoGuides.getValue().references).toHaveLength(1);
+    }
+  );
+
+  it('invalidates only references that actually use a conflicting field definition', () => {
+    const fixture = new FITWorkoutFixture().application().descriptions();
+    session(fixture);
+    fixture
+      .descriptions(1, 21, 22)
+      .message(18, [], [developer(21, 1, 'second-client'), developer(22, 1, 'second-guide')]);
+    fixture.description(1, 2, 'changed_field');
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.diagnostics).toEqual(['conflicting_developer_definition']);
+    expect(result.suuntoGuides.getValue().references).toEqual([
+      {
+        sessionIndex: 1,
+        developerDataIndex: 1,
+        applicationId: 'SuuntoplusFitExt',
+        ownerId: 'second-client',
+        externalId: 'second-guide'
+      }
+    ]);
+  });
+
+  it.each(['suuntoplus_plugin_owner_id', 'unrelated'])(
+    'does not hide a conflicting extra Guide field named %s',
+    name => {
+      const fixture = new FITWorkoutFixture()
+        .application()
+        .descriptions()
+        .description(1, 12, 'suuntoplus_plugin_owner_id')
+        .description(1, 12, name, 2)
+        .message(18, [], [developer(2, 1, 'client'), developer(3, 1, 'guide'), developer(12, 1, 'ambiguous')]);
+      const result = readFITWorkoutReferences(fixture.finish());
+      expect(result.status).toBe('partial');
+      expect(result.suuntoGuides.getValue().references).toEqual([]);
+    }
+  );
+
+  it('preserves a supported group alongside an unsupported exporter and a malformed unrelated app', () => {
+    const fixture = new FITWorkoutFixture()
+      .application()
+      .descriptions()
+      .application(2, 'UnknownExport123')
+      .descriptions(2)
+      .application(3, 'bad');
+    fixture.message(
+      18,
+      [],
+      [developer(2, 1, 'a'), developer(3, 1, 'one'), developer(2, 2, 'b'), developer(3, 2, 'two')]
+    );
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.diagnostics).toEqual(['invalid_metadata', 'unsupported_exporter']);
+    expect(result.suuntoGuides.getValue().references.map(item => item.externalId)).toEqual(['one']);
+  });
+
+  it.each(['before', 'after'])('rejects malformed Guide field definitions %s a valid definition', position => {
+    const fixture = new FITWorkoutFixture().application();
+    const malformed = () =>
+      fixture.message(206, [byte(0, 1), byte(1, 2), byte(2, 7), { number: 3, type: 7, bytes: [0xc3, 0x28] }]);
+    if (position === 'before') malformed();
+    fixture.descriptions();
+    session(fixture);
+    if (position === 'after') malformed();
+    const result = readFITWorkoutReferences(fixture.finish());
+    expect(result.diagnostics).toContain('invalid_metadata');
+    expect(result.suuntoGuides.getValue().references).toEqual([]);
+  });
+
   it('never mixes owner and external IDs across developer indexes', () => {
     const fixture = new FITWorkoutFixture()
       .application(0, 'SuuntoFitExport1')
@@ -122,6 +292,18 @@ describe('FIT workout reference reader', () => {
     const fixture = new FITWorkoutFixture().application(1, 'UnknownExport123').descriptions();
     session(fixture);
     expect(references(fixture)).toEqual([]);
+    expect(readFITWorkoutReferences(fixture.finish()).diagnostics).toEqual(['unsupported_exporter']);
+  });
+
+  it('distinguishes absent/malformed exporter identity from a well-formed unsupported exporter', () => {
+    const missing = new FITWorkoutFixture().message(207, [byte(3, 1)]).descriptions();
+    session(missing);
+    expect(readFITWorkoutReferences(missing.finish()).diagnostics).toEqual(['unresolved_developer_field']);
+    const malformed = new FITWorkoutFixture().application(1, 'too-short').descriptions();
+    session(malformed);
+    const result = readFITWorkoutReferences(malformed.finish());
+    expect(result.diagnostics).toEqual(['invalid_metadata']);
+    expect(result.suuntoGuides.getValue().references).toEqual([]);
   });
 
   it('isolates malformed developer groups while preserving other valid groups', () => {

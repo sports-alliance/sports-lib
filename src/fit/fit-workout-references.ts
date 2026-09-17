@@ -1,5 +1,3 @@
-import FitParser from 'fit-file-parser';
-import type { ParsedFit, ParsedRawFitMessage } from 'fit-file-parser';
 import {
   DataFITTrainingFileReferences,
   DataFITWorkoutDefinitions,
@@ -52,6 +50,12 @@ interface Field {
   size: number;
   type: number;
 }
+interface Definition {
+  global: number;
+  little: boolean;
+  fields: Field[];
+  developers: Field[];
+}
 interface FieldValue {
   field: Field;
   bytes: Uint8Array;
@@ -59,13 +63,6 @@ interface FieldValue {
 interface Description {
   name: string;
   type: number;
-}
-interface RawMessage {
-  global: number;
-  little: boolean;
-  compressedTimestamp?: number;
-  values: Map<number, FieldValue>;
-  developers: { developerDataIndex: number; fieldDefinitionNumber: number; rawValue: Uint8Array }[];
 }
 class ReadError extends Error {
   constructor(readonly code: FITWorkoutReferenceDiagnostic) {
@@ -78,8 +75,7 @@ const EXTERNAL = 'suuntoplus_plugin_external_id';
 const EPOCH = Date.UTC(1989, 11, 31);
 const MAX_BYTES = 64 * 1024 * 1024;
 const MAX_RECORDS = 10_000;
-const SELECTED_MESSAGES = [18, 26, 72, 206, 207] as const;
-const SELECTED_MESSAGE_SET = new Set<number>(SELECTED_MESSAGES);
+const SELECTED_MESSAGES = new Set([18, 26, 72, 206, 207]);
 const FIT_BASE_TYPE_WIDTHS = new Map<number, number>([
   [0, 1],
   [1, 1],
@@ -99,6 +95,19 @@ const FIT_BASE_TYPE_WIDTHS = new Map<number, number>([
   [15, 8],
   [16, 8]
 ]);
+const CRC_TABLE = [
+  0, 0xcc01, 0xd801, 0x1400, 0xf001, 0x3c00, 0x2800, 0xe401, 0xa001, 0x6c00, 0x7800, 0xb401, 0x5000, 0x9c01, 0x8801,
+  0x4400
+];
+
+function crc(bytes: Uint8Array): number {
+  let value = 0;
+  for (const byte of bytes) {
+    value = (value >>> 4) ^ CRC_TABLE[value & 15] ^ CRC_TABLE[byte & 15];
+    value = (value >>> 4) ^ CRC_TABLE[value & 15] ^ CRC_TABLE[byte >>> 4];
+  }
+  return value;
+}
 
 function uint(value: FieldValue | undefined, type: number, size: number, little: boolean): number | undefined {
   if (!value) return undefined;
@@ -135,6 +144,8 @@ function exporter(bytes: Uint8Array): SuuntoPlusGuideExporter | undefined {
 }
 
 function baseTypeId(type: number): number | undefined {
+  // FIT decoders identify the base type from the low five bits. Accept the
+  // optional endian-capability flag used by encoders, but not reserved bits.
   if (type & 0x60) return undefined;
   const id = type & 0x1f;
   return FIT_BASE_TYPE_WIDTHS.has(id) ? id : undefined;
@@ -143,141 +154,7 @@ function baseTypeId(type: number): number | undefined {
 function validNativeField(field: Field): boolean {
   const id = baseTypeId(field.type);
   const width = id === undefined ? undefined : FIT_BASE_TYPE_WIDTHS.get(id);
-  return field.size > 0 && width !== undefined && (id === 7 || field.size % width === 0);
-}
-
-function byteArray(value: unknown): Uint8Array {
-  if (
-    !Array.isArray(value) ||
-    value.length === 0 ||
-    value.length > 255 ||
-    value.some(byte => !Number.isSafeInteger(byte) || byte < 0 || byte > 255)
-  ) {
-    throw new ReadError('invalid_structure');
-  }
-  return Uint8Array.from(value);
-}
-
-function parserDiagnostic(error: unknown): FITWorkoutReferenceDiagnostic {
-  if (typeof error === 'string') {
-    if (error.includes('CRC')) return 'invalid_crc';
-    if (
-      error.includes('header') ||
-      error.includes('.FIT') ||
-      error.includes('File to small') ||
-      error.includes('File data exceeds') ||
-      error.includes('File CRC missing')
-    ) {
-      return 'invalid_header';
-    }
-  }
-  return 'invalid_structure';
-}
-
-function parseMessages(bytes: Uint8Array): RawMessage[] {
-  let parsed: ParsedFit | undefined;
-  let parseError: string | undefined;
-  try {
-    // The callback parser is synchronous. Passing the view preserves non-zero
-    // byte offsets in browsers and Node without copying or mutating the input.
-    new FitParser({ force: false, includeRawMessages: SELECTED_MESSAGES, rawMessagesOnly: true }).parse(
-      bytes as unknown as ArrayBuffer,
-      (error, data) => {
-        parseError = error;
-        parsed = data;
-      }
-    );
-  } catch (error) {
-    throw new ReadError(parserDiagnostic(error));
-  }
-  if (parseError) throw new ReadError(parserDiagnostic(parseError));
-  if (!parsed || !Array.isArray(parsed.raw_messages)) throw new ReadError('invalid_structure');
-
-  const expectedIndexes = new Map<number, number>();
-  return parsed.raw_messages.map((message: ParsedRawFitMessage): RawMessage => {
-    if (
-      !message ||
-      !Number.isSafeInteger(message.global_message_number) ||
-      !SELECTED_MESSAGE_SET.has(message.global_message_number) ||
-      !Number.isSafeInteger(message.message_index) ||
-      message.message_index < 0 ||
-      typeof message.little_endian !== 'boolean' ||
-      !Array.isArray(message.fields) ||
-      !Array.isArray(message.developer_fields)
-    ) {
-      throw new ReadError('invalid_structure');
-    }
-    const expectedIndex = expectedIndexes.get(message.global_message_number) || 0;
-    if (message.message_index !== expectedIndex) throw new ReadError('invalid_structure');
-    expectedIndexes.set(message.global_message_number, expectedIndex + 1);
-
-    if (
-      message.compressed_timestamp !== undefined &&
-      (!Number.isSafeInteger(message.compressed_timestamp) ||
-        message.compressed_timestamp < 0 ||
-        message.compressed_timestamp >= 0xffffffff)
-    ) {
-      throw new ReadError('invalid_structure');
-    }
-
-    const values = new Map<number, FieldValue>();
-    for (const rawField of message.fields) {
-      if (
-        !rawField ||
-        !Number.isSafeInteger(rawField.field_definition_number) ||
-        rawField.field_definition_number < 0 ||
-        rawField.field_definition_number > 255 ||
-        !Number.isSafeInteger(rawField.base_type) ||
-        rawField.base_type < 0 ||
-        rawField.base_type > 255 ||
-        values.has(rawField.field_definition_number)
-      ) {
-        throw new ReadError('invalid_structure');
-      }
-      const fieldBytes = byteArray(rawField.raw_value);
-      const field = {
-        number: rawField.field_definition_number,
-        size: fieldBytes.length,
-        type: rawField.base_type
-      };
-      if (!validNativeField(field)) throw new ReadError('invalid_structure');
-      values.set(field.number, { field, bytes: fieldBytes });
-    }
-    if (message.compressed_timestamp !== undefined && values.has(253)) {
-      throw new ReadError('invalid_structure');
-    }
-
-    const developerKeys = new Set<string>();
-    const developers = message.developer_fields.map(field => {
-      if (
-        !field ||
-        !Number.isSafeInteger(field.developer_data_index) ||
-        field.developer_data_index < 0 ||
-        field.developer_data_index > 255 ||
-        !Number.isSafeInteger(field.field_definition_number) ||
-        field.field_definition_number < 0 ||
-        field.field_definition_number > 255
-      ) {
-        throw new ReadError('invalid_structure');
-      }
-      const key = `${field.developer_data_index}:${field.field_definition_number}`;
-      if (developerKeys.has(key)) throw new ReadError('invalid_structure');
-      developerKeys.add(key);
-      return {
-        developerDataIndex: field.developer_data_index,
-        fieldDefinitionNumber: field.field_definition_number,
-        rawValue: byteArray(field.raw_value)
-      };
-    });
-
-    return {
-      global: message.global_message_number,
-      little: message.little_endian,
-      ...(message.compressed_timestamp === undefined ? {} : { compressedTimestamp: message.compressed_timestamp }),
-      values,
-      developers
-    };
-  });
+  return width !== undefined && (id === 7 || field.size % width === 0);
 }
 
 /**
@@ -319,35 +196,103 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
       bytes[10] !== 73 ||
       bytes[11] !== 84 ||
       end + 2 !== bytes.length
-    ) {
+    )
       throw new ReadError('invalid_header');
-    }
+    if (
+      (header === 14 && view.getUint16(12, true) !== 0 && crc(bytes.subarray(0, 12)) !== view.getUint16(12, true)) ||
+      crc(bytes.subarray(0, end)) !== view.getUint16(end, true)
+    )
+      throw new ReadError('invalid_crc');
 
+    let cursor = header;
+    let lastTimestamp: number | undefined;
+    const definitions = new Map<number, Definition>();
     const applications = new Map<number, Uint8Array>();
     const descriptions = new Map<string, Description>();
     const invalidApplications = new Set<number>();
     const invalidDescriptions = new Set<string>();
     const guideDescriptionKeys = new Set<string>();
     const guideDependencies = new Map<SuuntoPlusGuideReference, string[]>();
-
-    for (const message of parseMessages(bytes)) {
-      const number = (field: number, type: number, size: number) =>
-        uint(message.values.get(field), type, size, message.little);
+    const take = (size: number): Uint8Array => {
+      if (cursor + size > end) throw new ReadError('invalid_structure');
+      const data = bytes.subarray(cursor, cursor + size);
+      cursor += size;
+      return data;
+    };
+    while (cursor < end) {
+      const record = take(1)[0];
+      const compressed = !!(record & 0x80);
+      const local = compressed ? (record >> 5) & 3 : record & 15;
+      if (!compressed && record & 0x10) throw new ReadError('invalid_structure');
+      if (!compressed && record & 0x40) {
+        const base = take(5);
+        if (base[0] !== 0 || base[1] > 1) throw new ReadError('invalid_structure');
+        const little = base[1] === 0;
+        const global = little ? base[2] | (base[3] << 8) : (base[2] << 8) | base[3];
+        const readFields = (count: number, developer: boolean): Field[] => {
+          const fields: Field[] = [];
+          const keys = new Set<string>();
+          for (let n = 0; n < count; n++) {
+            const raw = take(3);
+            const key = developer ? `${raw[2]}:${raw[0]}` : `${raw[0]}`;
+            if (!raw[1] || keys.has(key)) throw new ReadError('invalid_structure');
+            keys.add(key);
+            const field = { number: raw[0], size: raw[1], type: raw[2] };
+            if (!developer && SELECTED_MESSAGES.has(global) && !validNativeField(field)) {
+              throw new ReadError('invalid_structure');
+            }
+            fields.push(field);
+          }
+          return fields;
+        };
+        const fields = readFields(base[4], false);
+        const developers = record & 0x20 ? readFields(take(1)[0], true) : [];
+        definitions.set(local, { global, little, fields, developers });
+        continue;
+      }
+      if (!compressed && record & 0x20) throw new ReadError('invalid_structure');
+      const def = definitions.get(local);
+      if (!def) throw new ReadError('invalid_structure');
+      let messageTimestamp: number | undefined;
+      if (compressed) {
+        const first = def.fields[0];
+        if (!first || first.number !== 253 || first.type !== 0x86 || first.size !== 4 || lastTimestamp === undefined) {
+          throw new ReadError('invalid_structure');
+        }
+        messageTimestamp = Math.floor(lastTimestamp / 32) * 32 + (record & 31);
+        if (messageTimestamp < lastTimestamp) messageTimestamp += 32;
+        if (messageTimestamp >= 0xffffffff) throw new ReadError('invalid_structure');
+        lastTimestamp = messageTimestamp;
+      }
+      const values = new Map<number, FieldValue>();
+      for (const field of def.fields) {
+        if (compressed && field.number === 253) continue;
+        const raw = take(field.size);
+        if (SELECTED_MESSAGES.has(def.global) || field.number === 253) {
+          values.set(field.number, { field, bytes: raw });
+        }
+      }
+      const developerValues: { field: Field; bytes: Uint8Array }[] = [];
+      for (const field of def.developers) {
+        const raw = take(field.size);
+        if (def.global === 18) developerValues.push({ field, bytes: raw });
+      }
+      const number = (field: number, type: number, size: number) => uint(values.get(field), type, size, def.little);
       const assign = <T extends object>(target: T, key: keyof T, value: unknown) => {
         if (value !== undefined) target[key] = value as T[keyof T];
       };
-      let messageTimestamp = message.compressedTimestamp;
-      if (messageTimestamp === undefined && message.values.has(253)) {
+      if (!compressed && values.has(253)) {
         try {
           messageTimestamp = number(253, 0x86, 4);
+          lastTimestamp = messageTimestamp;
         } catch {
+          lastTimestamp = undefined;
           diagnostics.add('invalid_metadata');
         }
       }
       const milliseconds = (value: number | undefined) => (value === undefined ? undefined : EPOCH + value * 1000);
-
       try {
-        if (message.global === 72) {
+        if (def.global === 72) {
           const item: FITTrainingFileReference = {};
           assign(item, 'type', number(0, 0, 1));
           assign(item, 'manufacturer', number(1, 0x84, 2));
@@ -356,17 +301,19 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
           assign(item, 'timeCreatedUnixMs', milliseconds(number(4, 0x86, 4)));
           assign(item, 'timestampUnixMs', milliseconds(messageTimestamp));
           training.push(item);
-        } else if (message.global === 26) {
+        } else if (def.global === 26) {
           const item: FITWorkoutDefinition = {};
-          assign(item, 'name', fieldString(message.values.get(8)));
+          assign(item, 'name', fieldString(values.get(8)));
           assign(item, 'sport', number(4, 0, 1));
           assign(item, 'subSport', number(11, 0, 1));
           assign(item, 'numValidSteps', number(6, 0x84, 2));
+          // Use the same validation as public construction, including malformed strings.
           workouts.push(new DataFITWorkoutDefinitions({ definitions: [item] }).getValue().definitions[0]);
-        } else if (message.global === 207) {
+        } else if (def.global === 207) {
           const index = number(3, 2, 1);
-          const app = message.values.get(1);
+          const app = values.get(1);
           if (index !== undefined) {
+            // Application IDs are optional for unrelated FIT developer data. Absence alone is not a conflict.
             if (!app && !applications.has(index)) continue;
             if (!app || (app.field.type & 0x1f) !== 13 || app.bytes.length !== 16) {
               invalidApplications.add(index);
@@ -380,16 +327,20 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
             }
             applications.set(index, app.bytes);
           } else throw new ReadError('invalid_metadata');
-        } else if (message.global === 206) {
+        } else if (def.global === 206) {
           const index = number(0, 2, 1);
           if (index === undefined) throw new ReadError('invalid_metadata');
           const field = number(1, 2, 1);
           if (field === undefined) throw new ReadError('invalid_metadata');
           const key = `${index}:${field}`;
           try {
-            const name = fieldString(message.values.get(3)) || '';
+            const name = fieldString(values.get(3)) || '';
+            // Retain Guide semantics even if decoding the accompanying type throws. Otherwise an
+            // ambiguous extra owner/external-ID field could be skipped in favor of another pair.
             if (name === OWNER || name === EXTERNAL) guideDescriptionKeys.add(key);
             const type = number(2, 2, 1);
+            // field_description.fit_base_type_id carries the same FIT profile
+            // base-type byte used by native definitions.
             const describedType = type === undefined ? undefined : baseTypeId(type);
             if (describedType === undefined) throw new ReadError('invalid_metadata');
             const description = { name, type: describedType };
@@ -403,8 +354,9 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
             invalidDescriptions.add(key);
             diagnostics.add('invalid_metadata');
           }
-        } else if (message.global === 18) {
+        } else if (def.global === 18) {
           const session: FITWorkoutReferenceSession = { sessionIndex: sessions.length };
+          // Optional context must not discard other native fields or independently valid Guide pairs.
           sessions.push(session);
           for (const [key, field, type, size] of [
             ['startTimeUnixMs', 2, 0x86, 4],
@@ -419,18 +371,18 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
               diagnostics.add('invalid_metadata');
             }
           }
-
           const groups = new Map<number, Map<string, Uint8Array>>();
           const groupDependencies = new Map<number, string[]>();
           const invalidGroups = new Set<number>();
-          for (const field of message.developers) {
-            const index = field.developerDataIndex;
-            const key = `${index}:${field.fieldDefinitionNumber}`;
+          for (const { field, bytes: raw } of developerValues) {
+            const index = field.type;
+            const key = `${index}:${field.number}`;
             const description = descriptions.get(key);
             const app = applications.get(index);
             const application = app && exporter(app);
             if (invalidApplications.has(index)) continue;
             if (invalidDescriptions.has(key)) {
+              // A rejected Guide field cannot be silently dropped in favor of another apparent pair.
               if (guideDescriptionKeys.has(key)) invalidGroups.add(index);
               continue;
             }
@@ -445,13 +397,12 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
             }
             const group = groups.get(index) || new Map<string, Uint8Array>();
             if (description.type !== 7 || group.has(description.name)) invalidGroups.add(index);
-            group.set(description.name, field.rawValue);
+            group.set(description.name, raw);
             groups.set(index, group);
             const dependencies = groupDependencies.get(index) || [];
             dependencies.push(key);
             groupDependencies.set(index, dependencies);
           }
-
           for (const [index, group] of groups) {
             try {
               if (invalidGroups.has(index) || !group.has(OWNER) || !group.has(EXTERNAL)) throw new Error();
@@ -478,19 +429,18 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
       } catch {
         diagnostics.add('invalid_metadata');
       }
-
       if ([training.length, workouts.length, guides.length, sessions.length].some(count => count > MAX_RECORDS)) {
         throw new ReadError('record_limit');
       }
     }
-
+    // Later identity conflicts invalidate the application; field conflicts invalidate only their dependents.
+    // A malformed message with no resolvable index cannot redefine other valid developer groups.
     for (let i = guides.length - 1; i >= 0; i--) {
       if (
         invalidApplications.has(guides[i].developerDataIndex) ||
         guideDependencies.get(guides[i])!.some(key => invalidDescriptions.has(key))
-      ) {
+      )
         guides.splice(i, 1);
-      }
     }
     return result();
   } catch (error) {

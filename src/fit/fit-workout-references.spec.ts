@@ -1,6 +1,6 @@
 import { readFITWorkoutReferences } from './fit-workout-references';
 import { FITWorkoutFixture, byte, numeric, stringField, developer } from '../specs/fit-workout-fixture';
-import FitParser, { FitEncoder } from 'fit-file-parser';
+import { FitEncoder } from 'fit-file-parser';
 import { EventImporterFIT } from '../events/adapters/importers/fit/importer.fit';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -17,42 +17,6 @@ const session = (fixture: FITWorkoutFixture, index = 1, owners = 'test-client', 
   );
 
 describe('FIT workout reference reader', () => {
-  it('delegates FIT wire decoding to the parser for native-only metadata', () => {
-    const spy = jest.spyOn(FitParser.prototype, 'parse');
-    try {
-      const fixture = new FITWorkoutFixture().message(72, [byte(0, 5, 0)]);
-      expect(readFITWorkoutReferences(fixture.finish()).status).toBe('ok');
-      expect(spy).toHaveBeenCalledTimes(1);
-    } finally {
-      spy.mockRestore();
-    }
-  });
-
-  it('consumes the parser-owned lossless selected-message representation', () => {
-    const fixture = new FITWorkoutFixture().application().descriptions();
-    session(fixture, 1, 'client', 'guide-a');
-    const parse = FitParser.prototype.parse;
-    const spy = jest.spyOn(FitParser.prototype, 'parse').mockImplementation(function (
-      this: FitParser,
-      content,
-      callback
-    ) {
-      return parse.call(this, content, (error, data) => {
-        const owner = data?.raw_messages
-          ?.find(message => message.global_message_number === 18)
-          ?.developer_fields.find(field => field.field_definition_number === 2);
-        if (owner) owner.raw_value = [...new TextEncoder().encode('source\0')];
-        callback(error, data);
-      });
-    });
-
-    try {
-      expect(references(fixture)[0].ownerId).toBe('source');
-    } finally {
-      spy.mockRestore();
-    }
-  });
-
   it.each(['SuuntoFitExport1', 'SuuntoplusFitExt'])(
     'reads aligned Guide pairs from %s without consumer-specific filtering',
     applicationId => {

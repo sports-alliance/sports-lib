@@ -291,6 +291,18 @@ async function verifyBuildLayout() {
     'Tests leaked into lib'
   );
   assert.ok((await stat(esmIndexPath)).size < 100_000, 'ESM entry point appears to be bundled');
+  const workoutReferenceModulePath = path.join(packageRoot, 'lib/esm/fit/fit-workout-references.js');
+  const workoutReferenceSpecifiers = collectModuleSpecifiers(
+    workoutReferenceModulePath,
+    await readFile(workoutReferenceModulePath, 'utf8')
+  );
+  assert.equal(
+    workoutReferenceSpecifiers.some(
+      specifier => specifier === 'fit-file-parser' || specifier.startsWith('fit-file-parser/')
+    ),
+    false,
+    'The synchronous package-root workout-reference reader must not load fit-file-parser into startup bundles'
+  );
   await verifyRelativeModuleSpecifiers(esmJavaScriptFiles, false);
   await verifyRelativeModuleSpecifiers(esmDeclarationFiles, true);
   for (const format of ['esm', 'cjs']) {
@@ -311,7 +323,10 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
     chunkNames: 'chunks/[name]-[hash]',
     entryNames: '[name]',
     entryPoints: [fixturePath],
-    external: bundleExternalDependencies,
+    // Bundle fit-file-parser so the startup check detects accidental static imports.
+    // Its supported activity/route import paths are dynamic and must remain lazy.
+    external: bundleExternalDependencies.filter(specifier => !specifier.startsWith('fit-file-parser')),
+    nodePaths: [path.join(packageRoot, 'node_modules')],
     format: 'esm',
     logLevel: 'silent',
     metafile: true,
@@ -346,6 +361,8 @@ async function verifyRepresentativeTreeShaking(temporaryDirectory) {
 
   assert.ok(initialBytes <= 60_000, `Representative startup bundle is ${initialBytes} bytes; expected at most 60000`);
   assertInputsExcluded(initialOutputs, [
+    '/node_modules/fit-file-parser/',
+    '/node_modules/fit-parser/',
     '/events/adapters/importers/',
     '/events/adapters/exporters/',
     '/routes/adapters/',
@@ -371,12 +388,7 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
   const bundle = await build({
     entryPoints: [fixturePath],
     bundle: true,
-    // The synchronous workout-reference API deliberately consumes the parser's
-    // lossless selected-message representation. Bundle that dependency
-    // for this browser smoke test while keeping every unrelated dependency
-    // external and absent.
-    external: bundleExternalDependencies.filter(specifier => !specifier.startsWith('fit-file-parser')),
-    nodePaths: [path.join(packageRoot, 'node_modules')],
+    external: bundleExternalDependencies,
     metafile: true,
     platform: 'browser',
     target: 'es2020',
@@ -384,17 +396,7 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
     write: false,
     logLevel: 'silent'
   });
-  const outputs = new Map(Object.entries(bundle.metafile.outputs));
-  assertDependenciesExcluded(outputs);
-  assert.equal(
-    [...outputs.values()].some(output =>
-      Object.keys(output.inputs).some(inputPath =>
-        /(?:^|\/)(?:node_modules\/fit-file-parser|fit-parser)\/dist\/fit-parser\.js$/.test(normalizePath(inputPath))
-      )
-    ),
-    true,
-    'Workout-reference browser bundle did not include fit-file-parser'
-  );
+  assertDependenciesExcluded(new Map(Object.entries(bundle.metafile.outputs)));
   const context = { ArrayBuffer, Uint8Array, DataView, TextDecoder, TextEncoder };
   runInNewContext(bundle.outputFiles[0].text, context, { timeout: 5000 });
   assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true]);

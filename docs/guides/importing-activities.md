@@ -86,11 +86,11 @@ numbers are resolved from each file, not hard-coded. Different indexes, field nu
 SuuntoPlus apps do not require a library update. Changed Guide semantics or a new metadata exporter require reviewed
 support; arbitrary field names or app IDs do not establish Guide usage.
 
-FIT wire decoding comes from `fit-file-parser`'s opt-in lossless selected-message representation. It preserves native
-field bytes and base types, session-scoped developer fields, interior NUL separators, endianness and compressed
-timestamps. Sports Lib then performs the metadata-specific validation, exporter recognition and positional-pair
-handling. Source-native enums remain their original numeric FIT codes rather than parser display labels; there is no
-second FIT binary walker or Guide-byte reconstruction in Sports Lib.
+The synchronous reader uses a bounded, metadata-only FIT walker. It retains native field bytes and base types,
+session-scoped developer fields, interior NUL separators, endianness and compressed timestamps only for the selected
+reference messages. This keeps the general-purpose `fit-file-parser` dependency behind the existing asynchronous
+activity and route import paths instead of adding it to package-root startup bundles. Source-native enums remain their
+original numeric FIT codes rather than parser display labels.
 
 Malformed or conflicting application identities invalidate references for that developer index, including earlier
 observations. Malformed/conflicting field descriptions invalidate only references depending on those fields, not
@@ -105,8 +105,8 @@ The result is `ok`, `partial` (some optional metadata rejected or unsupported), 
 data. Missing application/field definitions report `unresolved_developer_field`; malformed definitions report
 `invalid_metadata`, and contradictory definitions report `conflicting_developer_definition`. None of these diagnostics
 establishes completion. Valid independent references can remain in a `partial` result. `diagnostics` contains only a
-bounded set of codes, never IDs or raw bytes. The parser validates headers, CRC, record structure, field types,
-endianness and compressed timestamps while retaining only selected metadata messages. Safety bounds are 64 MiB per
+bounded set of codes, never IDs or raw bytes. The reader validates headers, CRC, record structure, relevant field
+types, endianness and compressed timestamps while retaining only selected metadata messages. Safety bounds are 64 MiB per
 file and 10,000 records per result collection; exceeding a bound is invalid, never silent truncation. Each Suunto
 developer group allows up
 to ten paired IDs of up to 64 Unicode characters, following the documented format. Invalid metadata does not throw

@@ -371,7 +371,12 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
   const bundle = await build({
     entryPoints: [fixturePath],
     bundle: true,
-    external: bundleExternalDependencies,
+    // The synchronous workout-reference API deliberately consumes the parser's
+    // lossless selected-message representation. Bundle that dependency
+    // for this browser smoke test while keeping every unrelated dependency
+    // external and absent.
+    external: bundleExternalDependencies.filter(specifier => !specifier.startsWith('fit-file-parser')),
+    nodePaths: [path.join(packageRoot, 'node_modules')],
     metafile: true,
     platform: 'browser',
     target: 'es2020',
@@ -379,7 +384,17 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
     write: false,
     logLevel: 'silent'
   });
-  assertDependenciesExcluded(new Map(Object.entries(bundle.metafile.outputs)));
+  const outputs = new Map(Object.entries(bundle.metafile.outputs));
+  assertDependenciesExcluded(outputs);
+  assert.equal(
+    [...outputs.values()].some(output =>
+      Object.keys(output.inputs).some(inputPath =>
+        /(?:^|\/)(?:node_modules\/fit-file-parser|fit-parser)\/dist\/fit-parser\.js$/.test(normalizePath(inputPath))
+      )
+    ),
+    true,
+    'Workout-reference browser bundle did not include fit-file-parser'
+  );
   const context = { ArrayBuffer, Uint8Array, DataView, TextDecoder, TextEncoder };
   runInNewContext(bundle.outputFiles[0].text, context, { timeout: 5000 });
   assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true]);

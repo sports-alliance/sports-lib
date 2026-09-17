@@ -1,6 +1,6 @@
 import { readFITWorkoutReferences } from './fit-workout-references';
 import { FITWorkoutFixture, byte, numeric, stringField, developer } from '../specs/fit-workout-fixture';
-import { FitEncoder } from 'fit-file-parser';
+import FitParser, { FitEncoder } from 'fit-file-parser';
 import { EventImporterFIT } from '../events/adapters/importers/fit/importer.fit';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -17,6 +17,42 @@ const session = (fixture: FITWorkoutFixture, index = 1, owners = 'test-client', 
   );
 
 describe('FIT workout reference reader', () => {
+  it('delegates FIT wire decoding to the parser for native-only metadata', () => {
+    const spy = jest.spyOn(FitParser.prototype, 'parse');
+    try {
+      const fixture = new FITWorkoutFixture().message(72, [byte(0, 5, 0)]);
+      expect(readFITWorkoutReferences(fixture.finish()).status).toBe('ok');
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('consumes the parser-owned lossless selected-message representation', () => {
+    const fixture = new FITWorkoutFixture().application().descriptions();
+    session(fixture, 1, 'client', 'guide-a');
+    const parse = FitParser.prototype.parse;
+    const spy = jest.spyOn(FitParser.prototype, 'parse').mockImplementation(function (
+      this: FitParser,
+      content,
+      callback
+    ) {
+      return parse.call(this, content, (error, data) => {
+        const owner = data?.raw_messages
+          ?.find(message => message.global_message_number === 18)
+          ?.developer_fields.find(field => field.field_definition_number === 2);
+        if (owner) owner.raw_value = [...new TextEncoder().encode('source\0')];
+        callback(error, data);
+      });
+    });
+
+    try {
+      expect(references(fixture)[0].ownerId).toBe('source');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it.each(['SuuntoFitExport1', 'SuuntoplusFitExt'])(
     'reads aligned Guide pairs from %s without consumer-specific filtering',
     applicationId => {
@@ -443,9 +479,19 @@ describe('FIT workout reference reader', () => {
     { fields: [{ number: 1, type: 0x2c, bytes: [0, 0, 0, 0] }] },
     { fields: [numeric(1, 1, 2, 0x86)] }
   ])('rejects unsupported native base types and invalid element widths in definitions', ({ fields }) => {
-    const result = readFITWorkoutReferences(new FITWorkoutFixture().message(20, fields).finish());
+    const result = readFITWorkoutReferences(new FITWorkoutFixture().message(72, fields).finish());
     expect(result.status).toBe('invalid');
     expect(result.diagnostics).toEqual(['invalid_structure']);
+  });
+
+  it.each([
+    { fields: [{ number: 1, type: 17, bytes: [1] }] },
+    { fields: [{ number: 1, type: 0x2c, bytes: [0, 0, 0, 0] }] },
+    { fields: [numeric(1, 1, 2, 0x86)] }
+  ])('does not apply workout-reference validation to unrelated native messages', ({ fields }) => {
+    const result = readFITWorkoutReferences(new FITWorkoutFixture().message(20, fields).finish());
+    expect(result.status).toBe('ok');
+    expect(result.diagnostics).toEqual([]);
   });
 
   it('rejects unsupported developer field-description base-type IDs', () => {
@@ -462,13 +508,19 @@ describe('FIT workout reference reader', () => {
 
   it('reconstructs compressed timestamps with rollover and reused local definitions', () => {
     const fixture = new FITWorkoutFixture()
+      .application()
+      .descriptions()
       .message(20, [numeric(253, TIME + 30)], [], { local: 2 })
       .message(72, [numeric(253, 0), byte(0, 5, 0), numeric(3, 123, 4, 0x8c)], [], { local: 2, compressed: 2 })
-      .message(18, [numeric(253, 0), numeric(2, TIME)], [], { local: 2, compressed: 5 });
+      .message(18, [numeric(253, 0), numeric(2, TIME)], [developer(2, 1, 'client'), developer(3, 1, 'guide-a')], {
+        local: 2,
+        compressed: 5
+      });
     const result = readFITWorkoutReferences(fixture.finish());
     expect(result.status).toBe('ok');
     expect(result.trainingFiles.getValue().references[0].timestampUnixMs).toBe(ms(TIME + 34));
     expect(result.sessions[0].endTimeUnixMs).toBe(ms(TIME + 37));
+    expect(result.suuntoGuides.getValue().references[0]).toMatchObject({ ownerId: 'client', externalId: 'guide-a' });
   });
 
   it('fails closed for compressed timestamps without a valid base', () => {

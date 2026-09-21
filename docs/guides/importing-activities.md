@@ -86,10 +86,10 @@ numbers are resolved from each file, not hard-coded. Different indexes, field nu
 SuuntoPlus apps do not require a library update. Changed Guide semantics or a new metadata exporter require reviewed
 support; arbitrary field names or app IDs do not establish Guide usage.
 
-The synchronous reader uses a bounded, metadata-only FIT walker. It retains native field bytes and base types,
-session-scoped developer fields, interior NUL separators, endianness and compressed timestamps only for the selected
-reference messages. This keeps the general-purpose `fit-file-parser` dependency behind the existing asynchronous
-activity and route import paths instead of adding it to package-root startup bundles. Source-native enums remain their
+The synchronous reader delegates FIT wire-format validation and selected-message extraction to the lightweight
+`fit-file-parser/raw` entry point. That entry point does not load the full activity decoder or semantic profile.
+Sports Lib interprets the retained native field bytes and base types, session-scoped developer fields, interior NUL
+separators, endianness and compressed timestamps as workout-reference metadata. Source-native enums remain their
 original numeric FIT codes rather than parser display labels.
 
 Malformed or conflicting application identities invalidate references for that developer index, including earlier

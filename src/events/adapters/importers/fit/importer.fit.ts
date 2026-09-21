@@ -24,7 +24,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { GarminSports, GarminSubSports } from '../../../../fit/fit-profile.data';
+import { getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
@@ -2005,13 +2005,16 @@ export class EventImporterFIT {
     return ActivityTypesHelper.resolveActivityType(value);
   }
 
-  private static resolveGarminProfileName(value: unknown, map: Record<number, string>): string | null {
+  private static resolveFitProfileName(
+    value: unknown,
+    resolver: (profileId: number | string) => string | null
+  ): string | null {
     if (!isNumberOrString(value)) {
       return null;
     }
 
     if (typeof value === 'number') {
-      return map[value] || null;
+      return resolver(value);
     }
 
     const trimmed = value.trim();
@@ -2020,7 +2023,7 @@ export class EventImporterFIT {
     }
 
     if (/^\d+$/.test(trimmed)) {
-      return map[parseInt(trimmed, 10)] || null;
+      return resolver(trimmed);
     }
 
     return trimmed;
@@ -2376,13 +2379,13 @@ export class EventImporterFIT {
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     // FIT sport fields can be either profile IDs (number / numeric string) or already-resolved names.
     // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
-    const resolvedSport = this.resolveGarminProfileName(session.sport, GarminSports);
+    const resolvedSport = this.resolveFitProfileName(session.sport, getFitSportName);
 
-    const resolvedSubSportName = this.resolveGarminProfileName(session.sub_sport, GarminSubSports);
+    const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
-    // Garmin's diving sub-sports are explicit protocol classifications. Map
+    // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the
     // canonical scuba/free-diving distinction already modeled by Sports Lib.
     if (resolvedSport === 'diving') {

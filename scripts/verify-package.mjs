@@ -164,7 +164,20 @@ function assertDependenciesExcluded(outputs) {
 async function verifyModuleFormats() {
   const esmExports = await import(packageJson.name);
   const require = createRequire(import.meta.url);
+  const fitParserEntryPath = require.resolve('fit-file-parser');
+  const fitRawEntryPath = require.resolve('fit-file-parser/raw');
   const cjsExports = require(packageJson.name);
+
+  assert.equal(
+    require.cache[fitParserEntryPath],
+    undefined,
+    'Loading the package root must not eagerly load the FIT parser entry point'
+  );
+  assert.notEqual(
+    require.cache[fitRawEntryPath],
+    undefined,
+    'Loading the package root must load the lightweight raw FIT reader'
+  );
 
   assert.deepEqual(Object.keys(esmExports).sort(), Object.keys(cjsExports).sort(), 'ESM and CommonJS exports differ');
   assert.equal(new esmExports.User('esm-smoke-test').uid, 'esm-smoke-test');
@@ -296,12 +309,12 @@ async function verifyBuildLayout() {
     workoutReferenceModulePath,
     await readFile(workoutReferenceModulePath, 'utf8')
   );
-  assert.equal(
-    workoutReferenceSpecifiers.some(
+  assert.deepEqual(
+    workoutReferenceSpecifiers.filter(
       specifier => specifier === 'fit-file-parser' || specifier.startsWith('fit-file-parser/')
     ),
-    false,
-    'The synchronous package-root workout-reference reader must not load fit-file-parser into startup bundles'
+    ['fit-file-parser/raw'],
+    'The synchronous workout-reference reader must use only the lightweight raw FIT entry point'
   );
   await verifyRelativeModuleSpecifiers(esmJavaScriptFiles, false);
   await verifyRelativeModuleSpecifiers(esmDeclarationFiles, true);
@@ -388,15 +401,22 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
   const bundle = await build({
     entryPoints: [fixturePath],
     bundle: true,
-    external: bundleExternalDependencies,
+    external: bundleExternalDependencies.filter(specifier => !specifier.startsWith('fit-file-parser')),
     metafile: true,
+    nodePaths: [path.join(packageRoot, 'node_modules')],
     platform: 'browser',
     target: 'es2020',
     format: 'iife',
     write: false,
     logLevel: 'silent'
   });
-  assertDependenciesExcluded(new Map(Object.entries(bundle.metafile.outputs)));
+  const outputs = new Map(Object.entries(bundle.metafile.outputs));
+  assertDependenciesExcluded(outputs);
+  assertInputsExcluded(outputs, [
+    '/fit-file-parser/dist/fit-parser.js',
+    '/fit-file-parser/dist/profile.js',
+    '/fit-file-parser/dist/profile-lookup.js'
+  ]);
   const context = { ArrayBuffer, Uint8Array, DataView, TextDecoder, TextEncoder };
   runInNewContext(bundle.outputFiles[0].text, context, { timeout: 5000 });
   assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true]);

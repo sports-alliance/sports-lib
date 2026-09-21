@@ -1,11 +1,16 @@
 const mockParse = jest.fn();
 
-jest.mock('fit-file-parser', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    parse: mockParse
-  }))
-}));
+jest.mock('fit-file-parser', () => {
+  const actual = jest.requireActual('fit-file-parser');
+
+  return {
+    ...actual,
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => ({
+      parse: mockParse
+    }))
+  };
+});
 
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import {

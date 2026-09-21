@@ -1,4 +1,5 @@
-import { FitBaseType, FitEncoder, FitEncoderField } from 'fit-file-parser';
+import type { FitEncoderField } from 'fit-file-parser/encoder';
+import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
 import { ActivityTypes } from '../../../../activities/activity.types';
 import { DataAscent } from '../../../../data/data.ascent';
 import { DataDescent } from '../../../../data/data.descent';

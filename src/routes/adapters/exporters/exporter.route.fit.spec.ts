@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { DOMParser } from '@xmldom/xmldom';
 import { Creator } from '../../../creators/creator';
 import { DataDistance } from '../../../data/data.distance';
@@ -20,6 +21,15 @@ const GPX_ROUTE = `<?xml version="1.0" encoding="UTF-8"?>
   </gpx>`;
 
 describe('RouteExporterFIT', () => {
+  it('keeps the deterministic FIT Course binary contract stable', async () => {
+    const source = await SportsLib.importRoutesFromGPX(GPX_ROUTE, DOMParser);
+    const fit = RouteExporterFIT.export(source);
+
+    expect(createHash('sha256').update(new Uint8Array(fit)).digest('hex')).toBe(
+      '9646fd0cf24b1d2afd5c7bec01e0d1215568fd3440928c46b80808a2aa981b0f'
+    );
+  });
+
   it('exports a valid FIT Course which the route importer can read back', async () => {
     const source = await SportsLib.importRoutesFromGPX(GPX_ROUTE, DOMParser);
 

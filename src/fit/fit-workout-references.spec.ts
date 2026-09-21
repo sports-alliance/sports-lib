@@ -1,6 +1,6 @@
 import { readFITWorkoutReferences } from './fit-workout-references';
 import { FITWorkoutFixture, byte, numeric, stringField, developer } from '../specs/fit-workout-fixture';
-import { FitEncoder } from 'fit-file-parser';
+import { FitEncoder } from 'fit-file-parser/encoder';
 import { EventImporterFIT } from '../events/adapters/importers/fit/importer.fit';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';

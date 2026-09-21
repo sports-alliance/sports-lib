@@ -526,6 +526,18 @@ describe('EventImporterFIT', () => {
 
       expect(activityType).toEqual(ActivityTypes.Bouldering);
     });
+
+    it.each([
+      [153, ActivityTypes['Enduro MTB']],
+      [154, ActivityTypes['Downhill Cycling']]
+    ])('should preserve numeric mountain cycling sub-sport id %s', (subSport, expectedType) => {
+      const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
+        sport: 2,
+        sub_sport: subSport
+      });
+
+      expect(activityType).toEqual(expectedType);
+    });
   });
 
   describe('Handle device creator', () => {
@@ -600,6 +612,48 @@ describe('EventImporterFIT', () => {
         expect(creator.name).toEqual(expectedName);
         expect(creator.manufacturer).toEqual(manufacturer);
         done();
+      });
+
+      it('should recognize a Garmin device when manufacturer and product are numeric profile IDs', () => {
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(generateFitDeviceDataObject(1, 4655));
+
+        expect(creator).toMatchObject({
+          name: 'Garmin Edge MTB',
+          manufacturer: 1,
+          productId: 4655,
+          isRecognized: true
+        });
+      });
+
+      it('should preserve the established display name for numeric manufacturer ID 315', () => {
+        const creator = EventImporterFIT.getCreatorFromFitDataObject(generateFitDeviceDataObject(315));
+
+        expect(creator).toMatchObject({
+          name: 'R G T Cycling',
+          manufacturer: 315,
+          isRecognized: false
+        });
+      });
+
+      it('should match numeric manufacturer ID 315 to its established creator device label', () => {
+        const creator = EventImporterFIT.getCreatorFromFitDataObject({
+          file_ids: [{ manufacturer: 315 }],
+          device_infos: [
+            {
+              device_index: 'creator',
+              manufacturer: 'r_g_t_cycling',
+              software_version: 1.2,
+              serial_number: 315315
+            }
+          ]
+        });
+
+        expect(creator).toMatchObject({
+          name: 'R G T Cycling',
+          manufacturer: 315,
+          serialNumber: '315315',
+          swInfo: '1.2'
+        });
       });
 
       it('should use creator device_info when file_id omits the manufacturer', () => {

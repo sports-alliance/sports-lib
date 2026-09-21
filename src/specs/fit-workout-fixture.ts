@@ -1,4 +1,4 @@
-import { FitEncoder } from 'fit-file-parser';
+import { FitEncoder } from 'fit-file-parser/encoder';
 
 export interface FixtureField {
   number: number;

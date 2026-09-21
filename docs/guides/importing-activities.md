@@ -128,16 +128,15 @@ values: standard metrics on one developer index and Guide pairs on a separate `S
 variant exercises dynamic resolution. Tests also cover unrelated application-less metadata in existing Garmin/Wahoo
 samples. No private recordings or identifiers are embedded in these fixtures.
 
-Sources: [Garmin FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js),
-[Suunto FIT description](https://apizone.suunto.com/fit-description) and
+Sources: [Suunto FIT description](https://apizone.suunto.com/fit-description) and
 [Suunto decoder example](https://aspartnercontent.blob.core.windows.net/apizone/docs/SuuntoDeveloperFieldsDecodingExample.java).
 The description documents positional owner/external-ID pairing; the example identifies both metadata exporters and
 distinguishes them from the variable IDs of individual SuuntoPlus apps.
 
 ### Recorded FIT metrics
 
-The FIT parser applies the profile scale to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
-fields. Sports Lib stores those SDK-scaled values directly as canonical meters or seconds without another conversion.
+The FIT parser applies profile scaling to record-level `depth`, `next_stop_depth`, summary depth, and bottom-time
+fields. Sports Lib stores those scaled values directly as canonical meters or seconds without another conversion.
 The parser emits FIT `avg_vam` in meters per second; Sports Lib converts that present source value to its public
 `Average VAM` metric unit of meters per hour.
 Parser 4 exposed FIT session field 196 (`metabolic_calories`) a second time as `resting_calories`. Parser 5 retains

@@ -37,7 +37,7 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
-  it('retains SDK-scaled FIT record depth in canonical meters', () => {
+  it('retains profile-scaled FIT record depth in canonical meters', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
 
     expect(mapper).toBeDefined();

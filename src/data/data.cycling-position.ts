@@ -1,7 +1,7 @@
 import { DataCyclingDynamics } from './data.cycling-dynamics';
 
 /**
- * Rider position "events" as described in FIT SDK "typedef FIT_ENUM FIT_RIDER_POSITION_TYPE;":
+ * Rider-position events represented by the FIT rider-position type.
  */
 export enum RiderPosition {
   SEATED = 0,

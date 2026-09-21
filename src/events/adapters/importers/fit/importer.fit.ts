@@ -24,7 +24,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { GarminSports, GarminSubSports } from '../../../../fit/garmin-profile.data';
+import { GarminSports, GarminSubSports } from '../../../../fit/fit-profile.data';
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
@@ -1730,7 +1730,7 @@ export class EventImporterFIT {
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
-        // FIT SDK output identifies the target with the session enum and a
+        // Parsed FIT output identifies the target with the session enum and a
         // message-index mask. An omitted index can only identify the first
         // session, because there is no source reference for any later one.
         const manufacturer =
@@ -2891,7 +2891,7 @@ export class EventImporterFIT {
 
     // Avg VAM
     if (isNumberOrString(object.avg_vam)) {
-      // The FIT SDK defines avg_vam in m/s. Sports Lib exposes Average VAM in
+      // The FIT profile defines avg_vam in m/s. Sports Lib exposes Average VAM in
       // m/h, so convert the parsed source unit to the public metric unit.
       stats.push(new DataAvgVAM(Number(object.avg_vam) * 60 * 60));
     }

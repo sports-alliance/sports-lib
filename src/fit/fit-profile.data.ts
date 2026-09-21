@@ -1,5 +1,4 @@
-// This file is generated from @garmin/fitsdk profile.js
-// Do not edit manually.
+// Static FIT interoperability mappings maintained directly by SportsLib.
 
 export const GarminManufacturers: { [index: number]: string } = {
   1: 'garmin',

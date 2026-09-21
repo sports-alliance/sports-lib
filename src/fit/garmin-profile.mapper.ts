@@ -1,4 +1,4 @@
-import { GarminManufacturers, GarminProducts, GarminSports, GarminSubSports } from './garmin-profile.data';
+import { GarminManufacturers, GarminProducts, GarminSports, GarminSubSports } from './fit-profile.data';
 
 export class GarminProfileMapper {
   /**

@@ -24,7 +24,7 @@ Before writing code, verify the data exists and understand its structure.
 ### 2. Update `fit-file-parser` (External Dependency)
 **Note**: This project uses `fit-file-parser`.
 - If the field is missing entirely from the JSON output of the parser, you may need to check the `fit-parser` configuration or definition files.
-- Ensure the `profile.csv` or internal mappings in `fit-file-parser` support the new field.
+- Ensure the maintained profile mappings in `fit-file-parser` support the new field.
 - *For this project context*: We assume the parser gives us the raw field, usually in snake_case.
 
 ### 3. Create or Update Data Class in `sports-lib`

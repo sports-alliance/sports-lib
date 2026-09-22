@@ -1,7 +1,7 @@
 import { Creator } from '../creators/creator';
 import { CreatorInterface } from '../creators/creator.interface';
 import { isNumberOrString } from '../events/utilities/helpers';
-import { getFitGarminProductDisplayName, getFitManufacturerName } from 'fit-file-parser/profile';
+import { GarminProfileMapper } from './garmin-profile.mapper';
 import { ImporterFitAntPlusDeviceNames } from './device-names/importer.fit.ant-plus.device.names';
 import { ImporterFitCorosDeviceNames } from './device-names/importer.fit.coros.device.names';
 import { ImporterFitDevelopmentDeviceNames } from './device-names/importer.fit.development.device.names';
@@ -41,7 +41,7 @@ export class FITCreatorMapper {
         break;
       }
       case 'garmin': {
-        recognizedName = getFitGarminProductDisplayName(productId);
+        recognizedName = GarminProfileMapper.getDeviceName(productId);
         creator = new Creator(this.formatDeviceName(manufacturer, productName, recognizedName, 'Garmin'), productId);
         break;
       }
@@ -112,9 +112,9 @@ export class FITCreatorMapper {
       }
       default: {
         const manufacturerName =
-          typeof manufacturer === 'number' ? this.getManufacturerProfileName(manufacturer) : manufacturer;
+          typeof manufacturer === 'number' ? GarminProfileMapper.getManufacturerName(manufacturer) : manufacturer;
         if (manufacturerName === 'garmin') {
-          recognizedName = getFitGarminProductDisplayName(productId);
+          recognizedName = GarminProfileMapper.getDeviceName(productId);
         }
         productName = fileId.product_name || creatorIdentityDeviceInfo?.product_name || null;
         creator = new Creator(
@@ -230,15 +230,9 @@ export class FITCreatorMapper {
 
     const manufacturerString = String(manufacturer);
     const manufacturerName = /^\d+$/.test(manufacturerString)
-      ? this.getManufacturerProfileName(manufacturerString)
+      ? GarminProfileMapper.getManufacturerName(manufacturerString)
       : manufacturerString;
     return String(manufacturerName || manufacturerString).toLowerCase();
-  }
-
-  private static getManufacturerProfileName(manufacturerId: number | string): string | null {
-    const manufacturerName = getFitManufacturerName(manufacturerId);
-    // Preserve SportsLib's established label and identity matching for manufacturer ID 315.
-    return manufacturerName === 'r_gt_cycling' ? 'r_g_t_cycling' : manufacturerName;
   }
 
   private static formatDeviceName(

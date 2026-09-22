@@ -49,5 +49,9 @@ when an application imports focused root exports such as `User`, settings, or da
 facade retains its complete import/export feature set in the initial bundle, so startup-sensitive consumers should use
 focused root imports.
 
+FIT imports keep the full decoder and semantic profile behind the existing asynchronous boundary. Synchronous device,
+sport, and route lookups use the lightweight canonical `fit-file-parser/profile` entry point instead of maintaining
+protocol mappings in Sports Lib.
+
 The 21.0.3 packaging change does not alter parsed values, native JSON, or persisted metric representations. Consumers do
 not need to reparse source files, regenerate summaries, or migrate stored data.

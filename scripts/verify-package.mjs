@@ -165,6 +165,8 @@ async function verifyModuleFormats() {
   const esmExports = await import(packageJson.name);
   const require = createRequire(import.meta.url);
   const fitParserEntryPath = require.resolve('fit-file-parser');
+  const fitProfileEntryPath = require.resolve('fit-file-parser/profile');
+  const fitSemanticProfilePath = path.join(path.dirname(fitParserEntryPath), 'profile.js');
   const fitRawEntryPath = require.resolve('fit-file-parser/raw');
   const cjsExports = require(packageJson.name);
 
@@ -172,6 +174,16 @@ async function verifyModuleFormats() {
     require.cache[fitParserEntryPath],
     undefined,
     'Loading the package root must not eagerly load the FIT parser entry point'
+  );
+  assert.notEqual(
+    require.cache[fitProfileEntryPath],
+    undefined,
+    'Loading the package root must use the lightweight FIT profile entry point'
+  );
+  assert.equal(
+    require.cache[fitSemanticProfilePath],
+    undefined,
+    'Loading the package root must not eagerly load the full FIT semantic profile'
   );
   assert.notEqual(
     require.cache[fitRawEntryPath],
@@ -395,6 +407,47 @@ async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   return initialBytes;
 }
 
+async function verifySportsLibFacadeStartup(temporaryDirectory) {
+  const fixtureName = 'sportslib-facade-startup.mjs';
+  const result = await bundleFixture(temporaryDirectory, fixtureName);
+  const [entryOutputPath] = findEntryOutput(result.metafile, fixtureName);
+  const initialOutputs = collectInitialOutputs(result.metafile, entryOutputPath);
+  const initialBytes = [...initialOutputs.values()].reduce((total, output) => total + output.bytes, 0);
+  const retainedInputs = [...initialOutputs.values()].flatMap(output =>
+    Object.entries(output.inputs)
+      .filter(([, contribution]) => contribution.bytesInOutput > 0)
+      .map(([inputPath, contribution]) => ({
+        inputPath: normalizePath(inputPath),
+        bytes: contribution.bytesInOutput
+      }))
+  );
+  const fitParserInputs = retainedInputs.filter(({ inputPath }) =>
+    inputPath.includes('/node_modules/fit-file-parser/')
+  );
+  const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
+
+  assert.ok(initialBytes <= 425_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 425000`);
+  assert.ok(
+    fitParserBytes <= 30_000,
+    `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`
+  );
+  assert.ok(
+    fitParserInputs.some(({ inputPath }) => inputPath.endsWith('/fit-file-parser/dist/profile-lookup.js')),
+    'SportsLib facade startup must exercise the lightweight FIT profile entry point'
+  );
+  assert.ok(
+    fitParserInputs.some(({ inputPath }) => inputPath.endsWith('/fit-file-parser/dist/profile-lookup-data.js')),
+    'SportsLib facade startup must use fit-file-parser as the authoritative lookup-map owner'
+  );
+  assertInputsExcluded(initialOutputs, [
+    '/fit-file-parser/dist/binary.js',
+    '/fit-file-parser/dist/fit-parser.js',
+    '/fit-file-parser/dist/profile.js'
+  ]);
+
+  return { initialBytes, fitParserBytes };
+}
+
 async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
   const fixturePath = path.join(temporaryDirectory, 'workout-references.mjs');
   await copyFile(path.join(packageRoot, 'scripts/fixtures/workout-references.mjs'), fixturePath);
@@ -472,11 +525,13 @@ try {
   await verifyTypeDeclarations(temporaryDirectory);
   await verifyWorkoutReferenceBrowser(temporaryDirectory);
   const representativeBundleBytes = await verifyRepresentativeTreeShaking(temporaryDirectory);
+  const facadeStartup = await verifySportsLibFacadeStartup(temporaryDirectory);
   const pack = verifyPackContents();
 
   console.log(
     `Verified ${rootExportCount} exports, ${representativeBundleBytes} startup bytes, ` +
-      `and ${pack.entryCount} packed files.`
+      `${facadeStartup.initialBytes} SportsLib facade bytes ` +
+      `(${facadeStartup.fitParserBytes} from fit-file-parser), and ${pack.entryCount} packed files.`
   );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });

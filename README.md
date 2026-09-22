@@ -49,9 +49,5 @@ when an application imports focused root exports such as `User`, settings, or da
 facade retains its complete import/export feature set in the initial bundle, so startup-sensitive consumers should use
 focused root imports.
 
-The package root statically loads only the lightweight `fit-file-parser/raw` reader. Async FIT imports load the full
-decoder on demand, while semantic lookups and course export use Sports Lib's compact interoperability layer. Unrelated
-startup bundles therefore do not absorb the upstream semantic profile or generic encoder.
-
 The 21.0.3 packaging change does not alter parsed values, native JSON, or persisted metric representations. Consumers do
 not need to reparse source files, regenerate summaries, or migrate stored data.

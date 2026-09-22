@@ -24,7 +24,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { GarminProfileMapper } from '../../../../fit/garmin-profile.mapper';
+import { getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
@@ -2379,9 +2379,9 @@ export class EventImporterFIT {
   private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
     // FIT sport fields can be either profile IDs (number / numeric string) or already-resolved names.
     // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
-    const resolvedSport = this.resolveFitProfileName(session.sport, GarminProfileMapper.getSportName);
+    const resolvedSport = this.resolveFitProfileName(session.sport, getFitSportName);
 
-    const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, GarminProfileMapper.getSubSportName);
+    const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 

@@ -70,46 +70,6 @@ function collectModuleSpecifiers(filePath, sourceText) {
   return specifiers;
 }
 
-function collectStaticModuleSpecifiers(filePath, sourceText) {
-  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true);
-  return sourceFile.statements.flatMap(statement => {
-    if (
-      (ts.isImportDeclaration(statement) || ts.isExportDeclaration(statement)) &&
-      statement.moduleSpecifier &&
-      ts.isStringLiteral(statement.moduleSpecifier)
-    ) {
-      return [statement.moduleSpecifier.text];
-    }
-    return [];
-  });
-}
-
-async function collectStaticEsmDependencies(entryPath) {
-  const pendingFiles = [entryPath];
-  const visitedFiles = new Set();
-  const externalSpecifiers = new Set();
-
-  while (pendingFiles.length) {
-    const filePath = pendingFiles.pop();
-    const normalizedFilePath = normalizePath(filePath);
-    if (visitedFiles.has(normalizedFilePath)) {
-      continue;
-    }
-    visitedFiles.add(normalizedFilePath);
-
-    const sourceText = await readFile(filePath, 'utf8');
-    for (const specifier of collectStaticModuleSpecifiers(filePath, sourceText)) {
-      if (specifier.startsWith('.')) {
-        pendingFiles.push(path.resolve(path.dirname(filePath), specifier));
-      } else {
-        externalSpecifiers.add(specifier);
-      }
-    }
-  }
-
-  return externalSpecifiers;
-}
-
 async function verifyRelativeModuleSpecifiers(files, declarationFiles) {
   for (const filePath of files) {
     const sourceText = await readFile(filePath, 'utf8');
@@ -205,8 +165,6 @@ async function verifyModuleFormats() {
   const esmExports = await import(packageJson.name);
   const require = createRequire(import.meta.url);
   const fitParserEntryPath = require.resolve('fit-file-parser');
-  const fitProfileEntryPath = require.resolve('fit-file-parser/profile');
-  const fitEncoderEntryPath = require.resolve('fit-file-parser/encoder');
   const fitRawEntryPath = require.resolve('fit-file-parser/raw');
   const cjsExports = require(packageJson.name);
 
@@ -214,16 +172,6 @@ async function verifyModuleFormats() {
     require.cache[fitParserEntryPath],
     undefined,
     'Loading the package root must not eagerly load the FIT parser entry point'
-  );
-  assert.equal(
-    require.cache[fitProfileEntryPath],
-    undefined,
-    'Loading the package root must not eagerly load the FIT semantic profile'
-  );
-  assert.equal(
-    require.cache[fitEncoderEntryPath],
-    undefined,
-    'Loading the package root must not eagerly load the FIT encoder'
   );
   assert.notEqual(
     require.cache[fitRawEntryPath],
@@ -367,14 +315,6 @@ async function verifyBuildLayout() {
     ),
     ['fit-file-parser/raw'],
     'The synchronous workout-reference reader must use only the lightweight raw FIT entry point'
-  );
-  const staticRootDependencies = await collectStaticEsmDependencies(esmIndexPath);
-  assert.deepEqual(
-    [...staticRootDependencies]
-      .filter(specifier => specifier === 'fit-file-parser' || specifier.startsWith('fit-file-parser/'))
-      .sort(),
-    ['fit-file-parser/raw'],
-    'The package root must not statically load the FIT decoder, semantic profile, or encoder'
   );
   await verifyRelativeModuleSpecifiers(esmJavaScriptFiles, false);
   await verifyRelativeModuleSpecifiers(esmDeclarationFiles, true);

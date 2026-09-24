@@ -115,7 +115,7 @@ The provider-neutral Health catalog is:
 | `Body Energy` | `%` | One decimal; `Body Battery` is an alias |
 | `Body Energy Change` | `%` | Signed, one decimal |
 | `Recovery Score` | `score` | One decimal, no suffix |
-| `Weight` | `kg` | Existing one-decimal display; `Body Weight` is an alias |
+| `Weight` | `kg` | Canonical one-decimal display; `Body Weight` is an alias |
 | `Body Mass Index` | `kg/m²` | One decimal; displayed as `BMI` |
 | `Body Fat` | `%` | One decimal |
 | `Body Water` | `%` | One decimal |
@@ -127,6 +127,21 @@ The provider-neutral Health catalog is:
 | `Skin Temperature Deviation` | `°C` | Signed, one decimal |
 | `VO2 Max` | `ml/kg/min` | Two decimals; displayed as `VO₂ Max` |
 | `Fitness Age` | `years` | Numeric years |
+
+Mass display for planned exercise loads uses the existing canonical `DataWeight` primitive in kilograms, not a new
+planned-workout metric or event-stat field. `WeightUnits.Pounds` asks
+`DynamicDataLoader.getUnitBasedDataFromDataInstance` for a display-only `DataWeight` instance; its visible value uses
+the exact 0.45359237 kg/lb conversion and displays to one decimal place. `WeightUnits.Kilograms` and older settings
+without `weightUnits` keep kilograms, independently of distance preference. The instance's `getValue()`, `getUnit()`,
+`getType()` and `toJSON()` remain canonical kilograms. This additive display change needs no source
+reparse, derived-summary regeneration, or persisted-data migration.
+`DataWeight.fromDisplayValue(value, units)` converts a user-entered kg or lb number back to canonical kilograms; callers
+still validate workout-specific load bounds before persistence. No consumer needs its own kg/lb conversion constant.
+
+Other planned-workout scalars already use the existing duration (seconds), distance (metres), heart rate (bpm), power
+(watts), speed (m/s), pace (seconds per distance), cadence (rpm), and power work (kJ) classes. A rowing 500 m split is
+composed from duration and distance display; repetitions and relative percentages remain recipe semantics rather than
+recorded `Data*` metrics. Sports Lib does not store schedules, exercise sets, provider delivery, or account state.
 
 Sleep sessions use the following aggregate types:
 

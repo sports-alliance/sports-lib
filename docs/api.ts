@@ -264,6 +264,20 @@ export {
   DataWheelchairPushes
 } from '../src/data';
 
+/** @category Unit settings */
+export {
+  DaysOfTheWeek,
+  DistanceUnits,
+  GradeAdjustedPaceUnits,
+  GradeAdjustedSpeedUnits,
+  PaceUnits,
+  SpeedUnits,
+  SwimPaceUnits,
+  VerticalSpeedUnits,
+  WeightUnits
+} from '../src/users/settings/user.unit.settings.interface';
+export type { UserUnitSettingsInterface } from '../src/users/settings/user.unit.settings.interface';
+
 export {
   DataCadence,
   DataStrokeRate,

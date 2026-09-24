@@ -6,12 +6,20 @@ export interface UserUnitSettingsInterface {
   gradeAdjustedPaceUnits: GradeAdjustedPaceUnits[];
   swimPaceUnits: SwimPaceUnits[];
   distanceUnits?: DistanceUnits;
+  /** Optional mass display preference; older settings default to kilograms. */
+  weightUnits?: WeightUnits;
   startOfTheWeek: DaysOfTheWeek;
 }
 
 export enum DistanceUnits {
   Kilometers = 'Distance',
   Miles = 'Distance in miles'
+}
+
+/** Display units for canonical kilogram weights and planned external loads. */
+export enum WeightUnits {
+  Kilograms = 'kg',
+  Pounds = 'lb'
 }
 
 export enum SpeedUnits {

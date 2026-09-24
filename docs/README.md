@@ -14,6 +14,10 @@ composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. T
 formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain
 consumer responsibilities.
 
+Canonical kilogram `DataWeight` values also support an independent optional `WeightUnits.Pounds` display preference.
+Older settings remain in kilograms. This can format planned external loads without adding a workout-specific metric
+or changing stored `Weight` JSON. See the [metrics guide](guides/metrics-and-calculations.md).
+
 The opt-in [FIT workout-reference reader](guides/importing-activities.md#fit-workout-references) exposes standard FIT
 training-file references, embedded workout summaries and paired SuuntoPlus Guide IDs as serializable `DataBare`
 classes with unversioned `references` or `definitions` values. These are nonnumeric source metadata, separate from

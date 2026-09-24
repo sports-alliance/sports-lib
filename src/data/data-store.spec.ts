@@ -69,7 +69,8 @@ import {
   convertMetersToMiles,
   convertSpeedToSpeedInMilesPerHour
 } from '../events/utilities/helpers';
-import { DistanceUnits } from '../users/settings/user.unit.settings.interface';
+import { DistanceUnits, UserUnitSettingsInterface, WeightUnits } from '../users/settings/user.unit.settings.interface';
+import { DataWeight } from './data.weight';
 import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
 import { DataDepth, DataDepthFeet } from './data.depth';
 import { DataDepthMax, DataDepthMaxFeet } from './data.depth-max';
@@ -155,6 +156,37 @@ describe('DataStore', () => {
   it('should get the correct unitbased datatypes', () => {
     // @todo here we should think
     expect(DynamicDataLoader.allUnitDerivedDataTypes.sort()).toEqual(unitDerivedDataTypes.sort());
+  });
+
+  it('displays canonical kilogram weights and planned loads in kg or lb without changing stored JSON', () => {
+    const kilograms = new DataWeight(80);
+    const metric = { distanceUnits: DistanceUnits.Kilometers } as UserUnitSettingsInterface;
+    const imperial = { distanceUnits: DistanceUnits.Miles } as UserUnitSettingsInterface;
+    const explicitKg = { ...imperial, weightUnits: WeightUnits.Kilograms };
+    const explicitLb = { ...metric, weightUnits: WeightUnits.Pounds };
+
+    expect(_DataStore.DataWeight).toBe(DataWeight);
+    expect(_DataStore).not.toHaveProperty('DataWeightPounds');
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataWeight.type, metric)).toEqual([DataWeight.type]);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(DataWeight.type, imperial)).toEqual([DataWeight.type]);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([DataWeight.type], explicitLb)).toEqual([]);
+
+    for (const settings of [metric, imperial, explicitKg]) {
+      expect(DynamicDataLoader.getUnitBasedDataFromDataInstance(kilograms, settings)[0]).toBe(kilograms);
+    }
+    const display = DynamicDataLoader.getUnitBasedDataFromDataInstance(kilograms, explicitLb)[0];
+    expect(display).toBeInstanceOf(DataWeight);
+    expect(display.getType()).toBe(DataWeight.type);
+    expect(display.getValue()).toBe(80);
+    expect(display.getUnit()).toBe('kg');
+    expect(display.getDisplayValue()).toBe('176.4');
+    expect(display.getDisplayUnit()).toBe('lb');
+    expect(display.toJSON()).toEqual({ Weight: 80 });
+    expect(DataWeight.fromDisplayValue(176.3698097479, WeightUnits.Pounds).getValue()).toBeCloseTo(80, 8);
+    expect(DataWeight.fromDisplayValue(80, WeightUnits.Kilograms).toJSON()).toEqual({ Weight: 80 });
+    expect(() => DataWeight.fromDisplayValue(80, 'stone' as WeightUnits)).toThrow('Unsupported weight display unit');
+    expect(kilograms.toJSON()).toEqual({ Weight: 80 });
+    expect(DataWeight.fromJSON(JSON.parse(JSON.stringify(kilograms.toJSON()))).getValue()).toBe(80);
   });
 
   it('keeps GNSS distance blacklisted for stream-generation only', () => {

@@ -215,7 +215,8 @@ import { DataDescription } from './data.description';
 import {
   DistanceUnits,
   SwimPaceUnits,
-  UserUnitSettingsInterface
+  UserUnitSettingsInterface,
+  WeightUnits
 } from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
@@ -2072,6 +2073,11 @@ export class DynamicDataLoader {
       return [data];
     }
     const dataType = data.getType();
+    if (dataType === DataWeight.type) {
+      return userUnitSettings.weightUnits === WeightUnits.Pounds
+        ? [new DataWeight(<number>data.getValue(), WeightUnits.Pounds)]
+        : [data];
+    }
     const diveDataType = this.getDiveUnitDataType(dataType, userUnitSettings);
     if (diveDataType) {
       if (diveDataType === dataType) {

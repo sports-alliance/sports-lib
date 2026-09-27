@@ -5,6 +5,9 @@ Read this file first for every task.
 Shared library path (keep stable for other apps/agents): `.agent/`
 
 Always-on rules:
+- Never install or add the official Garmin FIT SDK as a project dependency, development dependency, optional dependency,
+  or vendored project code. Its license prevents its use as a dependency in sports-lib, fit-parser, and Quantified Self.
+  When needed for investigation, run it only as a standalone tool outside those repositories and their dependency trees.
 - Use prefixed commit subjects: `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`.
 - Pick the dominant intent; do not create unprefixed commit subjects.
 - Respect repo-specific guidance in `.agent/README.md` and any referenced workflows or skills under `.agent/`.

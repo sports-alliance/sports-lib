@@ -16,6 +16,11 @@ import {
   SuuntoPlusGuideExporter,
   SuuntoPlusGuideReference
 } from '../data/data.workout-references';
+import {
+  parseFITWahooWorkoutReferences,
+  readWahooReferenceMessage,
+  type FITWahooWorkoutReference
+} from './wahoo-workout-references';
 
 /**
  * Native session context. Index is source order, not a consumer activity ID. Enums are FIT codes.
@@ -41,7 +46,9 @@ export type FITWorkoutReferenceDiagnostic =
   | 'conflicting_developer_definition'
   | 'invalid_guide_pairs'
   | 'unresolved_developer_field'
-  | 'unsupported_exporter';
+  | 'unsupported_exporter'
+  | 'invalid_wahoo_reference'
+  | 'unsupported_wahoo_reference';
 
 /** Metadata is deliberately separate from Event/Activity JSON and numeric stats. */
 export interface FITWorkoutReferencesResult {
@@ -50,6 +57,8 @@ export interface FITWorkoutReferencesResult {
   trainingFiles: DataFITTrainingFileReferences;
   workouts: DataFITWorkoutDefinitions;
   suuntoGuides: DataSuuntoPlusGuideReferences;
+  /** Observed Wahoo app metadata, not a provider-account or completed-session assertion. */
+  wahooWorkouts: FITWahooWorkoutReference[];
   sessions: FITWorkoutReferenceSession[];
   diagnostics: FITWorkoutReferenceDiagnostic[];
 }
@@ -69,7 +78,7 @@ const OWNER = 'suuntoplus_plugin_owner_id';
 const EXTERNAL = 'suuntoplus_plugin_external_id';
 const MAX_BYTES = 64 * 1024 * 1024;
 const MAX_RECORDS = 10_000;
-const SELECTED_MESSAGES = [18, 26, 72, 206, 207] as const;
+const SELECTED_MESSAGES = [0, 18, 26, 72, 206, 207, 65285] as const;
 
 function decodeString(bytes: Uint8Array): string {
   try {
@@ -90,6 +99,8 @@ function exporter(bytes: Uint8Array): SuuntoPlusGuideExporter | undefined {
  * Validates CRC and structure; invalid files return empty data classes, never partial trusted evidence.
  * Optional malformed metadata is isolated to its identifiable application/field dependencies.
  * Unknown exporter identities are unsupported, not malformed. No names or IDs are logged.
+ * Wahoo metadata supports only the exact observed app layout in a Wahoo activity file;
+ * one malformed/unsupported recognized reference rejects its whole Wahoo group, not independent evidence.
  * Source safety bounds are 64 MiB and 10,000 records per returned collection; overflow is invalid, not truncated.
  * References indicate source-described usage, not account authentication or completion of prescribed targets.
  */
@@ -99,11 +110,16 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
   const workouts: FITWorkoutDefinition[] = [];
   const guides: SuuntoPlusGuideReference[] = [];
   const sessions: FITWorkoutReferenceSession[] = [];
+  const wahooWorkouts: FITWahooWorkoutReference[] = [];
+  let fileIdentityCount = 0;
+  let wahooActivityFile = false;
+  let rejectedWahooReference = false;
   const result = (invalid = false): FITWorkoutReferencesResult => ({
     status: invalid ? 'invalid' : diagnostics.size ? 'partial' : 'ok',
     trainingFiles: new DataFITTrainingFileReferences({ references: invalid ? [] : training }),
     workouts: new DataFITWorkoutDefinitions({ definitions: invalid ? [] : workouts }),
     suuntoGuides: new DataSuuntoPlusGuideReferences({ references: invalid ? [] : guides }),
+    wahooWorkouts: invalid ? [] : parseFITWahooWorkoutReferences(wahooWorkouts),
     sessions: invalid ? [] : sessions,
     diagnostics: [...diagnostics]
   });
@@ -135,7 +151,26 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
         value === undefined ? undefined : fitTimestampToUnixMilliseconds(value);
 
       try {
-        if (message.globalMessageNumber === 72) {
+        if (message.globalMessageNumber === 0) {
+          fileIdentityCount++;
+          try {
+            wahooActivityFile =
+              message.fields.filter(field => field.fieldNumber === 0).length === 1 &&
+              message.fields.filter(field => field.fieldNumber === 1).length === 1 &&
+              number(0, 0, 1) === 4 &&
+              number(1, 0x84, 2) === 32;
+          } catch {
+            // This optional identity gates only Wahoo evidence. Do not change unrelated references' diagnostics.
+            wahooActivityFile = false;
+          }
+        } else if (message.globalMessageNumber === 65285) {
+          const decoded = readWahooReferenceMessage(message);
+          if (decoded.kind === 'reference') wahooWorkouts.push(decoded.reference);
+          else if (decoded.kind !== 'ignore') {
+            rejectedWahooReference = true;
+            diagnostics.add(decoded.kind === 'invalid' ? 'invalid_wahoo_reference' : 'unsupported_wahoo_reference');
+          }
+        } else if (message.globalMessageNumber === 72) {
           const item: FITTrainingFileReference = {};
           assign(item, 'type', number(0, 0, 1));
           assign(item, 'manufacturer', number(1, 0x84, 2));
@@ -272,10 +307,22 @@ export function readFITWorkoutReferences(input: ArrayBuffer | Uint8Array): FITWo
         diagnostics.add('invalid_metadata');
       }
 
-      if ([training.length, workouts.length, guides.length, sessions.length].some(count => count > MAX_RECORDS)) {
+      if (
+        [training.length, workouts.length, guides.length, sessions.length, wahooWorkouts.length].some(
+          count => count > MAX_RECORDS
+        )
+      ) {
         throw new ReadError('record_limit');
       }
     }
+
+    // Do not retain an apparently good reference beside an unprocessable one,
+    // or accept private manufacturer messages without one unambiguous file identity.
+    if (wahooWorkouts.length && (fileIdentityCount !== 1 || !wahooActivityFile)) {
+      diagnostics.add('unsupported_wahoo_reference');
+      rejectedWahooReference = true;
+    }
+    if (rejectedWahooReference) wahooWorkouts.length = 0;
 
     // Later identity conflicts invalidate the application; field conflicts invalidate only their dependents.
     // A malformed message with no resolvable index cannot redefine other valid developer groups.

@@ -16,6 +16,8 @@ import { RouteFileInterface } from './routes/route-file.interface';
 import { RouteFileJSONInterface } from './routes/route-file.json.interface';
 
 export { readFITWorkoutReferences } from './fit/fit-workout-references';
+export { parseFITWahooWorkoutReferences } from './fit/wahoo-workout-references';
+export type { FITWahooWorkoutReference } from './fit/wahoo-workout-references';
 export type {
   FITWorkoutReferenceDiagnostic,
   FITWorkoutReferenceSession,

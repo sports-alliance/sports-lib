@@ -199,6 +199,21 @@ async function verifyModuleFormats() {
   for (const exports of [esmExports, cjsExports]) {
     const parsed = exports.readFITWorkoutReferences(new Uint8Array());
     assert.equal(parsed.status, 'invalid');
+    assert.deepEqual(parsed.wahooWorkouts, []);
+    const wahooReferences = [
+      {
+        format: 'wahoo-app-plan-v1',
+        planId: '12345678',
+        workoutId: null,
+        startTimeUnixMs: Date.UTC(2026, 0, 1)
+      }
+    ];
+    assert.deepEqual(
+      exports.parseFITWahooWorkoutReferences(JSON.parse(JSON.stringify(wahooReferences))),
+      wahooReferences
+    );
+    assert.throws(() => exports.parseFITWahooWorkoutReferences([{ ...wahooReferences[0], privateField: 'no' }]));
+    assert.equal(exports.DataStore.FITWahooWorkoutReference, undefined);
     for (const instance of [parsed.trainingFiles, parsed.workouts, parsed.suuntoGuides]) {
       const json = JSON.parse(JSON.stringify(instance));
       assert.deepEqual(instance.constructor.fromJSON(json).toJSON(), json);
@@ -316,18 +331,20 @@ async function verifyBuildLayout() {
     'Tests leaked into lib'
   );
   assert.ok((await stat(esmIndexPath)).size < 100_000, 'ESM entry point appears to be bundled');
-  const workoutReferenceModulePath = path.join(packageRoot, 'lib/esm/fit/fit-workout-references.js');
-  const workoutReferenceSpecifiers = collectModuleSpecifiers(
-    workoutReferenceModulePath,
-    await readFile(workoutReferenceModulePath, 'utf8')
-  );
-  assert.deepEqual(
-    workoutReferenceSpecifiers.filter(
-      specifier => specifier === 'fit-file-parser' || specifier.startsWith('fit-file-parser/')
-    ),
-    ['fit-file-parser/raw'],
-    'The synchronous workout-reference reader must use only the lightweight raw FIT entry point'
-  );
+  for (const name of ['fit-workout-references', 'wahoo-workout-references']) {
+    const workoutReferenceModulePath = path.join(packageRoot, `lib/esm/fit/${name}.js`);
+    const workoutReferenceSpecifiers = collectModuleSpecifiers(
+      workoutReferenceModulePath,
+      await readFile(workoutReferenceModulePath, 'utf8')
+    );
+    assert.deepEqual(
+      workoutReferenceSpecifiers.filter(
+        specifier => specifier === 'fit-file-parser' || specifier.startsWith('fit-file-parser/')
+      ),
+      ['fit-file-parser/raw'],
+      'The synchronous workout-reference reader must use only the lightweight raw FIT entry point'
+    );
+  }
   await verifyRelativeModuleSpecifiers(esmJavaScriptFiles, false);
   await verifyRelativeModuleSpecifiers(esmDeclarationFiles, true);
   for (const format of ['esm', 'cjs']) {
@@ -472,7 +489,7 @@ async function verifyWorkoutReferenceBrowser(temporaryDirectory) {
   ]);
   const context = { ArrayBuffer, Uint8Array, DataView, TextDecoder, TextEncoder };
   runInNewContext(bundle.outputFiles[0].text, context, { timeout: 5000 });
-  assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true]);
+  assert.deepEqual(Array.from(context.workoutReferenceSmoke), [true, true, true, true, true, true, true]);
 }
 
 function verifyPackContents() {

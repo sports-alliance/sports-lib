@@ -25,6 +25,10 @@ normal activity JSON; consumers own account validation,
 privacy and completion matching. Developer indexes and field numbers resolve dynamically; unsupported exporters and
 malformed metadata have distinct diagnostics, and unrelated developer errors or malformed optional session fields do
 not discard independent valid reference groups. Ambiguous Guide groups are rejected rather than partially paired.
+The same reader returns the exact observed Wahoo app plan-reference layout as a plain `wahooWorkouts` array,
+with strict JSON restoration through `parseFITWahooWorkoutReferences`. Unknown layouts are rejected; the scheduled
+Workout ID may be explicitly absent while the Plan ID remains present. These file-scoped references are not
+numeric metrics, do not enter activity JSON, and cannot by themselves establish account ownership or completion.
 
 Activity-aware cadence semantics produce stroke rate for swimming, rowing, and paddle sports. Consumers that store event
 summaries separately from activities can explicitly canonicalize those projections with

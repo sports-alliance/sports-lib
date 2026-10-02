@@ -86,6 +86,35 @@ numbers are resolved from each file, not hard-coded. Different indexes, field nu
 SuuntoPlus apps do not require a library update. Changed Guide semantics or a new metadata exporter require reviewed
 support; arbitrary field names or app IDs do not establish Guide usage.
 
+`wahooWorkouts` is a plain, ordered `FITWahooWorkoutReference[]`, not a `Data*` class. It reads only the observed
+`wahoo-app-plan-v1` layout from native manufacturer message 65285 in a file with exactly one `file_id` identifying a
+Wahoo (manufacturer 32) recorded activity (type 4). Its field 3 byte payload must have the exact `35 00 05` header,
+bounded positive-decimal Plan ID, terminators and fixed-length tail; envelope fields 0–2 must have the observed types
+and lengths. The payload's scheduled Workout ID is little-endian independently of the FIT definition architecture.
+The explicit `0xffffffff` sentinel becomes `workoutId: null`; a zero ID is invalid. `startTimeUnixMs` retains the
+source metadata's recording start, not the planned date. The opaque final four bytes are deliberately not returned
+or assigned a meaning. Other private messages are ignored; the reader never searches arbitrary bytes or titles for IDs.
+
+This layout is an empirical compatibility contract, reproduced in synthetic tests from multiple authorized QA
+recordings, **not a published Wahoo binary specification**. `invalid_wahoo_reference` identifies malformed recognized
+records; `unsupported_wahoo_reference` identifies unknown reference-layout headers or an absent/conflicting Wahoo
+activity-file identity. Either rejects the entire Wahoo reference group, including earlier apparently valid entries,
+while preserving independent native and Suunto evidence. Duplicate and conflicting valid observations are returned,
+not silently deduplicated or matched. All references are file-scoped: consumers must separately establish the recorded
+session, trusted source provenance, exact owned provider delivery and ambiguity policy. A null scheduled Workout ID
+does not justify title/date/duration matching or account-wide Plan ID matching.
+
+Restore an explicitly authorized metadata snapshot with the strict codec; unknown fields, unsupported formats,
+out-of-range values and incomplete/sparse arrays are rejected:
+
+```ts
+import { parseFITWahooWorkoutReferences, readFITWorkoutReferences } from '@sports-alliance/sports-lib';
+
+const source = readFITWorkoutReferences(fitArrayBuffer);
+const stored = JSON.parse(JSON.stringify(source.wahooWorkouts));
+const restored = parseFITWahooWorkoutReferences(stored); // owned plain-object snapshot
+```
+
 The synchronous reader delegates FIT wire-format validation and selected-message extraction to the lightweight
 `fit-file-parser/raw` entry point. That entry point does not load the full activity decoder or semantic profile.
 Sports Lib interprets the retained native field bytes and base types, session-scoped developer fields, interior NUL
@@ -120,8 +149,10 @@ or Guide usage but do not prove all prescribed targets or steps were completed.
 
 No existing activity/route migration, derived-summary regeneration or global reparse is required. Consumers can read
 selected retained originals for historical evidence without rewriting activity data. Quantified Self adoption and
-completion matching are separate work under #651; its numeric MCP catalog must continue excluding these structured
-classes (numeric construction with `0` is rejected). No QS private source references are automatically exposed.
+completion matching are separate consumer work; its numeric MCP catalog must continue excluding these structured
+classes (numeric construction with `0` is rejected) and plain Wahoo metadata. Existing consumers can ignore the
+additive `wahooWorkouts` result field. No QS private source references are automatically exposed, and this library
+change alone does not complete or relink a planned workout.
 
 Regression fixtures reproduce the metadata topology of an inspected Guide-bearing Suunto export using synthetic
 values: standard metrics on one developer index and Guide pairs on a separate `SuuntoplusFitExt` index. A renumbered

@@ -32,6 +32,13 @@ export type {
   FITWorkoutReferenceDiagnostic
 } from '../src/fit/fit-workout-references';
 /**
+ * Strict JSON snapshot validation for observed Wahoo app reference metadata.
+ * Does not authenticate an account, associate sessions or assert completion.
+ * @category FIT workout references
+ */
+export { parseFITWahooWorkoutReferences } from '../src/fit/wahoo-workout-references';
+export type { FITWahooWorkoutReference } from '../src/fit/wahoo-workout-references';
+/**
  * Serializable source metadata with unversioned references or definitions values and strict JSON validation.
  * @category FIT workout references
  */

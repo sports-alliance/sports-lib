@@ -29,8 +29,12 @@ const KEYS = ['format', 'planId', 'workoutId', 'startTimeUnixMs'];
  * This is nonnumeric metadata, deliberately outside DataStore and normal Event/Activity JSON.
  */
 export function parseFITWahooWorkoutReferences(value: unknown): FITWahooWorkoutReference[] {
-  if (!Array.isArray(value) || value.length > MAX_RECORDS) throw new TypeError('Invalid Wahoo references');
+  if (!Array.isArray(value)) throw new TypeError('Invalid Wahoo references');
   const length = value.length;
+  // Validate the same snapshot used for allocation, before enumerating potentially oversized input.
+  if (!Number.isSafeInteger(length) || length < 0 || length > MAX_RECORDS) {
+    throw new TypeError('Invalid Wahoo references');
+  }
   const keys = Reflect.ownKeys(value);
   if (
     keys.length !== length + 1 ||
@@ -46,10 +50,12 @@ export function parseFITWahooWorkoutReferences(value: unknown): FITWahooWorkoutR
       !input ||
       typeof input !== 'object' ||
       Array.isArray(input) ||
-      ![Object.prototype, null].includes(Object.getPrototypeOf(input)) ||
-      Reflect.ownKeys(input).length !== KEYS.length ||
-      Reflect.ownKeys(input).some(key => typeof key !== 'string' || !KEYS.includes(key))
+      ![Object.prototype, null].includes(Object.getPrototypeOf(input))
     ) {
+      throw new TypeError('Invalid Wahoo reference');
+    }
+    const inputKeys = Reflect.ownKeys(input);
+    if (inputKeys.length !== KEYS.length || inputKeys.some(key => typeof key !== 'string' || !KEYS.includes(key))) {
       throw new TypeError('Invalid Wahoo reference');
     }
     // Snapshot accessors once: validate exactly the values returned, not a second read.

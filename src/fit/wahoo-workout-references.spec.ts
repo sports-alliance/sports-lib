@@ -232,6 +232,65 @@ describe('observed Wahoo FIT plan references', () => {
 });
 
 describe('Wahoo reference JSON boundary', () => {
+  it('snapshots the array bound once and never accepts more than the record limit', () => {
+    let reads = 0;
+    const oversized = new Proxy(
+      Array.from({ length: 10_001 }, () => ({ ...REFERENCE })),
+      {
+        get(target, key, receiver) {
+          if (key === 'length') return ++reads === 1 ? 10_000 : 10_001;
+          return Reflect.get(target, key, receiver);
+        }
+      }
+    );
+    expect(() => parseFITWahooWorkoutReferences(oversized)).toThrow();
+    expect(reads).toBe(1);
+
+    reads = 0;
+    const valid = new Proxy([{ ...REFERENCE }], {
+      get(target, key, receiver) {
+        if (key === 'length') {
+          if (++reads !== 1) throw new Error('Length read twice');
+          return 1;
+        }
+        return Reflect.get(target, key, receiver);
+      }
+    });
+    expect(parseFITWahooWorkoutReferences(valid)).toEqual([REFERENCE]);
+    expect(reads).toBe(1);
+  });
+
+  it('rejects oversized bounds before enumeration and rejects invalid length snapshots', () => {
+    for (const length of [10_001, -1, 1.5, NaN, Infinity, '1', undefined]) {
+      let enumerations = 0;
+      const source = new Proxy([], {
+        get(target, key, receiver) {
+          return key === 'length' ? length : Reflect.get(target, key, receiver);
+        },
+        ownKeys(target) {
+          enumerations++;
+          return Reflect.ownKeys(target);
+        }
+      });
+      expect(() => parseFITWahooWorkoutReferences(source)).toThrow();
+      expect(enumerations).toBe(0);
+    }
+  });
+
+  it('checks the same object-key snapshot for count and allowlist membership', () => {
+    let reads = 0;
+    const source = new Proxy(
+      { ...REFERENCE, extra: 'unapproved' },
+      {
+        ownKeys() {
+          return ++reads === 1 ? ['format', 'planId', 'workoutId', 'extra'] : Object.keys(REFERENCE);
+        }
+      }
+    );
+    expect(() => parseFITWahooWorkoutReferences([source])).toThrow();
+    expect(reads).toBe(1);
+  });
+
   it('owns its output and does not use caller array methods or read fields twice', () => {
     let reads = 0;
     const source = [

@@ -105,7 +105,8 @@ session, trusted source provenance, exact owned provider delivery and ambiguity 
 does not justify title/date/duration matching or account-wide Plan ID matching.
 
 Restore an explicitly authorized metadata snapshot with the strict codec; unknown fields, unsupported formats,
-out-of-range values and incomplete/sparse arrays are rejected:
+out-of-range values and incomplete/sparse arrays are rejected. Array bounds, object keys and scalar fields are
+snapshotted once, so validation and copying use the same values even for inputs with accessors or proxies:
 
 ```ts
 import { parseFITWahooWorkoutReferences, readFITWorkoutReferences } from '@sports-alliance/sports-lib';

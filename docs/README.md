@@ -40,7 +40,9 @@ durability evidence.
 
 FIT creator attribution prefers `file_id` metadata and recovers only missing identity fields from a `device_info` row
 explicitly marked as the creator or local device. Compacted device metadata retains that identity row even when it has
-no timestamp, while timed battery calculations remain unchanged.
+no timestamp, while timed battery calculations remain unchanged. `deviceInfoMode: 'changes'` also compacts alternating
+device rows independently per device index, preserving state changes and source order; see the
+[parsing guide](guides/parsing-options.md#fit-device-metadata).
 
 FIT imports retain parser-scaled record depth samples in canonical meters and native session/lap dive summaries plus
 decompression, gas-consumption, tissue-load, PO₂, ascent-rate, and air-time-remaining record streams. Ordered FIT gas,

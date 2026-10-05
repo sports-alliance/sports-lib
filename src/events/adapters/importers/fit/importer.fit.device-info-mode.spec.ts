@@ -74,7 +74,7 @@ describe('EventImporterFIT Device Info Mode', () => {
     expect(maxContiguousRun).toBeLessThanOrEqual(2);
   });
 
-  it('should keep first and last item for each contiguous identical run', () => {
+  it('should keep first and last item for each device run in original order', () => {
     const createDevice = (type: string, name: string, index: number, timestamp: string): DeviceInterface => {
       const device = new Device(type);
       device.name = name;
@@ -97,12 +97,38 @@ describe('EventImporterFIT Device Info Mode', () => {
 
     expect(compacted.map(device => device.timestamp?.toISOString())).toEqual([
       '2024-01-01T10:00:00.000Z',
-      '2024-01-01T10:00:02.000Z',
       '2024-01-01T10:00:03.000Z',
-      '2024-01-01T10:00:04.000Z',
       '2024-01-01T10:00:05.000Z',
       '2024-01-01T10:00:06.000Z'
     ]);
+  });
+
+  it.each<Partial<DeviceInterface>>([
+    { batteryStatus: 'low' },
+    { batteryLevel: 50 },
+    { batteryVoltage: 2.5 },
+    { cumOperatingTime: 123 },
+    { serialNumber: 'replacement-sensor' },
+    { antDeviceNumber: 456 },
+    { sourceType: 'bluetooth' }
+  ])('should preserve interleaved state changes and index reuse: %j', changedState => {
+    const devices: DeviceInterface[] = [];
+    for (let second = 0; second < 6; second++) {
+      const device = new Device('fitness_equipment');
+      device.index = 4;
+      device.timestamp = new Date(second * 1000);
+      if (second === 2 || second === 3) Object.assign(device, changedState);
+      const other = new Device('heart_rate');
+      other.index = 5;
+      other.timestamp = new Date(second * 1000);
+      devices.push(device, other);
+    }
+    const originalJSON = devices.map(device => device.toJSON());
+
+    const compacted = (EventImporterFIT as any).compactDeviceInfosByRuns(devices) as DeviceInterface[];
+
+    expect(compacted).toEqual([0, 1, 2, 4, 6, 8, 10, 11].map(index => devices[index]));
+    expect(devices.map(device => device.toJSON())).toEqual(originalJSON);
   });
 
   it('should keep untimestamped creator device_info without using it for timed calculations', () => {

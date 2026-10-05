@@ -34,7 +34,13 @@ canonical token for activities whose values are revolutions per minute.
 FIT files can repeat equivalent `device_info` rows every second. `deviceInfoMode` controls the values exposed through `activity.creator.devices`:
 
 - `raw` is the backwards-compatible default and keeps every parsed row.
-- `changes` collapses contiguous rows that differ only by timestamp, retaining the first and last entry of a run.
+- `changes` collapses rows that differ only by timestamp within each device index, retaining the first and last entry
+  of each unchanged run. Alternating rows from other device indexes do not interrupt a run. Identity changes (including
+  reuse of an index by a replacement sensor), battery changes, and other non-timestamp changes start new runs. Retained
+  entries remain in their original order.
+
+Existing JSON remains compatible. Consumers that want smaller device histories in previously stored activities must
+reparse their source FIT files with `changes`; no metric regeneration or schema migration is required.
 
 Creator attribution prefers fields from the FIT `file_id` message. If that message omits identity fields, Sports Lib
 fills only the missing values from a `device_info` row explicitly marked as the creator or local device. Accessory

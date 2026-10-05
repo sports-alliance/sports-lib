@@ -69,8 +69,9 @@ export class ActivityParsingOptions {
    * which can generate very large payloads.
    *
    * - `raw`: Keep all parsed `device_info` rows (backwards-compatible default).
-   * - `changes`: Keep only state transitions by collapsing contiguous rows that differ by timestamp only. An
-   *   untimestamped row explicitly marked as the creator or local device is retained as activity-wide identity data.
+   * - `changes`: Keep the first and last row of each unchanged run per device index, even when other devices are
+   *   interleaved. Identity and state changes start new runs; retained rows keep their original order. An untimestamped
+   *   row explicitly marked as the creator or local device is retained as activity-wide identity data.
    *
    * `summary` is intentionally not exposed for now to avoid changing payload semantics beyond
    * run-compaction and to keep this release backwards-safe.

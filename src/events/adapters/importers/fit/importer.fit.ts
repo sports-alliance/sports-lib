@@ -591,7 +591,7 @@ export class EventImporterFIT {
              * FIT `device_info` often repeats the same device identity every second with only timestamp changing.
              *
              * - `raw`: keep all rows for backwards compatibility.
-             * - `changes`: keep first+last sample for each contiguous run where all fields except timestamp match.
+             * - `changes`: keep first+last sample for each per-device run where all fields except timestamp match.
              */
             if (options.deviceInfoMode === 'changes') {
               activity.creator.devices = this.compactDeviceInfosByRuns(
@@ -839,44 +839,40 @@ export class EventImporterFIT {
   }
 
   /**
-   * Keep first+last of each contiguous run with identical signature (all fields except timestamp).
-   * This preserves transitions while collapsing timestamp-only spam from FIT `device_info`.
+   * Keep first+last of each identical run per device index (all fields except timestamp).
+   * Interleaved devices do not split runs; retained rows stay in their original order.
    */
   private static compactDeviceInfosByRuns(devices: DeviceInterface[]): DeviceInterface[] {
     if (devices.length <= 1) {
       return devices;
     }
 
-    const compacted: DeviceInterface[] = [];
-    let runStart = devices[0];
-    let runEnd = devices[0];
-    let runSignature = this.deviceSignatureWithoutTimestamp(devices[0]);
+    const runs = new Map<DeviceInterface['index'], { start: number; end: number; signature: string }>();
+    const retained = new Set<number>();
 
-    for (let i = 1; i < devices.length; i++) {
-      const current = devices[i];
+    devices.forEach((current, index) => {
       const currentSignature = this.deviceSignatureWithoutTimestamp(current);
+      const run = runs.get(current.index);
 
-      if (currentSignature === runSignature) {
-        runEnd = current;
-        continue;
+      if (run?.signature === currentSignature) {
+        run.end = index;
+        return;
       }
 
-      compacted.push(runStart);
-      if (runEnd !== runStart) {
-        compacted.push(runEnd);
+      if (run) {
+        retained.add(run.start);
+        retained.add(run.end);
       }
 
-      runStart = current;
-      runEnd = current;
-      runSignature = currentSignature;
+      runs.set(current.index, { start: index, end: index, signature: currentSignature });
+    });
+
+    for (const run of runs.values()) {
+      retained.add(run.start);
+      retained.add(run.end);
     }
 
-    compacted.push(runStart);
-    if (runEnd !== runStart) {
-      compacted.push(runEnd);
-    }
-
-    return compacted;
+    return devices.filter((_device, index) => retained.has(index));
   }
 
   private static getNumericValue(value: unknown): number | null {

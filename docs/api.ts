@@ -57,7 +57,10 @@ export type {
   SuuntoPlusGuideReferencesValue
 } from '../src/data/data.workout-references';
 
-/** @category Parsing options */
+/**
+ * FIT device metadata can retain all rows or compact unchanged runs per device index, including interleaved devices.
+ * @category Parsing options
+ */
 export { ActivityParsingOptions } from '../src/activities/activity-parsing-options';
 export type {
   ActivityParsingOptionsInput,

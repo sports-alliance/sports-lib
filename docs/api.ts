@@ -234,6 +234,8 @@ export {
   DataBodyWater,
   DataBoneMass,
   DataDistance,
+  DataSwimDistance,
+  SwimDistanceUnits,
   DataFitnessAge,
   DataFloorsClimbed,
   DataHeartRate,

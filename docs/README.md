@@ -61,6 +61,9 @@ available when provided by the source.
 
 ## Start here
 
+Swim distances support optional meter or yard display while preserving canonical meter values; see
+[Swim distance display](guides/metrics-and-calculations.md#swim-distance-display).
+
 Install the package:
 
 ```sh

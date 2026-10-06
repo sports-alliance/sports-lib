@@ -5,6 +5,17 @@ summary: Canonical metric tokens, units, and derivation behavior.
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Swim distance display
+
+`DataSwimDistance` keeps the canonical `Distance` token, meter value and JSON representation. Its optional
+`SwimDistanceUnits` constructor argument selects meters (the default) or yards for display only; long swims stay in
+those units instead of switching to kilometers or miles. For example,
+`new DataSwimDistance(91.44, SwimDistanceUnits.Yards)` displays `100 yd`, while `getValue()` remains `91.44` and
+`toJSON()` remains `{ Distance: 91.44 }`. `DynamicDataLoader` preserves this explicit display choice. Consumers can
+choose it from the first swim-pace preference without changing general distance preferences or stored values.
+This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. MCP numeric
+discovery and canonical wire values remain unchanged; the display unit is not a new metric or persisted unit.
+
 Data Coverage & Calculation Reference
 ---
 

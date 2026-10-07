@@ -103,3 +103,7 @@ Capacity diagnostics separately report usable curves and the distinct activities
 retained envelope anchors, so consumers can disclose concentrated evidence without treating it as a different fit.
 
 `calculateThreeDimensionalImpulseResponse` applies independently calibrated fitness-fatigue responses to the three daily load series. `fitThreeDimensionalImpulseResponseParameters` adds bounded, chronologically validated calibration when callers provide dated daily strain loads and independent CP/W′/Pmax observations; it deliberately returns no generic athlete model when evidence or held-out fit quality is inadequate. Follow the [practical response-calibration recipe](guides/metrics-and-calculations.md#practical-response-calibration-recipe) before integrating it.
+
+[Training stress evaluations](guides/metrics-and-calculations.md) distinguish imported scores, calibrated HR, MET
+estimates and unavailable results. The public ActivityUtilities API returns all three requested policies from the
+parsed file without requiring athlete settings.

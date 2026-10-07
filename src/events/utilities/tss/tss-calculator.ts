@@ -41,7 +41,6 @@ export interface TssCalculationResult {
 const BANISTER_A = 0.64;
 const BANISTER_K_MALE_OR_UNKNOWN = 1.92;
 const BANISTER_K_FEMALE = 1.67;
-const DEFAULT_HR_THRESHOLD_RATIO = 0.85;
 const DEFAULT_MET_THRESHOLD = 10;
 
 export class TssCalculator {
@@ -49,7 +48,7 @@ export class TssCalculator {
   private static readonly TSS_MAX = 9999;
 
   public static estimateMetScore(energyConsumption: number, userWeight: number, totalDurationWithoutPauses: number): number {
-    if (energyConsumption <= 0 || userWeight <= 0 || totalDurationWithoutPauses <= 0) {
+    if (![energyConsumption, userWeight, totalDurationWithoutPauses].every(value => Number.isFinite(value) && value > 0)) {
       return 0;
     }
     return (3600 * energyConsumption) / (userWeight * totalDurationWithoutPauses);
@@ -171,24 +170,19 @@ export class TssCalculator {
 
   public static calculateHrTss(input: TssInput): TssCalculationResult | null {
     const maxHeartRate = this.positive(input.maxHeartRate);
-    if (maxHeartRate === null) {
+    const restingHeartRate = this.positive(input.restingHeartRate);
+    const threshold = this.positive(input.lactateThresholdHR);
+    if (maxHeartRate === null || restingHeartRate === null || threshold === null ||
+        !(restingHeartRate < threshold && threshold < maxHeartRate)) {
       return null;
     }
-
     const samples = input.samples
       .filter(sample => Number.isFinite(sample.hr) && (sample.hr as number) > 0)
       .sort((left, right) => left.duration - right.duration);
     if (!samples.length) {
       return null;
     }
-
-    const restingHeartRate = this.positive(input.restingHeartRate);
-    const banister = this.calculateBanisterHrTss(samples, maxHeartRate, restingHeartRate, input.lactateThresholdHR, input.gender);
-    if (banister) {
-      return banister;
-    }
-
-    return this.calculateEdwardsHrTss(samples, maxHeartRate, input.lactateThresholdHR);
+    return this.calculateBanisterHrTss(samples, maxHeartRate, restingHeartRate, threshold, input.gender);
   }
 
   public static calculateSwimTss(input: TssInput): TssCalculationResult | null {
@@ -253,39 +247,8 @@ export class TssCalculator {
       return dHrr * BANISTER_A * Math.exp(k * dHrr);
     });
 
-    const thresholdDhr = this.resolveBanisterThresholdDhr(
-      maxHeartRate,
-      restingHeartRate,
-      this.positive(lactateThresholdHR)
-    );
+    const thresholdDhr = ((lactateThresholdHR as number) - restingHeartRate) / (maxHeartRate - restingHeartRate);
     const thresholdHourLoad = 60 * thresholdDhr * BANISTER_A * Math.exp(k * thresholdDhr);
-    if (!Number.isFinite(sessionLoad) || !Number.isFinite(thresholdHourLoad) || thresholdHourLoad <= 0) {
-      return null;
-    }
-
-    return this.applyRangeCheck({
-      calculationMethod: TrainingStressScoreMethod.HR,
-      trainingStressScore: (100 * sessionLoad) / thresholdHourLoad
-    });
-  }
-
-  private static calculateEdwardsHrTss(
-    samples: TssSample[],
-    maxHeartRate: number,
-    lactateThresholdHR?: number
-  ): TssCalculationResult | null {
-    if (maxHeartRate <= 0) {
-      return null;
-    }
-
-    const sessionLoad = this.accumulateSampleLoad(samples, sample => {
-      const hr = sample.hr as number;
-      return this.edwardsZoneWeight(hr / maxHeartRate);
-    });
-
-    const thresholdRatio = this.resolveEdwardsThresholdRatio(maxHeartRate, this.positive(lactateThresholdHR));
-    const thresholdWeight = this.edwardsZoneWeight(thresholdRatio);
-    const thresholdHourLoad = 60 * thresholdWeight;
     if (!Number.isFinite(sessionLoad) || !Number.isFinite(thresholdHourLoad) || thresholdHourLoad <= 0) {
       return null;
     }
@@ -317,44 +280,6 @@ export class TssCalculator {
     });
 
     return sum;
-  }
-
-  private static resolveBanisterThresholdDhr(
-    maxHeartRate: number,
-    restingHeartRate: number,
-    lactateThresholdHR: number | null
-  ): number {
-    if (lactateThresholdHR !== null && maxHeartRate > restingHeartRate) {
-      return this.clamp((lactateThresholdHR - restingHeartRate) / (maxHeartRate - restingHeartRate), 0, 1);
-    }
-    return DEFAULT_HR_THRESHOLD_RATIO;
-  }
-
-  private static resolveEdwardsThresholdRatio(maxHeartRate: number, lactateThresholdHR: number | null): number {
-    if (lactateThresholdHR !== null && maxHeartRate > 0) {
-      return this.clamp(lactateThresholdHR / maxHeartRate, 0, 1);
-    }
-    return DEFAULT_HR_THRESHOLD_RATIO;
-  }
-
-  private static edwardsZoneWeight(hrRatio: number): number {
-    const percentage = hrRatio * 100;
-    if (!Number.isFinite(percentage) || percentage < 50) {
-      return 0;
-    }
-    if (percentage < 60) {
-      return 1;
-    }
-    if (percentage < 70) {
-      return 2;
-    }
-    if (percentage < 80) {
-      return 3;
-    }
-    if (percentage < 90) {
-      return 4;
-    }
-    return 5;
   }
 
   private static resolveSampleGrade(sample: TssSample, speed: number): number | null {

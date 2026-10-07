@@ -1,6 +1,6 @@
 {
   "name": "@sports-alliance/sports-lib",
-  "version": "21.5.0",
+  "version": "21.6.0",
   "description": "TypeScript library for importing, exporting, and analyzing sports activities and routes from FIT, GPX, TCX, and JSON, with standardized activity, health, and sleep metrics.",
   "keywords": [
     "typescript",

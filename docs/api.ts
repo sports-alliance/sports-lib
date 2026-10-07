@@ -502,3 +502,9 @@ export type {
  * @category Activities and events
  */
 export { EventUtilities } from '../src/events/utilities/event.utilities';
+
+export type { TrainingStressScorePreference, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from '../src/events/utilities/tss/tss-evaluation';
+
+export type { TrainingStressScoreMethodType } from '../src/data/data.training-stress-score-method';
+
+export { TrainingStressScoreMethod } from '../src/data/data.training-stress-score-method';

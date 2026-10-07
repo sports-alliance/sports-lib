@@ -55,9 +55,10 @@ GPX tracks with timestamps normally represent recorded activities. Set `gpx.impo
 
 ## Training stress evaluations
 
-The file-only default requires explicit HR calibration or calorie/body-mass evidence when an imported score is absent.
-Walking and hiking never use calculated power or running pace. See [TSS methods](metrics-and-calculations.md) for the
-method order, validation, fallback reasons and existing optional physiological overrides.
+HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
+Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligible sports retain power and pace methods
+in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
+reasons and existing optional physiological overrides.
 
 ```ts
 import { ActivityUtilities } from '@sports-alliance/sports-lib';
@@ -67,3 +68,5 @@ const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(event.ge
 
 Read the cached evaluations while retaining the parsed Activity instance. They survive stream disposal on that instance,
 but are not serialized into ordinary activity JSON. Use `evaluateTrainingStressScore` only for an explicit recalculation.
+For complete method comparisons, omit `streams.includeTypes`: a restrictive allowlist can prevent calculation inputs
+from being imported, so evaluations reflect only the inputs that were loaded.

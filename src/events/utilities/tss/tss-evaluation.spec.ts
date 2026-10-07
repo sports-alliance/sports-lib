@@ -12,11 +12,23 @@ import { DataTrainingStressScoreMethod } from '../../../data/data.training-stres
 import { ActivityUtilities } from '../activity.utilities';
 import { fileHeartRateCalibration } from './tss-evaluation';
 import { resolveFitHeartRateCalibration } from '../../adapters/importers/fit/fit-hr-calibration';
+import { TssCalculator } from './tss-calculator';
 
 const walk = (type = ActivityTypes.Walking) => new Activity(new Date(0), new Date(3600000), type, new Creator('Test'));
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
 
 describe('file-only training stress evaluations', () => {
+  it('does not calculate unused candidates for an imported score', () => {
+    const activity = walk(ActivityTypes.Running);
+    activity.addStat(new DataTrainingStressScore(42));
+    const power = jest.spyOn(TssCalculator, 'calculatePowerTss');
+    const met = jest.spyOn(TssCalculator, 'calculateMetTss');
+    activity.addStat(new DataFTP(200)); activity.addStat(new DataPowerNormalized(200));
+    activity.addStat(new DataEnergy(210)); activity.addStat(new DataWeight(70));
+    expect(evaluate(activity).automatic.score).toBe(42);
+    expect(power).not.toHaveBeenCalled(); expect(met).not.toHaveBeenCalled();
+    power.mockRestore(); met.mockRestore();
+  });
   it.each([ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking])(
     '%s rejects power and observed peak HR, falling back to the calorie MET estimate', type => {
       const activity = walk(type);

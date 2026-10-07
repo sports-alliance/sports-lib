@@ -2778,6 +2778,16 @@ export class ActivityUtilities {
     const existingMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const imported = existingScore !== null && existingScore >= 0 &&
       (existingMethod === undefined || existingMethod === TrainingStressScoreMethod.IMPORTED);
+    if (imported) {
+      const importedResult = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => ({
+        preference, score: existingScore, method: TrainingStressScoreMethod.IMPORTED,
+        estimated: false, provenance: 'imported', reasons: ['imported-score']
+      });
+      const result: TrainingStressScoreEvaluations = { version: 1, automatic: importedResult('AUTOMATIC'),
+        hr: importedResult('HR'), met: importedResult('MET') };
+      trainingStressScoreEvaluations.set(activity, result);
+      return result;
+    }
     const eligible = this.supportsCalculatedTrainingStressScore(activity);
     const fileCalibration = fileHeartRateCalibration.get(activity);
     const overrides = activity.parseOptions?.tss?.overrides;
@@ -2795,7 +2805,8 @@ export class ActivityUtilities {
     const power = eligible && !walking ? this.calculatePowerTss(activity) : null;
     const hr = eligible && !hrReason ? this.calculateHrTss(activity) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    const pace = eligible && !walking ? group === ActivityTypeGroups.SwimmingGroup
+    // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
+    const pace = eligible && !walking && !power && !hr ? group === ActivityTypeGroups.SwimmingGroup
       ? this.calculateSwimPaceTss(activity) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
     const met = eligible ? this.calculateMetTss(activity) : null;
     const automatic = power ?? hr ?? pace ?? met;
@@ -2809,8 +2820,6 @@ export class ActivityUtilities {
       if (!automatic) automaticReasons.push('missing-met-inputs');
     }
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
-      if (imported) return { preference, score: existingScore, method: TrainingStressScoreMethod.IMPORTED,
-        estimated: false, provenance: 'imported', reasons: ['imported-score'] };
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
       const result = preferred ?? automatic;
       const reasons = preference === 'AUTOMATIC' ? automaticReasons : preferred ? [] :
@@ -2823,7 +2832,7 @@ export class ActivityUtilities {
     };
     const result: TrainingStressScoreEvaluations = { version: 1,
       automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET') };
-    if (automatic?.calculationMethod === TrainingStressScoreMethod.POWER && !imported) {
+    if (automatic?.calculationMethod === TrainingStressScoreMethod.POWER) {
       this.persistFunctionalThresholdPowerOverride(activity);
       this.updatePowerOutputsFromPowerTss(activity, automatic);
     }

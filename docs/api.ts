@@ -508,3 +508,6 @@ export type { TrainingStressScorePreference, TrainingStressScoreReason, Training
 export type { TrainingStressScoreMethodType } from '../src/data/data.training-stress-score-method';
 
 export { TrainingStressScoreMethod } from '../src/data/data.training-stress-score-method';
+
+/** Canonical TSS metric with integer default display and optional one-decimal load-editor display. */
+export { DataTrainingStressScore } from '../src/data/data.training-stress-score';

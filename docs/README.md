@@ -106,4 +106,5 @@ retained envelope anchors, so consumers can disclose concentrated evidence witho
 
 [Training stress evaluations](guides/metrics-and-calculations.md) distinguish imported scores, calibrated HR, MET
 estimates and unavailable results. The public ActivityUtilities API returns all three requested policies from the
-parsed file without requiring athlete settings.
+parsed file without requiring athlete settings. Load editors can request one-decimal display through
+`DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.

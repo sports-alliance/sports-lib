@@ -357,6 +357,10 @@ FTP = round(0.95 * best_20min_power)
 IF = NP / FTP
 ```
 
+`DataPowerCurve` preserves explicit zero `wattsPerKg` values through JSON restoration; missing W/kg stays absent.
+Existing saved zeros are readable without reparsing. This keeps source statistics stable when consumers restore
+activities for Training load validation; the structured curve remains outside the numeric event-metric catalog.
+
 `samplePowerCurveAtDuration` samples exact points or interpolates in reciprocal-duration (`1/t`) space. Interpolation
 requires neighboring durations within the default 1.25 ratio (configurable up to the hard maximum of 2), keeps the
 strongest duplicate, and never extrapolates. `comparePowerCurveWindows` reports recent/reference retention percentage

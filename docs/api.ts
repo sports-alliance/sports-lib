@@ -346,6 +346,7 @@ export {
   DataMovingTime,
   DataPause,
   DataPower,
+  // Preserves explicit zero W/kg when restoring serialized curve points.
   DataPowerCurve,
   DataPowerWattsPerKg,
   DataRiderPositionChangeEvent,
@@ -503,7 +504,12 @@ export type {
  */
 export { EventUtilities } from '../src/events/utilities/event.utilities';
 
-export type { TrainingStressScorePreference, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from '../src/events/utilities/tss/tss-evaluation';
+export type {
+  TrainingStressScorePreference,
+  TrainingStressScoreReason,
+  TrainingStressScoreEvaluation,
+  TrainingStressScoreEvaluations
+} from '../src/events/utilities/tss/tss-evaluation';
 
 export type { TrainingStressScoreMethodType } from '../src/data/data.training-stress-score-method';
 

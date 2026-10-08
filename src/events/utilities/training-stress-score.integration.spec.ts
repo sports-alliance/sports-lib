@@ -304,7 +304,7 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it('recomputes imported TSS when preserveImportedTss is disabled', () => {
+  it('retains authoritative imported TSS even with the legacy preservation flag disabled', () => {
     const activity = createActivity(
       ActivityTypes.Cycling,
       3600,
@@ -322,8 +322,8 @@ describe('Training Stress Score integration', () => {
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
-    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(42.5);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
   });
 
   it('uses POWER first when all methods could be computed', () => {
@@ -389,8 +389,8 @@ describe('Training Stress Score integration', () => {
     expect(intensityFactor).toBeCloseTo(normalizedPower / derivedFtp, 3);
   });
 
-  it('falls back to HR when POWER is unavailable', () => {
-    const activity = createActivity(ActivityTypes.Running, 300);
+  it('falls back to calibrated HR when POWER is unavailable', () => {
+    const activity = createActivity(ActivityTypes.Running, 300, new ActivityParsingOptions({tss: {overrides: {maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 170}}}));
     addNumericStream(activity, DataHeartRate.type, new Array(300).fill(160));
     addZoneFiveThreshold(activity, DataHeartRate.type, 170);
 
@@ -400,7 +400,7 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
-  it('uses Banister when resting HR is provided and Edwards when it is missing', () => {
+  it('uses Banister with complete calibration and withholds HR when resting HR is missing', () => {
     const banisterActivity = createActivity(
       ActivityTypes.Running,
       3600,
@@ -436,9 +436,9 @@ describe('Training Stress Score integration', () => {
     const edwardsTss = edwardsActivity.getStat(DataTrainingStressScore.type)?.getValue();
 
     expect(banisterActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
-    expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+    expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
     expect(banisterTss).toBeDefined();
-    expect(edwardsTss).toBeDefined();
+    expect(edwardsTss).toBeUndefined();
     expect(banisterTss).not.toBe(edwardsTss);
   });
 
@@ -608,6 +608,10 @@ describe('Training Stress Score integration', () => {
         fixtureName
       );
       const recomputedActivity = recomputedEvent.getFirstActivity();
+      // Explicitly remove the authoritative import for this calculation-only parity test.
+      recomputedActivity.removeStat(DataTrainingStressScore.type);
+      recomputedActivity.removeStat(DataTrainingStressScoreMethod.type);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(recomputedActivity);
       const method = recomputedActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
       const computedTss = recomputedActivity.getStat(DataTrainingStressScore.type)?.getValue() as number;
       const ftp = recomputedActivity.getStat(DataFTP.type)?.getValue() as number;

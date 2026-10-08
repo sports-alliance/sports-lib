@@ -27,6 +27,7 @@ export interface ActivityParsingTssOverridesOptions {
 
 export interface ActivityParsingTssOptions {
   overrides?: ActivityParsingTssOverridesOptions;
+  /** @deprecated Valid imported scores are always preserved. Remove the imported stat explicitly to recalculate it. */
   preserveImportedTss?: boolean;
   enableHeuristicFallbacks?: boolean;
 }

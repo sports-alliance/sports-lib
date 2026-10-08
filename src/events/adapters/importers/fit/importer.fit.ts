@@ -1,3 +1,6 @@
+import { fileHeartRateCalibration } from '../../../utilities/tss/tss-evaluation';
+import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
+import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
@@ -1646,6 +1649,7 @@ export class EventImporterFIT {
         this.getCreatorFromFitDataObject(fitDataObject),
         options
       );
+      fileHeartRateCalibration.set(activity, resolveFitHeartRateCalibration(fitDataObject, sessionObject, sessionIndex, activity.type));
       const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
         {
           ...sessionObject,
@@ -2595,8 +2599,9 @@ export class EventImporterFIT {
       stats.push(new DataIntensity(object.intensity));
     }
 
-    if (Number.isFinite(object.training_stress_score)) {
+    if (Number.isFinite(object.training_stress_score) && object.training_stress_score >= 0) {
       stats.push(new DataTrainingStressScore(object.training_stress_score));
+      stats.push(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.IMPORTED));
     }
 
     if (Number.isFinite(object.total_work)) {

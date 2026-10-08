@@ -9,6 +9,7 @@ export interface DataPowerCurvePoint {
   wattsPerKg?: DataPowerWattsPerKg;
 }
 
+/** Power-duration points with optional W/kg; explicit zero W/kg survives JSON restoration. */
 export class DataPowerCurve extends DataBare<DataPowerCurvePoint[]> {
   static type = 'PowerCurve';
 
@@ -20,11 +21,12 @@ export class DataPowerCurve extends DataBare<DataPowerCurvePoint[]> {
     return (value || []).map(point => ({
       duration: point.duration instanceof DataDuration ? point.duration : new DataDuration(point.duration),
       power: point.power instanceof DataPower ? point.power : new DataPower(point.power),
-      wattsPerKg: point.wattsPerKg
-        ? point.wattsPerKg instanceof DataPowerWattsPerKg
-          ? point.wattsPerKg
-          : new DataPowerWattsPerKg(point.wattsPerKg)
-        : undefined
+      wattsPerKg:
+        point.wattsPerKg !== undefined && point.wattsPerKg !== null
+          ? point.wattsPerKg instanceof DataPowerWattsPerKg
+            ? point.wattsPerKg
+            : new DataPowerWattsPerKg(point.wattsPerKg)
+          : undefined
     }));
   }
 

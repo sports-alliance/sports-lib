@@ -118,6 +118,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
  * Cyclocross belongs to Cycling; the FIT `cycling/cyclocross` classification resolves to Cyclocross.
+ * Gravel Cycling belongs to Cycling; FIT `cycling/gravel_cycling` and the `GravelRide` alias resolve to Gravel Cycling.
  * Splitboarding belongs to Winter Sports; the FIT `snowboarding/backcountry` classification resolves to Splitboarding.
  * Ski Mountaineering belongs to Winter Sports; FIT `mountaineering/backcountry` resolves to Ski Mountaineering.
  * FIT `backcountry` sub-sports require sport context and do not classify unrelated sports as skiing.

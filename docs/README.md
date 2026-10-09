@@ -18,6 +18,9 @@ Cycling classifications requires reparsing their retained FIT sources. See [Impo
 Cyclocross belongs to Cycling. FIT `cycling/cyclocross` imports preserve Cyclocross instead of Mountain Biking;
 correcting older classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Gravel Cycling belongs to Cycling. FIT `cycling/gravel_cycling` and the `GravelRide` alias preserve Gravel Cycling;
+correcting older Cycling classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
+
 Splitboarding belongs to Winter Sports. FIT `snowboarding/backcountry` imports preserve Splitboarding; correcting older
 Backcountry Skiing classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

@@ -29,6 +29,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Handcycle, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Velomobile, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
@@ -277,6 +278,35 @@ describe('ActivityTypes', () => {
       ActivityTypes.Cyclocross
     );
     expect(ActivityTypesHelper.resolveActivityType('Mountain Biking')).toBe(ActivityTypes.MountainBiking);
+  });
+
+  it.each([
+    'Gravel Cycling',
+    'GravelCycling',
+    'gravel_cycling',
+    'cycling_gravel_cycling',
+    'CYCLING-GRAVEL-CYCLING',
+    'GravelRide',
+    'gravelride'
+  ])('resolves %s to canonical Gravel Cycling', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.GravelCycling);
+  });
+
+  it('keeps Gravel Cycling unique in the Cycling group with cycling movement behavior', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Gravel Cycling')).toEqual([
+      ActivityTypes.GravelCycling
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.CyclingGroup).filter(
+        type => type === ActivityTypes.GravelCycling
+      )
+    ).toEqual([ActivityTypes.GravelCycling]);
+    expect(new Set([ActivityTypes.Cycling, ActivityTypes.Cyclocross, ActivityTypes.GravelCycling]).size).toBe(3);
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.GravelCycling)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Cycling)
+    );
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.GravelCycling)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('Ride')).toBe(ActivityTypes.Cycling);
   });
 
   it.each(['Splitboarding', 'splitboarding', 'snowboarding_backcountry', 'SNOWBOARDING-BACKCOUNTRY'])(

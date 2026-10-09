@@ -301,7 +301,6 @@ export enum ActivityTypes {
   'cycling_road' = 'Cycling',
   'road_biking' = 'Cycling',
   'cycling_track_cycling' = 'Cycling',
-  'cycling_gravel_cycling' = 'Cycling',
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
@@ -313,6 +312,14 @@ export enum ActivityTypes {
   'Cyclocross' = 'Cyclocross',
   'cyclocross' = 'Cyclocross',
   'cycling_cyclocross' = 'Cyclocross',
+  /**
+   * Gravel Cycling
+   */
+  'GravelCycling' = 'Gravel Cycling',
+  'Gravel Cycling' = 'Gravel Cycling',
+  'gravel_cycling' = 'Gravel Cycling',
+  'cycling_gravel_cycling' = 'Gravel Cycling',
+  'GravelRide' = 'Gravel Cycling',
   /**
    * Indoor Cycling
    */
@@ -1149,6 +1156,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
       ActivityTypes.Cyclocross,
+      ActivityTypes.GravelCycling,
       ActivityTypes.IndoorCycling,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,

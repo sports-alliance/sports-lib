@@ -788,6 +788,120 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'running', sub_sport: 'track' },
+      { sport: 1, sub_sport: 4 },
+      { sport: '1', sub_sport: '4' },
+      { sport: 'running', sub_sport: 4 },
+      { sport: 'RUNNING', sub_sport: 'TRACK' }
+    ])('honors an explicit Track and Field profile for FIT session %j', session => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track and Field' })
+      ).toBe(ActivityTypes.TrackAndField);
+    });
+
+    it.each(['Track and Field', 'TrackAndField', 'track_and_field', 'TRACK-AND-FIELD', ' Track and Field '])(
+      'recognizes the exact Track and Field profile alias %s',
+      sportProfileName => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({
+            sport: 1,
+            sub_sport: 4,
+            sport_profile_name: sportProfileName
+          })
+        ).toBe(ActivityTypes.TrackAndField);
+      }
+    );
+
+    it.each([23, 1, 123, 'suunto', 'garmin', undefined])(
+      'honors explicit Track and Field independently of manufacturer %j',
+      manufacturer => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 1, sub_sport: 4, sport_profile_name: 'Track and Field' },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.TrackAndField);
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 4 }, manufacturer)).toBe(
+          ActivityTypes.Running
+        );
+      }
+    );
+
+    it.each([
+      undefined,
+      null,
+      '',
+      'Track Run',
+      'Track Running',
+      'Custom intervals',
+      'Track and Field training',
+      'Cycling',
+      59,
+      { name: 'Track and Field' },
+      ['Track and Field']
+    ])('keeps running/track as Running without a recognized string profile (%j)', sportProfileName => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject(
+          { sport: 1, sub_sport: 4, sport_profile_name: sportProfileName },
+          23
+        )
+      ).toBe(ActivityTypes.Running);
+    });
+
+    it.each([
+      [{ sport: 1, sub_sport: 3 }, ActivityTypes.TrailRunning],
+      [{ sport: 2, sub_sport: 11 }, ActivityTypes.Cyclocross],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.TrackAndField]
+    ])('retains existing profile precedence outside running/track (%j)', (session, expectedType) => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track and Field' }, 23)
+      ).toBe(expectedType);
+    });
+
+    it.each([
+      [23, 'Track and Field', ActivityTypes.TrackAndField],
+      [1, 'TrackAndField', ActivityTypes.TrackAndField],
+      [123, 'Track and Field', ActivityTypes.TrackAndField],
+      [65535, 'Track and Field', ActivityTypes.TrackAndField],
+      [23, 'Track Run', ActivityTypes.Running],
+      [1, 'Custom intervals', ActivityTypes.Running]
+    ])(
+      'imports running/track FIT with manufacturer %s and profile %s as %s',
+      async (manufacturer, profile, expectedType) => {
+        const encoder = new FitEncoder();
+        const startTime = FitEncoder.toFitTimestamp(new Date('2026-01-01T12:00:00.000Z'));
+        const profileBytes = FitEncoder.string(profile);
+        encoder.writeMessage(0, [
+          { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturer },
+          { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
+        ]);
+        encoder.writeMessage(18, [
+          { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
+          { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
+          { number: 5, size: 1, baseType: FitBaseType.Enum, value: 1 },
+          { number: 6, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 110, size: profileBytes.length, baseType: FitBaseType.String, value: profileBytes }
+        ]);
+
+        const event = await EventImporterFIT.getFromArrayBuffer(
+          Buffer.from(encoder.close()),
+          new ActivityParsingOptions({ generateUnitStreams: false })
+        );
+
+        expect(event.getFirstActivity().type).toBe(expectedType);
+        expect(event.getActivityTypesAsArray()).toEqual([expectedType]);
+        const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+        expect(restored.getFirstActivity().type).toBe(expectedType);
+        expect(restored.getActivityTypesAsArray()).toEqual([expectedType]);
+      }
+    );
+
+    it.each([
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
       [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
@@ -851,6 +965,8 @@ describe('EventImporterFIT', () => {
       [23, 12, 42, ActivityTypes.SkateSkiing],
       [1, 12, 42, ActivityTypes.SkateSkiing],
       [23, 12, 0, ActivityTypes.CrosscountrySkiing],
+      [23, 1, 4, ActivityTypes.Running],
+      [1, 1, 4, ActivityTypes.Running],
       [123, 1, 37, ActivityTypes.Running],
       [123, 2, 37, ActivityTypes.Cycling],
       [123, 5, 37, ActivityTypes.Swimming],

@@ -115,6 +115,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * TSS or durability, but preserve source-imported TSS. Snorkeling and Mermaiding are canonical
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
+ * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  *
  * @category Activities and events
  */

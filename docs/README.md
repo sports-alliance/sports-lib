@@ -9,6 +9,9 @@ API; implementation adapters and parsers remain available for compatibility but 
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve that classification; correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Padel belongs to Team/Racket. FIT `racket/padel` imports preserve Padel instead of Racquet Ball; correcting older
+classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

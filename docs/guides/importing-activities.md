@@ -17,6 +17,22 @@ Skating group, while `Ice Skating` remains in Winter Sports. Aerial activities r
 while exposing vertical speed. Motorized and Adaptive Mobility activities retain movement data but do not receive
 library-calculated Training Stress Score or durability evidence; a source-provided Training Stress Score remains intact.
 
+`Meditation` belongs to `ActivityTypeGroups.IndoorSportsGroup` alongside Yoga, Pilates, and Stretching.
+FIT `sport=generic` (`0`) with `sub_sport=breathing` (`62`) imports as `Meditation`; the aliases `meditation`,
+`breathing`, and `generic_breathing` resolve to that same canonical value. This preserves the activity name in
+[Suunto's mapping](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf), where Meditation is
+Suunto App activity ID `112`. Stretching remains `Flexibility Training` for FIT `training/flexibility_training`.
+
+Existing native JSON remains readable. A stored `Generic` activity cannot establish whether its source was meditation,
+so re-import or reparse retained original FIT files to correct historical breathing classifications, then regenerate
+any separately persisted event summaries and activity-type aggregates. Saved routes need no reparse, and no new fields,
+numeric metrics, Training planning capabilities, or durability adapters are added.
+
+Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`.
+Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new value
+fits the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
+and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.
+
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom
 ```

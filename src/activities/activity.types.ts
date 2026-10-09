@@ -205,6 +205,7 @@ export class ActivityTypesHelper {
   }
 }
 
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values -- Provider aliases intentionally share canonical values. */
 /**
  * This enum works like a all matchers for normalized sport types between different naming across services
  *
@@ -419,6 +420,14 @@ export enum ActivityTypes {
   'yoga' = 'Yoga',
   'Yoga' = 'Yoga',
   'YogaPilates' = 'Yoga',
+
+  /**
+   * Meditation, including Suunto's FIT generic/breathing classification.
+   */
+  'Meditation' = 'Meditation',
+  'meditation' = 'Meditation',
+  'generic_breathing' = 'Meditation',
+  'breathing' = 'Meditation',
 
   /**
    * Pilates
@@ -1017,6 +1026,7 @@ export enum ActivityTypes {
   'generic_match' = 'Match',
   'Match' = 'Match'
 }
+/* eslint-enable @typescript-eslint/no-duplicate-enum-values */
 
 /**
  * Activities whose cadence-shaped source fields represent strokes or paddle cycles per minute.
@@ -1141,6 +1151,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.IndoorSportsGroup]: [
       ActivityTypes.Gymnastics,
       ActivityTypes.Yoga,
+      ActivityTypes.Meditation,
       ActivityTypes.Stretching,
       ActivityTypes.Kettlebell,
       ActivityTypes.IndoorRowing,

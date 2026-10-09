@@ -114,6 +114,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * vertical-speed derivation; Motorized and Adaptive Mobility activities do not receive calculated
  * TSS or durability, but preserve source-imported TSS. Snorkeling and Mermaiding are canonical
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
+ * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  *
  * @category Activities and events
  */

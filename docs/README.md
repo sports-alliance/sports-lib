@@ -15,6 +15,10 @@ classifications requires reparsing their retained FIT sources. See [Import activ
 FIT `cycling/hand_cycling` imports resolve to the existing Hand Cycle type in the Cycling group; correcting older
 Cycling classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Field Hockey belongs to Team/Racket. Suunto FIT `generic/match` imports preserve Field Hockey when the recording
+identifies Suunto as its creator manufacturer. Older Match imports require reparsing retained FIT sources.
+See [Import activities](guides/importing-activities.md).
+
 Suunto FIT `generic/hand_cycling` imports resolve to the existing Wheel Chair type in Adaptive Mobility when the
 recording identifies Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
 See [Import activities](guides/importing-activities.md).

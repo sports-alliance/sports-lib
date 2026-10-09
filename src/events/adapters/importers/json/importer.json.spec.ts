@@ -26,6 +26,33 @@ import {
 } from '../../../../data/data.running-dynamics';
 
 describe('EventImporterJSON', () => {
+  it.each([
+    ['Field Hockey', ActivityTypes.FieldHockey],
+    ['FieldHockey', ActivityTypes.FieldHockey],
+    ['field_hockey', ActivityTypes.FieldHockey],
+    ['Match', ActivityTypes.Match],
+    ['generic_match', ActivityTypes.Match]
+  ])('restores activity type %s without reclassifying legacy Match data', (type, expectedType) => {
+    const activity = EventImporterJSON.getActivityFromJSON({
+      name: 'activity-type-round-trip',
+      startDate: 1_000,
+      endDate: 2_000,
+      type: type as ActivityTypes,
+      powerMeter: false,
+      trainer: false,
+      stats: {},
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    });
+
+    expect(activity.type).toBe(expectedType);
+    expect(activity.toJSON().type).toBe(expectedType);
+    expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+  });
+
   it('round-trips canonical running-dynamics stats and streams without renaming or dropping them', () => {
     const event = EventImporterJSON.getEventFromJSON({
       name: 'running-dynamics-round-trip',

@@ -564,6 +564,80 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'generic', sub_sport: 'match' },
+      { sport: 0, sub_sport: 22 },
+      { sport: '0', sub_sport: '22' },
+      { sport: 'generic', sub_sport: 22 },
+      { sport: 'GENERIC', sub_sport: 'MATCH' },
+      { sport: 'generic', sub_sport: 'match', sport_profile_name: 'Custom team profile' }
+    ])('maps Suunto field hockey classification %j to Field Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.FieldHockey);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/match',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 22 }, manufacturer)).toBe(
+          ActivityTypes.FieldHockey
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/match as Match without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 22 }, manufacturer)).toBe(
+          ActivityTypes.Match
+        );
+      }
+    );
+
+    it.each([
+      [{ sport: 'field_hockey' }, ActivityTypes.FieldHockey],
+      [{ sport: 'FIELD_HOCKEY' }, ActivityTypes.FieldHockey],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Field Hockey' }, ActivityTypes.FieldHockey],
+      [{ sport: 'tennis', sub_sport: 'match' }, ActivityTypes.Tennis],
+      [{ sport: 'IceHockey', sub_sport: 0 }, ActivityTypes.IceHockey],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
+      [{ sub_sport: 22 }, ActivityTypes.Match]
+    ])('uses explicit names or preserves unrelated Suunto sport context (%j)', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.FieldHockey],
+      [
+        { file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.FieldHockey
+      ],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Match
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Match],
+      [{ file_ids: [{ product_name: 'Suunto' }], device_infos: [] }, ActivityTypes.Match]
+    ])('uses creator identity to classify the field hockey session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 22,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 'cycling', sub_sport: 'cyclocross' },
       { sport: 2, sub_sport: 11 },
       { sport: '2', sub_sport: '11' },
@@ -666,6 +740,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 2, sub_sport: 47 }, ActivityTypes.Cycling],
       [{ sport: 0, sub_sport: 47 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 22 }, ActivityTypes.Match],
       [{ sport: 14 }, ActivityTypes.Snowboarding],
       [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
       [{ sport: 13, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
@@ -690,6 +765,10 @@ describe('EventImporterFIT', () => {
       [1, 0, 12, ActivityTypes.Generic],
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],
+      [23, 0, 22, ActivityTypes.FieldHockey],
+      [1, 0, 22, ActivityTypes.Match],
+      [123, 0, 22, ActivityTypes.Match],
+      [65535, 0, 22, ActivityTypes.Match],
       [23, 2, 11, ActivityTypes.Cyclocross],
       [1, 2, 11, ActivityTypes.Cyclocross],
       [23, 2, 46, ActivityTypes.GravelCycling],

@@ -2382,14 +2382,18 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
-    // Suunto App's Wheelchair sport uses generic/hand_cycling, unlike cycling/hand_cycling.
-    // Require the recording's creator identity instead of adding a provider-independent alias.
+    // Suunto uses generic FIT pairs for Wheelchair sport and Field Hockey.
+    // Require the recording's creator identity instead of changing their global aliases.
     if (
       resolvedSport?.toLowerCase() === 'generic' &&
-      resolvedSubSport?.toLowerCase().replace(/[\s_-]/g, '') === 'handcycling' &&
       this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto'
     ) {
-      return ActivityTypes.Wheelchair;
+      switch (resolvedSubSport?.toLowerCase().replace(/[\s_-]/g, '')) {
+        case 'handcycling':
+          return ActivityTypes.Wheelchair;
+        case 'match':
+          return ActivityTypes.FieldHockey;
+      }
     }
 
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.

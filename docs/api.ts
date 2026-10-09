@@ -117,6 +117,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
+ * Suunto FIT `generic/hand_cycling` resolves to the existing Wheel Chair type in Adaptive Mobility using creator identity.
  * Cyclocross belongs to Cycling; the FIT `cycling/cyclocross` classification resolves to Cyclocross.
  * Gravel Cycling belongs to Cycling; FIT `cycling/gravel_cycling` and the `GravelRide` alias resolve to Gravel Cycling.
  * E-Mountain Biking belongs to Mountain Biking; FIT `e_biking/e_bike_mountain` and `EMountainBikeRide` resolve to it.

@@ -24,7 +24,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
+import { getFitManufacturerName, getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
@@ -1639,11 +1639,12 @@ export class EventImporterFIT {
       throw new ParsingEventLibError('Cannot parse start and end dates');
     } else {
       // Create an activity
+      const creator = this.getCreatorFromFitDataObject(fitDataObject);
       const activity = new Activity(
         startDate,
         endDate,
-        this.getActivityTypeFromSessionObject(sessionObject),
-        this.getCreatorFromFitDataObject(fitDataObject),
+        this.getActivityTypeFromSessionObject(sessionObject, creator.manufacturer),
+        creator,
         options
       );
       const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
@@ -2372,7 +2373,7 @@ export class EventImporterFIT {
     return null;
   }
 
-  private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
+  private static getActivityTypeFromSessionObject(session: any, manufacturer?: unknown): ActivityTypes {
     // FIT sport fields can be either profile IDs (number / numeric string) or already-resolved names.
     // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
     const resolvedSport = this.resolveFitProfileName(session.sport, getFitSportName);
@@ -2380,6 +2381,16 @@ export class EventImporterFIT {
     const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
+
+    // Suunto App's Wheelchair sport uses generic/hand_cycling, unlike cycling/hand_cycling.
+    // Require the recording's creator identity instead of adding a provider-independent alias.
+    if (
+      resolvedSport?.toLowerCase() === 'generic' &&
+      resolvedSubSport?.toLowerCase().replace(/[\s_-]/g, '') === 'handcycling' &&
+      this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto'
+    ) {
+      return ActivityTypes.Wheelchair;
+    }
 
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
     // Preserve explicit composite mappings, but do not use the legacy standalone

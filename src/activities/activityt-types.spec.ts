@@ -260,6 +260,18 @@ describe('ActivityTypes', () => {
     ).toEqual([ActivityTypes.Handcycle]);
   });
 
+  it('reuses the existing Wheel Chair catalog value and Adaptive Mobility group without a global FIT alias', () => {
+    expect(ActivityTypesHelper.resolveActivityType('Wheelchair')).toBe(ActivityTypes.Wheelchair);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Wheel Chair')).toEqual([
+      ActivityTypes.Wheelchair
+    ]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.AdaptiveMobilityGroup)).toEqual([
+      ActivityTypes.Wheelchair
+    ]);
+    expect(ActivityTypesHelper.resolveActivityType('generic_hand_cycling')).toBeNull();
+    expect(ActivityTypes.Wheelchair).not.toBe(ActivityTypes.Handcycle);
+  });
+
   it.each(['Cyclocross', 'cyclocross', 'cycling_cyclocross', 'CYCLING-CYCLOCROSS'])(
     'resolves %s to canonical Cyclocross',
     value => {

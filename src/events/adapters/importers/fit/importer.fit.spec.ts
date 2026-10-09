@@ -585,14 +585,43 @@ describe('EventImporterFIT', () => {
     it.each([
       [{ sport: 73 }, ActivityTypes.unknown],
       [{ sport: 73, sub_sport: 0 }, ActivityTypes.Generic],
-      [{ sport: 73, sub_sport: 91 }, ActivityTypes.unknown],
-      [{ sport: 'hockey', sub_sport: 'ice' }, ActivityTypes.unknown],
+      [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
+      [{ sport: 'hockey', sub_sport: 'ice' }, ActivityTypes.IceHockey],
       [{ sub_sport: 90 }, ActivityTypes.unknown],
       [{ sport: 0, sub_sport: 90 }, ActivityTypes.Generic],
       [{ sport: 1, sub_sport: 90 }, ActivityTypes.Running],
       [{ sport: 8, sub_sport: 90 }, ActivityTypes.Tennis],
       [{ sport: 'IceHockey', sub_sport: 'field' }, ActivityTypes.IceHockey]
-    ])('requires explicit hockey/field context instead of reclassifying session %j', (session, expectedType) => {
+    ])('keeps hockey variants distinct and retains unrelated session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'hockey', sub_sport: 'ice' },
+      { sport: 73, sub_sport: 91 },
+      { sport: '73', sub_sport: '91' },
+      { sport: 'hockey', sub_sport: 91 },
+      { sport: 73, sub_sport: 'ice' },
+      { sport: 'HOCKEY', sub_sport: 'ICE' },
+      { sport: 'hockey', sub_sport: 'ice', sport_profile_name: 'Custom hockey profile' },
+      { sport: 'hockey', sub_sport: 'ice', sport_profile_name: 'FieldHockey' }
+    ])('maps explicit FIT hockey/ice session %j to Ice Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.IceHockey);
+    });
+
+    it.each([1, 23, 123, undefined])('maps hockey/ice independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 73, sub_sport: 91 }, manufacturer)).toBe(
+        ActivityTypes.IceHockey
+      );
+    });
+
+    it.each([
+      [{ sub_sport: 91 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 91 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 91 }, ActivityTypes.Running],
+      [{ sport: 33, sub_sport: 91 }, ActivityTypes.IceSkating],
+      [{ sport: 'FieldHockey', sub_sport: 'ice' }, ActivityTypes.FieldHockey]
+    ])('requires hockey context for the Ice sub-sport in session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
     });
 
@@ -1044,6 +1073,10 @@ describe('EventImporterFIT', () => {
       [23, 73, 90, ActivityTypes.FieldHockey],
       [123, 73, 90, ActivityTypes.FieldHockey],
       [65535, 73, 90, ActivityTypes.FieldHockey],
+      [1, 73, 91, ActivityTypes.IceHockey],
+      [23, 73, 91, ActivityTypes.IceHockey],
+      [123, 73, 91, ActivityTypes.IceHockey],
+      [65535, 73, 91, ActivityTypes.IceHockey],
       [1, 0, 22, ActivityTypes.Match],
       [123, 0, 22, ActivityTypes.Match],
       [65535, 0, 22, ActivityTypes.Match],

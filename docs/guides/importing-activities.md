@@ -44,6 +44,14 @@ reuses the existing Team/Racket group and canonical stored value; it adds no pro
 Previously stored `Unknown Sport` values remain unchanged when restoring native JSON; reparse retained FIT sources to
 recover the specific activity type and regenerate any separately persisted event summaries or activity-type aggregates.
 
+FIT `sport=hockey` (`73`) with `sub_sport=ice` (`91`) imports as the existing `ActivityTypes.IceHockey` across manufacturers,
+using the identifiers in Garmin's reference linked above. `Ice Hockey` remains in `ActivityTypeGroups.TeamRacketGroup`,
+distinct from Field Hockey and Ice Skating. The composite alias `hockey_ice` resolves to its existing canonical stored
+value. Standalone `hockey` or `ice` does not establish Ice Hockey; unrelated sports with the Ice sub-sport retain their
+previous fallback behavior. This correction adds no provider transport, metrics, or MCP contract. As with Field Hockey,
+restoring native JSON does not reclassify historical `Unknown Sport` values; reparse retained FIT sources and regenerate
+separately persisted summaries or activity-type aggregates to correct those imports.
+
 `Hand Cycle` remains in `ActivityTypeGroups.CyclingGroup`. FIT `sport=cycling` (`2`) with `sub_sport=hand_cycling`
 (`12`) imports as the existing `ActivityTypes.Handcycle`; the composite alias `cycling_hand_cycling` resolves to
 the same canonical value. Suunto documents this pair for App activity ID `109`. This mapping requires the Cycling
@@ -132,7 +140,7 @@ does not use it. The ambiguous FIT pairs cannot recover every provider's finer a
 
 Existing native JSON remains readable. Stored `Unknown Sport`, `Generic`, `Match`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
-Padel, Field Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
+Padel, Field Hockey, Ice Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
 Ski Mountaineering, Skate Skiing, Track Running, or Track and Field,
 or another sport incorrectly classified by the old FIT `backcountry` fallback. Re-import or reparse retained original
 FIT files or restore the specific provider sport name to correct historical classifications, then regenerate any

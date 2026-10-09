@@ -487,6 +487,17 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'cycling', sub_sport: 'gravel_cycling' },
+      { sport: 2, sub_sport: 46 },
+      { sport: '2', sub_sport: '46' },
+      { sport: 'cycling', sub_sport: 46 },
+      { sport: 'cycling', sub_sport: 'gravel_cycling', sport_profile_name: 'Custom cycling profile' },
+      { sport: 'cycling', sub_sport: 0, sport_profile_name: 'GravelRide' }
+    ])('maps FIT gravel cycling classification %j to Gravel Cycling', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.GravelCycling);
+    });
+
+    it.each([
       { sport: 'snowboarding', sub_sport: 'backcountry' },
       { sport: 14, sub_sport: 37 },
       { sport: '14', sub_sport: '37' },
@@ -536,7 +547,11 @@ describe('EventImporterFIT', () => {
       [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 8 }, ActivityTypes.MountainBiking],
       [{ sport: 'cycling', sub_sport: 'mountain' }, ActivityTypes.MountainBiking],
-      [{ sport: 2, sub_sport: 46 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 7 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 13 }, ActivityTypes.Cycling],
+      [{ sport: 'cycling', sub_sport: 'mixed_surface' }, ActivityTypes.Cycling],
+      [{ sport: 21, sub_sport: 28 }, ActivityTypes.EBiking],
+      [{ sport: 21, sub_sport: 47 }, ActivityTypes.EBiking],
       [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
       [{ sport: 14 }, ActivityTypes.Snowboarding],
       [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
@@ -554,6 +569,8 @@ describe('EventImporterFIT', () => {
       [23, 2, 12, ActivityTypes.Handcycle],
       [23, 2, 11, ActivityTypes.Cyclocross],
       [1, 2, 11, ActivityTypes.Cyclocross],
+      [23, 2, 46, ActivityTypes.GravelCycling],
+      [1, 2, 46, ActivityTypes.GravelCycling],
       [23, 14, 37, ActivityTypes.Splitboarding],
       [23, 16, 37, ActivityTypes.SkiMountaineering],
       [123, 1, 37, ActivityTypes.Running],

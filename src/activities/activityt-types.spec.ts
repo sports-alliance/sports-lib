@@ -23,6 +23,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Aquathlon, ActivityTypeGroups.PerformanceGroup],
   [ActivityTypes.Duathlon, ActivityTypeGroups.PerformanceGroup],
   [ActivityTypes.Swimrun, ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.TrackRunning, ActivityTypeGroups.RunningGroup],
   [ActivityTypes.Fishing, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
@@ -272,6 +273,34 @@ describe('ActivityTypes', () => {
       ActivityTypeGroups.PerformanceGroup
     );
     expect(ActivityTypesHelper.resolveActivityType('running_track')).toBe(ActivityTypes.Running);
+  });
+
+  it.each(['Track Running', 'TrackRunning', 'track_running', 'Track Run', 'TrackRun', 'track_run', 'TRACK-RUN'])(
+    'resolves %s to canonical Track Running',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.TrackRunning);
+    }
+  );
+
+  it('exposes Track Running once in Running and keeps ambiguous track aliases unchanged', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Track Running')).toEqual([
+      ActivityTypes.TrackRunning
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.RunningGroup).filter(
+        type => type === ActivityTypes.TrackRunning
+      )
+    ).toEqual([ActivityTypes.TrackRunning]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.TrackRunning)).toEqual(
+      ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Running)
+    );
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.TrackRunning)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Running)
+    );
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.TrackRunning)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('running_track')).toBe(ActivityTypes.Running);
+    expect(ActivityTypesHelper.resolveActivityType('track')).toBeNull();
+    expect(ActivityTypes.TrackRunning).not.toBe(ActivityTypes.TrackAndField);
   });
 
   it('exposes Chores once under Unspecified while retaining the generic exercise alias', () => {

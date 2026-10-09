@@ -284,6 +284,16 @@ export enum ActivityTypes {
   'running_street' = 'Running',
   'running_road' = 'Running',
   /**
+   * Track Running, identified by an explicit sport or profile name.
+   * The ambiguous FIT running/track pair alone retains Running.
+   */
+  'Track Running' = 'Track Running',
+  'TrackRunning' = 'Track Running',
+  'track_running' = 'Track Running',
+  'Track Run' = 'Track Running',
+  'TrackRun' = 'Track Running',
+  'track_run' = 'Track Running',
+  /**
    * Trail Running
    */
   'TrailRunning' = 'Trail Running',
@@ -1177,6 +1187,7 @@ export class ActivityTypesGroupMapping {
   public static readonly map: Record<ActivityTypeGroup, ActivityTypes[]> = {
     [ActivityTypeGroups.RunningGroup]: [
       ActivityTypes.Running,
+      ActivityTypes.TrackRunning,
       ActivityTypes.Treadmill,
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning

@@ -99,14 +99,20 @@ profile name can still identify a more specific activity. The broader `NordicSki
 `Track and Field` remains the existing `ActivityTypes.TrackAndField` in `ActivityTypeGroups.PerformanceGroup`.
 [Suunto's activity table](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf) encodes both
 Track and Field (App ID `59`) and Track Running (App ID `103`) as FIT `running/track` (`1/4`).
-An explicit `sport_profile_name` resolving to Track and Field now disambiguates that pair before the existing
+An explicit `sport_profile_name` resolving to Track and Field disambiguates that pair before the existing
 `running_track` alias. Canonical `Track and Field` and normalized `TrackAndField`, `track_and_field`, and
-`TRACK-AND-FIELD` profile names are recognized across manufacturers. The pair alone, absent or unrecognized profiles,
-and a profile such as `Track Run` retain Running. This exception does not change profile precedence for other sport
-composites. [Garmin's Track Run activity](https://www8.garmin.com/manuals/webhelp/GUID-EA668398-46E4-42E4-8163-12F6CB299F0E/EN-GB/GUID-979BE240-7591-41A8-858D-04B557B9DD2E.html)
-is a running activity; the importer does not infer Track and Field from `1/4` or manufacturer identity alone.
-No new Track Running type is added here. Historical Running imports can be corrected only when their retained source
-includes a recognized Track and Field profile; native JSON `Running` and `running_track` keep their existing values.
+`TRACK-AND-FIELD` profile names are recognized across manufacturers.
+
+`Track Running` belongs to `ActivityTypeGroups.RunningGroup` and retains the group's pace and moving-speed behavior.
+The explicit names `Track Run`, `TrackRun`, `track_run`, `Track Running`, `TrackRunning`, and `track_running` resolve to
+`ActivityTypes.TrackRunning` across providers. FIT `running/track` uses that type only when its profile explicitly
+identifies Track Running; a generic Running session can also use a recognized profile through the existing fallback.
+The pair alone or an absent/unrecognized profile retains Running. The standalone `track` name and `running_track`
+alias do not establish Track Running, and no numeric provider activity IDs are added. Other specific FIT sport composites
+retain their existing precedence over profile names. [Garmin's Track Run activity](https://www8.garmin.com/manuals/webhelp/GUID-EA668398-46E4-42E4-8163-12F6CB299F0E/EN-GB/GUID-979BE240-7591-41A8-858D-04B557B9DD2E.html)
+is a running activity; manufacturer identity alone cannot disambiguate the shared Suunto pair.
+Historical Running imports can be corrected only when their retained source includes a recognized Track Running name
+or Track and Field profile; native JSON `Running` and `running_track` keep their existing values.
 
 FIT `backcountry` is terrain context, not a standalone sport classification. For example,
 [Polar's FIT mappings](https://www.polar.com/accesslink-api/#sport-type-mapping-in-fit-files) reuse it for running,
@@ -119,7 +125,7 @@ does not use it. The ambiguous FIT pairs cannot recover every provider's finer a
 Existing native JSON remains readable. Stored `Generic`, `Match`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
 Padel, Field Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
-Ski Mountaineering, Skate Skiing, or Track and Field,
+Ski Mountaineering, Skate Skiing, Track Running, or Track and Field,
 or another sport incorrectly classified by the old FIT `backcountry` fallback. Re-import or reparse retained original
 FIT files or restore the specific provider sport name to correct historical classifications, then regenerate any
 separately persisted event summaries and activity-type
@@ -127,7 +133,7 @@ aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Tr
 durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
-`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, or `Skate Skiing`.
+`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, or `Track Running`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

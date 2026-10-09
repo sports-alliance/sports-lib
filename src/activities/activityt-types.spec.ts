@@ -236,6 +236,24 @@ describe('ActivityTypes', () => {
     ).toEqual([ActivityTypes.Padel]);
   });
 
+  it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(
+    'resolves %s to canonical Hand Cycle',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Handcycle);
+    }
+  );
+
+  it('keeps Hand Cycle unique in the canonical catalog and Cycling group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Hand Cycle')).toEqual([
+      ActivityTypes.Handcycle
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.CyclingGroup).filter(
+        type => type === ActivityTypes.Handcycle
+      )
+    ).toEqual([ActivityTypes.Handcycle]);
+  });
+
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {
     expect(ActivityTypes.snorkeling).toBe(ActivityTypes.Snorkeling);
     expect(ActivityTypesHelper.resolveActivityType('snorkeling')).toBe(ActivityTypes.Snorkeling);

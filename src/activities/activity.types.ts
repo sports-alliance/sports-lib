@@ -1012,6 +1012,7 @@ export enum ActivityTypes {
   'Handcycle' = 'Hand Cycle',
   'Hand cycle' = 'Hand Cycle',
   'Hand Cycle' = 'Hand Cycle',
+  'cycling_hand_cycling' = 'Hand Cycle',
   /**
    * Stair Stepper
    */

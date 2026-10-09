@@ -28,15 +28,22 @@ FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `pad
 the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without the Padel
 sub-sport retains its existing Racquet Ball classification.
 
-Existing native JSON remains readable. Stored `Generic` and `Racquet Ball` activities cannot establish whether their
-sources were Meditation or Padel, so re-import or reparse retained original FIT files to correct historical classifications, then regenerate
-any separately persisted event summaries and activity-type aggregates. Saved routes need no reparse, and no new fields,
-numeric metrics, Training planning capabilities, or durability adapters are added.
+`Hand Cycle` remains in `ActivityTypeGroups.CyclingGroup`. FIT `sport=cycling` (`2`) with `sub_sport=hand_cycling`
+(`12`) imports as the existing `ActivityTypes.Handcycle`; the composite alias `cycling_hand_cycling` resolves to
+the same canonical value. Suunto documents this pair for App activity ID `109`. This mapping requires the Cycling
+sport: `generic/hand_cycling` (`0/12`), used by Suunto's Wheelchair sport, keeps its existing Generic classification.
+
+Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, and `Cycling` activities cannot establish
+whether their sources were Meditation, Padel, or Hand Cycle. Re-import or reparse retained original FIT files to
+correct historical classifications, then regenerate any separately persisted event summaries and activity-type
+aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
+durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation` or `Padel`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
-fits the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
+fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.
+The Hand Cycle correction reuses an existing canonical activity type and group in that catalog.
 
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom

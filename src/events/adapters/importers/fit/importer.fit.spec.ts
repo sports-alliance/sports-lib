@@ -467,18 +467,32 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'cycling', sub_sport: 'hand_cycling' },
+      { sport: 2, sub_sport: 12 },
+      { sport: '2', sub_sport: '12' },
+      { sport: 'cycling', sub_sport: 12 },
+      { sport: 'cycling', sub_sport: 'hand_cycling', sport_profile_name: 'Custom cycling profile' }
+    ])('maps FIT hand cycling classification %j to Hand Cycle', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Handcycle);
+    });
+
+    it.each([
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
       [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
       [{ sport: 64 }, ActivityTypes.RacquetBall],
-      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall]
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
+      [{ sport: 2 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic]
     ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
     });
 
     it.each([
       [0, 62, ActivityTypes.Meditation],
-      [64, 85, ActivityTypes.Padel]
+      [64, 85, ActivityTypes.Padel],
+      [2, 12, ActivityTypes.Handcycle]
     ])(
       'imports a synthetic Suunto FIT (%s/%s) as %s and preserves its type through native JSON',
       async (sport, subSport, expectedType) => {

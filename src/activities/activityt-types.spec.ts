@@ -253,12 +253,17 @@ describe('ActivityTypes', () => {
     }
   );
 
-  it.each(['Field Hockey', 'FieldHockey', 'field_hockey', 'FIELD_HOCKEY', 'FIELD-HOCKEY'])(
-    'resolves %s to canonical Field Hockey',
-    value => {
-      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.FieldHockey);
-    }
-  );
+  it.each([
+    'Field Hockey',
+    'FieldHockey',
+    'field_hockey',
+    'FIELD_HOCKEY',
+    'FIELD-HOCKEY',
+    'hockey_field',
+    'HOCKEY-FIELD'
+  ])('resolves %s to canonical Field Hockey', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.FieldHockey);
+  });
 
   it.each(['Chores', 'chores', 'CHORES'])('resolves %s to canonical Chores', value => {
     expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Chores);
@@ -330,6 +335,8 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.FieldHockey)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
     expect(ActivityTypesHelper.resolveActivityType('IceHockey')).toBe(ActivityTypes.IceHockey);
+    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('field')).toBeNull();
     expect(ActivityTypes.FieldHockey).not.toBe(ActivityTypes.IceHockey);
   });
 

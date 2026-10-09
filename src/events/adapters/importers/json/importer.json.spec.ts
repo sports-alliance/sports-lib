@@ -30,6 +30,8 @@ describe('EventImporterJSON', () => {
     ['Field Hockey', ActivityTypes.FieldHockey],
     ['FieldHockey', ActivityTypes.FieldHockey],
     ['field_hockey', ActivityTypes.FieldHockey],
+    ['hockey_field', ActivityTypes.FieldHockey],
+    ['Unknown Sport', ActivityTypes.unknown],
     ['Chores', ActivityTypes.Chores],
     ['chores', ActivityTypes.Chores],
     ['Generic', ActivityTypes.Generic],

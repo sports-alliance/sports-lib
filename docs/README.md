@@ -51,6 +51,9 @@ FIT `running/track` honors recognized Track Running and Track and Field profiles
 groups respectively. The pair alone remains Running because Suunto uses it for both activities. Historical corrections
 require reparsing retained sources that include a recognized name/profile. See [Import activities](guides/importing-activities.md).
 
+Field Hockey belongs to Team/Racket. FIT `hockey/field` imports preserve Field Hockey across manufacturers;
+correcting older Unknown Sport classifications requires reparsing retained sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

@@ -638,11 +638,12 @@ export enum ActivityTypes {
   'Ice Hockey' = 'Ice Hockey',
   'IceHockey' = 'Ice Hockey',
   /**
-   * Field Hockey, including Suunto's creator-qualified FIT generic/match classification.
+   * Field Hockey, including FIT hockey/field and Suunto's creator-qualified generic/match classification.
    */
   'Field Hockey' = 'Field Hockey',
   'FieldHockey' = 'Field Hockey',
   'field_hockey' = 'Field Hockey',
+  'hockey_field' = 'Field Hockey',
   /**
    * Volleyball
    */

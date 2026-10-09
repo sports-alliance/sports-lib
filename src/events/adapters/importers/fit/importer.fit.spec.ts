@@ -487,6 +487,36 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'mountaineering', sub_sport: 'backcountry' },
+      { sport: 16, sub_sport: 37 },
+      { sport: '16', sub_sport: '37' },
+      { sport: 'mountaineering', sub_sport: 37 },
+      { sport: 'mountaineering', sub_sport: 'backcountry', sport_profile_name: 'Custom winter profile' }
+    ])('maps FIT ski mountaineering classification %j to Ski Mountaineering', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.SkiMountaineering);
+    });
+
+    it.each([
+      [{ sport: 1, sub_sport: 37 }, ActivityTypes.Running],
+      [{ sport: 'running', sub_sport: 'backcountry' }, ActivityTypes.Running],
+      [{ sport: '1', sub_sport: '37' }, ActivityTypes.Running],
+      [{ sport: 'RUNNING', sub_sport: 'BACK COUNTRY' }, ActivityTypes.Running],
+      [{ sport: 2, sub_sport: 37 }, ActivityTypes.Cycling],
+      [{ sport: 'cycling', sub_sport: 'backcountry' }, ActivityTypes.Cycling],
+      [{ sport: '2', sub_sport: '37' }, ActivityTypes.Cycling],
+      [{ sport: 5, sub_sport: 37 }, ActivityTypes.Swimming],
+      [{ sport: 'swimming', sub_sport: 'backcountry' }, ActivityTypes.Swimming],
+      [{ sport: 0, sub_sport: 37 }, ActivityTypes.Generic],
+      [{ sport: 11, sub_sport: 37 }, ActivityTypes.Walking],
+      [{ sport: 999999, sub_sport: 37 }, ActivityTypes.UnknownSport],
+      [{ sub_sport: 'backcountry' }, ActivityTypes.UnknownSport],
+      [{ sport: 'unrecognized_sport', sub_sport: 'BACK-COUNTRY' }, ActivityTypes.UnknownSport],
+      [{ sport: 1, sub_sport: 37, sport_profile_name: 'Trail Running' }, ActivityTypes.TrailRunning]
+    ])('preserves sport context for FIT backcountry session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
+    });
+
+    it.each([
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
       [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
@@ -499,25 +529,32 @@ describe('EventImporterFIT', () => {
       [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
       [{ sport: 13, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
       [{ sport: 12, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
-      [{ sport: 16, sub_sport: 37 }, ActivityTypes.BackcountrySkiing]
+      [{ sport: 16 }, ActivityTypes.Mountaineering],
+      [{ sport: 16, sub_sport: 0 }, ActivityTypes.Mountaineering]
     ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
     });
 
     it.each([
-      [0, 62, ActivityTypes.Meditation],
-      [64, 85, ActivityTypes.Padel],
-      [2, 12, ActivityTypes.Handcycle],
-      [14, 37, ActivityTypes.Splitboarding]
+      [23, 0, 62, ActivityTypes.Meditation],
+      [23, 64, 85, ActivityTypes.Padel],
+      [23, 2, 12, ActivityTypes.Handcycle],
+      [23, 14, 37, ActivityTypes.Splitboarding],
+      [23, 16, 37, ActivityTypes.SkiMountaineering],
+      [123, 1, 37, ActivityTypes.Running],
+      [123, 2, 37, ActivityTypes.Cycling],
+      [123, 5, 37, ActivityTypes.Swimming],
+      [123, 0, 37, ActivityTypes.Generic],
+      [123, 12, 37, ActivityTypes.BackcountrySkiing]
     ])(
-      'imports a synthetic Suunto FIT (%s/%s) as %s and preserves its type through native JSON',
-      async (sport, subSport, expectedType) => {
+      'imports a synthetic FIT (manufacturer %s, %s/%s) as %s and preserves its type through native JSON',
+      async (manufacturer, sport, subSport, expectedType) => {
         const encoder = new FitEncoder();
         const startDate = new Date('2026-01-01T12:00:00.000Z');
         const startTime = FitEncoder.toFitTimestamp(startDate);
         encoder.writeMessage(0, [
           { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
-          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: 23 },
+          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturer },
           { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
         ]);
         encoder.writeMessage(18, [

@@ -51,6 +51,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Motorsports, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Snowmobiling, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Splitboarding, ActivityTypeGroups.WinterSportsGroup],
+  [ActivityTypes.SkiMountaineering, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup]
 ] as const;
 
@@ -271,6 +272,28 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.Splitboarding
       )
     ).toEqual([ActivityTypes.Splitboarding]);
+  });
+
+  it.each(['Ski Mountaineering', 'ski_mountaineering', 'mountaineering_backcountry', 'SKI-MOUNTAINEERING'])(
+    'resolves %s to canonical Ski Mountaineering',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.SkiMountaineering);
+    }
+  );
+
+  it('keeps Ski Mountaineering distinct and unique in the canonical catalog and Winter Sports group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Ski Mountaineering')).toEqual([
+      ActivityTypes.SkiMountaineering
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WinterSportsGroup).filter(
+        type => type === ActivityTypes.SkiMountaineering
+      )
+    ).toEqual([ActivityTypes.SkiMountaineering]);
+    expect(
+      new Set([ActivityTypes.SkiMountaineering, ActivityTypes.SkiTouring, ActivityTypes.BackcountrySkiing]).size
+    ).toBe(3);
+    expect(ActivityTypesHelper.resolveActivityType('backcountry')).toBe(ActivityTypes.BackcountrySkiing);
   });
 
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {

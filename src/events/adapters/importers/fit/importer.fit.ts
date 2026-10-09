@@ -2381,6 +2381,11 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
+    // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
+    // Preserve explicit composite mappings, but do not use the legacy standalone
+    // activity alias to turn an unrelated or unknown FIT sport into skiing.
+    const canUseSubSportAlone = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '') !== 'backcountry';
+
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the
     // canonical scuba/free-diving distinction already modeled by Sports Lib.
@@ -2404,7 +2409,7 @@ export class EventImporterFIT {
 
     // 2. Try sub_sport name alone (e.g. "indoor_climbing" or "indoorClimbing")
     if (!activityType || activityType === ActivityTypes.unknown) {
-      if (resolvedSubSport) {
+      if (resolvedSubSport && canUseSubSportAlone) {
         activityType = this.getActivityTypeByKey(resolvedSubSport);
       }
     }
@@ -2430,7 +2435,7 @@ export class EventImporterFIT {
 
     const fallbackType =
       this.getActivityTypeByKey(session.sport_profile_name) ||
-      this.getActivityTypeByKey(resolvedSubSportName) ||
+      (canUseSubSportAlone ? this.getActivityTypeByKey(resolvedSubSportName) : null) ||
       this.getActivityTypeByKey(resolvedSport) ||
       this.getActivityTypeByKey(session.sport);
 

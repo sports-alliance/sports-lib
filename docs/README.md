@@ -18,6 +18,10 @@ Cycling classifications requires reparsing their retained FIT sources. See [Impo
 Splitboarding belongs to Winter Sports. FIT `snowboarding/backcountry` imports preserve Splitboarding; correcting older
 Backcountry Skiing classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Ski Mountaineering belongs to Winter Sports and remains distinct from Ski Touring and Backcountry Skiing.
+FIT `backcountry` sub-sports retain sport context, preventing running, cycling, and swimming from becoming skiing.
+Historical corrections require reparsing retained FIT sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

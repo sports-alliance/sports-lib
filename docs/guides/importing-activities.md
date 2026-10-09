@@ -50,6 +50,13 @@ Without a known Suunto creator, the pair keeps its existing fallback behavior; n
 alias is added. The classification reuses Adaptive Mobility's movement behavior, excludes calculated TSS and durability
 evidence, and preserves any source-reported TSS.
 
+`Chores` is an explicit member of `ActivityTypeGroups.UnspecifiedGroup` and does not establish an indoor context.
+Suunto App activity ID `119` uses FIT `generic/exercise` (`0/23`); the importer resolves this to `ActivityTypes.Chores`
+only with a Suunto creator manufacturer, using the same identity precedence as Wheel Chair and Field Hockey.
+Other manufacturers or missing creator identity retain `Generic`; the existing `generic_exercise` alias remains Generic.
+The explicit names `Chores` and `chores` resolve to the canonical type across providers. No standalone `exercise`
+alias is added, and Chores retains the Unspecified group's existing moving-speed and summary behavior.
+
 `Cyclocross` belongs to `ActivityTypeGroups.CyclingGroup` and is distinct from Mountain Biking. FIT `sport=cycling`
 (`2`) with `sub_sport=cyclocross` (`11`) imports as `Cyclocross`; `cyclocross` and `cycling_cyclocross` resolve to the
 same canonical value. Suunto documents this pair for App activity ID `114`. The FIT mapping applies across
@@ -99,7 +106,7 @@ does not use it. The ambiguous FIT pairs cannot recover every provider's finer a
 
 Existing native JSON remains readable. Stored `Generic`, `Match`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
-Padel, Field Hockey, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
+Padel, Field Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
 Ski Mountaineering, or Skate Skiing,
 or another sport incorrectly classified by the old FIT `backcountry` fallback. Re-import or reparse retained original
 FIT files or restore the specific provider sport name to correct historical classifications, then regenerate any
@@ -107,7 +114,7 @@ separately persisted event summaries and activity-type
 aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
 durability adapters are added.
 
-Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`,
+Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, or `Skate Skiing`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog

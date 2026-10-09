@@ -117,6 +117,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Field Hockey belongs to Team/Racket; Suunto FIT `generic/match` resolves to it using creator identity.
+ * Chores belongs to Unspecified; Suunto FIT `generic/exercise` resolves to it using creator identity.
  * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
  * Suunto FIT `generic/hand_cycling` resolves to the existing Wheel Chair type in Adaptive Mobility using creator identity.
  * Cyclocross belongs to Cycling; the FIT `cycling/cyclocross` classification resolves to Cyclocross.

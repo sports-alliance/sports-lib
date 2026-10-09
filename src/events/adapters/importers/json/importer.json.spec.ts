@@ -30,9 +30,13 @@ describe('EventImporterJSON', () => {
     ['Field Hockey', ActivityTypes.FieldHockey],
     ['FieldHockey', ActivityTypes.FieldHockey],
     ['field_hockey', ActivityTypes.FieldHockey],
+    ['Chores', ActivityTypes.Chores],
+    ['chores', ActivityTypes.Chores],
+    ['Generic', ActivityTypes.Generic],
+    ['generic_exercise', ActivityTypes.Generic],
     ['Match', ActivityTypes.Match],
     ['generic_match', ActivityTypes.Match]
-  ])('restores activity type %s without reclassifying legacy Match data', (type, expectedType) => {
+  ])('restores activity type %s without reclassifying legacy labels', (type, expectedType) => {
     const activity = EventImporterJSON.getActivityFromJSON({
       name: 'activity-type-round-trip',
       startDate: 1_000,

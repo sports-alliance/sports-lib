@@ -23,6 +23,10 @@ Suunto FIT `generic/hand_cycling` imports resolve to the existing Wheel Chair ty
 recording identifies Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
 See [Import activities](guides/importing-activities.md).
 
+Chores belongs to Unspecified. Suunto FIT `generic/exercise` imports preserve Chores when the recording identifies
+Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
+See [Import activities](guides/importing-activities.md).
+
 Cyclocross belongs to Cycling. FIT `cycling/cyclocross` imports preserve Cyclocross instead of Mountain Biking;
 correcting older classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

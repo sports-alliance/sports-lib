@@ -57,10 +57,12 @@ const proposedGroupAssignments = [
   [ActivityTypes.Splitboarding, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.SkiMountaineering, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
-  [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup]
+  [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup],
+  [ActivityTypes.Chores, ActivityTypeGroups.UnspecifiedGroup]
 ] as const;
 
 const intentionalUnspecifiedActivityTypes = [
+  ActivityTypes.Chores,
   ActivityTypes.Generic,
   ActivityTypes.Match,
   ActivityTypes.Other,
@@ -132,7 +134,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityGroupForActivityType(activityType)).toBe(activityGroup);
   });
 
-  it('keeps only generic and structural labels unspecified', () => {
+  it('keeps only intentionally unclassified activity types unspecified', () => {
     const unspecifiedActivityTypes = ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(
       activityType =>
         ActivityTypesHelper.getActivityGroupForActivityType(activityType as ActivityTypes) ===
@@ -256,6 +258,25 @@ describe('ActivityTypes', () => {
       expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.FieldHockey);
     }
   );
+
+  it.each(['Chores', 'chores', 'CHORES'])('resolves %s to canonical Chores', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Chores);
+  });
+
+  it('exposes Chores once under Unspecified while retaining the generic exercise alias', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Chores')).toEqual([
+      ActivityTypes.Chores
+    ]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup)).toEqual([
+      ActivityTypes.Chores
+    ]);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Chores)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Chores)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Generic)
+    );
+    expect(ActivityTypesHelper.resolveActivityType('generic_exercise')).toBe(ActivityTypes.Generic);
+    expect(ActivityTypesHelper.resolveActivityType('exercise')).toBeNull();
+  });
 
   it('exposes Field Hockey once in Team/Racket without changing Match or Ice Hockey', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Field Hockey')).toEqual([

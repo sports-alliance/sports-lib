@@ -55,6 +55,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Snowmobiling, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Splitboarding, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.SkiMountaineering, ActivityTypeGroups.WinterSportsGroup],
+  [ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup]
 ] as const;
 
@@ -383,6 +384,36 @@ describe('ActivityTypes', () => {
       new Set([ActivityTypes.SkiMountaineering, ActivityTypes.SkiTouring, ActivityTypes.BackcountrySkiing]).size
     ).toBe(3);
     expect(ActivityTypesHelper.resolveActivityType('backcountry')).toBe(ActivityTypes.BackcountrySkiing);
+  });
+
+  it.each([
+    'Skate Skiing',
+    'SkateSkiing',
+    'skate_skiing',
+    'cross_country_skiing_skate_skiing',
+    'CROSS-COUNTRY-SKIING-SKATE-SKIING'
+  ])('resolves %s to canonical Skate Skiing', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.SkateSkiing);
+  });
+
+  it('keeps Skate Skiing distinct and unique in the Winter Sports group with cross-country movement behavior', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Skate Skiing')).toEqual([
+      ActivityTypes.SkateSkiing
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WinterSportsGroup).filter(
+        type => type === ActivityTypes.SkateSkiing
+      )
+    ).toEqual([ActivityTypes.SkateSkiing]);
+    expect(new Set([ActivityTypes.CrosscountrySkiing, ActivityTypes.NordicSki, ActivityTypes.SkateSkiing]).size).toBe(
+      3
+    );
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.SkateSkiing)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.CrosscountrySkiing)
+    );
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.SkateSkiing)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('cross_country_skiing')).toBe(ActivityTypes.CrosscountrySkiing);
+    expect(ActivityTypesHelper.resolveActivityType('NordicSki')).toBe(ActivityTypes.NordicSki);
   });
 
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {

@@ -529,6 +529,17 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'cross_country_skiing', sub_sport: 'skate_skiing' },
+      { sport: 12, sub_sport: 42 },
+      { sport: '12', sub_sport: '42' },
+      { sport: 'cross_country_skiing', sub_sport: 42 },
+      { sport: 'cross_country_skiing', sub_sport: 'skate_skiing', sport_profile_name: 'Custom winter profile' },
+      { sport: 'cross_country_skiing', sub_sport: 0, sport_profile_name: 'Skate Skiing' }
+    ])('maps FIT skate skiing classification %j to Skate Skiing', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.SkateSkiing);
+    });
+
+    it.each([
       [{ sport: 1, sub_sport: 37 }, ActivityTypes.Running],
       [{ sport: 'running', sub_sport: 'backcountry' }, ActivityTypes.Running],
       [{ sport: '1', sub_sport: '37' }, ActivityTypes.Running],
@@ -572,6 +583,11 @@ describe('EventImporterFIT', () => {
       [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
       [{ sport: 13, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
       [{ sport: 12, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
+      [{ sport: 12 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 12, sub_sport: 0 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 'cross_country_skiing', sub_sport: 'generic' }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 12, sub_sport: 0, sport_profile_name: 'NordicSki' }, ActivityTypes.NordicSki],
+      [{ sport: 13, sub_sport: 0 }, ActivityTypes.AlpineSkiing],
       [{ sport: 16 }, ActivityTypes.Mountaineering],
       [{ sport: 16, sub_sport: 0 }, ActivityTypes.Mountaineering]
     ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
@@ -590,6 +606,9 @@ describe('EventImporterFIT', () => {
       [1, 21, 47, ActivityTypes.EMountainBiking],
       [23, 14, 37, ActivityTypes.Splitboarding],
       [23, 16, 37, ActivityTypes.SkiMountaineering],
+      [23, 12, 42, ActivityTypes.SkateSkiing],
+      [1, 12, 42, ActivityTypes.SkateSkiing],
+      [23, 12, 0, ActivityTypes.CrosscountrySkiing],
       [123, 1, 37, ActivityTypes.Running],
       [123, 2, 37, ActivityTypes.Cycling],
       [123, 5, 37, ActivityTypes.Swimming],

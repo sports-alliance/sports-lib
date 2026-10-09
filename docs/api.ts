@@ -122,6 +122,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * E-Mountain Biking belongs to Mountain Biking; FIT `e_biking/e_bike_mountain` and `EMountainBikeRide` resolve to it.
  * Splitboarding belongs to Winter Sports; the FIT `snowboarding/backcountry` classification resolves to Splitboarding.
  * Ski Mountaineering belongs to Winter Sports; FIT `mountaineering/backcountry` resolves to Ski Mountaineering.
+ * Skate Skiing belongs to Winter Sports; FIT `cross_country_skiing/skate_skiing` resolves to Skate Skiing.
  * FIT `backcountry` sub-sports require sport context and do not classify unrelated sports as skiing.
  *
  * @category Activities and events

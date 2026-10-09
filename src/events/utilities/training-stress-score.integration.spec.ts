@@ -222,7 +222,7 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair, ActivityTypes.WheelchairPushWalk])(
     'does not calculate TSS for %s even when power inputs are available',
     activityType => {
       const activity = createActivity(
@@ -246,7 +246,7 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair, ActivityTypes.WheelchairPushWalk])(
     'preserves imported TSS for %s even when imported-TSS preservation is disabled',
     activityType => {
       const activity = createActivity(
@@ -263,7 +263,7 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
+  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair, ActivityTypes.WheelchairPushWalk])(
     'removes stale calculated TSS for %s after its group no longer supports calculation',
     activityType => {
       const activity = createActivity(activityType, 1200);

@@ -66,15 +66,26 @@ Without a known Suunto creator, the pair keeps its existing fallback behavior; n
 alias is added. The classification reuses Adaptive Mobility's movement behavior, excludes calculated TSS and durability
 evidence, and preserves any source-reported TSS.
 
-FIT `sport=wheelchair_push_walk` (`65`), documented in Garmin's activity reference linked above, imports as the same
-existing `ActivityTypes.Wheelchair` across manufacturers. The `wheelchair_push_walk` alias resolves to canonical
-`Wheel Chair` in `ActivityTypeGroups.AdaptiveMobilityGroup`. The explicit sport takes precedence over sub-sport and
-profile fallbacks, including a generic sub-sport or a profile named Walking. It retains Wheel Chair's existing speed
-display, moving-speed threshold, and indoor-status behavior. Calculated TSS and durability remain excluded while
-source-reported TSS is preserved. Ordinary Walking, Running, Hand Cycle, and the creator-qualified Suunto mapping keep
-their existing classification rules. No new activity type, numeric metric, provider transport, or MCP contract is added.
-Stored `Unknown Sport`, `Generic`, or `Walking` labels cannot establish a wheelchair activity by themselves; reparse
-retained FIT sources to correct old imports and regenerate separately persisted summaries or activity-type aggregates.
+FIT `sport=wheelchair_push_walk` (`65`), documented in Garmin's activity reference linked above, imports as
+`ActivityTypes.WheelchairPushWalk` across manufacturers. Its canonical value is `Wheelchair Push Walk`, with explicit
+`WheelchairPushWalk` and `wheelchair_push_walk` aliases. It belongs to `ActivityTypeGroups.AdaptiveMobilityGroup`
+alongside the general `Wheel Chair` type. Garmin distinguishes pushes at walking speed from pushes at running speed
+in its [wheelchair-mode manual](https://www8.garmin.com/manuals/webhelp/GUID-8C2C402F-55AC-431F-9CF2-1442B89CE149/EN-US/GUID-44F436A5-EB13-40E3-AD91-8D7B0D8E0317.html).
+Classification uses the explicit source sport rather than inferring a mode from recorded speed. FIT sport `65` takes
+precedence over sub-sport and profile fallbacks, including a generic sub-sport or a profile named Walking.
+Wheelchair Push Walk retains Adaptive Mobility's speed display, moving-speed threshold, and indoor-status behavior.
+Calculated TSS and durability remain excluded while source-reported TSS is preserved. Ordinary Walking, Running,
+Hand Cycle, and the creator-qualified Suunto mapping keep their existing classification rules. No new numeric metric,
+provider transport, or MCP schema or scope is added.
+
+Stored `Unknown Sport`, `Generic`, `Walking`, or general `Wheel Chair` labels cannot establish the specific push mode
+by themselves. Canonical native JSON `Wheel Chair` and `Wheelchair` remain general; JSON retaining the explicit
+`wheelchair_push_walk` alias restores Wheelchair Push Walk. Reparse retained FIT sources to recover sport `65` from
+older general imports, then regenerate separately persisted summaries or activity-type aggregates. Saved routes need
+no reparse. Quantified Self must adopt the release in both the application and Functions before persisting this new
+canonical value; use its existing source-backed, version-checked reparse lifecycle for any separately authorized
+historical correction. Queue scheduling, retry, monitoring coverage, writes, and Training/durability algorithms are
+unchanged by this library classification correction.
 
 `Chores` is an explicit member of `ActivityTypeGroups.UnspecifiedGroup` and does not establish an indoor context.
 Suunto App activity ID `119` uses FIT `generic/exercise` (`0/23`); the importer resolves this to `ActivityTypes.Chores`
@@ -159,7 +170,7 @@ aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Tr
 durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
-`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, or `Track Running`.
+`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`, or `Wheelchair Push Walk`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

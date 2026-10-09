@@ -545,6 +545,13 @@ export enum ActivityTypes {
   'Ski Touring' = 'Ski Touring',
   'SkiTouring' = 'Ski Touring',
   /**
+   * Ski Mountaineering
+   */
+  'SkiMountaineering' = 'Ski Mountaineering',
+  'Ski Mountaineering' = 'Ski Mountaineering',
+  'ski_mountaineering' = 'Ski Mountaineering',
+  'mountaineering_backcountry' = 'Ski Mountaineering',
+  /**
    * Telemark Skiing
    */
   'Telemark skiing' = 'Telemark Skiing',
@@ -1214,6 +1221,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Splitboarding,
       ActivityTypes.Snowshoeing,
       ActivityTypes.SkiTouring,
+      ActivityTypes.SkiMountaineering,
       ActivityTypes.IceSkating,
       ActivityTypes.BackCountrySki,
       ActivityTypes.NordicSki

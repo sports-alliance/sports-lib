@@ -36,17 +36,32 @@ sport: `generic/hand_cycling` (`0/12`), used by Suunto's Wheelchair sport, keeps
 `Splitboarding` belongs to `ActivityTypeGroups.WinterSportsGroup` alongside Snowboarding and Backcountry Skiing.
 FIT `sport=snowboarding` (`14`) with `sub_sport=backcountry` (`37`) imports as `Splitboarding`; `splitboarding` and
 `snowboarding_backcountry` resolve to the same canonical value. Suunto documents this pair for App activity ID `110`.
-This composite takes precedence over the broader `backcountry` alias. Alpine and cross-country backcountry sessions
+This composite preserves the Snowboarding context. Alpine and cross-country backcountry sessions
 retain their existing Backcountry Skiing classification, and ordinary snowboarding sessions remain Snowboarding.
 
+`Ski Mountaineering` belongs to `ActivityTypeGroups.WinterSportsGroup` and is distinct from Ski Touring and Backcountry
+Skiing. FIT `sport=mountaineering` (`16`) with `sub_sport=backcountry` (`37`) imports as `Ski Mountaineering`, matching
+Suunto App activity ID `116`. The aliases `ski_mountaineering` and `mountaineering_backcountry` resolve to that value.
+These FIT composites apply across manufacturers; Suunto documents the specific pair, while other providers can encode
+related activities differently.
+
+FIT `backcountry` is terrain context, not a standalone sport classification. For example,
+[Polar's FIT mappings](https://www.polar.com/accesslink-api/#sport-type-mapping-in-fit-files) reuse it for running,
+cycling, swimming, and orienteering. Where no recognized composite exists, the importer uses a recognized sport profile
+or the parent sport: `running/backcountry`, `cycling/backcountry`, and `swimming/backcountry` retain Running, Cycling,
+and Swimming respectively; `generic/backcountry` remains Generic. Missing or unknown parent sports do not establish
+skiing. The legacy standalone activity alias `backcountry` remains readable in native JSON, but FIT sub-sport fallback
+does not use it. The ambiguous FIT pairs cannot recover every provider's finer activity distinction.
+
 Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, `Cycling`, and `Backcountry Skiing` activities
-cannot establish whether their sources were Meditation, Padel, Hand Cycle, or Splitboarding. Re-import or reparse
-retained original FIT files to correct historical classifications, then regenerate any separately persisted event summaries and activity-type
+cannot establish whether their sources were Meditation, Padel, Hand Cycle, Splitboarding, or Ski Mountaineering, or
+another sport incorrectly classified by the old FIT `backcountry` fallback. Re-import or reparse retained original FIT
+files to correct historical classifications, then regenerate any separately persisted event summaries and activity-type
 aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
 durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`,
-or `Splitboarding`.
+`Splitboarding`, or `Ski Mountaineering`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

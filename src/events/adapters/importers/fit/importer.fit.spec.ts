@@ -477,6 +477,16 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'snowboarding', sub_sport: 'backcountry' },
+      { sport: 14, sub_sport: 37 },
+      { sport: '14', sub_sport: '37' },
+      { sport: 'snowboarding', sub_sport: 37 },
+      { sport: 'snowboarding', sub_sport: 'backcountry', sport_profile_name: 'Custom winter profile' }
+    ])('maps FIT splitboarding classification %j to Splitboarding', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Splitboarding);
+    });
+
+    it.each([
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
       [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
@@ -484,7 +494,12 @@ describe('EventImporterFIT', () => {
       [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
       [{ sport: 2 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
-      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic]
+      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
+      [{ sport: 14 }, ActivityTypes.Snowboarding],
+      [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
+      [{ sport: 13, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
+      [{ sport: 12, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
+      [{ sport: 16, sub_sport: 37 }, ActivityTypes.BackcountrySkiing]
     ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
     });
@@ -492,7 +507,8 @@ describe('EventImporterFIT', () => {
     it.each([
       [0, 62, ActivityTypes.Meditation],
       [64, 85, ActivityTypes.Padel],
-      [2, 12, ActivityTypes.Handcycle]
+      [2, 12, ActivityTypes.Handcycle],
+      [14, 37, ActivityTypes.Splitboarding]
     ])(
       'imports a synthetic Suunto FIT (%s/%s) as %s and preserves its type through native JSON',
       async (sport, subSport, expectedType) => {

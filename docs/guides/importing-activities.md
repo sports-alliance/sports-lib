@@ -33,13 +33,20 @@ sub-sport retains its existing Racquet Ball classification.
 the same canonical value. Suunto documents this pair for App activity ID `109`. This mapping requires the Cycling
 sport: `generic/hand_cycling` (`0/12`), used by Suunto's Wheelchair sport, keeps its existing Generic classification.
 
-Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, and `Cycling` activities cannot establish
-whether their sources were Meditation, Padel, or Hand Cycle. Re-import or reparse retained original FIT files to
-correct historical classifications, then regenerate any separately persisted event summaries and activity-type
+`Splitboarding` belongs to `ActivityTypeGroups.WinterSportsGroup` alongside Snowboarding and Backcountry Skiing.
+FIT `sport=snowboarding` (`14`) with `sub_sport=backcountry` (`37`) imports as `Splitboarding`; `splitboarding` and
+`snowboarding_backcountry` resolve to the same canonical value. Suunto documents this pair for App activity ID `110`.
+This composite takes precedence over the broader `backcountry` alias. Alpine and cross-country backcountry sessions
+retain their existing Backcountry Skiing classification, and ordinary snowboarding sessions remain Snowboarding.
+
+Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, `Cycling`, and `Backcountry Skiing` activities
+cannot establish whether their sources were Meditation, Padel, Hand Cycle, or Splitboarding. Re-import or reparse
+retained original FIT files to correct historical classifications, then regenerate any separately persisted event summaries and activity-type
 aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
 durability adapters are added.
 
-Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation` or `Padel`.
+Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`,
+or `Splitboarding`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

@@ -564,6 +564,39 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'hockey', sub_sport: 'field' },
+      { sport: 73, sub_sport: 90 },
+      { sport: '73', sub_sport: '90' },
+      { sport: 'hockey', sub_sport: 90 },
+      { sport: 73, sub_sport: 'field' },
+      { sport: 'HOCKEY', sub_sport: 'FIELD' },
+      { sport: 'hockey', sub_sport: 'field', sport_profile_name: 'Custom hockey profile' },
+      { sport: 'hockey', sub_sport: 'field', sport_profile_name: 'IceHockey' }
+    ])('maps explicit FIT hockey/field session %j to Field Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.FieldHockey);
+    });
+
+    it.each([1, 23, 123, undefined])('maps hockey/field independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 73, sub_sport: 90 }, manufacturer)).toBe(
+        ActivityTypes.FieldHockey
+      );
+    });
+
+    it.each([
+      [{ sport: 73 }, ActivityTypes.unknown],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 73, sub_sport: 91 }, ActivityTypes.unknown],
+      [{ sport: 'hockey', sub_sport: 'ice' }, ActivityTypes.unknown],
+      [{ sub_sport: 90 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 90 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 90 }, ActivityTypes.Running],
+      [{ sport: 8, sub_sport: 90 }, ActivityTypes.Tennis],
+      [{ sport: 'IceHockey', sub_sport: 'field' }, ActivityTypes.IceHockey]
+    ])('requires explicit hockey/field context instead of reclassifying session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 'generic', sub_sport: 'match' },
       { sport: 0, sub_sport: 22 },
       { sport: '0', sub_sport: '22' },
@@ -1007,6 +1040,10 @@ describe('EventImporterFIT', () => {
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],
       [23, 0, 22, ActivityTypes.FieldHockey],
+      [1, 73, 90, ActivityTypes.FieldHockey],
+      [23, 73, 90, ActivityTypes.FieldHockey],
+      [123, 73, 90, ActivityTypes.FieldHockey],
+      [65535, 73, 90, ActivityTypes.FieldHockey],
       [1, 0, 22, ActivityTypes.Match],
       [123, 0, 22, ActivityTypes.Match],
       [65535, 0, 22, ActivityTypes.Match],

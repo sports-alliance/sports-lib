@@ -36,6 +36,14 @@ alias. The explicit names `Field Hockey`, `FieldHockey`, and `field_hockey` reso
 providers. [Polar's detailed sport catalog](https://www.polar.com/accesslink-api/#detailed-sport-info-values-in-exercise-entity)
 also identifies Field Hockey as `FIELD_HOCKEY`; this named alias does not infer a Polar FIT tuple or add provider transport.
 
+FIT `sport=hockey` (`73`) with `sub_sport=field` (`90`) also imports as the existing `ActivityTypes.FieldHockey` across
+manufacturers. These identifiers appear in [Garmin's activity reference](https://developer.garmin.com/connect-iq/api-docs/Toybox/Activity.html).
+The composite alias `hockey_field` resolves to the same canonical value. Standalone `hockey` or `field` does not establish
+Field Hockey, and unrelated sports with the Field sub-sport retain their previous fallback behavior. This correction
+reuses the existing Team/Racket group and canonical stored value; it adds no provider transport, metrics, or MCP contract.
+Previously stored `Unknown Sport` values remain unchanged when restoring native JSON; reparse retained FIT sources to
+recover the specific activity type and regenerate any separately persisted event summaries or activity-type aggregates.
+
 `Hand Cycle` remains in `ActivityTypeGroups.CyclingGroup`. FIT `sport=cycling` (`2`) with `sub_sport=hand_cycling`
 (`12`) imports as the existing `ActivityTypes.Handcycle`; the composite alias `cycling_hand_cycling` resolves to
 the same canonical value. Suunto documents this pair for App activity ID `109`. This mapping requires the Cycling
@@ -122,7 +130,7 @@ and Swimming respectively; `generic/backcountry` remains Generic. Missing or unk
 skiing. The legacy standalone activity alias `backcountry` remains readable in native JSON, but FIT sub-sport fallback
 does not use it. The ambiguous FIT pairs cannot recover every provider's finer activity distinction.
 
-Existing native JSON remains readable. Stored `Generic`, `Match`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
+Existing native JSON remains readable. Stored `Unknown Sport`, `Generic`, `Match`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
 Padel, Field Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
 Ski Mountaineering, Skate Skiing, Track Running, or Track and Field,

@@ -308,6 +308,12 @@ export enum ActivityTypes {
   'cycling_commuting' = 'Cycling',
   'cycling_mixed_surface' = 'Cycling',
   /**
+   * Cyclocross
+   */
+  'Cyclocross' = 'Cyclocross',
+  'cyclocross' = 'Cyclocross',
+  'cycling_cyclocross' = 'Cyclocross',
+  /**
    * Indoor Cycling
    */
   'cycling_indoor_cycling' = 'Indoor Cycling',
@@ -339,7 +345,6 @@ export enum ActivityTypes {
   'cycling_mountain' = 'Mountain Biking',
   'MountainBiking' = 'Mountain Biking',
   'Mountain Biking' = 'Mountain Biking',
-  'cycling_cyclocross' = 'Mountain Biking',
   'mountain' = 'Mountain Biking', // @todo this feels hacky but exists and indeed it's MTB
   'Mountain biking' = 'Mountain Biking',
 
@@ -1143,6 +1148,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning],
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
+      ActivityTypes.Cyclocross,
       ActivityTypes.IndoorCycling,
       ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,

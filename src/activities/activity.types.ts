@@ -539,7 +539,14 @@ export enum ActivityTypes {
   'CrosscountrySkiing' = 'Crosscountry Skiing',
   'CrossCountrySkiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
-  'cross_country_skiing_skate_skiing' = 'Crosscountry Skiing',
+
+  /**
+   * Skate Skiing
+   */
+  'SkateSkiing' = 'Skate Skiing',
+  'Skate Skiing' = 'Skate Skiing',
+  'skate_skiing' = 'Skate Skiing',
+  'cross_country_skiing_skate_skiing' = 'Skate Skiing',
 
   /**
    * Nordic skiing
@@ -1239,6 +1246,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.WinterSportsGroup]: [
       ActivityTypes.CrosscountrySkiing,
+      ActivityTypes.SkateSkiing,
       ActivityTypes.BackCountrySkiing,
       ActivityTypes.AlpineSkiing,
       ActivityTypes.TelemarkSkiing,

@@ -118,6 +118,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Field Hockey belongs to Team/Racket; FIT `hockey/field` resolves to it across manufacturers.
  * Suunto FIT `generic/match` resolves to Field Hockey using creator identity.
+ * Ice Hockey belongs to Team/Racket; FIT `hockey/ice` resolves to it across manufacturers.
  * Chores belongs to Unspecified; Suunto FIT `generic/exercise` resolves to it using creator identity.
  * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
  * Suunto FIT `generic/hand_cycling` resolves to the existing Wheel Chair type in Adaptive Mobility using creator identity.

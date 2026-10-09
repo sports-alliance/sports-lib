@@ -54,6 +54,9 @@ require reparsing retained sources that include a recognized name/profile. See [
 Field Hockey belongs to Team/Racket. FIT `hockey/field` imports preserve Field Hockey across manufacturers;
 correcting older Unknown Sport classifications requires reparsing retained sources. See [Import activities](guides/importing-activities.md).
 
+Ice Hockey belongs to Team/Racket. FIT `hockey/ice` imports preserve Ice Hockey across manufacturers;
+correcting older Unknown Sport classifications requires reparsing retained sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

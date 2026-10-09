@@ -265,6 +265,28 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.FieldHockey);
   });
 
+  it.each(['Ice Hockey', 'IceHockey', 'ice_hockey', 'hockey_ice', 'HOCKEY-ICE'])(
+    'resolves %s to canonical Ice Hockey',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.IceHockey);
+    }
+  );
+
+  it('keeps Ice Hockey unique in Team/Racket without making hockey or ice standalone aliases', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Ice Hockey')).toEqual([
+      ActivityTypes.IceHockey
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.TeamRacketGroup).filter(
+        type => type === ActivityTypes.IceHockey
+      )
+    ).toEqual([ActivityTypes.IceHockey]);
+    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('ice')).toBeNull();
+    expect(ActivityTypes.IceHockey).not.toBe(ActivityTypes.FieldHockey);
+    expect(ActivityTypes.IceHockey).not.toBe(ActivityTypes.IceSkating);
+  });
+
   it.each(['Chores', 'chores', 'CHORES'])('resolves %s to canonical Chores', value => {
     expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Chores);
   });

@@ -1089,11 +1089,12 @@ export enum ActivityTypes {
    */
   'Velomobile' = 'Velomobile',
   /**
-   * Wheel Chair
+   * Wheel Chair, including the explicit FIT wheelchair_push_walk sport.
    */
   'Wheelchair' = 'Wheel Chair',
   'Wheel chair' = 'Wheel Chair',
   'Wheel Chair' = 'Wheel Chair',
+  'wheelchair_push_walk' = 'Wheel Chair',
   'Workout' = 'Workout',
 
   'generic_match' = 'Match',

@@ -373,7 +373,14 @@ describe('ActivityTypes', () => {
     ).toEqual([ActivityTypes.Handcycle]);
   });
 
-  it('reuses the existing Wheel Chair catalog value and Adaptive Mobility group without a global FIT alias', () => {
+  it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(
+    'resolves explicit %s to the existing Wheel Chair type',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Wheelchair);
+    }
+  );
+
+  it('reuses Wheel Chair in Adaptive Mobility without a global generic/hand_cycling alias', () => {
     expect(ActivityTypesHelper.resolveActivityType('Wheelchair')).toBe(ActivityTypes.Wheelchair);
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Wheel Chair')).toEqual([
       ActivityTypes.Wheelchair
@@ -382,6 +389,7 @@ describe('ActivityTypes', () => {
       ActivityTypes.Wheelchair
     ]);
     expect(ActivityTypesHelper.resolveActivityType('generic_hand_cycling')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('wheelchair_push_run')).toBeNull();
     expect(ActivityTypes.Wheelchair).not.toBe(ActivityTypes.Handcycle);
   });
 

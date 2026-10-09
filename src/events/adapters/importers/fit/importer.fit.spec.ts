@@ -443,7 +443,13 @@ describe('EventImporterFIT', () => {
 
   describe('Activity type resolution', () => {
     const importerInternals = EventImporterFIT as unknown as {
-      getActivityTypeFromSessionObject(session: unknown): ActivityTypes;
+      getActivityTypeFromSessionObject(session: unknown, manufacturer?: unknown): ActivityTypes;
+      getActivityFromSessionObject(
+        session: unknown,
+        fitDataObject: unknown,
+        options: ActivityParsingOptions,
+        sessionIndex: number
+      ): Activity;
     };
 
     it.each([
@@ -474,6 +480,87 @@ describe('EventImporterFIT', () => {
       { sport: 'cycling', sub_sport: 'hand_cycling', sport_profile_name: 'Custom cycling profile' }
     ])('maps FIT hand cycling classification %j to Hand Cycle', session => {
       expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Handcycle);
+    });
+
+    it.each([
+      { sport: 'generic', sub_sport: 'hand_cycling' },
+      { sport: 0, sub_sport: 12 },
+      { sport: '0', sub_sport: '12' },
+      { sport: 'generic', sub_sport: 12 },
+      { sport: 'GENERIC', sub_sport: 'HAND-CYCLING' },
+      { sport: 'generic', sub_sport: 'hand_cycling', sport_profile_name: 'Custom mobility profile' }
+    ])('maps Suunto wheelchair classification %j to the existing Wheel Chair type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Wheelchair);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/hand_cycling',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 12 }, manufacturer)).toBe(
+          ActivityTypes.Wheelchair
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/hand_cycling Generic without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 12 }, manufacturer)).toBe(
+          ActivityTypes.Generic
+        );
+      }
+    );
+
+    it.each([23, 1, 123, undefined])('keeps cycling/hand_cycling Hand Cycle for manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 2, sub_sport: 12 }, manufacturer)).toBe(
+        ActivityTypes.Handcycle
+      );
+    });
+
+    it.each([
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 12 }, ActivityTypes.Running],
+      [{ sub_sport: 12 }, ActivityTypes.UnknownSport],
+      [{ sport: 0, sub_sport: 12, manufacturer: 'suunto' }, ActivityTypes.Generic]
+    ])('requires the Suunto creator context and explicit wheelchair pair for session %j', (session, expectedType) => {
+      const manufacturer = 'manufacturer' in session ? undefined : 23;
+      expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 23 }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [{ manufacturer: '23' }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] }, ActivityTypes.Wheelchair],
+      [
+        { file_ids: [{ manufacturer: 'suunto' }], device_infos: [{ device_index: 'creator', manufacturer: 'garmin' }] },
+        ActivityTypes.Wheelchair
+      ],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Generic
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Generic],
+      [{ file_ids: [{ product_name: 'Suunto' }], device_infos: [] }, ActivityTypes.Generic],
+      [{ file_ids: [], device_infos: [] }, ActivityTypes.Generic]
+    ])('uses resolved creator identity to classify the wheelchair session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 12,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
     });
 
     it.each([
@@ -598,6 +685,11 @@ describe('EventImporterFIT', () => {
       [23, 0, 62, ActivityTypes.Meditation],
       [23, 64, 85, ActivityTypes.Padel],
       [23, 2, 12, ActivityTypes.Handcycle],
+      [1, 2, 12, ActivityTypes.Handcycle],
+      [23, 0, 12, ActivityTypes.Wheelchair],
+      [1, 0, 12, ActivityTypes.Generic],
+      [123, 0, 12, ActivityTypes.Generic],
+      [65535, 0, 12, ActivityTypes.Generic],
       [23, 2, 11, ActivityTypes.Cyclocross],
       [1, 2, 11, ActivityTypes.Cyclocross],
       [23, 2, 46, ActivityTypes.GravelCycling],

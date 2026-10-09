@@ -31,7 +31,16 @@ sub-sport retains its existing Racquet Ball classification.
 `Hand Cycle` remains in `ActivityTypeGroups.CyclingGroup`. FIT `sport=cycling` (`2`) with `sub_sport=hand_cycling`
 (`12`) imports as the existing `ActivityTypes.Handcycle`; the composite alias `cycling_hand_cycling` resolves to
 the same canonical value. Suunto documents this pair for App activity ID `109`. This mapping requires the Cycling
-sport: `generic/hand_cycling` (`0/12`), used by Suunto's Wheelchair sport, keeps its existing Generic classification.
+sport; its classification remains Hand Cycle regardless of the recording's manufacturer.
+
+Suunto's Wheelchair sport (App activity ID `108`) uses FIT `generic/hand_cycling` (`0/12`) and imports as the existing
+`ActivityTypes.Wheelchair`, whose canonical stored value is `Wheel Chair` in `ActivityTypeGroups.AdaptiveMobilityGroup`.
+This provider-specific interpretation requires a Suunto creator manufacturer (`suunto` or FIT ID `23`). The importer
+uses its existing creator identification: `file_id` takes precedence, with compatible creator/local `device_info`
+filling missing identity. An unrelated sensor or a Suunto-looking device name does not establish that context.
+Without a known Suunto creator, the pair keeps its existing fallback behavior; no global `generic_hand_cycling`
+alias is added. The classification reuses Adaptive Mobility's movement behavior, excludes calculated TSS and durability
+evidence, and preserves any source-reported TSS.
 
 `Cyclocross` belongs to `ActivityTypeGroups.CyclingGroup` and is distinct from Mountain Biking. FIT `sport=cycling`
 (`2`) with `sub_sport=cyclocross` (`11`) imports as `Cyclocross`; `cyclocross` and `cycling_cyclocross` resolve to the
@@ -82,7 +91,7 @@ does not use it. The ambiguous FIT pairs cannot recover every provider's finer a
 
 Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
-Padel, Hand Cycle, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding, Ski Mountaineering, or Skate Skiing,
+Padel, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding, Ski Mountaineering, or Skate Skiing,
 or another sport incorrectly classified by the old FIT `backcountry` fallback. Re-import or reparse retained original
 FIT files or restore the specific provider sport name to correct historical classifications, then regenerate any
 separately persisted event summaries and activity-type
@@ -94,7 +103,7 @@ Quantified Self consumers must upgrade the application and Functions together be
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.
-The Hand Cycle correction reuses an existing canonical activity type and group in that catalog.
+The Hand Cycle and Wheel Chair corrections reuse existing canonical activity types and groups in that catalog.
 
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom

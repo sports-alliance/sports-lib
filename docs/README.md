@@ -17,6 +17,9 @@ EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display
 Stored values and calculations retain full precision; existing stats need no reparse or migration. See
 [Position error display](guides/metrics-and-calculations.md#position-error-display).
 
+Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve that classification; correcting older
+`Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

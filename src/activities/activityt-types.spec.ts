@@ -16,6 +16,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.FitnessEquipment, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.IndoorTraining, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Meditation, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Pilates, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.StairStepper, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes['Adventure Racing'], ActivityTypeGroups.PerformanceGroup],
@@ -153,6 +154,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorTraining)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorClimbing)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Yoga)).toBe(true);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Meditation)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Treadmill)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.FitnessEquipment)).toBe(true);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Cycling)).toBe(false);
@@ -200,6 +202,22 @@ describe('ActivityTypes', () => {
   it('should resolve HIIT aliases to canonical HIIT', () => {
     expect(ActivityTypes.hiit).toBe(ActivityTypes.HIIT);
     expect(ActivityTypesHelper.resolveActivityType('HIIT')).toBe(ActivityTypes.HIIT);
+  });
+
+  it.each(['Meditation', 'meditation', 'breathing', 'generic_breathing', 'GENERIC-BREATHING'])(
+    'resolves %s to canonical Meditation',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Meditation);
+    }
+  );
+
+  it('exposes Meditation once in the canonical catalog and Indoor Sports group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Meditation')).toEqual([
+      ActivityTypes.Meditation
+    ]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.IndoorSportsGroup)).toContain(
+      ActivityTypes.Meditation
+    );
   });
 
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {

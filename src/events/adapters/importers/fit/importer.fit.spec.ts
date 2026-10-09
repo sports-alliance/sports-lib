@@ -496,13 +496,13 @@ describe('EventImporterFIT', () => {
       { sport: 65, sub_sport: 0, sport_profile_name: 'Walking' },
       { sport: 65, sport_profile_name: 'Running' },
       { sport: 65, sub_sport: 86, sport_profile_name: 'Custom mobility profile' }
-    ])('maps explicit Wheelchair Push Walk session %j to Wheel Chair', session => {
-      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Wheelchair);
+    ])('maps explicit Wheelchair Push Walk session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushWalk);
     });
 
     it.each([1, 23, 123, undefined])('maps Wheelchair Push Walk independently of manufacturer %j', manufacturer => {
       expect(importerInternals.getActivityTypeFromSessionObject({ sport: 65, sub_sport: 0 }, manufacturer)).toBe(
-        ActivityTypes.Wheelchair
+        ActivityTypes.WheelchairPushWalk
       );
     });
 
@@ -1101,11 +1101,11 @@ describe('EventImporterFIT', () => {
       [23, 2, 12, ActivityTypes.Handcycle],
       [1, 2, 12, ActivityTypes.Handcycle],
       [23, 0, 12, ActivityTypes.Wheelchair],
-      [1, 65, 0, ActivityTypes.Wheelchair],
-      [23, 65, 0, ActivityTypes.Wheelchair],
-      [123, 65, 0, ActivityTypes.Wheelchair],
-      [65535, 65, 0, ActivityTypes.Wheelchair],
-      [1, 65, 86, ActivityTypes.Wheelchair],
+      [1, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [23, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [123, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [65535, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [1, 65, 86, ActivityTypes.WheelchairPushWalk],
       [1, 0, 12, ActivityTypes.Generic],
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],

@@ -2385,7 +2385,7 @@ export class EventImporterFIT {
     // Wheelchair Push Walk is an explicit mobility sport. Preserve its context
     // before a generic sub-sport or user-defined Walking profile can override it.
     if (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '') === 'wheelchairpushwalk') {
-      return ActivityTypes.Wheelchair;
+      return ActivityTypes.WheelchairPushWalk;
     }
 
     // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.

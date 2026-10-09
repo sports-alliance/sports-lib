@@ -277,21 +277,23 @@ describe('activity durability', () => {
     );
   });
 
-  it.each([ActivityTypes.WeightTraining, ActivityTypes.Driving, ActivityTypes.Wheelchair])(
-    'keeps %s out of the persisted durability metric',
-    type => {
-      const result = analyzeActivityDurability(
-        mockActivity({
-          type,
-          streams: {
-            [DataPower.type]: Array(3600).fill(200),
-            [DataHeartRate.type]: Array(3600).fill(130)
-          }
-        })
-      );
-      expect(result).toEqual({ timeline: [], summary: null });
-    }
-  );
+  it.each([
+    ActivityTypes.WeightTraining,
+    ActivityTypes.Driving,
+    ActivityTypes.Wheelchair,
+    ActivityTypes.WheelchairPushWalk
+  ])('keeps %s out of the persisted durability metric', type => {
+    const result = analyzeActivityDurability(
+      mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(130)
+        }
+      })
+    );
+    expect(result).toEqual({ timeline: [], summary: null });
+  });
 
   it('compares like-for-like active pool lengths', () => {
     const lengths = Array.from({ length: 72 }, (_, index) =>

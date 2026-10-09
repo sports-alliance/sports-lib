@@ -1089,12 +1089,17 @@ export enum ActivityTypes {
    */
   'Velomobile' = 'Velomobile',
   /**
-   * Wheel Chair, including the explicit FIT wheelchair_push_walk sport.
+   * Wheel Chair, when the source does not identify a more specific wheelchair activity.
    */
   'Wheelchair' = 'Wheel Chair',
   'Wheel chair' = 'Wheel Chair',
   'Wheel Chair' = 'Wheel Chair',
-  'wheelchair_push_walk' = 'Wheel Chair',
+  /**
+   * Wheelchair pushes at walking speed, identified by an explicit sport name or FIT sport 65.
+   */
+  'Wheelchair Push Walk' = 'Wheelchair Push Walk',
+  'WheelchairPushWalk' = 'Wheelchair Push Walk',
+  'wheelchair_push_walk' = 'Wheelchair Push Walk',
   'Workout' = 'Workout',
 
   'generic_match' = 'Match',
@@ -1300,7 +1305,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Motorsports,
       ActivityTypes.Snowmobiling
     ],
-    [ActivityTypeGroups.AdaptiveMobilityGroup]: [ActivityTypes.Wheelchair],
+    [ActivityTypeGroups.AdaptiveMobilityGroup]: [ActivityTypes.Wheelchair, ActivityTypes.WheelchairPushWalk],
     [ActivityTypeGroups.WaterSportsGroup]: [
       ActivityTypes.Rowing,
       ActivityTypes.Surfing,

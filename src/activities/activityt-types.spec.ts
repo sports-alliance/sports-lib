@@ -59,6 +59,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.SkiMountaineering, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup],
+  [ActivityTypes.WheelchairPushWalk, ActivityTypeGroups.AdaptiveMobilityGroup],
   [ActivityTypes.Chores, ActivityTypeGroups.UnspecifiedGroup]
 ] as const;
 
@@ -190,12 +191,18 @@ describe('ActivityTypes', () => {
       ActivityTypes.Skating,
       ActivityTypes.Flying,
       ActivityTypes.Driving,
-      ActivityTypes.Wheelchair
+      ActivityTypes.Wheelchair,
+      ActivityTypes.WheelchairPushWalk
     ].forEach(activityType => {
       expect(ActivityTypesMoving.getSpeedThreshold(activityType)).toBe(0.3);
     });
 
-    [ActivityTypes.InlineSkating, ActivityTypes.Driving, ActivityTypes.Wheelchair].forEach(activityType => {
+    [
+      ActivityTypes.InlineSkating,
+      ActivityTypes.Driving,
+      ActivityTypes.Wheelchair,
+      ActivityTypes.WheelchairPushWalk
+    ].forEach(activityType => {
       expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(activityType)).toEqual([DataSpeed.type]);
       expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(activityType)).toEqual([
         DataSpeedAvg.type
@@ -374,9 +381,9 @@ describe('ActivityTypes', () => {
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(
-    'resolves explicit %s to the existing Wheel Chair type',
+    'resolves explicit %s to the distinct Wheelchair Push Walk type',
     value => {
-      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Wheelchair);
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.WheelchairPushWalk);
     }
   );
 
@@ -386,11 +393,21 @@ describe('ActivityTypes', () => {
       ActivityTypes.Wheelchair
     ]);
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.AdaptiveMobilityGroup)).toEqual([
-      ActivityTypes.Wheelchair
+      ActivityTypes.Wheelchair,
+      ActivityTypes.WheelchairPushWalk
     ]);
     expect(ActivityTypesHelper.resolveActivityType('generic_hand_cycling')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('wheelchair_push_run')).toBeNull();
     expect(ActivityTypes.Wheelchair).not.toBe(ActivityTypes.Handcycle);
+  });
+
+  it('exposes Wheelchair Push Walk once and keeps it distinct from generic Wheel Chair', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Wheelchair Push Walk')).toEqual(
+      [ActivityTypes.WheelchairPushWalk]
+    );
+    expect(ActivityTypes.WheelchairPushWalk).not.toBe(ActivityTypes.Wheelchair);
+    expect(ActivityTypesHelper.resolveActivityType('Wheel Chair')).toBe(ActivityTypes.Wheelchair);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.WheelchairPushWalk)).toBe(false);
   });
 
   it.each(['Cyclocross', 'cyclocross', 'cycling_cyclocross', 'CYCLING-CYCLOCROSS'])(

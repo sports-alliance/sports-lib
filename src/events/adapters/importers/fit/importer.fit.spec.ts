@@ -457,45 +457,63 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'racket', sub_sport: 'padel' },
+      { sport: 64, sub_sport: 85 },
+      { sport: '64', sub_sport: '85' },
+      { sport: 'racket', sub_sport: 85 },
+      { sport: 'racket', sub_sport: 'padel', sport_profile_name: 'Custom racket profile' }
+    ])('maps FIT padel classification %j to Padel', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Padel);
+    });
+
+    it.each([
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
-      [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining]
+      [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
+      [{ sport: 64 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall]
     ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
     });
 
-    it('imports a synthetic meditation FIT and preserves its type through native JSON', async () => {
-      const encoder = new FitEncoder();
-      const startDate = new Date('2026-01-01T12:00:00.000Z');
-      const startTime = FitEncoder.toFitTimestamp(startDate);
-      encoder.writeMessage(0, [
-        { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
-        { number: 1, size: 2, baseType: FitBaseType.Uint16, value: 23 },
-        { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
-      ]);
-      encoder.writeMessage(18, [
-        { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
-        { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
-        { number: 5, size: 1, baseType: FitBaseType.Enum, value: 0 },
-        { number: 6, size: 1, baseType: FitBaseType.Enum, value: 62 },
-        { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
-        { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
-        { number: 16, size: 1, baseType: FitBaseType.Uint8, value: 60 }
-      ]);
+    it.each([
+      [0, 62, ActivityTypes.Meditation],
+      [64, 85, ActivityTypes.Padel]
+    ])(
+      'imports a synthetic Suunto FIT (%s/%s) as %s and preserves its type through native JSON',
+      async (sport, subSport, expectedType) => {
+        const encoder = new FitEncoder();
+        const startDate = new Date('2026-01-01T12:00:00.000Z');
+        const startTime = FitEncoder.toFitTimestamp(startDate);
+        encoder.writeMessage(0, [
+          { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: 23 },
+          { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
+        ]);
+        encoder.writeMessage(18, [
+          { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
+          { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
+          { number: 5, size: 1, baseType: FitBaseType.Enum, value: sport },
+          { number: 6, size: 1, baseType: FitBaseType.Enum, value: subSport },
+          { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 16, size: 1, baseType: FitBaseType.Uint8, value: 60 }
+        ]);
 
-      const event = await EventImporterFIT.getFromArrayBuffer(
-        Buffer.from(encoder.close()),
-        new ActivityParsingOptions({ generateUnitStreams: false })
-      );
+        const event = await EventImporterFIT.getFromArrayBuffer(
+          Buffer.from(encoder.close()),
+          new ActivityParsingOptions({ generateUnitStreams: false })
+        );
 
-      expect(event.getFirstActivity().type).toBe(ActivityTypes.Meditation);
-      expect(event.getActivityTypesAsArray()).toEqual([ActivityTypes.Meditation]);
-      expect(event.getFirstActivity().startDate).toEqual(startDate);
-      expect(event.getFirstActivity().getStat(DataDuration.type)?.getValue()).toBe(60);
-      const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
-      expect(restored.getFirstActivity().type).toBe(ActivityTypes.Meditation);
-      expect(restored.getActivityTypesAsArray()).toEqual([ActivityTypes.Meditation]);
-    });
+        expect(event.getFirstActivity().type).toBe(expectedType);
+        expect(event.getActivityTypesAsArray()).toEqual([expectedType]);
+        expect(event.getFirstActivity().startDate).toEqual(startDate);
+        expect(event.getFirstActivity().getStat(DataDuration.type)?.getValue()).toBe(60);
+        const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+        expect(restored.getFirstActivity().type).toBe(expectedType);
+        expect(restored.getActivityTypesAsArray()).toEqual([expectedType]);
+      }
+    );
 
     it('should map Garmin snorkeling sport id to canonical Snorkeling activity type', () => {
       const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({

@@ -610,6 +610,12 @@ export enum ActivityTypes {
   'Tennis' = 'Tennis',
   'tennis_match' = 'Tennis',
   /**
+   * Padel
+   */
+  'Padel' = 'Padel',
+  'padel' = 'Padel',
+  'racket_padel' = 'Padel',
+  /**
    * Badminton
    */
   'Badminton' = 'Badminton',
@@ -1257,6 +1263,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.RacquetBall,
       ActivityTypes.TableTennis,
       ActivityTypes.Tennis,
+      ActivityTypes.Padel,
       ActivityTypes.Cricket,
       ActivityTypes.Frisbee,
       ActivityTypes.Soccer,

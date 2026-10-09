@@ -35,6 +35,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Volleyball, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.InlineSkating, ActivityTypeGroups.SkatingGroup],
@@ -218,6 +219,21 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.IndoorSportsGroup)).toContain(
       ActivityTypes.Meditation
     );
+  });
+
+  it.each(['Padel', 'padel', 'racket_padel', 'RACKET-PADEL'])('resolves %s to canonical Padel', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Padel);
+  });
+
+  it('exposes Padel once in the canonical catalog and Team/Racket group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Padel')).toEqual([
+      ActivityTypes.Padel
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.TeamRacketGroup).filter(
+        type => type === ActivityTypes.Padel
+      )
+    ).toEqual([ActivityTypes.Padel]);
   });
 
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {

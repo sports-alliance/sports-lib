@@ -483,6 +483,42 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 65 },
+      { sport: 65, sub_sport: 0 },
+      { sport: '65', sub_sport: '0' },
+      { sport: 'wheelchair_push_walk' },
+      { sport: 'wheelchair_push_walk', sub_sport: 'generic' },
+      { sport: 'Wheelchair Push Walk', sub_sport: 'generic' },
+      { sport: 'WHEELCHAIR-PUSH-WALK', sub_sport: 'GENERIC' },
+      { sport: 65, sub_sport: 86 },
+      { sport: 'wheelchair_push_walk', sub_sport: 'indoor_wheelchair_walk' },
+      { sport: 65, sub_sport: 27 },
+      { sport: 65, sub_sport: 0, sport_profile_name: 'Walking' },
+      { sport: 65, sport_profile_name: 'Running' },
+      { sport: 65, sub_sport: 86, sport_profile_name: 'Custom mobility profile' }
+    ])('maps explicit Wheelchair Push Walk session %j to Wheel Chair', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Wheelchair);
+    });
+
+    it.each([1, 23, 123, undefined])('maps Wheelchair Push Walk independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 65, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.Wheelchair
+      );
+    });
+
+    it.each([
+      [{ sport: 66 }, ActivityTypes.unknown],
+      [{ sport: 66, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
+      [{ sport: 1, sub_sport: 0 }, ActivityTypes.Running],
+      [{ sport: 2, sub_sport: 12 }, ActivityTypes.Handcycle],
+      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic]
+    ])('preserves unrelated FIT activity context for session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 'generic', sub_sport: 'hand_cycling' },
       { sport: 0, sub_sport: 12 },
       { sport: '0', sub_sport: '12' },
@@ -1065,6 +1101,11 @@ describe('EventImporterFIT', () => {
       [23, 2, 12, ActivityTypes.Handcycle],
       [1, 2, 12, ActivityTypes.Handcycle],
       [23, 0, 12, ActivityTypes.Wheelchair],
+      [1, 65, 0, ActivityTypes.Wheelchair],
+      [23, 65, 0, ActivityTypes.Wheelchair],
+      [123, 65, 0, ActivityTypes.Wheelchair],
+      [65535, 65, 0, ActivityTypes.Wheelchair],
+      [1, 65, 86, ActivityTypes.Wheelchair],
       [1, 0, 12, ActivityTypes.Generic],
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],

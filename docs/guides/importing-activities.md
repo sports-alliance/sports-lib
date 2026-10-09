@@ -66,6 +66,16 @@ Without a known Suunto creator, the pair keeps its existing fallback behavior; n
 alias is added. The classification reuses Adaptive Mobility's movement behavior, excludes calculated TSS and durability
 evidence, and preserves any source-reported TSS.
 
+FIT `sport=wheelchair_push_walk` (`65`), documented in Garmin's activity reference linked above, imports as the same
+existing `ActivityTypes.Wheelchair` across manufacturers. The `wheelchair_push_walk` alias resolves to canonical
+`Wheel Chair` in `ActivityTypeGroups.AdaptiveMobilityGroup`. The explicit sport takes precedence over sub-sport and
+profile fallbacks, including a generic sub-sport or a profile named Walking. It retains Wheel Chair's existing speed
+display, moving-speed threshold, and indoor-status behavior. Calculated TSS and durability remain excluded while
+source-reported TSS is preserved. Ordinary Walking, Running, Hand Cycle, and the creator-qualified Suunto mapping keep
+their existing classification rules. No new activity type, numeric metric, provider transport, or MCP contract is added.
+Stored `Unknown Sport`, `Generic`, or `Walking` labels cannot establish a wheelchair activity by themselves; reparse
+retained FIT sources to correct old imports and regenerate separately persisted summaries or activity-type aggregates.
+
 `Chores` is an explicit member of `ActivityTypeGroups.UnspecifiedGroup` and does not establish an indoor context.
 Suunto App activity ID `119` uses FIT `generic/exercise` (`0/23`); the importer resolves this to `ActivityTypes.Chores`
 only with a Suunto creator manufacturer, using the same identity precedence as Wheel Chair and Field Hockey.
@@ -138,7 +148,7 @@ and Swimming respectively; `generic/backcountry` remains Generic. Missing or unk
 skiing. The legacy standalone activity alias `backcountry` remains readable in native JSON, but FIT sub-sport fallback
 does not use it. The ambiguous FIT pairs cannot recover every provider's finer activity distinction.
 
-Existing native JSON remains readable. Stored `Unknown Sport`, `Generic`, `Match`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
+Existing native JSON remains readable. Stored `Unknown Sport`, `Generic`, `Match`, `Walking`, `Running`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`,
 `Crosscountry Skiing`, and `Backcountry Skiing` activities cannot establish whether their sources were Meditation,
 Padel, Field Hockey, Ice Hockey, Chores, Hand Cycle, Wheel Chair, Cyclocross, Gravel Cycling, E-Mountain Biking, Splitboarding,
 Ski Mountaineering, Skate Skiing, Track Running, or Track and Field,

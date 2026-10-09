@@ -37,6 +37,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.FieldHockey, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
@@ -248,6 +249,28 @@ describe('ActivityTypes', () => {
       expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Handcycle);
     }
   );
+
+  it.each(['Field Hockey', 'FieldHockey', 'field_hockey', 'FIELD_HOCKEY', 'FIELD-HOCKEY'])(
+    'resolves %s to canonical Field Hockey',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.FieldHockey);
+    }
+  );
+
+  it('exposes Field Hockey once in Team/Racket without changing Match or Ice Hockey', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Field Hockey')).toEqual([
+      ActivityTypes.FieldHockey
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.TeamRacketGroup).filter(
+        type => type === ActivityTypes.FieldHockey
+      )
+    ).toEqual([ActivityTypes.FieldHockey]);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.FieldHockey)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
+    expect(ActivityTypesHelper.resolveActivityType('IceHockey')).toBe(ActivityTypes.IceHockey);
+    expect(ActivityTypes.FieldHockey).not.toBe(ActivityTypes.IceHockey);
+  });
 
   it('keeps Hand Cycle unique in the canonical catalog and Cycling group', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Hand Cycle')).toEqual([

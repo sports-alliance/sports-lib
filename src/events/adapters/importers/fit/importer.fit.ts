@@ -2398,6 +2398,17 @@ export class EventImporterFIT {
       }
     }
 
+    // Suunto encodes both Track Running and Track and Field as running/track.
+    // Honor an explicit Track and Field profile without changing the ambiguous pair's Running fallback.
+    if (
+      resolvedSport?.toLowerCase() === 'running' &&
+      resolvedSubSport?.toLowerCase() === 'track' &&
+      typeof session.sport_profile_name === 'string' &&
+      this.getActivityTypeByKey(session.sport_profile_name) === ActivityTypes.TrackAndField
+    ) {
+      return ActivityTypes.TrackAndField;
+    }
+
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
     // Preserve explicit composite mappings, but do not use the legacy standalone
     // activity alias to turn an unrelated or unknown FIT sport into skiing.

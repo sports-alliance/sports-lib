@@ -263,6 +263,17 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Chores);
   });
 
+  it('retains the existing Track and Field catalog value and Performance group', () => {
+    expect(ActivityTypesHelper.resolveActivityType('Track and Field')).toBe(ActivityTypes.TrackAndField);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Track and Field')).toEqual([
+      ActivityTypes.TrackAndField
+    ]);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.TrackAndField)).toBe(
+      ActivityTypeGroups.PerformanceGroup
+    );
+    expect(ActivityTypesHelper.resolveActivityType('running_track')).toBe(ActivityTypes.Running);
+  });
+
   it('exposes Chores once under Unspecified while retaining the generic exercise alias', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Chores')).toEqual([
       ActivityTypes.Chores

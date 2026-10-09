@@ -34,6 +34,10 @@ describe('EventImporterJSON', () => {
     ['chores', ActivityTypes.Chores],
     ['Generic', ActivityTypes.Generic],
     ['generic_exercise', ActivityTypes.Generic],
+    ['Track and Field', ActivityTypes.TrackAndField],
+    ['TrackAndField', ActivityTypes.TrackAndField],
+    ['Running', ActivityTypes.Running],
+    ['running_track', ActivityTypes.Running],
     ['Match', ActivityTypes.Match],
     ['generic_match', ActivityTypes.Match]
   ])('restores activity type %s without reclassifying legacy labels', (type, expectedType) => {

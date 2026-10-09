@@ -127,6 +127,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Ski Mountaineering belongs to Winter Sports; FIT `mountaineering/backcountry` resolves to Ski Mountaineering.
  * Skate Skiing belongs to Winter Sports; FIT `cross_country_skiing/skate_skiing` resolves to Skate Skiing.
  * FIT `backcountry` sub-sports require sport context and do not classify unrelated sports as skiing.
+ * FIT `running/track` honors an explicit Track and Field profile in Performance; the pair alone remains Running.
  *
  * @category Activities and events
  */

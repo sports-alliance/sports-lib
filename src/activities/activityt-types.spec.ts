@@ -28,6 +28,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Handcycle, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Velomobile, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
@@ -254,6 +255,28 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.Handcycle
       )
     ).toEqual([ActivityTypes.Handcycle]);
+  });
+
+  it.each(['Cyclocross', 'cyclocross', 'cycling_cyclocross', 'CYCLING-CYCLOCROSS'])(
+    'resolves %s to canonical Cyclocross',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Cyclocross);
+    }
+  );
+
+  it('keeps Cyclocross distinct and unique in the canonical catalog and Cycling group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Cyclocross')).toEqual([
+      ActivityTypes.Cyclocross
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.CyclingGroup).filter(
+        type => type === ActivityTypes.Cyclocross
+      )
+    ).toEqual([ActivityTypes.Cyclocross]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.MountainBikingGroup)).not.toContain(
+      ActivityTypes.Cyclocross
+    );
+    expect(ActivityTypesHelper.resolveActivityType('Mountain Biking')).toBe(ActivityTypes.MountainBiking);
   });
 
   it.each(['Splitboarding', 'splitboarding', 'snowboarding_backcountry', 'SNOWBOARDING-BACKCOUNTRY'])(

@@ -477,6 +477,16 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 'cycling', sub_sport: 'cyclocross' },
+      { sport: 2, sub_sport: 11 },
+      { sport: '2', sub_sport: '11' },
+      { sport: 'cycling', sub_sport: 11 },
+      { sport: 'cycling', sub_sport: 'cyclocross', sport_profile_name: 'Custom cycling profile' }
+    ])('maps FIT cyclocross classification %j to Cyclocross', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Cyclocross);
+    });
+
+    it.each([
       { sport: 'snowboarding', sub_sport: 'backcountry' },
       { sport: 14, sub_sport: 37 },
       { sport: '14', sub_sport: '37' },
@@ -524,6 +534,9 @@ describe('EventImporterFIT', () => {
       [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
       [{ sport: 2 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 8 }, ActivityTypes.MountainBiking],
+      [{ sport: 'cycling', sub_sport: 'mountain' }, ActivityTypes.MountainBiking],
+      [{ sport: 2, sub_sport: 46 }, ActivityTypes.Cycling],
       [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
       [{ sport: 14 }, ActivityTypes.Snowboarding],
       [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
@@ -539,6 +552,8 @@ describe('EventImporterFIT', () => {
       [23, 0, 62, ActivityTypes.Meditation],
       [23, 64, 85, ActivityTypes.Padel],
       [23, 2, 12, ActivityTypes.Handcycle],
+      [23, 2, 11, ActivityTypes.Cyclocross],
+      [1, 2, 11, ActivityTypes.Cyclocross],
       [23, 14, 37, ActivityTypes.Splitboarding],
       [23, 16, 37, ActivityTypes.SkiMountaineering],
       [123, 1, 37, ActivityTypes.Running],

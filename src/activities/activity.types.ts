@@ -240,6 +240,12 @@ export enum ActivityTypes {
   'generic_track_me' = 'Generic',
   'Generic' = 'Generic',
   /**
+   * Chores, including Suunto's creator-qualified FIT generic/exercise classification.
+   * Remains in Unspecified because chores do not establish a particular sport or indoor context.
+   */
+  'Chores' = 'Chores',
+  'chores' = 'Chores',
+  /**
    * Transition
    */
   'transition' = 'Transition',
@@ -1325,7 +1331,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Soccer,
       ActivityTypes.Volleyball
     ],
-    [ActivityTypeGroups.UnspecifiedGroup]: []
+    [ActivityTypeGroups.UnspecifiedGroup]: [ActivityTypes.Chores]
   };
 }
 

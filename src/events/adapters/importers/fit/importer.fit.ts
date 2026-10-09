@@ -3125,7 +3125,7 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
-    // Suunto uses generic FIT pairs for Wheelchair sport and Field Hockey.
+    // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.
     // Require the recording's creator identity instead of changing their global aliases.
     if (
       resolvedSport?.toLowerCase() === 'generic' &&
@@ -3136,6 +3136,8 @@ export class EventImporterFIT {
           return ActivityTypes.Wheelchair;
         case 'match':
           return ActivityTypes.FieldHockey;
+        case 'exercise':
+          return ActivityTypes.Chores;
       }
     }
 

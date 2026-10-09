@@ -599,7 +599,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 'tennis', sub_sport: 'match' }, ActivityTypes.Tennis],
       [{ sport: 'IceHockey', sub_sport: 0 }, ActivityTypes.IceHockey],
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
-      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores],
       [{ sub_sport: 22 }, ActivityTypes.Match]
     ])('uses explicit names or preserves unrelated Suunto sport context (%j)', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
@@ -622,6 +622,73 @@ describe('EventImporterFIT', () => {
         {
           sport: 0,
           sub_sport: 22,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'generic', sub_sport: 'exercise' },
+      { sport: 0, sub_sport: 23 },
+      { sport: '0', sub_sport: '23' },
+      { sport: 'generic', sub_sport: 23 },
+      { sport: 'GENERIC', sub_sport: 'EXERCISE' },
+      { sport: 'generic', sub_sport: 'exercise', sport_profile_name: 'Custom tasks profile' }
+    ])('maps Suunto chores classification %j to Chores', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Chores);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/exercise',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 23 }, manufacturer)).toBe(
+          ActivityTypes.Chores
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/exercise Generic without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 23 }, manufacturer)).toBe(
+          ActivityTypes.Generic
+        );
+      }
+    );
+
+    it.each([
+      [{ sport: 'chores' }, ActivityTypes.Chores],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Chores' }, ActivityTypes.Chores],
+      [{ sport: 1, sub_sport: 23 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sub_sport: 23 }, ActivityTypes.UnknownSport]
+    ])('uses explicit chores names or preserves unrelated Suunto context (%j)', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.Chores],
+      [{ file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] }, ActivityTypes.Chores],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Generic
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Generic]
+    ])('uses creator identity to classify the chores session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 23,
           start_time: new Date('2026-01-01T12:00:00.000Z'),
           timestamp: new Date('2026-01-01T12:01:00.000Z'),
           total_elapsed_time: 60,
@@ -769,6 +836,10 @@ describe('EventImporterFIT', () => {
       [1, 0, 22, ActivityTypes.Match],
       [123, 0, 22, ActivityTypes.Match],
       [65535, 0, 22, ActivityTypes.Match],
+      [23, 0, 23, ActivityTypes.Chores],
+      [1, 0, 23, ActivityTypes.Generic],
+      [123, 0, 23, ActivityTypes.Generic],
+      [65535, 0, 23, ActivityTypes.Generic],
       [23, 2, 11, ActivityTypes.Cyclocross],
       [1, 2, 11, ActivityTypes.Cyclocross],
       [23, 2, 46, ActivityTypes.GravelCycling],

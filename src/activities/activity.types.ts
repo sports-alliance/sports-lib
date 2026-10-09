@@ -355,6 +355,16 @@ export enum ActivityTypes {
   'mountain' = 'Mountain Biking', // @todo this feels hacky but exists and indeed it's MTB
   'Mountain biking' = 'Mountain Biking',
 
+  /**
+   * E-Mountain Biking
+   */
+  'EMountainBiking' = 'E-Mountain Biking',
+  'E-Mountain Biking' = 'E-Mountain Biking',
+  'e_mountain_biking' = 'E-Mountain Biking',
+  'e_biking_e_bike_mountain' = 'E-Mountain Biking',
+  'EMountainBikeRide' = 'E-Mountain Biking',
+  'E-MTB' = 'E-Mountain Biking',
+
   // Enduro
   'cycling_mountain_enduro' = 'Enduro MTB',
   'Enduro MTB' = 'Enduro MTB',
@@ -1166,6 +1176,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.MountainBikingGroup]: [
       ActivityTypes.MountainBiking,
+      ActivityTypes.EMountainBiking,
       ActivityTypes['Enduro MTB'],
       ActivityTypes.DownhillCycling
     ],

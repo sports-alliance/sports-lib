@@ -44,7 +44,14 @@ The aliases `GravelCycling`, `gravel_cycling`, and `cycling_gravel_cycling` reso
 `GravelRide`, the sport name in [Strava's SportType catalog](https://developers.strava.com/docs/reference/#api-models-SportType).
 Consumers must supply Strava's specific `sport_type` value; the broader `Ride` activity type remains Cycling.
 The FIT mapping applies across manufacturers and retains the Cycling group's movement behavior. Ordinary road,
-track, mixed-surface, and electric cycling keep their existing classifications.
+track, and mixed-surface cycling keep their existing classifications.
+
+`E-Mountain Biking` belongs to `ActivityTypeGroups.MountainBikingGroup` and is distinct from E-Biking and Mountain
+Biking. FIT `sport=e_biking` (`21`) with `sub_sport=e_bike_mountain` (`47`) imports as `E-Mountain Biking`, matching
+Suunto App activity ID `106`. The aliases `EMountainBiking`, `e_mountain_biking`, `e_biking_e_bike_mountain`, and
+`E-MTB` resolve to that canonical value, as does Strava's `EMountainBikeRide` sport name in the catalog linked above.
+The composite FIT mapping applies across manufacturers and uses the Mountain Biking group's movement behavior.
+Ordinary electric cycling, including FIT `e_biking/e_bike_fitness` (`21/28`) and the `EBikeRide` alias, remains E-Biking.
 
 `Splitboarding` belongs to `ActivityTypeGroups.WinterSportsGroup` alongside Snowboarding and Backcountry Skiing.
 FIT `sport=snowboarding` (`14`) with `sub_sport=backcountry` (`37`) imports as `Splitboarding`; `splitboarding` and
@@ -66,16 +73,16 @@ and Swimming respectively; `generic/backcountry` remains Generic. Missing or unk
 skiing. The legacy standalone activity alias `backcountry` remains readable in native JSON, but FIT sub-sport fallback
 does not use it. The ambiguous FIT pairs cannot recover every provider's finer activity distinction.
 
-Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, `Cycling`, `Mountain Biking`, and
+Existing native JSON remains readable. Stored `Generic`, `Racquet Ball`, `Cycling`, `E-Biking`, `Mountain Biking`, and
 `Backcountry Skiing` activities cannot establish whether their sources were Meditation, Padel, Hand Cycle, Cyclocross,
-Gravel Cycling, Splitboarding, or Ski Mountaineering, or another sport incorrectly classified by the old FIT
+Gravel Cycling, E-Mountain Biking, Splitboarding, or Ski Mountaineering, or another sport incorrectly classified by the old FIT
 `backcountry` fallback. Re-import or reparse retained original FIT files or restore the specific provider sport name
 to correct historical classifications, then regenerate any separately persisted event summaries and activity-type
 aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
 durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`,
-`Cyclocross`, `Gravel Cycling`, `Splitboarding`, or `Ski Mountaineering`.
+`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, or `Ski Mountaineering`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

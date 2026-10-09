@@ -30,6 +30,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.EMountainBiking, ActivityTypeGroups.MountainBikingGroup],
   [ActivityTypes.Handcycle, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Velomobile, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
@@ -307,6 +308,41 @@ describe('ActivityTypes', () => {
     );
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.GravelCycling)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('Ride')).toBe(ActivityTypes.Cycling);
+  });
+
+  it.each([
+    'E-Mountain Biking',
+    'EMountainBiking',
+    'e_mountain_biking',
+    'e_biking_e_bike_mountain',
+    'E-BIKING-E-BIKE-MOUNTAIN',
+    'EMountainBikeRide',
+    'emountainbikeride',
+    'E-MTB',
+    'E-mtb'
+  ])('resolves %s to canonical E-Mountain Biking', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.EMountainBiking);
+  });
+
+  it('keeps E-Mountain Biking unique in the Mountain Biking group with mountain biking movement behavior', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'E-Mountain Biking')).toEqual([
+      ActivityTypes.EMountainBiking
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.MountainBikingGroup).filter(
+        type => type === ActivityTypes.EMountainBiking
+      )
+    ).toEqual([ActivityTypes.EMountainBiking]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.CyclingGroup)).not.toContain(
+      ActivityTypes.EMountainBiking
+    );
+    expect(new Set([ActivityTypes.EBiking, ActivityTypes.MountainBiking, ActivityTypes.EMountainBiking]).size).toBe(3);
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.EMountainBiking)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.MountainBiking)
+    );
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.EMountainBiking)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('EBikeRide')).toBe(ActivityTypes.EBiking);
+    expect(ActivityTypesHelper.resolveActivityType('Mountain Biking')).toBe(ActivityTypes.MountainBiking);
   });
 
   it.each(['Splitboarding', 'splitboarding', 'snowboarding_backcountry', 'SNOWBOARDING-BACKCOUNTRY'])(

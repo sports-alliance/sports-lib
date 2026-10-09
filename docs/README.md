@@ -21,6 +21,9 @@ correcting older classifications requires reparsing their retained FIT sources. 
 Gravel Cycling belongs to Cycling. FIT `cycling/gravel_cycling` and the `GravelRide` alias preserve Gravel Cycling;
 correcting older Cycling classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
 
+E-Mountain Biking belongs to Mountain Biking. FIT `e_biking/e_bike_mountain` and the `EMountainBikeRide` alias preserve
+that distinction; correcting older E-Biking classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
+
 Splitboarding belongs to Winter Sports. FIT `snowboarding/backcountry` imports preserve Splitboarding; correcting older
 Backcountry Skiing classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

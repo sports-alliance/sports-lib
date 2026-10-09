@@ -50,6 +50,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Motorcycling, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Motorsports, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Snowmobiling, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.Splitboarding, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.Wheelchair, ActivityTypeGroups.AdaptiveMobilityGroup]
 ] as const;
 
@@ -252,6 +253,24 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.Handcycle
       )
     ).toEqual([ActivityTypes.Handcycle]);
+  });
+
+  it.each(['Splitboarding', 'splitboarding', 'snowboarding_backcountry', 'SNOWBOARDING-BACKCOUNTRY'])(
+    'resolves %s to canonical Splitboarding',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Splitboarding);
+    }
+  );
+
+  it('exposes Splitboarding once in the canonical catalog and Winter Sports group', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Splitboarding')).toEqual([
+      ActivityTypes.Splitboarding
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WinterSportsGroup).filter(
+        type => type === ActivityTypes.Splitboarding
+      )
+    ).toEqual([ActivityTypes.Splitboarding]);
   });
 
   it('should resolve snorkeling and mermaiding aliases to canonical diving activity types', () => {

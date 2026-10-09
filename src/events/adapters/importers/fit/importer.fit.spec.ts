@@ -831,9 +831,8 @@ describe('EventImporterFIT', () => {
       undefined,
       null,
       '',
-      'Track Run',
-      'Track Running',
       'Custom intervals',
+      'Track Run intervals',
       'Track and Field training',
       'Cycling',
       59,
@@ -846,6 +845,64 @@ describe('EventImporterFIT', () => {
           23
         )
       ).toBe(ActivityTypes.Running);
+    });
+
+    it.each(['Track Run', 'Track Running', 'TrackRun', 'track_running', 'TRACK-RUN', ' Track Running '])(
+      'honors explicit Track Running profile %s on running/track',
+      sportProfileName => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({
+            sport: 1,
+            sub_sport: 4,
+            sport_profile_name: sportProfileName
+          })
+        ).toBe(ActivityTypes.TrackRunning);
+      }
+    );
+
+    it.each([
+      { sport: 'running', sub_sport: 'track' },
+      { sport: '1', sub_sport: '4' },
+      { sport: 'running', sub_sport: 4 },
+      { sport: 'RUNNING', sub_sport: 'TRACK' },
+      { sport: 1, sub_sport: 0 }
+    ])('honors an explicit Track Running profile for FIT session %j', session => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track Running' })
+      ).toBe(ActivityTypes.TrackRunning);
+    });
+
+    it.each([23, 1, 123, 'suunto', 'garmin', undefined])(
+      'recognizes Track Running profiles independently of manufacturer %j',
+      manufacturer => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 1, sub_sport: 4, sport_profile_name: 'Track Run' },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.TrackRunning);
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 4 }, manufacturer)).toBe(
+          ActivityTypes.Running
+        );
+      }
+    );
+
+    it.each(['Track Run', 'Track Running', 'TrackRun', 'track_running'])(
+      'recognizes an explicit Track Running sport name %s',
+      sport => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport })).toBe(ActivityTypes.TrackRunning);
+      }
+    );
+
+    it.each([
+      [{ sport: 1, sub_sport: 3 }, ActivityTypes.TrailRunning],
+      [{ sport: 2, sub_sport: 11 }, ActivityTypes.Cyclocross],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores]
+    ])('retains existing specific sport precedence over Track Running profiles (%j)', (session, expectedType) => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track Running' }, 23)
+      ).toBe(expectedType);
     });
 
     it.each([
@@ -865,7 +922,10 @@ describe('EventImporterFIT', () => {
       [1, 'TrackAndField', ActivityTypes.TrackAndField],
       [123, 'Track and Field', ActivityTypes.TrackAndField],
       [65535, 'Track and Field', ActivityTypes.TrackAndField],
-      [23, 'Track Run', ActivityTypes.Running],
+      [23, 'Track Run', ActivityTypes.TrackRunning],
+      [1, 'Track Running', ActivityTypes.TrackRunning],
+      [123, 'track_running', ActivityTypes.TrackRunning],
+      [65535, 'Track Run', ActivityTypes.TrackRunning],
       [1, 'Custom intervals', ActivityTypes.Running]
     ])(
       'imports running/track FIT with manufacturer %s and profile %s as %s',

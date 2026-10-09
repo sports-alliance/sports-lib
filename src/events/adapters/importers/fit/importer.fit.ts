@@ -2399,14 +2399,16 @@ export class EventImporterFIT {
     }
 
     // Suunto encodes both Track Running and Track and Field as running/track.
-    // Honor an explicit Track and Field profile without changing the ambiguous pair's Running fallback.
+    // Honor a recognized track profile without changing the ambiguous pair's Running fallback.
     if (
       resolvedSport?.toLowerCase() === 'running' &&
       resolvedSubSport?.toLowerCase() === 'track' &&
-      typeof session.sport_profile_name === 'string' &&
-      this.getActivityTypeByKey(session.sport_profile_name) === ActivityTypes.TrackAndField
+      typeof session.sport_profile_name === 'string'
     ) {
-      return ActivityTypes.TrackAndField;
+      const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+      if (profileType === ActivityTypes.TrackAndField || profileType === ActivityTypes.TrackRunning) {
+        return profileType;
+      }
     }
 
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.

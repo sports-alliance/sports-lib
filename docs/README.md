@@ -46,9 +46,10 @@ Historical corrections require reparsing retained FIT sources. See [Import activ
 Skate Skiing belongs to Winter Sports. FIT `cross_country_skiing/skate_skiing` preserves Skate Skiing;
 correcting older Crosscountry Skiing classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
 
-FIT `running/track` honors an explicit Track and Field profile using the existing Performance activity type.
-The pair alone remains Running because Suunto uses it for both Track and Field and Track Running. Historical corrections
-require reparsing retained FIT sources that include a recognized profile. See [Import activities](guides/importing-activities.md).
+Track Running belongs to Running and recognizes explicit Track Run or Track Running sport/profile names.
+FIT `running/track` honors recognized Track Running and Track and Field profiles, preserving their Running and Performance
+groups respectively. The pair alone remains Running because Suunto uses it for both activities. Historical corrections
+require reparsing retained sources that include a recognized name/profile. See [Import activities](guides/importing-activities.md).
 
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.

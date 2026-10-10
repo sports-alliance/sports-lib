@@ -119,6 +119,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.
  * Lacrosse belongs to Team/Racket; FIT sport 74 and explicit Lacrosse names preserve its distinct canonical type.
  * Water Tubing belongs to Water Sports; explicit FIT sport 76 preserves it separately from Water Skiing and Wakeboarding.
+ * Wakesurfing belongs to Water Sports; explicit FIT sport 77 preserves it separately from Surfing and Wakeboarding.
+ * Archery belongs to Outdoor Adventures; explicit FIT sport 79 preserves it separately from Hunting.
+ * Mixed Martial Arts belongs to Indoor Sports; explicit FIT sport 80 and MMA aliases preserve it separately from Combat and Boxing.
  * Field Hockey belongs to Team/Racket; FIT `hockey/field` resolves to it across manufacturers.
  * Suunto FIT `generic/match` resolves to Field Hockey using creator identity.
  * Ice Hockey belongs to Team/Racket; FIT `hockey/ice` resolves to it across manufacturers.

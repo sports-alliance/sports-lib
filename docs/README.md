@@ -24,6 +24,11 @@ Water Tubing belongs to Water Sports with its own canonical type. FIT sport `76`
 sport/profile names preserve it separately from Water Skiing and Wakeboarding across manufacturers. Historical Generic
 imports require specific retained sources. See [Import activities](guides/importing-activities.md).
 
+Wakesurfing belongs to Water Sports, Archery to Outdoor Adventures, and Mixed Martial Arts to Indoor Sports. Their
+explicit FIT sports (`77`, `79`, and `80`) preserve distinct canonical types across manufacturers; MMA aliases resolve
+to Mixed Martial Arts. Historical Generic imports require specific retained sources, followed by regeneration of
+affected summaries and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 FIT `cycling/hand_cycling` imports resolve to the existing Hand Cycle type in the Cycling group; correcting older
 Cycling classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

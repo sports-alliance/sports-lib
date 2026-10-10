@@ -27,6 +27,20 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ['Wakesurfing', ActivityTypes.Wakesurfing],
+    ['wakesurfing', ActivityTypes.Wakesurfing],
+    ['Surfing', ActivityTypes.Surfing],
+    ['Archery', ActivityTypes.Archery],
+    ['archery', ActivityTypes.Archery],
+    ['Hunting', ActivityTypes.Hunting],
+    ['Mixed Martial Arts', ActivityTypes.MixedMartialArts],
+    ['MixedMartialArts', ActivityTypes.MixedMartialArts],
+    ['mixedMartialArts', ActivityTypes.MixedMartialArts],
+    ['mixed_martial_arts', ActivityTypes.MixedMartialArts],
+    ['MMA', ActivityTypes.MixedMartialArts],
+    ['mma', ActivityTypes.MixedMartialArts],
+    ['Combat', ActivityTypes.Combat],
+    ['Boxing', ActivityTypes.Boxing],
     ['Water Tubing', ActivityTypes.WaterTubing],
     ['WaterTubing', ActivityTypes.WaterTubing],
     ['water_tubing', ActivityTypes.WaterTubing],

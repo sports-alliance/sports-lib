@@ -604,13 +604,66 @@ describe('EventImporterFIT', () => {
       [{ sport: 'wakeboarding', sub_sport: 0 }, ActivityTypes.Wakeboarding],
       [{ sport: 'surfing', sub_sport: 0 }, ActivityTypes.Surfing],
       [{ sport: 'rafting', sub_sport: 0 }, ActivityTypes.Rafting],
-      [{ sport: 77, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 77, sub_sport: 0 }, ActivityTypes.Wakesurfing],
       [{ sport: 'water_sport', sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Tubing' }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom water profile' }, ActivityTypes.Generic]
     ])('preserves distinct water sports and ambiguous session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    describe.each([
+      [77, 'wakesurfing', ActivityTypes.Wakesurfing, 'Surfing'],
+      [79, 'archery', ActivityTypes.Archery, 'Hunting'],
+      [80, 'mixed_martial_arts', ActivityTypes.MixedMartialArts, 'Combat']
+    ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
+      it.each([
+        { sport: sportId },
+        { sport: sportId, sub_sport: 0 },
+        { sport: String(sportId), sub_sport: '0' },
+        { sport: sportName },
+        { sport: sportName, sub_sport: 'generic' },
+        { sport: expectedType, sub_sport: 'generic' },
+        { sport: sportName.toUpperCase().replace(/_/g, '-'), sub_sport: 'GENERIC' },
+        { sport: sportId, sub_sport: 22 },
+        { sport: sportId, sub_sport: 62 },
+        { sport: sportId, sub_sport: 0, sport_profile_name: neighboringType },
+        { sport: sportId, sport_profile_name: 'Custom sport profile' }
+      ])('preserves its canonical type for session %j', session => {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      });
+
+      it.each([1, 7, 23, 123, undefined])('maps independently of manufacturer %j', manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: sportId, sub_sport: 0 }, manufacturer)).toBe(
+          expectedType
+        );
+      });
+
+      it.each([expectedType, sportName])('honors an explicit %s profile in a generic session', profile => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
+        ).toBe(expectedType);
+      });
+    });
+
+    it.each(['MixedMartialArts', 'mixedMartialArts', 'MMA', 'mma'])('recognizes explicit MMA name %s', sport => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ sport, sub_sport: 0, sport_profile_name: 'Boxing' })
+      ).toBe(ActivityTypes.MixedMartialArts);
+    });
+
+    it.each([
+      [{ sport: 28, sub_sport: 0 }, ActivityTypes.Hunting],
+      [{ sport: 47, sub_sport: 0 }, ActivityTypes.Boxing],
+      [{ sport: 'Combat', sub_sport: 0 }, ActivityTypes.Combat],
+      [{ sport: 78, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 56, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Martial Arts' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom sport profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
       expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
     });
 
@@ -1272,7 +1325,22 @@ describe('EventImporterFIT', () => {
       [23, 76, 0, ActivityTypes.WaterTubing],
       [123, 76, 0, ActivityTypes.WaterTubing],
       [65535, 76, 0, ActivityTypes.WaterTubing],
-      [1, 77, 0, ActivityTypes.Generic],
+      [1, 77, 0, ActivityTypes.Wakesurfing],
+      [7, 77, 0, ActivityTypes.Wakesurfing],
+      [23, 77, 0, ActivityTypes.Wakesurfing],
+      [123, 77, 0, ActivityTypes.Wakesurfing],
+      [65535, 77, 0, ActivityTypes.Wakesurfing],
+      [1, 79, 0, ActivityTypes.Archery],
+      [7, 79, 0, ActivityTypes.Archery],
+      [23, 79, 0, ActivityTypes.Archery],
+      [123, 79, 0, ActivityTypes.Archery],
+      [65535, 79, 0, ActivityTypes.Archery],
+      [1, 80, 0, ActivityTypes.MixedMartialArts],
+      [7, 80, 0, ActivityTypes.MixedMartialArts],
+      [23, 80, 0, ActivityTypes.MixedMartialArts],
+      [123, 80, 0, ActivityTypes.MixedMartialArts],
+      [65535, 80, 0, ActivityTypes.MixedMartialArts],
+      [1, 78, 0, ActivityTypes.Generic],
       [1, 25, 0, ActivityTypes.Golf],
       [7, 0, 0, ActivityTypes.Generic],
       [23, 0, 0, ActivityTypes.Generic],

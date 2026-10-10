@@ -715,6 +715,15 @@ export enum ActivityTypes {
   'Combat sport' = 'Combat',
   'Combat' = 'Combat',
   /**
+   * Mixed Martial Arts; explicit FIT sport mixed_martial_arts (80), distinct from generic Combat.
+   */
+  'Mixed Martial Arts' = 'Mixed Martial Arts',
+  'MixedMartialArts' = 'Mixed Martial Arts',
+  'mixedMartialArts' = 'Mixed Martial Arts',
+  'mixed_martial_arts' = 'Mixed Martial Arts',
+  'MMA' = 'Mixed Martial Arts',
+  'mma' = 'Mixed Martial Arts',
+  /**
    * Boxing
    */
   'Boxing' = 'Boxing',
@@ -983,6 +992,11 @@ export enum ActivityTypes {
   'Hunting' = 'Hunting',
   'hunting' = 'Hunting',
   /**
+   * Archery; explicit FIT sport archery (79).
+   */
+  'Archery' = 'Archery',
+  'archery' = 'Archery',
+  /**
    * Route
    */
   'route' = 'Route',
@@ -1054,6 +1068,11 @@ export enum ActivityTypes {
    */
   'wakeboarding' = 'Wakeboarding',
   'Wakeboarding' = 'Wakeboarding',
+  /**
+   * Wakesurfing; explicit FIT sport wakesurfing (77), distinct from Surfing and Wakeboarding.
+   */
+  'Wakesurfing' = 'Wakesurfing',
+  'wakesurfing' = 'Wakesurfing',
   /**
    * Water Skiing
    */
@@ -1162,6 +1181,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.WaterSkiing,
   ActivityTypes.Wakeboarding,
   ActivityTypes.WaterTubing,
+  ActivityTypes.Wakesurfing,
   ActivityTypes.Swimming,
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
@@ -1184,6 +1204,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.WaterSkiing,
   ActivityTypes.Wakeboarding,
   ActivityTypes.WaterTubing,
+  ActivityTypes.Wakesurfing,
   ActivityTypes.Swimming,
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
@@ -1284,6 +1305,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Cheerleading,
       ActivityTypes['Circuit Training'],
       ActivityTypes.Combat,
+      ActivityTypes.MixedMartialArts,
       ActivityTypes.EllipticalTrainer,
       ActivityTypes.HIIT,
       ActivityTypes.IndoorTraining,
@@ -1304,6 +1326,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Fishing,
       ActivityTypes.FloorClimbing,
       ActivityTypes.Hunting,
+      ActivityTypes.Archery,
       ActivityTypes.Mountaineering,
       ActivityTypes.Trekking
     ],
@@ -1347,6 +1370,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
       ActivityTypes.Wakeboarding,
+      ActivityTypes.Wakesurfing,
       ActivityTypes.Sailing,
       ActivityTypes.Canoeing,
       ActivityTypes.Kayaking,

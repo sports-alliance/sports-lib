@@ -105,6 +105,66 @@ MCP catalog discovery exposes their names, groups, and indoor hints without new 
 mutations. Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
 Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
 
+**Running, walking, Enduro MTB, and Rally.**
+
+| Canonical type | FIT sport/sub-sport | Group |
+| --- | --- | --- |
+| `Obstacle Racing` | `running/obstacle` (`1/59`) | Running |
+| `Ultra Running` | `running/ultra` (`1/67`) | Running |
+| `Indoor Walking` | `walking/indoor_walking` (`11/27`), `fitness_equipment/indoor_walking` (`4/27`) | Walking |
+| `Enduro MTB` (existing type) | `cycling/enduro` (`2/123`) | Mountain Biking |
+| `Rally` | `motor_sports/rally` (`81/125`) | Motorized |
+
+The identifiers are defined by [Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+Garmin lists [Obstacle Racing](https://www8.garmin.com/manuals/webhelp/GUID-2CF5620C-E585-4E0A-9CC3-9565533EEE4D/EN-US/GUID-83C5E4C4-D316-48F6-B155-46109DA93928.html)
+and [Ultra Run](https://www8.garmin.com/manuals/webhelp/GUID-25E3235D-44D2-4384-A591-DD1D71BEBCB1/EN-US/GUID-9F9A0CA5-6B98-4FD4-A483-45A6C2CD4C22.html)
+as running activities. These classifications do not infer ultra running from distance or trail terrain, and add no
+obstacle count, rest timer, or other new source fields.
+
+`ActivityTypeGroups.WalkingGroup` has serialized value `walking_group` and includes Walking, Indoor Walking, and
+Nordic Walking. Walking and Nordic Walking move from Outdoor Adventures; Hiking, Rucking, and Trekking remain there.
+The indoor hint is independent of the family: only Indoor Walking is marked indoor among these three types. All
+three retain walking pace/speed, average pace/speed, vertical-speed, and the default `0.3 m/s` movement threshold;
+walking does not acquire running grade-adjusted calculations or a durability adapter. This group change applies to
+existing stored Walking and Nordic Walking values without reparsing; their canonical type strings remain unchanged.
+
+The FIT pairs take precedence over conflicting custom profile names, across manufacturers. Numeric IDs, numeric
+strings, snake-case, camel-case, and uppercase protocol names behave consistently. Explicit Obstacle Racing/Obstacle
+Run, Ultra Running/Ultra Run, Indoor Walking/Walk Indoor, Enduro MTB, and Rally/Rally Driving sport or profile names
+also resolve to their canonical values. Every declared alias hydrates through native JSON. Existing `walking_indoor`
+and `walking_indoor_walking` aliases now preserve Indoor Walking instead of collapsing to Walking; stored canonical
+Walking alone cannot establish that a historical activity was indoors.
+
+Sport and sub-sport namespaces remain separate: sport `59` is Grinding, sport `67` is Meditation, and sport `27` is
+Horseback Riding. A generic, missing, or unrelated parent with obstacle, ultra, indoor walking, enduro, or rally
+sub-sport alone cannot establish these types. Plain Enduro is ambiguous: Garmin's
+[cycling Enduro activity](https://www8.garmin.com/manuals/webhelp/GUID-28E0106C-B05A-44E9-BF7C-9CB36A596B82/EN-US/GUID-C7B10489-A77F-454F-82D2-EB2DD309CFB2.html)
+and [FIM's motorcycle Enduro](https://www.fim-moto.com/en/sports/enduro) describe different sports. A Cycling parent
+with an explicit Enduro profile establishes Enduro MTB; a generic Enduro profile or motorcycle Enduro sub-sport
+retains the existing broader classification. Rally requires the Motor Sports parent for its FIT sub-sport mapping.
+
+Obstacle Racing and Ultra Running inherit the existing running metric and TSS selection and running durability
+protocol, subject to its usual sample, duration, and context checks. Enduro MTB retains its existing gravity-MTB
+unsupported-context durability evidence and existing TSS eligibility. Indoor Walking retains ordinary TSS eligibility.
+Rally omits calculated power/HR/MET TSS and removes stale calculated scores while preserving finite imported TSS,
+even when imported-score preservation is disabled. Rally has no durability adapter. No numeric metric token, unit,
+formula, durability protocol, workout delivery capability, provider transport, or Training planning contract changes.
+
+Historical Running, Walking, Fitness Equipment, Cycling, or Motorsports labels need specific retained FIT sources or
+explicit names to recover the more specific activity type. After correction, regenerate separately persisted event
+summaries, activity-type aggregates, affected durability evidence, and Training snapshots. Saved routes need no reparse.
+Adopt the release in both Quantified Self packages before storing the four new canonical values. At adoption, add
+WalkingGroup to exhaustive group label/alias, color, gradient, icon, and group-chart maps, and register Indoor Walking
+with the Walking chart profile. Review the dynamic Supported activity types Help page against those group labels.
+The application remains pinned to its current library until that coordinated upgrade.
+
+Quantified Self's exact Training registry keeps existing Walking/Nordic Walking contexts and the existing cycling
+Enduro context (`mixed-gravity`, volume-only load/intensity, recorded distance). The four new canonical types currently
+fall back to volume-only Other training; group membership alone does not widen Training or provider delivery support.
+The strict MCP activity catalog can discover the new values and Walking group using its existing fields and scopes.
+No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
+protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
+
 `ActivityTypes.IndoorHandCycle` has canonical stored value `Indoor Hand Cycle` in `ActivityTypeGroups.CyclingGroup`.
 FIT `cycling/indoor_hand_cycling` (`2/88`) preserves it before custom profile fallback. Specific `Indoor Hand Cycle`,
 `IndoorHandCycling`, `indoor_hand_cycle`, and `indoor_hand_cycling` names also resolve to it. This remains distinct
@@ -517,7 +577,8 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
 `Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, `CCR Diving`,
-`Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, or `Indoor Wheelchair Push Run`.
+`Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, `Indoor Wheelchair Push Run`,
+`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, or `Rally`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

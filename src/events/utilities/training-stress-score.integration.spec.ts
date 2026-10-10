@@ -230,6 +230,7 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
   ])('does not calculate TSS for %s even when power inputs are available', activityType => {
@@ -260,6 +261,7 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
   ])('preserves imported TSS for %s even when imported-TSS preservation is disabled', activityType => {
@@ -283,6 +285,7 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
   ])('removes stale calculated TSS for unsupported activity %s', activityType => {
@@ -297,6 +300,7 @@ describe('Training Stress Score integration', () => {
   });
 
   describe.each([
+    ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun
@@ -403,6 +407,10 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
+    ActivityTypes.ObstacleRacing,
+    ActivityTypes.UltraRunning,
+    ActivityTypes.IndoorWalking,
+    ActivityTypes.EnduroMTB,
     ActivityTypes.Grinding,
     ActivityTypes.IndoorGrinding,
     ActivityTypes.SailRacing,

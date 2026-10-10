@@ -89,6 +89,7 @@ export class ActivityTypesHelper {
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type];
       case ActivityTypeGroups.TrailRunningGroup:
         return [DataPaceAvg.type, DataGradeAdjustedPaceAvg.type, DataSpeedAvg.type, DataGradeAdjustedSpeedAvg.type];
+      case ActivityTypeGroups.WalkingGroup:
       case ActivityTypeGroups.OutdoorAdventuresGroup:
         return [DataPaceAvg.type, DataSpeedAvg.type];
       case ActivityTypeGroups.WaterSportsGroup:
@@ -105,6 +106,7 @@ export class ActivityTypesHelper {
         return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.TrailRunningGroup:
         return [DataPace.type, DataSpeed.type];
+      case ActivityTypeGroups.WalkingGroup:
       case ActivityTypeGroups.OutdoorAdventuresGroup:
         return [DataPace.type, DataSpeed.type];
       case ActivityTypeGroups.WaterSportsGroup:
@@ -132,6 +134,7 @@ export class ActivityTypesHelper {
       case ActivityTypeGroups.TrailRunningGroup:
       case ActivityTypeGroups.CyclingGroup:
       case ActivityTypeGroups.MountainBikingGroup:
+      case ActivityTypeGroups.WalkingGroup:
       case ActivityTypeGroups.OutdoorAdventuresGroup:
       case ActivityTypeGroups.PerformanceGroup:
       case ActivityTypeGroups.AerialSportsGroup:
@@ -303,6 +306,28 @@ export enum ActivityTypes {
   'TrackRun' = 'Track Running',
   'track_run' = 'Track Running',
   /**
+   * Obstacle Racing; explicit FIT running/obstacle (1/59), distinct from general Running.
+   */
+  'Obstacle Racing' = 'Obstacle Racing',
+  'ObstacleRacing' = 'Obstacle Racing',
+  'obstacleRacing' = 'Obstacle Racing',
+  'obstacle_racing' = 'Obstacle Racing',
+  'Obstacle Run' = 'Obstacle Racing',
+  'ObstacleRun' = 'Obstacle Racing',
+  'obstacle_run' = 'Obstacle Racing',
+  'running_obstacle' = 'Obstacle Racing',
+  /**
+   * Ultra Running; explicit FIT running/ultra (1/67), without inferring terrain or distance.
+   */
+  'Ultra Running' = 'Ultra Running',
+  'UltraRunning' = 'Ultra Running',
+  'ultraRunning' = 'Ultra Running',
+  'ultra_running' = 'Ultra Running',
+  'Ultra Run' = 'Ultra Running',
+  'UltraRun' = 'Ultra Running',
+  'ultra_run' = 'Ultra Running',
+  'running_ultra' = 'Ultra Running',
+  /**
    * Trail Running
    */
   'TrailRunning' = 'Trail Running',
@@ -390,9 +415,16 @@ export enum ActivityTypes {
   'EMountainBikeRide' = 'E-Mountain Biking',
   'E-MTB' = 'E-Mountain Biking',
 
-  // Enduro
+  /**
+   * Enduro mountain biking; cycling/enduro (2/123) establishes the existing type.
+   * Plain Enduro remains ambiguous between cycling and motorcycling.
+   */
   'cycling_mountain_enduro' = 'Enduro MTB',
+  'cycling_enduro' = 'Enduro MTB',
   'Enduro MTB' = 'Enduro MTB',
+  'EnduroMTB' = 'Enduro MTB',
+  'enduroMTB' = 'Enduro MTB',
+  'enduro_mtb' = 'Enduro MTB',
 
   // Downhill
   'cycling_downhill' = 'Downhill Cycling',
@@ -492,11 +524,22 @@ export enum ActivityTypes {
    */
   'Walking' = 'Walking',
   'walking' = 'Walking',
-  'walking_indoor' = 'Walking',
   'Walk' = 'Walking',
   'walk' = 'Walking',
   'walking_casual_walking' = 'Walking',
-  'walking_indoor_walking' = 'Walking',
+  /**
+   * Indoor Walking; FIT walking/indoor_walking (11/27) or fitness_equipment/indoor_walking (4/27).
+   */
+  'Indoor Walking' = 'Indoor Walking',
+  'IndoorWalking' = 'Indoor Walking',
+  'indoorWalking' = 'Indoor Walking',
+  'indoor_walking' = 'Indoor Walking',
+  'Walk Indoor' = 'Indoor Walking',
+  'WalkIndoor' = 'Indoor Walking',
+  'walk_indoor' = 'Indoor Walking',
+  'walking_indoor' = 'Indoor Walking',
+  'walking_indoor_walking' = 'Indoor Walking',
+  'fitness_equipment_indoor_walking' = 'Indoor Walking',
   /**
    * Sailing
    */
@@ -948,6 +991,15 @@ export enum ActivityTypes {
   'motor_sports_overland' = 'Overlanding',
   'driving_overland' = 'Overlanding',
   'motorcycling_overland' = 'Overlanding',
+  /**
+   * Rally; explicit FIT motor_sports/rally (81/125), distinct from general Motorsports.
+   */
+  'Rally' = 'Rally',
+  'rally' = 'Rally',
+  'Rally Driving' = 'Rally',
+  'RallyDriving' = 'Rally',
+  'rally_driving' = 'Rally',
+  'motor_sports_rally' = 'Rally',
   /**
    * Mountaineering
    */
@@ -1416,6 +1468,8 @@ export const ACTIVITIES_WITH_SPEED_METRICS_HIDDEN_BY_DEFAULT = [
 
 export const ActivityTypeGroups = {
   RunningGroup: 'running_group',
+  /** Walking family, independent of the activity's indoor hint. */
+  WalkingGroup: 'walking_group',
   TrailRunningGroup: 'trail_running_group',
   CyclingGroup: 'cycling_group',
   MountainBikingGroup: 'mountain_biking_group',
@@ -1441,11 +1495,18 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.RunningGroup]: [
       ActivityTypes.Running,
       ActivityTypes.TrackRunning,
+      ActivityTypes.ObstacleRacing,
+      ActivityTypes.UltraRunning,
       ActivityTypes.Treadmill,
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning
     ],
     [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning],
+    [ActivityTypeGroups.WalkingGroup]: [
+      ActivityTypes.Walking,
+      ActivityTypes.IndoorWalking,
+      ActivityTypes.NordicWalking
+    ],
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
       ActivityTypes.Cyclocross,
@@ -1510,10 +1571,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.StairStepper
     ],
     [ActivityTypeGroups.OutdoorAdventuresGroup]: [
-      ActivityTypes.Walking,
       ActivityTypes.Hiking,
       ActivityTypes.Rucking,
-      ActivityTypes.NordicWalking,
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
       ActivityTypes.RockClimbing,
@@ -1559,6 +1618,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Motorcycling,
       ActivityTypes.Motorsports,
       ActivityTypes.Overlanding,
+      ActivityTypes.Rally,
       ActivityTypes.Snowmobiling
     ],
     [ActivityTypeGroups.AdaptiveMobilityGroup]: [
@@ -1634,6 +1694,7 @@ const EXPLICIT_INDOOR_ACTIVITY_TYPES: ActivityTypes[] = [
   ActivityTypes.IndoorWheelchairPushWalk,
   ActivityTypes.IndoorWheelchairPushRun,
   ActivityTypes.IndoorRunning,
+  ActivityTypes.IndoorWalking,
   ActivityTypes.IndoorTraining,
   ActivityTypes['Indoor Climbing'],
   ActivityTypes.Treadmill

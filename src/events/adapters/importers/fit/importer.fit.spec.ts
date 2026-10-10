@@ -501,6 +501,12 @@ describe('EventImporterFIT', () => {
     });
 
     describe.each([
+      [1, 59, 'running', 'obstacle', ActivityTypes.ObstacleRacing, 'Running'],
+      [1, 67, 'running', 'ultra', ActivityTypes.UltraRunning, 'Trail Running'],
+      [11, 27, 'walking', 'indoor_walking', ActivityTypes.IndoorWalking, 'Walking'],
+      [4, 27, 'fitness_equipment', 'indoor_walking', ActivityTypes.IndoorWalking, 'Fitness Equipment'],
+      [2, 123, 'cycling', 'enduro', ActivityTypes.EnduroMTB, 'Motorcycling'],
+      [81, 125, 'motor_sports', 'rally', ActivityTypes.Rally, 'Motorsports'],
       [2, 88, 'cycling', 'indoor_hand_cycling', ActivityTypes.IndoorHandCycle, 'Hand Cycle'],
       [
         65,
@@ -551,6 +557,16 @@ describe('EventImporterFIT', () => {
     );
 
     it.each([
+      ['Obstacle Racing', ActivityTypes.ObstacleRacing],
+      ['ObstacleRun', ActivityTypes.ObstacleRacing],
+      ['Ultra Running', ActivityTypes.UltraRunning],
+      ['ultra_run', ActivityTypes.UltraRunning],
+      ['Indoor Walking', ActivityTypes.IndoorWalking],
+      ['WalkIndoor', ActivityTypes.IndoorWalking],
+      ['Enduro MTB', ActivityTypes.EnduroMTB],
+      ['EnduroMTB', ActivityTypes.EnduroMTB],
+      ['Rally', ActivityTypes.Rally],
+      ['RallyDriving', ActivityTypes.Rally],
       ['Indoor Hand Cycle', ActivityTypes.IndoorHandCycle],
       ['IndoorHandCycling', ActivityTypes.IndoorHandCycle],
       ['indoor_hand_cycling', ActivityTypes.IndoorHandCycle],
@@ -713,6 +729,37 @@ describe('EventImporterFIT', () => {
         }
       }
     );
+
+    it.each([
+      [{ sport: 0, sub_sport: 59 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 59 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 67 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 67 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 27 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 27 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 123 }, ActivityTypes.Generic],
+      [{ sport: 22, sub_sport: 123 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 123 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 125 }, ActivityTypes.Generic],
+      [{ sport: 22, sub_sport: 125 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 125 }, ActivityTypes.Driving],
+      [{ sport: 2, sub_sport: 125 }, ActivityTypes.Cycling],
+      [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
+      [{ sport: 27, sub_sport: 0 }, ActivityTypes.HorsebackRiding],
+      [{ sport: 59, sub_sport: 0 }, ActivityTypes.Grinding],
+      [{ sub_sport: 59 }, ActivityTypes.unknown],
+      [{ sub_sport: 67 }, ActivityTypes.unknown],
+      [{ sub_sport: 27 }, ActivityTypes.unknown],
+      [{ sub_sport: 123 }, ActivityTypes.unknown],
+      [{ sub_sport: 125 }, ActivityTypes.unknown],
+      [{ sport: 0, sport_profile_name: 'Enduro' }, ActivityTypes.Generic],
+      [{ sport: 'Enduro' }, ActivityTypes.unknown],
+      [{ sport: 'cycling', sport_profile_name: 'Enduro' }, ActivityTypes.EnduroMTB]
+    ])('requires the correct running, walking, cycling, or motor-sports context for %j', (session, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+      }
+    });
 
     describe.each([
       [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
@@ -1811,6 +1858,52 @@ describe('EventImporterFIT', () => {
       [1, 0, 66, ActivityTypes.Generic],
       [1, 17, 66, ActivityTypes.Hiking],
       [1, 0, 63, ActivityTypes.Generic],
+      [1, 1, 59, ActivityTypes.ObstacleRacing],
+      [7, 1, 59, ActivityTypes.ObstacleRacing],
+      [23, 1, 59, ActivityTypes.ObstacleRacing],
+      [123, 1, 59, ActivityTypes.ObstacleRacing],
+      [65535, 1, 59, ActivityTypes.ObstacleRacing],
+      [1, 1, 67, ActivityTypes.UltraRunning],
+      [7, 1, 67, ActivityTypes.UltraRunning],
+      [23, 1, 67, ActivityTypes.UltraRunning],
+      [123, 1, 67, ActivityTypes.UltraRunning],
+      [65535, 1, 67, ActivityTypes.UltraRunning],
+      [1, 11, 27, ActivityTypes.IndoorWalking],
+      [7, 11, 27, ActivityTypes.IndoorWalking],
+      [23, 11, 27, ActivityTypes.IndoorWalking],
+      [123, 11, 27, ActivityTypes.IndoorWalking],
+      [65535, 11, 27, ActivityTypes.IndoorWalking],
+      [1, 4, 27, ActivityTypes.IndoorWalking],
+      [7, 4, 27, ActivityTypes.IndoorWalking],
+      [23, 4, 27, ActivityTypes.IndoorWalking],
+      [123, 4, 27, ActivityTypes.IndoorWalking],
+      [65535, 4, 27, ActivityTypes.IndoorWalking],
+      [1, 2, 123, ActivityTypes.EnduroMTB],
+      [7, 2, 123, ActivityTypes.EnduroMTB],
+      [23, 2, 123, ActivityTypes.EnduroMTB],
+      [123, 2, 123, ActivityTypes.EnduroMTB],
+      [65535, 2, 123, ActivityTypes.EnduroMTB],
+      [1, 81, 125, ActivityTypes.Rally],
+      [7, 81, 125, ActivityTypes.Rally],
+      [23, 81, 125, ActivityTypes.Rally],
+      [123, 81, 125, ActivityTypes.Rally],
+      [65535, 81, 125, ActivityTypes.Rally],
+      [1, 0, 59, ActivityTypes.Generic],
+      [1, 2, 59, ActivityTypes.Cycling],
+      [1, 0, 67, ActivityTypes.Generic],
+      [1, 2, 67, ActivityTypes.Cycling],
+      [1, 0, 27, ActivityTypes.Generic],
+      [1, 1, 27, ActivityTypes.Running],
+      [1, 0, 123, ActivityTypes.Generic],
+      [1, 22, 123, ActivityTypes.Motorcycling],
+      [1, 24, 123, ActivityTypes.Driving],
+      [1, 0, 125, ActivityTypes.Generic],
+      [1, 22, 125, ActivityTypes.Motorcycling],
+      [1, 24, 125, ActivityTypes.Driving],
+      [1, 2, 125, ActivityTypes.Cycling],
+      [1, 11, 0, ActivityTypes.Walking],
+      [1, 27, 0, ActivityTypes.HorsebackRiding],
+      [1, 67, 0, ActivityTypes.Meditation],
       [1, 63, 0, ActivityTypes.VideoGaming],
       [1, 59, 0, ActivityTypes.Grinding],
       [7, 59, 0, ActivityTypes.Grinding],

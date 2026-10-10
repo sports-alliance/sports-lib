@@ -40,6 +40,9 @@ profiles preserve these names; unnamed shared Suunto exports retain their broade
 Name lookup accepts string sport names; invalid native JSON names restore Unknown Sport. RPM, SPRINT and THE TRIP
 retain Indoor Cycling's trainer flag as well as their own names.
 
+Every canonical type belongs to exactly one of 18 groups, and group member lists include each type once. The 12 broad
+or special types assigned to Unspecified are also listed explicitly. Indoor status remains independent of the group.
+
 Provider context resolves ambiguous names such as Polar Enduro and Garmin Ski. FIT refinement requires a recognized
 `sport_profile_name`; activity titles alone do not establish a sport. Consumer adoption must update its exact Training
 contexts before production use. See [distinct sport names](guides/importing-activities.md#distinct-sport-and-workout-names)

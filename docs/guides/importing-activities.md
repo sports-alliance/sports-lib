@@ -17,6 +17,12 @@ Skating group, while `Ice Skating` remains in Winter Sports. Aerial activities r
 while exposing vertical speed. Motorized and Adaptive Mobility activities retain movement data but do not receive
 library-calculated Training Stress Score or durability evidence; a source-provided Training Stress Score remains intact.
 
+The 284 canonical types each belong to exactly one of 18 groups. `getActivityTypesForActivityGroup()` lists every
+member once, including the 12 intentionally unspecified types: Chores, Generic, Match, Other, Para Sport,
+RC Drone Flying, Route, Tactical, Transition, Unknown Sport, Video Gaming and Workout. These retain their existing
+Unspecified classification and metric behavior. Indoor status is a separate hint; for example, Indoor Walking belongs
+to Walking and remains indoor. Aliases resolve to the same canonical member rather than creating duplicate group entries.
+
 `Meditation` belongs to `ActivityTypeGroups.IndoorSportsGroup` alongside Yoga, Pilates, and Stretching.
 FIT `sport=generic` (`0`) with `sub_sport=breathing` (`62`) defaults to `Meditation`; an explicit Garmin Breathwork
 profile preserves Breathwork separately, including `training/breathing` (`10/62`) and the French

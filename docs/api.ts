@@ -204,6 +204,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Track Running belongs to Running and recognizes explicit Track Run/Track Running sport or profile names.
  * FIT `running/track` honors explicit Track Running or Track and Field profiles; the pair alone remains Running.
  *
+ * Every canonical type has exactly one group; group member lists contain each type once, including all intentionally unspecified types.
+ * Indoor status is an independent hint and does not move an activity out of its sport family.
+ *
  * @category Activities and events
  */
 export { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../src/activities/activity.types';

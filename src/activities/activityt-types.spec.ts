@@ -253,6 +253,14 @@ describe('ActivityTypes', () => {
     expect(unspecifiedActivityTypes).toEqual(intentionalUnspecifiedActivityTypes);
   });
 
+  it.each(Object.values(ActivityTypeGroups))('enumerates every canonical member of %s exactly once', group => {
+    const expectedMembers = ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(
+      type => ActivityTypesHelper.getActivityGroupForActivityType(type as ActivityTypes) === group
+    );
+
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).sort()).toEqual(expectedMembers);
+  });
+
   it('exposes canonical group ids and members', () => {
     expect(ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray()).toContain(ActivityTypeGroups.WaterSportsGroup);
     expect(ActivityTypeGroups.WaterSportsGroup).toBe('water_sports_group');
@@ -973,12 +981,11 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Chores')).toEqual([
       ActivityTypes.Chores
     ]);
-    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup)).toEqual([
-      ActivityTypes.ParaSport,
-      ActivityTypes.Chores,
-      ActivityTypes.VideoGaming,
-      ActivityTypes.RCDroneFlying
-    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup).filter(
+        type => type === ActivityTypes.Chores
+      )
+    ).toEqual([ActivityTypes.Chores]);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Chores)).toBe(false);
     expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Chores)).toBe(
       ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Generic)

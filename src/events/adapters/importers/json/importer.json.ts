@@ -321,7 +321,8 @@ export class EventImporterJSON {
 
   /**
    * Restores a native JSON activity including its name, normalizes activity-aware summary semantics, and hydrates
-   * missing speed-derived pace summaries on it and its laps.
+   * missing speed-derived pace summaries on it and its laps. Canonical sport names and aliases are restored;
+   * invalid or unrecognized sport names become Unknown Sport.
    */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
@@ -330,7 +331,7 @@ export class EventImporterJSON {
       ActivityTypesHelper.resolveActivityType(
         json.type,
         getActivityTypeSourceFromManufacturer(json.creator?.manufacturer)
-      ) ?? ActivityTypes[<keyof typeof ActivityTypes>json.type],
+      ) ?? ActivityTypes.unknown,
       EventImporterJSON.getCreatorFromJSON(json.creator),
       undefined,
       json.name ?? ''

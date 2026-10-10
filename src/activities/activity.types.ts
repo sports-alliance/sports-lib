@@ -22,13 +22,13 @@ export class ActivityTypesHelper {
     return value.toLowerCase().replace(/[\s_-]/g, '');
   }
 
-  /** Resolves canonical sports and aliases, using a provider only for source-specific names. */
+  /** Resolves string sport names and aliases; invalid inputs return null. Uses provider context for source-specific names. */
   static resolveActivityType(value: unknown, source?: ActivityTypeSource): ActivityTypes | null {
-    if (value === null || value === undefined) {
+    if (typeof value !== 'string') {
       return null;
     }
 
-    const raw = String(value).trim();
+    const raw = value.trim();
     if (!raw) {
       return null;
     }
@@ -36,9 +36,8 @@ export class ActivityTypesHelper {
     const providerMatch = resolveProviderActivityType(raw, source);
     if (providerMatch) return providerMatch;
 
-    const exactMatch = ActivityTypes[raw as keyof typeof ActivityTypes];
-    if (exactMatch) {
-      return exactMatch as ActivityTypes;
+    if (Object.prototype.hasOwnProperty.call(ActivityTypes, raw)) {
+      return ActivityTypes[raw as keyof typeof ActivityTypes];
     }
 
     const commonAlias = resolveCommonActivityTypeAlias(raw);

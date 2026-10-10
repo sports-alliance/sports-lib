@@ -52,6 +52,42 @@ const namedSports = [
 ] as const;
 
 describe('Recognized sport and activity-profile names', () => {
+  it.each([
+    ['single_gas_diving', ActivityTypes.ScubaDiving],
+    ['multi_gas_diving', ActivityTypes.ScubaDiving],
+    ['gauge_diving', ActivityTypes.ScubaDiving],
+    ['apnea_diving', ActivityTypes.FreeDiving],
+    ['apnea_hunting', ActivityTypes.FreeDiving]
+  ] as const)('retains %s diving classification across capitalization and separators', (subSport, expected) => {
+    for (const sport of ['diving', 'DIVING', ' Diving ']) {
+      for (const sub_sport of [
+        subSport,
+        subSport.toUpperCase(),
+        subSport.replace(/_/g, '-'),
+        subSport.replace(/_/g, ' ')
+      ]) {
+        for (const manufacturer of [1, 23, 123, undefined]) {
+          expect(
+            importer.getActivityTypeFromSessionObject({ sport, sub_sport, sport_profile_name: 'Parkour' }, manufacturer)
+          ).toBe(expected);
+        }
+      }
+    }
+  });
+
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'])(
+    'ignores invalid profile %s and retains the recorded FIT sport',
+    sport_profile_name => {
+      for (const [sport, expected] of [
+        [0, ActivityTypes.Generic],
+        [1, ActivityTypes.Running],
+        [2, ActivityTypes.Cycling]
+      ] as const) {
+        expect(importer.getActivityTypeFromSessionObject({ sport, sub_sport: 0, sport_profile_name })).toBe(expected);
+      }
+    }
+  );
+
   it.each(namedSports)('normalizes the source name %s to %s in %s', (name, expected, group) => {
     for (const alias of [name, name.toUpperCase(), name.replace(/[\s-]/g, ''), name.replace(/[\s-]/g, '_')]) {
       expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(expected);

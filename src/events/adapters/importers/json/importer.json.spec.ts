@@ -27,6 +27,21 @@ import {
 } from '../../../../data/data.running-dynamics';
 
 describe('EventImporterJSON', () => {
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'Unrecognized activity'])(
+    'restores invalid sport name %s as Unknown Sport',
+    type => {
+      const activity = EventImporterJSON.getActivityFromJSON({
+        name: 'invalid-type', startDate: 1000, endDate: 61000, type: type as ActivityTypes,
+        powerMeter: false, trainer: false, stats: {}, streams: [], laps: [],
+        creator: { name: 'test', devices: [] }, intensityZones: [], events: []
+      });
+      expect(activity.type).toBe(ActivityTypes.unknown);
+      expect(EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON()))).type).toBe(
+        ActivityTypes.unknown
+      );
+    }
+  );
+
   it.each(['Suunto', 'Garmin', undefined])(
     'preserves all legacy stamina keys, values and gaps across repeated JSON reloads for %p',
     manufacturer => {

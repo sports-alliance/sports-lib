@@ -129,6 +129,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Rucking belongs to Outdoor Adventures; FIT hiking/rucking (17/124) preserves it separately from Hiking and Walking.
  * Sailing Expedition belongs to Water Sports; FIT sailing/expedition (32/66) and Sail Expedition names preserve it separately.
  * CCR Diving belongs to Diving; FIT diving/ccr_diving (53/63) preserves the closed-circuit rebreather type and excludes terrain summaries.
+ * Indoor Hand Cycle belongs to Cycling; FIT cycling/indoor_hand_cycling (2/88) preserves its indoor hint and existing cycling calculations.
+ * Indoor Wheelchair Push Walk and Run belong to Adaptive Mobility; FIT pairs 65/86 and 66/87 retain their separate indoor types.
+ * Overlanding belongs to Motorized; Overland names and the overland sub-sport under motorized parents retain it without calculated TSS.
+ * Trucker Workout belongs to Indoor Sports; generic, fitness_equipment, and training parents with sub-sport 83 identify exercise during driving breaks.
  * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
  * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.

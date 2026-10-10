@@ -2387,9 +2387,48 @@ export class EventImporterFIT {
     // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
       case 'wheelchairpushwalk':
-        return ActivityTypes.WheelchairPushWalk;
+        return normalizedSubSportName === 'indoorwheelchairwalk'
+          ? ActivityTypes.IndoorWheelchairPushWalk
+          : ActivityTypes.WheelchairPushWalk;
       case 'wheelchairpushrun':
-        return ActivityTypes.WheelchairPushRun;
+        return normalizedSubSportName === 'indoorwheelchairrun'
+          ? ActivityTypes.IndoorWheelchairPushRun
+          : ActivityTypes.WheelchairPushRun;
+      case 'indoorwheelchairpushwalk':
+      case 'indoorwheelchairwalk':
+        return ActivityTypes.IndoorWheelchairPushWalk;
+      case 'indoorwheelchairpushrun':
+      case 'indoorwheelchairrun':
+        return ActivityTypes.IndoorWheelchairPushRun;
+      case 'indoorhandcycle':
+      case 'indoorhandcycling':
+        return ActivityTypes.IndoorHandCycle;
+      case 'cycling':
+        if (normalizedSubSportName === 'indoorhandcycling') {
+          return ActivityTypes.IndoorHandCycle;
+        }
+        break;
+      case 'overland':
+      case 'overlanding':
+        return ActivityTypes.Overlanding;
+      case 'motorsports':
+      case 'motorcycling':
+      case 'driving':
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
+      case 'truckerworkout':
+      case 'truckerworkouts':
+      case 'truckerhealth':
+        return ActivityTypes.TruckerWorkout;
+      case 'generic':
+      case 'fitnessequipment':
+      case 'training':
+        if (normalizedSubSportName === 'truckerworkout') {
+          return ActivityTypes.TruckerWorkout;
+        }
+        break;
       case 'discgolf':
       case 'frisbeegolf':
         return ActivityTypes.DiscGolf;
@@ -2503,7 +2542,12 @@ export class EventImporterFIT {
       normalizedSubSportName !== 'indoorgrinding' &&
       normalizedSubSportName !== 'sailrace' &&
       normalizedSubSportName !== 'rucking' &&
-      normalizedSubSportName !== 'ccrdiving';
+      normalizedSubSportName !== 'ccrdiving' &&
+      normalizedSubSportName !== 'indoorhandcycling' &&
+      normalizedSubSportName !== 'indoorwheelchairwalk' &&
+      normalizedSubSportName !== 'indoorwheelchairrun' &&
+      normalizedSubSportName !== 'overland' &&
+      normalizedSubSportName !== 'truckerworkout';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

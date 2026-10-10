@@ -297,6 +297,10 @@ describe('activity durability', () => {
     ActivityTypes.Grinding,
     ActivityTypes.IndoorGrinding,
     ActivityTypes.SailRacing,
+    ActivityTypes.Overlanding,
+    ActivityTypes.TruckerWorkout,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
     ActivityTypes.Rucking,
     ActivityTypes.SailingExpedition,
     ActivityTypes.CCRDiving,
@@ -316,6 +320,26 @@ describe('activity durability', () => {
     );
     expect(result).toEqual({ timeline: [], summary: null });
   });
+
+  it.each([ActivityTypes.IndoorHandCycle, ActivityTypes.Handcycle, ActivityTypes.IndoorCycling])(
+    'uses the existing cycling durability protocol for %s',
+    type => {
+      const activity = mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(130)
+        }
+      });
+      const result = analyzeActivityDurability(activity);
+      expect(result.summary?.discipline).toBe('cycling');
+      expect(result.summary?.outputSource).toBe('power');
+      expect(result.summary?.eligibility).toMatchObject({ eligible: true, reason: 'eligible' });
+      expect(result.timeline).toHaveLength(3600);
+      const withoutHeartRate = mockActivity({ type, streams: { [DataPower.type]: Array(3600).fill(200) } });
+      expect(analyzeActivityDurability(withoutHeartRate).summary?.eligibility.eligible).toBe(false);
+    }
+  );
 
   it('compares like-for-like active pool lengths', () => {
     const lengths = Array.from({ length: 72 }, (_, index) =>

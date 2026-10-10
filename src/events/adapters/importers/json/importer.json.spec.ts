@@ -27,6 +27,17 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ...Object.entries(ActivityTypes)
+      .filter(([, type]) =>
+        [
+          ActivityTypes.IndoorHandCycle,
+          ActivityTypes.Overlanding,
+          ActivityTypes.TruckerWorkout,
+          ActivityTypes.IndoorWheelchairPushWalk,
+          ActivityTypes.IndoorWheelchairPushRun
+        ].includes(type)
+      )
+      .map(([alias, type]) => [alias, type] as [string, ActivityTypes]),
     ['Rucking', ActivityTypes.Rucking],
     ['rucking', ActivityTypes.Rucking],
     ['hiking_rucking', ActivityTypes.Rucking],

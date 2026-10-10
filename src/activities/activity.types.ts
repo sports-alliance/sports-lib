@@ -939,6 +939,16 @@ export enum ActivityTypes {
    */
   'Motorsports' = 'Motorsports',
   /**
+   * Overlanding; Garmin's Overland motorized activity, distinct from general Driving and Motorcycling.
+   */
+  'Overlanding' = 'Overlanding',
+  'overlanding' = 'Overlanding',
+  'Overland' = 'Overlanding',
+  'overland' = 'Overlanding',
+  'motor_sports_overland' = 'Overlanding',
+  'driving_overland' = 'Overlanding',
+  'motorcycling_overland' = 'Overlanding',
+  /**
    * Mountaineering
    */
   'Mountaineering' = 'Mountaineering',
@@ -1065,6 +1075,23 @@ export enum ActivityTypes {
   'Indoor training' = 'Indoor Training',
   'Indoor Training' = 'Indoor Training',
   'IndoorTraining' = 'Indoor Training',
+  /**
+   * Trucker Workout; exercise during driving breaks, classified with Indoor Sports.
+   */
+  'Trucker Workout' = 'Trucker Workout',
+  'TruckerWorkout' = 'Trucker Workout',
+  'truckerWorkout' = 'Trucker Workout',
+  'trucker_workout' = 'Trucker Workout',
+  'Trucker Workouts' = 'Trucker Workout',
+  'TruckerWorkouts' = 'Trucker Workout',
+  'truckerWorkouts' = 'Trucker Workout',
+  'trucker_workouts' = 'Trucker Workout',
+  'Trucker Health' = 'Trucker Workout',
+  'TruckerHealth' = 'Trucker Workout',
+  'trucker_health' = 'Trucker Workout',
+  'generic_trucker_workout' = 'Trucker Workout',
+  'fitness_equipment_trucker_workout' = 'Trucker Workout',
+  'training_trucker_workout' = 'Trucker Workout',
   /**
    * Hiking
    */
@@ -1245,6 +1272,17 @@ export enum ActivityTypes {
   'Hand Cycle' = 'Hand Cycle',
   'cycling_hand_cycling' = 'Hand Cycle',
   /**
+   * Indoor Hand Cycle; explicit FIT cycling/indoor_hand_cycling (2/88).
+   */
+  'Indoor Hand Cycle' = 'Indoor Hand Cycle',
+  'IndoorHandCycle' = 'Indoor Hand Cycle',
+  'indoorHandCycle' = 'Indoor Hand Cycle',
+  'indoor_hand_cycle' = 'Indoor Hand Cycle',
+  'IndoorHandCycling' = 'Indoor Hand Cycle',
+  'indoorHandCycling' = 'Indoor Hand Cycle',
+  'indoor_hand_cycling' = 'Indoor Hand Cycle',
+  'cycling_indoor_hand_cycling' = 'Indoor Hand Cycle',
+  /**
    * Stair Stepper
    */
   'StairStepper' = 'Stair Stepper',
@@ -1266,11 +1304,33 @@ export enum ActivityTypes {
   'WheelchairPushWalk' = 'Wheelchair Push Walk',
   'wheelchair_push_walk' = 'Wheelchair Push Walk',
   /**
+   * Indoor wheelchair pushes at walking speed; FIT wheelchair_push_walk/indoor_wheelchair_walk (65/86).
+   */
+  'Indoor Wheelchair Push Walk' = 'Indoor Wheelchair Push Walk',
+  'IndoorWheelchairPushWalk' = 'Indoor Wheelchair Push Walk',
+  'indoorWheelchairPushWalk' = 'Indoor Wheelchair Push Walk',
+  'indoor_wheelchair_push_walk' = 'Indoor Wheelchair Push Walk',
+  'IndoorWheelchairWalk' = 'Indoor Wheelchair Push Walk',
+  'indoorWheelchairWalk' = 'Indoor Wheelchair Push Walk',
+  'indoor_wheelchair_walk' = 'Indoor Wheelchair Push Walk',
+  'wheelchair_push_walk_indoor_wheelchair_walk' = 'Indoor Wheelchair Push Walk',
+  /**
    * Wheelchair pushes at running speed, identified by an explicit sport name or FIT sport 66.
    */
   'Wheelchair Push Run' = 'Wheelchair Push Run',
   'WheelchairPushRun' = 'Wheelchair Push Run',
   'wheelchair_push_run' = 'Wheelchair Push Run',
+  /**
+   * Indoor wheelchair pushes at running speed; FIT wheelchair_push_run/indoor_wheelchair_run (66/87).
+   */
+  'Indoor Wheelchair Push Run' = 'Indoor Wheelchair Push Run',
+  'IndoorWheelchairPushRun' = 'Indoor Wheelchair Push Run',
+  'indoorWheelchairPushRun' = 'Indoor Wheelchair Push Run',
+  'indoor_wheelchair_push_run' = 'Indoor Wheelchair Push Run',
+  'IndoorWheelchairRun' = 'Indoor Wheelchair Push Run',
+  'indoorWheelchairRun' = 'Indoor Wheelchair Push Run',
+  'indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
+  'wheelchair_push_run_indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
   'Workout' = 'Workout',
 
   'generic_match' = 'Match',
@@ -1395,6 +1455,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.VirtualCycling,
       ActivityTypes.EBiking,
       ActivityTypes.Handcycle,
+      ActivityTypes.IndoorHandCycle,
       ActivityTypes.Velomobile
     ],
     [ActivityTypeGroups.MountainBikingGroup]: [
@@ -1444,6 +1505,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.EllipticalTrainer,
       ActivityTypes.HIIT,
       ActivityTypes.IndoorTraining,
+      ActivityTypes.TruckerWorkout,
       ActivityTypes.Pilates,
       ActivityTypes.StairStepper
     ],
@@ -1496,12 +1558,15 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Driving,
       ActivityTypes.Motorcycling,
       ActivityTypes.Motorsports,
+      ActivityTypes.Overlanding,
       ActivityTypes.Snowmobiling
     ],
     [ActivityTypeGroups.AdaptiveMobilityGroup]: [
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
-      ActivityTypes.WheelchairPushRun
+      ActivityTypes.WheelchairPushRun,
+      ActivityTypes.IndoorWheelchairPushWalk,
+      ActivityTypes.IndoorWheelchairPushRun
     ],
     [ActivityTypeGroups.WaterSportsGroup]: [
       ActivityTypes.Rowing,
@@ -1565,6 +1630,9 @@ export class ActivityTypesGroupMapping {
 const EXPLICIT_INDOOR_ACTIVITY_TYPES: ActivityTypes[] = [
   ...ActivityTypesGroupMapping.map[ActivityTypeGroups.IndoorSportsGroup],
   ActivityTypes.IndoorCycling,
+  ActivityTypes.IndoorHandCycle,
+  ActivityTypes.IndoorWheelchairPushWalk,
+  ActivityTypes.IndoorWheelchairPushRun,
   ActivityTypes.IndoorRunning,
   ActivityTypes.IndoorTraining,
   ActivityTypes['Indoor Climbing'],

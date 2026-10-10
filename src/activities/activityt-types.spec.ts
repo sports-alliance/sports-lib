@@ -43,6 +43,11 @@ const proposedGroupAssignments = [
   [ActivityTypes.Rucking, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.SailingExpedition, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.CCRDiving, ActivityTypeGroups.DivingGroup],
+  [ActivityTypes.IndoorHandCycle, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.Overlanding, ActivityTypeGroups.MotorizedGroup],
+  [ActivityTypes.TruckerWorkout, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.IndoorWheelchairPushWalk, ActivityTypeGroups.AdaptiveMobilityGroup],
+  [ActivityTypes.IndoorWheelchairPushRun, ActivityTypeGroups.AdaptiveMobilityGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.EMountainBiking, ActivityTypeGroups.MountainBikingGroup],
@@ -183,6 +188,56 @@ describe('ActivityTypes', () => {
       ActivityTypes.InlineSkating,
       ActivityTypes.Skating
     ]);
+  });
+
+  it.each([
+    [ActivityTypes.IndoorHandCycle, true, 4 / 3.6, [DataVerticalSpeed.type]],
+    [ActivityTypes.Overlanding, false, 0.3, []],
+    [ActivityTypes.TruckerWorkout, true, 0.3, []],
+    [ActivityTypes.IndoorWheelchairPushWalk, true, 0.3, []],
+    [ActivityTypes.IndoorWheelchairPushRun, true, 0.3, []]
+  ] as const)('preserves indoor and metric semantics for %s', (type, indoor, threshold, verticalTypes) => {
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(threshold);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeed.type]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeedAvg.type]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual(verticalTypes);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    for (const [alias, value] of Object.entries(ActivityTypes).filter(([, value]) => value === type)) {
+      expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(value);
+      expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(value);
+    }
+  });
+
+  it('keeps the five new classifications distinct from broader and neighboring types', () => {
+    expect(
+      new Set([
+        ActivityTypes.IndoorHandCycle,
+        ActivityTypes.Handcycle,
+        ActivityTypes.IndoorCycling,
+        ActivityTypes.Cycling,
+        ActivityTypes.Overlanding,
+        ActivityTypes.Driving,
+        ActivityTypes.Motorcycling,
+        ActivityTypes.Motorsports,
+        ActivityTypes.TruckerWorkout,
+        ActivityTypes.Training,
+        ActivityTypes.FitnessEquipment,
+        ActivityTypes.IndoorWheelchairPushWalk,
+        ActivityTypes.WheelchairPushWalk,
+        ActivityTypes.IndoorWheelchairPushRun,
+        ActivityTypes.WheelchairPushRun,
+        ActivityTypes.Wheelchair
+      ]).size
+    ).toBe(16);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Handcycle)).toBe(false);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.WheelchairPushWalk)).toBe(false);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.WheelchairPushRun)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('Indoor Push')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('Truck Driving')).toBeNull();
   });
 
   it('should identify indoor activity types across indoor labels and indoor-group members', () => {
@@ -908,7 +963,9 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.AdaptiveMobilityGroup)).toEqual([
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
-      ActivityTypes.WheelchairPushRun
+      ActivityTypes.WheelchairPushRun,
+      ActivityTypes.IndoorWheelchairPushWalk,
+      ActivityTypes.IndoorWheelchairPushRun
     ]);
     expect(ActivityTypesHelper.resolveActivityType('generic_hand_cycling')).toBeNull();
     expect(ActivityTypes.Wheelchair).not.toBe(ActivityTypes.Handcycle);

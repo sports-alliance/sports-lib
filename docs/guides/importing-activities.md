@@ -105,6 +105,61 @@ MCP catalog discovery exposes their names, groups, and indoor hints without new 
 mutations. Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
 Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
 
+`ActivityTypes.IndoorHandCycle` has canonical stored value `Indoor Hand Cycle` in `ActivityTypeGroups.CyclingGroup`.
+FIT `cycling/indoor_hand_cycling` (`2/88`) preserves it before custom profile fallback. Specific `Indoor Hand Cycle`,
+`IndoorHandCycling`, `indoor_hand_cycle`, and `indoor_hand_cycling` names also resolve to it. This remains distinct
+from Hand Cycle, Indoor Cycling, and general Cycling. FIT sport `88` still identifies Canoeing.
+
+`ActivityTypes.IndoorWheelchairPushWalk` and `ActivityTypes.IndoorWheelchairPushRun` have stored values `Indoor
+Wheelchair Push Walk` and `Indoor Wheelchair Push Run` in `ActivityTypeGroups.AdaptiveMobilityGroup`. FIT
+`wheelchair_push_walk/indoor_wheelchair_walk` (`65/86`) and `wheelchair_push_run/indoor_wheelchair_run` (`66/87`)
+preserve the indoor variants before profile fallback. Explicit Indoor Wheelchair Push Walk/Run and
+`indoor_wheelchair_walk`/`indoor_wheelchair_run` names also resolve to them. A missing, generic, unrelated, or mismatched
+indoor sub-sport keeps the parent's existing Wheelchair Push Walk/Run classification. Suunto's creator-qualified
+`generic/hand_cycling` (`0/12`) still resolves to Wheel Chair, and `cycling/hand_cycling` (`2/12`) still resolves to
+Hand Cycle. All three new indoor types return a true indoor hint. Garmin documents distinct
+[indoor push and handcycling activities](https://www8.garmin.com/manuals/webhelp/GUID-8C2C402F-55AC-431F-9CF2-1442B89CE149/EN-US/GUID-44F436A5-EB13-40E3-AD91-8D7B0D8E0317.html).
+
+`ActivityTypes.Overlanding` has canonical stored value `Overlanding` in `ActivityTypeGroups.MotorizedGroup`.
+Garmin's [activity list](https://www8.garmin.com/manuals/webhelp/GUID-7AD1A592-9044-4D84-9688-7B5209F85BFF/EN-US/GUID-00B74ABF-7DB4-4DC2-9CA5-9D2F12B65A10.html)
+uses the name Overland under Motorsports. Explicit Overland/Overlanding names and FIT `overland` sub-sport (`98`)
+under `motor_sports` (`81`), `driving` (`24`), or `motorcycling` (`22`) resolve to it before profile fallback. These
+are supported protocol combinations, verified with synthetic files; they do not establish a particular device's
+encoding. Broad Driving, Motorcycling, and Motorsports sessions remain distinct. A generic or unrelated parent with
+sub-sport `98` alone does not establish Overlanding. Its indoor hint remains false.
+
+`ActivityTypes.TruckerWorkout` has canonical stored value `Trucker Workout` in `ActivityTypeGroups.IndoorSportsGroup`.
+FIT `trucker_workout` sub-sport (`83`) under `generic` (`0`), `fitness_equipment` (`4`), or `training` (`10`) identifies
+exercise during driving breaks. Explicit Trucker Workout, Trucker Workouts, and Trucker Health names also resolve to
+it. [Garmin's workout guide](https://www8.garmin.com/manuals/webhelp/GUID-2DA54DF8-8084-40ED-954F-EDA09C13B47F/EN-US/GUID-886A3729-D275-4634-80F6-0615009A7EDA.html)
+describes exercise during breaks. Driving or another unrelated parent with sub-sport `83` retains its parent type;
+sport `83` still identifies Dancing. The Indoor Sports group provides its existing indoor presentation hint, which
+does not prove the actual workout location. The specific FIT identifiers come from
+[Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+
+Numeric IDs, numeric strings, snake-case, camel-case, and uppercase FIT names resolve consistently across
+manufacturers. Every declared alias for these five types hydrates to its canonical value through native JSON.
+Unrelated parents cannot establish an indoor adaptive or handcycling type from a sub-sport alone; explicit specific
+source names/profiles remain sufficient. Indoor Hand Cycle inherits Cycling's speed/average-speed and vertical-speed
+families, `4/3.6` movement threshold, power TSS eligibility, and existing power/heart-rate durability protocol. The
+other four use their existing groups' speed/average-speed families and default movement threshold, with no
+vertical-speed, grade-adjusted, or stroke-rate derivation. Existing raw metrics and terrain summaries remain readable.
+Overlanding and both indoor wheelchair types omit calculated power/HR/MET TSS and stale calculated scores while
+preserving finite imported TSS, even if imported-score preservation is disabled. Trucker Workout retains its group's
+existing TSS selection. Those four have no durability adapter. No numeric metric token, unit, formula, durability
+protocol, provider transport, workout delivery capability, or modeled Training family is added.
+
+Correcting historical Cycling, Hand Cycle, Wheelchair Push Walk/Run, Driving, Motorcycling, Motorsports, Generic,
+Fitness Equipment, or Training labels requires retained FIT sources with these specific pairs or explicit names;
+stored broad labels alone cannot establish the more specific type. Regenerate separately persisted event summaries,
+activity-type aggregates, durability evidence where applicable, and affected Training snapshots after reparsing.
+Saved routes need no reparse. Adopt the release in both the Quantified Self application and Functions before persisting
+these new values. Quantified Self's existing exact Training registry resolves them to volume-only Other training;
+Cycling group membership alone does not add Indoor Hand Cycle to a modeled Training or delivery profile. Power curves
+stay isolated by exact canonical type. The strict MCP activity catalog discovers their names, groups, and indoor hints
+without new fields, scopes, tools, or planning mutations. Queue lifecycle, write paths, and monitoring are unchanged.
+Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+
 `ActivityTypes.Grinding` has canonical stored value `Grinding` in `ActivityTypeGroups.WaterSportsGroup`. Explicit FIT
 sport `grinding` (`59`) identifies operating sailing winches and preserves this type before profile or unrelated
 sub-sport fallbacks. `ActivityTypes.IndoorGrinding` has canonical stored value `Indoor Grinding` in
@@ -461,7 +516,8 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
-`Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, or `CCR Diving`.
+`Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, `CCR Diving`,
+`Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, or `Indoor Wheelchair Push Run`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

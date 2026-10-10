@@ -22,6 +22,12 @@ Rucking (`17/124`) belongs to Outdoor Adventures, Sailing Expedition (`32/66`) t
 Sailing, and general Diving. Historical corrections need retained sources and regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Indoor Hand Cycle (`2/88`) belongs to Cycling; Indoor Wheelchair Push Walk (`65/86`) and Run (`66/87`) belong to
+Adaptive Mobility. All three preserve an explicit indoor hint. Overlanding belongs to Motorized, and Trucker Workout
+to Indoor Sports. Their specific FIT classifications and explicit names retain distinct canonical types; Motorized
+and Adaptive Mobility preserve imported TSS without calculating it. Historical corrections require retained sources
+and regeneration of affected summaries after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Grinding (`59`) belongs to Water Sports, Indoor Grinding (`59/71`) to Indoor Sports, and Sail Racing (`32/65`)
 to Water Sports. Garmin's Grind Offshore, Grind Onshore, and Sail Race names preserve these separate types.
 Historical Generic, Unknown Sport, or Sailing imports need specific retained sources and regeneration of affected

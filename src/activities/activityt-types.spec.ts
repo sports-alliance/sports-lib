@@ -40,6 +40,9 @@ const proposedGroupAssignments = [
   [ActivityTypes.Geocaching, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Rucking, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.SailingExpedition, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.CCRDiving, ActivityTypeGroups.DivingGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.EMountainBiking, ActivityTypeGroups.MountainBikingGroup],
@@ -489,6 +492,86 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType('onshore')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('offshore')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('race')).toBeNull();
+  });
+
+  it.each([
+    [' RUCKING ', ActivityTypes.Rucking],
+    ['hiking_rucking', ActivityTypes.Rucking],
+    ['Sailing Expedition', ActivityTypes.SailingExpedition],
+    ['SailingExpedition', ActivityTypes.SailingExpedition],
+    ['sailing_expedition', ActivityTypes.SailingExpedition],
+    ['Sail Expedition', ActivityTypes.SailingExpedition],
+    ['sailExpedition', ActivityTypes.SailingExpedition],
+    ['SAIL-EXPEDITION', ActivityTypes.SailingExpedition],
+    ['CCR Diving', ActivityTypes.CCRDiving],
+    ['CCRDiving', ActivityTypes.CCRDiving],
+    ['ccrDiving', ActivityTypes.CCRDiving],
+    ['ccr_diving', ActivityTypes.CCRDiving],
+    ['diving_ccr_diving', ActivityTypes.CCRDiving],
+    [' CCR ', ActivityTypes.CCRDiving]
+  ])('resolves explicit %s to its distinct canonical type %s', (name, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(name)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.Rucking, ActivityTypeGroups.OutdoorAdventuresGroup, false],
+    [ActivityTypes.SailingExpedition, ActivityTypeGroups.WaterSportsGroup, true],
+    [ActivityTypes.CCRDiving, ActivityTypeGroups.DivingGroup, true]
+  ] as const)('exposes %s once with the appropriate group and elevation behavior', (type, group, excludesElevation) => {
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(type)).toBe(group);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.shouldExcludeAscent(type)).toBe(excludesElevation);
+    expect(ActivityTypesHelper.shouldExcludeDescent(type)).toBe(excludesElevation);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(type === ActivityTypes.CCRDiving);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+  });
+
+  it('retains the existing metric families for Rucking, Sailing Expedition, and CCR Diving', () => {
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Rucking)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Rucking)).toEqual([
+      DataPaceAvg.type,
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Rucking)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.SailingExpedition)).toEqual([
+      DataSpeed.type,
+      DataSwimPace.type
+    ]);
+    expect(
+      ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.SailingExpedition)
+    ).toEqual([DataSpeedAvg.type, DataSwimPaceAvg.type]);
+    expect(
+      ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.SailingExpedition)
+    ).toEqual([]);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.CCRDiving)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.CCRDiving)).toEqual([
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.CCRDiving)).toEqual([]);
+  });
+
+  it('preserves separate Hiking, Sailing, and diving types without broad aliases', () => {
+    expect(ActivityTypes.Rucking).not.toBe(ActivityTypes.Hiking);
+    expect(ActivityTypes.Rucking).not.toBe(ActivityTypes.Walking);
+    expect(ActivityTypes.SailingExpedition).not.toBe(ActivityTypes.Sailing);
+    expect(ActivityTypes.SailingExpedition).not.toBe(ActivityTypes.SailRacing);
+    expect(ActivityTypes.CCRDiving).not.toBe(ActivityTypes.Diving);
+    expect(ActivityTypes.CCRDiving).not.toBe(ActivityTypes.ScubaDiving);
+    expect(ActivityTypes.CCRDiving).not.toBe(ActivityTypes.FreeDiving);
+    expect(ActivityTypesHelper.resolveActivityType('ruck')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('expedition')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('rebreather')).toBeNull();
   });
 
   it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(
@@ -1059,6 +1142,7 @@ describe('ActivityTypes', () => {
       [
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
+        ActivityTypes.CCRDiving,
         ActivityTypes.FreeDiving,
         ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,
@@ -1104,6 +1188,7 @@ describe('ActivityTypes', () => {
       [
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
+        ActivityTypes.CCRDiving,
         ActivityTypes.FreeDiving,
         ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,
@@ -1125,6 +1210,7 @@ describe('ActivityTypes', () => {
       [
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
+        ActivityTypes.CCRDiving,
         ActivityTypes.FreeDiving,
         ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,

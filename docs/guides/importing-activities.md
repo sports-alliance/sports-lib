@@ -217,8 +217,8 @@ sport and inputs support it; otherwise both stay unset. This includes sports exc
 library-calculated scores on eligible sports are refreshed from the current inputs with either setting;
 only finite imported scores take precedence when preservation is enabled.
 
-The mapping audit has added 114 canonical types since the Sports Lib 21.5.0 baseline. Both flag settings are tested
-over the entire 281-type catalog so future additions inherit the same rule.
+The mapping audit expands the canonical activity catalog. Both flag settings are tested
+over the entire 284-type catalog so future additions inherit the same rule.
 No numeric token, unit, formula, JSON field, or MCP contract changes. Consumers must adopt the library together
 in the application and Functions. A score already overwritten historically can only be recovered from a retained
 original source; native JSON containing the replacement cannot reconstruct the imported number. Correct only
@@ -946,6 +946,9 @@ never infers a specific discipline from an already collapsed Dancing, HIIT, Mobi
 | LES MILLS SPRINT | Cycling | Indoor Cycling |
 | LES MILLS TONE | Indoor Sports | Indoor Training |
 | LES MILLS THE TRIP | Cycling | Indoor Cycling |
+| Parkour | Performance | Generic |
+| Vertical Running | Trail Running | Trail Running |
+| Spearfishing | Diving | Diving |
 
 Polar's explicit dance profiles preserve Ballet Dancing, Ballroom Dancing, Jazz Dancing, Latin Dancing, Modern Dancing,
 Show Dancing, Street Dancing and Fitness Dancing. Ambiguous short names such as Jazz, Latin and Modern still require
@@ -966,6 +969,15 @@ no swimming stroke-rate semantics. Indoor Track Running belongs to Running, reta
 indoor running durability behavior, and accepts explicit track profiles on broad, track and indoor running records.
 Precise incompatible sub-sports such as treadmill, trail running and scuba remain ahead of conflicting profiles.
 
+Suunto's [activity table](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf) records Parkouring
+as Generic, Spearfishing as Diving, and Vertical running as Running/Trail (`1/3`). Explicit `Parkouring` or `Parkour`
+profiles preserve Parkour in Performance; explicit Spearfishing profiles preserve Spearfishing in Diving, with the
+existing diving terrain exclusions. Vertical Running belongs to Trail Running and retains that group's metric and
+durability behavior. An explicit Vertical Running profile on Suunto's shared `1/3` pair preserves the distinct type.
+Unnamed shared exports remain Generic, Diving, or Trail Running respectively; creator identity alone cannot recover
+these names. Native JSON also recognizes the explicit names. Suunto App IDs `18`, `101`, and `115` are not FIT sport
+IDs and do not change the legacy Suunto JSON/SML ID tables.
+
 All distinct types preserve finite imported TSS, including zero and legacy scores without a method, by default or
 with `preserveImportedTss: true`. False discards the imported score and calculates a replacement only when supported
 inputs exist. Existing power-first selection, HR calibration requirements and MET fallback remain unchanged.
@@ -982,7 +994,7 @@ evidence and Training snapshots. No source reparse or production write is perfor
 ## Garmin, Polar and Strava provider names
 
 The provider fixtures cover 146 source entries across Garmin, Polar and Strava, plus compatible export spellings.
-Distinct disciplines and named workouts retain their names in the 281-type catalog. These
+Distinct disciplines and named workouts retain their names in the 284-type catalog. These
 classifications use [Garmin's activity list](https://www8.garmin.com/manuals/webhelp/GUID-C144B465-A0C8-4FE9-AFE6-41A3FE3F1D9A/EN-US/GUID-4906F77A-0B26-48F9-A4DB-72752E06532D.html),
 [Polar's detailed sport identifiers](https://www.polar.com/accesslink-api/#detailed-sport-info-values-in-exercise-entity),
 and [Strava's SportType values](https://developers.strava.com/docs/reference/#api-models-SportType).
@@ -1058,7 +1070,7 @@ AccessLink API identifier is assigned. An unnamed Generic recording retains Gene
 distinct from American Football and Soccer; Korfball and Netball remain distinct from Basketball. Explicit names
 also restore the same canonical types from native JSON. They retain the group's existing metric and TSS policies,
 a false indoor hint, ordinary cadence semantics, and no durability adapter. Quantified Self's current Training registry
-resolves each to volume-only Other training with omitted distance. The local catalog now contains 281 types.
+resolves each to volume-only Other training with omitted distance. The local catalog now contains 284 types.
 
 The compatibility fixtures contain documented names and synthetic FIT bytes. Temporary public FIT samples stay
 outside the repository because redistribution rights were not established. The downloaded Polar and Suunto files

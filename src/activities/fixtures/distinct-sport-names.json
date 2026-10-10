@@ -302,5 +302,31 @@
       "LES MILLS TRIP"
     ],
     "indoor": true
+  },
+  {
+    "key": "Parkour",
+    "type": "Parkour",
+    "group": "PerformanceGroup",
+    "parent": "Crossfit",
+    "aliases": [
+      "Parkouring"
+    ],
+    "indoor": false
+  },
+  {
+    "key": "VerticalRunning",
+    "type": "Vertical Running",
+    "group": "TrailRunningGroup",
+    "parent": "Trail Running",
+    "aliases": [],
+    "indoor": false
+  },
+  {
+    "key": "Spearfishing",
+    "type": "Spearfishing",
+    "group": "DivingGroup",
+    "parent": "Diving",
+    "aliases": [],
+    "indoor": false
   }
 ]

@@ -226,6 +226,7 @@ describe('activity durability', () => {
     [ActivityTypes.LesMillsSprint, 'cycling', DataPower.type],
     [ActivityTypes.LesMillsTheTrip, 'cycling', DataPower.type],
     [ActivityTypes.TrailRunning, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.VerticalRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.ObstacleRacing, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.UltraRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.OpenWaterSwimming, 'open-water-swimming', DataSpeed.type]

@@ -31,10 +31,12 @@ their shared pairs; unnamed shared pairs keep their broad classifications. These
 recorded creator identity, with the existing TSS setting. Historical corrections require source reparsing and
 regeneration of affected summaries and Training snapshots. See [Import activities](guides/importing-activities.md).
 
-The catalog now has 281 canonical types. Polar dance styles, mobility variants, classic skiing, road sports and
+The catalog now has 284 canonical types. Polar dance styles, mobility variants, classic skiing, road sports and
 Les Mills programs keep separate names. HIIT timer formats, Dynamic Apnea and Indoor Track Running also retain
 their recorded distinctions. Road Bike resolves to Road Cycling; XC Classic Ski resolves to Classic Crosscountry
 Skiing. Broad stored labels remain readable, and imported TSS follows the existing setting.
+Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving. Recognized source
+profiles preserve these names; unnamed shared Suunto exports retain their broader labels.
 
 Provider context resolves ambiguous names such as Polar Enduro and Garmin Ski. FIT refinement requires a recognized
 `sport_profile_name`; activity titles alone do not establish a sport. Consumer adoption must update its exact Training

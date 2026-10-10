@@ -131,8 +131,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Garmin profile names preserve canonical sports: Road Bike keeps Road Cycling and XC Classic Ski keeps Classic Crosscountry Skiing.
  * Other aliases include Bike Indoor, Bike Tour, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
  * Provider name resolution accepts optional Garmin, Polar or Strava context for source-specific names.
- * The expanded catalog has 281 canonical types; Polar profile refinements require compatible FIT parents.
+ * The expanded catalog has 284 canonical types; Polar profile refinements require compatible FIT parents.
  * Dance styles, static/dynamic mobility, classic skiing, road sports and named Les Mills classes remain distinct.
+ * Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving.
+ * Explicit profiles preserve these names; Suunto Running/Trail requires a Vertical Running profile to distinguish it.
  * Broad stored canonical names remain readable; recovering specific historical names requires retained source information.
  * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
  * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.

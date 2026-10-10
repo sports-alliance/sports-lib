@@ -32,7 +32,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
   it('covers the approved canonical targets across 146 source entries', () => {
     expect(mappings).toHaveLength(146);
     expect(new Set(mappings.filter(row => row.newType).map(row => row.type)).size).toBe(79);
-    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(281);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(284);
   });
 
   it.each(allMappings)('resolves $source $identifier to $type in $group', row => {

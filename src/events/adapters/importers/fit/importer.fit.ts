@@ -2396,7 +2396,7 @@ export class EventImporterFIT {
 
     const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
-      resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
+      resolvedSubSportName && resolvedSubSportName.toLowerCase() !== 'generic' ? resolvedSubSportName : null;
     const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
 
     const source = getActivityTypeSourceFromManufacturer(
@@ -2837,6 +2837,10 @@ export class EventImporterFIT {
           return explicitProfile ?? ActivityTypes.Paragliding;
         case 'hiking/generic':
           return explicitProfile ?? ActivityTypes.Trekking;
+        // Vertical running shares Trail Running's pair; retain it only with an explicit profile.
+        case 'running/trail':
+          if (explicitProfile === ActivityTypes.VerticalRunning) return explicitProfile;
+          break;
         // These pairs are shared by Suunto sports; require their explicit profile name.
         case 'training/strengthtraining':
           if (explicitProfile === ActivityTypes.Kettlebell) return explicitProfile;

@@ -17,6 +17,12 @@ Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct
 Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Pool Apnea (`85`) has a distinct Diving type, Mobility (`86`) belongs to Indoor Sports, and Video Gaming (`63`)
+belongs to Unspecified. Pool Apnea remains separate from Free Diving; Mobility remains separate from Flexibility
+Training. Video Gaming omits calculated TSS while preserving source-imported scores. Correcting historical imports
+requires retained sources and regeneration of affected summaries and Training snapshots after consumer adoption.
+See [Import activities](guides/importing-activities.md).
+
 Shooting (`56`) and Geocaching (`87`) have distinct Outdoor Adventures types; Platform Tennis (`racket/platform`,
 `64/93`) has its own Team/Racket type. The FIT mappings apply across manufacturers. Historical Generic or Racquet Ball
 imports require specific retained sources, then regeneration of affected summaries and Training snapshots after

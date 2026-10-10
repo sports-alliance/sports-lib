@@ -22,6 +22,9 @@ const proposedGroupAssignments = [
   [ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.IndoorTraining, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Meditation, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Mobility, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.PoolApnea, ActivityTypeGroups.DivingGroup],
+  [ActivityTypes.VideoGaming, ActivityTypeGroups.UnspecifiedGroup],
   [ActivityTypes.Pilates, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.StairStepper, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes['Adventure Racing'], ActivityTypeGroups.PerformanceGroup],
@@ -87,7 +90,8 @@ const intentionalUnspecifiedActivityTypes = [
   ActivityTypes.Tactical,
   ActivityTypes.Transition,
   ActivityTypes.UnknownSport,
-  ActivityTypes.Workout
+  ActivityTypes.Workout,
+  ActivityTypes.VideoGaming
 ].sort();
 
 describe('ActivityTypes', () => {
@@ -382,6 +386,51 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType('platform')).toBeNull();
   });
 
+  it.each([
+    ['Pool Apnea', ActivityTypes.PoolApnea],
+    ['PoolApnea', ActivityTypes.PoolApnea],
+    ['pool_apnea', ActivityTypes.PoolApnea],
+    [' POOL-APNEA ', ActivityTypes.PoolApnea],
+    ['Mobility', ActivityTypes.Mobility],
+    [' MOBILITY ', ActivityTypes.Mobility],
+    ['Video Gaming', ActivityTypes.VideoGaming],
+    ['videoGaming', ActivityTypes.VideoGaming],
+    ['video_gaming', ActivityTypes.VideoGaming],
+    [' VIDEO-GAMING ', ActivityTypes.VideoGaming],
+    ['Gaming', ActivityTypes.VideoGaming]
+  ])('resolves explicit %s to %s', (value, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.PoolApnea, ActivityTypeGroups.DivingGroup, false, true],
+    [ActivityTypes.Mobility, ActivityTypeGroups.IndoorSportsGroup, true, false],
+    [ActivityTypes.VideoGaming, ActivityTypeGroups.UnspecifiedGroup, false, false]
+  ] as const)('exposes %s once with its group semantics', (type, group, indoor, excludesTerrain) => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeed.type]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeedAvg.type]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeAscent(type)).toBe(excludesTerrain);
+    expect(ActivityTypesHelper.shouldExcludeDescent(type)).toBe(excludesTerrain);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(excludesTerrain);
+  });
+
+  it('keeps the new activities distinct without broad apnea or esport aliases', () => {
+    expect(ActivityTypes.PoolApnea).not.toBe(ActivityTypes.FreeDiving);
+    expect(ActivityTypes.Mobility).not.toBe(ActivityTypes.FlexibilityTraining);
+    expect(ActivityTypes.Mobility).not.toBe(ActivityTypes.Stretching);
+    expect(ActivityTypesHelper.resolveActivityType('apnea')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('esport')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC')).toBeNull();
+  });
+
   it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(
     'resolves %s to canonical Hand Cycle',
     value => {
@@ -471,7 +520,8 @@ describe('ActivityTypes', () => {
       ActivityTypes.Chores
     ]);
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup)).toEqual([
-      ActivityTypes.Chores
+      ActivityTypes.Chores,
+      ActivityTypes.VideoGaming
     ]);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Chores)).toBe(false);
     expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Chores)).toBe(
@@ -950,6 +1000,7 @@ describe('ActivityTypes', () => {
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
         ActivityTypes.FreeDiving,
+        ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,
         ActivityTypes.Mermaiding
       ].forEach(activityType => {
@@ -994,6 +1045,7 @@ describe('ActivityTypes', () => {
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
         ActivityTypes.FreeDiving,
+        ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,
         ActivityTypes.Mermaiding
       ].forEach(activityType => {
@@ -1014,6 +1066,7 @@ describe('ActivityTypes', () => {
         ActivityTypes.Diving,
         ActivityTypes.ScubaDiving,
         ActivityTypes.FreeDiving,
+        ActivityTypes.PoolApnea,
         ActivityTypes.Snorkeling,
         ActivityTypes.Mermaiding
       ].forEach(activityType => {

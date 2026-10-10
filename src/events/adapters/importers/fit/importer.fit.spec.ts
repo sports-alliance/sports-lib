@@ -502,7 +502,10 @@ describe('EventImporterFIT', () => {
 
     describe.each([
       [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
-      [87, 'geocaching', ActivityTypes.Geocaching, 'Hiking']
+      [87, 'geocaching', ActivityTypes.Geocaching, 'Hiking'],
+      [85, 'pool_apnea', ActivityTypes.PoolApnea, 'Free Diving'],
+      [86, 'mobility', ActivityTypes.Mobility, 'Flexibility Training'],
+      [63, 'video_gaming', ActivityTypes.VideoGaming, 'Cycling']
     ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
       it.each([
         { sport: sportId },
@@ -531,6 +534,50 @@ describe('EventImporterFIT', () => {
           importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
         ).toBe(expectedType);
       });
+    });
+
+    it.each([
+      ['PoolApnea', ActivityTypes.PoolApnea],
+      ['poolApnea', ActivityTypes.PoolApnea],
+      ['POOL-APNEA', ActivityTypes.PoolApnea],
+      ['mobility', ActivityTypes.Mobility],
+      ['VideoGaming', ActivityTypes.VideoGaming],
+      ['videoGaming', ActivityTypes.VideoGaming],
+      ['VIDEO-GAMING', ActivityTypes.VideoGaming],
+      ['Gaming', ActivityTypes.VideoGaming],
+      ['gaming', ActivityTypes.VideoGaming]
+    ])('honors explicit sport or generic-session profile %s', (name, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: name, sub_sport: 77, sport_profile_name: 'Cycling' },
+            manufacturer
+          )
+        ).toBe(expectedType);
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 0, sub_sport: 0, sport_profile_name: name },
+            manufacturer
+          )
+        ).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      [{ sport: 85, sub_sport: 56, sport_profile_name: 'Free Diving' }, ActivityTypes.PoolApnea],
+      [{ sport: 86, sub_sport: 19, sport_profile_name: 'Yoga' }, ActivityTypes.Mobility],
+      [{ sport: 63, sub_sport: 77, sport_profile_name: 'Cycling' }, ActivityTypes.VideoGaming],
+      [{ sport: 2, sub_sport: 77 }, ActivityTypes.Cycling],
+      [{ sport: 'cycling', sub_sport: 'esport' }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 77 }, ActivityTypes.Generic],
+      [{ sport: 0, sport_profile_name: 'Esport' }, ActivityTypes.Generic],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 4, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
+      [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
+      [{ sport: 65, sub_sport: 86 }, ActivityTypes.WheelchairPushWalk],
+      [{ sport: 53, sub_sport: 63 }, ActivityTypes.Diving]
+    ])('keeps FIT sport and sub-sport namespaces distinct for %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
     });
 
     it.each(['Platform Tennis', 'PlatformTennis', 'platformTennis', 'platform_tennis', 'PLATFORM-TENNIS'])(
@@ -1482,6 +1529,25 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      [1, 85, 0, ActivityTypes.PoolApnea],
+      [7, 85, 0, ActivityTypes.PoolApnea],
+      [23, 85, 0, ActivityTypes.PoolApnea],
+      [123, 85, 0, ActivityTypes.PoolApnea],
+      [65535, 85, 0, ActivityTypes.PoolApnea],
+      [1, 86, 0, ActivityTypes.Mobility],
+      [7, 86, 0, ActivityTypes.Mobility],
+      [23, 86, 0, ActivityTypes.Mobility],
+      [123, 86, 0, ActivityTypes.Mobility],
+      [65535, 86, 0, ActivityTypes.Mobility],
+      [1, 63, 0, ActivityTypes.VideoGaming],
+      [7, 63, 0, ActivityTypes.VideoGaming],
+      [23, 63, 0, ActivityTypes.VideoGaming],
+      [123, 63, 0, ActivityTypes.VideoGaming],
+      [65535, 63, 0, ActivityTypes.VideoGaming],
+      [1, 63, 77, ActivityTypes.VideoGaming],
+      [1, 2, 77, ActivityTypes.Cycling],
+      [1, 53, 56, ActivityTypes.FreeDiving],
+      [1, 4, 19, ActivityTypes.FlexibilityTraining],
       [23, 0, 62, ActivityTypes.Meditation],
       [23, 64, 85, ActivityTypes.Padel],
       [1, 64, 93, ActivityTypes.PlatformTennis],

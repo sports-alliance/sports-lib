@@ -528,9 +528,13 @@ Priority order:
 
 - POWER -> HR -> PACE/SWIM_PACE -> MET
 
-Motorized and Adaptive Mobility activities do not receive library-calculated TSS, even when calculation inputs are
-available. A source-provided TSS remains available and is labeled `IMPORTED`; no durability evidence is generated for
-either group.
+Motorized and Adaptive Mobility activities, and the Video Gaming activity type, do not receive library-calculated TSS,
+even when calculation inputs or explicit overrides are available. A finite source-provided TSS remains available and is
+labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method retains the existing
+imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for
+these activities. Other Unspecified activities remain eligible for calculated TSS. Neither group nor Video Gaming has
+a durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
+units, JSON representation, and MCP metric discovery remain unchanged.
 
 POWER TSS:
 

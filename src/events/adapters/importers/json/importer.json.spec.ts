@@ -27,6 +27,20 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ['Pool Apnea', ActivityTypes.PoolApnea],
+    ['PoolApnea', ActivityTypes.PoolApnea],
+    ['poolApnea', ActivityTypes.PoolApnea],
+    ['pool_apnea', ActivityTypes.PoolApnea],
+    ['Mobility', ActivityTypes.Mobility],
+    ['mobility', ActivityTypes.Mobility],
+    ['Video Gaming', ActivityTypes.VideoGaming],
+    ['VideoGaming', ActivityTypes.VideoGaming],
+    ['videoGaming', ActivityTypes.VideoGaming],
+    ['video_gaming', ActivityTypes.VideoGaming],
+    ['Gaming', ActivityTypes.VideoGaming],
+    ['gaming', ActivityTypes.VideoGaming],
+    ['Free Diving', ActivityTypes.FreeDiving],
+    ['Flexibility Training', ActivityTypes.FlexibilityTraining],
     ['Shooting', ActivityTypes.Shooting],
     ['shooting', ActivityTypes.Shooting],
     ['Geocaching', ActivityTypes.Geocaching],

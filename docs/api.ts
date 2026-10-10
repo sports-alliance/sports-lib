@@ -119,6 +119,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
  * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
  * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.
+ * Pool Apnea belongs to Diving; explicit FIT sport 85 preserves it separately from Free Diving and excludes terrain summaries.
+ * Mobility belongs to Indoor Sports; explicit FIT sport 86 preserves it separately from Flexibility Training and Stretching.
+ * Video Gaming belongs to Unspecified; explicit FIT sport 63 and Gaming aliases resolve to it without calculated TSS.
+ * Video Gaming retains source-imported TSS; the shared FIT esport sub-sport does not establish Video Gaming on its own.
  * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
  * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.

@@ -357,6 +357,16 @@ export enum ActivityTypes {
   'cycling_commuting' = 'Cycling',
   'cycling_mixed_surface' = 'Cycling',
   /**
+   * BMX; explicit FIT cycling/bmx (2/29), distinct from general Cycling.
+   */
+  'BMX' = 'BMX',
+  'Bmx' = 'BMX',
+  'bmx' = 'BMX',
+  'BMX Cycling' = 'BMX',
+  'BMXCycling' = 'BMX',
+  'bmx_cycling' = 'BMX',
+  'cycling_bmx' = 'BMX',
+  /**
    * Cyclocross
    */
   'Cyclocross' = 'Cyclocross',
@@ -436,6 +446,24 @@ export enum ActivityTypes {
    */
   'motorcycling' = 'Motorcycling',
   'Motorcycling' = 'Motorcycling',
+  /**
+   * ATV; explicit FIT motorcycling/atv (22/35), distinct from general Motorcycling.
+   */
+  'ATV' = 'ATV',
+  'Atv' = 'ATV',
+  'atv' = 'ATV',
+  'All-Terrain Vehicle' = 'ATV',
+  'All Terrain Vehicle' = 'ATV',
+  'AllTerrainVehicle' = 'ATV',
+  'all_terrain_vehicle' = 'ATV',
+  'motorcycling_atv' = 'ATV',
+  /**
+   * Motocross; explicit FIT motorcycling/motocross (22/36).
+   */
+  'Motocross' = 'Motocross',
+  'MotoCross' = 'Motocross',
+  'motocross' = 'Motocross',
+  'motorcycling_motocross' = 'Motocross',
   /**
    * Boating
    */
@@ -626,6 +654,15 @@ export enum ActivityTypes {
    */
   'Triathlon' = 'Triathlon',
   /**
+   * Pool Triathlon; explicit FIT multisport/pool_triathlon (18/126).
+   * A pool classification alone does not establish that every leg is indoors.
+   */
+  'Pool Triathlon' = 'Pool Triathlon',
+  'PoolTriathlon' = 'Pool Triathlon',
+  'poolTriathlon' = 'Pool Triathlon',
+  'pool_triathlon' = 'Pool Triathlon',
+  'multisport_pool_triathlon' = 'Pool Triathlon',
+  /**
    * Duathlon
    */
   'Duathlon' = 'Duathlon',
@@ -645,6 +682,23 @@ export enum ActivityTypes {
   'downhill' = 'Alpine Skiing',
   'Downhill skiing' = 'Alpine Skiing',
   'DownhillSkiing' = 'Alpine Skiing',
+  /**
+   * Indoor Skiing; FIT fitness_equipment/indoor_skiing (4/25), also named XC Ski Indoor.
+   */
+  'Indoor Skiing' = 'Indoor Skiing',
+  'IndoorSkiing' = 'Indoor Skiing',
+  'indoorSkiing' = 'Indoor Skiing',
+  'indoor_skiing' = 'Indoor Skiing',
+  'XC Ski Indoor' = 'Indoor Skiing',
+  'XCSkiIndoor' = 'Indoor Skiing',
+  'xc_ski_indoor' = 'Indoor Skiing',
+  'Indoor Crosscountry Skiing' = 'Indoor Skiing',
+  'IndoorCrosscountrySkiing' = 'Indoor Skiing',
+  'indoor_crosscountry_skiing' = 'Indoor Skiing',
+  'Indoor Cross Country Skiing' = 'Indoor Skiing',
+  'IndoorCrossCountrySkiing' = 'Indoor Skiing',
+  'indoor_cross_country_skiing' = 'Indoor Skiing',
+  'fitness_equipment_indoor_skiing' = 'Indoor Skiing',
   /**
    * Crosscountry Skiing
    * https://en.wikipedia.org/wiki/Cross-country_skiing
@@ -1509,6 +1563,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
+      ActivityTypes.BMX,
       ActivityTypes.Cyclocross,
       ActivityTypes.GravelCycling,
       ActivityTypes.IndoorCycling,
@@ -1532,6 +1587,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.RollerSki,
       ActivityTypes.TrackAndField,
       ActivityTypes.Triathlon,
+      ActivityTypes.PoolTriathlon,
       ActivityTypes.Multisport,
       ActivityTypes['Adventure Racing'],
       ActivityTypes.Aquathlon,
@@ -1547,6 +1603,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Kettlebell,
       ActivityTypes.IndoorRowing,
       ActivityTypes.IndoorGrinding,
+      ActivityTypes.IndoorSkiing,
       ActivityTypes.Floorball,
       ActivityTypes.Dancing,
       ActivityTypes.JumpRope,
@@ -1616,6 +1673,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Boating,
       ActivityTypes.Driving,
       ActivityTypes.Motorcycling,
+      ActivityTypes.ATV,
+      ActivityTypes.Motocross,
       ActivityTypes.Motorsports,
       ActivityTypes.Overlanding,
       ActivityTypes.Rally,

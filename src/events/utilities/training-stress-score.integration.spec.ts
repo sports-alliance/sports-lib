@@ -257,6 +257,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
@@ -288,6 +290,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
@@ -312,6 +316,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.WheelchairPushRun,
     ActivityTypes.IndoorWheelchairPushWalk,
     ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.VideoGaming
@@ -327,6 +333,8 @@ describe('Training Stress Score integration', () => {
   });
 
   describe.each([
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.IndoorWheelchairPushWalk,
@@ -434,6 +442,9 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
+    ActivityTypes.BMX,
+    ActivityTypes.IndoorSkiing,
+    ActivityTypes.PoolTriathlon,
     ActivityTypes.ObstacleRacing,
     ActivityTypes.UltraRunning,
     ActivityTypes.IndoorWalking,

@@ -29,6 +29,12 @@ Indoor Walking accepts Walking and Fitness Equipment parents (`11/27`, `4/27`). 
 from specific retained sources; consumers must add the Walking group to exhaustive metadata maps during adoption.
 See [Import activities](guides/importing-activities.md).
 
+BMX (`2/29`) belongs to Cycling, Indoor Skiing (`4/25`, also named XC Ski Indoor) to Indoor Sports, ATV (`22/35`)
+and Motocross (`22/36`) to Motorized, and Pool Triathlon (`18/126`) to Performance. Their documented FIT parents
+preserve the separate canonical types across manufacturers. ATV and Motocross preserve imported TSS without
+calculating it; only Indoor Skiing establishes an indoor hint. Historical corrections require specific retained
+sources and regeneration of affected summaries after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Indoor Hand Cycle (`2/88`) belongs to Cycling; Indoor Wheelchair Push Walk (`65/86`) and Run (`66/87`) belong to
 Adaptive Mobility. All three preserve an explicit indoor hint. Overlanding belongs to Motorized, and Trucker Workout
 to Indoor Sports. Their specific FIT classifications and explicit names retain distinct canonical types; Motorized

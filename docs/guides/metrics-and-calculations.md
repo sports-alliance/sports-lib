@@ -544,6 +544,12 @@ continues to emit unsupported-context gravity-MTB durability evidence and keeps 
 inherits the Motorized calculated-TSS exclusion and imported-score policy above. These classifications add no metric
 token, unit, formula, or durability protocol; see [Import activities](importing-activities.md) for source and adoption requirements.
 
+BMX inherits Cycling's existing calculations and power/heart-rate durability eligibility checks. Indoor Skiing and
+Pool Triathlon retain Indoor Sports' and Performance's existing TSS selection, respectively; neither has a durability
+adapter. Pool Triathlon is not treated as a standalone swimming type. ATV and Motocross inherit Motorized's
+calculated-TSS exclusion, stale-score removal, and finite imported-score preservation. These classifications add no
+numeric metric token, unit, formula, or durability protocol.
+
 POWER TSS:
 
 ```text

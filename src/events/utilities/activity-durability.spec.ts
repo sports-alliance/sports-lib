@@ -213,6 +213,7 @@ describe('activity durability', () => {
 
   it.each([
     [ActivityTypes.MountainBiking, 'cycling', DataPower.type],
+    [ActivityTypes.BMX, 'cycling', DataPower.type],
     [ActivityTypes.TrailRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.ObstacleRacing, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.UltraRunning, 'running', DataGradeAdjustedSpeed.type],
@@ -280,6 +281,10 @@ describe('activity durability', () => {
   });
 
   it.each([
+    ActivityTypes.IndoorSkiing,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.PoolTriathlon,
     ActivityTypes.IndoorWalking,
     ActivityTypes.Rally,
     ActivityTypes.WeightTraining,

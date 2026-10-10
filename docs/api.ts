@@ -134,6 +134,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Obstacle Racing and Ultra Running belong to Running; FIT running/obstacle (1/59) and running/ultra (1/67) preserve them.
  * FIT cycling/enduro (2/123) reuses Enduro MTB; ambiguous Enduro names without cycling context do not establish it.
  * Rally belongs to Motorized; FIT motor_sports/rally (81/125) preserves it without calculating TSS.
+ * BMX belongs to Cycling; FIT cycling/bmx (2/29) preserves it separately from general Cycling.
+ * Indoor Skiing belongs to Indoor Sports; FIT fitness_equipment/indoor_skiing (4/25) and XC Ski Indoor names preserve it.
+ * ATV and Motocross belong to Motorized; FIT motorcycling/atv (22/35) and motorcycling/motocross (22/36) preserve them.
+ * Pool Triathlon belongs to Performance; FIT multisport/pool_triathlon (18/126) preserves it without assuming all legs are indoors.
  * Indoor Hand Cycle belongs to Cycling; FIT cycling/indoor_hand_cycling (2/88) preserves its indoor hint and existing cycling calculations.
  * Indoor Wheelchair Push Walk and Run belong to Adaptive Mobility; FIT pairs 65/86 and 66/87 retain their separate indoor types.
  * Overlanding belongs to Motorized; Overland names and the overland sub-sport under motorized parents retain it without calculated TSS.

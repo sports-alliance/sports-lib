@@ -501,6 +501,11 @@ describe('EventImporterFIT', () => {
     });
 
     describe.each([
+      [2, 29, 'cycling', 'bmx', ActivityTypes.BMX, 'Cycling'],
+      [4, 25, 'fitness_equipment', 'indoor_skiing', ActivityTypes.IndoorSkiing, 'Crosscountry Skiing'],
+      [22, 35, 'motorcycling', 'atv', ActivityTypes.ATV, 'Motorcycling'],
+      [22, 36, 'motorcycling', 'motocross', ActivityTypes.Motocross, 'Motorcycling'],
+      [18, 126, 'multisport', 'pool_triathlon', ActivityTypes.PoolTriathlon, 'Triathlon'],
       [1, 59, 'running', 'obstacle', ActivityTypes.ObstacleRacing, 'Running'],
       [1, 67, 'running', 'ultra', ActivityTypes.UltraRunning, 'Trail Running'],
       [11, 27, 'walking', 'indoor_walking', ActivityTypes.IndoorWalking, 'Walking'],
@@ -557,6 +562,17 @@ describe('EventImporterFIT', () => {
     );
 
     it.each([
+      ['BMX', ActivityTypes.BMX],
+      ['BMXCycling', ActivityTypes.BMX],
+      ['Indoor Skiing', ActivityTypes.IndoorSkiing],
+      ['XC Ski Indoor', ActivityTypes.IndoorSkiing],
+      ['indoor_cross_country_skiing', ActivityTypes.IndoorSkiing],
+      ['ATV', ActivityTypes.ATV],
+      ['All-Terrain Vehicle', ActivityTypes.ATV],
+      ['Motocross', ActivityTypes.Motocross],
+      ['MotoCross', ActivityTypes.Motocross],
+      ['Pool Triathlon', ActivityTypes.PoolTriathlon],
+      ['poolTriathlon', ActivityTypes.PoolTriathlon],
       ['Obstacle Racing', ActivityTypes.ObstacleRacing],
       ['ObstacleRun', ActivityTypes.ObstacleRacing],
       ['Ultra Running', ActivityTypes.UltraRunning],
@@ -760,6 +776,42 @@ describe('EventImporterFIT', () => {
         expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
       }
     });
+
+    it.each([
+      [{ sport: 0, sub_sport: 29 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 29 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 25 }, ActivityTypes.Generic],
+      [{ sport: 12, sub_sport: 25 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 0, sub_sport: 35 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 35 }, ActivityTypes.Cycling],
+      [{ sport: 24, sub_sport: 35 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 36 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 36 }, ActivityTypes.Cycling],
+      [{ sport: 24, sub_sport: 36 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 126 }, ActivityTypes.Generic],
+      [{ sport: 5, sub_sport: 126 }, ActivityTypes.Swimming],
+      [{ sport: 1, sub_sport: 126 }, ActivityTypes.Running],
+      [{ sport: 18, sub_sport: 0 }, ActivityTypes.Multisport],
+      [{ sport: 22, sub_sport: 0 }, ActivityTypes.Motorcycling],
+      [{ sport: 4, sub_sport: 0 }, ActivityTypes.FitnessEquipment],
+      [{ sport: 25, sub_sport: 0 }, ActivityTypes.Golf],
+      [{ sport: 29, sub_sport: 0 }, ActivityTypes.Fishing],
+      [{ sport: 35, sub_sport: 0 }, ActivityTypes.Snowshoeing],
+      [{ sport: 36, sub_sport: 0 }, ActivityTypes.Snowmobiling],
+      [{ sub_sport: 29 }, ActivityTypes.unknown],
+      [{ sub_sport: 25 }, ActivityTypes.unknown],
+      [{ sub_sport: 35 }, ActivityTypes.unknown],
+      [{ sub_sport: 36 }, ActivityTypes.unknown],
+      [{ sub_sport: 126 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 29 }, ActivityTypes.unknown]
+    ])(
+      'keeps BMX, indoor skiing, motorcycling variants, and pool triathlon within their FIT parent (%j)',
+      (session, expectedType) => {
+        for (const manufacturer of [1, 7, 23, 123, undefined]) {
+          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+        }
+      }
+    );
 
     describe.each([
       [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
@@ -1858,6 +1910,51 @@ describe('EventImporterFIT', () => {
       [1, 0, 66, ActivityTypes.Generic],
       [1, 17, 66, ActivityTypes.Hiking],
       [1, 0, 63, ActivityTypes.Generic],
+      [1, 2, 29, ActivityTypes.BMX],
+      [7, 2, 29, ActivityTypes.BMX],
+      [23, 2, 29, ActivityTypes.BMX],
+      [123, 2, 29, ActivityTypes.BMX],
+      [65535, 2, 29, ActivityTypes.BMX],
+      [1, 4, 25, ActivityTypes.IndoorSkiing],
+      [7, 4, 25, ActivityTypes.IndoorSkiing],
+      [23, 4, 25, ActivityTypes.IndoorSkiing],
+      [123, 4, 25, ActivityTypes.IndoorSkiing],
+      [65535, 4, 25, ActivityTypes.IndoorSkiing],
+      [1, 22, 35, ActivityTypes.ATV],
+      [7, 22, 35, ActivityTypes.ATV],
+      [23, 22, 35, ActivityTypes.ATV],
+      [123, 22, 35, ActivityTypes.ATV],
+      [65535, 22, 35, ActivityTypes.ATV],
+      [1, 22, 36, ActivityTypes.Motocross],
+      [7, 22, 36, ActivityTypes.Motocross],
+      [23, 22, 36, ActivityTypes.Motocross],
+      [123, 22, 36, ActivityTypes.Motocross],
+      [65535, 22, 36, ActivityTypes.Motocross],
+      [1, 18, 126, ActivityTypes.PoolTriathlon],
+      [7, 18, 126, ActivityTypes.PoolTriathlon],
+      [23, 18, 126, ActivityTypes.PoolTriathlon],
+      [123, 18, 126, ActivityTypes.PoolTriathlon],
+      [65535, 18, 126, ActivityTypes.PoolTriathlon],
+      [1, 0, 29, ActivityTypes.Generic],
+      [1, 1, 29, ActivityTypes.Running],
+      [1, 0, 25, ActivityTypes.Generic],
+      [1, 12, 25, ActivityTypes.CrosscountrySkiing],
+      [1, 0, 35, ActivityTypes.Generic],
+      [1, 2, 35, ActivityTypes.Cycling],
+      [1, 24, 35, ActivityTypes.Driving],
+      [1, 0, 36, ActivityTypes.Generic],
+      [1, 2, 36, ActivityTypes.Cycling],
+      [1, 24, 36, ActivityTypes.Driving],
+      [1, 0, 126, ActivityTypes.Generic],
+      [1, 5, 126, ActivityTypes.Swimming],
+      [1, 1, 126, ActivityTypes.Running],
+      [1, 18, 0, ActivityTypes.Multisport],
+      [1, 22, 0, ActivityTypes.Motorcycling],
+      [1, 4, 0, ActivityTypes.FitnessEquipment],
+      [1, 25, 0, ActivityTypes.Golf],
+      [1, 29, 0, ActivityTypes.Fishing],
+      [1, 35, 0, ActivityTypes.Snowshoeing],
+      [1, 36, 0, ActivityTypes.Snowmobiling],
       [1, 1, 59, ActivityTypes.ObstacleRacing],
       [7, 1, 59, ActivityTypes.ObstacleRacing],
       [23, 1, 59, ActivityTypes.ObstacleRacing],

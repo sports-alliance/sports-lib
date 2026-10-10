@@ -2407,6 +2407,15 @@ export class EventImporterFIT {
       case 'bmxcycling':
         return ActivityTypes.BMX;
       case 'cycling':
+        if (normalizedSubSportName === 'ebikeenduro') {
+          return ActivityTypes.EEnduroMTB;
+        }
+        if (normalizedSubSportName === 'trackcycling') {
+          return ActivityTypes.TrackCycling;
+        }
+        if (normalizedSubSportName === 'recumbent') {
+          return ActivityTypes.RecumbentCycling;
+        }
         if (normalizedSubSportName === 'bmx') {
           return ActivityTypes.BMX;
         }
@@ -2419,6 +2428,18 @@ export class EventImporterFIT {
         break;
       case 'enduromtb':
         return ActivityTypes.EnduroMTB;
+      case 'eenduromtb':
+      case 'electricenduromtb':
+      case 'ebikeenduro':
+        return ActivityTypes.EEnduroMTB;
+      case 'trackcycling':
+        return ActivityTypes.TrackCycling;
+      case 'recumbent':
+      case 'recumbentcycling':
+        return ActivityTypes.RecumbentCycling;
+      case 'indoortrack':
+      case 'indoortrackrunning':
+        return ActivityTypes.IndoorRunning;
       case 'obstacleracing':
       case 'obstaclerun':
         return ActivityTypes.ObstacleRacing;
@@ -2437,10 +2458,44 @@ export class EventImporterFIT {
       case 'walkindoor':
         return ActivityTypes.IndoorWalking;
       case 'walking':
+        if (normalizedSubSportName === 'speedwalking') {
+          return ActivityTypes.SpeedWalking;
+        }
         if (normalizedSubSportName === 'indoorwalking') {
           return ActivityTypes.IndoorWalking;
         }
         break;
+      case 'speedwalking':
+        return ActivityTypes.SpeedWalking;
+      case 'kayaking':
+        if (normalizedSubSportName === 'whitewater') {
+          return ActivityTypes.WhitewaterKayaking;
+        }
+        break;
+      case 'rafting':
+        if (normalizedSubSportName === 'whitewater') {
+          return ActivityTypes.WhitewaterRafting;
+        }
+        break;
+      case 'whitewaterkayaking':
+        return ActivityTypes.WhitewaterKayaking;
+      case 'whitewaterrafting':
+        return ActivityTypes.WhitewaterRafting;
+      case 'flying':
+        if (normalizedSubSportName === 'wingsuit') {
+          return ActivityTypes.WingsuitFlying;
+        }
+        break;
+      case 'wingsuit':
+      case 'wingsuitflying':
+        return ActivityTypes.WingsuitFlying;
+      case 'hunting':
+        if (normalizedSubSportName === 'huntingwithdogs') {
+          return ActivityTypes.HuntingWithDogs;
+        }
+        break;
+      case 'huntingwithdogs':
+        return ActivityTypes.HuntingWithDogs;
       case 'overland':
       case 'overlanding':
         return ActivityTypes.Overlanding;
@@ -2493,10 +2548,16 @@ export class EventImporterFIT {
       case 'pooltriathlon':
         return ActivityTypes.PoolTriathlon;
       case 'multisport':
+        if (normalizedSubSportName === 'brick') {
+          return ActivityTypes.BrickTraining;
+        }
         if (normalizedSubSportName === 'pooltriathlon') {
           return ActivityTypes.PoolTriathlon;
         }
         break;
+      case 'brick':
+      case 'bricktraining':
+        return ActivityTypes.BrickTraining;
       case 'fitnessequipment':
         if (normalizedSubSportName === 'indoorskiing') {
           return ActivityTypes.IndoorSkiing;
@@ -2606,7 +2667,11 @@ export class EventImporterFIT {
       typeof session.sport_profile_name === 'string'
     ) {
       const profileType = this.getActivityTypeByKey(session.sport_profile_name);
-      if (profileType === ActivityTypes.TrackAndField || profileType === ActivityTypes.TrackRunning) {
+      if (
+        profileType === ActivityTypes.TrackAndField ||
+        profileType === ActivityTypes.TrackRunning ||
+        profileType === ActivityTypes.IndoorRunning
+      ) {
         return profileType;
       }
     }
@@ -2636,7 +2701,15 @@ export class EventImporterFIT {
       normalizedSubSportName !== 'indoorskiing' &&
       normalizedSubSportName !== 'atv' &&
       normalizedSubSportName !== 'motocross' &&
-      normalizedSubSportName !== 'pooltriathlon';
+      normalizedSubSportName !== 'pooltriathlon' &&
+      normalizedSubSportName !== 'ebikeenduro' &&
+      normalizedSubSportName !== 'trackcycling' &&
+      normalizedSubSportName !== 'recumbent' &&
+      normalizedSubSportName !== 'speedwalking' &&
+      normalizedSubSportName !== 'whitewater' &&
+      normalizedSubSportName !== 'wingsuit' &&
+      normalizedSubSportName !== 'brick' &&
+      normalizedSubSportName !== 'huntingwithdogs';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

@@ -442,6 +442,16 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
+    ActivityTypes.EEnduroMTB,
+    ActivityTypes.TrackCycling,
+    ActivityTypes.RecumbentCycling,
+    ActivityTypes.SpeedWalking,
+    ActivityTypes.WhitewaterKayaking,
+    ActivityTypes.WhitewaterRafting,
+    ActivityTypes.WingsuitFlying,
+    ActivityTypes.BrickTraining,
+    ActivityTypes.HuntingWithDogs,
+    ActivityTypes.IndoorRunning,
     ActivityTypes.BMX,
     ActivityTypes.IndoorSkiing,
     ActivityTypes.PoolTriathlon,

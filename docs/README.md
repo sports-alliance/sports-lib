@@ -29,6 +29,13 @@ Indoor Walking accepts Walking and Fitness Equipment parents (`11/27`, `4/27`). 
 from specific retained sources; consumers must add the Walking group to exhaustive metadata maps during adoption.
 See [Import activities](guides/importing-activities.md).
 
+E-Enduro MTB (`2/127`) belongs to Mountain Biking, Track Cycling (`2/13`) and Recumbent Cycling (`2/10`) to Cycling,
+Speed Walking (`11/31`) to Walking, and separate Whitewater Kayaking (`41/41`) and Whitewater Rafting (`42/41`)
+to Water Sports. Wingsuit Flying (`20/40`), Brick Training (`18/80`), and Hunting with Dogs (`28/72`) belong to
+Aerial Sports, Performance, and Outdoor Adventures. Explicit Indoor Track names reuse Indoor Running; the track code
+alone does not imply indoor running. See [Import activities](guides/importing-activities.md) for parent guards,
+calculation behavior, and historical correction requirements.
+
 BMX (`2/29`) belongs to Cycling, Indoor Skiing (`4/25`, also named XC Ski Indoor) to Indoor Sports, ATV (`22/35`)
 and Motocross (`22/36`) to Motorized, and Pool Triathlon (`18/126`) to Performance. Their documented FIT parents
 preserve the separate canonical types across manufacturers. ATV and Motocross preserve imported TSS without

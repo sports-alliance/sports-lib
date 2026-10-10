@@ -93,7 +93,11 @@ type ActivityDurabilityAdapter =
   | 'open-water-speed'
   | 'pool-consistency';
 
-const GRAVITY_MTB_ACTIVITY_TYPES = new Set<ActivityTypes>([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling]);
+const GRAVITY_MTB_ACTIVITY_TYPES = new Set<ActivityTypes>([
+  ActivityTypes['Enduro MTB'],
+  ActivityTypes.EEnduroMTB,
+  ActivityTypes.DownhillCycling
+]);
 
 interface AerobicSegmentAccumulator {
   count: number;

@@ -165,6 +165,52 @@ The strict MCP activity catalog can discover the new values and Walking group us
 No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
 protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
 
+**Electric enduro, cycling variants, speed walking, whitewater, wingsuit, brick, and hunting with dogs.**
+
+| Canonical type | FIT sport/sub-sport | Group |
+| --- | --- | --- |
+| `E-Enduro MTB` | `cycling/e_bike_enduro` (`2/127`) | Mountain Biking |
+| `Track Cycling` | `cycling/track_cycling` (`2/13`) | Cycling |
+| `Recumbent Cycling` | `cycling/recumbent` (`2/10`) | Cycling |
+| `Speed Walking` | `walking/speed_walking` (`11/31`) | Walking |
+| `Whitewater Kayaking` | `kayaking/whitewater` (`41/41`) | Water Sports |
+| `Whitewater Rafting` | `rafting/whitewater` (`42/41`) | Water Sports |
+| `Wingsuit Flying` | `flying/wingsuit` (`20/40`) | Aerial Sports |
+| `Brick Training` | `multisport/brick` (`18/80`) | Performance |
+| `Hunting with Dogs` | `hunting/hunting_with_dogs` (`28/72`) | Outdoor Adventures |
+
+The [official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) documents these
+parent/sub-sport combinations. Numeric IDs, numeric strings, snake-case, camel-case, and uppercase names resolve
+consistently across manufacturers. Explicit sport/profile names and native JSON aliases preserve each canonical type.
+A sub-sport without its documented parent retains its broader classification. E-Enduro is electric mountain biking;
+motorcycling/e_bike_enduro remains Motorcycling, and ambiguous plain Enduro still requires cycling context.
+Whitewater alone does not identify kayaking or rafting. Speed Walking retains the FIT name without asserting
+race-walking competition rules. Brick does not infer component sports or construct activities from multiple sessions.
+
+`Indoor Track`, `IndoorTrack`, `Indoor Track Running`, and their snake-case aliases reuse the existing `Indoor Running`
+type in Running, with its true indoor hint. On FIT running/track (`1/4`), a recognized `sport_profile_name` supplies
+that distinction; without it, the pair retains Running and does not imply an indoor venue. Existing Track Running
+and Track and Field profile distinctions remain supported. A specific unrelated FIT pair still takes precedence over
+an Indoor Track profile. Garmin documents [indoor track running](https://www8.garmin.com/manuals/webhelp/forerunner945/EN-US/GUID-3A4C7C6C-1FE3-4EB5-B38E-3F744A5C1F00.html).
+Track Cycling and Recumbent Cycling are not automatically marked indoor.
+
+Each new type retains its parent sport's existing metric families, movement threshold, elevation policy, and TSS
+selection. Whitewater Kayaking uses Kayaking's stroke-rate semantics; Whitewater Rafting retains Rafting's existing
+cadence semantics. Track and Recumbent Cycling use the existing cycling durability protocol with its usual evidence
+checks. E-Enduro MTB emits unsupported-context gravity-MTB durability evidence, like Enduro MTB, while retaining
+ordinary TSS eligibility. The six other new types have no durability adapter. Indoor Track aliases inherit the
+existing Indoor Running durability behavior. No numeric metric token, unit, formula, or durability protocol is added.
+
+The nine new exact types currently resolve to volume-only Other training in Quantified Self's independent Training
+registry; group membership does not create a modeled context or provider delivery capability. Indoor Track aliases
+reuse its existing indoor-running context. Adopt the changes in the application and Functions together, review the
+dynamic supported-activities catalog and exhaustive mappings, and correct historical labels only where a retained
+source or explicit name provides the distinction. Then regenerate affected event summaries, activity-type aggregates,
+durability evidence, and Training snapshots through the existing source-backed reparse and derived ingress.
+Native JSON hydration can recover explicit aliases such as cycling_track_cycling, but cannot recover detail lost in
+a stored broad Cycling or Running value. Saved routes, queue lifecycle, write paths, monitoring, and MCP wire fields,
+scopes, and mutations are unchanged.
+
 **BMX, Indoor Skiing, ATV, Motocross, and Pool Triathlon.**
 
 | Canonical type | FIT sport/sub-sport | Group |
@@ -624,7 +670,9 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
 `Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, `CCR Diving`,
 `Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, `Indoor Wheelchair Push Run`,
-`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, `Rally`, `BMX`, `Indoor Skiing`, `ATV`, `Motocross`, or `Pool Triathlon`.
+`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, `Rally`, `BMX`, `Indoor Skiing`, `ATV`, `Motocross`, `Pool Triathlon`,
+`E-Enduro MTB`, `Track Cycling`, `Recumbent Cycling`, `Speed Walking`, `Whitewater Kayaking`, `Whitewater Rafting`,
+`Wingsuit Flying`, `Brick Training`, or `Hunting with Dogs`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

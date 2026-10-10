@@ -550,6 +550,14 @@ adapter. Pool Triathlon is not treated as a standalone swimming type. ATV and Mo
 calculated-TSS exclusion, stale-score removal, and finite imported-score preservation. These classifications add no
 numeric metric token, unit, formula, or durability protocol.
 
+E-Enduro MTB retains Enduro MTB's unsupported-context gravity-MTB durability policy and ordinary TSS eligibility.
+Track Cycling and Recumbent Cycling retain Cycling's power/heart-rate durability eligibility checks; their names
+do not imply indoor activities. Speed Walking retains Walking's pace/speed and vertical-speed behavior. Whitewater
+Kayaking retains Kayaking's stroke-rate semantics, and Whitewater Rafting retains Rafting's cadence semantics. Wingsuit
+Flying, Brick Training, and Hunting with Dogs retain the existing Aerial Sports, Performance, and Outdoor Adventures
+metric families, respectively. These six types have no durability adapter. Explicit Indoor Track names reuse Indoor
+Running and its existing running durability policy. No metric token, unit, formula, or durability protocol changes.
+
 POWER TSS:
 
 ```text

@@ -134,6 +134,12 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Obstacle Racing and Ultra Running belong to Running; FIT running/obstacle (1/59) and running/ultra (1/67) preserve them.
  * FIT cycling/enduro (2/123) reuses Enduro MTB; ambiguous Enduro names without cycling context do not establish it.
  * Rally belongs to Motorized; FIT motor_sports/rally (81/125) preserves it without calculating TSS.
+ * E-Enduro MTB belongs to Mountain Biking; FIT cycling/e_bike_enduro (2/127) retains gravity-MTB durability exclusion.
+ * Track Cycling (2/13) and Recumbent Cycling (2/10) belong to Cycling without assuming an indoor venue.
+ * Speed Walking (11/31) belongs to Walking, without inferring race-walking rules.
+ * Whitewater Kayaking (41/41) and Whitewater Rafting (42/41) remain separate Water Sports types.
+ * Wingsuit Flying (20/40), Brick Training (18/80), and Hunting with Dogs (28/72) belong to Aerial Sports, Performance, and Outdoor Adventures.
+ * Explicit Indoor Track and Indoor Track Running names reuse Indoor Running; bare running/track remains ambiguous.
  * BMX belongs to Cycling; FIT cycling/bmx (2/29) preserves it separately from general Cycling.
  * Indoor Skiing belongs to Indoor Sports; FIT fitness_equipment/indoor_skiing (4/25) and XC Ski Indoor names preserve it.
  * ATV and Motocross belong to Motorized; FIT motorcycling/atv (22/35) and motorcycling/motocross (22/36) preserve them.

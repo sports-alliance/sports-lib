@@ -214,6 +214,9 @@ describe('activity durability', () => {
   it.each([
     [ActivityTypes.MountainBiking, 'cycling', DataPower.type],
     [ActivityTypes.BMX, 'cycling', DataPower.type],
+    [ActivityTypes.TrackCycling, 'cycling', DataPower.type],
+    [ActivityTypes.RecumbentCycling, 'cycling', DataPower.type],
+    [ActivityTypes.IndoorRunning, 'running', DataSpeed.type],
     [ActivityTypes.TrailRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.ObstacleRacing, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.UltraRunning, 'running', DataGradeAdjustedSpeed.type],
@@ -231,7 +234,7 @@ describe('activity durability', () => {
     expect(result.summary).toMatchObject({ discipline, eligibility: { eligible: true } });
   });
 
-  it.each([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling])(
+  it.each([ActivityTypes['Enduro MTB'], ActivityTypes.EEnduroMTB, ActivityTypes.DownhillCycling])(
     'keeps gravity MTB type %s as explicit unsupported durability evidence',
     type => {
       const result = analyzeActivityDurability(
@@ -264,23 +267,32 @@ describe('activity durability', () => {
     }
   );
 
-  it('treats gravity MTB policy inputs as sufficient to replace stale evidence without retained streams', () => {
-    const downhillWithoutStreams = mockActivity({ type: ActivityTypes.DownhillCycling });
-    const downhillWithStreams = mockActivity({
-      type: ActivityTypes.DownhillCycling,
-      streams: {
-        [DataPower.type]: Array(3600).fill(200),
-        [DataHeartRate.type]: Array(3600).fill(140)
-      }
-    });
+  it.each([ActivityTypes.DownhillCycling, ActivityTypes.EEnduroMTB])(
+    'treats %s gravity MTB policy inputs as sufficient to replace stale evidence without retained streams',
+    type => {
+      const downhillWithoutStreams = mockActivity({ type });
+      const downhillWithStreams = mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(140)
+        }
+      });
 
-    expect(hasActivityDurabilitySourceData(downhillWithoutStreams)).toBe(true);
-    expect(calculateActivityDurabilitySourceFingerprint(downhillWithoutStreams)).toBe(
-      calculateActivityDurabilitySourceFingerprint(downhillWithStreams)
-    );
-  });
+      expect(hasActivityDurabilitySourceData(downhillWithoutStreams)).toBe(true);
+      expect(calculateActivityDurabilitySourceFingerprint(downhillWithoutStreams)).toBe(
+        calculateActivityDurabilitySourceFingerprint(downhillWithStreams)
+      );
+    }
+  );
 
   it.each([
+    ActivityTypes.SpeedWalking,
+    ActivityTypes.WhitewaterKayaking,
+    ActivityTypes.WhitewaterRafting,
+    ActivityTypes.WingsuitFlying,
+    ActivityTypes.BrickTraining,
+    ActivityTypes.HuntingWithDogs,
     ActivityTypes.IndoorSkiing,
     ActivityTypes.ATV,
     ActivityTypes.Motocross,

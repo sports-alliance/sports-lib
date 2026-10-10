@@ -495,6 +495,7 @@ describe('EventImporterFIT', () => {
       { sport: 65, sub_sport: 27 },
       { sport: 65, sub_sport: 0, sport_profile_name: 'Walking' },
       { sport: 65, sport_profile_name: 'Running' },
+      { sport: 65, sub_sport: 0, sport_profile_name: 'Wheelchair Push Run' },
       { sport: 65, sub_sport: 86, sport_profile_name: 'Custom mobility profile' }
     ])('maps explicit Wheelchair Push Walk session %j to its distinct canonical type', session => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushWalk);
@@ -507,9 +508,33 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
-      [{ sport: 66 }, ActivityTypes.unknown],
-      [{ sport: 66, sub_sport: 0 }, ActivityTypes.Generic],
+      { sport: 66 },
+      { sport: 66, sub_sport: 0 },
+      { sport: '66', sub_sport: '0' },
+      { sport: 'wheelchair_push_run' },
+      { sport: 'wheelchair_push_run', sub_sport: 'generic' },
+      { sport: 'Wheelchair Push Run', sub_sport: 'generic' },
+      { sport: 'WHEELCHAIR-PUSH-RUN', sub_sport: 'GENERIC' },
+      { sport: 66, sub_sport: 87 },
+      { sport: 'wheelchair_push_run', sub_sport: 'indoor_wheelchair_run' },
+      { sport: 66, sub_sport: 45 },
+      { sport: 66, sub_sport: 0, sport_profile_name: 'Running' },
+      { sport: 66, sport_profile_name: 'Walking' },
+      { sport: 66, sub_sport: 0, sport_profile_name: 'Wheelchair Push Walk' },
+      { sport: 66, sub_sport: 87, sport_profile_name: 'Custom mobility profile' }
+    ])('maps explicit Wheelchair Push Run session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushRun);
+    });
+
+    it.each([1, 23, 123, undefined])('maps Wheelchair Push Run independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 66, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.WheelchairPushRun
+      );
+    });
+
+    it.each([
       [{ sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sub_sport: 87 }, ActivityTypes.unknown],
       [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
       [{ sport: 1, sub_sport: 0 }, ActivityTypes.Running],
       [{ sport: 2, sub_sport: 12 }, ActivityTypes.Handcycle],
@@ -1106,6 +1131,11 @@ describe('EventImporterFIT', () => {
       [123, 65, 0, ActivityTypes.WheelchairPushWalk],
       [65535, 65, 0, ActivityTypes.WheelchairPushWalk],
       [1, 65, 86, ActivityTypes.WheelchairPushWalk],
+      [1, 66, 0, ActivityTypes.WheelchairPushRun],
+      [23, 66, 0, ActivityTypes.WheelchairPushRun],
+      [123, 66, 0, ActivityTypes.WheelchairPushRun],
+      [65535, 66, 0, ActivityTypes.WheelchairPushRun],
+      [1, 66, 87, ActivityTypes.WheelchairPushRun],
       [1, 0, 12, ActivityTypes.Generic],
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],

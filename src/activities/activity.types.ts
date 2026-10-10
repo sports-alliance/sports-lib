@@ -1062,6 +1062,12 @@ export enum ActivityTypes {
   'Water Skiing' = 'Water Skiing',
   'WaterSkiing' = 'Water Skiing',
   /**
+   * Water Tubing; explicit FIT sport water_tubing (76).
+   */
+  'water_tubing' = 'Water Tubing',
+  'Water Tubing' = 'Water Tubing',
+  'WaterTubing' = 'Water Tubing',
+  /**
    * Flexibility Training
    */
   'training_flexibility_training' = 'Flexibility Training',
@@ -1155,6 +1161,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.StandUpPaddling,
   ActivityTypes.WaterSkiing,
   ActivityTypes.Wakeboarding,
+  ActivityTypes.WaterTubing,
   ActivityTypes.Swimming,
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
@@ -1176,6 +1183,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.StandUpPaddling,
   ActivityTypes.WaterSkiing,
   ActivityTypes.Wakeboarding,
+  ActivityTypes.WaterTubing,
   ActivityTypes.Swimming,
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
@@ -1346,6 +1354,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.StandUpPaddling,
       ActivityTypes.Rafting,
       ActivityTypes.WaterSkiing,
+      ActivityTypes.WaterTubing,
       ActivityTypes.Windsurfing
     ],
     [ActivityTypeGroups.DivingGroup]: [

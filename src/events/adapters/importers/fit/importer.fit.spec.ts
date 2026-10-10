@@ -571,6 +571,50 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 76 },
+      { sport: 76, sub_sport: 0 },
+      { sport: '76', sub_sport: '0' },
+      { sport: 'water_tubing' },
+      { sport: 'water_tubing', sub_sport: 'generic' },
+      { sport: 'Water Tubing', sub_sport: 'generic' },
+      { sport: 'WATER-TUBING', sub_sport: 'GENERIC' },
+      { sport: 76, sub_sport: 22 },
+      { sport: 76, sub_sport: 0, sport_profile_name: 'Water Skiing' },
+      { sport: 76, sport_profile_name: 'Wakeboarding' },
+      { sport: 76, sub_sport: 0, sport_profile_name: 'Custom water profile' }
+    ])('maps explicit Water Tubing session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WaterTubing);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Water Tubing independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 76, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.WaterTubing
+      );
+    });
+
+    it.each([
+      { sport: 0, sub_sport: 0, sport_profile_name: 'Water Tubing' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'water_tubing' }
+    ])('honors an explicit Water Tubing profile in generic session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.WaterTubing);
+    });
+
+    it.each([
+      [{ sport: 'water_skiing', sub_sport: 0 }, ActivityTypes.WaterSkiing],
+      [{ sport: 'wakeboarding', sub_sport: 0 }, ActivityTypes.Wakeboarding],
+      [{ sport: 'surfing', sub_sport: 0 }, ActivityTypes.Surfing],
+      [{ sport: 'rafting', sub_sport: 0 }, ActivityTypes.Rafting],
+      [{ sport: 77, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 'water_sport', sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Tubing' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom water profile' }, ActivityTypes.Generic]
+    ])('preserves distinct water sports and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 65 },
       { sport: 65, sub_sport: 0 },
       { sport: '65', sub_sport: '0' },
@@ -1223,6 +1267,12 @@ describe('EventImporterFIT', () => {
       [23, 74, 0, ActivityTypes.Lacrosse],
       [123, 74, 0, ActivityTypes.Lacrosse],
       [65535, 74, 0, ActivityTypes.Lacrosse],
+      [1, 76, 0, ActivityTypes.WaterTubing],
+      [7, 76, 0, ActivityTypes.WaterTubing],
+      [23, 76, 0, ActivityTypes.WaterTubing],
+      [123, 76, 0, ActivityTypes.WaterTubing],
+      [65535, 76, 0, ActivityTypes.WaterTubing],
+      [1, 77, 0, ActivityTypes.Generic],
       [1, 25, 0, ActivityTypes.Golf],
       [7, 0, 0, ActivityTypes.Generic],
       [23, 0, 0, ActivityTypes.Generic],

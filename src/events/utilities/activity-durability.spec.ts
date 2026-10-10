@@ -281,6 +281,7 @@ describe('activity durability', () => {
     ActivityTypes.WeightTraining,
     ActivityTypes.DiscGolf,
     ActivityTypes.Lacrosse,
+    ActivityTypes.WaterTubing,
     ActivityTypes.Driving,
     ActivityTypes.Wheelchair,
     ActivityTypes.WheelchairPushWalk,

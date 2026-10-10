@@ -118,6 +118,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.
  * Lacrosse belongs to Team/Racket; FIT sport 74 and explicit Lacrosse names preserve its distinct canonical type.
+ * Water Tubing belongs to Water Sports; explicit FIT sport 76 preserves it separately from Water Skiing and Wakeboarding.
  * Field Hockey belongs to Team/Racket; FIT `hockey/field` resolves to it across manufacturers.
  * Suunto FIT `generic/match` resolves to Field Hockey using creator identity.
  * Ice Hockey belongs to Team/Racket; FIT `hockey/ice` resolves to it across manufacturers.

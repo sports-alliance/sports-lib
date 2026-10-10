@@ -27,6 +27,11 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ['Water Tubing', ActivityTypes.WaterTubing],
+    ['WaterTubing', ActivityTypes.WaterTubing],
+    ['water_tubing', ActivityTypes.WaterTubing],
+    ['Water Skiing', ActivityTypes.WaterSkiing],
+    ['Wakeboarding', ActivityTypes.Wakeboarding],
     ['Lacrosse', ActivityTypes.Lacrosse],
     ['lacrosse', ActivityTypes.Lacrosse],
     ['LACROSSE', ActivityTypes.Lacrosse],

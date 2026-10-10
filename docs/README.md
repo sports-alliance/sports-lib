@@ -20,6 +20,10 @@ Lacrosse belongs to Team/Racket with its own canonical type. FIT sport `74` and 
 preserve that classification across manufacturers. Historical corrections need retained sources or specific sport names;
 generic FIT exports alone remain ambiguous. See [Import activities](guides/importing-activities.md).
 
+Water Tubing belongs to Water Sports with its own canonical type. FIT sport `76` and explicit Water Tubing
+sport/profile names preserve it separately from Water Skiing and Wakeboarding across manufacturers. Historical Generic
+imports require specific retained sources. See [Import activities](guides/importing-activities.md).
+
 FIT `cycling/hand_cycling` imports resolve to the existing Hand Cycle type in the Cycling group; correcting older
 Cycling classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

@@ -2,6 +2,8 @@ import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataPace } from '../data/data.pace';
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataSpeed } from '../data/data.speed';
+import { DataSwimPace } from '../data/data.swim-pace';
+import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
 import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
@@ -36,6 +38,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Velomobile, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.WaterTubing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.DiscGolf, ActivityTypeGroups.TeamRacketGroup],
@@ -448,6 +451,49 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType('generic')).toBe(ActivityTypes.Generic);
     expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
     expect(ActivityTypesHelper.resolveActivityType('team_sport')).toBeNull();
+  });
+
+  it.each(['Water Tubing', 'WaterTubing', 'water_tubing', 'WATER-TUBING', ' Water tubing '])(
+    'resolves explicit %s to canonical Water Tubing',
+    value => {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.WaterTubing);
+    }
+  );
+
+  it('exposes Water Tubing once with the existing towed water-sport behavior', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Water Tubing')).toEqual([
+      ActivityTypes.WaterTubing
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.WaterSportsGroup).filter(
+        type => type === ActivityTypes.WaterTubing
+      )
+    ).toEqual([ActivityTypes.WaterTubing]);
+    expect(ActivityTypes.WaterTubing).not.toBe(ActivityTypes.WaterSkiing);
+    expect(ActivityTypes.WaterTubing).not.toBe(ActivityTypes.Wakeboarding);
+    expect(ActivityTypes.WaterTubing).not.toBe(ActivityTypes.Rafting);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.WaterTubing)).toBe(false);
+    expect(ActivityTypesHelper.usesStrokeRate(ActivityTypes.WaterTubing)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.WaterTubing)).toBe(0.3);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.WaterTubing)).toEqual([
+      DataSpeed.type,
+      DataSwimPace.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.WaterTubing)).toEqual([
+      DataSpeedAvg.type,
+      DataSwimPaceAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.WaterTubing)).toEqual(
+      []
+    );
+    expect(
+      ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.WaterTubing)
+    ).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.WaterTubing)).toBe(true);
+    expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.WaterTubing)).toBe(true);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.WaterTubing)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('tubing')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBeNull();
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(

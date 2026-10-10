@@ -38,6 +38,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.DiscGolf, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.FieldHockey, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
@@ -381,6 +382,48 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.Handcycle
       )
     ).toEqual([ActivityTypes.Handcycle]);
+  });
+
+  it.each([
+    'Disc Golf',
+    'DiscGolf',
+    'disc_golf',
+    'DISC-GOLF',
+    'FrisbeeGolf',
+    'Frisbee Golf',
+    'Frisbee golf',
+    'frisbee_golf',
+    'FRISBEEGOLF'
+  ])('resolves explicit %s to the distinct Disc Golf type', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.DiscGolf);
+  });
+
+  it('exposes Disc Golf once alongside Golf and Frisbee without merging their identities', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Disc Golf')).toEqual([
+      ActivityTypes.DiscGolf
+    ]);
+    const groupTypes = ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.TeamRacketGroup);
+    expect(groupTypes.filter(type => type === ActivityTypes.DiscGolf)).toEqual([ActivityTypes.DiscGolf]);
+    expect(groupTypes).toContain(ActivityTypes.Golf);
+    expect(groupTypes).toContain(ActivityTypes.Frisbee);
+    expect(ActivityTypesHelper.resolveActivityType('Golf')).toBe(ActivityTypes.Golf);
+    expect(ActivityTypesHelper.resolveActivityType('Frisbee')).toBe(ActivityTypes.Frisbee);
+    expect(ActivityTypes.DiscGolf).not.toBe(ActivityTypes.Golf);
+    expect(ActivityTypes.DiscGolf).not.toBe(ActivityTypes.Frisbee);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.DiscGolf)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.DiscGolf)).toBe(
+      ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Golf)
+    );
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.DiscGolf)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.DiscGolf)).toEqual([
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.DiscGolf)).toEqual([]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.DiscGolf)).toEqual(
+      []
+    );
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(

@@ -298,6 +298,7 @@ describe('activity durability', () => {
 
   it.each([
     ActivityTypes.WeightTraining,
+    ActivityTypes.DiscGolf,
     ActivityTypes.Driving,
     ActivityTypes.Wheelchair,
     ActivityTypes.WheelchairPushWalk,

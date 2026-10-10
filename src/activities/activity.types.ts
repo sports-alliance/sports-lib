@@ -774,6 +774,18 @@ export enum ActivityTypes {
   'Golf' = 'Golf',
   'golf' = 'Golf',
   /**
+   * Disc Golf, including FIT sport 69 and explicit Frisbee golf provider names.
+   * Distinct from Golf and the general Frisbee activity.
+   */
+  'Disc Golf' = 'Disc Golf',
+  'DiscGolf' = 'Disc Golf',
+  'disc_golf' = 'Disc Golf',
+  'FrisbeeGolf' = 'Disc Golf',
+  'Frisbee Golf' = 'Disc Golf',
+  'Frisbee golf' = 'Disc Golf',
+  'frisbee_golf' = 'Disc Golf',
+  'FRISBEEGOLF' = 'Disc Golf',
+  /**
    * Hand Gliding
    */
   'hang_gliding' = 'Hang Gliding',
@@ -1339,6 +1351,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
       ActivityTypes.Golf,
+      ActivityTypes.DiscGolf,
       ActivityTypes.AmericanFootball,
       ActivityTypes.Football,
       ActivityTypes.Badminton,

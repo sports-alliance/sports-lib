@@ -247,6 +247,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypeGroupsAsUniqueArray()).toContain(ActivityTypeGroups.SkatingGroup);
     expect(ActivityTypeGroups.SkatingGroup).toBe('skating_group');
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.SkatingGroup)).toEqual([
+      ActivityTypes.Skateboarding,
       ActivityTypes.InlineSkating,
       ActivityTypes.Skating
     ]);
@@ -728,8 +729,8 @@ describe('ActivityTypes', () => {
     expect(ActivityTypes.Mobility).not.toBe(ActivityTypes.Stretching);
     expect(ActivityTypesHelper.resolveActivityType('apnea')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('esport')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC', 'polar')).toBe(ActivityTypes.Mobility);
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC', 'polar')).toBe(ActivityTypes.Mobility);
   });
 
   it.each([
@@ -865,7 +866,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypes.CCRDiving).not.toBe(ActivityTypes.ScubaDiving);
     expect(ActivityTypes.CCRDiving).not.toBe(ActivityTypes.FreeDiving);
     expect(ActivityTypesHelper.resolveActivityType('ruck')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('expedition')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('expedition')).toBe(ActivityTypes.Expedition);
     expect(ActivityTypesHelper.resolveActivityType('rebreather')).toBeNull();
   });
 
@@ -1203,6 +1204,7 @@ describe('ActivityTypes', () => {
       ActivityTypes.Wheelchair
     ]);
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.AdaptiveMobilityGroup)).toEqual([
+      ActivityTypes.WheelchairRacing,
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
       ActivityTypes.WheelchairPushRun,

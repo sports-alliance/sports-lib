@@ -5,6 +5,10 @@ import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-po
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
+import {
+  getActivityTypeSourceFromManufacturer,
+  resolveProviderFITProfile
+} from '../../../../activities/activity-types.provider';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
@@ -3126,6 +3130,17 @@ export class EventImporterFIT {
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
     const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
 
+    const source = getActivityTypeSourceFromManufacturer(
+      this.resolveFitProfileName(manufacturer, getFitManufacturerName)
+    );
+    const providerProfile = resolveProviderFITProfile(
+      session.sport_profile_name,
+      source,
+      resolvedSport,
+      resolvedSubSportName
+    );
+    if (providerProfile) return providerProfile;
+
     // Preserve these explicit sports before sub-sport or user-defined profile
     // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
@@ -3556,6 +3571,8 @@ export class EventImporterFIT {
       normalizedSubSportName !== 'flyparamotor' &&
       normalizedSubSportName !== 'rcdrone' &&
       normalizedSubSportName !== 'backcountry' &&
+      normalizedSubSportName !== 'expedition' &&
+      normalizedSubSportName !== 'handcycling' &&
       normalizedSubSportName !== 'pickleball' &&
       normalizedSubSportName !== 'indoorgrinding' &&
       normalizedSubSportName !== 'sailrace' &&

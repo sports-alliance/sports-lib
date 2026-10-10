@@ -10,6 +10,9 @@ import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
 const proposedGroupAssignments = [
+  [ActivityTypes.RacketSport, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.ParaSport, ActivityTypeGroups.UnspecifiedGroup],
   [ActivityTypes.Hockey, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.WinterSport, ActivityTypeGroups.WinterSportsGroup],
   [ActivityTypes.TeamSport, ActivityTypeGroups.TeamRacketGroup],
@@ -121,6 +124,7 @@ const proposedGroupAssignments = [
 ] as const;
 
 const intentionalUnspecifiedActivityTypes = [
+  ActivityTypes.ParaSport,
   ActivityTypes.RCDroneFlying,
   ActivityTypes.Chores,
   ActivityTypes.Generic,
@@ -136,6 +140,9 @@ const intentionalUnspecifiedActivityTypes = [
 
 describe('ActivityTypes', () => {
   it.each([
+    [ActivityTypes.RacketSport, [DataSpeed.type], [DataSpeedAvg.type], []],
+    [ActivityTypes.UltimateDisc, [DataSpeed.type], [DataSpeedAvg.type], []],
+    [ActivityTypes.ParaSport, [DataSpeed.type], [DataSpeedAvg.type], []],
     [ActivityTypes.Hockey, [DataSpeed.type], [DataSpeedAvg.type], []],
     [ActivityTypes.TeamSport, [DataSpeed.type], [DataSpeedAvg.type], []],
     [ActivityTypes.WinterSport, [DataSpeed.type], [DataSpeedAvg.type], []],
@@ -951,6 +958,7 @@ describe('ActivityTypes', () => {
       ActivityTypes.Chores
     ]);
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup)).toEqual([
+      ActivityTypes.ParaSport,
       ActivityTypes.Chores,
       ActivityTypes.VideoGaming,
       ActivityTypes.RCDroneFlying

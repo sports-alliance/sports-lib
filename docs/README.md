@@ -20,6 +20,12 @@ Stored values and calculations retain full precision; existing stats need no rep
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve that classification; correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
+AMRAP, EMOM, and Tabata reuse HIIT; Dynamic Apnea reuses Pool Apnea; E-Bike Fitness, Casual Walking, and Bike Commute
+reuse E-Biking, Walking, and Cycling. Bare Racket imports now preserve the broad Racket Sport category; precise
+sub-sports or racket profile names retain their particular sport. See [Import activities](guides/importing-activities.md#racket-para-disc-and-workout-names)
+for parent guards, aliases, TSS behavior, and historical corrections after consumer adoption.
+
 Padel belongs to Team/Racket. FIT `racket/padel` imports preserve Padel instead of Racquet Ball; correcting older
 classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

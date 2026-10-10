@@ -524,15 +524,24 @@ components.
 
 6) Training Stress Score (TSS) methods and priority
 
-Priority order:
+`preserveImportedTss` defaults to **true** for every activity type, including all newly added sports. With true or
+an omitted option, finite imported TSS is retained exactly, including zero, regardless of calculation inputs,
+overrides, activity group, or calculated-TSS eligibility. A finite legacy score without a method is treated as
+imported and labeled `IMPORTED`. Native JSON hydration and repeated summary generation preserve that value and method
+when preservation remains enabled.
+
+With **false**, existing imported or calculated TSS and its method are discarded. A replacement is calculated for
+eligible sports with sufficient inputs; if calculation is excluded or no method succeeds, both stay unset. Motorized,
+Adaptive Mobility, Video Gaming, Paramotoring, and RC Drone Flying follow the same flag rather than retaining an
+imported score after preservation is disabled. Existing calculated scores on eligible sports remain unchanged when
+preservation is true and are refreshed when false. Missing TSS on eligible sports uses this priority:
 
 - POWER -> HR -> PACE/SWIM_PACE -> MET
 
 Motorized and Adaptive Mobility activities, and the Video Gaming, Paramotoring, and RC Drone Flying types, do not
 receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A finite
-source-provided TSS remains available and is
-labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method retains the existing
-imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for
+source-provided TSS is retained when preservation is true or omitted. Previously calculated TSS and its method are
+removed during summary generation for
 these activities. Other Unspecified and Aerial Sports activities remain eligible for calculated TSS. These excluded
 groups and three types have no durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
 units, JSON representation, and MCP metric discovery remain unchanged.

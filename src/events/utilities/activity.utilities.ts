@@ -2820,30 +2820,36 @@ export class ActivityUtilities {
 
   private static generateTrainingStressScore(activity: ActivityInterface): void {
     const existingTss = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
+    const existingTssMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
+    const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
 
-    if (!this.supportsCalculatedTrainingStressScore(activity)) {
-      const existingTssMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
-      const hasImportedTss =
-        existingTss !== null &&
-        (existingTssMethod === undefined || existingTssMethod === TrainingStressScoreMethod.IMPORTED);
-      if (hasImportedTss) {
-        if (existingTssMethod === undefined) {
-          this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
-        }
-      } else {
-        activity.removeStat(DataTrainingStressScore.type);
-        activity.removeStat(DataTrainingStressScoreMethod.type);
+    // Preserve imported scores for every sport when requested (the default),
+    // including zero and legacy scores without a method, before eligibility checks.
+    const hasImportedTss =
+      existingTss !== null &&
+      (existingTssMethod === undefined || existingTssMethod === TrainingStressScoreMethod.IMPORTED);
+    if (hasImportedTss && preserveImportedTss) {
+      if (existingTssMethod === undefined) {
+        this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
       }
       return;
     }
 
-    const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
+    if (!this.supportsCalculatedTrainingStressScore(activity)) {
+      activity.removeStat(DataTrainingStressScore.type);
+      activity.removeStat(DataTrainingStressScoreMethod.type);
+      return;
+    }
 
     if (existingTss !== null && preserveImportedTss) {
-      if (!activity.getStat(DataTrainingStressScoreMethod.type)) {
-        this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
-      }
       return;
+    }
+
+    // Disabling preservation discards the previous score and method. If no
+    // calculation succeeds, both stay unset rather than retaining imported TSS.
+    if (!preserveImportedTss) {
+      activity.removeStat(DataTrainingStressScore.type);
+      activity.removeStat(DataTrainingStressScoreMethod.type);
     }
 
     const result = this.calculateTrainingStressScoreByPriority(activity);

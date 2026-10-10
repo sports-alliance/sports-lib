@@ -59,6 +59,8 @@ export type {
 
 /**
  * FIT device metadata can retain all rows or compact unchanged runs per device index, including interleaved devices.
+ * preserveImportedTss defaults to true and preserves finite imported TSS for every sport, including zero and method-less scores.
+ * False discards existing TSS and its method, calculates a replacement where supported, and leaves both unset otherwise.
  * @category Parsing options
  */
 export { ActivityParsingOptions } from '../src/activities/activity-parsing-options';

@@ -147,7 +147,7 @@ Obstacle Racing and Ultra Running inherit the existing running metric and TSS se
 protocol, subject to its usual sample, duration, and context checks. Enduro MTB retains its existing gravity-MTB
 unsupported-context durability evidence and existing TSS eligibility. Indoor Walking retains ordinary TSS eligibility.
 Rally omits calculated power/HR/MET TSS and removes stale calculated scores while preserving finite imported TSS,
-even when imported-score preservation is disabled. Rally has no durability adapter. No numeric metric token, unit,
+when preservation is true or omitted. Disabling preservation leaves Rally TSS unset. Rally has no durability adapter. No numeric metric token, unit,
 formula, durability protocol, workout delivery capability, provider transport, or Training planning contract changes.
 
 Historical Running, Walking, Fitness Equipment, Cycling, or Motorsports labels need specific retained FIT sources or
@@ -164,6 +164,25 @@ fall back to volume-only Other training; group membership alone does not widen T
 The strict MCP activity catalog can discover the new values and Walking group using its existing fields and scopes.
 No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
 protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
+
+**Imported Training Stress Score preservation.**
+
+Every canonical sport retains finite source-imported TSS exactly, including zero, when `preserveImportedTss` is
+true or omitted (the default). This also applies after type or alias normalization, native JSON hydration, and
+repeated summary generation. Calculation inputs, overrides, and calculated-TSS exclusions do not replace imported
+scores while preservation is enabled. A finite legacy score without a method gains the `IMPORTED` method.
+
+With `preserveImportedTss: false`, existing TSS and its method are discarded. A replacement is calculated where the
+sport and inputs support it; otherwise both stay unset. This includes sports excluded from calculated TSS. Existing
+library-calculated scores on eligible sports are retained when true and refreshed when false.
+
+The mapping audit has added 62 canonical types and added or corrected aliases for 70 types since the Sports Lib
+21.5.0 baseline. Both flag settings are tested over the entire 193-type catalog so future additions inherit the same rule.
+No numeric token, unit, formula, JSON field, or MCP contract changes. Consumers must adopt the library together
+in the application and Functions. A score already overwritten historically can only be recovered from a retained
+original source; native JSON containing the replacement cannot reconstruct the imported number. Correct only
+specifically affected originals through the existing source-backed reparse and regenerate affected event summaries
+and Training snapshots. No global reparse or deployment is required by this implementation change.
 
 **Spin, E-bike Mountain, Adventure Race, flying variants, and broad sport categories.**
 
@@ -198,7 +217,8 @@ Suunto's bare Generic Adventure Racing classification and Hang Gliding pair rema
 supply the more specific Adventure Race or Paraglide distinction.
 
 Paramotoring and RC Drone Flying omit calculated POWER, HR, pace, and MET TSS, remove stale calculated scores and
-methods, and preserve finite imported TSS, including legacy scores without a method and `preserveImportedTss: false`.
+methods, and preserve finite imported TSS when preservation is true or omitted, including legacy scores without a method.
+With `preserveImportedTss: false`, both TSS and its method stay unset for these two sports.
 This is a type-specific policy: other Aerial Sports and Unspecified types retain their existing TSS eligibility.
 The other eight classifications retain their existing group calculations. Water Sport uses the Water Sports speed
 and swim-pace display families without implying swimming or paddling. Indoor Cycling and E-Mountain Biking retain
@@ -291,8 +311,8 @@ does not prove that a BMX session provides suitable endurance evidence. Indoor S
 existing speed/average-speed, default movement threshold, and TSS selection. Pool Triathlon uses Performance's
 existing speed/average-speed, vertical-speed, default movement threshold, and TSS selection; it does not acquire a
 whole-triathlon durability adapter or swimming stroke-rate calculations. ATV and Motocross inherit Motorized's
-calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve finite imported TSS even when imported
-preservation is disabled. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
+calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve finite imported TSS with the default
+or true preservation setting. Disabling preservation leaves TSS and its method unset. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
 new durability protocol, workout leg, provider transport, or delivery capability is introduced.
 
 Historical Cycling, Fitness Equipment, Crosscountry Skiing, Motorcycling, or Multisport labels cannot establish these
@@ -346,7 +366,8 @@ families, `4/3.6` movement threshold, power TSS eligibility, and existing power/
 other four use their existing groups' speed/average-speed families and default movement threshold, with no
 vertical-speed, grade-adjusted, or stroke-rate derivation. Existing raw metrics and terrain summaries remain readable.
 Overlanding and both indoor wheelchair types omit calculated power/HR/MET TSS and stale calculated scores while
-preserving finite imported TSS, even if imported-score preservation is disabled. Trucker Workout retains its group's
+preserving finite imported TSS when preservation is true or omitted. With false, TSS and its method stay unset.
+Trucker Workout retains its group's
 existing TSS selection. Those four have no durability adapter. No numeric metric token, unit, formula, durability
 protocol, provider transport, workout delivery capability, or modeled Training family is added.
 
@@ -430,7 +451,8 @@ identify Video Gaming.
 
 Video Gaming receives no library-calculated POWER, HR, pace, or MET TSS even when inputs or overrides are available.
 Previously calculated TSS and its method are removed during summary generation. A finite source-provided TSS remains
-available and is labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method
+available and is labeled `IMPORTED` when `preserveImportedTss` is true or omitted. With false, TSS and its method
+stay unset. A legacy score without a method
 retains the existing imported-score interpretation; its provenance cannot be recovered from the number alone.
 Pool Apnea and Mobility retain their groups' existing TSS eligibility. None of these types has stroke-rate semantics
 or a durability adapter. No numeric metric token, unit, schema, provider transport, delivery support, or Training formula
@@ -440,7 +462,7 @@ Generic activities belonged to Fitness & Gym. Usable power curves remain isolate
 Stored Generic or Unknown Sport labels cannot identify these activities. Reparse retained FIT `85`, `86`, or `63`
 sources, or restore specific source names/profiles, then regenerate separately persisted event summaries, activity-type
 aggregates, and affected Training snapshots. Recalculation is needed to clear identified calculated Video Gaming TSS;
-the source-imported score policy is unchanged. Saved routes need no reparse. Adopt the release in both the Quantified
+source-imported scores remain preserved with the default or true setting. Saved routes need no reparse. Adopt the release in both the Quantified
 Self application and Functions before persisting these types. Existing strict MCP activity-type discovery exposes
 their names, groups, and indoor hints without new fields, scopes, tools, or planning mutations. Queue lifecycle, write
 paths, and monitoring remain unchanged. Supported-activities Help uses the dynamic catalog and needs no enumerated

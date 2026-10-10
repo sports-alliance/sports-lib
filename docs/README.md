@@ -6,6 +6,10 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+With `preserveImportedTss: true` (the default), every sport retains finite imported Training Stress Score, including
+zero and legacy scores without a method. With `false`, existing TSS and its method are discarded and a replacement
+is calculated where supported; otherwise both remain unset. See [Metrics and calculations](guides/metrics-and-calculations.md).
+
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve that classification; correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

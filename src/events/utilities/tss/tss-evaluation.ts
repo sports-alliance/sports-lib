@@ -1,14 +1,21 @@
 import type { TrainingStressScoreMethodType } from '../../../data/data.training-stress-score-method';
 import type { ActivityInterface } from '../../../activities/activity.interface';
 
-/** A requested calculation policy. Imported scores always take precedence. */
+/** A requested calculation policy. Imported scores take precedence when preservation is enabled (the default). */
 export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET';
 
 /** Stable machine-readable diagnostics, suitable for a consumer's localized explanation. */
 export type TrainingStressScoreReason =
-  | 'imported-score' | 'unsupported-sport' | 'missing-hr-calibration' | 'invalid-hr-calibration'
-  | 'ambiguous-hr-calibration' | 'missing-hr-samples' | 'missing-met-inputs'
-  | 'missing-power-inputs' | 'missing-pace-inputs' | 'calculation-unavailable';
+  | 'imported-score'
+  | 'unsupported-sport'
+  | 'missing-hr-calibration'
+  | 'invalid-hr-calibration'
+  | 'ambiguous-hr-calibration'
+  | 'missing-hr-samples'
+  | 'missing-met-inputs'
+  | 'missing-power-inputs'
+  | 'missing-pace-inputs'
+  | 'calculation-unavailable';
 
 /** A resolved policy; null is unavailable, while zero is a valid score. */
 export interface TrainingStressScoreEvaluation {

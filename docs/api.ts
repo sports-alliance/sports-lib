@@ -12,6 +12,10 @@
  * Diving-group terrain summaries, and adds missing speed-derived pace summaries on events,
  * activities, and laps. GPX route exports emit links before route numbers and waypoint symbols/types,
  * following the GPX 1.1 metadata sequence.
+ * Native event and route JSON omit non-finite scalar summaries and skip legacy null/non-finite summary values on read.
+ * Suunto-created FIT training/flexibility_training (10/19) imports preserve the existing Stretching classification.
+ * Other distinct Suunto export pairs reuse existing canonical sports; explicit Kettlebell and Telemark Skiing
+ * profiles refine their shared pairs using recorded creator identity and decoded FIT fields.
  *
  * @category Import and export
  */
@@ -59,6 +63,8 @@ export type {
 
 /**
  * FIT device metadata can retain all rows or compact unchanged runs per device index, including interleaved devices.
+ * preserveImportedTss defaults to true and preserves finite imported TSS for every sport, including zero and method-less scores.
+ * False discards existing TSS and its method, calculates a replacement where supported, and leaves both unset otherwise.
  * @category Parsing options
  */
 export { ActivityParsingOptions } from '../src/activities/activity-parsing-options';
@@ -114,11 +120,97 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * vertical-speed derivation; Motorized and Adaptive Mobility activities do not receive calculated
  * TSS or durability, but preserve source-imported TSS. Snorkeling and Mermaiding are canonical
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
+ * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification defaults to Meditation.
+ * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
+ * Racket Sport (FIT 64) and Ultimate Disc belong to Team/Racket; Para Sport (FIT 68) belongs to Unspecified.
+ * Bare Racket preserves its broad category; recognized racket sub-sports or precise racket profiles retain their specific type.
+ * A recognized Para Sport profile can identify its discipline. Ultimate Disc/Ultimate Frisbee require explicit names; sub-sport 92 alone is ambiguous.
+ * AMRAP, EMOM, and Tabata retain separate canonical types, including FIT pairs 62/73, 62/74, and 62/75.
+ * E-Bike Fitness (21/28), Casual Walking (11/30), and Bike Commute (2/48) reuse E-Biking, Walking, and Cycling.
+ * Dynamic Apnea (53/121, also 85/121) retains its own type in Diving. Workout-specific sub-sports require their documented parents.
+ * Garmin profile names preserve canonical sports: Road Bike keeps Road Cycling and XC Classic Ski keeps Classic Crosscountry Skiing.
+ * Other aliases include Bike Indoor, Bike Tour, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
+ * Provider name resolution accepts optional Garmin, Polar or Strava context for source-specific names.
+ * The expanded catalog has 284 canonical types; Polar profile refinements require compatible FIT parents.
+ * Dance styles, static/dynamic mobility, classic skiing, road sports and named Les Mills classes remain distinct.
+ * Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving.
+ * Explicit profiles preserve these names; Suunto Running/Trail requires a Vertical Running profile to distinguish it.
+ * Broad stored canonical names remain readable; recovering specific historical names requires retained source information.
+ * Name lookup rejects non-string values and inherited object keys; invalid native JSON sport names restore Unknown Sport.
+ * LES MILLS RPM, SPRINT and THE TRIP retain Indoor Cycling's trainer flag through serialization.
+ * Decoded scuba and apnea names retain their specific classification across capitalization and separators.
+ * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
+ * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
+ * Specific incompatible FIT classifications take precedence; arbitrary activity titles do not identify a profile name.
+ * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
+ * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
+ * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.
+ * Pool Apnea belongs to Diving; explicit FIT sport 85 preserves it separately from Free Diving and excludes terrain summaries.
+ * Mobility belongs to Indoor Sports; explicit FIT sport 86 preserves it separately from Flexibility Training and Stretching.
+ * Video Gaming belongs to Unspecified; explicit FIT sport 63 and Gaming aliases resolve to it without calculated TSS.
+ * Video Gaming retains source-imported TSS; the shared FIT esport sub-sport does not establish Video Gaming on its own.
+ * Grinding belongs to Water Sports; explicit FIT sport 59 preserves sailing winch activity.
+ * Indoor Grinding belongs to Indoor Sports; FIT grinding/indoor_grinding (59/71) and Grind Onshore names preserve it separately.
+ * Sail Racing belongs to Water Sports; FIT sailing/sail_race (32/65) and Sail Race names preserve it separately from Sailing.
+ * Rucking belongs to Outdoor Adventures; FIT hiking/rucking (17/124) preserves it separately from Hiking and Walking.
+ * Sailing Expedition belongs to Water Sports; FIT sailing/expedition (32/66) and Sail Expedition names preserve it separately.
+ * CCR Diving belongs to Diving; FIT diving/ccr_diving (53/63) preserves the closed-circuit rebreather type and excludes terrain summaries.
+ * Walking, Indoor Walking, and Nordic Walking belong to WalkingGroup; the indoor hint is independent of group membership.
+ * FIT walking/indoor_walking (11/27) and fitness_equipment/indoor_walking (4/27) preserve Indoor Walking.
+ * Obstacle Racing and Ultra Running belong to Running; FIT running/obstacle (1/59) and running/ultra (1/67) preserve them.
+ * FIT cycling/enduro (2/123) reuses Enduro MTB; ambiguous Enduro names without cycling context do not establish it.
+ * Rally belongs to Motorized; FIT motor_sports/rally (81/125) preserves it without calculating TSS.
+ * FIT Spin (2/5) reuses Indoor Cycling; cycling/e_bike_mountain (2/47) reuses E-Mountain Biking, like e_biking/47.
+ * Adventure Race (18/82, 1/82) reuses Adventure Racing; Fly Paraglide (20/111) reuses Paragliding.
+ * Broad Hockey (73), Winter Sport (58), Team Sport (70), and Water Sport (78) preserve the source category without guessing subtypes.
+ * Paramotoring (20/112) belongs to Aerial Sports; RC Drone Flying (20/39) belongs to Unspecified. Both retain imported TSS only.
+ * E-Enduro MTB belongs to Mountain Biking; FIT cycling/e_bike_enduro (2/127) retains gravity-MTB durability exclusion.
+ * Track Cycling (2/13) and Recumbent Cycling (2/10) belong to Cycling without assuming an indoor venue.
+ * Speed Walking (11/31) belongs to Walking, without inferring race-walking rules.
+ * Whitewater Kayaking (41/41) and Whitewater Rafting (42/41) remain separate Water Sports types.
+ * Wingsuit Flying (20/40), Brick Training (18/80), and Hunting with Dogs (28/72) belong to Aerial Sports, Performance, and Outdoor Adventures.
+ * Explicit Indoor Track and Indoor Track Running names preserve Indoor Track Running; bare running/track remains ambiguous.
+ * BMX belongs to Cycling; FIT cycling/bmx (2/29) preserves it separately from general Cycling.
+ * Indoor Skiing belongs to Indoor Sports; FIT fitness_equipment/indoor_skiing (4/25) and XC Ski Indoor names preserve it.
+ * ATV and Motocross belong to Motorized; FIT motorcycling/atv (22/35) and motorcycling/motocross (22/36) preserve them.
+ * Pool Triathlon belongs to Performance; FIT multisport/pool_triathlon (18/126) preserves it without assuming all legs are indoors.
+ * Indoor Hand Cycle belongs to Cycling; FIT cycling/indoor_hand_cycling (2/88) preserves its indoor hint and existing cycling calculations.
+ * Indoor Wheelchair Push Walk and Run belong to Adaptive Mobility; FIT pairs 65/86 and 66/87 retain their separate indoor types.
+ * Overlanding belongs to Motorized; Overland names and the overland sub-sport under motorized parents retain it without calculated TSS.
+ * Trucker Workout belongs to Indoor Sports; generic, fitness_equipment, and training parents with sub-sport 83 identify exercise during driving breaks.
+ * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
+ * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
+ * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.
+ * Lacrosse belongs to Team/Racket; FIT sport 74 and explicit Lacrosse names preserve its distinct canonical type.
+ * Water Tubing belongs to Water Sports; explicit FIT sport 76 preserves it separately from Water Skiing and Wakeboarding.
+ * Wakesurfing belongs to Water Sports; explicit FIT sport 77 preserves it separately from Surfing and Wakeboarding.
+ * Archery belongs to Outdoor Adventures; explicit FIT sport 79 preserves it separately from Hunting.
+ * Mixed Martial Arts belongs to Indoor Sports; explicit FIT sport 80 and MMA aliases preserve it separately from Combat and Boxing.
+ * Field Hockey belongs to Team/Racket; FIT `hockey/field` resolves to it across manufacturers.
+ * Suunto FIT `generic/match` resolves to Field Hockey using creator identity.
+ * Ice Hockey belongs to Team/Racket; FIT `hockey/ice` resolves to it across manufacturers.
+ * Chores belongs to Unspecified; Suunto FIT `generic/exercise` resolves to it using creator identity.
+ * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
+ * Suunto FIT `generic/hand_cycling` resolves to the existing Wheel Chair type in Adaptive Mobility using creator identity.
+ * Wheelchair Push Walk and Wheelchair Push Run belong to Adaptive Mobility, distinct from general Wheel Chair.
+ * FIT `wheelchair_push_walk` and `wheelchair_push_run` preserve the distinct push modes across manufacturers before profile fallbacks.
+ * Cyclocross belongs to Cycling; the FIT `cycling/cyclocross` classification resolves to Cyclocross.
+ * Gravel Cycling belongs to Cycling; FIT `cycling/gravel_cycling` and the `GravelRide` alias resolve to Gravel Cycling.
+ * E-Mountain Biking belongs to Mountain Biking; FIT `e_biking/e_bike_mountain` and `EMountainBikeRide` resolve to it.
+ * Splitboarding belongs to Winter Sports; the FIT `snowboarding/backcountry` classification resolves to Splitboarding.
+ * Ski Mountaineering belongs to Winter Sports; FIT `mountaineering/backcountry` resolves to Ski Mountaineering.
+ * Skate Skiing belongs to Winter Sports; FIT `cross_country_skiing/skate_skiing` resolves to Skate Skiing.
+ * FIT `backcountry` sub-sports require sport context and do not classify unrelated sports as skiing.
+ * Track Running belongs to Running and recognizes explicit Track Run/Track Running sport or profile names.
+ * FIT `running/track` honors explicit Track Running or Track and Field profiles; the pair alone remains Running.
+ *
+ * Every canonical type has exactly one group; group member lists contain each type once, including all intentionally unspecified types.
+ * Indoor status is an independent hint and does not move an activity out of its sport family.
  *
  * @category Activities and events
  */
 export { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../src/activities/activity.types';
-export type { ActivityTypeGroup } from '../src/activities/activity.types';
+export type { ActivityTypeGroup, ActivityTypeSource } from '../src/activities/activity.types';
 export type { EventInterface } from '../src/events/event.interface';
 export type { EventJSONInterface } from '../src/events/event.json.interface';
 export { FileType } from '../src/events/adapters/file-type.enum';

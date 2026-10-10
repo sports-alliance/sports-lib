@@ -14,10 +14,14 @@ export interface NumericRecordAggregation {
 }
 
 export class StatsUtilities {
+  /** Serializes stats without non-finite scalar numbers, which JSON would turn into null. */
   static serializeStats(stats: Map<string, DataInterface>): DataJSONInterface {
     const statsJSON: DataJSONInterface = {};
     stats.forEach((value: DataInterface) => {
-      Object.assign(statsJSON, value.toJSON());
+      Object.entries(value.toJSON()).forEach(([type, statValue]) => {
+        if (typeof statValue === 'number' && !Number.isFinite(statValue)) return;
+        statsJSON[type] = statValue;
+      });
     });
     return statsJSON;
   }

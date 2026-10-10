@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
 import { EventImporterFIT } from './importer.fit';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ActivityTypes } from '../../../../activities/activity.types';
@@ -441,6 +442,2042 @@ describe('EventImporterFIT', () => {
   });
 
   describe('Activity type resolution', () => {
+    const importerInternals = EventImporterFIT as unknown as {
+      getActivityTypeFromSessionObject(session: unknown, manufacturer?: unknown): ActivityTypes;
+      getActivityFromSessionObject(
+        session: unknown,
+        fitDataObject: unknown,
+        options: ActivityParsingOptions,
+        sessionIndex: number
+      ): Activity;
+    };
+
+    it.each([
+      { sport: 'generic', sub_sport: 'breathing' },
+      { sport: 0, sub_sport: 62 },
+      { sport: '0', sub_sport: '62' },
+      { sport: 'generic', sub_sport: 62 },
+      { sport: 'generic', sub_sport: 'breathing', sport_profile_name: 'Custom recovery profile' }
+    ])('maps FIT breathing classification %j to Meditation', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Meditation);
+    });
+
+    it.each([
+      { sport: 'racket', sub_sport: 'padel' },
+      { sport: 64, sub_sport: 85 },
+      { sport: '64', sub_sport: '85' },
+      { sport: 'racket', sub_sport: 85 },
+      { sport: 'racket', sub_sport: 'padel', sport_profile_name: 'Custom racket profile' }
+    ])('maps FIT padel classification %j to Padel', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Padel);
+    });
+
+    it.each([
+      { sport: 64, sub_sport: 84 },
+      { sport: '64', sub_sport: '84' },
+      { sport: 'racket', sub_sport: 'pickleball' },
+      { sport: 'RACKET', sub_sport: 'PICKLEBALL' },
+      { sport: 'racket', sub_sport: 84 },
+      { sport: 64, sub_sport: 'pickleball', sport_profile_name: 'Padel' },
+      { sport: 64, sub_sport: 84, sport_profile_name: 'Tennis' },
+      { sport: 64, sub_sport: 84, sport_profile_name: 'Custom racket profile' }
+    ])('maps the explicit FIT racket/pickleball pair %j to Pickleball', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Pickleball);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Pickleball);
+    });
+
+    it.each([
+      { sport: 64, sub_sport: 93 },
+      { sport: '64', sub_sport: '93' },
+      { sport: 'racket', sub_sport: 'platform' },
+      { sport: 'RACKET', sub_sport: 'PLATFORM' },
+      { sport: 'racket', sub_sport: 93 },
+      { sport: 64, sub_sport: 93, sport_profile_name: 'Tennis' },
+      { sport: 64, sub_sport: 93, sport_profile_name: 'Padel' },
+      { sport: 64, sub_sport: 93, sport_profile_name: 'Custom racket profile' }
+    ])('maps the explicit FIT racket/platform pair %j to Platform Tennis', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.PlatformTennis);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.PlatformTennis);
+    });
+
+    describe.each([
+      [5, 'spin'],
+      [47, 'e_bike_mountain'],
+      [82, 'adventure_race'],
+      [111, 'fly_paraglide'],
+      [112, 'fly_paramotor'],
+      [39, 'rc_drone']
+    ])('requires a documented parent for sub-sport %s (%s)', (subSportId, subSportName) => {
+      it.each([subSportId, String(subSportId), subSportName, subSportName.toUpperCase()])(
+        'keeps a broad or unknown classification for %s',
+        sub_sport => {
+          for (const manufacturer of [1, 7, 23, 123, undefined]) {
+            expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport }, manufacturer)).toBe(
+              ActivityTypes.Generic
+            );
+            expect(importerInternals.getActivityTypeFromSessionObject({ sport: 11, sub_sport }, manufacturer)).toBe(
+              ActivityTypes.Walking
+            );
+            expect(importerInternals.getActivityTypeFromSessionObject({ sub_sport }, manufacturer)).toBe(
+              ActivityTypes.unknown
+            );
+            expect(
+              importerInternals.getActivityTypeFromSessionObject({ sport: 'not-a-sport', sub_sport }, manufacturer)
+            ).toBe(ActivityTypes.unknown);
+          }
+        }
+      );
+    });
+
+    describe.each([
+      [2, 5, 'cycling', 'spin', ActivityTypes.IndoorCycling, 'Cycling'],
+      [2, 47, 'cycling', 'e_bike_mountain', ActivityTypes.EMountainBiking, 'Cycling'],
+      [21, 47, 'e_biking', 'e_bike_mountain', ActivityTypes.EMountainBiking, 'E-Biking'],
+      [18, 82, 'multisport', 'adventure_race', ActivityTypes.AdventureRacing, 'Multisport'],
+      [1, 82, 'running', 'adventure_race', ActivityTypes.AdventureRacing, 'Running'],
+      [20, 111, 'flying', 'fly_paraglide', ActivityTypes.Paragliding, 'Flying'],
+      [20, 112, 'flying', 'fly_paramotor', ActivityTypes.Paramotoring, 'Flying'],
+      [20, 39, 'flying', 'rc_drone', ActivityTypes.RCDroneFlying, 'Flying'],
+      [73, 90, 'hockey', 'field', ActivityTypes.FieldHockey, 'Ice Hockey'],
+      [73, 91, 'hockey', 'ice', ActivityTypes.IceHockey, 'Field Hockey'],
+      [2, 127, 'cycling', 'e_bike_enduro', ActivityTypes.EEnduroMTB, 'Motorcycling'],
+      [2, 13, 'cycling', 'track_cycling', ActivityTypes.TrackCycling, 'Cycling'],
+      [2, 10, 'cycling', 'recumbent', ActivityTypes.RecumbentCycling, 'Cycling'],
+      [11, 31, 'walking', 'speed_walking', ActivityTypes.SpeedWalking, 'Walking'],
+      [41, 41, 'kayaking', 'whitewater', ActivityTypes.WhitewaterKayaking, 'Rafting'],
+      [42, 41, 'rafting', 'whitewater', ActivityTypes.WhitewaterRafting, 'Kayaking'],
+      [20, 40, 'flying', 'wingsuit', ActivityTypes.WingsuitFlying, 'Flying'],
+      [18, 80, 'multisport', 'brick', ActivityTypes.BrickTraining, 'Triathlon'],
+      [28, 72, 'hunting', 'hunting_with_dogs', ActivityTypes.HuntingWithDogs, 'Hunting'],
+      [2, 29, 'cycling', 'bmx', ActivityTypes.BMX, 'Cycling'],
+      [4, 25, 'fitness_equipment', 'indoor_skiing', ActivityTypes.IndoorSkiing, 'Crosscountry Skiing'],
+      [22, 35, 'motorcycling', 'atv', ActivityTypes.ATV, 'Motorcycling'],
+      [22, 36, 'motorcycling', 'motocross', ActivityTypes.Motocross, 'Motorcycling'],
+      [18, 126, 'multisport', 'pool_triathlon', ActivityTypes.PoolTriathlon, 'Triathlon'],
+      [1, 59, 'running', 'obstacle', ActivityTypes.ObstacleRacing, 'Running'],
+      [1, 67, 'running', 'ultra', ActivityTypes.UltraRunning, 'Trail Running'],
+      [11, 27, 'walking', 'indoor_walking', ActivityTypes.IndoorWalking, 'Walking'],
+      [4, 27, 'fitness_equipment', 'indoor_walking', ActivityTypes.IndoorWalking, 'Fitness Equipment'],
+      [2, 123, 'cycling', 'enduro', ActivityTypes.EnduroMTB, 'Motorcycling'],
+      [81, 125, 'motor_sports', 'rally', ActivityTypes.Rally, 'Motorsports'],
+      [2, 88, 'cycling', 'indoor_hand_cycling', ActivityTypes.IndoorHandCycle, 'Hand Cycle'],
+      [
+        65,
+        86,
+        'wheelchair_push_walk',
+        'indoor_wheelchair_walk',
+        ActivityTypes.IndoorWheelchairPushWalk,
+        'Wheelchair Push Walk'
+      ],
+      [
+        66,
+        87,
+        'wheelchair_push_run',
+        'indoor_wheelchair_run',
+        ActivityTypes.IndoorWheelchairPushRun,
+        'Wheelchair Push Run'
+      ],
+      [81, 98, 'motor_sports', 'overland', ActivityTypes.Overlanding, 'Motorsports'],
+      [24, 98, 'driving', 'overland', ActivityTypes.Overlanding, 'Driving'],
+      [22, 98, 'motorcycling', 'overland', ActivityTypes.Overlanding, 'Motorcycling'],
+      [0, 83, 'generic', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Generic'],
+      [4, 83, 'fitness_equipment', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Fitness Equipment'],
+      [10, 83, 'training', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Training'],
+      [59, 0, 'grinding', 'generic', ActivityTypes.Grinding, 'Indoor Grinding'],
+      [59, 71, 'grinding', 'indoor_grinding', ActivityTypes.IndoorGrinding, 'Grinding'],
+      [32, 65, 'sailing', 'sail_race', ActivityTypes.SailRacing, 'Sailing'],
+      [17, 124, 'hiking', 'rucking', ActivityTypes.Rucking, 'Hiking'],
+      [32, 66, 'sailing', 'expedition', ActivityTypes.SailingExpedition, 'Sailing'],
+      [53, 63, 'diving', 'ccr_diving', ActivityTypes.CCRDiving, 'Scuba Diving']
+    ] as const)(
+      'explicit FIT pair %s/%s',
+      (sportId, subSportId, sportName, subSportName, expectedType, neighboringType) => {
+        it.each([
+          { sport: sportId, sub_sport: subSportId },
+          { sport: String(sportId), sub_sport: String(subSportId) },
+          { sport: sportName, sub_sport: subSportName },
+          { sport: sportName, sub_sport: subSportId },
+          { sport: sportId, sub_sport: subSportName },
+          { sport: sportName.toUpperCase(), sub_sport: subSportName.toUpperCase() },
+          { sport: sportId, sub_sport: subSportId, sport_profile_name: neighboringType },
+          { sport: sportId, sub_sport: subSportId, sport_profile_name: 'Custom sailing profile' }
+        ])('preserves its canonical type for session %j', session => {
+          for (const manufacturer of [1, 7, 23, 123, undefined]) {
+            expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+          }
+        });
+      }
+    );
+
+    it.each([
+      ['Spin', ActivityTypes.IndoorCycling],
+      ['Indoor Cycling', ActivityTypes.IndoorCycling],
+      ['eBikeMountain', ActivityTypes.EMountainBiking],
+      ['E-Mountain Biking', ActivityTypes.EMountainBiking],
+      ['Adventure Race', ActivityTypes.AdventureRacing],
+      ['Adventure Racing', ActivityTypes.AdventureRacing],
+      ['Fly Paraglide', ActivityTypes.Paragliding],
+      ['Paragliding', ActivityTypes.Paragliding],
+      ['Paramotoring', ActivityTypes.Paramotoring],
+      ['Fly Paramotor', ActivityTypes.Paramotoring],
+      ['RC Drone', ActivityTypes.RCDroneFlying],
+      ['RC Drone Flying', ActivityTypes.RCDroneFlying],
+      ['Hockey', ActivityTypes.Hockey],
+      ['Winter Sport', ActivityTypes.WinterSport],
+      ['Team Sport', ActivityTypes.TeamSport],
+      ['Water Sport', ActivityTypes.WaterSport],
+      ['E-Enduro MTB', ActivityTypes.EEnduroMTB],
+      ['Electric Enduro MTB', ActivityTypes.EEnduroMTB],
+      ['eBikeEnduro', ActivityTypes.EEnduroMTB],
+      ['Track Cycling', ActivityTypes.TrackCycling],
+      ['Recumbent Cycling', ActivityTypes.RecumbentCycling],
+      ['Recumbent', ActivityTypes.RecumbentCycling],
+      ['Speed Walking', ActivityTypes.SpeedWalking],
+      ['Whitewater Kayaking', ActivityTypes.WhitewaterKayaking],
+      ['Whitewater Rafting', ActivityTypes.WhitewaterRafting],
+      ['Wingsuit Flying', ActivityTypes.WingsuitFlying],
+      ['Wingsuit', ActivityTypes.WingsuitFlying],
+      ['Brick Training', ActivityTypes.BrickTraining],
+      ['Brick', ActivityTypes.BrickTraining],
+      ['Hunting with Dogs', ActivityTypes.HuntingWithDogs],
+      ['Indoor Track', ActivityTypes.IndoorTrackRunning],
+      ['Indoor Track Running', ActivityTypes.IndoorTrackRunning],
+      ['BMX', ActivityTypes.BMX],
+      ['BMXCycling', ActivityTypes.BMX],
+      ['Indoor Skiing', ActivityTypes.IndoorSkiing],
+      ['XC Ski Indoor', ActivityTypes.IndoorSkiing],
+      ['indoor_cross_country_skiing', ActivityTypes.IndoorSkiing],
+      ['ATV', ActivityTypes.ATV],
+      ['All-Terrain Vehicle', ActivityTypes.ATV],
+      ['Motocross', ActivityTypes.Motocross],
+      ['MotoCross', ActivityTypes.Motocross],
+      ['Pool Triathlon', ActivityTypes.PoolTriathlon],
+      ['poolTriathlon', ActivityTypes.PoolTriathlon],
+      ['Obstacle Racing', ActivityTypes.ObstacleRacing],
+      ['ObstacleRun', ActivityTypes.ObstacleRacing],
+      ['Ultra Running', ActivityTypes.UltraRunning],
+      ['ultra_run', ActivityTypes.UltraRunning],
+      ['Indoor Walking', ActivityTypes.IndoorWalking],
+      ['WalkIndoor', ActivityTypes.IndoorWalking],
+      ['Enduro MTB', ActivityTypes.EnduroMTB],
+      ['EnduroMTB', ActivityTypes.EnduroMTB],
+      ['Rally', ActivityTypes.Rally],
+      ['RallyDriving', ActivityTypes.Rally],
+      ['Indoor Hand Cycle', ActivityTypes.IndoorHandCycle],
+      ['IndoorHandCycling', ActivityTypes.IndoorHandCycle],
+      ['indoor_hand_cycling', ActivityTypes.IndoorHandCycle],
+      ['Overlanding', ActivityTypes.Overlanding],
+      ['Overland', ActivityTypes.Overlanding],
+      ['overland', ActivityTypes.Overlanding],
+      ['Trucker Workout', ActivityTypes.TruckerWorkout],
+      ['TruckerWorkouts', ActivityTypes.TruckerWorkout],
+      ['trucker_workout', ActivityTypes.TruckerWorkout],
+      ['Trucker Health', ActivityTypes.TruckerWorkout],
+      ['Indoor Wheelchair Push Walk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['IndoorWheelchairWalk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['indoor_wheelchair_walk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['Indoor Wheelchair Push Run', ActivityTypes.IndoorWheelchairPushRun],
+      ['IndoorWheelchairRun', ActivityTypes.IndoorWheelchairPushRun],
+      ['indoor_wheelchair_run', ActivityTypes.IndoorWheelchairPushRun],
+      ['Rucking', ActivityTypes.Rucking],
+      ['rucking', ActivityTypes.Rucking],
+      ['Sailing Expedition', ActivityTypes.SailingExpedition],
+      ['SailingExpedition', ActivityTypes.SailingExpedition],
+      ['sailingExpedition', ActivityTypes.SailingExpedition],
+      ['sailing_expedition', ActivityTypes.SailingExpedition],
+      ['Sail Expedition', ActivityTypes.SailingExpedition],
+      ['SailExpedition', ActivityTypes.SailingExpedition],
+      ['sailExpedition', ActivityTypes.SailingExpedition],
+      ['sail_expedition', ActivityTypes.SailingExpedition],
+      ['CCR Diving', ActivityTypes.CCRDiving],
+      ['CCRDiving', ActivityTypes.CCRDiving],
+      ['ccrDiving', ActivityTypes.CCRDiving],
+      ['ccr_diving', ActivityTypes.CCRDiving],
+      ['CCR', ActivityTypes.CCRDiving],
+      ['ccr', ActivityTypes.CCRDiving],
+      ['Grinding', ActivityTypes.Grinding],
+      ['grinding', ActivityTypes.Grinding],
+      ['Grind Offshore', ActivityTypes.Grinding],
+      ['GrindOffshore', ActivityTypes.Grinding],
+      ['Offshore Sail Grinding', ActivityTypes.Grinding],
+      ['Indoor Grinding', ActivityTypes.IndoorGrinding],
+      ['IndoorGrinding', ActivityTypes.IndoorGrinding],
+      ['indoorGrinding', ActivityTypes.IndoorGrinding],
+      ['indoor_grinding', ActivityTypes.IndoorGrinding],
+      ['Grind Onshore', ActivityTypes.IndoorGrinding],
+      ['GrindOnshore', ActivityTypes.IndoorGrinding],
+      ['Onshore Sail Grinding', ActivityTypes.IndoorGrinding],
+      ['Sail Racing', ActivityTypes.SailRacing],
+      ['SailRacing', ActivityTypes.SailRacing],
+      ['sailRacing', ActivityTypes.SailRacing],
+      ['sail_racing', ActivityTypes.SailRacing],
+      ['Sail Race', ActivityTypes.SailRacing],
+      ['SailRace', ActivityTypes.SailRacing],
+      ['sailRace', ActivityTypes.SailRacing],
+      ['sail_race', ActivityTypes.SailRacing]
+    ])('honors explicit sport/profile name %s', (name, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: name, sub_sport: 62, sport_profile_name: 'Meditation' },
+            manufacturer
+          )
+        ).toBe(expectedType);
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 0, sub_sport: 0, sport_profile_name: name },
+            manufacturer
+          )
+        ).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      [{ sport: 59 }, ActivityTypes.Grinding],
+      [{ sport: 59, sub_sport: 62 }, ActivityTypes.Grinding],
+      [{ sport: 59, sub_sport: 'indoorGrinding' }, ActivityTypes.IndoorGrinding],
+      [{ sport: 'sailing', sub_sport: 'sailRace' }, ActivityTypes.SailRacing],
+      [{ sport: 32 }, ActivityTypes.Sailing],
+      [{ sport: 32, sub_sport: 0 }, ActivityTypes.Sailing],
+      [{ sport: 0, sub_sport: 71 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 71 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 65 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 65 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 71, sport_profile_name: 'Indoor Grinding' }, ActivityTypes.IndoorGrinding],
+      [{ sport: 0, sub_sport: 65, sport_profile_name: 'Sail Race' }, ActivityTypes.SailRacing],
+      [{ sub_sport: 71 }, ActivityTypes.unknown],
+      [{ sub_sport: 65 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 71 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 65 }, ActivityTypes.unknown],
+      [{ sport: 65, sub_sport: 0 }, ActivityTypes.WheelchairPushWalk],
+      [{ sport: 71, sub_sport: 0 }, ActivityTypes.Cricket]
+    ])('preserves sailing neighbors and requires the correct sub-sport parent for %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ sport: 'hiking', sub_sport: 'RUCKING' }, ActivityTypes.Rucking],
+      [{ sport: 'DIVING', sub_sport: 'ccrDiving' }, ActivityTypes.CCRDiving],
+      [{ sport: 'SAILING', sub_sport: 'EXPEDITION' }, ActivityTypes.SailingExpedition],
+      [{ sport: 17, sub_sport: 0 }, ActivityTypes.Hiking],
+      [{ sport: 17, sub_sport: 0, pack_weight: 20 }, ActivityTypes.Hiking],
+      [{ sport: 11, sub_sport: 124 }, ActivityTypes.Walking],
+      [{ sport: 0, sub_sport: 124 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 66 }, ActivityTypes.Generic],
+      [{ sport: 17, sub_sport: 66 }, ActivityTypes.Hiking],
+      [{ sport: 0, sub_sport: 66, sport_profile_name: 'Expedition' }, ActivityTypes.Expedition],
+      [{ sport: 0, sub_sport: 63 }, ActivityTypes.Generic],
+      [{ sport: 5, sub_sport: 63 }, ActivityTypes.Swimming],
+      [{ sport: 53, sub_sport: 0 }, ActivityTypes.Diving],
+      [{ sport: 53, sub_sport: 53 }, ActivityTypes.ScubaDiving],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 85, sub_sport: 0 }, ActivityTypes.PoolApnea],
+      [{ sport: 63, sub_sport: 0 }, ActivityTypes.VideoGaming],
+      [{ sport: 66, sub_sport: 0 }, ActivityTypes.WheelchairPushRun],
+      [{ sub_sport: 124 }, ActivityTypes.unknown],
+      [{ sub_sport: 63 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 124 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 63 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 124, sport_profile_name: 'Rucking' }, ActivityTypes.Rucking],
+      [{ sport: 0, sub_sport: 63, sport_profile_name: 'CCR' }, ActivityTypes.CCRDiving]
+    ])('preserves neighboring sports and requires the appropriate parent for %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ sport: 2, sub_sport: 12 }, ActivityTypes.Handcycle],
+      [{ sport: 2, sub_sport: 6 }, ActivityTypes.IndoorCycling],
+      [{ sport: 0, sub_sport: 88 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 88 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 86 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 87 }, ActivityTypes.Generic],
+      [{ sport: 65, sub_sport: 87 }, ActivityTypes.WheelchairPushWalk],
+      [{ sport: 66, sub_sport: 86 }, ActivityTypes.WheelchairPushRun],
+      [{ sport: 88, sub_sport: 0 }, ActivityTypes.Canoeing],
+      [{ sport: 86, sub_sport: 0 }, ActivityTypes.Mobility],
+      [{ sport: 87, sub_sport: 0 }, ActivityTypes.Geocaching],
+      [{ sport: 83, sub_sport: 0 }, ActivityTypes.Dancing],
+      [{ sport: 0, sub_sport: 98 }, ActivityTypes.Generic],
+      [{ sport: 17, sub_sport: 98 }, ActivityTypes.Hiking],
+      [{ sport: 22, sub_sport: 0 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 0 }, ActivityTypes.Driving, ActivityTypes.Motorsports],
+      [{ sport: 81, sub_sport: 0 }, ActivityTypes.Motorsports],
+      [{ sport: 24, sub_sport: 83 }, ActivityTypes.Driving],
+      [{ sport: 2, sub_sport: 83 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 4, sub_sport: 0 }, ActivityTypes.FitnessEquipment],
+      [{ sport: 10, sub_sport: 0 }, ActivityTypes.Training],
+      [{ sub_sport: 83 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 83 }, ActivityTypes.unknown],
+      [{ sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sub_sport: 87 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 87 }, ActivityTypes.unknown],
+      [{ sub_sport: 88 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 88 }, ActivityTypes.unknown],
+      [{ sub_sport: 98 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 98 }, ActivityTypes.unknown]
+    ])(
+      'keeps indoor adaptive, trucker, and overland classifications within their source context (%j)',
+      (session, expectedType, expectedSuuntoType = expectedType) => {
+        for (const manufacturer of [1, 7, 23, 123, undefined]) {
+          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(
+            manufacturer === 23 ? expectedSuuntoType : expectedType
+          );
+        }
+      }
+    );
+
+    it.each([
+      [{ sport: 0, sub_sport: 59 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 59 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 67 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 67 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 27 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 27 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 123 }, ActivityTypes.Generic],
+      [{ sport: 22, sub_sport: 123 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 123 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 125 }, ActivityTypes.Generic],
+      [{ sport: 22, sub_sport: 125 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 125 }, ActivityTypes.Driving],
+      [{ sport: 2, sub_sport: 125 }, ActivityTypes.Cycling],
+      [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
+      [{ sport: 27, sub_sport: 0 }, ActivityTypes.HorsebackRiding],
+      [{ sport: 59, sub_sport: 0 }, ActivityTypes.Grinding],
+      [{ sub_sport: 59 }, ActivityTypes.unknown],
+      [{ sub_sport: 67 }, ActivityTypes.unknown],
+      [{ sub_sport: 27 }, ActivityTypes.unknown],
+      [{ sub_sport: 123 }, ActivityTypes.unknown],
+      [{ sub_sport: 125 }, ActivityTypes.unknown],
+      [{ sport: 0, sport_profile_name: 'Enduro' }, ActivityTypes.Generic],
+      [{ sport: 'Enduro' }, ActivityTypes.unknown],
+      [{ sport: 'cycling', sport_profile_name: 'Enduro' }, ActivityTypes.EnduroMTB]
+    ])('requires the correct running, walking, cycling, or motor-sports context for %j', (session, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        const expected =
+          manufacturer === 123 &&
+          'sport_profile_name' in session &&
+          session.sport === 0 &&
+          session.sport_profile_name === 'Enduro'
+            ? ActivityTypes.MotorcycleEnduro
+            : expectedType;
+        expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expected);
+      }
+    });
+
+    it.each([
+      [{ sport: 0, sub_sport: 29 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 29 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 25 }, ActivityTypes.Generic],
+      [{ sport: 12, sub_sport: 25 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 0, sub_sport: 35 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 35 }, ActivityTypes.Cycling],
+      [{ sport: 24, sub_sport: 35 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 36 }, ActivityTypes.Generic],
+      [{ sport: 2, sub_sport: 36 }, ActivityTypes.Cycling],
+      [{ sport: 24, sub_sport: 36 }, ActivityTypes.Driving],
+      [{ sport: 0, sub_sport: 126 }, ActivityTypes.Generic],
+      [{ sport: 5, sub_sport: 126 }, ActivityTypes.Swimming],
+      [{ sport: 1, sub_sport: 126 }, ActivityTypes.Running],
+      [{ sport: 18, sub_sport: 0 }, ActivityTypes.Multisport],
+      [{ sport: 22, sub_sport: 0 }, ActivityTypes.Motorcycling],
+      [{ sport: 4, sub_sport: 0 }, ActivityTypes.FitnessEquipment],
+      [{ sport: 25, sub_sport: 0 }, ActivityTypes.Golf],
+      [{ sport: 29, sub_sport: 0 }, ActivityTypes.Fishing],
+      [{ sport: 35, sub_sport: 0 }, ActivityTypes.Snowshoeing],
+      [{ sport: 36, sub_sport: 0 }, ActivityTypes.Snowmobiling],
+      [{ sub_sport: 29 }, ActivityTypes.unknown],
+      [{ sub_sport: 25 }, ActivityTypes.unknown],
+      [{ sub_sport: 35 }, ActivityTypes.unknown],
+      [{ sub_sport: 36 }, ActivityTypes.unknown],
+      [{ sub_sport: 126 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 29 }, ActivityTypes.unknown]
+    ])(
+      'keeps BMX, indoor skiing, motorcycling variants, and pool triathlon within their FIT parent (%j)',
+      (session, expectedType) => {
+        for (const manufacturer of [1, 7, 23, 123, undefined]) {
+          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+        }
+      }
+    );
+
+    describe.each([
+      [73, 'hockey', ActivityTypes.Hockey, 'Ice Hockey'],
+      [58, 'winter_sport', ActivityTypes.WinterSport, 'Alpine Skiing'],
+      [70, 'team_sport', ActivityTypes.TeamSport, 'Football'],
+      [78, 'water_sport', ActivityTypes.WaterSport, 'Swimming'],
+      [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
+      [87, 'geocaching', ActivityTypes.Geocaching, 'Hiking'],
+      [85, 'pool_apnea', ActivityTypes.PoolApnea, 'Free Diving'],
+      [86, 'mobility', ActivityTypes.Mobility, 'Flexibility Training'],
+      [63, 'video_gaming', ActivityTypes.VideoGaming, 'Cycling']
+    ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
+      it.each([
+        { sport: sportId },
+        { sport: sportId, sub_sport: 0 },
+        { sport: String(sportId), sub_sport: '0' },
+        { sport: sportName },
+        { sport: sportName, sub_sport: 'generic' },
+        { sport: expectedType, sub_sport: 'generic' },
+        { sport: sportName.toUpperCase(), sub_sport: 'GENERIC' },
+        { sport: sportId, sub_sport: 62 },
+        { sport: sportId, sub_sport: 93 },
+        { sport: sportId, sub_sport: 0, sport_profile_name: neighboringType },
+        { sport: sportId, sport_profile_name: 'Custom outdoor profile' }
+      ])('preserves its canonical type for session %j', session => {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      });
+
+      it.each([1, 7, 23, 123, undefined])('maps independently of manufacturer %j', manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: sportId, sub_sport: 0 }, manufacturer)).toBe(
+          expectedType
+        );
+      });
+
+      it.each([expectedType, sportName])('honors an explicit %s profile in a generic session', profile => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
+        ).toBe(expectedType);
+      });
+    });
+
+    it.each([
+      ['PoolApnea', ActivityTypes.PoolApnea],
+      ['poolApnea', ActivityTypes.PoolApnea],
+      ['POOL-APNEA', ActivityTypes.PoolApnea],
+      ['mobility', ActivityTypes.Mobility],
+      ['VideoGaming', ActivityTypes.VideoGaming],
+      ['videoGaming', ActivityTypes.VideoGaming],
+      ['VIDEO-GAMING', ActivityTypes.VideoGaming],
+      ['Gaming', ActivityTypes.VideoGaming],
+      ['gaming', ActivityTypes.VideoGaming]
+    ])('honors explicit sport or generic-session profile %s', (name, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: name, sub_sport: 77, sport_profile_name: 'Cycling' },
+            manufacturer
+          )
+        ).toBe(expectedType);
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 0, sub_sport: 0, sport_profile_name: name },
+            manufacturer
+          )
+        ).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      [{ sport: 85, sub_sport: 56, sport_profile_name: 'Free Diving' }, ActivityTypes.PoolApnea],
+      [{ sport: 86, sub_sport: 19, sport_profile_name: 'Yoga' }, ActivityTypes.Mobility],
+      [{ sport: 63, sub_sport: 77, sport_profile_name: 'Cycling' }, ActivityTypes.VideoGaming],
+      [{ sport: 2, sub_sport: 77 }, ActivityTypes.Cycling],
+      [{ sport: 'cycling', sub_sport: 'esport' }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 77 }, ActivityTypes.Generic],
+      [{ sport: 0, sport_profile_name: 'Esport' }, ActivityTypes.Generic],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 4, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
+      [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
+      [{ sport: 65, sub_sport: 86 }, ActivityTypes.IndoorWheelchairPushWalk],
+      [{ sport: 53, sub_sport: 63 }, ActivityTypes.CCRDiving]
+    ])('keeps FIT sport and sub-sport namespaces distinct for %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each(['Platform Tennis', 'PlatformTennis', 'platformTennis', 'platform_tennis', 'PLATFORM-TENNIS'])(
+      'honors explicit Platform Tennis sport/profile name %s across manufacturers',
+      name => {
+        for (const manufacturer of [1, 7, 23, 123, undefined]) {
+          expect(
+            importerInternals.getActivityTypeFromSessionObject(
+              { sport: name, sub_sport: 84, sport_profile_name: 'Padel' },
+              manufacturer
+            )
+          ).toBe(ActivityTypes.PlatformTennis);
+          expect(
+            importerInternals.getActivityTypeFromSessionObject(
+              { sport: 0, sub_sport: 0, sport_profile_name: name },
+              manufacturer
+            )
+          ).toBe(ActivityTypes.PlatformTennis);
+        }
+      }
+    );
+
+    it.each([
+      [{ sport: 1, sub_sport: 93 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 93 }, ActivityTypes.Generic],
+      [{ sub_sport: 93 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Platform' }, ActivityTypes.Generic],
+      [{ sport: 28, sub_sport: 0 }, ActivityTypes.Hunting],
+      [{ sport: 79, sub_sport: 0 }, ActivityTypes.Archery],
+      [{ sport: 17, sub_sport: 0 }, ActivityTypes.Hiking, ActivityTypes.Trekking],
+      [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
+      [{ sport: 8, sub_sport: 0 }, ActivityTypes.Tennis],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
+      [{ sport: 64, sub_sport: 84 }, ActivityTypes.Pickleball],
+      [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
+      [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom outdoor profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType, expectedSuuntoType = expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedSuuntoType);
+    });
+
+    describe.each([
+      [83, 'dance', ActivityTypes.Dancing, 'Aerobics'],
+      [84, 'jump_rope', ActivityTypes.JumpRope, 'Running']
+    ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
+      it.each([
+        { sport: sportId },
+        { sport: sportId, sub_sport: 0 },
+        { sport: String(sportId), sub_sport: '0' },
+        { sport: sportName },
+        { sport: sportName, sub_sport: 'generic' },
+        { sport: expectedType, sub_sport: 'generic' },
+        { sport: sportName.toUpperCase().replace(/_/g, '-'), sub_sport: 'GENERIC' },
+        { sport: sportId, sub_sport: 62 },
+        { sport: sportId, sub_sport: 84 },
+        { sport: sportId, sub_sport: 0, sport_profile_name: neighboringType },
+        { sport: sportId, sport_profile_name: 'Custom fitness profile' }
+      ])('preserves its canonical type for session %j', session => {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      });
+
+      it.each([1, 7, 23, 123, undefined])('maps independently of manufacturer %j', manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: sportId, sub_sport: 0 }, manufacturer)).toBe(
+          expectedType
+        );
+      });
+
+      it.each([expectedType, sportName])('honors an explicit %s profile in a generic session', profile => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
+        ).toBe(expectedType);
+      });
+    });
+
+    it.each([
+      ['Dancing', ActivityTypes.Dancing],
+      ['dance', ActivityTypes.Dancing],
+      ['JumpRope', ActivityTypes.JumpRope],
+      ['jumpRope', ActivityTypes.JumpRope],
+      ['Pickleball', ActivityTypes.Pickleball],
+      ['PICKLEBALL', ActivityTypes.Pickleball]
+    ])('honors explicit sport/profile name %s across manufacturers', (name, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: name, sport_profile_name: 'Training' },
+            manufacturer
+          )
+        ).toBe(expectedType);
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 0, sub_sport: 0, sport_profile_name: name },
+            manufacturer
+          )
+        ).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
+      [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
+      [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
+      [{ sport: 64, sub_sport: 95 }, ActivityTypes.Badminton],
+      [{ sport: 64, sub_sport: 96 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 97 }, ActivityTypes.TableTennis],
+      [{ sport: 8, sub_sport: 0 }, ActivityTypes.Tennis],
+      [{ sport: 1, sub_sport: 84 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 84 }, ActivityTypes.Generic],
+      [{ sub_sport: 84 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Rope' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom fitness profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'cycling', sub_sport: 'hand_cycling' },
+      { sport: 2, sub_sport: 12 },
+      { sport: '2', sub_sport: '12' },
+      { sport: 'cycling', sub_sport: 12 },
+      { sport: 'cycling', sub_sport: 'hand_cycling', sport_profile_name: 'Custom cycling profile' }
+    ])('maps FIT hand cycling classification %j to Hand Cycle', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Handcycle);
+    });
+
+    it.each([
+      { sport: 69 },
+      { sport: 69, sub_sport: 0 },
+      { sport: '69', sub_sport: '0' },
+      { sport: 'disc_golf' },
+      { sport: 'disc_golf', sub_sport: 'generic' },
+      { sport: 'Disc Golf', sub_sport: 'generic' },
+      { sport: 'DISC-GOLF', sub_sport: 'GENERIC' },
+      { sport: 69, sub_sport: 22 },
+      { sport: 69, sub_sport: 0, sport_profile_name: 'Golf' },
+      { sport: 69, sport_profile_name: 'Frisbee' },
+      { sport: 69, sub_sport: 0, sport_profile_name: 'Custom course profile' }
+    ])('maps explicit Disc Golf session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.DiscGolf);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Disc Golf independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 69, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.DiscGolf
+      );
+    });
+
+    it.each([
+      { sport: 'FRISBEEGOLF' },
+      { sport: 'Frisbee golf' },
+      { sport: 'FRISBEEGOLF', sub_sport: 'generic', sport_profile_name: 'Golf' },
+      { sport: 'Frisbee golf', sub_sport: 'match', sport_profile_name: 'Frisbee' },
+      { sport: 0, sub_sport: 0, sport_profile_name: 'FRISBEEGOLF' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'Frisbee golf' },
+      { sport: 0, sport_profile_name: 'Disc Golf' }
+    ])('honors explicit Disc Golf provider names in session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.DiscGolf);
+    });
+
+    it.each([
+      [{ sport: 25, sub_sport: 0 }, ActivityTypes.Golf],
+      [{ sport: 'Frisbee' }, ActivityTypes.Frisbee],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom course profile' }, ActivityTypes.Generic],
+      [{ sport: 68, sub_sport: 0 }, ActivityTypes.ParaSport],
+      [{ sport: 70, sub_sport: 0 }, ActivityTypes.TeamSport]
+    ])('preserves neighboring and ambiguous sport context for session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 74 },
+      { sport: 74, sub_sport: 0 },
+      { sport: '74', sub_sport: '0' },
+      { sport: 'lacrosse' },
+      { sport: 'lacrosse', sub_sport: 'generic' },
+      { sport: 'Lacrosse', sub_sport: 'generic' },
+      { sport: 'LACROSSE', sub_sport: 'GENERIC' },
+      { sport: 74, sub_sport: 22 },
+      { sport: 74, sub_sport: 90 },
+      { sport: 74, sub_sport: 0, sport_profile_name: 'Field Hockey' },
+      { sport: 74, sport_profile_name: 'Ice Hockey' },
+      { sport: 74, sub_sport: 0, sport_profile_name: 'Custom team profile' }
+    ])('maps explicit Lacrosse session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Lacrosse);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Lacrosse independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 74, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.Lacrosse
+      );
+    });
+
+    it.each([
+      { sport: 0, sub_sport: 0, sport_profile_name: 'Lacrosse' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'LACROSSE' }
+    ])('honors an explicit Lacrosse profile in generic session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.Lacrosse);
+    });
+
+    it.each([
+      [{ sport: 73, sub_sport: 90 }, ActivityTypes.FieldHockey],
+      [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Hockey],
+      [{ sport: 75, sub_sport: 0 }, ActivityTypes.Volleyball],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom team profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring sports and ambiguous generic session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 76 },
+      { sport: 76, sub_sport: 0 },
+      { sport: '76', sub_sport: '0' },
+      { sport: 'water_tubing' },
+      { sport: 'water_tubing', sub_sport: 'generic' },
+      { sport: 'Water Tubing', sub_sport: 'generic' },
+      { sport: 'WATER-TUBING', sub_sport: 'GENERIC' },
+      { sport: 76, sub_sport: 22 },
+      { sport: 76, sub_sport: 0, sport_profile_name: 'Water Skiing' },
+      { sport: 76, sport_profile_name: 'Wakeboarding' },
+      { sport: 76, sub_sport: 0, sport_profile_name: 'Custom water profile' }
+    ])('maps explicit Water Tubing session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WaterTubing);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Water Tubing independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 76, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.WaterTubing
+      );
+    });
+
+    it.each([
+      { sport: 0, sub_sport: 0, sport_profile_name: 'Water Tubing' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'water_tubing' }
+    ])('honors an explicit Water Tubing profile in generic session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.WaterTubing);
+    });
+
+    it.each([
+      [{ sport: 'water_skiing', sub_sport: 0 }, ActivityTypes.WaterSkiing],
+      [{ sport: 'wakeboarding', sub_sport: 0 }, ActivityTypes.Wakeboarding],
+      [{ sport: 'surfing', sub_sport: 0 }, ActivityTypes.Surfing],
+      [{ sport: 'rafting', sub_sport: 0 }, ActivityTypes.Rafting],
+      [{ sport: 77, sub_sport: 0 }, ActivityTypes.Wakesurfing],
+      [{ sport: 'water_sport', sub_sport: 0 }, ActivityTypes.WaterSport],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Tubing' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom water profile' }, ActivityTypes.Generic]
+    ])('preserves distinct water sports and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    describe.each([
+      [77, 'wakesurfing', ActivityTypes.Wakesurfing, 'Surfing'],
+      [79, 'archery', ActivityTypes.Archery, 'Hunting'],
+      [80, 'mixed_martial_arts', ActivityTypes.MixedMartialArts, 'Combat']
+    ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
+      it.each([
+        { sport: sportId },
+        { sport: sportId, sub_sport: 0 },
+        { sport: String(sportId), sub_sport: '0' },
+        { sport: sportName },
+        { sport: sportName, sub_sport: 'generic' },
+        { sport: expectedType, sub_sport: 'generic' },
+        { sport: sportName.toUpperCase().replace(/_/g, '-'), sub_sport: 'GENERIC' },
+        { sport: sportId, sub_sport: 22 },
+        { sport: sportId, sub_sport: 62 },
+        { sport: sportId, sub_sport: 0, sport_profile_name: neighboringType },
+        { sport: sportId, sport_profile_name: 'Custom sport profile' }
+      ])('preserves its canonical type for session %j', session => {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      });
+
+      it.each([1, 7, 23, 123, undefined])('maps independently of manufacturer %j', manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: sportId, sub_sport: 0 }, manufacturer)).toBe(
+          expectedType
+        );
+      });
+
+      it.each([expectedType, sportName])('honors an explicit %s profile in a generic session', profile => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
+        ).toBe(expectedType);
+      });
+    });
+
+    it.each(['MixedMartialArts', 'mixedMartialArts', 'MMA', 'mma'])('recognizes explicit MMA name %s', sport => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ sport, sub_sport: 0, sport_profile_name: 'Boxing' })
+      ).toBe(ActivityTypes.MixedMartialArts);
+    });
+
+    it.each([
+      [{ sport: 28, sub_sport: 0 }, ActivityTypes.Hunting],
+      [{ sport: 47, sub_sport: 0 }, ActivityTypes.Boxing],
+      [{ sport: 'Combat', sub_sport: 0 }, ActivityTypes.Combat],
+      [{ sport: 78, sub_sport: 0 }, ActivityTypes.WaterSport],
+      [{ sport: 56, sub_sport: 0 }, ActivityTypes.Shooting],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Martial Arts' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom sport profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 65 },
+      { sport: 65, sub_sport: 0 },
+      { sport: '65', sub_sport: '0' },
+      { sport: 'wheelchair_push_walk' },
+      { sport: 'wheelchair_push_walk', sub_sport: 'generic' },
+      { sport: 'Wheelchair Push Walk', sub_sport: 'generic' },
+      { sport: 'WHEELCHAIR-PUSH-WALK', sub_sport: 'GENERIC' },
+      { sport: 65, sub_sport: 27 },
+      { sport: 65, sub_sport: 0, sport_profile_name: 'Walking' },
+      { sport: 65, sport_profile_name: 'Running' },
+      { sport: 65, sub_sport: 0, sport_profile_name: 'Wheelchair Push Run' }
+    ])('maps explicit Wheelchair Push Walk session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushWalk);
+    });
+
+    it.each([1, 23, 123, undefined])('maps Wheelchair Push Walk independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 65, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.WheelchairPushWalk
+      );
+    });
+
+    it.each([
+      { sport: 66 },
+      { sport: 66, sub_sport: 0 },
+      { sport: '66', sub_sport: '0' },
+      { sport: 'wheelchair_push_run' },
+      { sport: 'wheelchair_push_run', sub_sport: 'generic' },
+      { sport: 'Wheelchair Push Run', sub_sport: 'generic' },
+      { sport: 'WHEELCHAIR-PUSH-RUN', sub_sport: 'GENERIC' },
+      { sport: 66, sub_sport: 45 },
+      { sport: 66, sub_sport: 0, sport_profile_name: 'Running' },
+      { sport: 66, sport_profile_name: 'Walking' },
+      { sport: 66, sub_sport: 0, sport_profile_name: 'Wheelchair Push Walk' }
+    ])('maps explicit Wheelchair Push Run session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushRun);
+    });
+
+    it.each([1, 23, 123, undefined])('maps Wheelchair Push Run independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 66, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.WheelchairPushRun
+      );
+    });
+
+    it.each([
+      [{ sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sub_sport: 87 }, ActivityTypes.unknown],
+      [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
+      [{ sport: 1, sub_sport: 0 }, ActivityTypes.Running],
+      [{ sport: 2, sub_sport: 12 }, ActivityTypes.Handcycle],
+      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic]
+    ])('preserves unrelated FIT activity context for session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'generic', sub_sport: 'hand_cycling' },
+      { sport: 0, sub_sport: 12 },
+      { sport: '0', sub_sport: '12' },
+      { sport: 'generic', sub_sport: 12 },
+      { sport: 'GENERIC', sub_sport: 'HAND-CYCLING' },
+      { sport: 'generic', sub_sport: 'hand_cycling', sport_profile_name: 'Custom mobility profile' }
+    ])('maps Suunto wheelchair classification %j to the existing Wheel Chair type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Wheelchair);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/hand_cycling',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 12 }, manufacturer)).toBe(
+          ActivityTypes.Wheelchair
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/hand_cycling Generic without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 12 }, manufacturer)).toBe(
+          ActivityTypes.Generic
+        );
+      }
+    );
+
+    it.each([23, 1, 123, undefined])('keeps cycling/hand_cycling Hand Cycle for manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 2, sub_sport: 12 }, manufacturer)).toBe(
+        ActivityTypes.Handcycle
+      );
+    });
+
+    it.each([
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 12 }, ActivityTypes.Running],
+      [{ sub_sport: 12 }, ActivityTypes.UnknownSport],
+      [{ sport: 0, sub_sport: 12, manufacturer: 'suunto' }, ActivityTypes.Generic]
+    ])('requires the Suunto creator context and explicit wheelchair pair for session %j', (session, expectedType) => {
+      const manufacturer = 'manufacturer' in session ? undefined : 23;
+      expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 23 }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [{ manufacturer: '23' }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.Wheelchair],
+      [{ file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] }, ActivityTypes.Wheelchair],
+      [
+        { file_ids: [{ manufacturer: 'suunto' }], device_infos: [{ device_index: 'creator', manufacturer: 'garmin' }] },
+        ActivityTypes.Wheelchair
+      ],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Generic
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Generic],
+      [{ file_ids: [{ product_name: 'Suunto' }], device_infos: [] }, ActivityTypes.Generic],
+      [{ file_ids: [], device_infos: [] }, ActivityTypes.Generic]
+    ])('uses resolved creator identity to classify the wheelchair session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 12,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'hockey', sub_sport: 'field' },
+      { sport: 73, sub_sport: 90 },
+      { sport: '73', sub_sport: '90' },
+      { sport: 'hockey', sub_sport: 90 },
+      { sport: 73, sub_sport: 'field' },
+      { sport: 'HOCKEY', sub_sport: 'FIELD' },
+      { sport: 'hockey', sub_sport: 'field', sport_profile_name: 'Custom hockey profile' },
+      { sport: 'hockey', sub_sport: 'field', sport_profile_name: 'IceHockey' }
+    ])('maps explicit FIT hockey/field session %j to Field Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.FieldHockey);
+    });
+
+    it.each([1, 23, 123, undefined])('maps hockey/field independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 73, sub_sport: 90 }, manufacturer)).toBe(
+        ActivityTypes.FieldHockey
+      );
+    });
+
+    it.each([
+      [{ sport: 73 }, ActivityTypes.Hockey],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Hockey],
+      [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
+      [{ sport: 'hockey', sub_sport: 'ice' }, ActivityTypes.IceHockey],
+      [{ sub_sport: 90 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 90 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 90 }, ActivityTypes.Running],
+      [{ sport: 8, sub_sport: 90 }, ActivityTypes.Tennis],
+      [{ sport: 'IceHockey', sub_sport: 'field' }, ActivityTypes.IceHockey]
+    ])('keeps hockey variants distinct and retains unrelated session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'hockey', sub_sport: 'ice' },
+      { sport: 73, sub_sport: 91 },
+      { sport: '73', sub_sport: '91' },
+      { sport: 'hockey', sub_sport: 91 },
+      { sport: 73, sub_sport: 'ice' },
+      { sport: 'HOCKEY', sub_sport: 'ICE' },
+      { sport: 'hockey', sub_sport: 'ice', sport_profile_name: 'Custom hockey profile' },
+      { sport: 'hockey', sub_sport: 'ice', sport_profile_name: 'FieldHockey' }
+    ])('maps explicit FIT hockey/ice session %j to Ice Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.IceHockey);
+    });
+
+    it.each([1, 23, 123, undefined])('maps hockey/ice independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 73, sub_sport: 91 }, manufacturer)).toBe(
+        ActivityTypes.IceHockey
+      );
+    });
+
+    it.each([
+      [{ sub_sport: 91 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 91 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 91 }, ActivityTypes.Running],
+      [{ sport: 33, sub_sport: 91 }, ActivityTypes.IceSkating],
+      [{ sport: 'FieldHockey', sub_sport: 'ice' }, ActivityTypes.FieldHockey]
+    ])('requires hockey context for the Ice sub-sport in session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'generic', sub_sport: 'match' },
+      { sport: 0, sub_sport: 22 },
+      { sport: '0', sub_sport: '22' },
+      { sport: 'generic', sub_sport: 22 },
+      { sport: 'GENERIC', sub_sport: 'MATCH' },
+      { sport: 'generic', sub_sport: 'match', sport_profile_name: 'Custom team profile' }
+    ])('maps Suunto field hockey classification %j to Field Hockey', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.FieldHockey);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/match',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 22 }, manufacturer)).toBe(
+          ActivityTypes.FieldHockey
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/match as Match without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 22 }, manufacturer)).toBe(
+          ActivityTypes.Match
+        );
+      }
+    );
+
+    it.each([
+      [{ sport: 'field_hockey' }, ActivityTypes.FieldHockey],
+      [{ sport: 'FIELD_HOCKEY' }, ActivityTypes.FieldHockey],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Field Hockey' }, ActivityTypes.FieldHockey],
+      [{ sport: 'tennis', sub_sport: 'match' }, ActivityTypes.Tennis],
+      [{ sport: 'IceHockey', sub_sport: 0 }, ActivityTypes.IceHockey],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores],
+      [{ sub_sport: 22 }, ActivityTypes.Match]
+    ])('uses explicit names or preserves unrelated Suunto sport context (%j)', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.FieldHockey],
+      [
+        { file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.FieldHockey
+      ],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Match
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Match],
+      [{ file_ids: [{ product_name: 'Suunto' }], device_infos: [] }, ActivityTypes.Match]
+    ])('uses creator identity to classify the field hockey session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 22,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'generic', sub_sport: 'exercise' },
+      { sport: 0, sub_sport: 23 },
+      { sport: '0', sub_sport: '23' },
+      { sport: 'generic', sub_sport: 23 },
+      { sport: 'GENERIC', sub_sport: 'EXERCISE' },
+      { sport: 'generic', sub_sport: 'exercise', sport_profile_name: 'Custom tasks profile' }
+    ])('maps Suunto chores classification %j to Chores', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Chores);
+    });
+
+    it.each([23, '23', 'suunto', 'SUUNTO', ' Suunto '])(
+      'recognizes Suunto manufacturer %j for generic/exercise',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 23 }, manufacturer)).toBe(
+          ActivityTypes.Chores
+        );
+      }
+    );
+
+    it.each([undefined, null, '', 1, 'garmin', 123, 'polar', 'suunto_sensor', 'unknown', {}, 23.5])(
+      'keeps generic/exercise Generic without a Suunto manufacturer (%j)',
+      manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 23 }, manufacturer)).toBe(
+          ActivityTypes.Generic
+        );
+      }
+    );
+
+    it.each([
+      [{ sport: 'chores' }, ActivityTypes.Chores],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Chores' }, ActivityTypes.Chores],
+      [{ sport: 1, sub_sport: 23 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sub_sport: 23 }, ActivityTypes.UnknownSport]
+    ])('uses explicit chores names or preserves unrelated Suunto context (%j)', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
+      [{ file_ids: [{ manufacturer: 'suunto' }] }, ActivityTypes.Chores],
+      [{ file_ids: [], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] }, ActivityTypes.Chores],
+      [
+        { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 'creator', manufacturer: 'suunto' }] },
+        ActivityTypes.Generic
+      ],
+      [{ file_ids: [], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] }, ActivityTypes.Generic]
+    ])('uses creator identity to classify the chores session (%j)', (identity, expectedType) => {
+      const activity = importerInternals.getActivityFromSessionObject(
+        {
+          sport: 0,
+          sub_sport: 23,
+          start_time: new Date('2026-01-01T12:00:00.000Z'),
+          timestamp: new Date('2026-01-01T12:01:00.000Z'),
+          total_elapsed_time: 60,
+          total_timer_time: 60,
+          laps: []
+        },
+        { ...identity, records: [], events: [] },
+        new ActivityParsingOptions({ generateUnitStreams: false }),
+        0
+      );
+
+      expect(activity.type).toBe(expectedType);
+      expect(EventImporterJSON.getActivityFromJSON(activity.toJSON()).type).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'cycling', sub_sport: 'cyclocross' },
+      { sport: 2, sub_sport: 11 },
+      { sport: '2', sub_sport: '11' },
+      { sport: 'cycling', sub_sport: 11 },
+      { sport: 'cycling', sub_sport: 'cyclocross', sport_profile_name: 'Custom cycling profile' }
+    ])('maps FIT cyclocross classification %j to Cyclocross', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Cyclocross);
+    });
+
+    it.each([
+      { sport: 'cycling', sub_sport: 'gravel_cycling' },
+      { sport: 2, sub_sport: 46 },
+      { sport: '2', sub_sport: '46' },
+      { sport: 'cycling', sub_sport: 46 },
+      { sport: 'cycling', sub_sport: 'gravel_cycling', sport_profile_name: 'Custom cycling profile' },
+      { sport: 'cycling', sub_sport: 0, sport_profile_name: 'GravelRide' }
+    ])('maps FIT gravel cycling classification %j to Gravel Cycling', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.GravelCycling);
+    });
+
+    it.each([
+      { sport: 'e_biking', sub_sport: 'e_bike_mountain' },
+      { sport: 21, sub_sport: 47 },
+      { sport: '21', sub_sport: '47' },
+      { sport: 'e_biking', sub_sport: 47 },
+      { sport: 'e_biking', sub_sport: 'e_bike_mountain', sport_profile_name: 'Custom cycling profile' },
+      { sport: 'e_biking', sub_sport: 0, sport_profile_name: 'EMountainBikeRide' }
+    ])('maps FIT e-mountain biking classification %j to E-Mountain Biking', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.EMountainBiking);
+    });
+
+    it.each([
+      { sport: 'snowboarding', sub_sport: 'backcountry' },
+      { sport: 14, sub_sport: 37 },
+      { sport: '14', sub_sport: '37' },
+      { sport: 'snowboarding', sub_sport: 37 },
+      { sport: 'snowboarding', sub_sport: 'backcountry', sport_profile_name: 'Custom winter profile' }
+    ])('maps FIT splitboarding classification %j to Splitboarding', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.Splitboarding);
+    });
+
+    it.each([
+      { sport: 'mountaineering', sub_sport: 'backcountry' },
+      { sport: 16, sub_sport: 37 },
+      { sport: '16', sub_sport: '37' },
+      { sport: 'mountaineering', sub_sport: 37 },
+      { sport: 'mountaineering', sub_sport: 'backcountry', sport_profile_name: 'Custom winter profile' }
+    ])('maps FIT ski mountaineering classification %j to Ski Mountaineering', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.SkiMountaineering);
+    });
+
+    it.each([
+      { sport: 'cross_country_skiing', sub_sport: 'skate_skiing' },
+      { sport: 12, sub_sport: 42 },
+      { sport: '12', sub_sport: '42' },
+      { sport: 'cross_country_skiing', sub_sport: 42 },
+      { sport: 'cross_country_skiing', sub_sport: 'skate_skiing', sport_profile_name: 'Custom winter profile' },
+      { sport: 'cross_country_skiing', sub_sport: 0, sport_profile_name: 'Skate Skiing' }
+    ])('maps FIT skate skiing classification %j to Skate Skiing', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(ActivityTypes.SkateSkiing);
+    });
+
+    it.each([
+      [{ sport: 1, sub_sport: 37 }, ActivityTypes.Running],
+      [{ sport: 'running', sub_sport: 'backcountry' }, ActivityTypes.Running],
+      [{ sport: '1', sub_sport: '37' }, ActivityTypes.Running],
+      [{ sport: 'RUNNING', sub_sport: 'BACK COUNTRY' }, ActivityTypes.Running],
+      [{ sport: 2, sub_sport: 37 }, ActivityTypes.Cycling],
+      [{ sport: 'cycling', sub_sport: 'backcountry' }, ActivityTypes.Cycling],
+      [{ sport: '2', sub_sport: '37' }, ActivityTypes.Cycling],
+      [{ sport: 5, sub_sport: 37 }, ActivityTypes.Swimming],
+      [{ sport: 'swimming', sub_sport: 'backcountry' }, ActivityTypes.Swimming],
+      [{ sport: 0, sub_sport: 37 }, ActivityTypes.Generic],
+      [{ sport: 11, sub_sport: 37 }, ActivityTypes.Walking],
+      [{ sport: 999999, sub_sport: 37 }, ActivityTypes.UnknownSport],
+      [{ sub_sport: 'backcountry' }, ActivityTypes.UnknownSport],
+      [{ sport: 'unrecognized_sport', sub_sport: 'BACK-COUNTRY' }, ActivityTypes.UnknownSport],
+      [{ sport: 1, sub_sport: 37, sport_profile_name: 'Trail Running' }, ActivityTypes.TrailRunning]
+    ])('preserves sport context for FIT backcountry session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
+    });
+
+    it.each([
+      { sport: 'running', sub_sport: 'track' },
+      { sport: 1, sub_sport: 4 },
+      { sport: '1', sub_sport: '4' },
+      { sport: 'running', sub_sport: 4 },
+      { sport: 'RUNNING', sub_sport: 'TRACK' }
+    ])('honors an explicit Track and Field profile for FIT session %j', session => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track and Field' })
+      ).toBe(ActivityTypes.TrackAndField);
+    });
+
+    it.each(['Track and Field', 'TrackAndField', 'track_and_field', 'TRACK-AND-FIELD', ' Track and Field '])(
+      'recognizes the exact Track and Field profile alias %s',
+      sportProfileName => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({
+            sport: 1,
+            sub_sport: 4,
+            sport_profile_name: sportProfileName
+          })
+        ).toBe(ActivityTypes.TrackAndField);
+      }
+    );
+
+    it.each([23, 1, 123, 'suunto', 'garmin', undefined])(
+      'honors explicit Track and Field independently of manufacturer %j',
+      manufacturer => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 1, sub_sport: 4, sport_profile_name: 'Track and Field' },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.TrackAndField);
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 4 }, manufacturer)).toBe(
+          ActivityTypes.Running
+        );
+      }
+    );
+
+    it.each([
+      undefined,
+      null,
+      '',
+      'Custom intervals',
+      'Track Run intervals',
+      'Track and Field training',
+      'Cycling',
+      59,
+      { name: 'Track and Field' },
+      ['Track and Field']
+    ])('keeps running/track as Running without a recognized string profile (%j)', sportProfileName => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject(
+          { sport: 1, sub_sport: 4, sport_profile_name: sportProfileName },
+          23
+        )
+      ).toBe(ActivityTypes.Running);
+    });
+
+    it.each([
+      [{ sport: 0, sub_sport: 127 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 127 }, ActivityTypes.Running],
+      [{ sub_sport: 127 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 13 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 13 }, ActivityTypes.Running],
+      [{ sub_sport: 13 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 10 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 10 }, ActivityTypes.Running],
+      [{ sub_sport: 10 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 31 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 31 }, ActivityTypes.Running],
+      [{ sub_sport: 31 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 41 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 41 }, ActivityTypes.Running],
+      [{ sub_sport: 41 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 41 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 41 }, ActivityTypes.Running],
+      [{ sub_sport: 41 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 40 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 40 }, ActivityTypes.Running],
+      [{ sub_sport: 40 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 80 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 80 }, ActivityTypes.Running],
+      [{ sub_sport: 80 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 72 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 72 }, ActivityTypes.Running],
+      [{ sub_sport: 72 }, ActivityTypes.unknown],
+      [{ sport: 22, sub_sport: 127 }, ActivityTypes.Motorcycling],
+      [{ sport: 21, sub_sport: 127 }, ActivityTypes.EBiking],
+      [{ sport: 19, sub_sport: 41 }, ActivityTypes.Paddling],
+      [{ sport: 41, sub_sport: 0 }, ActivityTypes.Kayaking],
+      [{ sport: 42, sub_sport: 0 }, ActivityTypes.Rafting]
+    ])('requires the documented parent for the next FIT sub-sport mappings (%j)', (session, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      'Indoor Track',
+      'IndoorTrack',
+      'indoor_track',
+      'Indoor Track Running',
+      'IndoorTrackRunning',
+      'INDOOR-TRACK-RUNNING'
+    ])('preserves Indoor Track Running for an explicit %s profile', sportProfileName => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        for (const session of [
+          { sport: 1, sub_sport: 4 },
+          { sport: 'RUNNING', sub_sport: 'TRACK' },
+          { sport: '1', sub_sport: '4' },
+          { sport: 1, sub_sport: 0 },
+          { sport: 0, sub_sport: 0 }
+        ]) {
+          expect(
+            importerInternals.getActivityTypeFromSessionObject(
+              { ...session, sport_profile_name: sportProfileName },
+              manufacturer
+            )
+          ).toBe(ActivityTypes.IndoorTrackRunning);
+        }
+      }
+    });
+
+    it.each([undefined, '', 'Track', 'Custom indoor session', 'Indoor Track intervals'])(
+      'keeps ambiguous running/track as Running for profile %j',
+      sportProfileName => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({
+            sport: 1,
+            sub_sport: 4,
+            sport_profile_name: sportProfileName
+          })
+        ).toBe(ActivityTypes.Running);
+      }
+    );
+
+    it.each([
+      [{ sport: 1, sub_sport: 3 }, ActivityTypes.TrailRunning],
+      [{ sport: 1, sub_sport: 1 }, ActivityTypes.Treadmill],
+      [{ sport: 2, sub_sport: 13 }, ActivityTypes.TrackCycling],
+      [{ sport: 41, sub_sport: 41 }, ActivityTypes.WhitewaterKayaking]
+    ])('preserves specific FIT pairs over an Indoor Track profile (%j)', (session, expectedType) => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Indoor Track' })
+      ).toBe(expectedType);
+    });
+
+    it.each(['Track Run', 'Track Running', 'TrackRun', 'track_running', 'TRACK-RUN', ' Track Running '])(
+      'honors explicit Track Running profile %s on running/track',
+      sportProfileName => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({
+            sport: 1,
+            sub_sport: 4,
+            sport_profile_name: sportProfileName
+          })
+        ).toBe(ActivityTypes.TrackRunning);
+      }
+    );
+
+    it.each([
+      { sport: 'running', sub_sport: 'track' },
+      { sport: '1', sub_sport: '4' },
+      { sport: 'running', sub_sport: 4 },
+      { sport: 'RUNNING', sub_sport: 'TRACK' },
+      { sport: 1, sub_sport: 0 }
+    ])('honors an explicit Track Running profile for FIT session %j', session => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track Running' })
+      ).toBe(ActivityTypes.TrackRunning);
+    });
+
+    it.each([23, 1, 123, 'suunto', 'garmin', undefined])(
+      'recognizes Track Running profiles independently of manufacturer %j',
+      manufacturer => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 1, sub_sport: 4, sport_profile_name: 'Track Run' },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.TrackRunning);
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 4 }, manufacturer)).toBe(
+          ActivityTypes.Running
+        );
+      }
+    );
+
+    it.each(['Track Run', 'Track Running', 'TrackRun', 'track_running'])(
+      'recognizes an explicit Track Running sport name %s',
+      sport => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport })).toBe(ActivityTypes.TrackRunning);
+      }
+    );
+
+    it.each([
+      [{ sport: 1, sub_sport: 3 }, ActivityTypes.TrailRunning],
+      [{ sport: 2, sub_sport: 11 }, ActivityTypes.Cyclocross],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores]
+    ])('retains existing specific sport precedence over Track Running profiles (%j)', (session, expectedType) => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track Running' }, 23)
+      ).toBe(expectedType);
+    });
+
+    it.each([
+      [{ sport: 1, sub_sport: 3 }, ActivityTypes.TrailRunning],
+      [{ sport: 2, sub_sport: 11 }, ActivityTypes.Cyclocross],
+      [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Chores],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.TrackAndField]
+    ])('retains existing profile precedence outside running/track (%j)', (session, expectedType) => {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject({ ...session, sport_profile_name: 'Track and Field' }, 23)
+      ).toBe(expectedType);
+    });
+
+    it.each([
+      [23, 'Indoor Track', ActivityTypes.IndoorTrackRunning],
+      [1, 'Indoor Track Running', ActivityTypes.IndoorTrackRunning],
+      [65535, 'IndoorTrack', ActivityTypes.IndoorTrackRunning],
+      [23, 'Track and Field', ActivityTypes.TrackAndField],
+      [1, 'TrackAndField', ActivityTypes.TrackAndField],
+      [123, 'Track and Field', ActivityTypes.TrackAndField],
+      [65535, 'Track and Field', ActivityTypes.TrackAndField],
+      [23, 'Track Run', ActivityTypes.TrackRunning],
+      [1, 'Track Running', ActivityTypes.TrackRunning],
+      [123, 'track_running', ActivityTypes.TrackRunning],
+      [65535, 'Track Run', ActivityTypes.TrackRunning],
+      [1, 'Custom intervals', ActivityTypes.Running]
+    ])(
+      'imports running/track FIT with manufacturer %s and profile %s as %s',
+      async (manufacturer, profile, expectedType) => {
+        const encoder = new FitEncoder();
+        const startTime = FitEncoder.toFitTimestamp(new Date('2026-01-01T12:00:00.000Z'));
+        const profileBytes = FitEncoder.string(profile);
+        encoder.writeMessage(0, [
+          { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturer },
+          { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
+        ]);
+        encoder.writeMessage(18, [
+          { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
+          { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
+          { number: 5, size: 1, baseType: FitBaseType.Enum, value: 1 },
+          { number: 6, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 110, size: profileBytes.length, baseType: FitBaseType.String, value: profileBytes }
+        ]);
+
+        const event = await EventImporterFIT.getFromArrayBuffer(
+          Buffer.from(encoder.close()),
+          new ActivityParsingOptions({ generateUnitStreams: false })
+        );
+
+        expect(event.getFirstActivity().type).toBe(expectedType);
+        expect(event.getActivityTypesAsArray()).toEqual([expectedType]);
+        const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+        expect(restored.getFirstActivity().type).toBe(expectedType);
+        expect(restored.getActivityTypesAsArray()).toEqual([expectedType]);
+      }
+    );
+
+    it.each([
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
+      [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
+      [{ sport: 64 }, ActivityTypes.RacketSport],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
+      [{ sport: 2 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 8 }, ActivityTypes.MountainBiking],
+      [{ sport: 'cycling', sub_sport: 'mountain' }, ActivityTypes.MountainBiking],
+      [{ sport: 2, sub_sport: 7 }, ActivityTypes.RoadCycling],
+      [{ sport: 2, sub_sport: 13 }, ActivityTypes.TrackCycling],
+      [{ sport: 'cycling', sub_sport: 'mixed_surface' }, ActivityTypes.Cycling],
+      [{ sport: 21, sub_sport: 28 }, ActivityTypes.EBiking],
+      [{ sport: 21 }, ActivityTypes.EBiking],
+      [{ sport: 21, sub_sport: 0 }, ActivityTypes.EBiking],
+      [{ sport: 'e_biking', sub_sport: 'e_bike_fitness' }, ActivityTypes.EBiking],
+      [{ sport: 2, sub_sport: 47 }, ActivityTypes.EMountainBiking],
+      [{ sport: 0, sub_sport: 47 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 22 }, ActivityTypes.Match],
+      [{ sport: 14 }, ActivityTypes.Snowboarding],
+      [{ sport: 14, sub_sport: 0 }, ActivityTypes.Snowboarding],
+      [{ sport: 13, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
+      [{ sport: 12, sub_sport: 37 }, ActivityTypes.BackcountrySkiing],
+      [{ sport: 12 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 12, sub_sport: 0 }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 'cross_country_skiing', sub_sport: 'generic' }, ActivityTypes.CrosscountrySkiing],
+      [{ sport: 12, sub_sport: 0, sport_profile_name: 'NordicSki' }, ActivityTypes.NordicSki],
+      [{ sport: 13, sub_sport: 0 }, ActivityTypes.AlpineSkiing],
+      [{ sport: 16 }, ActivityTypes.Mountaineering],
+      [{ sport: 16, sub_sport: 0 }, ActivityTypes.Mountaineering]
+    ])('preserves the classification of unrelated FIT session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session)).toBe(expectedType);
+    });
+
+    it.each([
+      [1, 2, 5, ActivityTypes.IndoorCycling],
+      [7, 2, 5, ActivityTypes.IndoorCycling],
+      [23, 2, 5, ActivityTypes.IndoorCycling],
+      [123, 2, 5, ActivityTypes.IndoorCycling],
+      [65535, 2, 5, ActivityTypes.IndoorCycling],
+      [1, 2, 47, ActivityTypes.EMountainBiking],
+      [7, 2, 47, ActivityTypes.EMountainBiking],
+      [23, 2, 47, ActivityTypes.EMountainBiking],
+      [123, 2, 47, ActivityTypes.EMountainBiking],
+      [65535, 2, 47, ActivityTypes.EMountainBiking],
+      [1, 21, 47, ActivityTypes.EMountainBiking],
+      [7, 21, 47, ActivityTypes.EMountainBiking],
+      [23, 21, 47, ActivityTypes.EMountainBiking],
+      [123, 21, 47, ActivityTypes.EMountainBiking],
+      [65535, 21, 47, ActivityTypes.EMountainBiking],
+      [1, 18, 82, ActivityTypes.AdventureRacing],
+      [7, 18, 82, ActivityTypes.AdventureRacing],
+      [23, 18, 82, ActivityTypes.AdventureRacing],
+      [123, 18, 82, ActivityTypes.AdventureRacing],
+      [65535, 18, 82, ActivityTypes.AdventureRacing],
+      [1, 1, 82, ActivityTypes.AdventureRacing],
+      [7, 1, 82, ActivityTypes.AdventureRacing],
+      [23, 1, 82, ActivityTypes.AdventureRacing],
+      [123, 1, 82, ActivityTypes.AdventureRacing],
+      [65535, 1, 82, ActivityTypes.AdventureRacing],
+      [1, 20, 111, ActivityTypes.Paragliding],
+      [7, 20, 111, ActivityTypes.Paragliding],
+      [23, 20, 111, ActivityTypes.Paragliding],
+      [123, 20, 111, ActivityTypes.Paragliding],
+      [65535, 20, 111, ActivityTypes.Paragliding],
+      [1, 20, 112, ActivityTypes.Paramotoring],
+      [7, 20, 112, ActivityTypes.Paramotoring],
+      [23, 20, 112, ActivityTypes.Paramotoring],
+      [123, 20, 112, ActivityTypes.Paramotoring],
+      [65535, 20, 112, ActivityTypes.Paramotoring],
+      [1, 20, 39, ActivityTypes.RCDroneFlying],
+      [7, 20, 39, ActivityTypes.RCDroneFlying],
+      [23, 20, 39, ActivityTypes.RCDroneFlying],
+      [123, 20, 39, ActivityTypes.RCDroneFlying],
+      [65535, 20, 39, ActivityTypes.RCDroneFlying],
+      [1, 73, 90, ActivityTypes.FieldHockey],
+      [7, 73, 90, ActivityTypes.FieldHockey],
+      [23, 73, 90, ActivityTypes.FieldHockey],
+      [123, 73, 90, ActivityTypes.FieldHockey],
+      [65535, 73, 90, ActivityTypes.FieldHockey],
+      [1, 73, 91, ActivityTypes.IceHockey],
+      [7, 73, 91, ActivityTypes.IceHockey],
+      [23, 73, 91, ActivityTypes.IceHockey],
+      [123, 73, 91, ActivityTypes.IceHockey],
+      [65535, 73, 91, ActivityTypes.IceHockey],
+      [1, 73, 0, ActivityTypes.Hockey],
+      [7, 73, 0, ActivityTypes.Hockey],
+      [23, 73, 0, ActivityTypes.Hockey],
+      [123, 73, 0, ActivityTypes.Hockey],
+      [65535, 73, 0, ActivityTypes.Hockey],
+      [1, 58, 0, ActivityTypes.WinterSport],
+      [7, 58, 0, ActivityTypes.WinterSport],
+      [23, 58, 0, ActivityTypes.WinterSport],
+      [123, 58, 0, ActivityTypes.WinterSport],
+      [65535, 58, 0, ActivityTypes.WinterSport],
+      [1, 70, 0, ActivityTypes.TeamSport],
+      [7, 70, 0, ActivityTypes.TeamSport],
+      [23, 70, 0, ActivityTypes.TeamSport],
+      [123, 70, 0, ActivityTypes.TeamSport],
+      [65535, 70, 0, ActivityTypes.TeamSport],
+      [1, 78, 0, ActivityTypes.WaterSport],
+      [7, 78, 0, ActivityTypes.WaterSport],
+      [23, 78, 0, ActivityTypes.WaterSport],
+      [123, 78, 0, ActivityTypes.WaterSport],
+      [65535, 78, 0, ActivityTypes.WaterSport],
+      [1, 2, 127, ActivityTypes.EEnduroMTB],
+      [23, 2, 127, ActivityTypes.EEnduroMTB],
+      [65535, 2, 127, ActivityTypes.EEnduroMTB],
+      [1, 2, 13, ActivityTypes.TrackCycling],
+      [23, 2, 13, ActivityTypes.TrackCycling],
+      [65535, 2, 13, ActivityTypes.TrackCycling],
+      [1, 2, 10, ActivityTypes.RecumbentCycling],
+      [23, 2, 10, ActivityTypes.RecumbentCycling],
+      [65535, 2, 10, ActivityTypes.RecumbentCycling],
+      [1, 11, 31, ActivityTypes.SpeedWalking],
+      [23, 11, 31, ActivityTypes.SpeedWalking],
+      [65535, 11, 31, ActivityTypes.SpeedWalking],
+      [1, 41, 41, ActivityTypes.WhitewaterKayaking],
+      [23, 41, 41, ActivityTypes.WhitewaterKayaking],
+      [65535, 41, 41, ActivityTypes.WhitewaterKayaking],
+      [1, 42, 41, ActivityTypes.WhitewaterRafting],
+      [23, 42, 41, ActivityTypes.WhitewaterRafting],
+      [65535, 42, 41, ActivityTypes.WhitewaterRafting],
+      [1, 20, 40, ActivityTypes.WingsuitFlying],
+      [23, 20, 40, ActivityTypes.WingsuitFlying],
+      [65535, 20, 40, ActivityTypes.WingsuitFlying],
+      [1, 18, 80, ActivityTypes.BrickTraining],
+      [23, 18, 80, ActivityTypes.BrickTraining],
+      [65535, 18, 80, ActivityTypes.BrickTraining],
+      [1, 28, 72, ActivityTypes.HuntingWithDogs],
+      [23, 28, 72, ActivityTypes.HuntingWithDogs],
+      [65535, 28, 72, ActivityTypes.HuntingWithDogs],
+      [1, 2, 88, ActivityTypes.IndoorHandCycle],
+      [7, 2, 88, ActivityTypes.IndoorHandCycle],
+      [23, 2, 88, ActivityTypes.IndoorHandCycle],
+      [123, 2, 88, ActivityTypes.IndoorHandCycle],
+      [65535, 2, 88, ActivityTypes.IndoorHandCycle],
+      [1, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [7, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [23, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [123, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [65535, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [1, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [7, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [23, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [123, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [65535, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [1, 81, 98, ActivityTypes.Overlanding],
+      [7, 81, 98, ActivityTypes.Overlanding],
+      [23, 81, 98, ActivityTypes.Overlanding],
+      [123, 81, 98, ActivityTypes.Overlanding],
+      [65535, 81, 98, ActivityTypes.Overlanding],
+      [1, 24, 98, ActivityTypes.Overlanding],
+      [7, 24, 98, ActivityTypes.Overlanding],
+      [23, 24, 98, ActivityTypes.Overlanding],
+      [123, 24, 98, ActivityTypes.Overlanding],
+      [65535, 24, 98, ActivityTypes.Overlanding],
+      [1, 22, 98, ActivityTypes.Overlanding],
+      [7, 22, 98, ActivityTypes.Overlanding],
+      [23, 22, 98, ActivityTypes.Overlanding],
+      [123, 22, 98, ActivityTypes.Overlanding],
+      [65535, 22, 98, ActivityTypes.Overlanding],
+      [1, 0, 83, ActivityTypes.TruckerWorkout],
+      [7, 0, 83, ActivityTypes.TruckerWorkout],
+      [23, 0, 83, ActivityTypes.TruckerWorkout],
+      [123, 0, 83, ActivityTypes.TruckerWorkout],
+      [65535, 0, 83, ActivityTypes.TruckerWorkout],
+      [1, 4, 83, ActivityTypes.TruckerWorkout],
+      [7, 4, 83, ActivityTypes.TruckerWorkout],
+      [23, 4, 83, ActivityTypes.TruckerWorkout],
+      [123, 4, 83, ActivityTypes.TruckerWorkout],
+      [65535, 4, 83, ActivityTypes.TruckerWorkout],
+      [1, 10, 83, ActivityTypes.TruckerWorkout],
+      [7, 10, 83, ActivityTypes.TruckerWorkout],
+      [23, 10, 83, ActivityTypes.TruckerWorkout],
+      [123, 10, 83, ActivityTypes.TruckerWorkout],
+      [65535, 10, 83, ActivityTypes.TruckerWorkout],
+      [1, 0, 86, ActivityTypes.Generic],
+      [1, 0, 87, ActivityTypes.Generic],
+      [1, 0, 88, ActivityTypes.Generic],
+      [1, 0, 98, ActivityTypes.Generic],
+      [1, 24, 83, ActivityTypes.Driving],
+      [1, 65, 87, ActivityTypes.WheelchairPushWalk],
+      [1, 66, 86, ActivityTypes.WheelchairPushRun],
+      [1, 83, 0, ActivityTypes.Dancing],
+      [1, 88, 0, ActivityTypes.Canoeing],
+      [1, 17, 124, ActivityTypes.Rucking],
+      [7, 17, 124, ActivityTypes.Rucking],
+      [23, 17, 124, ActivityTypes.Rucking],
+      [123, 17, 124, ActivityTypes.Rucking],
+      [65535, 17, 124, ActivityTypes.Rucking],
+      [1, 32, 66, ActivityTypes.SailingExpedition],
+      [7, 32, 66, ActivityTypes.SailingExpedition],
+      [23, 32, 66, ActivityTypes.SailingExpedition],
+      [123, 32, 66, ActivityTypes.SailingExpedition],
+      [65535, 32, 66, ActivityTypes.SailingExpedition],
+      [1, 53, 63, ActivityTypes.CCRDiving],
+      [7, 53, 63, ActivityTypes.CCRDiving],
+      [23, 53, 63, ActivityTypes.CCRDiving],
+      [123, 53, 63, ActivityTypes.CCRDiving],
+      [65535, 53, 63, ActivityTypes.CCRDiving],
+      [1, 0, 124, ActivityTypes.Generic],
+      [1, 11, 124, ActivityTypes.Walking],
+      [1, 0, 66, ActivityTypes.Generic],
+      [1, 17, 66, ActivityTypes.Hiking],
+      [1, 0, 63, ActivityTypes.Generic],
+      [1, 2, 29, ActivityTypes.BMX],
+      [7, 2, 29, ActivityTypes.BMX],
+      [23, 2, 29, ActivityTypes.BMX],
+      [123, 2, 29, ActivityTypes.BMX],
+      [65535, 2, 29, ActivityTypes.BMX],
+      [1, 4, 25, ActivityTypes.IndoorSkiing],
+      [7, 4, 25, ActivityTypes.IndoorSkiing],
+      [23, 4, 25, ActivityTypes.IndoorSkiing],
+      [123, 4, 25, ActivityTypes.IndoorSkiing],
+      [65535, 4, 25, ActivityTypes.IndoorSkiing],
+      [1, 22, 35, ActivityTypes.ATV],
+      [7, 22, 35, ActivityTypes.ATV],
+      [23, 22, 35, ActivityTypes.ATV],
+      [123, 22, 35, ActivityTypes.ATV],
+      [65535, 22, 35, ActivityTypes.ATV],
+      [1, 22, 36, ActivityTypes.Motocross],
+      [7, 22, 36, ActivityTypes.Motocross],
+      [23, 22, 36, ActivityTypes.Motocross],
+      [123, 22, 36, ActivityTypes.Motocross],
+      [65535, 22, 36, ActivityTypes.Motocross],
+      [1, 18, 126, ActivityTypes.PoolTriathlon],
+      [7, 18, 126, ActivityTypes.PoolTriathlon],
+      [23, 18, 126, ActivityTypes.PoolTriathlon],
+      [123, 18, 126, ActivityTypes.PoolTriathlon],
+      [65535, 18, 126, ActivityTypes.PoolTriathlon],
+      [1, 0, 29, ActivityTypes.Generic],
+      [1, 1, 29, ActivityTypes.Running],
+      [1, 0, 25, ActivityTypes.Generic],
+      [1, 12, 25, ActivityTypes.CrosscountrySkiing],
+      [1, 0, 35, ActivityTypes.Generic],
+      [1, 2, 35, ActivityTypes.Cycling],
+      [1, 24, 35, ActivityTypes.Driving],
+      [1, 0, 36, ActivityTypes.Generic],
+      [1, 2, 36, ActivityTypes.Cycling],
+      [1, 24, 36, ActivityTypes.Driving],
+      [1, 0, 126, ActivityTypes.Generic],
+      [1, 5, 126, ActivityTypes.Swimming],
+      [1, 1, 126, ActivityTypes.Running],
+      [1, 18, 0, ActivityTypes.Multisport],
+      [1, 22, 0, ActivityTypes.Motorcycling],
+      [1, 4, 0, ActivityTypes.FitnessEquipment],
+      [1, 25, 0, ActivityTypes.Golf],
+      [1, 29, 0, ActivityTypes.Fishing],
+      [1, 35, 0, ActivityTypes.Snowshoeing],
+      [1, 36, 0, ActivityTypes.Snowmobiling],
+      [1, 1, 59, ActivityTypes.ObstacleRacing],
+      [7, 1, 59, ActivityTypes.ObstacleRacing],
+      [23, 1, 59, ActivityTypes.ObstacleRacing],
+      [123, 1, 59, ActivityTypes.ObstacleRacing],
+      [65535, 1, 59, ActivityTypes.ObstacleRacing],
+      [1, 1, 67, ActivityTypes.UltraRunning],
+      [7, 1, 67, ActivityTypes.UltraRunning],
+      [23, 1, 67, ActivityTypes.UltraRunning],
+      [123, 1, 67, ActivityTypes.UltraRunning],
+      [65535, 1, 67, ActivityTypes.UltraRunning],
+      [1, 11, 27, ActivityTypes.IndoorWalking],
+      [7, 11, 27, ActivityTypes.IndoorWalking],
+      [23, 11, 27, ActivityTypes.IndoorWalking],
+      [123, 11, 27, ActivityTypes.IndoorWalking],
+      [65535, 11, 27, ActivityTypes.IndoorWalking],
+      [1, 4, 27, ActivityTypes.IndoorWalking],
+      [7, 4, 27, ActivityTypes.IndoorWalking],
+      [23, 4, 27, ActivityTypes.IndoorWalking],
+      [123, 4, 27, ActivityTypes.IndoorWalking],
+      [65535, 4, 27, ActivityTypes.IndoorWalking],
+      [1, 2, 123, ActivityTypes.EnduroMTB],
+      [7, 2, 123, ActivityTypes.EnduroMTB],
+      [23, 2, 123, ActivityTypes.EnduroMTB],
+      [123, 2, 123, ActivityTypes.EnduroMTB],
+      [65535, 2, 123, ActivityTypes.EnduroMTB],
+      [1, 81, 125, ActivityTypes.Rally],
+      [7, 81, 125, ActivityTypes.Rally],
+      [23, 81, 125, ActivityTypes.Rally],
+      [123, 81, 125, ActivityTypes.Rally],
+      [65535, 81, 125, ActivityTypes.Rally],
+      [1, 0, 59, ActivityTypes.Generic],
+      [1, 2, 59, ActivityTypes.Cycling],
+      [1, 0, 67, ActivityTypes.Generic],
+      [1, 2, 67, ActivityTypes.Cycling],
+      [1, 0, 27, ActivityTypes.Generic],
+      [1, 1, 27, ActivityTypes.Running],
+      [1, 0, 123, ActivityTypes.Generic],
+      [1, 22, 123, ActivityTypes.Motorcycling],
+      [1, 24, 123, ActivityTypes.Driving],
+      [1, 0, 125, ActivityTypes.Generic],
+      [1, 22, 125, ActivityTypes.Motorcycling],
+      [1, 24, 125, ActivityTypes.Driving],
+      [1, 2, 125, ActivityTypes.Cycling],
+      [1, 11, 0, ActivityTypes.Walking],
+      [1, 27, 0, ActivityTypes.HorsebackRiding],
+      [1, 67, 0, ActivityTypes.Meditation],
+      [1, 63, 0, ActivityTypes.VideoGaming],
+      [1, 59, 0, ActivityTypes.Grinding],
+      [7, 59, 0, ActivityTypes.Grinding],
+      [23, 59, 0, ActivityTypes.Grinding],
+      [123, 59, 0, ActivityTypes.Grinding],
+      [65535, 59, 0, ActivityTypes.Grinding],
+      [1, 59, 71, ActivityTypes.IndoorGrinding],
+      [7, 59, 71, ActivityTypes.IndoorGrinding],
+      [23, 59, 71, ActivityTypes.IndoorGrinding],
+      [123, 59, 71, ActivityTypes.IndoorGrinding],
+      [65535, 59, 71, ActivityTypes.IndoorGrinding],
+      [1, 32, 65, ActivityTypes.SailRacing],
+      [7, 32, 65, ActivityTypes.SailRacing],
+      [23, 32, 65, ActivityTypes.SailRacing],
+      [123, 32, 65, ActivityTypes.SailRacing],
+      [65535, 32, 65, ActivityTypes.SailRacing],
+      [1, 0, 71, ActivityTypes.Generic],
+      [1, 2, 71, ActivityTypes.Cycling],
+      [1, 0, 65, ActivityTypes.Generic],
+      [1, 2, 65, ActivityTypes.Cycling],
+      [1, 32, 0, ActivityTypes.Sailing],
+      [1, 85, 0, ActivityTypes.PoolApnea],
+      [7, 85, 0, ActivityTypes.PoolApnea],
+      [23, 85, 0, ActivityTypes.PoolApnea],
+      [123, 85, 0, ActivityTypes.PoolApnea],
+      [65535, 85, 0, ActivityTypes.PoolApnea],
+      [1, 86, 0, ActivityTypes.Mobility],
+      [7, 86, 0, ActivityTypes.Mobility],
+      [23, 86, 0, ActivityTypes.Mobility],
+      [123, 86, 0, ActivityTypes.Mobility],
+      [65535, 86, 0, ActivityTypes.Mobility],
+      [1, 63, 0, ActivityTypes.VideoGaming],
+      [7, 63, 0, ActivityTypes.VideoGaming],
+      [23, 63, 0, ActivityTypes.VideoGaming],
+      [123, 63, 0, ActivityTypes.VideoGaming],
+      [65535, 63, 0, ActivityTypes.VideoGaming],
+      [1, 63, 77, ActivityTypes.VideoGaming],
+      [1, 2, 77, ActivityTypes.Cycling],
+      [1, 53, 56, ActivityTypes.FreeDiving],
+      [1, 4, 19, ActivityTypes.FlexibilityTraining],
+      [23, 0, 62, ActivityTypes.Meditation],
+      [23, 64, 85, ActivityTypes.Padel],
+      [1, 64, 93, ActivityTypes.PlatformTennis],
+      [7, 64, 93, ActivityTypes.PlatformTennis],
+      [23, 64, 93, ActivityTypes.PlatformTennis],
+      [123, 64, 93, ActivityTypes.PlatformTennis],
+      [65535, 64, 93, ActivityTypes.PlatformTennis],
+      [1, 56, 0, ActivityTypes.Shooting],
+      [7, 56, 0, ActivityTypes.Shooting],
+      [23, 56, 0, ActivityTypes.Shooting],
+      [123, 56, 0, ActivityTypes.Shooting],
+      [65535, 56, 0, ActivityTypes.Shooting],
+      [1, 87, 0, ActivityTypes.Geocaching],
+      [7, 87, 0, ActivityTypes.Geocaching],
+      [23, 87, 0, ActivityTypes.Geocaching],
+      [123, 87, 0, ActivityTypes.Geocaching],
+      [65535, 87, 0, ActivityTypes.Geocaching],
+      [1, 0, 93, ActivityTypes.Generic],
+      [1, 64, 84, ActivityTypes.Pickleball],
+      [7, 64, 84, ActivityTypes.Pickleball],
+      [23, 64, 84, ActivityTypes.Pickleball],
+      [123, 64, 84, ActivityTypes.Pickleball],
+      [65535, 64, 84, ActivityTypes.Pickleball],
+      [1, 83, 0, ActivityTypes.Dancing],
+      [7, 83, 0, ActivityTypes.Dancing],
+      [23, 83, 0, ActivityTypes.Dancing],
+      [123, 83, 0, ActivityTypes.Dancing],
+      [65535, 83, 0, ActivityTypes.Dancing],
+      [1, 84, 0, ActivityTypes.JumpRope],
+      [7, 84, 0, ActivityTypes.JumpRope],
+      [23, 84, 0, ActivityTypes.JumpRope],
+      [123, 84, 0, ActivityTypes.JumpRope],
+      [65535, 84, 0, ActivityTypes.JumpRope],
+      [1, 84, 84, ActivityTypes.JumpRope],
+      [1, 0, 84, ActivityTypes.Generic],
+      [23, 2, 12, ActivityTypes.Handcycle],
+      [1, 2, 12, ActivityTypes.Handcycle],
+      [1, 69, 0, ActivityTypes.DiscGolf],
+      [7, 69, 0, ActivityTypes.DiscGolf],
+      [23, 69, 0, ActivityTypes.DiscGolf],
+      [123, 69, 0, ActivityTypes.DiscGolf],
+      [65535, 69, 0, ActivityTypes.DiscGolf],
+      [1, 74, 0, ActivityTypes.Lacrosse],
+      [7, 74, 0, ActivityTypes.Lacrosse],
+      [23, 74, 0, ActivityTypes.Lacrosse],
+      [123, 74, 0, ActivityTypes.Lacrosse],
+      [65535, 74, 0, ActivityTypes.Lacrosse],
+      [1, 76, 0, ActivityTypes.WaterTubing],
+      [7, 76, 0, ActivityTypes.WaterTubing],
+      [23, 76, 0, ActivityTypes.WaterTubing],
+      [123, 76, 0, ActivityTypes.WaterTubing],
+      [65535, 76, 0, ActivityTypes.WaterTubing],
+      [1, 77, 0, ActivityTypes.Wakesurfing],
+      [7, 77, 0, ActivityTypes.Wakesurfing],
+      [23, 77, 0, ActivityTypes.Wakesurfing],
+      [123, 77, 0, ActivityTypes.Wakesurfing],
+      [65535, 77, 0, ActivityTypes.Wakesurfing],
+      [1, 79, 0, ActivityTypes.Archery],
+      [7, 79, 0, ActivityTypes.Archery],
+      [23, 79, 0, ActivityTypes.Archery],
+      [123, 79, 0, ActivityTypes.Archery],
+      [65535, 79, 0, ActivityTypes.Archery],
+      [1, 80, 0, ActivityTypes.MixedMartialArts],
+      [7, 80, 0, ActivityTypes.MixedMartialArts],
+      [23, 80, 0, ActivityTypes.MixedMartialArts],
+      [123, 80, 0, ActivityTypes.MixedMartialArts],
+      [65535, 80, 0, ActivityTypes.MixedMartialArts],
+      [1, 78, 0, ActivityTypes.WaterSport],
+      [1, 25, 0, ActivityTypes.Golf],
+      [7, 0, 0, ActivityTypes.Generic],
+      [23, 0, 0, ActivityTypes.Generic],
+      [23, 0, 12, ActivityTypes.Wheelchair],
+      [1, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [23, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [123, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [65535, 65, 0, ActivityTypes.WheelchairPushWalk],
+      [1, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [1, 66, 0, ActivityTypes.WheelchairPushRun],
+      [23, 66, 0, ActivityTypes.WheelchairPushRun],
+      [123, 66, 0, ActivityTypes.WheelchairPushRun],
+      [65535, 66, 0, ActivityTypes.WheelchairPushRun],
+      [1, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [1, 0, 12, ActivityTypes.Generic],
+      [123, 0, 12, ActivityTypes.Generic],
+      [65535, 0, 12, ActivityTypes.Generic],
+      [23, 0, 22, ActivityTypes.FieldHockey],
+      [1, 73, 90, ActivityTypes.FieldHockey],
+      [23, 73, 90, ActivityTypes.FieldHockey],
+      [123, 73, 90, ActivityTypes.FieldHockey],
+      [65535, 73, 90, ActivityTypes.FieldHockey],
+      [1, 73, 91, ActivityTypes.IceHockey],
+      [23, 73, 91, ActivityTypes.IceHockey],
+      [123, 73, 91, ActivityTypes.IceHockey],
+      [65535, 73, 91, ActivityTypes.IceHockey],
+      [1, 0, 22, ActivityTypes.Match],
+      [123, 0, 22, ActivityTypes.Match],
+      [65535, 0, 22, ActivityTypes.Match],
+      [23, 0, 23, ActivityTypes.Chores],
+      [1, 0, 23, ActivityTypes.Generic],
+      [123, 0, 23, ActivityTypes.Generic],
+      [65535, 0, 23, ActivityTypes.Generic],
+      [23, 2, 11, ActivityTypes.Cyclocross],
+      [1, 2, 11, ActivityTypes.Cyclocross],
+      [23, 2, 46, ActivityTypes.GravelCycling],
+      [1, 2, 46, ActivityTypes.GravelCycling],
+      [23, 21, 47, ActivityTypes.EMountainBiking],
+      [1, 21, 47, ActivityTypes.EMountainBiking],
+      [23, 14, 37, ActivityTypes.Splitboarding],
+      [23, 16, 37, ActivityTypes.SkiMountaineering],
+      [23, 12, 42, ActivityTypes.SkateSkiing],
+      [1, 12, 42, ActivityTypes.SkateSkiing],
+      [23, 12, 0, ActivityTypes.CrosscountrySkiing],
+      [23, 1, 4, ActivityTypes.Running],
+      [1, 1, 4, ActivityTypes.Running],
+      [123, 1, 37, ActivityTypes.Running],
+      [123, 2, 37, ActivityTypes.Cycling],
+      [123, 5, 37, ActivityTypes.Swimming],
+      [123, 0, 37, ActivityTypes.Generic],
+      [123, 12, 37, ActivityTypes.BackcountrySkiing]
+    ])(
+      'imports a synthetic FIT (manufacturer %s, %s/%s) as %s and preserves its type through native JSON',
+      async (manufacturer, sport, subSport, expectedType) => {
+        const encoder = new FitEncoder();
+        const startDate = new Date('2026-01-01T12:00:00.000Z');
+        const startTime = FitEncoder.toFitTimestamp(startDate);
+        encoder.writeMessage(0, [
+          { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
+          { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturer },
+          { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
+        ]);
+        encoder.writeMessage(18, [
+          { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
+          { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
+          { number: 5, size: 1, baseType: FitBaseType.Enum, value: sport },
+          { number: 6, size: 1, baseType: FitBaseType.Enum, value: subSport },
+          { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+          { number: 16, size: 1, baseType: FitBaseType.Uint8, value: 60 }
+        ]);
+
+        const event = await EventImporterFIT.getFromArrayBuffer(
+          Buffer.from(encoder.close()),
+          new ActivityParsingOptions({ generateUnitStreams: false })
+        );
+
+        expect(event.getFirstActivity().type).toBe(expectedType);
+        expect(event.getActivityTypesAsArray()).toEqual([expectedType]);
+        expect(event.getFirstActivity().startDate).toEqual(startDate);
+        expect(event.getFirstActivity().getStat(DataDuration.type)?.getValue()).toBe(60);
+        const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+        expect(restored.getFirstActivity().type).toBe(expectedType);
+        expect(restored.getActivityTypesAsArray()).toEqual([expectedType]);
+      }
+    );
+
     it('should map Garmin snorkeling sport id to canonical Snorkeling activity type', () => {
       const activityType = (EventImporterFIT as any).getActivityTypeFromSessionObject({
         sport: 82

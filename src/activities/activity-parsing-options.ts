@@ -27,7 +27,10 @@ export interface ActivityParsingTssOverridesOptions {
 
 export interface ActivityParsingTssOptions {
   overrides?: ActivityParsingTssOverridesOptions;
-  /** @deprecated Valid imported scores are always preserved. Remove the imported stat explicitly to recalculate it. */
+  /**
+   * Preserve finite imported TSS for every sport, including zero and legacy scores without a method.
+   * Defaults to true. False discards existing TSS and recalculates where supported; otherwise TSS stays unset.
+   */
   preserveImportedTss?: boolean;
   enableHeuristicFallbacks?: boolean;
 }
@@ -57,6 +60,7 @@ export class ActivityParsingOptions {
   };
   public tss?: {
     overrides: ActivityParsingTssOverridesOptions;
+    /** True (default) preserves imported TSS; false replaces it with a calculation or leaves it unset. */
     preserveImportedTss: boolean;
     enableHeuristicFallbacks: boolean;
   };

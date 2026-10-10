@@ -1471,7 +1471,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(missingStreamCall).toThrow();
 
             // Verify global activity stats
-            expect(activity.type).toEqual(ActivityTypes.Cycling);
+            expect(activity.type).toEqual(ActivityTypes.RoadCycling);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toEqual(42220.87);
             expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toEqual(668);
             expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toEqual(664);
@@ -1810,7 +1810,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const activity = event.getFirstActivity();
-            expect(activity.type).toEqual(ActivityTypes.Cycling);
+            expect(activity.type).toEqual(ActivityTypes.RoadCycling);
             expect(activity.hasStreamData(DataSpeed.type)).toBeTruthy();
             expect(activity.hasStreamData(DataGradeAdjustedSpeed.type)).toBeTruthy();
             expect(activity.getStat(DataGradeAdjustedPaceAvg.type)).toBeDefined();
@@ -2004,7 +2004,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const activity = event.getFirstActivity();
-            expect(activity.type).toEqual(ActivityTypes.Cycling);
+            expect(activity.type).toEqual(ActivityTypes.RoadCycling);
             expect(activity.hasPowerMeter()).toBeFalsy();
 
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(41829, 0);
@@ -2085,7 +2085,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             const activity = event.getFirstActivity();
 
             expect(activity.name).toEqual('Meylan Road Cycling');
-            expect(activity.type).toEqual(ActivityTypes.Cycling);
+            expect(activity.type).toEqual(ActivityTypes.RoadCycling);
             expect((activity.getStat(DataDistance.type) as DataNumber).getValue()).toBeCloseTo(49909, 0);
             expect((activity.getStat(DataAscent.type) as DataNumber).getValue()).toBeCloseTo(292, 0);
             expect((activity.getStat(DataDescent.type) as DataNumber).getValue()).toBeCloseTo(283, 0);

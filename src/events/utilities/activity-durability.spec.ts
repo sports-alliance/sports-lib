@@ -212,8 +212,23 @@ describe('activity durability', () => {
   });
 
   it.each([
+    [ActivityTypes.IndoorCycling, 'cycling', DataPower.type],
+    [ActivityTypes.EMountainBiking, 'cycling', DataPower.type],
     [ActivityTypes.MountainBiking, 'cycling', DataPower.type],
+    [ActivityTypes.BMX, 'cycling', DataPower.type],
+    [ActivityTypes.TrackCycling, 'cycling', DataPower.type],
+    [ActivityTypes.RecumbentCycling, 'cycling', DataPower.type],
+    [ActivityTypes.IndoorRunning, 'running', DataSpeed.type],
+    [ActivityTypes.IndoorTrackRunning, 'running', DataSpeed.type],
+    [ActivityTypes.RoadRunning, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.RoadCycling, 'cycling', DataPower.type],
+    [ActivityTypes.LesMillsRPM, 'cycling', DataPower.type],
+    [ActivityTypes.LesMillsSprint, 'cycling', DataPower.type],
+    [ActivityTypes.LesMillsTheTrip, 'cycling', DataPower.type],
     [ActivityTypes.TrailRunning, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.VerticalRunning, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.ObstacleRacing, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.UltraRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.OpenWaterSwimming, 'open-water-swimming', DataSpeed.type]
   ])('groups %s into %s durability', (type, discipline, outputType) => {
     const result = analyzeActivityDurability(
@@ -228,7 +243,7 @@ describe('activity durability', () => {
     expect(result.summary).toMatchObject({ discipline, eligibility: { eligible: true } });
   });
 
-  it.each([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling])(
+  it.each([ActivityTypes['Enduro MTB'], ActivityTypes.EEnduroMTB, ActivityTypes.DownhillCycling])(
     'keeps gravity MTB type %s as explicit unsupported durability evidence',
     type => {
       const result = analyzeActivityDurability(
@@ -261,35 +276,109 @@ describe('activity durability', () => {
     }
   );
 
-  it('treats gravity MTB policy inputs as sufficient to replace stale evidence without retained streams', () => {
-    const downhillWithoutStreams = mockActivity({ type: ActivityTypes.DownhillCycling });
-    const downhillWithStreams = mockActivity({
-      type: ActivityTypes.DownhillCycling,
-      streams: {
-        [DataPower.type]: Array(3600).fill(200),
-        [DataHeartRate.type]: Array(3600).fill(140)
-      }
-    });
+  it.each([ActivityTypes.DownhillCycling, ActivityTypes.EEnduroMTB])(
+    'treats %s gravity MTB policy inputs as sufficient to replace stale evidence without retained streams',
+    type => {
+      const downhillWithoutStreams = mockActivity({ type });
+      const downhillWithStreams = mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(140)
+        }
+      });
 
-    expect(hasActivityDurabilitySourceData(downhillWithoutStreams)).toBe(true);
-    expect(calculateActivityDurabilitySourceFingerprint(downhillWithoutStreams)).toBe(
-      calculateActivityDurabilitySourceFingerprint(downhillWithStreams)
+      expect(hasActivityDurabilitySourceData(downhillWithoutStreams)).toBe(true);
+      expect(calculateActivityDurabilitySourceFingerprint(downhillWithoutStreams)).toBe(
+        calculateActivityDurabilitySourceFingerprint(downhillWithStreams)
+      );
+    }
+  );
+
+  it.each([
+    ActivityTypes.RacketSport,
+    ActivityTypes.ParaSport,
+    ActivityTypes.UltimateDisc,
+    ActivityTypes.Hockey,
+    ActivityTypes.WinterSport,
+    ActivityTypes.TeamSport,
+    ActivityTypes.WaterSport,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
+    ActivityTypes.AdventureRacing,
+    ActivityTypes.Paragliding,
+    ActivityTypes.SpeedWalking,
+    ActivityTypes.WhitewaterKayaking,
+    ActivityTypes.WhitewaterRafting,
+    ActivityTypes.WingsuitFlying,
+    ActivityTypes.BrickTraining,
+    ActivityTypes.HuntingWithDogs,
+    ActivityTypes.IndoorSkiing,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.PoolTriathlon,
+    ActivityTypes.IndoorWalking,
+    ActivityTypes.Rally,
+    ActivityTypes.WeightTraining,
+    ActivityTypes.DiscGolf,
+    ActivityTypes.Lacrosse,
+    ActivityTypes.WaterTubing,
+    ActivityTypes.Wakesurfing,
+    ActivityTypes.Archery,
+    ActivityTypes.MixedMartialArts,
+    ActivityTypes.Dancing,
+    ActivityTypes.JumpRope,
+    ActivityTypes.Pickleball,
+    ActivityTypes.PlatformTennis,
+    ActivityTypes.Shooting,
+    ActivityTypes.Geocaching,
+    ActivityTypes.PoolApnea,
+    ActivityTypes.Mobility,
+    ActivityTypes.VideoGaming,
+    ActivityTypes.Grinding,
+    ActivityTypes.IndoorGrinding,
+    ActivityTypes.SailRacing,
+    ActivityTypes.Overlanding,
+    ActivityTypes.TruckerWorkout,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Rucking,
+    ActivityTypes.SailingExpedition,
+    ActivityTypes.CCRDiving,
+    ActivityTypes.Driving,
+    ActivityTypes.Wheelchair,
+    ActivityTypes.WheelchairPushWalk,
+    ActivityTypes.WheelchairPushRun
+  ])('keeps %s out of the persisted durability metric', type => {
+    const result = analyzeActivityDurability(
+      mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(130)
+        }
+      })
     );
+    expect(result).toEqual({ timeline: [], summary: null });
   });
 
-  it.each([ActivityTypes.WeightTraining, ActivityTypes.Driving, ActivityTypes.Wheelchair])(
-    'keeps %s out of the persisted durability metric',
+  it.each([ActivityTypes.IndoorHandCycle, ActivityTypes.Handcycle, ActivityTypes.IndoorCycling])(
+    'uses the existing cycling durability protocol for %s',
     type => {
-      const result = analyzeActivityDurability(
-        mockActivity({
-          type,
-          streams: {
-            [DataPower.type]: Array(3600).fill(200),
-            [DataHeartRate.type]: Array(3600).fill(130)
-          }
-        })
-      );
-      expect(result).toEqual({ timeline: [], summary: null });
+      const activity = mockActivity({
+        type,
+        streams: {
+          [DataPower.type]: Array(3600).fill(200),
+          [DataHeartRate.type]: Array(3600).fill(130)
+        }
+      });
+      const result = analyzeActivityDurability(activity);
+      expect(result.summary?.discipline).toBe('cycling');
+      expect(result.summary?.outputSource).toBe('power');
+      expect(result.summary?.eligibility).toMatchObject({ eligible: true, reason: 'eligible' });
+      expect(result.timeline).toHaveLength(3600);
+      const withoutHeartRate = mockActivity({ type, streams: { [DataPower.type]: Array(3600).fill(200) } });
+      expect(analyzeActivityDurability(withoutHeartRate).summary?.eligibility.eligible).toBe(false);
     }
   );
 

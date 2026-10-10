@@ -8,6 +8,10 @@ Always-on rules:
 - Never install or add the official Garmin FIT SDK as a project dependency, development dependency, optional dependency,
   or vendored project code. Its license prevents its use as a dependency in sports-lib, fit-parser, and Quantified Self.
   When needed for investigation, run it only as a standalone tool outside those repositories and their dependency trees.
+- Respect `preserveImportedTss` consistently for every activity type. True (the default) preserves finite imported
+  TSS, including zero and legacy scores without a method, even for sports excluded from calculation. False discards
+  existing TSS and its method, recalculates where supported, and leaves both unset otherwise. Cover both settings
+  across the complete activity catalog; calculated-TSS exclusions must not bypass the flag.
 - Use prefixed commit subjects: `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`.
 - Pick the dominant intent; do not create unprefixed commit subjects.
 - Respect repo-specific guidance in `.agent/README.md` and any referenced workflows or skills under `.agent/`.

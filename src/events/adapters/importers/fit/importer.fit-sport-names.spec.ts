@@ -1,0 +1,268 @@
+import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
+import { DataTrainingStressScore } from '../../../../data/data.training-stress-score';
+import {
+  DataTrainingStressScoreMethod,
+  TrainingStressScoreMethod
+} from '../../../../data/data.training-stress-score-method';
+import { EventImporterJSON } from '../json/importer.json';
+import { EventImporterFIT } from './importer.fit';
+
+const importer = EventImporterFIT as unknown as {
+  getActivityTypeFromSessionObject(session: unknown, manufacturer?: unknown): ActivityTypes;
+};
+
+const garminProfileNames = [
+  ['Bike Indoor', ActivityTypes.IndoorCycling, ActivityTypeGroups.CyclingGroup],
+  ['Bike Tour', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['Road Bike', ActivityTypes.RoadCycling, ActivityTypeGroups.CyclingGroup],
+  ['Gravel Bike', ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
+  ['MTB', ActivityTypes.MountainBiking, ActivityTypeGroups.MountainBikingGroup],
+  ['Climb Indoor', ActivityTypes.IndoorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Row Indoor', ActivityTypes.IndoorRowing, ActivityTypeGroups.IndoorSportsGroup],
+  ['XC Classic Ski', ActivityTypes.ClassicCrosscountrySkiing, ActivityTypeGroups.WinterSportsGroup],
+  ['XC Skate Ski', ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
+  ['Pool Swim', ActivityTypes.Swimming, ActivityTypeGroups.SwimmingGroup],
+  ['Bike', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['eBike', ActivityTypes.EBiking, ActivityTypeGroups.CyclingGroup],
+  ['Cardio', ActivityTypes.CardioTraining, ActivityTypeGroups.IndoorSportsGroup],
+  ['Floor Climb', ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Strength', ActivityTypes.StrengthTraining, ActivityTypeGroups.IndoorSportsGroup],
+  ['Fish', ActivityTypes.Fishing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Horseback', ActivityTypes.HorsebackRiding, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Hunt', ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Kayak', ActivityTypes.Kayaking, ActivityTypeGroups.WaterSportsGroup],
+  ['Row', ActivityTypes.Rowing, ActivityTypeGroups.WaterSportsGroup]
+] as const;
+
+const namedSports = [
+  ...garminProfileNames,
+  ['Racket Sport', ActivityTypes.RacketSport, ActivityTypeGroups.TeamRacketGroup],
+  ['Para Sport', ActivityTypes.ParaSport, ActivityTypeGroups.UnspecifiedGroup],
+  ['Ultimate Disc', ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
+  ['Ultimate Frisbee', ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
+  ['AMRAP', ActivityTypes.AMRAP, ActivityTypeGroups.IndoorSportsGroup],
+  ['EMOM', ActivityTypes.EMOM, ActivityTypeGroups.IndoorSportsGroup],
+  ['Tabata', ActivityTypes.Tabata, ActivityTypeGroups.IndoorSportsGroup],
+  ['Dynamic Apnea', ActivityTypes.DynamicApnea, ActivityTypeGroups.DivingGroup],
+  ['E-Bike Fitness', ActivityTypes.EBiking, ActivityTypeGroups.CyclingGroup],
+  ['Casual Walking', ActivityTypes.Walking, ActivityTypeGroups.WalkingGroup],
+  ['Bike Commute', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup]
+] as const;
+
+describe('Recognized sport and activity-profile names', () => {
+  it.each([
+    ['single_gas_diving', ActivityTypes.ScubaDiving],
+    ['multi_gas_diving', ActivityTypes.ScubaDiving],
+    ['gauge_diving', ActivityTypes.ScubaDiving],
+    ['apnea_diving', ActivityTypes.FreeDiving],
+    ['apnea_hunting', ActivityTypes.FreeDiving]
+  ] as const)('retains %s diving classification across capitalization and separators', (subSport, expected) => {
+    for (const sport of ['diving', 'DIVING', ' Diving ']) {
+      for (const sub_sport of [
+        subSport,
+        subSport.toUpperCase(),
+        subSport.replace(/_/g, '-'),
+        subSport.replace(/_/g, ' ')
+      ]) {
+        for (const manufacturer of [1, 23, 123, undefined]) {
+          expect(
+            importer.getActivityTypeFromSessionObject({ sport, sub_sport, sport_profile_name: 'Parkour' }, manufacturer)
+          ).toBe(expected);
+        }
+      }
+    }
+  });
+
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'])(
+    'ignores invalid profile %s and retains the recorded FIT sport',
+    sport_profile_name => {
+      for (const [sport, expected] of [
+        [0, ActivityTypes.Generic],
+        [1, ActivityTypes.Running],
+        [2, ActivityTypes.Cycling]
+      ] as const) {
+        expect(importer.getActivityTypeFromSessionObject({ sport, sub_sport: 0, sport_profile_name })).toBe(expected);
+      }
+    }
+  );
+
+  it.each(namedSports)('normalizes the source name %s to %s in %s', (name, expected, group) => {
+    for (const alias of [name, name.toUpperCase(), name.replace(/[\s-]/g, ''), name.replace(/[\s-]/g, '_')]) {
+      expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(expected);
+      expect(ActivityTypesHelper.getActivityGroupForActivityType(expected)).toBe(group);
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(importer.getActivityTypeFromSessionObject({ sport: alias, sub_sport: 0 }, manufacturer)).toBe(expected);
+        expect(
+          importer.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: alias }, manufacturer)
+        ).toBe(expected);
+      }
+    }
+  });
+
+  it.each(garminProfileNames)('normalizes %s through native JSON and a canonical round trip', (name, expected) => {
+    const canonical = {
+      name: 'profile-name-roundtrip',
+      startDate: 1000,
+      endDate: 61000,
+      type: expected,
+      powerMeter: false,
+      trainer: false,
+      stats: {},
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    };
+    const activity = EventImporterJSON.getActivityFromJSON({ ...canonical, type: name as ActivityTypes });
+    expect(activity.type).toBe(expected);
+    expect(EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON()))).type).toBe(expected);
+  });
+
+  it.each([
+    [64, 0, ActivityTypes.RacketSport],
+    [64, 84, ActivityTypes.Pickleball],
+    [64, 85, ActivityTypes.Padel],
+    [64, 93, ActivityTypes.PlatformTennis],
+    [64, 94, ActivityTypes.Squash],
+    [64, 95, ActivityTypes.Badminton],
+    [64, 96, ActivityTypes.RacquetBall],
+    [64, 97, ActivityTypes.TableTennis],
+    [68, 0, ActivityTypes.ParaSport],
+    [62, 73, ActivityTypes.AMRAP],
+    [62, 74, ActivityTypes.EMOM],
+    [62, 75, ActivityTypes.Tabata],
+    [21, 28, ActivityTypes.EBiking],
+    [11, 30, ActivityTypes.Walking],
+    [2, 48, ActivityTypes.Cycling],
+    [53, 121, ActivityTypes.DynamicApnea]
+  ] as const)('preserves the explicit FIT classification %s/%s as %s', (sport, sub_sport, expected) => {
+    for (const manufacturer of [1, 7, 23, 123, undefined]) {
+      for (const session of [
+        { sport, sub_sport },
+        { sport: String(sport), sub_sport: String(sub_sport) }
+      ]) {
+        expect(importer.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expected);
+      }
+    }
+  });
+
+  it.each([
+    [62, 73, ActivityTypes.AMRAP],
+    [62, 74, ActivityTypes.EMOM],
+    [62, 75, ActivityTypes.Tabata],
+    [21, 28, ActivityTypes.EBiking],
+    [11, 30, ActivityTypes.Walking],
+    [2, 48, ActivityTypes.Cycling],
+    [53, 121, ActivityTypes.DynamicApnea]
+  ] as const)('keeps the specific FIT pair %s/%s ahead of a conflicting profile', (sport, sub_sport, expected) => {
+    expect(importer.getActivityTypeFromSessionObject({ sport, sub_sport, sport_profile_name: 'Running' })).toBe(
+      expected
+    );
+  });
+
+  it.each([73, 74, 75, 28, 30, 121])('requires the matching parent for sub-sport %s', sub_sport => {
+    expect(importer.getActivityTypeFromSessionObject({ sport: 0, sub_sport })).toBe(ActivityTypes.Generic);
+    expect(importer.getActivityTypeFromSessionObject({ sport: 1, sub_sport })).toBe(ActivityTypes.Running);
+    expect(importer.getActivityTypeFromSessionObject({ sport: 'not-a-sport', sub_sport })).toBe(ActivityTypes.unknown);
+  });
+
+  it.each([
+    [{ sport: 64, sub_sport: 0, sport_profile_name: 'Tennis' }, ActivityTypes.Tennis],
+    [{ sport: 64, sub_sport: 0, sport_profile_name: 'Racquet Ball' }, ActivityTypes.RacquetBall],
+    [{ sport: 64, sub_sport: 95, sport_profile_name: 'Squash' }, ActivityTypes.Badminton],
+    [{ sport: 64, sub_sport: 0, sport_profile_name: 'Running' }, ActivityTypes.RacketSport],
+    [{ sport: 64, sub_sport: 'constructor' }, ActivityTypes.RacketSport],
+    [{ sport: 68, sub_sport: 0, sport_profile_name: 'Wheelchair Push Run' }, ActivityTypes.WheelchairPushRun],
+    [{ sport: 68, sub_sport: 0, sport_profile_name: 'Custom para sport' }, ActivityTypes.ParaSport],
+    [{ sport: 70, sub_sport: 92, sport_profile_name: 'Ultimate Disc' }, ActivityTypes.UltimateDisc],
+    [{ sport: 64, sub_sport: 92, sport_profile_name: 'Ultimate Frisbee' }, ActivityTypes.UltimateDisc],
+    [{ sport: 70, sub_sport: 92 }, ActivityTypes.TeamSport],
+    [{ sport: 69, sub_sport: 92, sport_profile_name: 'Ultimate Disc' }, ActivityTypes.DiscGolf],
+    [{ sport: 0, sub_sport: 92 }, ActivityTypes.Generic],
+    [{ sport: 0, sport_profile_name: 'Ultimate' }, ActivityTypes.Generic],
+    [{ sport: 0, sport_profile_name: 'Commute' }, ActivityTypes.Generic],
+    [{ sport: 0, sport_profile_name: 'Dynamic' }, ActivityTypes.Generic],
+    [{ sport: 0, sport_profile_name: 'Para' }, ActivityTypes.Generic]
+  ])('uses precise names while retaining unrelated or ambiguous source context (%j)', (session, expected) => {
+    expect(importer.getActivityTypeFromSessionObject(session)).toBe(expected);
+  });
+
+  describe.each([1, 7, 23, 123, 65535])('binary FIT import for manufacturer %s', manufacturer => {
+    it.each([
+      ...garminProfileNames.map(([profile, type]) => [0, 0, profile, type] as const),
+      [64, 0, '', ActivityTypes.RacketSport],
+      [68, 0, '', ActivityTypes.ParaSport],
+      [0, 0, 'Ultimate Disc', ActivityTypes.UltimateDisc],
+      [70, 92, 'Ultimate Frisbee', ActivityTypes.UltimateDisc],
+      [0, 0, 'AMRAP', ActivityTypes.AMRAP],
+      [0, 0, 'EMOM', ActivityTypes.EMOM],
+      [0, 0, 'Tabata', ActivityTypes.Tabata],
+      [0, 0, 'Dynamic Apnea', ActivityTypes.DynamicApnea],
+      [0, 0, 'E-Bike Fitness', ActivityTypes.EBiking],
+      [0, 0, 'Casual Walking', ActivityTypes.Walking],
+      [0, 0, 'Bike Commute', ActivityTypes.Cycling],
+      [62, 73, '', ActivityTypes.AMRAP],
+      [62, 74, '', ActivityTypes.EMOM],
+      [62, 75, '', ActivityTypes.Tabata],
+      [21, 28, '', ActivityTypes.EBiking],
+      [11, 30, '', ActivityTypes.Walking],
+      [2, 48, '', ActivityTypes.Cycling],
+      [53, 121, '', ActivityTypes.DynamicApnea]
+    ] as const)(
+      'imports %s/%s (%s) as %s with the approved TSS setting',
+      async (sport, subSport, profile, expected) => {
+        for (const preserveImportedTss of [undefined, true, false]) {
+          for (const score of [0, 42.5]) {
+            const encoder = new FitEncoder();
+            const startTime = FitEncoder.toFitTimestamp(new Date('2026-01-01T12:00:00Z'));
+            const profileBytes = FitEncoder.string(profile);
+            encoder.writeMessage(0, [
+              { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
+              { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturer },
+              { number: 4, size: 4, baseType: FitBaseType.Uint32, value: startTime }
+            ]);
+            encoder.writeMessage(18, [
+              { number: 253, size: 4, baseType: FitBaseType.Uint32, value: startTime + 60 },
+              { number: 2, size: 4, baseType: FitBaseType.Uint32, value: startTime },
+              { number: 5, size: 1, baseType: FitBaseType.Enum, value: sport },
+              { number: 6, size: 1, baseType: FitBaseType.Enum, value: subSport },
+              { number: 7, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+              { number: 8, size: 4, baseType: FitBaseType.Uint32, value: 60_000 },
+              { number: 35, size: 2, baseType: FitBaseType.Uint16, value: score * 10 },
+              {
+                number: 110,
+                size: profileBytes.length,
+                baseType: FitBaseType.String,
+                value: profileBytes
+              }
+            ]);
+            const event = await EventImporterFIT.getFromArrayBuffer(
+              Buffer.from(encoder.close()),
+              new ActivityParsingOptions({
+                generateUnitStreams: false,
+                tss: { preserveImportedTss, enableHeuristicFallbacks: false }
+              })
+            );
+            const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+            for (const candidate of [event, restored]) {
+              expect(candidate.getFirstActivity().type).toBe(expected);
+              expect(candidate.getActivityTypesAsArray()).toEqual([expected]);
+              if (preserveImportedTss === false) {
+                expect(candidate.getFirstActivity().getStat(DataTrainingStressScore.type)).toBeUndefined();
+                expect(candidate.getFirstActivity().getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+              } else {
+                expect(candidate.getFirstActivity().getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+                expect(candidate.getFirstActivity().getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+                  TrainingStressScoreMethod.IMPORTED
+                );
+              }
+            }
+          }
+        }
+      }
+    );
+  });
+});

@@ -1,6 +1,15 @@
+import {
+  getActivityTypeSourceFromManufacturer,
+  isCompatibleProviderFITParent,
+  resolveProviderActivityType,
+  resolveProviderFITProfile
+} from '../../../../activities/activity-types.provider';
 import { fileHeartRateCalibration } from '../../../utilities/tss/tss-evaluation';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
-import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
+import {
+  DataTrainingStressScoreMethod,
+  TrainingStressScoreMethod
+} from '../../../../data/data.training-stress-score-method';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { SwimLength } from '../../../../swim-lengths/swim-length';
@@ -27,7 +36,7 @@ import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
 import { DataDistance } from '../../../../data/data.distance';
-import { getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
+import { getFitManufacturerName, getFitSportName, getFitSubSportName } from 'fit-file-parser/profile';
 import { DataPause } from '../../../../data/data.pause';
 import { DataIntensity } from '../../../../data/data.intensity';
 import { DataInterface } from '../../../../data/data.interface';
@@ -1642,14 +1651,18 @@ export class EventImporterFIT {
       throw new ParsingEventLibError('Cannot parse start and end dates');
     } else {
       // Create an activity
+      const creator = this.getCreatorFromFitDataObject(fitDataObject);
       const activity = new Activity(
         startDate,
         endDate,
-        this.getActivityTypeFromSessionObject(sessionObject),
-        this.getCreatorFromFitDataObject(fitDataObject),
+        this.getActivityTypeFromSessionObject(sessionObject, creator.manufacturer),
+        creator,
         options
       );
-      fileHeartRateCalibration.set(activity, resolveFitHeartRateCalibration(fitDataObject, sessionObject, sessionIndex, activity.type));
+      fileHeartRateCalibration.set(
+        activity,
+        resolveFitHeartRateCalibration(fitDataObject, sessionObject, sessionIndex, activity.type)
+      );
       const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
         {
           ...sessionObject,
@@ -2376,26 +2389,552 @@ export class EventImporterFIT {
     return null;
   }
 
-  private static getActivityTypeFromSessionObject(session: any): ActivityTypes {
+  private static getActivityTypeFromSessionObject(session: any, manufacturer?: unknown): ActivityTypes {
     // FIT sport fields can be either profile IDs (number / numeric string) or already-resolved names.
     // Example for the reported file: sport="rock_climbing", sub_sport=68 ("indoor_climbing").
     const resolvedSport = this.resolveFitProfileName(session.sport, getFitSportName);
 
     const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
-      resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
+      resolvedSubSportName && resolvedSubSportName.toLowerCase() !== 'generic' ? resolvedSubSportName : null;
+    const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
+
+    const source = getActivityTypeSourceFromManufacturer(
+      this.resolveFitProfileName(manufacturer, getFitManufacturerName)
+    );
+    const providerProfile = resolveProviderFITProfile(
+      session.sport_profile_name,
+      source,
+      resolvedSport,
+      resolvedSubSportName
+    );
+    if (providerProfile) return providerProfile;
+
+    // A known provider profile must not replace an unrelated non-generic parent
+    // through a standalone alias. Generic recordings and explicit parent/profile
+    // composites retain their existing refinement rules.
+    const fallbackProfileName =
+      resolvedSport !== 'generic' &&
+      typeof session.sport_profile_name === 'string' &&
+      resolveProviderActivityType(session.sport_profile_name, source) &&
+      !isCompatibleProviderFITParent(session.sport_profile_name, source, resolvedSport)
+        ? undefined
+        : session.sport_profile_name;
+
+    // Preserve these explicit sports before sub-sport or user-defined profile
+    // fallbacks can collapse their distinct canonical classifications.
+    switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
+      case 'parasport': {
+        const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+        if (profileType && profileType !== ActivityTypes.Generic && profileType !== ActivityTypes.unknown) {
+          return profileType;
+        }
+        return ActivityTypes.ParaSport;
+      }
+      case 'ultimatedisc':
+      case 'ultimatefrisbee':
+        return ActivityTypes.UltimateDisc;
+      case 'racket':
+      case 'racketsport':
+      case 'racketsports': {
+        const racketSubtypes: Record<string, ActivityTypes> = {
+          pickleball: ActivityTypes.Pickleball,
+          padel: ActivityTypes.Padel,
+          platform: ActivityTypes.PlatformTennis,
+          squash: ActivityTypes.Squash,
+          badminton: ActivityTypes.Badminton,
+          racquetball: ActivityTypes.RacquetBall,
+          tabletennis: ActivityTypes.TableTennis
+        };
+        const subtype = Object.entries(racketSubtypes).find(([name]) => name === normalizedSubSportName)?.[1];
+        if (subtype) return subtype;
+        // Broad racket recordings may identify their specific racket sport by profile name.
+        const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+        if (normalizedSubSportName === 'ultimate' && profileType === ActivityTypes.UltimateDisc) return profileType;
+        if (
+          profileType &&
+          (profileType === ActivityTypes.Tennis || Object.values(racketSubtypes).includes(profileType))
+        ) {
+          return profileType;
+        }
+        return ActivityTypes.RacketSport;
+      }
+      case 'amrap':
+        return ActivityTypes.AMRAP;
+      case 'emom':
+        return ActivityTypes.EMOM;
+      case 'tabata':
+        return ActivityTypes.Tabata;
+      case 'hiit':
+        if (normalizedSubSportName === 'amrap') return ActivityTypes.AMRAP;
+        if (normalizedSubSportName === 'emom') return ActivityTypes.EMOM;
+        if (normalizedSubSportName === 'tabata') return ActivityTypes.Tabata;
+        break;
+      case 'ebikefitness':
+        return ActivityTypes.EBiking;
+      case 'ebiking':
+        if (normalizedSubSportName === 'ebikefitness') return ActivityTypes.EBiking;
+        break;
+      case 'casualwalking':
+        return ActivityTypes.Walking;
+      case 'bikecommute':
+      case 'bikecommuting':
+        return ActivityTypes.Cycling;
+      case 'dynamicapnea':
+        return ActivityTypes.DynamicApnea;
+      case 'spin':
+      case 'indoorcycling':
+        return ActivityTypes.IndoorCycling;
+      case 'ebikemountain':
+      case 'emountainbiking':
+        return ActivityTypes.EMountainBiking;
+      case 'adventurerace':
+      case 'adventureracing':
+        return ActivityTypes.AdventureRacing;
+      case 'flyparaglide':
+      case 'paragliding':
+        return ActivityTypes.Paragliding;
+      case 'flyparamotor':
+      case 'paramotoring':
+        return ActivityTypes.Paramotoring;
+      case 'rcdrone':
+      case 'rcdroneflying':
+        return ActivityTypes.RCDroneFlying;
+      case 'hockey':
+        if (normalizedSubSportName === 'field') {
+          return ActivityTypes.FieldHockey;
+        }
+        if (normalizedSubSportName === 'ice') {
+          return ActivityTypes.IceHockey;
+        }
+        return ActivityTypes.Hockey;
+      case 'wintersport':
+        return ActivityTypes.WinterSport;
+      case 'teamsport':
+        if (
+          normalizedSubSportName === 'ultimate' &&
+          this.getActivityTypeByKey(session.sport_profile_name) === ActivityTypes.UltimateDisc
+        ) {
+          return ActivityTypes.UltimateDisc;
+        }
+        return ActivityTypes.TeamSport;
+      case 'watersport':
+        return ActivityTypes.WaterSport;
+      case 'wheelchairpushwalk':
+        return normalizedSubSportName === 'indoorwheelchairwalk'
+          ? ActivityTypes.IndoorWheelchairPushWalk
+          : ActivityTypes.WheelchairPushWalk;
+      case 'wheelchairpushrun':
+        return normalizedSubSportName === 'indoorwheelchairrun'
+          ? ActivityTypes.IndoorWheelchairPushRun
+          : ActivityTypes.WheelchairPushRun;
+      case 'indoorwheelchairpushwalk':
+      case 'indoorwheelchairwalk':
+        return ActivityTypes.IndoorWheelchairPushWalk;
+      case 'indoorwheelchairpushrun':
+      case 'indoorwheelchairrun':
+        return ActivityTypes.IndoorWheelchairPushRun;
+      case 'indoorhandcycle':
+      case 'indoorhandcycling':
+        return ActivityTypes.IndoorHandCycle;
+      case 'bmx':
+      case 'bmxcycling':
+        return ActivityTypes.BMX;
+      case 'cycling':
+        if (normalizedSubSportName === 'spin') {
+          return ActivityTypes.IndoorCycling;
+        }
+        if (normalizedSubSportName === 'ebikemountain') {
+          return ActivityTypes.EMountainBiking;
+        }
+        if (normalizedSubSportName === 'ebikeenduro') {
+          return ActivityTypes.EEnduroMTB;
+        }
+        if (normalizedSubSportName === 'trackcycling') {
+          return ActivityTypes.TrackCycling;
+        }
+        if (normalizedSubSportName === 'recumbent') {
+          return ActivityTypes.RecumbentCycling;
+        }
+        if (normalizedSubSportName === 'bmx') {
+          return ActivityTypes.BMX;
+        }
+        if (normalizedSubSportName === 'indoorhandcycling') {
+          return ActivityTypes.IndoorHandCycle;
+        }
+        if (normalizedSubSportName === 'enduro') {
+          return ActivityTypes.EnduroMTB;
+        }
+        break;
+      case 'enduromtb':
+        return ActivityTypes.EnduroMTB;
+      case 'eenduromtb':
+      case 'electricenduromtb':
+      case 'ebikeenduro':
+        return ActivityTypes.EEnduroMTB;
+      case 'trackcycling':
+        return ActivityTypes.TrackCycling;
+      case 'recumbent':
+      case 'recumbentcycling':
+        return ActivityTypes.RecumbentCycling;
+      case 'indoortrack':
+      case 'indoortrackrunning':
+        return ActivityTypes.IndoorTrackRunning;
+      case 'obstacleracing':
+      case 'obstaclerun':
+        return ActivityTypes.ObstacleRacing;
+      case 'ultrarunning':
+      case 'ultrarun':
+        return ActivityTypes.UltraRunning;
+      case 'running':
+        if (
+          (normalizedSubSportName === 'indoor' || normalizedSubSportName === 'indoorrunning') &&
+          this.getActivityTypeByKey(fallbackProfileName) === ActivityTypes.IndoorTrackRunning
+        ) {
+          return ActivityTypes.IndoorTrackRunning;
+        }
+        if (normalizedSubSportName === 'adventurerace') {
+          return ActivityTypes.AdventureRacing;
+        }
+        if (normalizedSubSportName === 'obstacle') {
+          return ActivityTypes.ObstacleRacing;
+        }
+        if (normalizedSubSportName === 'ultra') {
+          return ActivityTypes.UltraRunning;
+        }
+        break;
+      case 'indoorwalking':
+      case 'walkindoor':
+        return ActivityTypes.IndoorWalking;
+      case 'walking':
+        if (normalizedSubSportName === 'casualwalking') {
+          return ActivityTypes.Walking;
+        }
+        if (normalizedSubSportName === 'speedwalking') {
+          return ActivityTypes.SpeedWalking;
+        }
+        if (normalizedSubSportName === 'indoorwalking') {
+          return ActivityTypes.IndoorWalking;
+        }
+        break;
+      case 'speedwalking':
+        return ActivityTypes.SpeedWalking;
+      case 'kayaking':
+        if (normalizedSubSportName === 'whitewater') {
+          return ActivityTypes.WhitewaterKayaking;
+        }
+        break;
+      case 'rafting':
+        if (normalizedSubSportName === 'whitewater') {
+          return ActivityTypes.WhitewaterRafting;
+        }
+        break;
+      case 'whitewaterkayaking':
+        return ActivityTypes.WhitewaterKayaking;
+      case 'whitewaterrafting':
+        return ActivityTypes.WhitewaterRafting;
+      case 'flying':
+        if (normalizedSubSportName === 'flyparaglide') {
+          return ActivityTypes.Paragliding;
+        }
+        if (normalizedSubSportName === 'flyparamotor') {
+          return ActivityTypes.Paramotoring;
+        }
+        if (normalizedSubSportName === 'rcdrone') {
+          return ActivityTypes.RCDroneFlying;
+        }
+        if (normalizedSubSportName === 'wingsuit') {
+          return ActivityTypes.WingsuitFlying;
+        }
+        break;
+      case 'wingsuit':
+      case 'wingsuitflying':
+        return ActivityTypes.WingsuitFlying;
+      case 'hunting':
+        if (normalizedSubSportName === 'huntingwithdogs') {
+          return ActivityTypes.HuntingWithDogs;
+        }
+        break;
+      case 'huntingwithdogs':
+        return ActivityTypes.HuntingWithDogs;
+      case 'overland':
+      case 'overlanding':
+        return ActivityTypes.Overlanding;
+      case 'motorsports':
+        if (normalizedSubSportName === 'rally') {
+          return ActivityTypes.Rally;
+        }
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
+      case 'atv':
+      case 'allterrainvehicle':
+        return ActivityTypes.ATV;
+      case 'motocross':
+        return ActivityTypes.Motocross;
+      case 'motorcycling':
+        if (normalizedSubSportName === 'atv') {
+          return ActivityTypes.ATV;
+        }
+        if (normalizedSubSportName === 'motocross') {
+          return ActivityTypes.Motocross;
+        }
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
+      case 'driving':
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
+      case 'rally':
+      case 'rallydriving':
+        return ActivityTypes.Rally;
+      case 'truckerworkout':
+      case 'truckerworkouts':
+      case 'truckerhealth':
+        return ActivityTypes.TruckerWorkout;
+      case 'generic':
+      case 'training':
+        if (normalizedSubSportName === 'truckerworkout') {
+          return ActivityTypes.TruckerWorkout;
+        }
+        break;
+      case 'indoorskiing':
+      case 'xcskiindoor':
+      case 'indoorcrosscountryskiing':
+        return ActivityTypes.IndoorSkiing;
+      case 'pooltriathlon':
+        return ActivityTypes.PoolTriathlon;
+      case 'multisport':
+        if (normalizedSubSportName === 'adventurerace') {
+          return ActivityTypes.AdventureRacing;
+        }
+        if (normalizedSubSportName === 'brick') {
+          return ActivityTypes.BrickTraining;
+        }
+        if (normalizedSubSportName === 'pooltriathlon') {
+          return ActivityTypes.PoolTriathlon;
+        }
+        break;
+      case 'brick':
+      case 'bricktraining':
+        return ActivityTypes.BrickTraining;
+      case 'fitnessequipment':
+        if (normalizedSubSportName === 'indoorskiing') {
+          return ActivityTypes.IndoorSkiing;
+        }
+        if (normalizedSubSportName === 'indoorwalking') {
+          return ActivityTypes.IndoorWalking;
+        }
+        if (normalizedSubSportName === 'truckerworkout') {
+          return ActivityTypes.TruckerWorkout;
+        }
+        break;
+      case 'discgolf':
+      case 'frisbeegolf':
+        return ActivityTypes.DiscGolf;
+      case 'lacrosse':
+        return ActivityTypes.Lacrosse;
+      case 'watertubing':
+        return ActivityTypes.WaterTubing;
+      case 'wakesurfing':
+        return ActivityTypes.Wakesurfing;
+      case 'archery':
+        return ActivityTypes.Archery;
+      case 'mixedmartialarts':
+      case 'mma':
+        return ActivityTypes.MixedMartialArts;
+      case 'dance':
+      case 'dancing':
+        return ActivityTypes.Dancing;
+      case 'jumprope':
+        return ActivityTypes.JumpRope;
+      case 'pickleball':
+        return ActivityTypes.Pickleball;
+      case 'shooting':
+        return ActivityTypes.Shooting;
+      case 'geocaching':
+        return ActivityTypes.Geocaching;
+      case 'platformtennis':
+        return ActivityTypes.PlatformTennis;
+      case 'poolapnea':
+        return normalizedSubSportName === 'dynamicapnea' ? ActivityTypes.DynamicApnea : ActivityTypes.PoolApnea;
+      case 'mobility':
+        return ActivityTypes.Mobility;
+      case 'videogaming':
+      case 'gaming':
+        return ActivityTypes.VideoGaming;
+      case 'grinding':
+        return normalizedSubSportName === 'indoorgrinding' ? ActivityTypes.IndoorGrinding : ActivityTypes.Grinding;
+      case 'grindoffshore':
+      case 'offshoresailgrinding':
+        return ActivityTypes.Grinding;
+      case 'indoorgrinding':
+      case 'grindonshore':
+      case 'onshoresailgrinding':
+        return ActivityTypes.IndoorGrinding;
+      case 'sailrace':
+      case 'sailracing':
+        return ActivityTypes.SailRacing;
+      case 'sailexpedition':
+      case 'sailingexpedition':
+        return ActivityTypes.SailingExpedition;
+      case 'sailing':
+        if (normalizedSubSportName === 'sailrace') {
+          return ActivityTypes.SailRacing;
+        }
+        if (normalizedSubSportName === 'expedition') {
+          return ActivityTypes.SailingExpedition;
+        }
+        break;
+      case 'rucking':
+        return ActivityTypes.Rucking;
+      case 'hiking':
+        if (normalizedSubSportName === 'rucking') {
+          return ActivityTypes.Rucking;
+        }
+        break;
+      case 'ccrdiving':
+      case 'ccr':
+        return ActivityTypes.CCRDiving;
+      case 'diving':
+        if (normalizedSubSportName === 'dynamicapnea') {
+          return ActivityTypes.DynamicApnea;
+        }
+        if (normalizedSubSportName === 'ccrdiving') {
+          return ActivityTypes.CCRDiving;
+        }
+        break;
+    }
+
+    // Suunto's documented FIT exports identify these existing canonical sports.
+    // Require the recording's creator identity instead of changing their global aliases.
+    if (this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto') {
+      const suuntoSubSport = normalizedSubSportName ?? (session.sub_sport == null ? 'generic' : 'unknown');
+      const suuntoPair = `${resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')}/${suuntoSubSport}`;
+      const profileType = this.getActivityTypeByKey(fallbackProfileName);
+      const explicitProfile = profileType && profileType !== ActivityTypes.unknown ? profileType : null;
+      switch (suuntoPair) {
+        case 'training/flexibilitytraining':
+          return ActivityTypes.Stretching;
+        case 'training/cardiotraining':
+          return ActivityTypes.Aerobics;
+        case 'fitnessequipment/elliptical':
+          return ActivityTypes.Crosstrainer;
+        case 'fitnessequipment/strengthtraining':
+          return ActivityTypes.Calisthenics;
+        case 'alpineskiing/backcountry':
+          return ActivityTypes.SkiTouring;
+        // Generic sub-sports already permit an explicit recognized profile to refine the parent.
+        case 'driving/generic':
+          return explicitProfile ?? ActivityTypes.Motorsports;
+        case 'rockclimbing/generic':
+          return explicitProfile ?? ActivityTypes.Climbing;
+        case 'hanggliding/generic':
+          return explicitProfile ?? ActivityTypes.Paragliding;
+        case 'hiking/generic':
+          return explicitProfile ?? ActivityTypes.Trekking;
+        // Vertical running shares Trail Running's pair; retain it only with an explicit profile.
+        case 'running/trail':
+          if (explicitProfile === ActivityTypes.VerticalRunning) return explicitProfile;
+          break;
+        // These pairs are shared by Suunto sports; require their explicit profile name.
+        case 'training/strengthtraining':
+          if (explicitProfile === ActivityTypes.Kettlebell) return explicitProfile;
+          break;
+        case 'alpineskiing/downhill':
+          if (explicitProfile === ActivityTypes.TelemarkSkiing) return explicitProfile;
+          break;
+        case 'generic/handcycling':
+          return ActivityTypes.Wheelchair;
+        case 'generic/match':
+          return ActivityTypes.FieldHockey;
+        case 'generic/exercise':
+          return ActivityTypes.Chores;
+      }
+    }
+
+    // Suunto encodes both Track Running and Track and Field as running/track.
+    // Honor a recognized track profile without changing the ambiguous pair's Running fallback.
+    if (
+      resolvedSport?.toLowerCase() === 'running' &&
+      resolvedSubSport?.toLowerCase() === 'track' &&
+      typeof session.sport_profile_name === 'string'
+    ) {
+      const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+      if (
+        profileType === ActivityTypes.TrackAndField ||
+        profileType === ActivityTypes.TrackRunning ||
+        profileType === ActivityTypes.IndoorRunning ||
+        profileType === ActivityTypes.IndoorTrackRunning
+      ) {
+        return profileType;
+      }
+    }
+
+    // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
+    // Preserve explicit composite mappings, but do not use the legacy standalone
+    // activity alias to turn an unrelated or unknown FIT sport into skiing.
+    // Sport-specific sub-sports require their respective parents before alias fallback.
+    const canUseSubSportAlone =
+      normalizedSubSportName !== 'amrap' &&
+      normalizedSubSportName !== 'emom' &&
+      normalizedSubSportName !== 'tabata' &&
+      normalizedSubSportName !== 'ebikefitness' &&
+      normalizedSubSportName !== 'casualwalking' &&
+      normalizedSubSportName !== 'dynamicapnea' &&
+      normalizedSubSportName !== 'spin' &&
+      normalizedSubSportName !== 'ebikemountain' &&
+      normalizedSubSportName !== 'adventurerace' &&
+      normalizedSubSportName !== 'flyparaglide' &&
+      normalizedSubSportName !== 'flyparamotor' &&
+      normalizedSubSportName !== 'rcdrone' &&
+      normalizedSubSportName !== 'backcountry' &&
+      normalizedSubSportName !== 'expedition' &&
+      normalizedSubSportName !== 'handcycling' &&
+      normalizedSubSportName !== 'pickleball' &&
+      normalizedSubSportName !== 'indoorgrinding' &&
+      normalizedSubSportName !== 'sailrace' &&
+      normalizedSubSportName !== 'rucking' &&
+      normalizedSubSportName !== 'ccrdiving' &&
+      normalizedSubSportName !== 'indoorhandcycling' &&
+      normalizedSubSportName !== 'indoorwheelchairwalk' &&
+      normalizedSubSportName !== 'indoorwheelchairrun' &&
+      normalizedSubSportName !== 'overland' &&
+      normalizedSubSportName !== 'truckerworkout' &&
+      normalizedSubSportName !== 'obstacle' &&
+      normalizedSubSportName !== 'ultra' &&
+      normalizedSubSportName !== 'indoorwalking' &&
+      normalizedSubSportName !== 'enduro' &&
+      normalizedSubSportName !== 'rally' &&
+      normalizedSubSportName !== 'bmx' &&
+      normalizedSubSportName !== 'indoorskiing' &&
+      normalizedSubSportName !== 'atv' &&
+      normalizedSubSportName !== 'motocross' &&
+      normalizedSubSportName !== 'pooltriathlon' &&
+      normalizedSubSportName !== 'ebikeenduro' &&
+      normalizedSubSportName !== 'trackcycling' &&
+      normalizedSubSportName !== 'recumbent' &&
+      normalizedSubSportName !== 'speedwalking' &&
+      normalizedSubSportName !== 'whitewater' &&
+      normalizedSubSportName !== 'wingsuit' &&
+      normalizedSubSportName !== 'brick' &&
+      normalizedSubSportName !== 'huntingwithdogs';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the
     // canonical scuba/free-diving distinction already modeled by Sports Lib.
-    if (resolvedSport === 'diving') {
-      switch (resolvedSubSport) {
-        case 'single_gas_diving':
-        case 'multi_gas_diving':
-        case 'gauge_diving':
+    if (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '') === 'diving') {
+      switch (normalizedSubSportName) {
+        case 'singlegasdiving':
+        case 'multigasdiving':
+        case 'gaugediving':
           return ActivityTypes.ScubaDiving;
-        case 'apnea_diving':
-        case 'apnea_hunting':
+        case 'apneadiving':
+        case 'apneahunting':
           return ActivityTypes.FreeDiving;
       }
     }
@@ -2408,7 +2947,7 @@ export class EventImporterFIT {
 
     // 2. Try sub_sport name alone (e.g. "indoor_climbing" or "indoorClimbing")
     if (!activityType || activityType === ActivityTypes.unknown) {
-      if (resolvedSubSport) {
+      if (resolvedSubSport && canUseSubSportAlone) {
         activityType = this.getActivityTypeByKey(resolvedSubSport);
       }
     }
@@ -2417,7 +2956,7 @@ export class EventImporterFIT {
     //    e.g. "ENDURO MTB" overrides generic "cycling" sport type.
     if ((!activityType || activityType === ActivityTypes.unknown) && isNumberOrString(session.sport_profile_name)) {
       activityType =
-        this.getActivityTypeByKey(session.sport_profile_name) ||
+        this.getActivityTypeByKey(fallbackProfileName) ||
         this.getActivityTypeByKey(`${resolvedSport ?? session.sport}_${session.sport_profile_name}`);
     }
 
@@ -2433,8 +2972,8 @@ export class EventImporterFIT {
     }
 
     const fallbackType =
-      this.getActivityTypeByKey(session.sport_profile_name) ||
-      this.getActivityTypeByKey(resolvedSubSportName) ||
+      this.getActivityTypeByKey(fallbackProfileName) ||
+      (canUseSubSportAlone ? this.getActivityTypeByKey(resolvedSubSportName) : null) ||
       this.getActivityTypeByKey(resolvedSport) ||
       this.getActivityTypeByKey(session.sport);
 

@@ -6,6 +6,185 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Native event, activity, lap, route, and route-file JSON omit non-finite scalar summaries and tolerate legacy null
+summary values on restoration. Finite stats and stream null gaps are preserved. See [Export and persist data](guides/exporting.md).
+
+With `preserveImportedTss: true` (the default), every sport retains finite imported Training Stress Score, including
+zero and legacy scores without a method. With `false`, existing TSS and its method are discarded and a replacement
+is calculated where supported; otherwise both remain unset. See [Metrics and calculations](guides/metrics-and-calculations.md).
+Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking prefer
+usable power with a valid threshold, then calibrated HR, then MET. Regenerating summaries applies this priority to
+previously calculated scores; preserved provider TSS stays unchanged. Metric tokens, units and JSON schemas are unchanged.
+
+Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
+Breathwork profile preserves Breathwork separately. Correcting older
+`Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+Suunto Stretching (`training/flexibility_training`, `10/19`) imports as the existing Stretching type in Indoor Sports
+when the recorded creator manufacturer is Suunto. Provider TSS follows the preservation setting above. Correct older
+Flexibility Training classifications by reparsing retained sources and regenerating affected summaries and activity-type
+aggregates. See [Import activities](guides/importing-activities.md).
+
+Suunto's distinct FIT exports also retain Motorsports, Climbing, Ski Touring, Crosstrainer, Aerobics, Trekking,
+Paragliding and Calisthenics as existing canonical sports. Explicit Kettlebell and Telemark Skiing profiles refine
+their shared pairs; unnamed shared pairs keep their broad classifications. These rules use decoded FIT fields and
+recorded creator identity, with the existing TSS setting. Historical corrections require source reparsing and
+regeneration of affected summaries and Training snapshots. See [Import activities](guides/importing-activities.md).
+
+The catalog now has 284 canonical types. Polar dance styles, mobility variants, classic skiing, road sports and
+Les Mills programs keep separate names. HIIT timer formats, Dynamic Apnea and Indoor Track Running also retain
+their recorded distinctions. Road Bike resolves to Road Cycling; XC Classic Ski resolves to Classic Crosscountry
+Skiing. Broad stored labels remain readable, and imported TSS follows the existing setting.
+Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving. Recognized source
+profiles preserve these names; unnamed shared Suunto exports retain their broader labels.
+Name lookup accepts string sport names; invalid native JSON names restore Unknown Sport. RPM, SPRINT and THE TRIP
+retain Indoor Cycling's trainer flag as well as their own names.
+
+Every canonical type belongs to exactly one of 18 groups, and group member lists include each type once. The 12 broad
+or special types assigned to Unspecified are also listed explicitly. Indoor status remains independent of the group.
+
+Provider context resolves ambiguous names such as Polar Enduro and Garmin Ski. FIT refinement requires a recognized
+`sport_profile_name`; activity titles alone do not establish a sport. Consumer adoption must update its exact Training
+contexts before production use. See [distinct sport names](guides/importing-activities.md#distinct-sport-and-workout-names)
+for the names, groups, TSS policy and historical corrections, and the
+[complete provider mappings](guides/importing-activities.md#garmin-polar-and-strava-provider-names) for all 146 source entries.
+
+Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
+AMRAP, EMOM, and Tabata retain separate canonical types; Dynamic Apnea retains its own Diving type; E-Bike Fitness, Casual Walking, and Bike Commute
+reuse E-Biking, Walking, and Cycling. Bare Racket imports now preserve the broad Racket Sport category; precise
+sub-sports or racket profile names retain their particular sport. See [Import activities](guides/importing-activities.md#racket-para-disc-and-workout-names)
+for parent guards, aliases, TSS behavior, and historical corrections after consumer adoption.
+
+Padel belongs to Team/Racket. FIT `racket/padel` imports preserve Padel instead of Racquet Ball; correcting older
+classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+FIT Dance (`83`) resolves to the existing Dancing type, and Jump Rope (`84`) has its own Indoor Sports type.
+Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct from Racquet Ball and Padel.
+Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
+and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Rucking (`17/124`) belongs to Outdoor Adventures, Sailing Expedition (`32/66`) to Water Sports, and CCR Diving
+(`53/63`) to Diving. Their specific FIT classifications and explicit names preserve separate types from Hiking,
+Sailing, and general Diving. Historical corrections need retained sources and regeneration of affected summaries
+and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Walking, Indoor Walking, and Nordic Walking now share the Walking group. Indoor Walking retains its indoor hint;
+walking pace, speed, and vertical-speed behavior is preserved. FIT Obstacle Racing (`1/59`) and Ultra Running (`1/67`)
+belong to Running, Enduro (`2/123`) reuses Enduro MTB under Mountain Biking, and Rally (`81/125`) belongs to Motorized.
+Indoor Walking accepts Walking and Fitness Equipment parents (`11/27`, `4/27`). Correct historical classifications
+from specific retained sources; consumers must add the Walking group to exhaustive metadata maps during adoption.
+See [Import activities](guides/importing-activities.md).
+
+Spin (`2/5`) reuses Indoor Cycling, E-bike Mountain (`2/47`, also `21/47`) reuses E-Mountain Biking,
+Adventure Race (`18/82`, `1/82`) reuses Adventure Racing, and Fly Paraglide (`20/111`) reuses Paragliding.
+Broad Hockey (`73`), Winter Sport (`58`), Team Sport (`70`), and Water Sport (`78`) now retain their source
+classification without guessing a subtype. Paramotoring (`20/112`) belongs to Aerial Sports and RC Drone Flying
+(`20/39`) to Unspecified; both preserve imported TSS without calculating it. See
+[Import activities](guides/importing-activities.md) for groups, aliases, parent guards, and historical corrections.
+
+E-Enduro MTB (`2/127`) belongs to Mountain Biking, Track Cycling (`2/13`) and Recumbent Cycling (`2/10`) to Cycling,
+Speed Walking (`11/31`) to Walking, and separate Whitewater Kayaking (`41/41`) and Whitewater Rafting (`42/41`)
+to Water Sports. Wingsuit Flying (`20/40`), Brick Training (`18/80`), and Hunting with Dogs (`28/72`) belong to
+Aerial Sports, Performance, and Outdoor Adventures. Explicit Indoor Track names preserve Indoor Track Running; the track code
+alone does not imply indoor running. See [Import activities](guides/importing-activities.md) for parent guards,
+calculation behavior, and historical correction requirements.
+
+BMX (`2/29`) belongs to Cycling, Indoor Skiing (`4/25`, also named XC Ski Indoor) to Indoor Sports, ATV (`22/35`)
+and Motocross (`22/36`) to Motorized, and Pool Triathlon (`18/126`) to Performance. Their documented FIT parents
+preserve the separate canonical types across manufacturers. ATV and Motocross preserve imported TSS without
+calculating it; only Indoor Skiing establishes an indoor hint. Historical corrections require specific retained
+sources and regeneration of affected summaries after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Indoor Hand Cycle (`2/88`) belongs to Cycling; Indoor Wheelchair Push Walk (`65/86`) and Run (`66/87`) belong to
+Adaptive Mobility. All three preserve an explicit indoor hint. Overlanding belongs to Motorized, and Trucker Workout
+to Indoor Sports. Their specific FIT classifications and explicit names retain distinct canonical types; Motorized
+and Adaptive Mobility preserve imported TSS without calculating it. Historical corrections require retained sources
+and regeneration of affected summaries after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Grinding (`59`) belongs to Water Sports, Indoor Grinding (`59/71`) to Indoor Sports, and Sail Racing (`32/65`)
+to Water Sports. Garmin's Grind Offshore, Grind Onshore, and Sail Race names preserve these separate types.
+Historical Generic, Unknown Sport, or Sailing imports need specific retained sources and regeneration of affected
+summaries and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Pool Apnea (`85`) has a distinct Diving type, Mobility (`86`) belongs to Indoor Sports, and Video Gaming (`63`)
+belongs to Unspecified. Pool Apnea remains separate from Free Diving; Mobility remains separate from Flexibility
+Training. Video Gaming omits calculated TSS while preserving source-imported scores. Correcting historical imports
+requires retained sources and regeneration of affected summaries and Training snapshots after consumer adoption.
+See [Import activities](guides/importing-activities.md).
+
+Shooting (`56`) and Geocaching (`87`) have distinct Outdoor Adventures types; Platform Tennis (`racket/platform`,
+`64/93`) has its own Team/Racket type. The FIT mappings apply across manufacturers. Historical Generic or Racquet Ball
+imports require specific retained sources, then regeneration of affected summaries and Training snapshots after
+consumer adoption. See [Import activities](guides/importing-activities.md).
+
+Disc Golf belongs to Team/Racket alongside Golf and Frisbee, with its own canonical type. FIT `disc_golf` and explicit
+Frisbee golf provider names preserve that distinction. Historical corrections need retained sources or specific sport
+names; generic FIT classifications alone remain ambiguous. See [Import activities](guides/importing-activities.md).
+
+Lacrosse belongs to Team/Racket with its own canonical type. FIT sport `74` and explicit Lacrosse sport/profile names
+preserve that classification across manufacturers. Historical corrections need retained sources or specific sport names;
+generic FIT exports alone remain ambiguous. See [Import activities](guides/importing-activities.md).
+
+Water Tubing belongs to Water Sports with its own canonical type. FIT sport `76` and explicit Water Tubing
+sport/profile names preserve it separately from Water Skiing and Wakeboarding across manufacturers. Historical Generic
+imports require specific retained sources. See [Import activities](guides/importing-activities.md).
+
+Wakesurfing belongs to Water Sports, Archery to Outdoor Adventures, and Mixed Martial Arts to Indoor Sports. Their
+explicit FIT sports (`77`, `79`, and `80`) preserve distinct canonical types across manufacturers; MMA aliases resolve
+to Mixed Martial Arts. Historical Generic imports require specific retained sources, followed by regeneration of
+affected summaries and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
+FIT `cycling/hand_cycling` imports resolve to the existing Hand Cycle type in the Cycling group; correcting older
+Cycling classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+Field Hockey belongs to Team/Racket. Suunto FIT `generic/match` imports preserve Field Hockey when the recording
+identifies Suunto as its creator manufacturer. Older Match imports require reparsing retained FIT sources.
+See [Import activities](guides/importing-activities.md).
+
+Suunto FIT `generic/hand_cycling` imports resolve to the existing Wheel Chair type in Adaptive Mobility when the
+recording identifies Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
+See [Import activities](guides/importing-activities.md).
+
+FIT `wheelchair_push_walk` and `wheelchair_push_run` imports preserve distinct Wheelchair Push Walk and
+Wheelchair Push Run types in Adaptive Mobility across manufacturers. The explicit wheelchair sport retains its
+mobility context ahead of profile names. Historical corrections require
+reparsing retained FIT sources. General Wheel Chair activities retain their existing type.
+See [Import activities](guides/importing-activities.md).
+
+Chores belongs to Unspecified. Suunto FIT `generic/exercise` imports preserve Chores when the recording identifies
+Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
+See [Import activities](guides/importing-activities.md).
+
+Cyclocross belongs to Cycling. FIT `cycling/cyclocross` imports preserve Cyclocross instead of Mountain Biking;
+correcting older classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+Gravel Cycling belongs to Cycling. FIT `cycling/gravel_cycling` and the `GravelRide` alias preserve Gravel Cycling;
+correcting older Cycling classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
+
+E-Mountain Biking belongs to Mountain Biking. FIT `e_biking/e_bike_mountain` and the `EMountainBikeRide` alias preserve
+that distinction; correcting older E-Biking classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
+
+Splitboarding belongs to Winter Sports. FIT `snowboarding/backcountry` imports preserve Splitboarding; correcting older
+Backcountry Skiing classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+Ski Mountaineering belongs to Winter Sports and remains distinct from Ski Touring and Backcountry Skiing.
+FIT `backcountry` sub-sports retain sport context, preventing running, cycling, and swimming from becoming skiing.
+Historical corrections require reparsing retained FIT sources. See [Import activities](guides/importing-activities.md).
+
+Skate Skiing belongs to Winter Sports. FIT `cross_country_skiing/skate_skiing` preserves Skate Skiing;
+correcting older Crosscountry Skiing classifications requires reparsing their retained sources. See [Import activities](guides/importing-activities.md).
+
+Track Running belongs to Running and recognizes explicit Track Run or Track Running sport/profile names.
+FIT `running/track` honors recognized Track Running and Track and Field profiles, preserving their Running and Performance
+groups respectively. The pair alone remains Running because Suunto uses it for both activities. Historical corrections
+require reparsing retained sources that include a recognized name/profile. See [Import activities](guides/importing-activities.md).
+
+Field Hockey belongs to Team/Racket. FIT `hockey/field` imports preserve Field Hockey across manufacturers;
+correcting older Unknown Sport classifications requires reparsing retained sources. See [Import activities](guides/importing-activities.md).
+
+Ice Hockey belongs to Team/Racket. FIT `hockey/ice` imports preserve Ice Hockey across manufacturers;
+correcting older Unknown Sport classifications requires reparsing retained sources. See [Import activities](guides/importing-activities.md).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 
@@ -80,6 +259,10 @@ Version 21 provides module-preserving ESM and CommonJS output through the existi
 unrelated importers and utilities when focused exports are used; the `SportsLib` facade continues to expose the complete
 format surface in the initial bundle. Startup-sensitive consumers should use focused root imports. Upgrading does not
 require reparsing activities or routes, regenerating summaries, or migrating native JSON and persisted metrics.
+
+The expanded sport catalog and synchronous provider aliases contribute about 57 kB to the representative browser
+startup fixture, which totals about 79 kB minified before compression. Package verification limits those two tables
+separately and still rejects eagerly bundled FIT decoding, importers, exporters, and other heavy dependencies.
 
 ## Guides
 

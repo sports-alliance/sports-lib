@@ -1,0 +1,182 @@
+[
+  {
+    "source": "polar",
+    "identifier": "(Duathlon) Cycling",
+    "name": "(Duathlon) Cycling",
+    "type": "Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Duathlon) Running",
+    "name": "(Duathlon) Running",
+    "type": "Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES MILLS CORE",
+    "name": "LES MILLS CORE",
+    "type": "LES MILLS CORE",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES MILLS THE TRIP",
+    "name": "LES MILLS THE TRIP",
+    "type": "LES MILLS THE TRIP",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Off-road duathlon) Mountain biking",
+    "name": "(Off-road duathlon) Mountain biking",
+    "type": "Mountain Biking",
+    "group": "MountainBikingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Off-road duathlon) Trail running",
+    "name": "(Off-road duathlon) Trail running",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Off-road triathlon) Mountain biking",
+    "name": "(Off-road triathlon) Mountain biking",
+    "type": "Mountain Biking",
+    "group": "MountainBikingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Off-road triathlon) Trail running",
+    "name": "(Off-road triathlon) Trail running",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Off-road triathlon) Open water swimming",
+    "name": "(Off-road triathlon) Open water swimming",
+    "type": "Open Water Swimming",
+    "group": "SwimmingGroup",
+    "newType": false,
+    "fitSport": "swimming",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "Shooting sport (indoor)",
+    "name": "Shooting sport (indoor)",
+    "type": "Indoor Shooting",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Shooting sport (outdoor)",
+    "name": "Shooting sport (outdoor)",
+    "type": "Shooting",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Triathlon) Cycling",
+    "name": "(Triathlon) Cycling",
+    "type": "Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Triathlon) Running",
+    "name": "(Triathlon) Running",
+    "type": "Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "(Triathlon) Open water swimming",
+    "name": "(Triathlon) Open water swimming",
+    "type": "Open Water Swimming",
+    "group": "SwimmingGroup",
+    "newType": false,
+    "fitSport": "swimming",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "CROSS_TRAINER",
+    "name": "Cross-trainer",
+    "type": "Crosstrainer",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "training",
+    "fitSubSport": "indoor_running"
+  },
+  {
+    "source": "polar",
+    "identifier": "STRETCHING",
+    "name": "Stretching",
+    "type": "Stretching",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "flexibility_training"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Ex. respiration",
+    "name": "Breathwork",
+    "type": "Breathwork",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "breathing"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Ex. respiration",
+    "name": "Breathwork",
+    "type": "Breathwork",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "training",
+    "fitSubSport": "breathing"
+  }
+]

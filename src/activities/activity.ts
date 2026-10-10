@@ -1,5 +1,5 @@
+import { StatsUtilities } from '../stats/stats.utilities';
 import { ActivityInterface } from './activity.interface';
-import { DataInterface } from '../data/data.interface';
 import { LapInterface } from '../laps/lap.interface';
 import { IntensityZonesInterface } from '../intensity-zones/intensity-zones.interface';
 import { Creator } from '../creators/creator';
@@ -46,8 +46,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     ActivityTypes.VirtualCycling,
     ActivityTypes.Treadmill,
     ActivityTypes.IndoorCycling,
+    ActivityTypes.LesMillsRPM,
+    ActivityTypes.LesMillsSprint,
+    ActivityTypes.LesMillsTheTrip,
     ActivityTypes.IndoorRunning,
     ActivityTypes.IndoorRowing,
+    ActivityTypes.VirtualRowing,
     ActivityTypes.Crosstrainer,
     ActivityTypes.EllipticalTrainer,
     ActivityTypes.FitnessEquipment,
@@ -166,6 +170,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     );
   }
 
+  /** Identifies trainer activities, including named indoor cycling classes. */
   isTrainer(): boolean {
     return Activity.TRAINER_TYPES.indexOf(this.type) !== -1;
   }
@@ -405,15 +410,13 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }, activityLength);
   }
 
+  /** Exports native activity JSON, omitting non-finite scalar summaries and retaining stream gaps. */
   toJSON(): ActivityJSONInterface {
     const intensityZones: IntensityZonesJSONInterface[] = [];
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
       intensityZones.push(value.toJSON());
     });
-    const stats = {};
-    this.stats.forEach((value: DataInterface, _key: string) => {
-      Object.assign(stats, value.toJSON());
-    });
+    const stats = StatsUtilities.serializeStats(this.stats);
 
     // Fetch streams from activity
     const streams = this.getAllStreams().reduce((streams: StreamJSONInterface[], stream) => {

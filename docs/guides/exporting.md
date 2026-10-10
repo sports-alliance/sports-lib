@@ -23,7 +23,17 @@ GPX represents both cadence and stroke rate through its cadence extension. `Even
 ## Native JSON round trips
 
 Native JSON is the persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore
-it with the corresponding `SportsLib` method. Restoration preserves explicit stats except terrain summaries excluded
+it with the corresponding `SportsLib` method. Event, activity, lap, route, and route-file summary exports omit non-finite
+scalar numbers (`Infinity`, `-Infinity`, and `NaN`), which JSON would otherwise convert to `null`. A stopped pace can
+still be infinite in memory; its summary key is omitted in JSON. Finite zero and negative values, imported TSS and its
+method, structured stats, and stream null gaps retain their existing values.
+
+Event/activity/lap restoration skips legacy null, undefined, and non-finite scalar stats before canonicalizing aliases;
+a valid legacy alias can survive an invalid canonical entry. Missing pace can be hydrated from retained speed, including
+an infinite runtime pace that remains omitted on the next export. Existing JSON needs no source-file reparse for this
+read correction. Route and route-file restoration also skip legacy null, undefined, and non-finite scalar stats.
+If no valid route-file summaries remain, they are regenerated from the child routes using the existing aggregation policy.
+Restoration preserves other explicit stats except terrain summaries excluded
 for the Diving activity group, canonicalizes compatible legacy keys, may add missing speed-derived pace summaries on
 events, activities, and laps, and applies activity-aware cadence-to-stroke-rate normalization without requiring the
 original source file.

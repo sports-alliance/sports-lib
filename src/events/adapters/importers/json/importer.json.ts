@@ -14,7 +14,8 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
 import { deserializeDiveSourceRecords } from '../../../../activities/dive-source-records';
-import { ActivityTypes } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
+import { getActivityTypeSourceFromManufacturer } from '../../../../activities/activity-types.provider';
 import {
   normalizeActivityMetricSemanticsForStats,
   normalizeActivityMetricSemanticsForActivity,
@@ -41,7 +42,7 @@ export class EventImporterJSON {
   /**
    * Restores a native JSON event, canonicalizing stat keys and activity-aware summary semantics
    * while hydrating missing speed-derived pace summaries on the event, its activities, and their
-   * laps.
+   * laps. Null and non-finite scalar stats are omitted; stream null gaps remain intact.
    */
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     const event = new Event(
@@ -216,7 +217,14 @@ export class EventImporterJSON {
     target: Pick<StatsClassInterface, 'addStat' | 'getStat'>,
     stats: DataJSONInterface = {}
   ): void {
-    this.getCanonicalJSONMap(stats).forEach((entry, canonicalType) => {
+    // Older exports stringify infinite pace as null. Filter before alias canonicalization
+    // so an invalid canonical entry cannot hide a valid legacy value.
+    const validStats = Object.fromEntries(
+      Object.entries(stats || {}).filter(
+        ([, value]) => value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
+      )
+    );
+    this.getCanonicalJSONMap(validStats).forEach((entry, canonicalType) => {
       target.addStat(DynamicDataLoader.getDataInstanceFromDataType(canonicalType, entry.value));
     });
     hydrateMissingSpeedDerivedStats(target);
@@ -290,13 +298,17 @@ export class EventImporterJSON {
 
   /**
    * Restores a native JSON activity, normalizes activity-aware summary semantics, and hydrates
-   * missing speed-derived pace summaries on it and its laps.
+   * missing speed-derived pace summaries on it and its laps. Canonical sport names and aliases
+   * are restored; invalid or unrecognized names become Unknown Sport.
    */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),
       new Date(json.endDate),
-      ActivityTypes[<keyof typeof ActivityTypes>json.type],
+      ActivityTypesHelper.resolveActivityType(
+        json.type,
+        getActivityTypeSourceFromManufacturer(json.creator?.manufacturer)
+      ) ?? ActivityTypes.unknown,
       EventImporterJSON.getCreatorFromJSON(json.creator)
     );
     this.addStatsFromJSON(activity, json.stats);

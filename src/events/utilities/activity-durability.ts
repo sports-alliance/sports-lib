@@ -93,7 +93,11 @@ type ActivityDurabilityAdapter =
   | 'open-water-speed'
   | 'pool-consistency';
 
-const GRAVITY_MTB_ACTIVITY_TYPES = new Set<ActivityTypes>([ActivityTypes['Enduro MTB'], ActivityTypes.DownhillCycling]);
+const GRAVITY_MTB_ACTIVITY_TYPES = new Set<ActivityTypes>([
+  ActivityTypes['Enduro MTB'],
+  ActivityTypes.EEnduroMTB,
+  ActivityTypes.DownhillCycling
+]);
 
 interface AerobicSegmentAccumulator {
   count: number;
@@ -685,7 +689,14 @@ function canUseRawRunningSpeed(activity: ActivityInterface, protocol: Durability
   if (!hasComparisonWindowCoverage(speed, resolveActivityDurationSeconds(activity), protocol)) {
     return false;
   }
-  if ([ActivityTypes.Treadmill, ActivityTypes.IndoorRunning, ActivityTypes.VirtualRunning].includes(activity.type)) {
+  if (
+    [
+      ActivityTypes.Treadmill,
+      ActivityTypes.IndoorRunning,
+      ActivityTypes.IndoorTrackRunning,
+      ActivityTypes.VirtualRunning
+    ].includes(activity.type)
+  ) {
     return true;
   }
   const grades = safeGetStream(activity, DataGrade.type);

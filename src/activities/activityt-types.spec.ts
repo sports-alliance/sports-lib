@@ -40,6 +40,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.DiscGolf, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.FieldHockey, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Lacrosse, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
@@ -193,6 +194,7 @@ describe('ActivityTypes', () => {
       ActivityTypes.Skating,
       ActivityTypes.Flying,
       ActivityTypes.Driving,
+      ActivityTypes.Lacrosse,
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
       ActivityTypes.WheelchairPushRun
@@ -203,6 +205,7 @@ describe('ActivityTypes', () => {
     [
       ActivityTypes.InlineSkating,
       ActivityTypes.Driving,
+      ActivityTypes.Lacrosse,
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
       ActivityTypes.WheelchairPushRun
@@ -424,6 +427,27 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.DiscGolf)).toEqual(
       []
     );
+  });
+
+  it.each(['Lacrosse', 'lacrosse', 'LACROSSE', ' LaCrOsSe '])('resolves %s to canonical Lacrosse', value => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(ActivityTypes.Lacrosse);
+  });
+
+  it('exposes Lacrosse once in Team/Racket without merging it with hockey or generic sports', () => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Lacrosse')).toEqual([
+      ActivityTypes.Lacrosse
+    ]);
+    expect(
+      ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.TeamRacketGroup).filter(
+        type => type === ActivityTypes.Lacrosse
+      )
+    ).toEqual([ActivityTypes.Lacrosse]);
+    expect(ActivityTypes.Lacrosse).not.toBe(ActivityTypes.FieldHockey);
+    expect(ActivityTypes.Lacrosse).not.toBe(ActivityTypes.IceHockey);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Lacrosse)).toBe(false);
+    expect(ActivityTypesHelper.resolveActivityType('generic')).toBe(ActivityTypes.Generic);
+    expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
+    expect(ActivityTypesHelper.resolveActivityType('team_sport')).toBeNull();
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(

@@ -45,6 +45,7 @@
  * Position/AltitudeMeters can supply missing standard altitude in metres. Both paths reject ambiguous candidates,
  * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.
  * Recorded lap cadence must belong directly to its lap. Descendant trackpoint cadence does not supply lap summaries.
+ * Native event and route JSON omit non-finite scalar summaries and skip legacy null/non-finite summary values on read.
  *
  * @category Import and export
  */

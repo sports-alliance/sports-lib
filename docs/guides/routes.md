@@ -40,6 +40,11 @@ const gpxRoute = await SportsLib.exportRoutesToGPX(routeFile);
 const restoredRouteFile = SportsLib.importRoutesFromJSON(routeFile.toJSON());
 ```
 
+Route and route-file JSON omit non-finite scalar summary stats, and restoration skips legacy null/non-finite summary
+values. Finite zero/negative values, metadata, geometry, and stream null gaps are preserved. If a route file has no valid
+summaries, existing aggregation regenerates them from its child routes. This read correction needs no source reparse;
+see [native JSON round trips](exporting.md#native-json-round-trips).
+
 Previously exported GPX files containing both links and route numbers or waypoint symbols/types need to be exported again for schema-validating consumers. Native JSON, metric values, and public method signatures are unchanged; no reparse or stored-data migration is required.
 
 Route imports generate point-indexed latitude, longitude, distance, GNSS distance, altitude, and grade streams when the source supports them. They also generate distance, ascent/descent, altitude, and grade statistics.

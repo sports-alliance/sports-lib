@@ -17,6 +17,13 @@ EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display
 Stored values and calculations retain full precision; existing stats need no reparse or migration. See
 [Position error display](guides/metrics-and-calculations.md#position-error-display).
 
+Native event, activity, lap, route, and route-file JSON omit non-finite scalar summaries and tolerate legacy null
+summary values on restoration. Finite stats and stream null gaps are preserved. See [Export and persist data](guides/exporting.md).
+
+Every sport retains finite imported Training Stress Score, including zero and legacy scores without a method.
+The legacy `preserveImportedTss` flag is deprecated and does not discard imported scores. See
+[Metrics and calculations](guides/metrics-and-calculations.md).
+
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
 Breathwork profile preserves Breathwork separately. Correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).

@@ -1,6 +1,7 @@
 import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
 import { getFitSportId, getFitSubSportId } from 'fit-file-parser/profile';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { resolveProviderFITProfile } from '../../../../activities/activity-types.provider';
 import {
   ACTIVITIES_EXCLUDED_FROM_ASCENT,
   ACTIVITIES_EXCLUDED_FROM_DESCENT,
@@ -244,6 +245,80 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
     expect(
       importer.getActivityTypeFromSessionObject({ sport: 2, sub_sport: 6, sport_profile_name: 'STRETCHING' }, 123)
     ).toBe(ActivityTypes.IndoorCycling);
+  });
+
+  it.each(allMappings)('retains unrelated broad FIT parents for $source $identifier', row => {
+    for (const sport of ['cycling', 'basketball']) {
+      if (sport === row.fitSport) continue;
+      const manufacturer = manufacturers[row.source as ActivityTypeSource];
+      const expected = importer.getActivityTypeFromSessionObject({ sport, sub_sport: 'generic' }, manufacturer);
+      for (const profile of new Set([row.identifier, row.name])) {
+        // Cycling/Enduro is an established parent/profile composite, independent of provider aliases.
+        if (sport === 'cycling' && profile === 'Enduro') continue;
+        expect(
+          importer.getActivityTypeFromSessionObject(
+            { sport, sub_sport: 'generic', sport_profile_name: profile },
+            manufacturer
+          )
+        ).toBe(expected);
+      }
+    }
+  });
+
+  it('retains every documented context for a shared Polar profile spelling', () => {
+    for (const subSport of ['generic', 'backcountry']) {
+      expect(resolveProviderFITProfile('Open water swimming', 'polar', 'swimming', subSport)).toBe(
+        ActivityTypes.OpenWaterSwimming
+      );
+    }
+    expect(resolveProviderFITProfile('Open water swimming', 'polar', 'cycling', 'generic')).toBeNull();
+  });
+
+  it.each([
+    ['Trail Run', 'running', 1, ActivityTypes.TrailRunning],
+    ['Backcountry Snowboard', 'snowboarding', 1, ActivityTypes.BackcountrySnowboarding],
+    ['OFFROADDUATHLON_RUNNING', 'running', 123, ActivityTypes.TrailRunning],
+    ['CROSS_TRAINER', 'training', 123, ActivityTypes.Crosstrainer]
+  ])('retains %s on its compatible broad %s parent', (profile, sport, manufacturer, type) => {
+    for (const subSport of [undefined, 'generic']) {
+      expect(
+        importer.getActivityTypeFromSessionObject(
+          { sport, sub_sport: subSport, sport_profile_name: profile },
+          manufacturer
+        )
+      ).toBe(type);
+    }
+  });
+
+  it('retains compatible broad cycling and racket profile refinements', () => {
+    expect(
+      importer.getActivityTypeFromSessionObject(
+        { sport: 'cycling', sub_sport: 'generic', sport_profile_name: 'ENDURO MTB' },
+        123
+      )
+    ).toBe(ActivityTypes.EnduroMTB);
+    expect(
+      importer.getActivityTypeFromSessionObject(
+        { sport: 'racket', sub_sport: 'generic', sport_profile_name: 'Padel' },
+        1
+      )
+    ).toBe(ActivityTypes.Padel);
+    for (const manufacturer of [1, 7, 23, 123, undefined]) {
+      for (const subSport of [undefined, 'generic']) {
+        expect(
+          importer.getActivityTypeFromSessionObject(
+            { sport: 'cycling', sub_sport: subSport, sport_profile_name: 'Enduro' },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.EnduroMTB);
+      }
+    }
+    expect(
+      importer.getActivityTypeFromSessionObject(
+        { sport: 'generic', sub_sport: 'expedition', sport_profile_name: 'Expedition' },
+        1
+      )
+    ).toBe(ActivityTypes.Expedition);
   });
 
   it('keeps virtual rowing as indoor stroke-rate activity and suppresses water terrain summaries', () => {

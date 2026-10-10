@@ -122,8 +122,8 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Chores belongs to Unspecified; Suunto FIT `generic/exercise` resolves to it using creator identity.
  * Hand Cycle belongs to Cycling; the FIT `cycling/hand_cycling` classification resolves to Hand Cycle.
  * Suunto FIT `generic/hand_cycling` resolves to the existing Wheel Chair type in Adaptive Mobility using creator identity.
- * Wheelchair Push Walk belongs to Adaptive Mobility, distinct from the general Wheel Chair type.
- * FIT `wheelchair_push_walk` resolves to Wheelchair Push Walk across manufacturers before profile fallbacks.
+ * Wheelchair Push Walk and Wheelchair Push Run belong to Adaptive Mobility, distinct from general Wheel Chair.
+ * FIT `wheelchair_push_walk` and `wheelchair_push_run` preserve the distinct push modes across manufacturers before profile fallbacks.
  * Cyclocross belongs to Cycling; the FIT `cycling/cyclocross` classification resolves to Cyclocross.
  * Gravel Cycling belongs to Cycling; FIT `cycling/gravel_cycling` and the `GravelRide` alias resolve to Gravel Cycling.
  * E-Mountain Biking belongs to Mountain Biking; FIT `e_biking/e_bike_mountain` and `EMountainBikeRide` resolve to it.

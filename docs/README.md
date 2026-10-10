@@ -23,8 +23,9 @@ Suunto FIT `generic/hand_cycling` imports resolve to the existing Wheel Chair ty
 recording identifies Suunto as its creator manufacturer. Older Generic imports require reparsing retained FIT sources.
 See [Import activities](guides/importing-activities.md).
 
-FIT `wheelchair_push_walk` imports preserve the distinct Wheelchair Push Walk type in Adaptive Mobility across manufacturers.
-The explicit wheelchair sport retains its mobility context ahead of profile names. Historical corrections require
+FIT `wheelchair_push_walk` and `wheelchair_push_run` imports preserve distinct Wheelchair Push Walk and
+Wheelchair Push Run types in Adaptive Mobility across manufacturers. The explicit wheelchair sport retains its
+mobility context ahead of profile names. Historical corrections require
 reparsing retained FIT sources. General Wheel Chair activities retain their existing type.
 See [Import activities](guides/importing-activities.md).
 

@@ -281,7 +281,8 @@ describe('activity durability', () => {
     ActivityTypes.WeightTraining,
     ActivityTypes.Driving,
     ActivityTypes.Wheelchair,
-    ActivityTypes.WheelchairPushWalk
+    ActivityTypes.WheelchairPushWalk,
+    ActivityTypes.WheelchairPushRun
   ])('keeps %s out of the persisted durability metric', type => {
     const result = analyzeActivityDurability(
       mockActivity({

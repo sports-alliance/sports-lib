@@ -165,14 +165,14 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['BALLET_DANCING', 'Ballet'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Ballet Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['BALLROOM_DANCING', 'Ballroom'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Ballroom Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -298,21 +298,21 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['FITNESS_BOXING', 'Fitness boxing'],
-    type: 'Boxing' as ActivityTypes,
+    type: 'Fitness Boxing' as ActivityTypes,
     fitSport: 'boxing',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['FITNESS_DANCING', 'Fitness dancing'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Fitness Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['FITNESS_MARTIAL_ARTS', 'Fitness martial arts'],
-    type: 'Combat' as ActivityTypes,
+    type: 'Fitness Martial Arts' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -382,7 +382,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['JAZZ_DANCING', 'Jazz'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Jazz Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -424,140 +424,140 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['LATIN_DANCING', 'Latin'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Latin Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BARRE', 'LES MILLS BARRE'],
-    type: 'Barre' as ActivityTypes,
+    type: 'LES MILLS BARRE' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYATTACK', 'LES MILLS BODYATTACK'],
-    type: 'Cardio Training' as ActivityTypes,
+    type: 'LES MILLS BODYATTACK' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYBALANCE', 'LES MILLS BODYBALANCE'],
-    type: 'Mind-Body Training' as ActivityTypes,
+    type: 'LES MILLS BODYBALANCE' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYCOMBAT', 'LES MILLS BODYCOMBAT'],
-    type: 'Combat' as ActivityTypes,
+    type: 'LES MILLS BODYCOMBAT' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYJAM', 'LES MILLS BODYJAM'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'LES MILLS BODYJAM' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYPUMP', 'LES MILLS BODYPUMP'],
-    type: 'Weight Training' as ActivityTypes,
+    type: 'LES MILLS BODYPUMP' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYSTEP', 'LES MILLS BODYSTEP'],
-    type: 'Step Training' as ActivityTypes,
+    type: 'LES MILLS BODYSTEP' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_CXWORKS', 'LES MILLS CXWORX', 'LES MILLS CORE'],
-    type: 'Core Training' as ActivityTypes,
+    type: 'LES MILLS CORE' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_ATHLETIC', 'LES MILLS GRIT Athletic'],
-    type: 'HIIT' as ActivityTypes,
+    type: 'LES MILLS GRIT Athletic' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_CARDIO', 'LES MILLS GRIT Cardio'],
-    type: 'HIIT' as ActivityTypes,
+    type: 'LES MILLS GRIT Cardio' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_STRENGTH', 'LES MILLS GRIT Strength'],
-    type: 'HIIT' as ActivityTypes,
+    type: 'LES MILLS GRIT Strength' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_RPM', 'LES MILLS RPM'],
-    type: 'Indoor Cycling' as ActivityTypes,
+    type: 'LES MILLS RPM' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_SHBAM', "LES MILLS SH'BAM"],
-    type: 'Dancing' as ActivityTypes,
+    type: "LES MILLS SH'BAM" as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_SPRINT', 'LES MILLS SPRINT'],
-    type: 'Indoor Cycling' as ActivityTypes,
+    type: 'LES MILLS SPRINT' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_TONE', 'LES MILLS TONE'],
-    type: 'Indoor Training' as ActivityTypes,
+    type: 'LES MILLS TONE' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['LES_MILLS_TRIP', 'LES MILLS TRIP', 'LES MILLS THE TRIP'],
-    type: 'Indoor Cycling' as ActivityTypes,
+    type: 'LES MILLS THE TRIP' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
     names: ['MOBILITY_DYNAMIC', 'Mobility (dynamic)'],
-    type: 'Mobility' as ActivityTypes,
+    type: 'Dynamic Mobility' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'flexibility_training'
   },
   {
     source: 'polar',
     names: ['MOBILITY_STATIC', 'Mobility (static)'],
-    type: 'Mobility' as ActivityTypes,
+    type: 'Static Mobility' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'flexibility_training'
   },
   {
     source: 'polar',
     names: ['MODERN_DANCING', 'Modern'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Modern Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -760,14 +760,14 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['ROAD_BIKING', 'Road cycling'],
-    type: 'Cycling' as ActivityTypes,
+    type: 'Road Cycling' as ActivityTypes,
     fitSport: 'cycling',
     fitSubSport: 'road'
   },
   {
     source: 'polar',
     names: ['ROAD_RUNNING', 'Road running'],
-    type: 'Running' as ActivityTypes,
+    type: 'Road Running' as ActivityTypes,
     fitSport: 'running',
     fitSubSport: 'street'
   },
@@ -795,7 +795,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['SHOW_DANCING', 'Show'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Show Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -858,7 +858,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['STREET_DANCING', 'Street'],
-    type: 'Dancing' as ActivityTypes,
+    type: 'Street Dancing' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -1012,7 +1012,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['XC_SKIING_CLASSIC', 'Classic XC skiing'],
-    type: 'Crosscountry Skiing' as ActivityTypes,
+    type: 'Classic Crosscountry Skiing' as ActivityTypes,
     fitSport: 'cross_country_skiing',
     fitSubSport: 'generic'
   },

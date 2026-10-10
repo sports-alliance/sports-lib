@@ -218,7 +218,7 @@ library-calculated scores on eligible sports are refreshed from the current inpu
 only finite imported scores take precedence when preservation is enabled.
 
 The mapping audit has added 114 canonical types since the Sports Lib 21.5.0 baseline. Both flag settings are tested
-over the entire 245-type catalog so future additions inherit the same rule.
+over the entire 281-type catalog so future additions inherit the same rule.
 No numeric token, unit, formula, JSON field, or MCP contract changes. Consumers must adopt the library together
 in the application and Functions. A score already overwritten historically can only be recovered from a retained
 original source; native JSON containing the replacement cannot reconstruct the imported number. Correct only
@@ -297,8 +297,8 @@ motorcycling/e_bike_enduro remains Motorcycling, and ambiguous plain Enduro stil
 Whitewater alone does not identify kayaking or rafting. Speed Walking retains the FIT name without asserting
 race-walking competition rules. Brick does not infer component sports or construct activities from multiple sessions.
 
-`Indoor Track`, `IndoorTrack`, `Indoor Track Running`, and their snake-case aliases reuse the existing `Indoor Running`
-type in Running, with its true indoor hint. On FIT running/track (`1/4`), a recognized `sport_profile_name` supplies
+`Indoor Track`, `IndoorTrack`, `Indoor Track Running`, and their snake-case aliases preserve `Indoor Track Running`
+in Running, with its true indoor hint. Generic Indoor Running remains a separate readable type. On FIT running/track (`1/4`), a recognized `sport_profile_name` supplies
 that distinction; without it, the pair retains Running and does not imply an indoor venue. Existing Track Running
 and Track and Field profile distinctions remain supported. A specific unrelated FIT pair still takes precedence over
 an Indoor Track profile. Garmin documents [indoor track running](https://www8.garmin.com/manuals/webhelp/forerunner945/EN-US/GUID-3A4C7C6C-1FE3-4EB5-B38E-3F744A5C1F00.html).
@@ -308,12 +308,11 @@ Each new type retains its parent sport's existing metric families, movement thre
 selection. Whitewater Kayaking uses Kayaking's stroke-rate semantics; Whitewater Rafting retains Rafting's existing
 cadence semantics. Track and Recumbent Cycling use the existing cycling durability protocol with its usual evidence
 checks. E-Enduro MTB emits unsupported-context gravity-MTB durability evidence, like Enduro MTB, while retaining
-ordinary TSS eligibility. The six other new types have no durability adapter. Indoor Track aliases inherit the
+ordinary TSS eligibility. The six other new types have no durability adapter. Indoor Track Running inherits the
 existing Indoor Running durability behavior. No numeric metric token, unit, formula, or durability protocol is added.
 
 The nine new exact types currently resolve to volume-only Other training in Quantified Self's independent Training
-registry; group membership does not create a modeled context or provider delivery capability. Indoor Track aliases
-reuse its existing indoor-running context. Adopt the changes in the application and Functions together, review the
+registry; group membership does not create a modeled context or provider delivery capability. Indoor Track Running currently uses the Other training fallback until consumer adoption extends its exact registry. Adopt the changes in the application and Functions together, review the
 dynamic supported-activities catalog and exhaustive mappings, and correct historical labels only where a retained
 source or explicit name provides the distinction. Then regenerate affected event summaries, activity-type aggregates,
 durability evidence, and Training snapshots through the existing source-backed reparse and derived ingress.
@@ -805,10 +804,10 @@ The following source names and native-JSON aliases normalize across manufacturer
 | Racket Sport / Racket Sports / racket | Racket Sport (new) | Team/Racket |
 | Para Sport | Para Sport (new) | Unspecified |
 | Ultimate Disc / Ultimate Frisbee | Ultimate Disc (new) | Team/Racket |
-| AMRAP | HIIT | Indoor Sports |
-| EMOM | HIIT | Indoor Sports |
-| Tabata | HIIT | Indoor Sports |
-| Dynamic Apnea | Pool Apnea | Diving |
+| AMRAP | AMRAP | Indoor Sports |
+| EMOM | EMOM | Indoor Sports |
+| Tabata | Tabata | Indoor Sports |
+| Dynamic Apnea | Dynamic Apnea | Diving |
 | E-Bike Fitness | E-Biking | Cycling |
 | Casual Walking | Walking | Walking |
 | Bike Commute / Bike Commuting | Cycling | Cycling |
@@ -821,8 +820,8 @@ from Frisbee and Disc Golf. Broad Para Sport does not identify a particular disc
 sport `64`, Para Sport `68`, HIIT/AMRAP `62/73`, HIIT/EMOM `62/74`, HIIT/Tabata `62/75`, E-Biking/E-Bike Fitness
 `21/28`, Walking/Casual Walking `11/30`, Cycling/Commuting `2/48`, and Diving/Dynamic Apnea `53/121`. These explicit
 pairs preserve their types before conflicting profile names. A matching parent is required; the workout-specific
-sub-sport alone does not relabel a Generic or unrelated activity. Dynamic Apnea also retains Pool Apnea under sport
-`85`. Garmin describes [AMRAP, EMOM, and Tabata as HIIT timer formats](https://www8.garmin.com/manuals/webhelp/GUID-25E3235D-44D2-4384-A591-DD1D71BEBCB1/EN-US/GUID-130DBE4C-91D2-43D1-A6B4-1DEF7958903F.html)
+sub-sport alone does not relabel a Generic or unrelated activity. Dynamic Apnea is also preserved under Pool Apnea sport
+`85` when sub-sport `121` is recorded; unnamed Pool Apnea stays broad. Garmin describes [AMRAP, EMOM, and Tabata as HIIT timer formats](https://www8.garmin.com/manuals/webhelp/GUID-25E3235D-44D2-4384-A591-DD1D71BEBCB1/EN-US/GUID-130DBE4C-91D2-43D1-A6B4-1DEF7958903F.html)
 and [dynamic apnea as a Pool Apnea mode](https://www8.garmin.com/manuals/webhelp/GUID-EA4C028F-6CC0-4957-9BB2-20B2E5DAE9CD/EN-US/GUID-9F0D57E8-05F8-4122-8D5D-93141ADE8CAF.html).
 
 Racket sub-sports retain Pickleball (`84`), Padel (`85`), Platform Tennis (`93`), Squash (`94`), Badminton (`95`),
@@ -837,9 +836,8 @@ Suunto's documented Badminton (`36`), Table tennis (`40`), Racquet ball (`41`), 
 Racket sport `64`. Without a precise name/profile they now import as Racket Sport. A source-backed correction cannot
 recover their particular racket sport from that numeric pair alone. Suunto Padel (`75`, `64/85`) remains Padel.
 
-The three new types retain the existing speed family, movement threshold, false indoor hint, and ordinary TSS
-eligibility of their groups. They add no stroke-rate conversion or durability adapter. The seven reused types keep
-their existing calculations and hints; Dynamic Apnea inherits Diving's terrain-summary exclusions. Every sport
+These types retain their groups' metric families and ordinary TSS eligibility. HIIT formats remain indoor;
+Dynamic Apnea inherits Diving's terrain-summary exclusions. They add no stroke-rate conversion or durability adapter. Every sport
 preserves finite imported TSS, including zero, with `preserveImportedTss: true` or omission. False discards the score
 and method, recalculates where supported with sufficient inputs, and leaves both unset otherwise.
 
@@ -852,24 +850,25 @@ applicable durability evidence, and Training snapshots through the existing sour
 canonical Racquet Ball remains Racquet Ball; only the broad `racket` alias changes to Racket Sport. Saved routes need
 no reparse, and no global reparse follows from these mappings.
 
-The existing strict MCP activity catalog accepts all 196 types without new fields, scopes, consent, or mutations.
+The existing strict MCP activity catalog accepts the expanded catalog without new fields, scopes, consent, or mutations.
 No numeric metric, unit, Training formula, derived schema, planning or delivery capability, provider transport, write
 path, queue lifecycle, or monitoring changes. Supported-activities Help continues to use the installed dynamic catalog.
 
 ## Garmin activity-profile names
 
 [Garmin's activity list](https://www8.garmin.com/manuals/webhelp/GUID-C144B465-A0C8-4FE9-AFE6-41A3FE3F1D9A/EN-US/GUID-4906F77A-0B26-48F9-A4DB-72752E06532D.html)
-uses short names that normalize to these existing canonical types:
+uses short names that normalize to these canonical types:
 
 | Source name | Canonical type | Existing activity group |
 | --- | --- | --- |
 | Bike Indoor | Indoor Cycling | Cycling |
-| Bike Tour / Road Bike / Bike | Cycling | Cycling |
+| Bike Tour / Bike | Cycling | Cycling |
+| Road Bike | Road Cycling | Cycling |
 | Gravel Bike | Gravel Cycling | Cycling |
 | MTB | Mountain Biking | Mountain Biking |
 | Climb Indoor | Indoor Climbing | Outdoor Adventures |
 | Row Indoor | Indoor Rowing | Indoor Sports |
-| XC Classic Ski | Crosscountry Skiing | Winter Sports |
+| XC Classic Ski | Classic Crosscountry Skiing | Winter Sports |
 | XC Skate Ski | Skate Skiing | Winter Sports |
 | Pool Swim | Swimming | Swimming |
 | eBike | E-Biking | Cycling |
@@ -889,25 +888,101 @@ for profile fallback to apply. An arbitrary activity title is not that field. Th
 FIT parent/sub-sport rules or override an existing specific classification before profile fallback. The shared `eBike`
 alias also recognizes Polar's `E_BIKE` identifier without provider transport changes.
 
-This twenty-alias batch kept the unique catalog at 196 types before the provider expansion below. Each alias inherits its canonical type's group, indoor hint, metric families,
+Each alias inherits its canonical type's group, indoor hint, metric families,
 stroke-rate semantics, terrain behavior, calculated-TSS eligibility, and applicable durability adapter. In particular,
 Pool Swim, Kayak, Row, and Row Indoor use existing stroke-rate semantics. Every type retains imported TSS exactly,
 including zero, with `preserveImportedTss: true` or omission; false discards it and calculates a replacement only when
 the existing sport policy and available inputs support one.
 
-Quantified Self retains the same exact Training contexts for the canonical types. Historical Generic classifications
+Quantified Self has a separate exact Training registry; newly distinct types require review during consumer adoption. Historical Generic classifications
 can enter a different existing context after a source-backed correction, so regenerate separately persisted event
 summaries, activity-type aggregates, applicable durability evidence, and Training snapshots. Native JSON can recover
 an explicit alias but cannot identify a sport from an already collapsed Generic value. Adopt the library in application
 and Functions together before persisting the corrections; a separately approved targeted reparse needs a retained
-source name/profile. Saved routes need no reparse. No new canonical sport, numeric metric, unit, formula, derived
+source name/profile. Saved routes need no reparse. No new numeric metric, unit, formula, derived
 schema, MCP field/scope/consent/mutation, planning or delivery capability, provider transport, write path, queue
 lifecycle, or monitoring change is introduced. The dynamic supported-activities Help remains accurate.
 
+## Distinct sport and workout names
+
+Specific source names retain separate canonical activity types. The broad stored types remain readable; Sports Lib
+never infers a specific discipline from an already collapsed Dancing, HIIT, Mobility, Cycling, Running, or Pool Apnea value.
+
+| Canonical type | Group | Earlier broad mapping |
+| --- | --- | --- |
+| Ballet Dancing | Indoor Sports | Dancing |
+| Ballroom Dancing | Indoor Sports | Dancing |
+| Jazz Dancing | Indoor Sports | Dancing |
+| Latin Dancing | Indoor Sports | Dancing |
+| Modern Dancing | Indoor Sports | Dancing |
+| Show Dancing | Indoor Sports | Dancing |
+| Street Dancing | Indoor Sports | Dancing |
+| Fitness Dancing | Indoor Sports | Dancing |
+| Classic Crosscountry Skiing | Winter Sports | Crosscountry Skiing |
+| Dynamic Mobility | Indoor Sports | Mobility |
+| Static Mobility | Indoor Sports | Mobility |
+| AMRAP | Indoor Sports | HIIT |
+| EMOM | Indoor Sports | HIIT |
+| Tabata | Indoor Sports | HIIT |
+| Dynamic Apnea | Diving | Pool Apnea |
+| Indoor Track Running | Running | Indoor Running |
+| Fitness Boxing | Indoor Sports | Boxing |
+| Fitness Martial Arts | Indoor Sports | Combat |
+| Road Running | Running | Running |
+| Road Cycling | Cycling | Cycling |
+| LES MILLS BARRE | Indoor Sports | Barre |
+| LES MILLS BODYATTACK | Indoor Sports | Cardio Training |
+| LES MILLS BODYBALANCE | Indoor Sports | Mind-Body Training |
+| LES MILLS BODYCOMBAT | Indoor Sports | Combat |
+| LES MILLS BODYJAM | Indoor Sports | Dancing |
+| LES MILLS BODYPUMP | Indoor Sports | Weight Training |
+| LES MILLS BODYSTEP | Indoor Sports | Step Training |
+| LES MILLS CORE | Indoor Sports | Core Training |
+| LES MILLS GRIT Athletic | Indoor Sports | HIIT |
+| LES MILLS GRIT Cardio | Indoor Sports | HIIT |
+| LES MILLS GRIT Strength | Indoor Sports | HIIT |
+| LES MILLS RPM | Cycling | Indoor Cycling |
+| LES MILLS SH'BAM | Indoor Sports | Dancing |
+| LES MILLS SPRINT | Cycling | Indoor Cycling |
+| LES MILLS TONE | Indoor Sports | Indoor Training |
+| LES MILLS THE TRIP | Cycling | Indoor Cycling |
+
+Polar's explicit dance profiles preserve Ballet Dancing, Ballroom Dancing, Jazz Dancing, Latin Dancing, Modern Dancing,
+Show Dancing, Street Dancing and Fitness Dancing. Ambiguous short names such as Jazz, Latin and Modern still require
+Polar source context. Static Mobility and Dynamic Mobility remain distinct from broad Mobility and Stretching.
+Classic Crosscountry Skiing accepts Polar Classic XC skiing, Garmin XC Classic Ski and Suunto Classic skiing profiles;
+an unnamed cross-country pair remains Crosscountry Skiing because Suunto also uses that pair for Roller Skiing.
+Road Running and Road Cycling require a precise name or native road context; broad running/cycling records remain broad.
+
+Each Les Mills program has its recorded class name. LES MILLS CXWORX and LES MILLS CORE resolve to one canonical
+LES MILLS CORE type because the program was renamed. LES MILLS TRIP and LES MILLS THE TRIP share LES MILLS THE TRIP.
+Their generic counterparts such as Barre, Core Training, Dancing and Indoor Cycling remain available independently.
+RPM, SPRINT and THE TRIP belong to Cycling and retain an indoor hint and the existing cycling durability adapter.
+Other named classes belong to Indoor Sports. No class name creates a new training formula.
+
+AMRAP, EMOM and Tabata remain separate Indoor Sports types, including decoded FIT 62/73, 62/74 and 62/75.
+Dynamic Apnea remains separate from broad Pool Apnea for 53/121 and 85/121, retains Diving terrain exclusions and adds
+no swimming stroke-rate semantics. Indoor Track Running belongs to Running, retains an indoor hint and the existing
+indoor running durability behavior, and accepts explicit track profiles on broad, track and indoor running records.
+Precise incompatible sub-sports such as treadmill, trail running and scuba remain ahead of conflicting profiles.
+
+All distinct types preserve finite imported TSS, including zero and legacy scores without a method, by default or
+with `preserveImportedTss: true`. False discards the imported score and calculates a replacement only when supported
+inputs exist. Existing power-first selection, HR calibration requirements and MET fallback remain unchanged.
+
+Consumer adoption must upgrade application and Functions together. Quantified Self's MCP activity catalog dynamically
+accepts these names, groups and indoor hints under its existing strict output schema; numeric metric tokens, units,
+scopes, consent and mutations are unchanged. Its independent exact Training registry currently sends newly distinct
+types to volume-only Other training, so consumer adoption must explicitly map the intended existing contexts before
+production use. Sports Lib group membership does not establish a planning or provider delivery capability.
+Supported-activities Help uses the installed dynamic catalog. Existing collapsed labels require a retained explicit
+source name or original file, then regeneration of event summaries, activity-type aggregates, applicable durability
+evidence and Training snapshots. No source reparse or production write is performed by the library update.
+
 ## Garmin, Polar and Strava provider names
 
-The remaining provider-name batch maps 143 source entries (13 Garmin, 123 Polar, and 7 Strava) to 92 existing-type
-entries and 51 entries introducing 46 distinct canonical types. The unique catalog grows from 196 to 242. These
+The provider fixtures cover 146 source entries across Garmin, Polar and Strava, plus compatible export spellings.
+Distinct disciplines and named workouts retain their names in the 281-type catalog. These
 classifications use [Garmin's activity list](https://www8.garmin.com/manuals/webhelp/GUID-C144B465-A0C8-4FE9-AFE6-41A3FE3F1D9A/EN-US/GUID-4906F77A-0B26-48F9-A4DB-72752E06532D.html),
 [Polar's detailed sport identifiers](https://www.polar.com/accesslink-api/#detailed-sport-info-values-in-exercise-entity),
 and [Strava's SportType values](https://developers.strava.com/docs/reference/#api-models-SportType).
@@ -966,8 +1041,8 @@ same approved canonical types:
 | `(Off-road duathlon) Mountain biking`, `(Off-road triathlon) Mountain biking` | Mountain Biking |
 | `(Off-road duathlon) Trail running`, `(Off-road triathlon) Trail running` | Trail Running |
 | `(Off-road triathlon) Open water swimming`, `(Triathlon) Open water swimming` | Open Water Swimming |
-| `LES MILLS CORE` | Core Training |
-| `LES MILLS THE TRIP` | Indoor Cycling |
+| `LES MILLS CORE` | LES MILLS CORE |
+| `LES MILLS THE TRIP` | LES MILLS THE TRIP |
 | `Shooting sport (indoor)` | Indoor Shooting |
 | `Shooting sport (outdoor)` | Shooting |
 
@@ -983,7 +1058,7 @@ AccessLink API identifier is assigned. An unnamed Generic recording retains Gene
 distinct from American Football and Soccer; Korfball and Netball remain distinct from Basketball. Explicit names
 also restore the same canonical types from native JSON. They retain the group's existing metric and TSS policies,
 a false indoor hint, ordinary cadence semantics, and no durability adapter. Quantified Self's current Training registry
-resolves each to volume-only Other training with omitted distance. The local catalog now contains 245 types.
+resolves each to volume-only Other training with omitted distance. The local catalog now contains 281 types.
 
 The compatibility fixtures contain documented names and synthetic FIT bytes. Temporary public FIT samples stay
 outside the repository because redistribution rights were not established. The downloaded Polar and Suunto files
@@ -1011,8 +1086,8 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | Netball | Netball | Team/Racket |
 | Polar | AGILITY / Dog agility | Dog Agility | Outdoor Adventures |
 | Polar | AQUATICS / Aqua fitness | Aqua Fitness | Water Sports |
-| Polar | BALLET_DANCING / Ballet | Dancing | Indoor Sports |
-| Polar | BALLROOM_DANCING / Ballroom | Dancing | Indoor Sports |
+| Polar | BALLET_DANCING / Ballet | Ballet Dancing | Indoor Sports |
+| Polar | BALLROOM_DANCING / Ballroom | Ballroom Dancing | Indoor Sports |
 | Polar | BEACH_TENNIS / Beach tennis | Beach Tennis | Team/Racket Sports |
 | Polar | BEACH_VOLLEYBALL / Beach volley | Beach Volleyball | Team/Racket Sports |
 | Polar | BIATHLON / Biathlon | Biathlon | Winter Sports |
@@ -1028,9 +1103,9 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | E_BIKE / Electric biking | E-Biking | Cycling |
 | Polar | ESPORTS / Esports | Video Gaming | Unspecified |
 | Polar | FINNISH_BASEBALL / Finnish baseball | Finnish Baseball | Team/Racket Sports |
-| Polar | FITNESS_BOXING / Fitness boxing | Boxing | Indoor Sports |
-| Polar | FITNESS_DANCING / Fitness dancing | Dancing | Indoor Sports |
-| Polar | FITNESS_MARTIAL_ARTS / Fitness martial arts | Combat | Indoor Sports |
+| Polar | FITNESS_BOXING / Fitness boxing | Fitness Boxing | Indoor Sports |
+| Polar | FITNESS_DANCING / Fitness dancing | Fitness Dancing | Indoor Sports |
+| Polar | FITNESS_MARTIAL_ARTS / Fitness martial arts | Fitness Martial Arts | Indoor Sports |
 | Polar | FITNESS_RACING / Fitness Racing | Fitness Racing | Performance |
 | Polar | FITNESS_STEP / Step workout | Step Training | Indoor Sports |
 | Polar | FREE_MULTISPORT / Multisport | Multisport | Performance |
@@ -1040,32 +1115,32 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | GROUP_EXERCISE / Group exercise | Indoor Training | Indoor Sports |
 | Polar | GYMNASTICK / Gymnastics | Gymnastics | Indoor Sports |
 | Polar | HIIT / High-intensity interval training | HIIT | Indoor Sports |
-| Polar | JAZZ_DANCING / Jazz | Dancing | Indoor Sports |
+| Polar | JAZZ_DANCING / Jazz | Jazz Dancing | Indoor Sports |
 | Polar | JOGGING / Jogging | Running | Running |
 | Polar | JUDO_MARTIAL_ARTS / Judo | Judo | Indoor Sports |
 | Polar | JUMP_ROPE / Rope skipping | Jump Rope | Indoor Sports |
 | Polar | KICKBIKE / Kickbiking | Kickbiking | Cycling |
 | Polar | KICKBOXING_MARTIAL_ARTS / Kickboxing | Kickboxing | Indoor Sports |
-| Polar | LATIN_DANCING / Latin | Dancing | Indoor Sports |
-| Polar | LES_MILLS_BARRE / LES MILLS BARRE | Barre | Indoor Sports |
-| Polar | LES_MILLS_BODYATTACK / LES MILLS BODYATTACK | Cardio Training | Indoor Sports |
-| Polar | LES_MILLS_BODYBALANCE / LES MILLS BODYBALANCE | Mind-Body Training | Indoor Sports |
-| Polar | LES_MILLS_BODYCOMBAT / LES MILLS BODYCOMBAT | Combat | Indoor Sports |
-| Polar | LES_MILLS_BODYJAM / LES MILLS BODYJAM | Dancing | Indoor Sports |
-| Polar | LES_MILLS_BODYPUMP / LES MILLS BODYPUMP | Weight Training | Indoor Sports |
-| Polar | LES_MILLS_BODYSTEP / LES MILLS BODYSTEP | Step Training | Indoor Sports |
-| Polar | LES_MILLS_CXWORKS / LES MILLS CXWORX | Core Training | Indoor Sports |
-| Polar | LES_MILLS_GRIT_ATHLETIC / LES MILLS GRIT Athletic | HIIT | Indoor Sports |
-| Polar | LES_MILLS_GRIT_CARDIO / LES MILLS GRIT Cardio | HIIT | Indoor Sports |
-| Polar | LES_MILLS_GRIT_STRENGTH / LES MILLS GRIT Strength | HIIT | Indoor Sports |
-| Polar | LES_MILLS_RPM / LES MILLS RPM | Indoor Cycling | Cycling |
-| Polar | LES_MILLS_SHBAM / LES MILLS SH'BAM | Dancing | Indoor Sports |
-| Polar | LES_MILLS_SPRINT / LES MILLS SPRINT | Indoor Cycling | Cycling |
-| Polar | LES_MILLS_TONE / LES MILLS TONE | Indoor Training | Indoor Sports |
-| Polar | LES_MILLS_TRIP / LES MILLS TRIP | Indoor Cycling | Cycling |
-| Polar | MOBILITY_DYNAMIC / Mobility (dynamic) | Mobility | Indoor Sports |
-| Polar | MOBILITY_STATIC / Mobility (static) | Mobility | Indoor Sports |
-| Polar | MODERN_DANCING / Modern | Dancing | Indoor Sports |
+| Polar | LATIN_DANCING / Latin | Latin Dancing | Indoor Sports |
+| Polar | LES_MILLS_BARRE / LES MILLS BARRE | LES MILLS BARRE | Indoor Sports |
+| Polar | LES_MILLS_BODYATTACK / LES MILLS BODYATTACK | LES MILLS BODYATTACK | Indoor Sports |
+| Polar | LES_MILLS_BODYBALANCE / LES MILLS BODYBALANCE | LES MILLS BODYBALANCE | Indoor Sports |
+| Polar | LES_MILLS_BODYCOMBAT / LES MILLS BODYCOMBAT | LES MILLS BODYCOMBAT | Indoor Sports |
+| Polar | LES_MILLS_BODYJAM / LES MILLS BODYJAM | LES MILLS BODYJAM | Indoor Sports |
+| Polar | LES_MILLS_BODYPUMP / LES MILLS BODYPUMP | LES MILLS BODYPUMP | Indoor Sports |
+| Polar | LES_MILLS_BODYSTEP / LES MILLS BODYSTEP | LES MILLS BODYSTEP | Indoor Sports |
+| Polar | LES_MILLS_CXWORKS / LES MILLS CXWORX | LES MILLS CORE | Indoor Sports |
+| Polar | LES_MILLS_GRIT_ATHLETIC / LES MILLS GRIT Athletic | LES MILLS GRIT Athletic | Indoor Sports |
+| Polar | LES_MILLS_GRIT_CARDIO / LES MILLS GRIT Cardio | LES MILLS GRIT Cardio | Indoor Sports |
+| Polar | LES_MILLS_GRIT_STRENGTH / LES MILLS GRIT Strength | LES MILLS GRIT Strength | Indoor Sports |
+| Polar | LES_MILLS_RPM / LES MILLS RPM | LES MILLS RPM | Cycling |
+| Polar | LES_MILLS_SHBAM / LES MILLS SH'BAM | LES MILLS SH'BAM | Indoor Sports |
+| Polar | LES_MILLS_SPRINT / LES MILLS SPRINT | LES MILLS SPRINT | Cycling |
+| Polar | LES_MILLS_TONE / LES MILLS TONE | LES MILLS TONE | Indoor Sports |
+| Polar | LES_MILLS_TRIP / LES MILLS TRIP | LES MILLS THE TRIP | Cycling |
+| Polar | MOBILITY_DYNAMIC / Mobility (dynamic) | Dynamic Mobility | Indoor Sports |
+| Polar | MOBILITY_STATIC / Mobility (static) | Static Mobility | Indoor Sports |
+| Polar | MODERN_DANCING / Modern | Modern Dancing | Indoor Sports |
 | Polar | MOTORSPORTS_CAR_RACING / Car racing | Car Racing | Motorized Sports |
 | Polar | MOTORSPORTS_ENDURO / Enduro | Motorcycle Enduro | Motorized Sports |
 | Polar | MOTORSPORTS_HARD_ENDURO / Hard Enduro | Hard Enduro | Motorized Sports |
@@ -1094,12 +1169,12 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | POOL_SWIMMING / Pool swimming | Swimming | Swimming |
 | Polar | RIDING / Riding | Horseback Riding | Outdoor Adventures |
 | Polar | RINGETTE / Ringette | Ringette | Team/Racket Sports |
-| Polar | ROAD_BIKING / Road cycling | Cycling | Cycling |
-| Polar | ROAD_RUNNING / Road running | Running | Running |
+| Polar | ROAD_BIKING / Road cycling | Road Cycling | Cycling |
+| Polar | ROAD_RUNNING / Road running | Road Running | Running |
 | Polar | ROLLER_BLADING / Roller skating | Inline Skating | Skating |
 | Polar | ROLLER_SKIING_CLASSIC / Classic roller skiing | Classic Roller Skiing | Performance |
 | Polar | ROLLER_SKIING_FREESTYLE / Freestyle roller skiing | Skate Roller Skiing | Performance |
-| Polar | SHOW_DANCING / Show | Dancing | Indoor Sports |
+| Polar | SHOW_DANCING / Show | Show Dancing | Indoor Sports |
 | Polar | SHOOTING_SPORT_INDOOR / Shooting (indoor) | Indoor Shooting | Indoor Sports |
 | Polar | SHOOTING_SPORT_OUTDOOR / Shooting (outdoor) | Shooting | Outdoor Adventures |
 | Polar | SKATEBOARDING / Skateboarding | Skateboarding | Skating |
@@ -1108,7 +1183,7 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | SPINNING / Spinning | Indoor Cycling | Cycling |
 | Polar | SUP | Stand Up Paddling | Water Sports |
 | Polar | STAIR_WORKOUT / Stair workout | Floor Climbing | Outdoor Adventures |
-| Polar | STREET_DANCING / Street | Dancing | Indoor Sports |
+| Polar | STREET_DANCING / Street | Street Dancing | Indoor Sports |
 | Polar | TAEKWONDO_MARTIAL_ARTS / Taekwondo | Taekwondo | Indoor Sports |
 | Polar | TRACK_AND_FIELD_RUNNING / Track&field running | Track Running | Running |
 | Polar | TREADMILL_RUNNING / Treadmill running | Treadmill | Running |
@@ -1130,7 +1205,7 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 | Polar | WATERSPORTS_WAKEBOARDING / Wakeboarding | Wakeboarding | Water Sports |
 | Polar | WATERSPORTS_WATERSKI / Water skiing | Water Skiing | Water Sports |
 | Polar | WATERSPORTS_WINDSURFING / Windsurfing | Windsurfing | Water Sports |
-| Polar | XC_SKIING_CLASSIC / Classic XC skiing | Crosscountry Skiing | Winter Sports |
+| Polar | XC_SKIING_CLASSIC / Classic XC skiing | Classic Crosscountry Skiing | Winter Sports |
 | Polar | XC_SKIING_FREESTYLE / Freestyle XC skiing | Skate Skiing | Winter Sports |
 | Strava | HighIntensityIntervalTraining | HIIT | Indoor Sports |
 | Strava | MountainBikeRide | Mountain Biking | Mountain Biking |

@@ -689,7 +689,14 @@ function canUseRawRunningSpeed(activity: ActivityInterface, protocol: Durability
   if (!hasComparisonWindowCoverage(speed, resolveActivityDurationSeconds(activity), protocol)) {
     return false;
   }
-  if ([ActivityTypes.Treadmill, ActivityTypes.IndoorRunning, ActivityTypes.VirtualRunning].includes(activity.type)) {
+  if (
+    [
+      ActivityTypes.Treadmill,
+      ActivityTypes.IndoorRunning,
+      ActivityTypes.IndoorTrackRunning,
+      ActivityTypes.VirtualRunning
+    ].includes(activity.type)
+  ) {
     return true;
   }
   const grades = safeGetStream(activity, DataGrade.type);

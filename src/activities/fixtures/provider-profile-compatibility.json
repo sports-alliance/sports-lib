@@ -23,9 +23,9 @@
     "source": "polar",
     "identifier": "LES MILLS CORE",
     "name": "LES MILLS CORE",
-    "type": "Core Training",
+    "type": "LES MILLS CORE",
     "group": "IndoorSportsGroup",
-    "newType": false,
+    "newType": true,
     "fitSport": "generic",
     "fitSubSport": "generic"
   },
@@ -33,9 +33,9 @@
     "source": "polar",
     "identifier": "LES MILLS THE TRIP",
     "name": "LES MILLS THE TRIP",
-    "type": "Indoor Cycling",
+    "type": "LES MILLS THE TRIP",
     "group": "CyclingGroup",
-    "newType": false,
+    "newType": true,
     "fitSport": "generic",
     "fitSubSport": "generic"
   },

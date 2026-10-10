@@ -640,8 +640,8 @@ describe('EventImporterFIT', () => {
       ['Brick Training', ActivityTypes.BrickTraining],
       ['Brick', ActivityTypes.BrickTraining],
       ['Hunting with Dogs', ActivityTypes.HuntingWithDogs],
-      ['Indoor Track', ActivityTypes.IndoorRunning],
-      ['Indoor Track Running', ActivityTypes.IndoorRunning],
+      ['Indoor Track', ActivityTypes.IndoorTrackRunning],
+      ['Indoor Track Running', ActivityTypes.IndoorTrackRunning],
       ['BMX', ActivityTypes.BMX],
       ['BMXCycling', ActivityTypes.BMX],
       ['Indoor Skiing', ActivityTypes.IndoorSkiing],
@@ -1824,7 +1824,7 @@ describe('EventImporterFIT', () => {
       'Indoor Track Running',
       'IndoorTrackRunning',
       'INDOOR-TRACK-RUNNING'
-    ])('uses the existing Indoor Running type for an explicit %s profile', sportProfileName => {
+    ])('preserves Indoor Track Running for an explicit %s profile', sportProfileName => {
       for (const manufacturer of [1, 7, 23, 123, undefined]) {
         for (const session of [
           { sport: 1, sub_sport: 4 },
@@ -1838,7 +1838,7 @@ describe('EventImporterFIT', () => {
               { ...session, sport_profile_name: sportProfileName },
               manufacturer
             )
-          ).toBe(ActivityTypes.IndoorRunning);
+          ).toBe(ActivityTypes.IndoorTrackRunning);
         }
       }
     });
@@ -1938,9 +1938,9 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
-      [23, 'Indoor Track', ActivityTypes.IndoorRunning],
-      [1, 'Indoor Track Running', ActivityTypes.IndoorRunning],
-      [65535, 'IndoorTrack', ActivityTypes.IndoorRunning],
+      [23, 'Indoor Track', ActivityTypes.IndoorTrackRunning],
+      [1, 'Indoor Track Running', ActivityTypes.IndoorTrackRunning],
+      [65535, 'IndoorTrack', ActivityTypes.IndoorTrackRunning],
       [23, 'Track and Field', ActivityTypes.TrackAndField],
       [1, 'TrackAndField', ActivityTypes.TrackAndField],
       [123, 'Track and Field', ActivityTypes.TrackAndField],
@@ -1994,7 +1994,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 8 }, ActivityTypes.MountainBiking],
       [{ sport: 'cycling', sub_sport: 'mountain' }, ActivityTypes.MountainBiking],
-      [{ sport: 2, sub_sport: 7 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 7 }, ActivityTypes.RoadCycling],
       [{ sport: 2, sub_sport: 13 }, ActivityTypes.TrackCycling],
       [{ sport: 'cycling', sub_sport: 'mixed_surface' }, ActivityTypes.Cycling],
       [{ sport: 21, sub_sport: 28 }, ActivityTypes.EBiking],

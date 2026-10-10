@@ -125,16 +125,18 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Racket Sport (FIT 64) and Ultimate Disc belong to Team/Racket; Para Sport (FIT 68) belongs to Unspecified.
  * Bare Racket preserves its broad category; recognized racket sub-sports or precise racket profiles retain their specific type.
  * A recognized Para Sport profile can identify its discipline. Ultimate Disc/Ultimate Frisbee require explicit names; sub-sport 92 alone is ambiguous.
- * AMRAP, EMOM, and Tabata reuse HIIT, including FIT pairs 62/73, 62/74, and 62/75.
+ * AMRAP, EMOM, and Tabata retain separate canonical types, including FIT pairs 62/73, 62/74, and 62/75.
  * E-Bike Fitness (21/28), Casual Walking (11/30), and Bike Commute (2/48) reuse E-Biking, Walking, and Cycling.
- * Dynamic Apnea (53/121) reuses Pool Apnea in Diving. Workout-specific sub-sports require their documented parents.
- * Garmin profile names reuse existing sports: Bike Indoor, Bike Tour, Road Bike, Gravel Bike, MTB, Climb Indoor, Row Indoor,
- * XC Classic Ski, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
+ * Dynamic Apnea (53/121, also 85/121) retains its own type in Diving. Workout-specific sub-sports require their documented parents.
+ * Garmin profile names preserve canonical sports: Road Bike keeps Road Cycling and XC Classic Ski keeps Classic Crosscountry Skiing.
+ * Other aliases include Bike Indoor, Bike Tour, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
  * Provider name resolution accepts optional Garmin, Polar or Strava context for source-specific names.
- * The expanded catalog has 245 canonical types; Polar profile refinements require compatible FIT parents.
+ * The expanded catalog has 281 canonical types; Polar profile refinements require compatible FIT parents.
+ * Dance styles, static/dynamic mobility, classic skiing, road sports and named Les Mills classes remain distinct.
+ * Broad stored canonical names remain readable; recovering specific historical names requires retained source information.
  * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
  * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
- * Numeric FIT parent/sub-sport precedence is unchanged; arbitrary activity titles do not identify a profile name.
+ * Specific incompatible FIT classifications take precedence; arbitrary activity titles do not identify a profile name.
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
  * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
  * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.
@@ -162,7 +164,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Speed Walking (11/31) belongs to Walking, without inferring race-walking rules.
  * Whitewater Kayaking (41/41) and Whitewater Rafting (42/41) remain separate Water Sports types.
  * Wingsuit Flying (20/40), Brick Training (18/80), and Hunting with Dogs (28/72) belong to Aerial Sports, Performance, and Outdoor Adventures.
- * Explicit Indoor Track and Indoor Track Running names reuse Indoor Running; bare running/track remains ambiguous.
+ * Explicit Indoor Track and Indoor Track Running names preserve Indoor Track Running; bare running/track remains ambiguous.
  * BMX belongs to Cycling; FIT cycling/bmx (2/29) preserves it separately from general Cycling.
  * Indoor Skiing belongs to Indoor Sports; FIT fitness_equipment/indoor_skiing (4/25) and XC Ski Indoor names preserve it.
  * ATV and Motocross belong to Motorized; FIT motorcycling/atv (22/35) and motorcycling/motocross (22/36) preserve them.

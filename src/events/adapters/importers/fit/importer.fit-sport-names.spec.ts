@@ -16,12 +16,12 @@ const importer = EventImporterFIT as unknown as {
 const garminProfileNames = [
   ['Bike Indoor', ActivityTypes.IndoorCycling, ActivityTypeGroups.CyclingGroup],
   ['Bike Tour', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
-  ['Road Bike', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['Road Bike', ActivityTypes.RoadCycling, ActivityTypeGroups.CyclingGroup],
   ['Gravel Bike', ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
   ['MTB', ActivityTypes.MountainBiking, ActivityTypeGroups.MountainBikingGroup],
   ['Climb Indoor', ActivityTypes.IndoorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
   ['Row Indoor', ActivityTypes.IndoorRowing, ActivityTypeGroups.IndoorSportsGroup],
-  ['XC Classic Ski', ActivityTypes.CrosscountrySkiing, ActivityTypeGroups.WinterSportsGroup],
+  ['XC Classic Ski', ActivityTypes.ClassicCrosscountrySkiing, ActivityTypeGroups.WinterSportsGroup],
   ['XC Skate Ski', ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
   ['Pool Swim', ActivityTypes.Swimming, ActivityTypeGroups.SwimmingGroup],
   ['Bike', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
@@ -42,10 +42,10 @@ const namedSports = [
   ['Para Sport', ActivityTypes.ParaSport, ActivityTypeGroups.UnspecifiedGroup],
   ['Ultimate Disc', ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
   ['Ultimate Frisbee', ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
-  ['AMRAP', ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
-  ['EMOM', ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
-  ['Tabata', ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
-  ['Dynamic Apnea', ActivityTypes.PoolApnea, ActivityTypeGroups.DivingGroup],
+  ['AMRAP', ActivityTypes.AMRAP, ActivityTypeGroups.IndoorSportsGroup],
+  ['EMOM', ActivityTypes.EMOM, ActivityTypeGroups.IndoorSportsGroup],
+  ['Tabata', ActivityTypes.Tabata, ActivityTypeGroups.IndoorSportsGroup],
+  ['Dynamic Apnea', ActivityTypes.DynamicApnea, ActivityTypeGroups.DivingGroup],
   ['E-Bike Fitness', ActivityTypes.EBiking, ActivityTypeGroups.CyclingGroup],
   ['Casual Walking', ActivityTypes.Walking, ActivityTypeGroups.WalkingGroup],
   ['Bike Commute', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup]
@@ -95,13 +95,13 @@ describe('Recognized sport and activity-profile names', () => {
     [64, 96, ActivityTypes.RacquetBall],
     [64, 97, ActivityTypes.TableTennis],
     [68, 0, ActivityTypes.ParaSport],
-    [62, 73, ActivityTypes.HIIT],
-    [62, 74, ActivityTypes.HIIT],
-    [62, 75, ActivityTypes.HIIT],
+    [62, 73, ActivityTypes.AMRAP],
+    [62, 74, ActivityTypes.EMOM],
+    [62, 75, ActivityTypes.Tabata],
     [21, 28, ActivityTypes.EBiking],
     [11, 30, ActivityTypes.Walking],
     [2, 48, ActivityTypes.Cycling],
-    [53, 121, ActivityTypes.PoolApnea]
+    [53, 121, ActivityTypes.DynamicApnea]
   ] as const)('preserves the explicit FIT classification %s/%s as %s', (sport, sub_sport, expected) => {
     for (const manufacturer of [1, 7, 23, 123, undefined]) {
       for (const session of [
@@ -114,13 +114,13 @@ describe('Recognized sport and activity-profile names', () => {
   });
 
   it.each([
-    [62, 73, ActivityTypes.HIIT],
-    [62, 74, ActivityTypes.HIIT],
-    [62, 75, ActivityTypes.HIIT],
+    [62, 73, ActivityTypes.AMRAP],
+    [62, 74, ActivityTypes.EMOM],
+    [62, 75, ActivityTypes.Tabata],
     [21, 28, ActivityTypes.EBiking],
     [11, 30, ActivityTypes.Walking],
     [2, 48, ActivityTypes.Cycling],
-    [53, 121, ActivityTypes.PoolApnea]
+    [53, 121, ActivityTypes.DynamicApnea]
   ] as const)('keeps the specific FIT pair %s/%s ahead of a conflicting profile', (sport, sub_sport, expected) => {
     expect(importer.getActivityTypeFromSessionObject({ sport, sub_sport, sport_profile_name: 'Running' })).toBe(
       expected
@@ -161,20 +161,20 @@ describe('Recognized sport and activity-profile names', () => {
       [68, 0, '', ActivityTypes.ParaSport],
       [0, 0, 'Ultimate Disc', ActivityTypes.UltimateDisc],
       [70, 92, 'Ultimate Frisbee', ActivityTypes.UltimateDisc],
-      [0, 0, 'AMRAP', ActivityTypes.HIIT],
-      [0, 0, 'EMOM', ActivityTypes.HIIT],
-      [0, 0, 'Tabata', ActivityTypes.HIIT],
-      [0, 0, 'Dynamic Apnea', ActivityTypes.PoolApnea],
+      [0, 0, 'AMRAP', ActivityTypes.AMRAP],
+      [0, 0, 'EMOM', ActivityTypes.EMOM],
+      [0, 0, 'Tabata', ActivityTypes.Tabata],
+      [0, 0, 'Dynamic Apnea', ActivityTypes.DynamicApnea],
       [0, 0, 'E-Bike Fitness', ActivityTypes.EBiking],
       [0, 0, 'Casual Walking', ActivityTypes.Walking],
       [0, 0, 'Bike Commute', ActivityTypes.Cycling],
-      [62, 73, '', ActivityTypes.HIIT],
-      [62, 74, '', ActivityTypes.HIIT],
-      [62, 75, '', ActivityTypes.HIIT],
+      [62, 73, '', ActivityTypes.AMRAP],
+      [62, 74, '', ActivityTypes.EMOM],
+      [62, 75, '', ActivityTypes.Tabata],
       [21, 28, '', ActivityTypes.EBiking],
       [11, 30, '', ActivityTypes.Walking],
       [2, 48, '', ActivityTypes.Cycling],
-      [53, 121, '', ActivityTypes.PoolApnea]
+      [53, 121, '', ActivityTypes.DynamicApnea]
     ] as const)(
       'imports %s/%s (%s) as %s with the approved TSS setting',
       async (sport, subSport, profile, expected) => {

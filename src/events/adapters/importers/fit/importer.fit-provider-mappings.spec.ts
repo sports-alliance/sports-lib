@@ -29,10 +29,10 @@ const manufacturers = { garmin: 1, polar: 123, strava: 265 };
 const manufacturerNames = { garmin: 'garmin', polar: 'polar_electro', strava: 'strava' };
 
 describe('Approved Garmin, Polar and Strava sport mappings', () => {
-  it('adds exactly the approved 49 canonical types across 146 source entries', () => {
+  it('covers the approved canonical targets across 146 source entries', () => {
     expect(mappings).toHaveLength(146);
-    expect(new Set(mappings.filter(row => row.newType).map(row => row.type)).size).toBe(49);
-    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(245);
+    expect(new Set(mappings.filter(row => row.newType).map(row => row.type)).size).toBe(79);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(281);
   });
 
   it.each(allMappings)('resolves $source $identifier to $type in $group', row => {

@@ -384,7 +384,8 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
 }
 
 function assertActivityMetadataBudget(initialOutputs) {
-  // The expanded 245-sport catalog and synchronous provider resolver are intentional startup metadata.
+  // The expanded sport catalog and synchronous provider resolver are intentional startup metadata.
+  // Distinct disciplines/classes add catalog metadata; overall and decoder budgets remain unchanged.
   // Bound their contributions separately so increasing the total does not hide an unrelated eager import.
   const inputBytes = suffix =>
     [...initialOutputs.values()].reduce(
@@ -400,8 +401,8 @@ function assertActivityMetadataBudget(initialOutputs) {
   const catalogBytes = inputBytes('/activities/activity.types.js');
   const providerMappingBytes = inputBytes('/activities/activity-types.provider.js');
   assert.ok(
-    catalogBytes <= 40_000,
-    `Activity catalog contributes ${catalogBytes} startup bytes; expected at most 40000`
+    catalogBytes <= 43_000,
+    `Activity catalog contributes ${catalogBytes} startup bytes; expected at most 43000`
   );
   assert.ok(
     providerMappingBytes <= 20_000,

@@ -253,16 +253,16 @@ export enum ActivityTypes {
   'generic' = 'Generic',
   'hiit' = 'HIIT',
   'HIIT' = 'HIIT',
-  /** HIIT timer formats reuse HIIT rather than adding separate sports. */
-  'AMRAP' = 'HIIT',
-  'amrap' = 'HIIT',
-  'hiit_amrap' = 'HIIT',
-  'EMOM' = 'HIIT',
-  'emom' = 'HIIT',
-  'hiit_emom' = 'HIIT',
-  'Tabata' = 'HIIT',
-  'tabata' = 'HIIT',
-  'hiit_tabata' = 'HIIT',
+  /** Distinct HIIT timer formats, preserving their recorded names. */
+  'AMRAP' = 'AMRAP',
+  'amrap' = 'AMRAP',
+  'hiit_amrap' = 'AMRAP',
+  'EMOM' = 'EMOM',
+  'emom' = 'EMOM',
+  'hiit_emom' = 'EMOM',
+  'Tabata' = 'Tabata',
+  'tabata' = 'Tabata',
+  'hiit_tabata' = 'Tabata',
   'generic_exercise' = 'Generic',
   'generic_track_me' = 'Generic',
   'Generic' = 'Generic',
@@ -357,7 +357,7 @@ export enum ActivityTypes {
   'Running' = 'Running',
   'running' = 'Running',
   'running_street' = 'Running',
-  'running_road' = 'Running',
+  'running_road' = 'Road Running',
   /**
    * Track Running, identified by an explicit sport or profile name.
    * The ambiguous FIT running/track pair alone retains Running.
@@ -398,7 +398,7 @@ export enum ActivityTypes {
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
   /**
-   * Indoor Running, including explicit Indoor Track and Indoor Track Running names.
+   * Indoor Running when the source does not identify an indoor track.
    */
   'Indoor running' = 'Indoor Running',
   'Indoor Running' = 'Indoor Running',
@@ -406,19 +406,19 @@ export enum ActivityTypes {
   'running_indoor' = 'Indoor Running',
   'running_indoor_running' = 'Indoor Running',
   'training_indoor_running' = 'Indoor Running',
-  'Indoor Track' = 'Indoor Running',
-  'IndoorTrack' = 'Indoor Running',
-  'indoor_track' = 'Indoor Running',
-  'Indoor Track Running' = 'Indoor Running',
-  'IndoorTrackRunning' = 'Indoor Running',
-  'indoor_track_running' = 'Indoor Running',
+  'Indoor Track' = 'Indoor Track Running',
+  'IndoorTrack' = 'Indoor Track Running',
+  'indoor_track' = 'Indoor Track Running',
+  'Indoor Track Running' = 'Indoor Track Running',
+  'IndoorTrackRunning' = 'Indoor Track Running',
+  'indoor_track_running' = 'Indoor Track Running',
   /**
    * Cycling
    */
   'Cycling' = 'Cycling',
   'cycling' = 'Cycling',
-  'cycling_road' = 'Cycling',
-  'road_biking' = 'Cycling',
+  'cycling_road' = 'Road Cycling',
+  'road_biking' = 'Road Cycling',
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
@@ -427,9 +427,9 @@ export enum ActivityTypes {
   'Bike Tour' = 'Cycling',
   'BikeTour' = 'Cycling',
   'bike_tour' = 'Cycling',
-  'Road Bike' = 'Cycling',
-  'RoadBike' = 'Cycling',
-  'road_bike' = 'Cycling',
+  'Road Bike' = 'Road Cycling',
+  'RoadBike' = 'Road Cycling',
+  'road_bike' = 'Road Cycling',
   'cycling_commuting' = 'Cycling',
   'Bike Commute' = 'Cycling',
   'BikeCommute' = 'Cycling',
@@ -859,9 +859,9 @@ export enum ActivityTypes {
   'CrosscountrySkiing' = 'Crosscountry Skiing',
   'CrossCountrySkiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
-  'XC Classic Ski' = 'Crosscountry Skiing',
-  'XCClassicSki' = 'Crosscountry Skiing',
-  'xc_classic_ski' = 'Crosscountry Skiing',
+  'XC Classic Ski' = 'Classic Crosscountry Skiing',
+  'XCClassicSki' = 'Classic Crosscountry Skiing',
+  'xc_classic_ski' = 'Classic Crosscountry Skiing',
 
   /**
    * Skate Skiing
@@ -1093,12 +1093,12 @@ export enum ActivityTypes {
   'PoolApnea' = 'Pool Apnea',
   'poolApnea' = 'Pool Apnea',
   'pool_apnea' = 'Pool Apnea',
-  /** Dynamic apnea is a Pool Apnea format, including FIT diving/dynamic_apnea (53/121). */
-  'Dynamic Apnea' = 'Pool Apnea',
-  'DynamicApnea' = 'Pool Apnea',
-  'dynamic_apnea' = 'Pool Apnea',
-  'diving_dynamic_apnea' = 'Pool Apnea',
-  'pool_apnea_dynamic_apnea' = 'Pool Apnea',
+  /** Dynamic Apnea, including FIT diving/dynamic_apnea (53/121), distinct from broad Pool Apnea. */
+  'Dynamic Apnea' = 'Dynamic Apnea',
+  'DynamicApnea' = 'Dynamic Apnea',
+  'dynamic_apnea' = 'Dynamic Apnea',
+  'diving_dynamic_apnea' = 'Dynamic Apnea',
+  'pool_apnea_dynamic_apnea' = 'Dynamic Apnea',
   /**
    * Diving
    */
@@ -1649,6 +1649,105 @@ export enum ActivityTypes {
   'indoorWheelchairRun' = 'Indoor Wheelchair Push Run',
   'indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
   'wheelchair_push_run_indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
+  /** Ballet Dancing; preserves an explicitly recorded discipline or workout name. */
+  'BalletDancing' = 'Ballet Dancing',
+  'Ballet Dancing' = 'Ballet Dancing',
+  /** Ballroom Dancing; preserves an explicitly recorded discipline or workout name. */
+  'BallroomDancing' = 'Ballroom Dancing',
+  'Ballroom Dancing' = 'Ballroom Dancing',
+  /** Jazz Dancing; preserves an explicitly recorded discipline or workout name. */
+  'JazzDancing' = 'Jazz Dancing',
+  'Jazz Dancing' = 'Jazz Dancing',
+  /** Latin Dancing; preserves an explicitly recorded discipline or workout name. */
+  'LatinDancing' = 'Latin Dancing',
+  'Latin Dancing' = 'Latin Dancing',
+  /** Modern Dancing; preserves an explicitly recorded discipline or workout name. */
+  'ModernDancing' = 'Modern Dancing',
+  'Modern Dancing' = 'Modern Dancing',
+  /** Show Dancing; preserves an explicitly recorded discipline or workout name. */
+  'ShowDancing' = 'Show Dancing',
+  'Show Dancing' = 'Show Dancing',
+  /** Street Dancing; preserves an explicitly recorded discipline or workout name. */
+  'StreetDancing' = 'Street Dancing',
+  'Street Dancing' = 'Street Dancing',
+  /** Fitness Dancing; preserves an explicitly recorded discipline or workout name. */
+  'FitnessDancing' = 'Fitness Dancing',
+  'Fitness Dancing' = 'Fitness Dancing',
+  /** Classic Crosscountry Skiing; preserves an explicitly recorded discipline or workout name. */
+  'ClassicCrosscountrySkiing' = 'Classic Crosscountry Skiing',
+  'Classic Crosscountry Skiing' = 'Classic Crosscountry Skiing',
+  'Classic Skiing' = 'Classic Crosscountry Skiing',
+  'Classic XC Skiing' = 'Classic Crosscountry Skiing',
+  /** Dynamic Mobility; preserves an explicitly recorded discipline or workout name. */
+  'DynamicMobility' = 'Dynamic Mobility',
+  'Dynamic Mobility' = 'Dynamic Mobility',
+  'Mobility (dynamic)' = 'Dynamic Mobility',
+  /** Static Mobility; preserves an explicitly recorded discipline or workout name. */
+  'StaticMobility' = 'Static Mobility',
+  'Static Mobility' = 'Static Mobility',
+  'Mobility (static)' = 'Static Mobility',
+  /** Fitness Boxing; preserves an explicitly recorded discipline or workout name. */
+  'FitnessBoxing' = 'Fitness Boxing',
+  'Fitness Boxing' = 'Fitness Boxing',
+  /** Fitness Martial Arts; preserves an explicitly recorded discipline or workout name. */
+  'FitnessMartialArts' = 'Fitness Martial Arts',
+  'Fitness Martial Arts' = 'Fitness Martial Arts',
+  /** Road Running; preserves an explicitly recorded discipline or workout name. */
+  'RoadRunning' = 'Road Running',
+  'Road Running' = 'Road Running',
+  /** Road Cycling; preserves an explicitly recorded discipline or workout name. */
+  'RoadCycling' = 'Road Cycling',
+  'Road Cycling' = 'Road Cycling',
+  /** LES MILLS BARRE; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBarre' = 'LES MILLS BARRE',
+  'LES MILLS BARRE' = 'LES MILLS BARRE',
+  /** LES MILLS BODYATTACK; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyAttack' = 'LES MILLS BODYATTACK',
+  'LES MILLS BODYATTACK' = 'LES MILLS BODYATTACK',
+  /** LES MILLS BODYBALANCE; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyBalance' = 'LES MILLS BODYBALANCE',
+  'LES MILLS BODYBALANCE' = 'LES MILLS BODYBALANCE',
+  /** LES MILLS BODYCOMBAT; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyCombat' = 'LES MILLS BODYCOMBAT',
+  'LES MILLS BODYCOMBAT' = 'LES MILLS BODYCOMBAT',
+  /** LES MILLS BODYJAM; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyJam' = 'LES MILLS BODYJAM',
+  'LES MILLS BODYJAM' = 'LES MILLS BODYJAM',
+  /** LES MILLS BODYPUMP; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyPump' = 'LES MILLS BODYPUMP',
+  'LES MILLS BODYPUMP' = 'LES MILLS BODYPUMP',
+  /** LES MILLS BODYSTEP; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsBodyStep' = 'LES MILLS BODYSTEP',
+  'LES MILLS BODYSTEP' = 'LES MILLS BODYSTEP',
+  /** LES MILLS CORE; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsCore' = 'LES MILLS CORE',
+  'LES MILLS CORE' = 'LES MILLS CORE',
+  'LES MILLS CXWORX' = 'LES MILLS CORE',
+  /** LES MILLS GRIT Athletic; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsGritAthletic' = 'LES MILLS GRIT Athletic',
+  'LES MILLS GRIT Athletic' = 'LES MILLS GRIT Athletic',
+  /** LES MILLS GRIT Cardio; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsGritCardio' = 'LES MILLS GRIT Cardio',
+  'LES MILLS GRIT Cardio' = 'LES MILLS GRIT Cardio',
+  /** LES MILLS GRIT Strength; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsGritStrength' = 'LES MILLS GRIT Strength',
+  'LES MILLS GRIT Strength' = 'LES MILLS GRIT Strength',
+  /** LES MILLS RPM; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsRPM' = 'LES MILLS RPM',
+  'LES MILLS RPM' = 'LES MILLS RPM',
+  /** LES MILLS SH'BAM; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsShBam' = "LES MILLS SH'BAM",
+  "LES MILLS SH'BAM" = "LES MILLS SH'BAM",
+  /** LES MILLS SPRINT; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsSprint' = 'LES MILLS SPRINT',
+  'LES MILLS SPRINT' = 'LES MILLS SPRINT',
+  /** LES MILLS TONE; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsTone' = 'LES MILLS TONE',
+  'LES MILLS TONE' = 'LES MILLS TONE',
+  /** LES MILLS THE TRIP; preserves an explicitly recorded discipline or workout name. */
+  'LesMillsTheTrip' = 'LES MILLS THE TRIP',
+  'LES MILLS THE TRIP' = 'LES MILLS THE TRIP',
+  'LES MILLS TRIP' = 'LES MILLS THE TRIP',
   /** Adaptive Water Skiing; recognized from an explicit provider sport/profile. */
   'AdaptiveWaterSkiing' = 'Adaptive Water Skiing',
   'Adaptive Water Skiing' = 'Adaptive Water Skiing',
@@ -1828,6 +1927,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.CCRDiving,
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
+  ActivityTypes.DynamicApnea,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -1859,6 +1959,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.CCRDiving,
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
+  ActivityTypes.DynamicApnea,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -1898,6 +1999,9 @@ export type ActivityTypeGroup = (typeof ActivityTypeGroups)[keyof typeof Activit
 export class ActivityTypesGroupMapping {
   public static readonly map: Record<ActivityTypeGroup, ActivityTypes[]> = {
     [ActivityTypeGroups.RunningGroup]: [
+      ActivityTypes.IndoorTrackRunning,
+      ActivityTypes.RoadRunning,
+
       ActivityTypes.CrosscountryRunning,
       ActivityTypes.Running,
       ActivityTypes.TrackRunning,
@@ -1915,6 +2019,11 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.NordicWalking
     ],
     [ActivityTypeGroups.CyclingGroup]: [
+      ActivityTypes.RoadCycling,
+      ActivityTypes.LesMillsRPM,
+      ActivityTypes.LesMillsSprint,
+      ActivityTypes.LesMillsTheTrip,
+
       ActivityTypes.Kickbiking,
       ActivityTypes.Cycling,
       ActivityTypes.TrackCycling,
@@ -1959,6 +2068,35 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Swimrun
     ],
     [ActivityTypeGroups.IndoorSportsGroup]: [
+      ActivityTypes.BalletDancing,
+      ActivityTypes.BallroomDancing,
+      ActivityTypes.JazzDancing,
+      ActivityTypes.LatinDancing,
+      ActivityTypes.ModernDancing,
+      ActivityTypes.ShowDancing,
+      ActivityTypes.StreetDancing,
+      ActivityTypes.FitnessDancing,
+      ActivityTypes.DynamicMobility,
+      ActivityTypes.StaticMobility,
+      ActivityTypes.AMRAP,
+      ActivityTypes.EMOM,
+      ActivityTypes.Tabata,
+      ActivityTypes.FitnessBoxing,
+      ActivityTypes.FitnessMartialArts,
+      ActivityTypes.LesMillsBarre,
+      ActivityTypes.LesMillsBodyAttack,
+      ActivityTypes.LesMillsBodyBalance,
+      ActivityTypes.LesMillsBodyCombat,
+      ActivityTypes.LesMillsBodyJam,
+      ActivityTypes.LesMillsBodyPump,
+      ActivityTypes.LesMillsBodyStep,
+      ActivityTypes.LesMillsCore,
+      ActivityTypes.LesMillsGritAthletic,
+      ActivityTypes.LesMillsGritCardio,
+      ActivityTypes.LesMillsGritStrength,
+      ActivityTypes.LesMillsShBam,
+      ActivityTypes.LesMillsTone,
+
       ActivityTypes.Breathwork,
       ActivityTypes.MindBodyTraining,
       ActivityTypes.Bootcamp,
@@ -2029,6 +2167,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Trekking
     ],
     [ActivityTypeGroups.WinterSportsGroup]: [
+      ActivityTypes.ClassicCrosscountrySkiing,
+
       ActivityTypes.BackcountrySnowboarding,
       ActivityTypes.Biathlon,
       ActivityTypes.Curling,
@@ -2111,6 +2251,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Windsurfing
     ],
     [ActivityTypeGroups.DivingGroup]: [
+      ActivityTypes.DynamicApnea,
+
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
       ActivityTypes.CCRDiving,
@@ -2172,6 +2314,10 @@ export class ActivityTypesGroupMapping {
 
 const EXPLICIT_INDOOR_ACTIVITY_TYPES: ActivityTypes[] = [
   ...ActivityTypesGroupMapping.map[ActivityTypeGroups.IndoorSportsGroup],
+  ActivityTypes.IndoorTrackRunning,
+  ActivityTypes.LesMillsRPM,
+  ActivityTypes.LesMillsSprint,
+  ActivityTypes.LesMillsTheTrip,
   ActivityTypes.IndoorCycling,
   ActivityTypes.IndoorHandCycle,
   ActivityTypes.IndoorWheelchairPushWalk,

@@ -31,16 +31,19 @@ their shared pairs; unnamed shared pairs keep their broad classifications. These
 recorded creator identity, with the existing TSS setting. Historical corrections require source reparsing and
 regeneration of affected summaries and Training snapshots. See [Import activities](guides/importing-activities.md).
 
-Garmin names such as Bike Indoor, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Classic Ski, XC Skate Ski, and Pool
-Swim reuse existing canonical sports. The expanded Garmin, Polar and Strava catalog has 245 canonical types, with
-49 additional sports and the same TSS preservation policy. Provider context resolves ambiguous names such as Polar
-Enduro and Garmin Ski. FIT profile fallback needs an actual recognized `sport_profile_name`; activity titles alone do not establish
-the sport. See [Import activities](guides/importing-activities.md#garmin-activity-profile-names) for all twenty aliases
-and historical correction requirements. See the [complete provider mapping batch](guides/importing-activities.md#garmin-polar-and-strava-provider-names)
-for all 146 remaining source entries and their groups.
+The catalog now has 281 canonical types. Polar dance styles, mobility variants, classic skiing, road sports and
+Les Mills programs keep separate names. HIIT timer formats, Dynamic Apnea and Indoor Track Running also retain
+their recorded distinctions. Road Bike resolves to Road Cycling; XC Classic Ski resolves to Classic Crosscountry
+Skiing. Broad stored labels remain readable, and imported TSS follows the existing setting.
+
+Provider context resolves ambiguous names such as Polar Enduro and Garmin Ski. FIT refinement requires a recognized
+`sport_profile_name`; activity titles alone do not establish a sport. Consumer adoption must update its exact Training
+contexts before production use. See [distinct sport names](guides/importing-activities.md#distinct-sport-and-workout-names)
+for the names, groups, TSS policy and historical corrections, and the
+[complete provider mappings](guides/importing-activities.md#garmin-polar-and-strava-provider-names) for all 146 source entries.
 
 Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
-AMRAP, EMOM, and Tabata reuse HIIT; Dynamic Apnea reuses Pool Apnea; E-Bike Fitness, Casual Walking, and Bike Commute
+AMRAP, EMOM, and Tabata retain separate canonical types; Dynamic Apnea retains its own Diving type; E-Bike Fitness, Casual Walking, and Bike Commute
 reuse E-Biking, Walking, and Cycling. Bare Racket imports now preserve the broad Racket Sport category; precise
 sub-sports or racket profile names retain their particular sport. See [Import activities](guides/importing-activities.md#racket-para-disc-and-workout-names)
 for parent guards, aliases, TSS behavior, and historical corrections after consumer adoption.
@@ -75,7 +78,7 @@ classification without guessing a subtype. Paramotoring (`20/112`) belongs to Ae
 E-Enduro MTB (`2/127`) belongs to Mountain Biking, Track Cycling (`2/13`) and Recumbent Cycling (`2/10`) to Cycling,
 Speed Walking (`11/31`) to Walking, and separate Whitewater Kayaking (`41/41`) and Whitewater Rafting (`42/41`)
 to Water Sports. Wingsuit Flying (`20/40`), Brick Training (`18/80`), and Hunting with Dogs (`28/72`) belong to
-Aerial Sports, Performance, and Outdoor Adventures. Explicit Indoor Track names reuse Indoor Running; the track code
+Aerial Sports, Performance, and Outdoor Adventures. Explicit Indoor Track names preserve Indoor Track Running; the track code
 alone does not imply indoor running. See [Import activities](guides/importing-activities.md) for parent guards,
 calculation behavior, and historical correction requirements.
 

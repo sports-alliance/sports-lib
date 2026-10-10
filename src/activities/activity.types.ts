@@ -246,6 +246,15 @@ export enum ActivityTypes {
   'Chores' = 'Chores',
   'chores' = 'Chores',
   /**
+   * Video Gaming; explicit FIT sport video_gaming (63), also named Gaming by Garmin.
+   */
+  'Video Gaming' = 'Video Gaming',
+  'VideoGaming' = 'Video Gaming',
+  'videoGaming' = 'Video Gaming',
+  'video_gaming' = 'Video Gaming',
+  'Gaming' = 'Video Gaming',
+  'gaming' = 'Video Gaming',
+  /**
    * Transition
    */
   'transition' = 'Transition',
@@ -759,6 +768,13 @@ export enum ActivityTypes {
   'Free Diving' = 'Free Diving',
   'FreeDiving' = 'Free Diving',
   /**
+   * Pool Apnea; explicit FIT sport pool_apnea (85), distinct from Free Diving.
+   */
+  'Pool Apnea' = 'Pool Apnea',
+  'PoolApnea' = 'Pool Apnea',
+  'poolApnea' = 'Pool Apnea',
+  'pool_apnea' = 'Pool Apnea',
+  /**
    * Diving
    */
   'diving' = 'Diving',
@@ -883,6 +899,11 @@ export enum ActivityTypes {
    * Stretching
    */
   'Stretching' = 'Stretching',
+  /**
+   * Mobility; explicit FIT sport mobility (86), distinct from Flexibility Training.
+   */
+  'Mobility' = 'Mobility',
+  'mobility' = 'Mobility',
   /**
    * Strength Training
    */
@@ -1224,6 +1245,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
   ActivityTypes.FreeDiving,
+  ActivityTypes.PoolApnea,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -1247,6 +1269,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
   ActivityTypes.FreeDiving,
+  ActivityTypes.PoolApnea,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -1326,6 +1349,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Yoga,
       ActivityTypes.Meditation,
       ActivityTypes.Stretching,
+      ActivityTypes.Mobility,
       ActivityTypes.Kettlebell,
       ActivityTypes.IndoorRowing,
       ActivityTypes.Floorball,
@@ -1425,6 +1449,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
       ActivityTypes.FreeDiving,
+      ActivityTypes.PoolApnea,
       ActivityTypes.Snorkeling,
       ActivityTypes.Mermaiding
     ],
@@ -1455,7 +1480,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Soccer,
       ActivityTypes.Volleyball
     ],
-    [ActivityTypeGroups.UnspecifiedGroup]: [ActivityTypes.Chores]
+    [ActivityTypeGroups.UnspecifiedGroup]: [ActivityTypes.Chores, ActivityTypes.VideoGaming]
   };
 }
 

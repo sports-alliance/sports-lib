@@ -64,6 +64,51 @@ The existing strict MCP activity-type catalog discovers the new canonical names,
 canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
 remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
 
+`ActivityTypes.PoolApnea` has canonical stored value `Pool Apnea` in `ActivityTypeGroups.DivingGroup`. Explicit FIT
+sport `pool_apnea` (`85`) preserves this type before sub-sport and profile fallbacks across manufacturers. `PoolApnea`,
+`poolApnea`, and `pool_apnea` also restore it from native JSON. Diving-group terrain summaries (altitude, grade, ascent,
+and descent) are excluded on activities and laps, while source streams remain available. FIT `diving/apnea_diving`
+(`53/56`) and `diving/apnea_hunting` (`53/57`) still resolve to the separate Free Diving type. A broad `apnea` alias is
+not added. Pool Apnea inherits the group's existing speed behavior and false indoor hint; the hint does not establish
+whether the pool is indoors or outdoors.
+
+`ActivityTypes.Mobility` has canonical stored value `Mobility` in `ActivityTypeGroups.IndoorSportsGroup`. Explicit FIT
+sport `mobility` (`86`) preserves the type before sub-sport and profile fallbacks. Lowercase `mobility` restores it from
+native JSON. It inherits Indoor Sports' speed behavior and true indoor hint. Flexibility Training, Stretching, and Yoga
+remain separate; `training/flexibility_training` (`4/19`) retains Flexibility Training. Polar's finer `MOBILITY_DYNAMIC`
+and `MOBILITY_STATIC` source names are not collapsed into this type without a separate mapping decision.
+
+`ActivityTypes.VideoGaming` has canonical stored value `Video Gaming` in `ActivityTypeGroups.UnspecifiedGroup`.
+Explicit FIT sport `video_gaming` (`63`) preserves the type before sub-sport and profile fallbacks. `VideoGaming`,
+`videoGaming`, `video_gaming`, `Gaming`, and `gaming` also resolve to this type, including native JSON. Garmin calls the
+activity Gaming. FIT sub-sport `esport` (`77`) is shared with physical sports and does not establish Video Gaming on its
+own: `cycling/esport` (`2/77`) retains Cycling. Video Gaming uses Unspecified's speed behavior and false indoor hint.
+
+These IDs appear in [Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+[Garmin's activity profiles](https://support.garmin.com/en-ZA/?faq=g9VOolzNBr08b7mfclmxt7) list Pool Apnea under Diving
+and Mobility under Gym. [Garmin's activities manual](https://www8.garmin.com/manuals/webhelp/GUID-EECCAC99-90D6-4AB1-9A3A-EC433D3365E2/EN-US/GUID-00B74ABF-7DB4-4DC2-9CA5-9D2F12B65A10.html)
+lists Gaming under Other. Sport and sub-sport IDs are separate namespaces: `racket/padel` (`64/85`) remains Padel,
+`wheelchair_push_walk/indoor_wheelchair_walk` (`65/86`) remains Wheelchair Push Walk, and Diving sub-sport `63` does not
+identify Video Gaming.
+
+Video Gaming receives no library-calculated POWER, HR, pace, or MET TSS even when inputs or overrides are available.
+Previously calculated TSS and its method are removed during summary generation. A finite source-provided TSS remains
+available and is labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method
+retains the existing imported-score interpretation; its provenance cannot be recovered from the number alone.
+Pool Apnea and Mobility retain their groups' existing TSS eligibility. None of these types has stroke-rate semantics
+or a durability adapter. No numeric metric token, unit, schema, provider transport, delivery support, or Training formula
+is added. Quantified Self's existing discipline policy resolves all three to volume-only Other training; formerly
+Generic activities belonged to Fitness & Gym. Usable power curves remain isolated by exact canonical activity type.
+
+Stored Generic or Unknown Sport labels cannot identify these activities. Reparse retained FIT `85`, `86`, or `63`
+sources, or restore specific source names/profiles, then regenerate separately persisted event summaries, activity-type
+aggregates, and affected Training snapshots. Recalculation is needed to clear identified calculated Video Gaming TSS;
+the source-imported score policy is unchanged. Saved routes need no reparse. Adopt the release in both the Quantified
+Self application and Functions before persisting these types. Existing strict MCP activity-type discovery exposes
+their names, groups, and indoor hints without new fields, scopes, tools, or planning mutations. Queue lifecycle, write
+paths, and monitoring remain unchanged. Supported-activities Help uses the dynamic catalog and needs no enumerated
+entry before adoption.
+
 `ActivityTypes.Shooting` has canonical stored value `Shooting`, and `ActivityTypes.Geocaching` has canonical stored value
 `Geocaching`, both in `ActivityTypeGroups.OutdoorAdventuresGroup`. Explicit FIT sports `shooting` (`56`) and `geocaching`
 (`87`) retain these types before sub-sport and profile fallbacks, across manufacturers. Shooting remains distinct from
@@ -334,7 +379,8 @@ durability adapters are added.
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
-`Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, or `Platform Tennis`.
+`Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
+or `Video Gaming`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

@@ -974,7 +974,9 @@ export class ActivityUtilities {
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
-   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities.
+   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
+   * and calculated TSS excluded for Motorized, Adaptive Mobility, and Video Gaming activities.
+   * Those activities retain finite source-imported TSS, including legacy scores without a method.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.invalidateCalculatedPower(activity);
@@ -2825,7 +2827,9 @@ export class ActivityUtilities {
   private static supportsCalculatedTrainingStressScore(activity: ActivityInterface): boolean {
     const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     return (
-      activityGroup !== ActivityTypeGroups.MotorizedGroup && activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup
+      activityGroup !== ActivityTypeGroups.MotorizedGroup &&
+      activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup &&
+      activity.type !== ActivityTypes.VideoGaming
     );
   }
 

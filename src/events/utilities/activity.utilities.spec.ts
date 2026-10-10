@@ -1042,6 +1042,7 @@ describe('Activity Utilities', () => {
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
       ActivityTypes.FreeDiving,
+      ActivityTypes.PoolApnea,
       ActivityTypes.Snorkeling,
       ActivityTypes.Mermaiding
     ])('removes terrain summaries for %s while retaining source streams', activityType => {

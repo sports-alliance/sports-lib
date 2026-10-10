@@ -18,12 +18,12 @@ Breathwork profile preserves Breathwork separately. Correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
 Garmin names such as Bike Indoor, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Classic Ski, XC Skate Ski, and Pool
-Swim reuse existing canonical sports. The expanded Garmin, Polar and Strava catalog has 242 canonical types, with
-46 additional sports and the same TSS preservation policy. Provider context resolves ambiguous names such as Polar
+Swim reuse existing canonical sports. The expanded Garmin, Polar and Strava catalog has 245 canonical types, with
+49 additional sports and the same TSS preservation policy. Provider context resolves ambiguous names such as Polar
 Enduro and Garmin Ski. FIT profile fallback needs an actual recognized `sport_profile_name`; activity titles alone do not establish
 the sport. See [Import activities](guides/importing-activities.md#garmin-activity-profile-names) for all twenty aliases
 and historical correction requirements. See the [complete provider mapping batch](guides/importing-activities.md#garmin-polar-and-strava-provider-names)
-for all 143 remaining source entries and their groups.
+for all 146 remaining source entries and their groups.
 
 Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
 AMRAP, EMOM, and Tabata reuse HIIT; Dynamic Apnea reuses Pool Apnea; E-Bike Fitness, Casual Walking, and Bike Commute

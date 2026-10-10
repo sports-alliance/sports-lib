@@ -128,7 +128,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Garmin profile names reuse existing sports: Bike Indoor, Bike Tour, Road Bike, Gravel Bike, MTB, Climb Indoor, Row Indoor,
  * XC Classic Ski, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
  * Provider name resolution accepts optional Garmin, Polar or Strava context for source-specific names.
- * The expanded catalog has 242 canonical types; Polar profile refinements require compatible FIT parents.
+ * The expanded catalog has 245 canonical types; Polar profile refinements require compatible FIT parents.
  * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
  * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
  * Numeric FIT parent/sub-sport precedence is unchanged; arbitrary activity titles do not identify a profile name.

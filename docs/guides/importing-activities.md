@@ -176,10 +176,11 @@ scores while preservation is enabled. A finite legacy score without a method gai
 
 With `preserveImportedTss: false`, existing TSS and its method are discarded. A replacement is calculated where the
 sport and inputs support it; otherwise both stay unset. This includes sports excluded from calculated TSS. Existing
-library-calculated scores on eligible sports are retained when true and refreshed when false.
+library-calculated scores on eligible sports are refreshed from the current inputs with either setting;
+only finite imported scores take precedence when preservation is enabled.
 
-The mapping audit has added 65 canonical types since the Sports Lib 21.5.0 baseline. Both flag settings are tested
-over the entire 242-type catalog so future additions inherit the same rule.
+The mapping audit has added 114 canonical types since the Sports Lib 21.5.0 baseline. Both flag settings are tested
+over the entire 245-type catalog so future additions inherit the same rule.
 No numeric token, unit, formula, JSON field, or MCP contract changes. Consumers must adopt the library together
 in the application and Functions. A score already overwritten historically can only be recovered from a retained
 original source; native JSON containing the replacement cannot reconstruct the imported number. Correct only

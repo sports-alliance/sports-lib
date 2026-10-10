@@ -249,7 +249,21 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
   });
 
   it.each(allMappings)('retains unrelated broad FIT parents for $source $identifier', row => {
-    for (const sport of ['cycling', 'basketball']) {
+    for (const sport of [
+      'cycling',
+      'basketball',
+      'running',
+      'swimming',
+      'rowing',
+      'hiking',
+      'walking',
+      'diving',
+      'snowboarding',
+      'alpine_skiing',
+      'hockey',
+      'team_sport',
+      'wheelchair_push_walk'
+    ]) {
       if (sport === row.fitSport) continue;
       const manufacturer = manufacturers[row.source as ActivityTypeSource];
       const expected = importer.getActivityTypeFromSessionObject({ sport, sub_sport: 'generic' }, manufacturer);

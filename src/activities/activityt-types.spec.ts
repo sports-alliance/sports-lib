@@ -14,6 +14,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Cheerleading, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes['Circuit Training'], ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Combat, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.MixedMartialArts, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.EllipticalTrainer, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.FitnessEquipment, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.HIIT, ActivityTypeGroups.IndoorSportsGroup],
@@ -29,6 +30,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Fishing, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Archery, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
@@ -39,6 +41,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Rafting, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.WaterTubing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.Wakesurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.DiscGolf, ActivityTypeGroups.TeamRacketGroup],
@@ -494,6 +497,84 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.WaterTubing)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('tubing')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBeNull();
+  });
+
+  it.each([
+    ['Wakesurfing', ActivityTypes.Wakesurfing],
+    [' WaKeSuRfInG ', ActivityTypes.Wakesurfing],
+    ['Archery', ActivityTypes.Archery],
+    [' ARCHERY ', ActivityTypes.Archery],
+    ['Mixed Martial Arts', ActivityTypes.MixedMartialArts],
+    ['MixedMartialArts', ActivityTypes.MixedMartialArts],
+    ['mixedMartialArts', ActivityTypes.MixedMartialArts],
+    ['mixed_martial_arts', ActivityTypes.MixedMartialArts],
+    ['MIXED-MARTIAL-ARTS', ActivityTypes.MixedMartialArts],
+    [' MMA ', ActivityTypes.MixedMartialArts]
+  ])('resolves explicit %s to %s', (value, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.Wakesurfing, ActivityTypeGroups.WaterSportsGroup, false],
+    [ActivityTypes.Archery, ActivityTypeGroups.OutdoorAdventuresGroup, false],
+    [ActivityTypes.MixedMartialArts, ActivityTypeGroups.IndoorSportsGroup, true]
+  ] as const)('exposes %s once in %s with indoor hint %s', (type, group, indoor) => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+  });
+
+  it('gives Wakesurfing the existing water-sport metric and elevation behavior', () => {
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Wakesurfing)).toEqual([
+      DataSpeed.type,
+      DataSwimPace.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Wakesurfing)).toEqual([
+      DataSpeedAvg.type,
+      DataSwimPaceAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Wakesurfing)).toEqual(
+      []
+    );
+    expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Wakesurfing)).toBe(true);
+    expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Wakesurfing)).toBe(true);
+    expect(ActivityTypes.Wakesurfing).not.toBe(ActivityTypes.Surfing);
+    expect(ActivityTypes.Wakesurfing).not.toBe(ActivityTypes.Wakeboarding);
+    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBeNull();
+  });
+
+  it('keeps Archery and Mixed Martial Arts distinct with their existing group metric families', () => {
+    expect(ActivityTypes.Archery).not.toBe(ActivityTypes.Hunting);
+    expect(ActivityTypes.MixedMartialArts).not.toBe(ActivityTypes.Combat);
+    expect(ActivityTypes.MixedMartialArts).not.toBe(ActivityTypes.Boxing);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Archery)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Archery)).toEqual([
+      DataPaceAvg.type,
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Archery)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+    expect(ActivityTypesHelper.shouldExcludeAscent(ActivityTypes.Archery)).toBe(false);
+    expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Archery)).toBe(false);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.MixedMartialArts)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(
+      ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.MixedMartialArts)
+    ).toEqual([DataSpeedAvg.type]);
+    expect(
+      ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.MixedMartialArts)
+    ).toEqual([]);
+    expect(ActivityTypesHelper.resolveActivityType('martial_arts')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('shooting')).toBeNull();
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(

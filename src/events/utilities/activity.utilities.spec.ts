@@ -980,32 +980,34 @@ describe('Activity Utilities', () => {
       expect(activity.getStat(DataDescent.type)).toBeDefined();
     });
 
-    it.each([ActivityTypes.WaterTubing, ActivityTypes.WaterSkiing, ActivityTypes.Wakeboarding])(
-      'does not derive ascent/descent for %s but retains altitude data and explicit source totals',
-      activityType => {
-        const activity = new Activity(
-          new Date(0),
-          new Date(5000),
-          activityType,
-          new Creator('test'),
-          new ActivityParsingOptions({ streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} } })
-        );
-        activity.addStream(new Stream(DataAltitude.type, [100, 150, 200, 150, 100]));
+    it.each([
+      ActivityTypes.WaterTubing,
+      ActivityTypes.WaterSkiing,
+      ActivityTypes.Wakeboarding,
+      ActivityTypes.Wakesurfing
+    ])('does not derive ascent/descent for %s but retains altitude data and explicit source totals', activityType => {
+      const activity = new Activity(
+        new Date(0),
+        new Date(5000),
+        activityType,
+        new Creator('test'),
+        new ActivityParsingOptions({ streams: { smooth: { altitudeSmooth: false }, fixAbnormal: {} } })
+      );
+      activity.addStream(new Stream(DataAltitude.type, [100, 150, 200, 150, 100]));
 
-        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-        expect(activity.getStat(DataAscent.type)).toBeUndefined();
-        expect(activity.getStat(DataDescent.type)).toBeUndefined();
-        expect(activity.getStreamData(DataAltitude.type)).toEqual([100, 150, 200, 150, 100]);
-        expect(activity.getStat(DataAltitudeMax.type)?.getValue()).toBe(200);
+      expect(activity.getStat(DataAscent.type)).toBeUndefined();
+      expect(activity.getStat(DataDescent.type)).toBeUndefined();
+      expect(activity.getStreamData(DataAltitude.type)).toEqual([100, 150, 200, 150, 100]);
+      expect(activity.getStat(DataAltitudeMax.type)?.getValue()).toBe(200);
 
-        activity.addStat(new DataAscent(12));
-        activity.addStat(new DataDescent(10));
-        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
-        expect(activity.getStat(DataAscent.type)?.getValue()).toBe(12);
-        expect(activity.getStat(DataDescent.type)?.getValue()).toBe(10);
-      }
-    );
+      activity.addStat(new DataAscent(12));
+      activity.addStat(new DataDescent(10));
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+      expect(activity.getStat(DataAscent.type)?.getValue()).toBe(12);
+      expect(activity.getStat(DataDescent.type)?.getValue()).toBe(10);
+    });
 
     it('should NOT generate ascent OR descent for Swimming (excluded)', () => {
       const activity = new Activity(new Date(), new Date(), ActivityTypes.Swimming, new Creator('test'));

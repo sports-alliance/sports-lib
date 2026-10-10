@@ -3139,6 +3139,13 @@ export class EventImporterFIT {
         return ActivityTypes.Lacrosse;
       case 'watertubing':
         return ActivityTypes.WaterTubing;
+      case 'wakesurfing':
+        return ActivityTypes.Wakesurfing;
+      case 'archery':
+        return ActivityTypes.Archery;
+      case 'mixedmartialarts':
+      case 'mma':
+        return ActivityTypes.MixedMartialArts;
     }
 
     // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.

@@ -64,6 +64,46 @@ The existing strict MCP activity-type catalog discovers the new canonical names,
 canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
 remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
 
+`ActivityTypes.Grinding` has canonical stored value `Grinding` in `ActivityTypeGroups.WaterSportsGroup`. Explicit FIT
+sport `grinding` (`59`) identifies operating sailing winches and preserves this type before profile or unrelated
+sub-sport fallbacks. `ActivityTypes.IndoorGrinding` has canonical stored value `Indoor Grinding` in
+`ActivityTypeGroups.IndoorSportsGroup`. FIT `grinding/indoor_grinding` (`59/71`) preserves the separate indoor type before
+profile fallbacks. Numeric IDs, numeric strings, snake-case names, and camel-case names resolve consistently across
+manufacturers. A generic or unrelated parent sport with sub-sport `71` does not establish Indoor Grinding.
+
+`ActivityTypes.SailRacing` has canonical stored value `Sail Racing` in `ActivityTypeGroups.WaterSportsGroup`. FIT
+`sailing/sail_race` (`32/65`) preserves this type separately from Sailing before profile fallbacks. The sub-sport requires
+the Sailing parent; a generic or unrelated parent with sub-sport `65` does not establish Sail Racing. Ordinary
+`sailing/generic` (`32/0`) remains Sailing. Sport and sub-sport namespaces stay separate: sport `65` remains Wheelchair
+Push Walk and sport `71` remains Cricket.
+
+[Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) defines these IDs.
+[Garmin's grinding manual](https://www8.garmin.com/manuals/webhelp/GUID-BC69665A-98C5-4953-BD19-F5EB5A26A4D0/EN-US/GUID-6DAD75FF-9AEA-49AC-ADBE-E7EC37B9A0B5.html)
+distinguishes Grind Onshore and Grind Offshore; its [Sail Racing manual](https://www8.garmin.com/manuals/webhelp/GUID-EECCAC99-90D6-4AB1-9A3A-EC433D3365E2/EN-GB/GUID-73BD5ACF-0952-4FCE-9F09-EE12F1690563.html)
+uses Sail Race. Those explicit sport/profile names resolve to Indoor Grinding, Grinding, and Sail Racing respectively.
+`Offshore Sail Grinding` and `Onshore Sail Grinding`, documented in
+[Garmin's activity guidance](https://support.garmin.com/en-US/?faq=rv4yk0Oki61O10g6w5Mms7), also resolve to Grinding and
+Indoor Grinding. Canonical names, camel-case/snake-case aliases, `grinding_indoor_grinding`, and `sailing_sail_race` restore
+the same values from native JSON. Broad `grind`, `onshore`, `offshore`, and `race` aliases are not added.
+
+Grinding and Sail Racing inherit Water Sports' speed/swim-pace families and false indoor hint. Like Sailing, they do not
+derive ascent or descent, but retain source altitude streams, altitude summaries, and explicit source ascent/descent.
+Indoor Grinding inherits Indoor Sports' speed family, true indoor hint, and existing elevation behavior. Indoor status
+is a catalog hint; Grind Onshore does not establish a recording's physical location. All three retain the standard
+movement threshold and TSS selection, including power TSS when the required inputs exist. Cadence remains cadence;
+there is no stroke-rate conversion or durability adapter. No numeric token, unit, provider transport, workout delivery,
+Training formula, or modeled family is added. Quantified Self's existing policy resolves them to volume-only Other
+training; formerly Generic activities belonged to Fitness & Gym, while Sailing already belonged to Other training.
+Usable power curves remain isolated by exact canonical activity type.
+
+Stored Generic, Unknown Sport, or Sailing labels cannot identify these activities on their own. Reparse retained FIT
+`59`, `59/71`, or `32/65` sources, or restore specific source names/profiles, then regenerate separately persisted event
+summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse. Adopt the release
+in both the Quantified Self application and Functions before persisting the new types. Existing strict MCP catalog
+discovery exposes their names, groups, and indoor hints without new fields, scopes, tools, or planning mutations.
+Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
+Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+
 `ActivityTypes.PoolApnea` has canonical stored value `Pool Apnea` in `ActivityTypeGroups.DivingGroup`. Explicit FIT
 sport `pool_apnea` (`85`) preserves this type before sub-sport and profile fallbacks across manufacturers. `PoolApnea`,
 `poolApnea`, and `pool_apnea` also restore it from native JSON. Diving-group terrain summaries (altitude, grade, ascent,
@@ -380,7 +420,7 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
-or `Video Gaming`.
+`Video Gaming`, `Grinding`, `Indoor Grinding`, or `Sail Racing`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

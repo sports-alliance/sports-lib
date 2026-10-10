@@ -123,6 +123,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Mobility belongs to Indoor Sports; explicit FIT sport 86 preserves it separately from Flexibility Training and Stretching.
  * Video Gaming belongs to Unspecified; explicit FIT sport 63 and Gaming aliases resolve to it without calculated TSS.
  * Video Gaming retains source-imported TSS; the shared FIT esport sub-sport does not establish Video Gaming on its own.
+ * Grinding belongs to Water Sports; explicit FIT sport 59 preserves sailing winch activity.
+ * Indoor Grinding belongs to Indoor Sports; FIT grinding/indoor_grinding (59/71) and Grind Onshore names preserve it separately.
+ * Sail Racing belongs to Water Sports; FIT sailing/sail_race (32/65) and Sail Race names preserve it separately from Sailing.
  * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
  * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.

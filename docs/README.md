@@ -17,6 +17,11 @@ Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct
 Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Grinding (`59`) belongs to Water Sports, Indoor Grinding (`59/71`) to Indoor Sports, and Sail Racing (`32/65`)
+to Water Sports. Garmin's Grind Offshore, Grind Onshore, and Sail Race names preserve these separate types.
+Historical Generic, Unknown Sport, or Sailing imports need specific retained sources and regeneration of affected
+summaries and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Pool Apnea (`85`) has a distinct Diving type, Mobility (`86`) belongs to Indoor Sports, and Video Gaming (`63`)
 belongs to Unspecified. Pool Apnea remains separate from Free Diving; Mobility remains separate from Flexibility
 Training. Video Gaming omits calculated TSS while preserving source-imported scores. Correcting historical imports

@@ -49,6 +49,9 @@ const proposedGroupAssignments = [
   [ActivityTypes.WaterSkiing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.WaterTubing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Wakesurfing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.Grinding, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.SailRacing, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.IndoorGrinding, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Windsurfing, ActivityTypeGroups.WaterSportsGroup],
   [ActivityTypes.Cricket, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.DiscGolf, ActivityTypeGroups.TeamRacketGroup],
@@ -429,6 +432,63 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.resolveActivityType('esport')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC')).toBeNull();
+  });
+
+  it.each([
+    ['Grinding', ActivityTypes.Grinding],
+    [' GRINDING ', ActivityTypes.Grinding],
+    ['Grind Offshore', ActivityTypes.Grinding],
+    ['Offshore Sail Grinding', ActivityTypes.Grinding],
+    ['Indoor Grinding', ActivityTypes.IndoorGrinding],
+    ['indoorGrinding', ActivityTypes.IndoorGrinding],
+    ['indoor_grinding', ActivityTypes.IndoorGrinding],
+    ['grinding_indoor_grinding', ActivityTypes.IndoorGrinding],
+    ['Grind Onshore', ActivityTypes.IndoorGrinding],
+    ['Onshore Sail Grinding', ActivityTypes.IndoorGrinding],
+    ['Sail Racing', ActivityTypes.SailRacing],
+    ['SailRacing', ActivityTypes.SailRacing],
+    ['sail_racing', ActivityTypes.SailRacing],
+    ['Sail Race', ActivityTypes.SailRacing],
+    ['sailRace', ActivityTypes.SailRacing],
+    ['sail_race', ActivityTypes.SailRacing],
+    ['SAILING-SAIL-RACE', ActivityTypes.SailRacing]
+  ])('resolves explicit sailing activity %s to %s', (name, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(name)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.Grinding, ActivityTypeGroups.WaterSportsGroup, false],
+    [ActivityTypes.SailRacing, ActivityTypeGroups.WaterSportsGroup, false],
+    [ActivityTypes.IndoorGrinding, ActivityTypeGroups.IndoorSportsGroup, true]
+  ] as const)('exposes %s once with its sailing or indoor group behavior', (type, group, indoor) => {
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(type)).toBe(group);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+    expect(ActivityTypesHelper.shouldExcludeAscent(type)).toBe(!indoor);
+    expect(ActivityTypesHelper.shouldExcludeDescent(type)).toBe(!indoor);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual(
+      indoor ? [DataSpeed.type] : [DataSpeed.type, DataSwimPace.type]
+    );
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual(
+      indoor ? [DataSpeedAvg.type] : [DataSpeedAvg.type, DataSwimPaceAvg.type]
+    );
+  });
+
+  it('keeps Grinding, Indoor Grinding, and Sail Racing separate from each other and Sailing', () => {
+    expect(
+      new Set([ActivityTypes.Grinding, ActivityTypes.IndoorGrinding, ActivityTypes.SailRacing, ActivityTypes.Sailing])
+        .size
+    ).toBe(4);
+    expect(ActivityTypesHelper.resolveActivityType('grind')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('onshore')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('offshore')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('race')).toBeNull();
   });
 
   it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(

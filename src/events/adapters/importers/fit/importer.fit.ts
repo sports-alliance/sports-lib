@@ -2381,6 +2381,7 @@ export class EventImporterFIT {
     const resolvedSubSportName = this.resolveFitProfileName(session.sub_sport, getFitSubSportName);
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
+    const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
 
     // Preserve these explicit sports before sub-sport or user-defined profile
     // fallbacks can collapse their distinct canonical classifications.
@@ -2423,6 +2424,23 @@ export class EventImporterFIT {
       case 'videogaming':
       case 'gaming':
         return ActivityTypes.VideoGaming;
+      case 'grinding':
+        return normalizedSubSportName === 'indoorgrinding' ? ActivityTypes.IndoorGrinding : ActivityTypes.Grinding;
+      case 'grindoffshore':
+      case 'offshoresailgrinding':
+        return ActivityTypes.Grinding;
+      case 'indoorgrinding':
+      case 'grindonshore':
+      case 'onshoresailgrinding':
+        return ActivityTypes.IndoorGrinding;
+      case 'sailrace':
+      case 'sailracing':
+        return ActivityTypes.SailRacing;
+      case 'sailing':
+        if (normalizedSubSportName === 'sailrace') {
+          return ActivityTypes.SailRacing;
+        }
+        break;
     }
 
     // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.
@@ -2457,9 +2475,12 @@ export class EventImporterFIT {
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
     // Preserve explicit composite mappings, but do not use the legacy standalone
     // activity alias to turn an unrelated or unknown FIT sport into skiing.
-    // Pickleball's FIT sub-sport likewise requires the Racket parent via its composite mapping.
-    const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
-    const canUseSubSportAlone = normalizedSubSportName !== 'backcountry' && normalizedSubSportName !== 'pickleball';
+    // Pickleball, Indoor Grinding, and Sail Race require their respective parent sports.
+    const canUseSubSportAlone =
+      normalizedSubSportName !== 'backcountry' &&
+      normalizedSubSportName !== 'pickleball' &&
+      normalizedSubSportName !== 'indoorgrinding' &&
+      normalizedSubSportName !== 'sailrace';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

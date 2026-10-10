@@ -895,8 +895,14 @@ obtains it from the recorded manufacturer enum/name, then uses the actual `sport
 Polar's [FIT mapping appendix](https://www.polar.com/accesslink-api/#sport-type-mapping-in-fit-files) explains broad
 exports such as Sled hockey as Hockey, Wheelchair tennis as Tennis, MTB orienteering as Cycling/Backcountry, and
 Mobility as Generic/Flexibility training. A recognized Polar profile refines its documented parent/sub-sport pair;
-an unspecified Generic/Generic pair can use the recognized profile too. Specific incompatible FIT pairs keep their
-classification. Numeric identifiers are decoded exclusively through the maintained `fit-file-parser/profile` API.
+an unspecified Generic/Generic pair can use the recognized profile too. Incompatible FIT parents, including broad
+Cycling and Basketball, keep their classification when a known provider profile belongs to an unrelated parent.
+Standalone alias fallback cannot reinstate that rejected profile. Recognized profiles can still refine their compatible
+broad parent, such as Garmin Trail Run on Running/Generic. Existing explicit parent/profile composites, such as
+Cycling/Enduro, and recognized profiles on Generic recordings retain their refinement rules.
+Shared profile spellings retain all documented contexts;
+Polar `Open water swimming`, for example, accepts Swimming/Generic and Swimming/Backcountry.
+Numeric identifiers are decoded exclusively through the maintained `fit-file-parser/profile` API.
 Garmin and Strava name mappings do not claim undocumented device export codes.
 
 Snorkel requires the explicit recorded profile name to establish Snorkeling. A broad Garmin Diving/Generic session

@@ -12,6 +12,7 @@
  * Diving-group terrain summaries, and adds missing speed-derived pace summaries on events,
  * activities, and laps. GPX route exports emit links before route numbers and waypoint symbols/types,
  * following the GPX 1.1 metadata sequence.
+ * Native event and route JSON omit non-finite scalar summaries and skip legacy null/non-finite summary values on read.
  *
  * @category Import and export
  */

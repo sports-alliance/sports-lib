@@ -8,8 +8,8 @@ summary: Canonical metric tokens, units, and derivation behavior.
 ## Numeric summary persistence
 
 Runtime pace at zero speed remains infinite, preserving the existing calculation and display behavior.
-Event, activity, lap, and route-file summary JSON omits non-finite scalar numbers instead of persisting null-valued
-metrics. Native event/activity/lap JSON restoration ignores legacy null/non-finite scalar stats while preserving finite
+Event, activity, lap, route, and route-file summary JSON omits non-finite scalar numbers instead of persisting null-valued
+metrics. Native event/activity/lap/route/route-file JSON restoration ignores legacy null/non-finite scalar stats while preserving finite
 zero/negative values, structured data, and stream null gaps. Canonical metric names, aliases, units, formulas and the
 imported TSS policy remain unchanged. See [native JSON round trips](exporting.md#native-json-round-trips).
 

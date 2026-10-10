@@ -6,6 +6,9 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Native event, activity, lap, route, and route-file JSON omit non-finite scalar summaries and tolerate legacy null
+summary values on restoration. Finite stats and stream null gaps are preserved. See [Export and persist data](guides/exporting.md).
+
 With `preserveImportedTss: true` (the default), every sport retains finite imported Training Stress Score, including
 zero and legacy scores without a method. With `false`, existing TSS and its method are discarded and a replacement
 is calculated where supported; otherwise both remain unset. See [Metrics and calculations](guides/metrics-and-calculations.md).

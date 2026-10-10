@@ -1,5 +1,7 @@
 import {
   getActivityTypeSourceFromManufacturer,
+  isCompatibleProviderFITParent,
+  resolveProviderActivityType,
   resolveProviderFITProfile
 } from '../../../../activities/activity-types.provider';
 import { Event } from '../../../event';
@@ -2398,6 +2400,17 @@ export class EventImporterFIT {
     );
     if (providerProfile) return providerProfile;
 
+    // A known provider profile must not replace an unrelated non-generic parent
+    // through a standalone alias. Generic recordings and explicit parent/profile
+    // composites retain their existing refinement rules.
+    const fallbackProfileName =
+      resolvedSport !== 'generic' &&
+      typeof session.sport_profile_name === 'string' &&
+      resolveProviderActivityType(session.sport_profile_name, source) &&
+      !isCompatibleProviderFITParent(session.sport_profile_name, source, resolvedSport)
+        ? undefined
+        : session.sport_profile_name;
+
     // Preserve these explicit sports before sub-sport or user-defined profile
     // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
@@ -2891,7 +2904,7 @@ export class EventImporterFIT {
     //    e.g. "ENDURO MTB" overrides generic "cycling" sport type.
     if ((!activityType || activityType === ActivityTypes.unknown) && isNumberOrString(session.sport_profile_name)) {
       activityType =
-        this.getActivityTypeByKey(session.sport_profile_name) ||
+        this.getActivityTypeByKey(fallbackProfileName) ||
         this.getActivityTypeByKey(`${resolvedSport ?? session.sport}_${session.sport_profile_name}`);
     }
 
@@ -2907,7 +2920,7 @@ export class EventImporterFIT {
     }
 
     const fallbackType =
-      this.getActivityTypeByKey(session.sport_profile_name) ||
+      this.getActivityTypeByKey(fallbackProfileName) ||
       (canUseSubSportAlone ? this.getActivityTypeByKey(resolvedSubSportName) : null) ||
       this.getActivityTypeByKey(resolvedSport) ||
       this.getActivityTypeByKey(session.sport);

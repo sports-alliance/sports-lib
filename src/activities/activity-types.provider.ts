@@ -1068,14 +1068,16 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   }
 ];
 
-const bySource = new Map<ActivityTypeSource, Map<string, ProviderActivityTypeMapping>>();
+const bySource = new Map<ActivityTypeSource, Map<string, ProviderActivityTypeMapping[]>>();
 const commonAliases = new Map<string, ActivityTypes>();
 for (const mapping of mappings) {
-  const sourceMap = bySource.get(mapping.source) ?? new Map<string, ProviderActivityTypeMapping>();
+  const sourceMap = bySource.get(mapping.source) ?? new Map<string, ProviderActivityTypeMapping[]>();
   bySource.set(mapping.source, sourceMap);
   for (const name of mapping.names) {
     const key = normalize(name);
-    sourceMap.set(key, mapping);
+    const nameMappings = sourceMap.get(key) ?? [];
+    nameMappings.push(mapping);
+    sourceMap.set(key, nameMappings);
     if (!sourceSpecificNames.has(key)) commonAliases.set(key, mapping.type);
   }
 }
@@ -1098,11 +1100,29 @@ export function getActivityTypeSourceFromManufacturer(value: unknown): ActivityT
 }
 
 export function resolveProviderActivityType(value: string, source?: ActivityTypeSource): ActivityTypes | null {
-  return source ? (bySource.get(source)?.get(normalize(value))?.type ?? null) : null;
+  return source ? (bySource.get(source)?.get(normalize(value))?.[0]?.type ?? null) : null;
 }
 
 export function resolveCommonActivityTypeAlias(value: string): ActivityTypes | null {
   return commonAliases.get(normalize(value)) ?? null;
+}
+
+/** Checks whether a recognized provider profile can refine this broad FIT parent. */
+export function isCompatibleProviderFITParent(
+  value: string,
+  source: ActivityTypeSource | undefined,
+  sport: string | null
+): boolean {
+  if (!source) return false;
+  const parent = normalize(sport ?? '');
+  return !!bySource
+    .get(source)
+    ?.get(normalize(value))
+    ?.some(
+      mapping =>
+        parent === normalize(mapping.fitSport) ||
+        mapping.additionalFitContexts?.some(context => parent === normalize(context.sport))
+    );
 }
 
 /** Refines a recognized profile only for compatible FIT context or an unspecified generic pair. */
@@ -1113,17 +1133,17 @@ export function resolveProviderFITProfile(
   subSport: string | null
 ): ActivityTypes | null {
   if (typeof value !== 'string' || !source) return null;
-  const mapping = bySource.get(source)?.get(normalize(value.trim()));
-  if (!mapping) return null;
+  const nameMappings = bySource.get(source)?.get(normalize(value.trim()));
+  if (!nameMappings) return null;
   const parent = normalize(sport ?? '');
   const child = normalize(subSport ?? 'generic');
-  if (
-    (parent === 'generic' && child === 'generic') ||
-    (parent === normalize(mapping.fitSport) && child === normalize(mapping.fitSubSport)) ||
-    mapping.additionalFitContexts?.some(
-      context => parent === normalize(context.sport) && child === normalize(context.subSport)
-    )
-  )
-    return mapping.type;
-  return null;
+  const mapping = nameMappings.find(
+    candidate =>
+      (parent === 'generic' && child === 'generic') ||
+      (parent === normalize(candidate.fitSport) && child === normalize(candidate.fitSubSport)) ||
+      candidate.additionalFitContexts?.some(
+        context => parent === normalize(context.sport) && child === normalize(context.subSport)
+      )
+  );
+  return mapping?.type ?? null;
 }

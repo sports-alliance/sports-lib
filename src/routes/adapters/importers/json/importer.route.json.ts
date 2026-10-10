@@ -21,6 +21,7 @@ import { RouteStream } from '../../../route-stream';
 import { RouteJSONInterface } from '../../../route.json.interface';
 
 export class RouteImporterJSON {
+  /** Restores route JSON, skipping legacy null and non-finite scalar summary stats. */
   static getRouteFileFromJSON(json: RouteFileJSONInterface): RouteFileInterface {
     const creator = json.creator ? EventImporterJSON.getCreatorFromJSON(json.creator) : new Creator('Unknown Device');
     const routeFile = new RouteFile(
@@ -39,15 +40,14 @@ export class RouteImporterJSON {
       routeFile.addRoute(this.getRouteFromJSON(routeJSON, creator));
     });
 
-    if (this.hasStats(json.stats)) {
-      this.addStatsFromJSON(json.stats, routeFile);
-    } else {
+    if (!this.addStatsFromJSON(json.stats, routeFile)) {
       RouteFileUtilities.reGenerateStatsForRouteFile(routeFile);
     }
 
     return routeFile;
   }
 
+  /** Restores a route while retaining finite stats, metadata, and stream gaps. */
   static getRouteFromJSON(json: RouteJSONInterface, routeFileCreator?: CreatorInterface): RouteInterface {
     const creator = json.creator
       ? EventImporterJSON.getCreatorFromJSON(json.creator)
@@ -84,14 +84,14 @@ export class RouteImporterJSON {
   private static addStatsFromJSON(
     jsonStats: DataJSONInterface | undefined,
     target: { addStat(stat: DataInterface): void }
-  ): void {
-    Object.keys(jsonStats || {}).forEach(statName => {
-      target.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, (jsonStats || {})[statName]));
+  ): number {
+    const validStats = Object.entries(jsonStats || {}).filter(
+      ([, value]) => value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
+    );
+    validStats.forEach(([statName, value]) => {
+      target.addStat(DynamicDataLoader.getDataInstanceFromDataType(statName, value));
     });
-  }
-
-  private static hasStats(jsonStats: DataJSONInterface | undefined): boolean {
-    return !!jsonStats && Object.keys(jsonStats).length > 0;
+    return validStats.length;
   }
 
   private static getStreamsFromJSON(

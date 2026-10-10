@@ -1,7 +1,7 @@
 import { Activity } from '../../activities/activity';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { ActivityParsingOptions } from '../../activities/activity-parsing-options';
-import { ActivityTypes } from '../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { Creator } from '../../creators/creator';
 import { DataEnergy } from '../../data/data.energy';
 import { DataFTP } from '../../data/data.ftp';
@@ -213,6 +213,48 @@ function recomputeFixtureWithPaceTss(activity: ActivityInterface, thresholdSpeed
 }
 
 describe('Training Stress Score integration', () => {
+  it.each(ActivityTypesHelper.getActivityTypesAsUniqueArray())(
+    'preserves imported TSS for %s for every legacy flag setting despite calculation inputs',
+    type => {
+      for (const preserveImportedTss of [undefined, true, false]) {
+        for (const importedMethod of [undefined, TrainingStressScoreMethod.IMPORTED]) {
+          for (const importedTss of [0, 42.375]) {
+            const options = new ActivityParsingOptions({
+              generateUnitStreams: false,
+              tss: {
+                preserveImportedTss,
+                overrides: { functionalThresholdPower: 200, lactateThresholdHR: 160, metScore: 6, thresholdMet: 6 }
+              }
+            });
+            const activity = createActivity(type as ActivityTypes, 60, options);
+            activity.addStat(new DataTrainingStressScore(importedTss));
+            if (importedMethod !== undefined) {
+              activity.addStat(new DataTrainingStressScoreMethod(importedMethod));
+            }
+            addNumericStream(activity, DataPower.type, new Array(60).fill(200));
+            addNumericStream(activity, DataHeartRate.type, new Array(60).fill(160));
+            activity.addStat(new DataEnergy(120));
+            activity.addStat(new DataWeight(70));
+            ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+            expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(importedTss);
+            expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
+
+            const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+            restored.parseOptions = options;
+            ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
+            expect(restored.type).toBe(type);
+            expect(restored.getStat(DataTrainingStressScore.type)?.getValue()).toBe(importedTss);
+            expect(restored.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
+          }
+        }
+      }
+    }
+  );
+
   it('preserves imported TSS by default and sets method to IMPORTED', () => {
     const activity = createActivity(ActivityTypes.Cycling, 1200);
     activity.addStat(new DataTrainingStressScore(42.5));

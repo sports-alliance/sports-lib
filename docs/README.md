@@ -23,6 +23,9 @@ summary values on restoration. Finite stats and stream null gaps are preserved. 
 Every sport retains finite imported Training Stress Score, including zero and legacy scores without a method.
 The legacy `preserveImportedTss` flag is deprecated and does not discard imported scores. See
 [Metrics and calculations](guides/metrics-and-calculations.md).
+Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking prefer
+usable power with a valid threshold, then calibrated HR, then MET. Regenerating summaries applies this priority to
+previously calculated scores; preserved provider TSS stays unchanged. Metric tokens, units and JSON schemas are unchanged.
 
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
 Breathwork profile preserves Breathwork separately. Correcting older

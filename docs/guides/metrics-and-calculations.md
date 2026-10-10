@@ -634,13 +634,19 @@ Priority order:
 
 - Valid nonnegative imported TSS always wins, including zero.
   Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
-- Walking, Nordic Walking, Hiking and Trekking: IMPORTED -> calibrated HR -> calorie-derived MET -> unavailable.
+- Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking:
+  IMPORTED -> POWER -> calibrated HR -> calorie-derived MET -> unavailable.
 - Other eligible sports: IMPORTED -> POWER -> calibrated HR -> PACE/SWIM_PACE -> MET -> unavailable.
 
-Walking-family activities never use calculated power or running pace. HR and MET preferences fall back through the
+Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
+HR and MET preferences select their available method first, then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
 `preserveImportedTss` option is deprecated: remove an imported stat explicitly for a calculation-only comparison.
+
+Regenerating summaries can update previously calculated walking or hiking TSS to POWER when the retained inputs
+support it. Provider TSS remains unchanged with preservation enabled. No metric token, unit or JSON schema changes;
+consumers without retained calculation inputs must reparse the source to recalculate.
 
 `DataTrainingStressScore.getDisplayValue(1)` opts into one-decimal load-editor display. Calling it without arguments
 retains the existing integer display; canonical values, JSON keys and numeric metric discovery are unchanged.

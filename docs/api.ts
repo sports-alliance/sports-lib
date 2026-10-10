@@ -46,6 +46,7 @@
  * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.
  * Recorded lap cadence must belong directly to its lap. Descendant trackpoint cadence does not supply lap summaries.
  * Native event and route JSON omit non-finite scalar summaries and skip legacy null/non-finite summary values on read.
+ * Suunto-created FIT training/flexibility_training (10/19) imports preserve the existing Stretching classification.
  *
  * @category Import and export
  */

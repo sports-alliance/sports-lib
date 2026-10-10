@@ -9,6 +9,7 @@ interface ProviderActivityTypeMapping {
   type: ActivityTypes;
   fitSport: string;
   fitSubSport: string;
+  additionalFitContexts?: readonly { sport: string; subSport: string }[];
 }
 
 const normalize = (value: string): string => value.toLowerCase().replace(/[\s_-]/g, '');
@@ -113,15 +114,37 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'garmin',
-    names: ['Breathwork'],
+    names: ['Breathwork', 'Ex. respiration'],
     type: 'Breathwork' as ActivityTypes,
     fitSport: 'generic',
-    fitSubSport: 'breathing'
+    fitSubSport: 'breathing',
+    additionalFitContexts: [{ sport: 'training', subSport: 'breathing' }]
   },
   {
     source: 'garmin',
     names: ['Track Me'],
     type: 'Generic' as ActivityTypes,
+    fitSport: 'generic',
+    fitSubSport: 'generic'
+  },
+  {
+    source: 'polar',
+    names: ['Australian football'],
+    type: 'Australian Football' as ActivityTypes,
+    fitSport: 'generic',
+    fitSubSport: 'generic'
+  },
+  {
+    source: 'polar',
+    names: ['Korfball'],
+    type: 'Korfball' as ActivityTypes,
+    fitSport: 'generic',
+    fitSubSport: 'generic'
+  },
+  {
+    source: 'polar',
+    names: ['Netball'],
+    type: 'Netball' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
@@ -218,6 +241,20 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
+    names: ['CROSS_TRAINER', 'Cross-trainer'],
+    type: 'Crosstrainer' as ActivityTypes,
+    fitSport: 'training',
+    fitSubSport: 'indoor_running'
+  },
+  {
+    source: 'polar',
+    names: ['STRETCHING', 'Stretching'],
+    type: 'Stretching' as ActivityTypes,
+    fitSport: 'generic',
+    fitSubSport: 'flexibility_training'
+  },
+  {
+    source: 'polar',
     names: ['CURLING', 'Curling'],
     type: 'Curling' as ActivityTypes,
     fitSport: 'generic',
@@ -225,14 +262,14 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['DUATHLON_CYCLING', 'Cycling'],
+    names: ['DUATHLON_CYCLING', 'Cycling', '(Duathlon) Cycling'],
     type: 'Cycling' as ActivityTypes,
     fitSport: 'cycling',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
-    names: ['DUATHLON_RUNNING', 'Running'],
+    names: ['DUATHLON_RUNNING', 'Running', '(Duathlon) Running'],
     type: 'Running' as ActivityTypes,
     fitSport: 'running',
     fitSubSport: 'generic'
@@ -442,7 +479,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['LES_MILLS_CXWORKS', 'LES MILLS CXWORX'],
+    names: ['LES_MILLS_CXWORKS', 'LES MILLS CXWORX', 'LES MILLS CORE'],
     type: 'Core Training' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
@@ -498,7 +535,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['LES_MILLS_TRIP', 'LES MILLS TRIP'],
+    names: ['LES_MILLS_TRIP', 'LES MILLS TRIP', 'LES MILLS THE TRIP'],
     type: 'Indoor Cycling' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
@@ -582,14 +619,14 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['OFFROADDUATHLON_CYCLING', 'Mountain biking'],
+    names: ['OFFROADDUATHLON_CYCLING', 'Mountain biking', '(Off-road duathlon) Mountain biking'],
     type: 'Mountain Biking' as ActivityTypes,
     fitSport: 'cycling',
     fitSubSport: 'backcountry'
   },
   {
     source: 'polar',
-    names: ['OFFROADDUATHLON_RUNNING', 'Trail running'],
+    names: ['OFFROADDUATHLON_RUNNING', 'Trail running', '(Off-road duathlon) Trail running'],
     type: 'Trail Running' as ActivityTypes,
     fitSport: 'running',
     fitSubSport: 'backcountry'
@@ -603,21 +640,21 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['OFFROADTRIATHLON_CYCLING', 'Mountain biking'],
+    names: ['OFFROADTRIATHLON_CYCLING', 'Mountain biking', '(Off-road triathlon) Mountain biking'],
     type: 'Mountain Biking' as ActivityTypes,
     fitSport: 'cycling',
     fitSubSport: 'backcountry'
   },
   {
     source: 'polar',
-    names: ['OFFROADTRIATHLON_RUNNING', 'Trail running'],
+    names: ['OFFROADTRIATHLON_RUNNING', 'Trail running', '(Off-road triathlon) Trail running'],
     type: 'Trail Running' as ActivityTypes,
     fitSport: 'running',
     fitSubSport: 'backcountry'
   },
   {
     source: 'polar',
-    names: ['OFFROADTRIATHLON_SWIMMING', 'Open water swimming'],
+    names: ['OFFROADTRIATHLON_SWIMMING', 'Open water swimming', '(Off-road triathlon) Open water swimming'],
     type: 'Open Water Swimming' as ActivityTypes,
     fitSport: 'swimming',
     fitSubSport: 'backcountry'
@@ -764,14 +801,14 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['SHOOTING_SPORT_INDOOR', 'Shooting (indoor)'],
+    names: ['SHOOTING_SPORT_INDOOR', 'Shooting (indoor)', 'Shooting sport (indoor)'],
     type: 'Indoor Shooting' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
-    names: ['SHOOTING_SPORT_OUTDOOR', 'Shooting (outdoor)'],
+    names: ['SHOOTING_SPORT_OUTDOOR', 'Shooting (outdoor)', 'Shooting sport (outdoor)'],
     type: 'Shooting' as ActivityTypes,
     fitSport: 'generic',
     fitSubSport: 'generic'
@@ -848,21 +885,21 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   },
   {
     source: 'polar',
-    names: ['TRIATHLON_CYCLING', 'Cycling'],
+    names: ['TRIATHLON_CYCLING', 'Cycling', '(Triathlon) Cycling'],
     type: 'Cycling' as ActivityTypes,
     fitSport: 'cycling',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
-    names: ['TRIATHLON_RUNNING', 'Running'],
+    names: ['TRIATHLON_RUNNING', 'Running', '(Triathlon) Running'],
     type: 'Running' as ActivityTypes,
     fitSport: 'running',
     fitSubSport: 'generic'
   },
   {
     source: 'polar',
-    names: ['TRIATHLON_SWIMMING', 'Open water swimming'],
+    names: ['TRIATHLON_SWIMMING', 'Open water swimming', '(Triathlon) Open water swimming'],
     type: 'Open Water Swimming' as ActivityTypes,
     fitSport: 'swimming',
     fitSubSport: 'generic'
@@ -1082,7 +1119,10 @@ export function resolveProviderFITProfile(
   const child = normalize(subSport ?? 'generic');
   if (
     (parent === 'generic' && child === 'generic') ||
-    (parent === normalize(mapping.fitSport) && child === normalize(mapping.fitSubSport))
+    (parent === normalize(mapping.fitSport) && child === normalize(mapping.fitSubSport)) ||
+    mapping.additionalFitContexts?.some(
+      context => parent === normalize(context.sport) && child === normalize(context.subSport)
+    )
   )
     return mapping.type;
   return null;

@@ -10,6 +10,9 @@ import {
   type ActivityTypeSource
 } from '../../../../activities/activity.types';
 import mappings from '../../../../activities/fixtures/provider-sport-mappings.json';
+import profileCompatibility from '../../../../activities/fixtures/provider-profile-compatibility.json';
+
+const allMappings = [...mappings, ...profileCompatibility];
 import { DataTrainingStressScore } from '../../../../data/data.training-stress-score';
 import {
   DataTrainingStressScoreMethod,
@@ -25,13 +28,13 @@ const manufacturers = { garmin: 1, polar: 123, strava: 265 };
 const manufacturerNames = { garmin: 'garmin', polar: 'polar_electro', strava: 'strava' };
 
 describe('Approved Garmin, Polar and Strava sport mappings', () => {
-  it('adds exactly the approved 46 canonical types across 143 source entries', () => {
-    expect(mappings).toHaveLength(143);
-    expect(new Set(mappings.filter(row => row.newType).map(row => row.type)).size).toBe(46);
-    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(242);
+  it('adds exactly the approved 49 canonical types across 146 source entries', () => {
+    expect(mappings).toHaveLength(146);
+    expect(new Set(mappings.filter(row => row.newType).map(row => row.type)).size).toBe(49);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toHaveLength(245);
   });
 
-  it.each(mappings)('resolves $source $identifier to $type in $group', row => {
+  it.each(allMappings)('resolves $source $identifier to $type in $group', row => {
     const source = row.source as ActivityTypeSource;
     const type = row.type as ActivityTypes;
     for (const name of new Set([row.identifier, row.name])) {
@@ -50,7 +53,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
     );
   });
 
-  it.each(mappings)('restores $source $identifier through native JSON and canonical JSON', row => {
+  it.each(allMappings)('restores $source $identifier through native JSON and canonical JSON', row => {
     const source = row.source as ActivityTypeSource;
     for (const name of new Set([row.identifier, row.name])) {
       const activity = EventImporterJSON.getActivityFromJSON({
@@ -72,7 +75,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
     }
   });
 
-  it.each(mappings)('refines only compatible FIT context for $source $identifier', row => {
+  it.each(allMappings)('refines only compatible FIT context for $source $identifier', row => {
     const source = row.source as ActivityTypeSource;
     const sport = getFitSportId(row.fitSport);
     const subSport = getFitSubSportId(row.fitSubSport);
@@ -88,7 +91,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
     }
   });
 
-  it.each(mappings)('imports binary FIT for $source $identifier with the requested TSS policy', async row => {
+  it.each(allMappings)('imports binary FIT for $source $identifier with the requested TSS policy', async row => {
     const source = row.source as ActivityTypeSource;
     const sport = getFitSportId(row.fitSport)!;
     const subSport = getFitSubSportId(row.fitSubSport)!;
@@ -212,6 +215,35 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
         1
       )
     ).toBe(ActivityTypes.BackcountrySnowboarding);
+  });
+
+  it('keeps profile refinements tied to their manufacturer and documented parent pair', () => {
+    for (const profile of ['Breathwork', 'Ex. respiration']) {
+      for (const manufacturer of [23, 123, undefined]) {
+        expect(
+          importer.getActivityTypeFromSessionObject(
+            { sport: 10, sub_sport: 62, sport_profile_name: profile },
+            manufacturer
+          )
+        ).toBe(ActivityTypes.Meditation);
+      }
+      expect(
+        importer.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 62, sport_profile_name: profile }, 1)
+      ).not.toBe(ActivityTypes.Breathwork);
+    }
+    expect(importer.getActivityTypeFromSessionObject({ sport: 10, sub_sport: 62 }, 1)).toBe(ActivityTypes.Meditation);
+    expect(importer.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 19 }, 123)).toBe(
+      ActivityTypes.FlexibilityTraining
+    );
+    expect(importer.getActivityTypeFromSessionObject({ sport: 10, sub_sport: 19 }, 23)).toBe(
+      ActivityTypes.FlexibilityTraining
+    );
+    expect(
+      importer.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 45, sport_profile_name: 'CROSS_TRAINER' }, 123)
+    ).toBe(ActivityTypes.IndoorRunning);
+    expect(
+      importer.getActivityTypeFromSessionObject({ sport: 2, sub_sport: 6, sport_profile_name: 'STRETCHING' }, 123)
+    ).toBe(ActivityTypes.IndoorCycling);
   });
 
   it('keeps virtual rowing as indoor stroke-rate activity and suppresses water terrain summaries', () => {

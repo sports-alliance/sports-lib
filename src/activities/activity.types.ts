@@ -1772,6 +1772,14 @@ export enum ActivityTypes {
   'WheelchairTennis' = 'Wheelchair Tennis',
   'Wheelchair Tennis' = 'Wheelchair Tennis',
 
+  /** Australian Football; recognized from an explicit sport/profile name. */
+  'AustralianFootball' = 'Australian Football',
+  'Australian Football' = 'Australian Football',
+  /** Korfball; recognized from an explicit sport/profile name. */
+  'Korfball' = 'Korfball',
+  /** Netball; recognized from an explicit sport/profile name. */
+  'Netball' = 'Netball',
+
   'Workout' = 'Workout',
 
   'generic_match' = 'Match',
@@ -2112,6 +2120,9 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Mermaiding
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
+      ActivityTypes.AustralianFootball,
+      ActivityTypes.Korfball,
+      ActivityTypes.Netball,
       ActivityTypes.BeachTennis,
       ActivityTypes.BeachVolleyball,
       ActivityTypes.FinnishBaseball,

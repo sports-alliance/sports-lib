@@ -501,6 +501,29 @@ describe('EventImporterFIT', () => {
     });
 
     describe.each([
+      [2, 88, 'cycling', 'indoor_hand_cycling', ActivityTypes.IndoorHandCycle, 'Hand Cycle'],
+      [
+        65,
+        86,
+        'wheelchair_push_walk',
+        'indoor_wheelchair_walk',
+        ActivityTypes.IndoorWheelchairPushWalk,
+        'Wheelchair Push Walk'
+      ],
+      [
+        66,
+        87,
+        'wheelchair_push_run',
+        'indoor_wheelchair_run',
+        ActivityTypes.IndoorWheelchairPushRun,
+        'Wheelchair Push Run'
+      ],
+      [81, 98, 'motor_sports', 'overland', ActivityTypes.Overlanding, 'Motorsports'],
+      [24, 98, 'driving', 'overland', ActivityTypes.Overlanding, 'Driving'],
+      [22, 98, 'motorcycling', 'overland', ActivityTypes.Overlanding, 'Motorcycling'],
+      [0, 83, 'generic', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Generic'],
+      [4, 83, 'fitness_equipment', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Fitness Equipment'],
+      [10, 83, 'training', 'trucker_workout', ActivityTypes.TruckerWorkout, 'Training'],
       [59, 0, 'grinding', 'generic', ActivityTypes.Grinding, 'Indoor Grinding'],
       [59, 71, 'grinding', 'indoor_grinding', ActivityTypes.IndoorGrinding, 'Grinding'],
       [32, 65, 'sailing', 'sail_race', ActivityTypes.SailRacing, 'Sailing'],
@@ -528,6 +551,22 @@ describe('EventImporterFIT', () => {
     );
 
     it.each([
+      ['Indoor Hand Cycle', ActivityTypes.IndoorHandCycle],
+      ['IndoorHandCycling', ActivityTypes.IndoorHandCycle],
+      ['indoor_hand_cycling', ActivityTypes.IndoorHandCycle],
+      ['Overlanding', ActivityTypes.Overlanding],
+      ['Overland', ActivityTypes.Overlanding],
+      ['overland', ActivityTypes.Overlanding],
+      ['Trucker Workout', ActivityTypes.TruckerWorkout],
+      ['TruckerWorkouts', ActivityTypes.TruckerWorkout],
+      ['trucker_workout', ActivityTypes.TruckerWorkout],
+      ['Trucker Health', ActivityTypes.TruckerWorkout],
+      ['Indoor Wheelchair Push Walk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['IndoorWheelchairWalk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['indoor_wheelchair_walk', ActivityTypes.IndoorWheelchairPushWalk],
+      ['Indoor Wheelchair Push Run', ActivityTypes.IndoorWheelchairPushRun],
+      ['IndoorWheelchairRun', ActivityTypes.IndoorWheelchairPushRun],
+      ['indoor_wheelchair_run', ActivityTypes.IndoorWheelchairPushRun],
       ['Rucking', ActivityTypes.Rucking],
       ['rucking', ActivityTypes.Rucking],
       ['Sailing Expedition', ActivityTypes.SailingExpedition],
@@ -633,6 +672,48 @@ describe('EventImporterFIT', () => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
     });
 
+    it.each([
+      [{ sport: 2, sub_sport: 12 }, ActivityTypes.Handcycle],
+      [{ sport: 2, sub_sport: 6 }, ActivityTypes.IndoorCycling],
+      [{ sport: 0, sub_sport: 88 }, ActivityTypes.Generic],
+      [{ sport: 1, sub_sport: 88 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 86 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 87 }, ActivityTypes.Generic],
+      [{ sport: 65, sub_sport: 87 }, ActivityTypes.WheelchairPushWalk],
+      [{ sport: 66, sub_sport: 86 }, ActivityTypes.WheelchairPushRun],
+      [{ sport: 88, sub_sport: 0 }, ActivityTypes.Canoeing],
+      [{ sport: 86, sub_sport: 0 }, ActivityTypes.Mobility],
+      [{ sport: 87, sub_sport: 0 }, ActivityTypes.Geocaching],
+      [{ sport: 83, sub_sport: 0 }, ActivityTypes.Dancing],
+      [{ sport: 0, sub_sport: 98 }, ActivityTypes.Generic],
+      [{ sport: 17, sub_sport: 98 }, ActivityTypes.Hiking],
+      [{ sport: 22, sub_sport: 0 }, ActivityTypes.Motorcycling],
+      [{ sport: 24, sub_sport: 0 }, ActivityTypes.Driving],
+      [{ sport: 81, sub_sport: 0 }, ActivityTypes.Motorsports],
+      [{ sport: 24, sub_sport: 83 }, ActivityTypes.Driving],
+      [{ sport: 2, sub_sport: 83 }, ActivityTypes.Cycling],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 4, sub_sport: 0 }, ActivityTypes.FitnessEquipment],
+      [{ sport: 10, sub_sport: 0 }, ActivityTypes.Training],
+      [{ sub_sport: 83 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 83 }, ActivityTypes.unknown],
+      [{ sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 86 }, ActivityTypes.unknown],
+      [{ sub_sport: 87 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 87 }, ActivityTypes.unknown],
+      [{ sub_sport: 88 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 88 }, ActivityTypes.unknown],
+      [{ sub_sport: 98 }, ActivityTypes.unknown],
+      [{ sport: 'not-a-sport', sub_sport: 98 }, ActivityTypes.unknown]
+    ])(
+      'keeps indoor adaptive, trucker, and overland classifications within their source context (%j)',
+      (session, expectedType) => {
+        for (const manufacturer of [1, 7, 23, 123, undefined]) {
+          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+        }
+      }
+    );
+
     describe.each([
       [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
       [87, 'geocaching', ActivityTypes.Geocaching, 'Hiking'],
@@ -707,7 +788,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 53, sub_sport: 56 }, ActivityTypes.FreeDiving],
       [{ sport: 4, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
       [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
-      [{ sport: 65, sub_sport: 86 }, ActivityTypes.WheelchairPushWalk],
+      [{ sport: 65, sub_sport: 86 }, ActivityTypes.IndoorWheelchairPushWalk],
       [{ sport: 53, sub_sport: 63 }, ActivityTypes.CCRDiving]
     ])('keeps FIT sport and sub-sport namespaces distinct for %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
@@ -1031,13 +1112,10 @@ describe('EventImporterFIT', () => {
       { sport: 'wheelchair_push_walk', sub_sport: 'generic' },
       { sport: 'Wheelchair Push Walk', sub_sport: 'generic' },
       { sport: 'WHEELCHAIR-PUSH-WALK', sub_sport: 'GENERIC' },
-      { sport: 65, sub_sport: 86 },
-      { sport: 'wheelchair_push_walk', sub_sport: 'indoor_wheelchair_walk' },
       { sport: 65, sub_sport: 27 },
       { sport: 65, sub_sport: 0, sport_profile_name: 'Walking' },
       { sport: 65, sport_profile_name: 'Running' },
-      { sport: 65, sub_sport: 0, sport_profile_name: 'Wheelchair Push Run' },
-      { sport: 65, sub_sport: 86, sport_profile_name: 'Custom mobility profile' }
+      { sport: 65, sub_sport: 0, sport_profile_name: 'Wheelchair Push Run' }
     ])('maps explicit Wheelchair Push Walk session %j to its distinct canonical type', session => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushWalk);
     });
@@ -1056,13 +1134,10 @@ describe('EventImporterFIT', () => {
       { sport: 'wheelchair_push_run', sub_sport: 'generic' },
       { sport: 'Wheelchair Push Run', sub_sport: 'generic' },
       { sport: 'WHEELCHAIR-PUSH-RUN', sub_sport: 'GENERIC' },
-      { sport: 66, sub_sport: 87 },
-      { sport: 'wheelchair_push_run', sub_sport: 'indoor_wheelchair_run' },
       { sport: 66, sub_sport: 45 },
       { sport: 66, sub_sport: 0, sport_profile_name: 'Running' },
       { sport: 66, sport_profile_name: 'Walking' },
-      { sport: 66, sub_sport: 0, sport_profile_name: 'Wheelchair Push Walk' },
-      { sport: 66, sub_sport: 87, sport_profile_name: 'Custom mobility profile' }
+      { sport: 66, sub_sport: 0, sport_profile_name: 'Wheelchair Push Walk' }
     ])('maps explicit Wheelchair Push Run session %j to its distinct canonical type', session => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.WheelchairPushRun);
     });
@@ -1662,6 +1737,60 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      [1, 2, 88, ActivityTypes.IndoorHandCycle],
+      [7, 2, 88, ActivityTypes.IndoorHandCycle],
+      [23, 2, 88, ActivityTypes.IndoorHandCycle],
+      [123, 2, 88, ActivityTypes.IndoorHandCycle],
+      [65535, 2, 88, ActivityTypes.IndoorHandCycle],
+      [1, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [7, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [23, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [123, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [65535, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
+      [1, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [7, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [23, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [123, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [65535, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
+      [1, 81, 98, ActivityTypes.Overlanding],
+      [7, 81, 98, ActivityTypes.Overlanding],
+      [23, 81, 98, ActivityTypes.Overlanding],
+      [123, 81, 98, ActivityTypes.Overlanding],
+      [65535, 81, 98, ActivityTypes.Overlanding],
+      [1, 24, 98, ActivityTypes.Overlanding],
+      [7, 24, 98, ActivityTypes.Overlanding],
+      [23, 24, 98, ActivityTypes.Overlanding],
+      [123, 24, 98, ActivityTypes.Overlanding],
+      [65535, 24, 98, ActivityTypes.Overlanding],
+      [1, 22, 98, ActivityTypes.Overlanding],
+      [7, 22, 98, ActivityTypes.Overlanding],
+      [23, 22, 98, ActivityTypes.Overlanding],
+      [123, 22, 98, ActivityTypes.Overlanding],
+      [65535, 22, 98, ActivityTypes.Overlanding],
+      [1, 0, 83, ActivityTypes.TruckerWorkout],
+      [7, 0, 83, ActivityTypes.TruckerWorkout],
+      [23, 0, 83, ActivityTypes.TruckerWorkout],
+      [123, 0, 83, ActivityTypes.TruckerWorkout],
+      [65535, 0, 83, ActivityTypes.TruckerWorkout],
+      [1, 4, 83, ActivityTypes.TruckerWorkout],
+      [7, 4, 83, ActivityTypes.TruckerWorkout],
+      [23, 4, 83, ActivityTypes.TruckerWorkout],
+      [123, 4, 83, ActivityTypes.TruckerWorkout],
+      [65535, 4, 83, ActivityTypes.TruckerWorkout],
+      [1, 10, 83, ActivityTypes.TruckerWorkout],
+      [7, 10, 83, ActivityTypes.TruckerWorkout],
+      [23, 10, 83, ActivityTypes.TruckerWorkout],
+      [123, 10, 83, ActivityTypes.TruckerWorkout],
+      [65535, 10, 83, ActivityTypes.TruckerWorkout],
+      [1, 0, 86, ActivityTypes.Generic],
+      [1, 0, 87, ActivityTypes.Generic],
+      [1, 0, 88, ActivityTypes.Generic],
+      [1, 0, 98, ActivityTypes.Generic],
+      [1, 24, 83, ActivityTypes.Driving],
+      [1, 65, 87, ActivityTypes.WheelchairPushWalk],
+      [1, 66, 86, ActivityTypes.WheelchairPushRun],
+      [1, 83, 0, ActivityTypes.Dancing],
+      [1, 88, 0, ActivityTypes.Canoeing],
       [1, 17, 124, ActivityTypes.Rucking],
       [7, 17, 124, ActivityTypes.Rucking],
       [23, 17, 124, ActivityTypes.Rucking],
@@ -1798,12 +1927,12 @@ describe('EventImporterFIT', () => {
       [23, 65, 0, ActivityTypes.WheelchairPushWalk],
       [123, 65, 0, ActivityTypes.WheelchairPushWalk],
       [65535, 65, 0, ActivityTypes.WheelchairPushWalk],
-      [1, 65, 86, ActivityTypes.WheelchairPushWalk],
+      [1, 65, 86, ActivityTypes.IndoorWheelchairPushWalk],
       [1, 66, 0, ActivityTypes.WheelchairPushRun],
       [23, 66, 0, ActivityTypes.WheelchairPushRun],
       [123, 66, 0, ActivityTypes.WheelchairPushRun],
       [65535, 66, 0, ActivityTypes.WheelchairPushRun],
-      [1, 66, 87, ActivityTypes.WheelchairPushRun],
+      [1, 66, 87, ActivityTypes.IndoorWheelchairPushRun],
       [1, 0, 12, ActivityTypes.Generic],
       [123, 0, 12, ActivityTypes.Generic],
       [65535, 0, 12, ActivityTypes.Generic],

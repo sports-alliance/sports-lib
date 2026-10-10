@@ -2800,19 +2800,22 @@ export class EventImporterFIT {
         break;
     }
 
-    // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.
+    // Suunto documents Stretching (App ID 58) as training/flexibility_training (10/19).
+    // Its generic pairs also identify Wheelchair sport, Field Hockey, and Chores.
     // Require the recording's creator identity instead of changing their global aliases.
-    if (
-      resolvedSport?.toLowerCase() === 'generic' &&
-      this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto'
-    ) {
-      switch (resolvedSubSport?.toLowerCase().replace(/[\s_-]/g, '')) {
-        case 'handcycling':
-          return ActivityTypes.Wheelchair;
-        case 'match':
-          return ActivityTypes.FieldHockey;
-        case 'exercise':
-          return ActivityTypes.Chores;
+    if (this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto') {
+      if (resolvedSport?.toLowerCase() === 'training' && normalizedSubSportName === 'flexibilitytraining') {
+        return ActivityTypes.Stretching;
+      }
+      if (resolvedSport?.toLowerCase() === 'generic') {
+        switch (normalizedSubSportName) {
+          case 'handcycling':
+            return ActivityTypes.Wheelchair;
+          case 'match':
+            return ActivityTypes.FieldHockey;
+          case 'exercise':
+            return ActivityTypes.Chores;
+        }
       }
     }
 

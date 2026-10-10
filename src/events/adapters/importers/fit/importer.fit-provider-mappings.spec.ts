@@ -237,9 +237,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
     expect(importer.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 19 }, 123)).toBe(
       ActivityTypes.FlexibilityTraining
     );
-    expect(importer.getActivityTypeFromSessionObject({ sport: 10, sub_sport: 19 }, 23)).toBe(
-      ActivityTypes.FlexibilityTraining
-    );
+    expect(importer.getActivityTypeFromSessionObject({ sport: 10, sub_sport: 19 }, 23)).toBe(ActivityTypes.Stretching);
     expect(
       importer.getActivityTypeFromSessionObject({ sport: 1, sub_sport: 45, sport_profile_name: 'CROSS_TRAINER' }, 123)
     ).toBe(ActivityTypes.IndoorRunning);

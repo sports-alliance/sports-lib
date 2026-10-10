@@ -23,7 +23,16 @@ profile preserves Breathwork separately, including `training/breathing` (`10/62`
 profile `Ex. respiration`. The aliases `meditation`,
 `breathing`, and `generic_breathing` resolve to that same canonical value. This preserves the activity name in
 [Suunto's mapping](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf), where Meditation is
-Suunto App activity ID `112`. Stretching remains `Flexibility Training` for FIT `training/flexibility_training`.
+Suunto App activity ID `112`.
+
+Suunto's documented Stretching export, App activity ID `58`, uses FIT `training/flexibility_training` (`10/19`).
+When the recording's creator manufacturer is Suunto, this pair imports as the existing `ActivityTypes.Stretching`
+in Indoor Sports. Other manufacturers and recordings without Suunto creator identity retain Flexibility Training.
+A Suunto accessory or product name alone does not establish that identity. Both types already share the same
+Quantified Self Mobility & movement Training context. The catalog, numeric metrics, units, JSON schema, and MCP
+contract are unchanged. Imported TSS stays exact with `preserveImportedTss: true` or omission; false replaces it
+with a supported calculation or leaves it unset. Reparse retained Suunto `10/19` sources to correct older
+Flexibility Training classifications, then regenerate persisted event summaries and activity-type aggregates.
 
 `Padel` belongs to `ActivityTypeGroups.TeamRacketGroup` alongside Tennis, Squash, and Racquet Ball.
 FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `padel` and `racket_padel` resolve to
@@ -936,8 +945,8 @@ same approved canonical types:
 [Les Mills documents the CXWORX-to-CORE rename](https://www.lesmills.com/nl/articles/cxworx-is-now-les-mills-core).
 Explicit Polar `CROSS_TRAINER`/`Cross-trainer` profiles refine Training/Indoor Running (`10/45`) to Crosstrainer;
 `STRETCHING`/`Stretching` profiles refine Generic/Flexibility Training (`0/19`) to Stretching. Without those names,
-existing broad classifications remain. Suunto Training/Flexibility Training remains Flexibility Training.
-These refinements require Polar manufacturer identity and a compatible parent/sub-sport pair.
+existing broad classifications remain. These refinements require Polar manufacturer identity and a compatible
+parent/sub-sport pair. Suunto's documented `10/19` pair preserves Stretching with Suunto creator identity as described above.
 
 `Australian Football`, `Korfball`, and `Netball` are separate canonical types in `ActivityTypeGroups.TeamRacketGroup`.
 Polar's FIT appendix lists these display names with Generic/Generic exports; no native FIT sport ID or undocumented

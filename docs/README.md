@@ -20,6 +20,11 @@ Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to 
 Breathwork profile preserves Breathwork separately. Correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Suunto Stretching (`training/flexibility_training`, `10/19`) imports as the existing Stretching type in Indoor Sports
+when the recorded creator manufacturer is Suunto. Provider TSS follows the preservation setting above. Correct older
+Flexibility Training classifications by reparsing retained sources and regenerating affected summaries and activity-type
+aggregates. See [Import activities](guides/importing-activities.md).
+
 Garmin names such as Bike Indoor, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Classic Ski, XC Skate Ski, and Pool
 Swim reuse existing canonical sports. The expanded Garmin, Polar and Strava catalog has 245 canonical types, with
 49 additional sports and the same TSS preservation policy. Provider context resolves ambiguous names such as Polar

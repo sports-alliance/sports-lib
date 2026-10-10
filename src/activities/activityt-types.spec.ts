@@ -337,10 +337,10 @@ describe('ActivityTypes', () => {
     'Indoor Track Running',
     'IndoorTrackRunning',
     'INDOOR-TRACK-RUNNING'
-  ])('maps %s to the existing Indoor Running type', name => {
-    expect(ActivityTypesHelper.resolveActivityType(name)).toBe(ActivityTypes.IndoorRunning);
-    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorRunning)).toBe(true);
-    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).not.toContain('Indoor Track Running');
+  ])('preserves %s as Indoor Track Running', name => {
+    expect(ActivityTypesHelper.resolveActivityType(name)).toBe(ActivityTypes.IndoorTrackRunning);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorTrackRunning)).toBe(true);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).toContain('Indoor Track Running');
   });
 
   it('keeps whitewater parents and ambiguous names separate', () => {
@@ -729,8 +729,8 @@ describe('ActivityTypes', () => {
     expect(ActivityTypes.Mobility).not.toBe(ActivityTypes.Stretching);
     expect(ActivityTypesHelper.resolveActivityType('apnea')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('esport')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC', 'polar')).toBe(ActivityTypes.Mobility);
-    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC', 'polar')).toBe(ActivityTypes.Mobility);
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_DYNAMIC', 'polar')).toBe(ActivityTypes.DynamicMobility);
+    expect(ActivityTypesHelper.resolveActivityType('MOBILITY_STATIC', 'polar')).toBe(ActivityTypes.StaticMobility);
   });
 
   it.each([

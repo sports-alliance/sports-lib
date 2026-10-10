@@ -1,0 +1,306 @@
+[
+  {
+    "key": "BalletDancing",
+    "type": "Ballet Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "BallroomDancing",
+    "type": "Ballroom Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "JazzDancing",
+    "type": "Jazz Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LatinDancing",
+    "type": "Latin Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "ModernDancing",
+    "type": "Modern Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "ShowDancing",
+    "type": "Show Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "StreetDancing",
+    "type": "Street Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "FitnessDancing",
+    "type": "Fitness Dancing",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "ClassicCrosscountrySkiing",
+    "type": "Classic Crosscountry Skiing",
+    "group": "WinterSportsGroup",
+    "parent": "Crosscountry Skiing",
+    "aliases": [
+      "Classic Skiing",
+      "Classic XC Skiing",
+      "XC Classic Ski"
+    ],
+    "indoor": false
+  },
+  {
+    "key": "DynamicMobility",
+    "type": "Dynamic Mobility",
+    "group": "IndoorSportsGroup",
+    "parent": "Mobility",
+    "aliases": [
+      "Mobility (dynamic)"
+    ],
+    "indoor": true
+  },
+  {
+    "key": "StaticMobility",
+    "type": "Static Mobility",
+    "group": "IndoorSportsGroup",
+    "parent": "Mobility",
+    "aliases": [
+      "Mobility (static)"
+    ],
+    "indoor": true
+  },
+  {
+    "key": "AMRAP",
+    "type": "AMRAP",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "EMOM",
+    "type": "EMOM",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "Tabata",
+    "type": "Tabata",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "DynamicApnea",
+    "type": "Dynamic Apnea",
+    "group": "DivingGroup",
+    "parent": "Pool Apnea",
+    "aliases": [],
+    "indoor": false
+  },
+  {
+    "key": "IndoorTrackRunning",
+    "type": "Indoor Track Running",
+    "group": "RunningGroup",
+    "parent": "Indoor Running",
+    "aliases": [
+      "Indoor Track"
+    ],
+    "indoor": true
+  },
+  {
+    "key": "FitnessBoxing",
+    "type": "Fitness Boxing",
+    "group": "IndoorSportsGroup",
+    "parent": "Boxing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "FitnessMartialArts",
+    "type": "Fitness Martial Arts",
+    "group": "IndoorSportsGroup",
+    "parent": "Combat",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "RoadRunning",
+    "type": "Road Running",
+    "group": "RunningGroup",
+    "parent": "Running",
+    "aliases": [],
+    "indoor": false
+  },
+  {
+    "key": "RoadCycling",
+    "type": "Road Cycling",
+    "group": "CyclingGroup",
+    "parent": "Cycling",
+    "aliases": [
+      "Road Bike"
+    ],
+    "indoor": false
+  },
+  {
+    "key": "LesMillsBarre",
+    "type": "LES MILLS BARRE",
+    "group": "IndoorSportsGroup",
+    "parent": "Barre",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyAttack",
+    "type": "LES MILLS BODYATTACK",
+    "group": "IndoorSportsGroup",
+    "parent": "Cardio Training",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyBalance",
+    "type": "LES MILLS BODYBALANCE",
+    "group": "IndoorSportsGroup",
+    "parent": "Mind-Body Training",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyCombat",
+    "type": "LES MILLS BODYCOMBAT",
+    "group": "IndoorSportsGroup",
+    "parent": "Combat",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyJam",
+    "type": "LES MILLS BODYJAM",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyPump",
+    "type": "LES MILLS BODYPUMP",
+    "group": "IndoorSportsGroup",
+    "parent": "Weight Training",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsBodyStep",
+    "type": "LES MILLS BODYSTEP",
+    "group": "IndoorSportsGroup",
+    "parent": "Step Training",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsCore",
+    "type": "LES MILLS CORE",
+    "group": "IndoorSportsGroup",
+    "parent": "Core Training",
+    "aliases": [
+      "LES MILLS CXWORX"
+    ],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsGritAthletic",
+    "type": "LES MILLS GRIT Athletic",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsGritCardio",
+    "type": "LES MILLS GRIT Cardio",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsGritStrength",
+    "type": "LES MILLS GRIT Strength",
+    "group": "IndoorSportsGroup",
+    "parent": "HIIT",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsRPM",
+    "type": "LES MILLS RPM",
+    "group": "CyclingGroup",
+    "parent": "Indoor Cycling",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsShBam",
+    "type": "LES MILLS SH'BAM",
+    "group": "IndoorSportsGroup",
+    "parent": "Dancing",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsSprint",
+    "type": "LES MILLS SPRINT",
+    "group": "CyclingGroup",
+    "parent": "Indoor Cycling",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsTone",
+    "type": "LES MILLS TONE",
+    "group": "IndoorSportsGroup",
+    "parent": "Indoor Training",
+    "aliases": [],
+    "indoor": true
+  },
+  {
+    "key": "LesMillsTheTrip",
+    "type": "LES MILLS THE TRIP",
+    "group": "CyclingGroup",
+    "parent": "Indoor Cycling",
+    "aliases": [
+      "LES MILLS TRIP"
+    ],
+    "indoor": true
+  }
+]

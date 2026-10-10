@@ -3193,11 +3193,15 @@ export class EventImporterFIT {
         return ActivityTypes.RacketSport;
       }
       case 'amrap':
+        return ActivityTypes.AMRAP;
       case 'emom':
+        return ActivityTypes.EMOM;
       case 'tabata':
-        return ActivityTypes.HIIT;
+        return ActivityTypes.Tabata;
       case 'hiit':
-        if (['amrap', 'emom', 'tabata'].includes(normalizedSubSportName ?? '')) return ActivityTypes.HIIT;
+        if (normalizedSubSportName === 'amrap') return ActivityTypes.AMRAP;
+        if (normalizedSubSportName === 'emom') return ActivityTypes.EMOM;
+        if (normalizedSubSportName === 'tabata') return ActivityTypes.Tabata;
         break;
       case 'ebikefitness':
         return ActivityTypes.EBiking;
@@ -3210,7 +3214,7 @@ export class EventImporterFIT {
       case 'bikecommuting':
         return ActivityTypes.Cycling;
       case 'dynamicapnea':
-        return ActivityTypes.PoolApnea;
+        return ActivityTypes.DynamicApnea;
       case 'spin':
       case 'indoorcycling':
         return ActivityTypes.IndoorCycling;
@@ -3308,7 +3312,7 @@ export class EventImporterFIT {
         return ActivityTypes.RecumbentCycling;
       case 'indoortrack':
       case 'indoortrackrunning':
-        return ActivityTypes.IndoorRunning;
+        return ActivityTypes.IndoorTrackRunning;
       case 'obstacleracing':
       case 'obstaclerun':
         return ActivityTypes.ObstacleRacing;
@@ -3316,6 +3320,12 @@ export class EventImporterFIT {
       case 'ultrarun':
         return ActivityTypes.UltraRunning;
       case 'running':
+        if (
+          (normalizedSubSportName === 'indoor' || normalizedSubSportName === 'indoorrunning') &&
+          this.getActivityTypeByKey(fallbackProfileName) === ActivityTypes.IndoorTrackRunning
+        ) {
+          return ActivityTypes.IndoorTrackRunning;
+        }
         if (normalizedSubSportName === 'adventurerace') {
           return ActivityTypes.AdventureRacing;
         }
@@ -3484,7 +3494,7 @@ export class EventImporterFIT {
       case 'platformtennis':
         return ActivityTypes.PlatformTennis;
       case 'poolapnea':
-        return ActivityTypes.PoolApnea;
+        return normalizedSubSportName === 'dynamicapnea' ? ActivityTypes.DynamicApnea : ActivityTypes.PoolApnea;
       case 'mobility':
         return ActivityTypes.Mobility;
       case 'videogaming':
@@ -3525,7 +3535,7 @@ export class EventImporterFIT {
         return ActivityTypes.CCRDiving;
       case 'diving':
         if (normalizedSubSportName === 'dynamicapnea') {
-          return ActivityTypes.PoolApnea;
+          return ActivityTypes.DynamicApnea;
         }
         if (normalizedSubSportName === 'ccrdiving') {
           return ActivityTypes.CCRDiving;
@@ -3587,7 +3597,8 @@ export class EventImporterFIT {
       if (
         profileType === ActivityTypes.TrackAndField ||
         profileType === ActivityTypes.TrackRunning ||
-        profileType === ActivityTypes.IndoorRunning
+        profileType === ActivityTypes.IndoorRunning ||
+        profileType === ActivityTypes.IndoorTrackRunning
       ) {
         return profileType;
       }

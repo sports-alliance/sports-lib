@@ -383,6 +383,33 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
   });
 }
 
+function assertActivityMetadataBudget(initialOutputs) {
+  // The expanded sport catalog and synchronous provider resolver are intentional startup metadata.
+  // Distinct disciplines/classes add catalog metadata; overall and decoder budgets remain unchanged.
+  // Bound their contributions separately so increasing the total does not hide an unrelated eager import.
+  const inputBytes = suffix =>
+    [...initialOutputs.values()].reduce(
+      (total, output) =>
+        total +
+        Object.entries(output.inputs).reduce(
+          (inputTotal, [inputPath, contribution]) =>
+            inputTotal + (normalizePath(inputPath).endsWith(suffix) ? contribution.bytesInOutput : 0),
+          0
+        ),
+      0
+    );
+  const catalogBytes = inputBytes('/activities/activity.types.js');
+  const providerMappingBytes = inputBytes('/activities/activity-types.provider.js');
+  assert.ok(
+    catalogBytes <= 43_000,
+    `Activity catalog contributes ${catalogBytes} startup bytes; expected at most 43000`
+  );
+  assert.ok(
+    providerMappingBytes <= 20_000,
+    `Provider mappings contribute ${providerMappingBytes} startup bytes; expected at most 20000`
+  );
+}
+
 async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   const fixtureName = 'representative-startup.mjs';
   const result = await bundleFixture(temporaryDirectory, fixtureName);

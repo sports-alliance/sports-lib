@@ -8,6 +8,7 @@ import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataHeartRateMax } from '../../../data/data.heart-rate-max';
 import { DataFTP } from '../../../data/data.ftp';
 import { DataPowerNormalized } from '../../../data/data.power-normalized';
+import { DataSpeed } from '../../../data/data.speed';
 import { DataTrainingStressScore } from '../../../data/data.training-stress-score';
 import { DataTrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 import { ActivityUtilities } from '../activity.utilities';
@@ -17,10 +18,25 @@ import { TssCalculator } from './tss-calculator';
 
 const walk = (type = ActivityTypes.Walking) => new Activity(new Date(0), new Date(3600000), type, new Creator('Test'));
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
+const walkingTypes = [
+  ActivityTypes.Walking,
+  ActivityTypes.IndoorWalking,
+  ActivityTypes.NordicWalking,
+  ActivityTypes.SpeedWalking,
+  ActivityTypes.Hiking,
+  ActivityTypes.Trekking
+];
+
+const addCalibratedHeartRate = (activity: Activity) => {
+  fileHeartRateCalibration.set(activity, { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165 });
+  const stream = activity.createStream(DataHeartRate.type);
+  stream.setData(Array.from({ length: 3601 }, (_, index) => (index < 1830 ? 78 : index < 3600 ? 86 : 100)));
+  activity.addStream(stream);
+};
 
 describe('file-only training stress evaluations', () => {
   it.each([
-    ActivityTypes.Walking,
+    ...walkingTypes,
     ActivityTypes.Cycling,
     ActivityTypes.Driving,
     ActivityTypes.Wheelchair,
@@ -28,7 +44,7 @@ describe('file-only training stress evaluations', () => {
     ActivityTypes.Paramotoring,
     ActivityTypes.RCDroneFlying
   ])('honors imported TSS preservation in every evaluation policy for %s', type => {
-    const excluded = ![ActivityTypes.Walking, ActivityTypes.Cycling].includes(type);
+    const excluded = ![...walkingTypes, ActivityTypes.Cycling].includes(type);
     for (const preserveImportedTss of [undefined, true, false]) {
       for (const score of [0, 42.5]) {
         for (const method of [undefined, 'IMPORTED'] as const) {
@@ -69,18 +85,70 @@ describe('file-only training stress evaluations', () => {
     power.mockRestore();
     met.mockRestore();
   });
-  it.each([ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking])(
-    '%s rejects power and observed peak HR, falling back to the calorie MET estimate',
+  it.each(walkingTypes)('%s prefers power in Automatic while retaining explicit HR and MET preferences', type => {
+    const activity = walk(type);
+    activity.addStat(new DataFTP(200));
+    activity.addStat(new DataPowerNormalized(200));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    addCalibratedHeartRate(activity);
+    const result = evaluate(activity);
+    expect(result.automatic).toMatchObject({
+      method: 'POWER',
+      estimated: false,
+      provenance: 'calculated',
+      reasons: []
+    });
+    expect(result.automatic.score).toBeGreaterThan(0);
+    expect(result.hr).toMatchObject({ score: 7.6, method: 'HR', reasons: [] });
+    expect(result.met).toMatchObject({ score: 9, method: 'MET', reasons: [] });
+
+    for (const preserveImportedTss of [undefined, true, false]) {
+      activity.parseOptions = new ActivityParsingOptions({ tss: { preserveImportedTss } });
+      for (const score of [0, 42.5]) {
+        activity.addStat(new DataTrainingStressScore(score));
+        const evaluations = evaluate(activity);
+        for (const policy of ['automatic', 'hr', 'met'] as const) {
+          expect(evaluations[policy]).toMatchObject(
+            preserveImportedTss === false ? result[policy] : { score, method: 'IMPORTED', provenance: 'imported' }
+          );
+        }
+      }
+    }
+  });
+
+  it.each(walkingTypes)('%s falls back to calibrated HR when power lacks a valid threshold', type => {
+    const activity = walk(type);
+    activity.addStat(new DataPowerNormalized(200));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    addCalibratedHeartRate(activity);
+    expect(evaluate(activity).automatic).toMatchObject({
+      score: 7.6,
+      method: 'HR',
+      reasons: ['missing-power-inputs']
+    });
+  });
+
+  it.each(walkingTypes)(
+    '%s rejects observed peak HR as calibration, falling back to the calorie MET estimate',
     type => {
       const activity = walk(type);
-      activity.addStat(new DataFTP(200));
-      activity.addStat(new DataPowerNormalized(200));
+      // Even valid running-pace inputs must not outrank MET for walking or hiking.
+      activity.parseOptions = new ActivityParsingOptions({ tss: { overrides: { functionalThresholdPace: 2 } } });
+      const speed = activity.createStream(DataSpeed.type);
+      speed.setData(new Array(3601).fill(2));
+      activity.addStream(speed);
       activity.addStat(new DataHeartRateMax(100));
       activity.addStat(new DataEnergy(210));
       activity.addStat(new DataWeight(70));
       const result = evaluate(activity);
       expect(result.automatic).toMatchObject({ score: 9, method: 'MET', estimated: true, provenance: 'calculated' });
-      expect(result.hr).toMatchObject({ score: 9, method: 'MET', reasons: ['missing-hr-calibration'] });
+      expect(result.hr).toMatchObject({
+        score: 9,
+        method: 'MET',
+        reasons: ['missing-hr-calibration', 'missing-power-inputs']
+      });
       expect(result.met.reasons).toEqual([]);
       activity.removeStat(DataWeight.type);
       expect(evaluate(activity).automatic.score).toBeNull();
@@ -110,7 +178,11 @@ describe('file-only training stress evaluations', () => {
     activity.addStream(stream);
     const results = evaluate(activity);
     expect(results.hr).toMatchObject({ score: 7.6, method: 'HR', estimated: false });
-    expect(results.met).toMatchObject({ score: 7.6, method: 'HR', reasons: ['missing-met-inputs'] });
+    expect(results.met).toMatchObject({
+      score: 7.6,
+      method: 'HR',
+      reasons: ['missing-met-inputs', 'missing-power-inputs']
+    });
     activity.removeStream(DataHeartRate.type);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity)).toEqual(results);
     expect(evaluate(activity).hr.score).toBeNull();

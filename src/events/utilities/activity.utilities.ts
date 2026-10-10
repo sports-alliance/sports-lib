@@ -2788,14 +2788,9 @@ export class ActivityUtilities {
    * Compute all requested policies once from currently available parsed inputs.
    * Explicit recalculation replaces the cached evaluation; known calculated scores
    * are never promoted to imported scores. Results contain no raw HR calibration.
+   * Automatic prefers usable power over HR, including for walking and hiking.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
-    const walking = [
-      ActivityTypes.Walking,
-      ActivityTypes.NordicWalking,
-      ActivityTypes.Hiking,
-      ActivityTypes.Trekking
-    ].includes(activity.type);
     const existingScore = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
     const existingMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
@@ -2840,12 +2835,12 @@ export class ActivityUtilities {
             : !this.getStreamSamplesByDuration(activity, DataHeartRate.type).some(sample => sample.value > 0)
               ? 'missing-hr-samples'
               : null;
-    const power = eligible && !walking ? this.calculatePowerTss(activity) : null;
+    const power = eligible ? this.calculatePowerTss(activity) : null;
     const hr = eligible && !hrReason ? this.calculateHrTss(activity) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
     const pace =
-      eligible && !walking && !power && !hr
+      eligible && !power && !hr
         ? group === ActivityTypeGroups.SwimmingGroup
           ? this.calculateSwimPaceTss(activity)
           : this.supportsPaceTss(activity)
@@ -2857,15 +2852,9 @@ export class ActivityUtilities {
     const automaticReasons: TrainingStressScoreReason[] = [];
     if (!eligible) automaticReasons.push('unsupported-sport');
     else {
-      if (!walking && !power) automaticReasons.push('missing-power-inputs');
+      if (!power) automaticReasons.push('missing-power-inputs');
       if (!power && !hr) automaticReasons.push(hrReason ?? 'calculation-unavailable');
-      if (
-        !power &&
-        !hr &&
-        !walking &&
-        !pace &&
-        (group === ActivityTypeGroups.SwimmingGroup || this.supportsPaceTss(activity))
-      )
+      if (!power && !hr && !pace && (group === ActivityTypeGroups.SwimmingGroup || this.supportsPaceTss(activity)))
         automaticReasons.push('missing-pace-inputs');
       if (!automatic) automaticReasons.push('missing-met-inputs');
     }

@@ -56,7 +56,8 @@ GPX tracks with timestamps normally represent recorded activities. Set `gpx.impo
 ## Training stress evaluations
 
 HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
-Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligible sports retain power and pace methods
+Walking and hiking use imported TSS, then usable power with a valid threshold, calibrated HR, then MET in Automatic.
+Explicit HR and MET preferences select their available method first. Other eligible sports retain power and pace methods
 in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
 reasons and existing optional physiological overrides.
 Imported scores take precedence with `preserveImportedTss: true` or omission. With false, all evaluation policies use

@@ -320,14 +320,7 @@ describe('Training Stress Score integration', () => {
               expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
               expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(importedTss);
               expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-                [
-                  ActivityTypes.Walking,
-                  ActivityTypes.NordicWalking,
-                  ActivityTypes.Hiking,
-                  ActivityTypes.Trekking
-                ].includes(type as ActivityTypes)
-                  ? TrainingStressScoreMethod.MET
-                  : TrainingStressScoreMethod.POWER
+                TrainingStressScoreMethod.POWER
               );
             }
           }

@@ -800,7 +800,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 0, sub_sport: 98 }, ActivityTypes.Generic],
       [{ sport: 17, sub_sport: 98 }, ActivityTypes.Hiking],
       [{ sport: 22, sub_sport: 0 }, ActivityTypes.Motorcycling],
-      [{ sport: 24, sub_sport: 0 }, ActivityTypes.Driving],
+      [{ sport: 24, sub_sport: 0 }, ActivityTypes.Driving, ActivityTypes.Motorsports],
       [{ sport: 81, sub_sport: 0 }, ActivityTypes.Motorsports],
       [{ sport: 24, sub_sport: 83 }, ActivityTypes.Driving],
       [{ sport: 2, sub_sport: 83 }, ActivityTypes.Cycling],
@@ -819,9 +819,11 @@ describe('EventImporterFIT', () => {
       [{ sport: 'not-a-sport', sub_sport: 98 }, ActivityTypes.unknown]
     ])(
       'keeps indoor adaptive, trucker, and overland classifications within their source context (%j)',
-      (session, expectedType) => {
+      (session, expectedType, expectedSuuntoType = expectedType) => {
         for (const manufacturer of [1, 7, 23, 123, undefined]) {
-          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+          expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(
+            manufacturer === 23 ? expectedSuuntoType : expectedType
+          );
         }
       }
     );
@@ -1011,7 +1013,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Platform' }, ActivityTypes.Generic],
       [{ sport: 28, sub_sport: 0 }, ActivityTypes.Hunting],
       [{ sport: 79, sub_sport: 0 }, ActivityTypes.Archery],
-      [{ sport: 17, sub_sport: 0 }, ActivityTypes.Hiking],
+      [{ sport: 17, sub_sport: 0 }, ActivityTypes.Hiking, ActivityTypes.Trekking],
       [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
       [{ sport: 8, sub_sport: 0 }, ActivityTypes.Tennis],
       [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
@@ -1019,9 +1021,9 @@ describe('EventImporterFIT', () => {
       [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
       [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom outdoor profile' }, ActivityTypes.Generic]
-    ])('preserves neighboring and ambiguous session %j', (session, expectedType) => {
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType, expectedSuuntoType = expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
-      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedSuuntoType);
     });
 
     describe.each([

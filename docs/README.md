@@ -25,6 +25,12 @@ when the recorded creator manufacturer is Suunto. Provider TSS follows the prese
 Flexibility Training classifications by reparsing retained sources and regenerating affected summaries and activity-type
 aggregates. See [Import activities](guides/importing-activities.md).
 
+Suunto's distinct FIT exports also retain Motorsports, Climbing, Ski Touring, Crosstrainer, Aerobics, Trekking,
+Paragliding and Calisthenics as existing canonical sports. Explicit Kettlebell and Telemark Skiing profiles refine
+their shared pairs; unnamed shared pairs keep their broad classifications. These rules use decoded FIT fields and
+recorded creator identity, with the existing TSS setting. Historical corrections require source reparsing and
+regeneration of affected summaries and Training snapshots. See [Import activities](guides/importing-activities.md).
+
 Garmin names such as Bike Indoor, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Classic Ski, XC Skate Ski, and Pool
 Swim reuse existing canonical sports. The expanded Garmin, Polar and Strava catalog has 245 canonical types, with
 49 additional sports and the same TSS preservation policy. Provider context resolves ambiguous names such as Polar

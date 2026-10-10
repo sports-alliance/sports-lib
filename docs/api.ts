@@ -14,6 +14,8 @@
  * following the GPX 1.1 metadata sequence.
  * Native event and route JSON omit non-finite scalar summaries and skip legacy null/non-finite summary values on read.
  * Suunto-created FIT training/flexibility_training (10/19) imports preserve the existing Stretching classification.
+ * Other distinct Suunto export pairs reuse existing canonical sports; explicit Kettlebell and Telemark Skiing
+ * profiles refine their shared pairs using recorded creator identity and decoded FIT fields.
  *
  * @category Import and export
  */

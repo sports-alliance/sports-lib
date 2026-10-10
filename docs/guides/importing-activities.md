@@ -34,6 +34,35 @@ contract are unchanged. Imported TSS stays exact with `preserveImportedTss: true
 with a supported calculation or leaves it unset. Reparse retained Suunto `10/19` sources to correct older
 Flexibility Training classifications, then regenerate persisted event summaries and activity-type aggregates.
 
+The same Suunto creator guard preserves these distinct documented exports using existing canonical sports:
+
+| Suunto sport | FIT sport/sub-sport | Canonical type | Group |
+| --- | --- | --- | --- |
+| Motorsports | Driving/Generic (`24/0`) | Motorsports | Motorized |
+| Climbing | Rock Climbing/Generic (`31/0`) | Climbing | Outdoor Adventures |
+| Ski touring | Alpine Skiing/Backcountry (`13/37`) | Ski Touring | Winter Sports |
+| Crosstrainer | Fitness Equipment/Elliptical (`4/15`) | Crosstrainer | Indoor Sports |
+| Aerobics | Training/Cardio Training (`10/26`) | Aerobics | Indoor Sports |
+| Trekking | Hiking/Generic (`17/0`) | Trekking | Outdoor Adventures |
+| Paragliding | Hang Gliding/Generic (`26/0`) | Paragliding | Aerial Sports |
+| Calisthenics | Fitness Equipment/Strength Training (`4/20`) | Calisthenics | Indoor Sports |
+
+For the Generic sub-sport rows, an omitted sub-sport also establishes the broad parent, and an explicit recognized
+profile retains its existing refinement. Unknown sub-sport IDs do not establish these documented pairs. Specific
+sub-sports keep their existing classifications: Hiking/Trail remains Hiking, and Rock Climbing/Indoor Climbing
+remains Indoor Climbing. Other creators retain their existing sport mappings.
+
+Suunto's Training/Strength Training (`10/20`) export is shared by Gym and Kettlebell; Alpine Skiing/Downhill (`13/9`)
+is shared by Downhill skiing and Telemark skiing. An explicit Kettlebell or Telemark Skiing `sport_profile_name`
+preserves that canonical sport before the broader composite alias. Without that profile, the pairs retain Strength
+Training and Alpine Skiing. No workout title, filename, external metadata, or binary decoding inference is used.
+
+All these types already exist in the catalog. Their existing groups, TSS policies and numeric metric contracts
+remain in force; Motorized activities preserve imported TSS by default and receive no calculated replacement when
+preservation is disabled. Reparse retained Suunto sources to correct previously broader labels, then regenerate
+persisted summaries, activity-type aggregates and affected Training snapshots. Native JSON alone cannot recover
+the source sport/sub-sport or a discarded source profile.
+
 `Padel` belongs to `ActivityTypeGroups.TeamRacketGroup` alongside Tennis, Squash, and Racquet Ball.
 FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `padel` and `racket_padel` resolve to
 the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without a recognized

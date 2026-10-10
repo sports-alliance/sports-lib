@@ -2800,22 +2800,46 @@ export class EventImporterFIT {
         break;
     }
 
-    // Suunto documents Stretching (App ID 58) as training/flexibility_training (10/19).
-    // Its generic pairs also identify Wheelchair sport, Field Hockey, and Chores.
+    // Suunto's documented FIT exports identify these existing canonical sports.
     // Require the recording's creator identity instead of changing their global aliases.
     if (this.resolveFitProfileName(manufacturer, getFitManufacturerName)?.toLowerCase() === 'suunto') {
-      if (resolvedSport?.toLowerCase() === 'training' && normalizedSubSportName === 'flexibilitytraining') {
-        return ActivityTypes.Stretching;
-      }
-      if (resolvedSport?.toLowerCase() === 'generic') {
-        switch (normalizedSubSportName) {
-          case 'handcycling':
-            return ActivityTypes.Wheelchair;
-          case 'match':
-            return ActivityTypes.FieldHockey;
-          case 'exercise':
-            return ActivityTypes.Chores;
-        }
+      const suuntoSubSport = normalizedSubSportName ?? (session.sub_sport == null ? 'generic' : 'unknown');
+      const suuntoPair = `${resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')}/${suuntoSubSport}`;
+      const profileType = this.getActivityTypeByKey(fallbackProfileName);
+      const explicitProfile = profileType && profileType !== ActivityTypes.unknown ? profileType : null;
+      switch (suuntoPair) {
+        case 'training/flexibilitytraining':
+          return ActivityTypes.Stretching;
+        case 'training/cardiotraining':
+          return ActivityTypes.Aerobics;
+        case 'fitnessequipment/elliptical':
+          return ActivityTypes.Crosstrainer;
+        case 'fitnessequipment/strengthtraining':
+          return ActivityTypes.Calisthenics;
+        case 'alpineskiing/backcountry':
+          return ActivityTypes.SkiTouring;
+        // Generic sub-sports already permit an explicit recognized profile to refine the parent.
+        case 'driving/generic':
+          return explicitProfile ?? ActivityTypes.Motorsports;
+        case 'rockclimbing/generic':
+          return explicitProfile ?? ActivityTypes.Climbing;
+        case 'hanggliding/generic':
+          return explicitProfile ?? ActivityTypes.Paragliding;
+        case 'hiking/generic':
+          return explicitProfile ?? ActivityTypes.Trekking;
+        // These pairs are shared by Suunto sports; require their explicit profile name.
+        case 'training/strengthtraining':
+          if (explicitProfile === ActivityTypes.Kettlebell) return explicitProfile;
+          break;
+        case 'alpineskiing/downhill':
+          if (explicitProfile === ActivityTypes.TelemarkSkiing) return explicitProfile;
+          break;
+        case 'generic/handcycling':
+          return ActivityTypes.Wheelchair;
+        case 'generic/match':
+          return ActivityTypes.FieldHockey;
+        case 'generic/exercise':
+          return ActivityTypes.Chores;
       }
     }
 

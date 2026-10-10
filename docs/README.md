@@ -17,6 +17,11 @@ Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct
 Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Shooting (`56`) and Geocaching (`87`) have distinct Outdoor Adventures types; Platform Tennis (`racket/platform`,
+`64/93`) has its own Team/Racket type. The FIT mappings apply across manufacturers. Historical Generic or Racquet Ball
+imports require specific retained sources, then regeneration of affected summaries and Training snapshots after
+consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Disc Golf belongs to Team/Racket alongside Golf and Frisbee, with its own canonical type. FIT `disc_golf` and explicit
 Frisbee golf provider names preserve that distinction. Historical corrections need retained sources or specific sport
 names; generic FIT classifications alone remain ambiguous. See [Import activities](guides/importing-activities.md).

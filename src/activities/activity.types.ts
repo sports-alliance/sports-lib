@@ -695,6 +695,14 @@ export enum ActivityTypes {
   'PICKLEBALL' = 'Pickleball',
   'racket_pickleball' = 'Pickleball',
   /**
+   * Platform Tennis; FIT racket/platform (sport 64, sub-sport 93), distinct from Tennis and Padel.
+   */
+  'Platform Tennis' = 'Platform Tennis',
+  'PlatformTennis' = 'Platform Tennis',
+  'platformTennis' = 'Platform Tennis',
+  'platform_tennis' = 'Platform Tennis',
+  'racket_platform' = 'Platform Tennis',
+  /**
    * Badminton
    */
   'Badminton' = 'Badminton',
@@ -1015,6 +1023,16 @@ export enum ActivityTypes {
    */
   'Archery' = 'Archery',
   'archery' = 'Archery',
+  /**
+   * Shooting; explicit FIT sport shooting (56), distinct from Archery and Hunting.
+   */
+  'Shooting' = 'Shooting',
+  'shooting' = 'Shooting',
+  /**
+   * Geocaching; explicit FIT sport geocaching (87), distinct from Hiking and Walking.
+   */
+  'Geocaching' = 'Geocaching',
+  'geocaching' = 'Geocaching',
   /**
    * Route
    */
@@ -1347,6 +1365,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.FloorClimbing,
       ActivityTypes.Hunting,
       ActivityTypes.Archery,
+      ActivityTypes.Shooting,
+      ActivityTypes.Geocaching,
       ActivityTypes.Mountaineering,
       ActivityTypes.Trekking
     ],
@@ -1429,6 +1449,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Tennis,
       ActivityTypes.Padel,
       ActivityTypes.Pickleball,
+      ActivityTypes.PlatformTennis,
       ActivityTypes.Cricket,
       ActivityTypes.Frisbee,
       ActivityTypes.Soccer,

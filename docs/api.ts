@@ -117,6 +117,8 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
+ * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
+ * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.
  * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
  * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.

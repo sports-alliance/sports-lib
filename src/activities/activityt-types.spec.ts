@@ -33,6 +33,8 @@ const proposedGroupAssignments = [
   [ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Archery, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Shooting, ActivityTypeGroups.OutdoorAdventuresGroup],
+  [ActivityTypes.Geocaching, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Mountaineering, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Trekking, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.Cyclocross, ActivityTypeGroups.CyclingGroup],
@@ -52,6 +54,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Pickleball, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.PlatformTennis, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Volleyball, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.InlineSkating, ActivityTypeGroups.SkatingGroup],
@@ -310,6 +313,73 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).not.toContain('Dance');
     expect(ActivityTypesHelper.resolveActivityType('rope')).toBeNull();
     expect(ActivityTypesHelper.resolveActivityType('jump')).toBeNull();
+  });
+
+  it.each([
+    ['Shooting', ActivityTypes.Shooting],
+    [' SHOOTING ', ActivityTypes.Shooting],
+    ['Geocaching', ActivityTypes.Geocaching],
+    [' GEOCACHING ', ActivityTypes.Geocaching],
+    ['Platform Tennis', ActivityTypes.PlatformTennis],
+    ['PlatformTennis', ActivityTypes.PlatformTennis],
+    ['platformTennis', ActivityTypes.PlatformTennis],
+    ['platform_tennis', ActivityTypes.PlatformTennis],
+    ['PLATFORM-TENNIS', ActivityTypes.PlatformTennis],
+    ['racket_platform', ActivityTypes.PlatformTennis],
+    ['RACKET-PLATFORM', ActivityTypes.PlatformTennis]
+  ])('resolves explicit %s to %s', (value, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.Shooting, ActivityTypeGroups.OutdoorAdventuresGroup],
+    [ActivityTypes.Geocaching, ActivityTypeGroups.OutdoorAdventuresGroup],
+    [ActivityTypes.PlatformTennis, ActivityTypeGroups.TeamRacketGroup]
+  ] as const)('exposes %s once in %s with the existing group behavior', (type, group) => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeAscent(type)).toBe(false);
+    expect(ActivityTypesHelper.shouldExcludeDescent(type)).toBe(false);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+  });
+
+  it.each([ActivityTypes.Shooting, ActivityTypes.Geocaching])('gives %s Outdoor Adventures metric families', type => {
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPaceAvg.type,
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+  });
+
+  it('keeps Platform Tennis distinct with Team/Racket metric families', () => {
+    expect(ActivityTypes.PlatformTennis).not.toBe(ActivityTypes.Tennis);
+    expect(ActivityTypes.PlatformTennis).not.toBe(ActivityTypes.RacquetBall);
+    expect(ActivityTypes.PlatformTennis).not.toBe(ActivityTypes.Padel);
+    expect(ActivityTypes.PlatformTennis).not.toBe(ActivityTypes.Pickleball);
+    expect(ActivityTypes.Shooting).not.toBe(ActivityTypes.Archery);
+    expect(ActivityTypes.Shooting).not.toBe(ActivityTypes.Hunting);
+    expect(ActivityTypes.Geocaching).not.toBe(ActivityTypes.Hiking);
+    expect(ActivityTypes.Geocaching).not.toBe(ActivityTypes.Walking);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.PlatformTennis)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.PlatformTennis)).toEqual([
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.PlatformTennis)).toEqual(
+      []
+    );
+    expect(ActivityTypesHelper.resolveActivityType('platform')).toBeNull();
   });
 
   it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(
@@ -620,7 +690,7 @@ describe('ActivityTypes', () => {
       ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.MixedMartialArts)
     ).toEqual([]);
     expect(ActivityTypesHelper.resolveActivityType('martial_arts')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('shooting')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('shooting')).toBe(ActivityTypes.Shooting);
   });
 
   it.each(['wheelchair_push_walk', 'WheelchairPushWalk', 'WHEELCHAIR-PUSH-WALK', 'Wheelchair Push Walk'])(

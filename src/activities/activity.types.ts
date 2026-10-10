@@ -92,6 +92,7 @@ export class ActivityTypesHelper {
     });
   }
 
+  /** Lists each canonical member once, including all intentionally unspecified activity types. */
   static getActivityTypesForActivityGroup(activityTypeGroup: ActivityTypeGroup): ActivityTypes[] {
     return [...(ActivityTypesGroupMapping.map[activityTypeGroup] || [])];
   }
@@ -2041,7 +2042,6 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Cyclocross,
       ActivityTypes.GravelCycling,
       ActivityTypes.IndoorCycling,
-      ActivityTypes.Biking,
       ActivityTypes.VirtualCycling,
       ActivityTypes.EBiking,
       ActivityTypes.Handcycle,
@@ -2195,7 +2195,6 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.SkiTouring,
       ActivityTypes.SkiMountaineering,
       ActivityTypes.IceSkating,
-      ActivityTypes.BackCountrySki,
       ActivityTypes.NordicSki
     ],
     [ActivityTypeGroups.SkatingGroup]: [
@@ -2318,7 +2317,15 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.ParaSport,
       ActivityTypes.Chores,
       ActivityTypes.VideoGaming,
-      ActivityTypes.RCDroneFlying
+      ActivityTypes.RCDroneFlying,
+      ActivityTypes.Generic,
+      ActivityTypes.Match,
+      ActivityTypes.Other,
+      ActivityTypes.Route,
+      ActivityTypes.Tactical,
+      ActivityTypes.Transition,
+      ActivityTypes.unknown,
+      ActivityTypes.Workout
     ]
   };
 }

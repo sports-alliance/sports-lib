@@ -1,6 +1,6 @@
+import { StatsUtilities } from '../stats/stats.utilities';
 import { EventInterface } from './event.interface';
 import { ActivityInterface } from '../activities/activity.interface';
-import { DataInterface } from '../data/data.interface';
 import { DurationClassAbstract } from '../duration/duration.class.abstract';
 import { EventJSONInterface } from './event.json.interface';
 import { Privacy } from '../privacy/privacy.class.interface';
@@ -139,11 +139,9 @@ export class Event extends DurationClassAbstract implements EventInterface {
     return !this.isMerge && this.getActivities().length > 1;
   }
 
+  /** Exports native event JSON, omitting non-finite scalar summary stats. */
   toJSON(): EventJSONInterface {
-    const stats = {};
-    this.stats.forEach((value: DataInterface) => {
-      Object.assign(stats, value.toJSON());
-    });
+    const stats = StatsUtilities.serializeStats(this.stats);
     return {
       name: this.name,
       srcFileType: this.srcFileType,

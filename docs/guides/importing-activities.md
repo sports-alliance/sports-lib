@@ -19,7 +19,8 @@ library-calculated Training Stress Score or durability evidence; a source-provid
 
 `Meditation` belongs to `ActivityTypeGroups.IndoorSportsGroup` alongside Yoga, Pilates, and Stretching.
 FIT `sport=generic` (`0`) with `sub_sport=breathing` (`62`) defaults to `Meditation`; an explicit Garmin Breathwork
-profile preserves Breathwork separately. The aliases `meditation`,
+profile preserves Breathwork separately, including `training/breathing` (`10/62`) and the French
+profile `Ex. respiration`. The aliases `meditation`,
 `breathing`, and `generic_breathing` resolve to that same canonical value. This preserves the activity name in
 [Suunto's mapping](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf), where Meditation is
 Suunto App activity ID `112`. Stretching remains `Flexibility Training` for FIT `training/flexibility_training`.
@@ -900,12 +901,50 @@ Garmin and Strava name mappings do not claim undocumented device export codes.
 
 Snorkel requires the explicit recorded profile name to establish Snorkeling. A broad Garmin Diving/Generic session
 with that profile can resolve to Snorkeling; unnamed diving, single/multi-gas and gauge scuba, and apnea classifications
-retain their existing behavior. Explicit Garmin Breathwork resolves separately from Meditation; Generic/Breathing
-without a recognized Breathwork profile retains Meditation. Backcountry Snowboard preserves Backcountry Snowboarding
+retain their existing behavior. Explicit Garmin `Breathwork` and the documented French `Ex. respiration` profile
+resolve separately from Meditation for Generic/Breathing (`0/62`) and Training/Breathing (`10/62`).
+[Garmin's French manual](https://www8.garmin.com/manuals/webhelp/GUID-EA4C028F-6CC0-4957-9BB2-20B2E5DAE9CD/FR-FR/GUID-4622151F-22ED-4580-A080-23534EFE0C43.html)
+and a public Garmin recording establish that localization and Training parent. An unnamed breathing pair retains Meditation,
+and unrelated parents retain their existing classification. Backcountry Snowboard preserves Backcountry Snowboarding
 separately from the existing Splitboarding mapping. Polar Esports means Video Gaming; the FIT `esport` sub-sport alone
 retains its existing sport-dependent behavior. Polar's [Road racing description](https://www.polar.com/blog/new-polar-sports-profiles/)
 identifies race cars, so its MOTORSPORTS_ROADRACING identifier shares Car Racing. Polar Trotting remains its distinct
 equine profile and does not infer human running or exertion.
+
+Polar's FIT appendix also uses display names that differ from its detailed API names. Both spellings resolve to the
+same approved canonical types:
+
+| FIT profile spelling | Canonical type |
+| --- | --- |
+| `(Duathlon) Cycling`, `(Triathlon) Cycling` | Cycling |
+| `(Duathlon) Running`, `(Triathlon) Running` | Running |
+| `(Off-road duathlon) Mountain biking`, `(Off-road triathlon) Mountain biking` | Mountain Biking |
+| `(Off-road duathlon) Trail running`, `(Off-road triathlon) Trail running` | Trail Running |
+| `(Off-road triathlon) Open water swimming`, `(Triathlon) Open water swimming` | Open Water Swimming |
+| `LES MILLS CORE` | Core Training |
+| `LES MILLS THE TRIP` | Indoor Cycling |
+| `Shooting sport (indoor)` | Indoor Shooting |
+| `Shooting sport (outdoor)` | Shooting |
+
+[Les Mills documents the CXWORX-to-CORE rename](https://www.lesmills.com/nl/articles/cxworx-is-now-les-mills-core).
+Explicit Polar `CROSS_TRAINER`/`Cross-trainer` profiles refine Training/Indoor Running (`10/45`) to Crosstrainer;
+`STRETCHING`/`Stretching` profiles refine Generic/Flexibility Training (`0/19`) to Stretching. Without those names,
+existing broad classifications remain. Suunto Training/Flexibility Training remains Flexibility Training.
+These refinements require Polar manufacturer identity and a compatible parent/sub-sport pair.
+
+`Australian Football`, `Korfball`, and `Netball` are separate canonical types in `ActivityTypeGroups.TeamRacketGroup`.
+Polar's FIT appendix lists these display names with Generic/Generic exports; no native FIT sport ID or undocumented
+AccessLink API identifier is assigned. An unnamed Generic recording retains Generic. Australian Football remains
+distinct from American Football and Soccer; Korfball and Netball remain distinct from Basketball. Explicit names
+also restore the same canonical types from native JSON. They retain the group's existing metric and TSS policies,
+a false indoor hint, ordinary cadence semantics, and no durability adapter. Quantified Self's current Training registry
+resolves each to volume-only Other training with omitted distance. The local catalog now contains 245 types.
+
+The compatibility fixtures contain documented names and synthetic FIT bytes. Temporary public FIT samples stay
+outside the repository because redistribution rights were not established. The downloaded Polar and Suunto files
+omit `sport_profile_name`, so they establish decoding and broad sport behavior; the documented profile refinements
+are verified synthetically. Historical broad labels require retained explicit profiles/original files to recover
+these distinctions, followed by the ordinary consumer summary and Training rebuild. Saved routes need no reparse.
 
 | Provider | API identifier / profile name | Canonical type | Activity group |
 | --- | --- | --- | --- |
@@ -922,6 +961,9 @@ equine profile and does not infer human running or exertion.
 | Garmin | Motorcycle | Motorcycling | Motorized Sports |
 | Garmin | Breathwork | Breathwork | Indoor Sports |
 | Garmin | Track Me | Generic | Unspecified |
+| Polar | Australian football | Australian Football | Team/Racket |
+| Polar | Korfball | Korfball | Team/Racket |
+| Polar | Netball | Netball | Team/Racket |
 | Polar | AGILITY / Dog agility | Dog Agility | Outdoor Adventures |
 | Polar | AQUATICS / Aqua fitness | Aqua Fitness | Water Sports |
 | Polar | BALLET_DANCING / Ballet | Dancing | Indoor Sports |

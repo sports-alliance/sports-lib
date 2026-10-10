@@ -5,6 +5,19 @@ summary: Canonical metric tokens, units, and derivation behavior.
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Numeric summary persistence
+
+Runtime pace at zero speed remains infinite, preserving the existing calculation and display behavior.
+Event, activity, lap, and route-file summary JSON omits non-finite scalar numbers instead of persisting null-valued
+metrics. Native event/activity/lap JSON restoration ignores legacy null/non-finite scalar stats while preserving finite
+zero/negative values, structured data, and stream null gaps. Canonical metric names, aliases, units, formulas and the
+imported TSS policy remain unchanged. See [native JSON round trips](exporting.md#native-json-round-trips).
+
+The public numeric catalog remains enumerable/loadable through `DataStore`/`DynamicDataLoader`; finite values retain
+their canonical JSON keys and units. Quantified Self's MCP metric boundary already accepts only persisted finite
+numeric values. This correction adds no catalog entry, output field, scope, or planning capability. Consumers can read
+older invalid pace JSON without a source reparse; any persistence rewrite must use their normal sanitized writer.
+
 ## Swim distance display
 
 `DataSwimDistance` keeps the canonical `Distance` token, meter value and JSON representation. Its optional

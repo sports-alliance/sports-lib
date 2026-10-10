@@ -42,7 +42,7 @@ export class EventImporterJSON {
   /**
    * Restores a native JSON event, canonicalizing stat keys and activity-aware summary semantics
    * while hydrating missing speed-derived pace summaries on the event, its activities, and their
-   * laps.
+   * laps. Null and non-finite scalar stats are omitted; stream null gaps remain intact.
    */
   static getEventFromJSON(json: EventJSONInterface): EventInterface {
     const event = new Event(
@@ -217,7 +217,14 @@ export class EventImporterJSON {
     target: Pick<StatsClassInterface, 'addStat' | 'getStat'>,
     stats: DataJSONInterface = {}
   ): void {
-    this.getCanonicalJSONMap(stats).forEach((entry, canonicalType) => {
+    // Older exports stringify infinite pace as null. Filter before alias canonicalization
+    // so an invalid canonical entry cannot hide a valid legacy value.
+    const validStats = Object.fromEntries(
+      Object.entries(stats || {}).filter(
+        ([, value]) => value !== null && value !== undefined && (typeof value !== 'number' || Number.isFinite(value))
+      )
+    );
+    this.getCanonicalJSONMap(validStats).forEach((entry, canonicalType) => {
       target.addStat(DynamicDataLoader.getDataInstanceFromDataType(canonicalType, entry.value));
     });
     hydrateMissingSpeedDerivedStats(target);

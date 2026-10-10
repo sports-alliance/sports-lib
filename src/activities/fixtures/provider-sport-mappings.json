@@ -1428,5 +1428,35 @@
     "newType": true,
     "fitSport": "generic",
     "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Australian football",
+    "name": "Australian football",
+    "type": "Australian Football",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Korfball",
+    "name": "Korfball",
+    "type": "Korfball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Netball",
+    "name": "Netball",
+    "type": "Netball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
   }
 ]

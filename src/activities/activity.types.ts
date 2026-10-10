@@ -503,6 +503,43 @@ export enum ActivityTypes {
   'Sailing' = 'Sailing',
   'sailing' = 'Sailing',
   /**
+   * Sail Racing; explicit FIT sailing/sail_race (32/65), distinct from general Sailing.
+   */
+  'Sail Racing' = 'Sail Racing',
+  'SailRacing' = 'Sail Racing',
+  'sailRacing' = 'Sail Racing',
+  'sail_racing' = 'Sail Racing',
+  'Sail Race' = 'Sail Racing',
+  'SailRace' = 'Sail Racing',
+  'sailRace' = 'Sail Racing',
+  'sail_race' = 'Sail Racing',
+  'sailing_sail_race' = 'Sail Racing',
+  /**
+   * Grinding; explicit FIT sport grinding (59), operating sailing winches.
+   */
+  'Grinding' = 'Grinding',
+  'grinding' = 'Grinding',
+  'Grind Offshore' = 'Grinding',
+  'GrindOffshore' = 'Grinding',
+  'grind_offshore' = 'Grinding',
+  'Offshore Sail Grinding' = 'Grinding',
+  'OffshoreSailGrinding' = 'Grinding',
+  'offshore_sail_grinding' = 'Grinding',
+  /**
+   * Indoor Grinding; explicit FIT grinding/indoor_grinding (59/71), also named Grind Onshore by Garmin.
+   */
+  'Indoor Grinding' = 'Indoor Grinding',
+  'IndoorGrinding' = 'Indoor Grinding',
+  'indoorGrinding' = 'Indoor Grinding',
+  'indoor_grinding' = 'Indoor Grinding',
+  'grinding_indoor_grinding' = 'Indoor Grinding',
+  'Grind Onshore' = 'Indoor Grinding',
+  'GrindOnshore' = 'Indoor Grinding',
+  'grind_onshore' = 'Indoor Grinding',
+  'Onshore Sail Grinding' = 'Indoor Grinding',
+  'OnshoreSailGrinding' = 'Indoor Grinding',
+  'onshore_sail_grinding' = 'Indoor Grinding',
+  /**
    * Kayaking
    */
   'Kayaking' = 'Kayaking',
@@ -1231,6 +1268,8 @@ const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
 
 export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.Sailing,
+  ActivityTypes.SailRacing,
+  ActivityTypes.Grinding,
   ActivityTypes.Rowing,
   ActivityTypes.Windsurfing,
   ActivityTypes.Paddling,
@@ -1255,6 +1294,8 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.Snowboarding,
   ActivityTypes.DownhillCycling,
   ActivityTypes.Sailing,
+  ActivityTypes.SailRacing,
+  ActivityTypes.Grinding,
   ActivityTypes.Rowing,
   ActivityTypes.Windsurfing,
   ActivityTypes.Paddling,
@@ -1352,6 +1393,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Mobility,
       ActivityTypes.Kettlebell,
       ActivityTypes.IndoorRowing,
+      ActivityTypes.IndoorGrinding,
       ActivityTypes.Floorball,
       ActivityTypes.Dancing,
       ActivityTypes.JumpRope,
@@ -1436,6 +1478,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Wakeboarding,
       ActivityTypes.Wakesurfing,
       ActivityTypes.Sailing,
+      ActivityTypes.SailRacing,
+      ActivityTypes.Grinding,
       ActivityTypes.Canoeing,
       ActivityTypes.Kayaking,
       ActivityTypes.Paddling,

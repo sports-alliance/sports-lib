@@ -3129,6 +3129,38 @@ export class EventImporterFIT {
     // Preserve these explicit sports before sub-sport or user-defined profile
     // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
+      case 'spin':
+      case 'indoorcycling':
+        return ActivityTypes.IndoorCycling;
+      case 'ebikemountain':
+      case 'emountainbiking':
+        return ActivityTypes.EMountainBiking;
+      case 'adventurerace':
+      case 'adventureracing':
+        return ActivityTypes.AdventureRacing;
+      case 'flyparaglide':
+      case 'paragliding':
+        return ActivityTypes.Paragliding;
+      case 'flyparamotor':
+      case 'paramotoring':
+        return ActivityTypes.Paramotoring;
+      case 'rcdrone':
+      case 'rcdroneflying':
+        return ActivityTypes.RCDroneFlying;
+      case 'hockey':
+        if (normalizedSubSportName === 'field') {
+          return ActivityTypes.FieldHockey;
+        }
+        if (normalizedSubSportName === 'ice') {
+          return ActivityTypes.IceHockey;
+        }
+        return ActivityTypes.Hockey;
+      case 'wintersport':
+        return ActivityTypes.WinterSport;
+      case 'teamsport':
+        return ActivityTypes.TeamSport;
+      case 'watersport':
+        return ActivityTypes.WaterSport;
       case 'wheelchairpushwalk':
         return normalizedSubSportName === 'indoorwheelchairwalk'
           ? ActivityTypes.IndoorWheelchairPushWalk
@@ -3150,6 +3182,12 @@ export class EventImporterFIT {
       case 'bmxcycling':
         return ActivityTypes.BMX;
       case 'cycling':
+        if (normalizedSubSportName === 'spin') {
+          return ActivityTypes.IndoorCycling;
+        }
+        if (normalizedSubSportName === 'ebikemountain') {
+          return ActivityTypes.EMountainBiking;
+        }
         if (normalizedSubSportName === 'ebikeenduro') {
           return ActivityTypes.EEnduroMTB;
         }
@@ -3190,6 +3228,9 @@ export class EventImporterFIT {
       case 'ultrarun':
         return ActivityTypes.UltraRunning;
       case 'running':
+        if (normalizedSubSportName === 'adventurerace') {
+          return ActivityTypes.AdventureRacing;
+        }
         if (normalizedSubSportName === 'obstacle') {
           return ActivityTypes.ObstacleRacing;
         }
@@ -3225,6 +3266,15 @@ export class EventImporterFIT {
       case 'whitewaterrafting':
         return ActivityTypes.WhitewaterRafting;
       case 'flying':
+        if (normalizedSubSportName === 'flyparaglide') {
+          return ActivityTypes.Paragliding;
+        }
+        if (normalizedSubSportName === 'flyparamotor') {
+          return ActivityTypes.Paramotoring;
+        }
+        if (normalizedSubSportName === 'rcdrone') {
+          return ActivityTypes.RCDroneFlying;
+        }
         if (normalizedSubSportName === 'wingsuit') {
           return ActivityTypes.WingsuitFlying;
         }
@@ -3291,6 +3341,9 @@ export class EventImporterFIT {
       case 'pooltriathlon':
         return ActivityTypes.PoolTriathlon;
       case 'multisport':
+        if (normalizedSubSportName === 'adventurerace') {
+          return ActivityTypes.AdventureRacing;
+        }
         if (normalizedSubSportName === 'brick') {
           return ActivityTypes.BrickTraining;
         }
@@ -3424,6 +3477,12 @@ export class EventImporterFIT {
     // activity alias to turn an unrelated or unknown FIT sport into skiing.
     // Sport-specific sub-sports require their respective parents before alias fallback.
     const canUseSubSportAlone =
+      normalizedSubSportName !== 'spin' &&
+      normalizedSubSportName !== 'ebikemountain' &&
+      normalizedSubSportName !== 'adventurerace' &&
+      normalizedSubSportName !== 'flyparaglide' &&
+      normalizedSubSportName !== 'flyparamotor' &&
+      normalizedSubSportName !== 'rcdrone' &&
       normalizedSubSportName !== 'backcountry' &&
       normalizedSubSportName !== 'pickleball' &&
       normalizedSubSportName !== 'indoorgrinding' &&

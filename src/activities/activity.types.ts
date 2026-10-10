@@ -257,6 +257,33 @@ export enum ActivityTypes {
   'video_gaming' = 'Video Gaming',
   'Gaming' = 'Video Gaming',
   'gaming' = 'Video Gaming',
+  /** Broad FIT sport classifications; they do not imply a particular subtype or venue. */
+  'Hockey' = 'Hockey',
+  'hockey' = 'Hockey',
+  'Winter Sport' = 'Winter Sport',
+  'WinterSport' = 'Winter Sport',
+  'winter_sport' = 'Winter Sport',
+  'Team Sport' = 'Team Sport',
+  'TeamSport' = 'Team Sport',
+  'team_sport' = 'Team Sport',
+  'Water Sport' = 'Water Sport',
+  'WaterSport' = 'Water Sport',
+  'water_sport' = 'Water Sport',
+  /** Powered paragliding; explicit FIT flying/fly_paramotor (20/112). Imported TSS only. */
+  'Paramotoring' = 'Paramotoring',
+  'paramotoring' = 'Paramotoring',
+  'Fly Paramotor' = 'Paramotoring',
+  'FlyParamotor' = 'Paramotoring',
+  'fly_paramotor' = 'Paramotoring',
+  'flying_fly_paramotor' = 'Paramotoring',
+  /** Remote-controlled aircraft or drone flight; explicit FIT flying/rc_drone (20/39). Imported TSS only. */
+  'RC Drone Flying' = 'RC Drone Flying',
+  'RCDroneFlying' = 'RC Drone Flying',
+  'rc_drone_flying' = 'RC Drone Flying',
+  'RC Drone' = 'RC Drone Flying',
+  'RCDrone' = 'RC Drone Flying',
+  'rc_drone' = 'RC Drone Flying',
+  'flying_rc_drone' = 'RC Drone Flying',
   /**
    * Transition
    */
@@ -414,6 +441,9 @@ export enum ActivityTypes {
   'Indoor cycling' = 'Indoor Cycling',
   'IndoorCycling' = 'Indoor Cycling',
   'Indoor Cycling' = 'Indoor Cycling',
+  'Spin' = 'Indoor Cycling',
+  'spin' = 'Indoor Cycling',
+  'cycling_spin' = 'Indoor Cycling',
   /**
    * Virtual Cycling
    */
@@ -447,6 +477,9 @@ export enum ActivityTypes {
   'E-Mountain Biking' = 'E-Mountain Biking',
   'e_mountain_biking' = 'E-Mountain Biking',
   'e_biking_e_bike_mountain' = 'E-Mountain Biking',
+  'cycling_e_bike_mountain' = 'E-Mountain Biking',
+  'e_bike_mountain' = 'E-Mountain Biking',
+  'EBikeMountain' = 'E-Mountain Biking',
   'EMountainBikeRide' = 'E-Mountain Biking',
   'E-MTB' = 'E-Mountain Biking',
 
@@ -1005,6 +1038,13 @@ export enum ActivityTypes {
    * Adventure Racing
    */
   'Adventure Racing' = 'Adventure Racing',
+  'AdventureRacing' = 'Adventure Racing',
+  'adventure_racing' = 'Adventure Racing',
+  'Adventure Race' = 'Adventure Racing',
+  'AdventureRace' = 'Adventure Racing',
+  'adventure_race' = 'Adventure Racing',
+  'multisport_adventure_race' = 'Adventure Racing',
+  'running_adventure_race' = 'Adventure Racing',
   /**
    * Bowling
    */
@@ -1223,6 +1263,11 @@ export enum ActivityTypes {
    * Paragliding
    */
   'Paragliding' = 'Paragliding',
+  'paragliding' = 'Paragliding',
+  'Fly Paraglide' = 'Paragliding',
+  'FlyParaglide' = 'Paragliding',
+  'fly_paraglide' = 'Paragliding',
+  'flying_fly_paraglide' = 'Paragliding',
   /**
    * Treadmill
    */
@@ -1718,6 +1763,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Trekking
     ],
     [ActivityTypeGroups.WinterSportsGroup]: [
+      ActivityTypes.WinterSport,
       ActivityTypes.CrosscountrySkiing,
       ActivityTypes.SkateSkiing,
       ActivityTypes.BackCountrySkiing,
@@ -1734,6 +1780,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.SkatingGroup]: [ActivityTypes.InlineSkating, ActivityTypes.Skating],
     [ActivityTypeGroups.AerialSportsGroup]: [
+      ActivityTypes.Paramotoring,
       ActivityTypes.Flying,
       ActivityTypes.WingsuitFlying,
       ActivityTypes.HangGliding,
@@ -1760,6 +1807,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IndoorWheelchairPushRun
     ],
     [ActivityTypeGroups.WaterSportsGroup]: [
+      ActivityTypes.WaterSport,
       ActivityTypes.Rowing,
       ActivityTypes.Surfing,
       ActivityTypes.Kitesurfing,
@@ -1790,6 +1838,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Mermaiding
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
+      ActivityTypes.Hockey,
+      ActivityTypes.TeamSport,
       ActivityTypes.Golf,
       ActivityTypes.DiscGolf,
       ActivityTypes.AmericanFootball,
@@ -1816,7 +1866,11 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Soccer,
       ActivityTypes.Volleyball
     ],
-    [ActivityTypeGroups.UnspecifiedGroup]: [ActivityTypes.Chores, ActivityTypes.VideoGaming]
+    [ActivityTypeGroups.UnspecifiedGroup]: [
+      ActivityTypes.Chores,
+      ActivityTypes.VideoGaming,
+      ActivityTypes.RCDroneFlying
+    ]
   };
 }
 

@@ -688,6 +688,13 @@ export enum ActivityTypes {
   'padel' = 'Padel',
   'racket_padel' = 'Padel',
   /**
+   * Pickleball; FIT racket/pickleball (sport 64, sub-sport 84), distinct from Racquet Ball and Padel.
+   */
+  'Pickleball' = 'Pickleball',
+  'pickleball' = 'Pickleball',
+  'PICKLEBALL' = 'Pickleball',
+  'racket_pickleball' = 'Pickleball',
+  /**
    * Badminton
    */
   'Badminton' = 'Badminton',
@@ -780,9 +787,21 @@ export enum ActivityTypes {
    */
   'Crosstrainer' = 'Crosstrainer',
   /**
-   * Dancing
+   * Dancing, including explicit FIT sport dance (83).
    */
   'Dancing' = 'Dancing',
+  'dancing' = 'Dancing',
+  'DANCING' = 'Dancing',
+  'Dance' = 'Dancing',
+  'dance' = 'Dancing',
+  /**
+   * Jump Rope; explicit FIT sport jump_rope (84).
+   */
+  'Jump Rope' = 'Jump Rope',
+  'JumpRope' = 'Jump Rope',
+  'jumpRope' = 'Jump Rope',
+  'jump_rope' = 'Jump Rope',
+  'JUMP_ROPE' = 'Jump Rope',
   /**
    * Golf
    */
@@ -1293,6 +1312,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IndoorRowing,
       ActivityTypes.Floorball,
       ActivityTypes.Dancing,
+      ActivityTypes.JumpRope,
       ActivityTypes.Crosstrainer,
       ActivityTypes.WeightTraining,
       ActivityTypes.StrengthTraining,
@@ -1408,6 +1428,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.TableTennis,
       ActivityTypes.Tennis,
       ActivityTypes.Padel,
+      ActivityTypes.Pickleball,
       ActivityTypes.Cricket,
       ActivityTypes.Frisbee,
       ActivityTypes.Soccer,

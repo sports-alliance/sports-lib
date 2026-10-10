@@ -12,6 +12,11 @@ Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve th
 Padel belongs to Team/Racket. FIT `racket/padel` imports preserve Padel instead of Racquet Ball; correcting older
 classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+FIT Dance (`83`) resolves to the existing Dancing type, and Jump Rope (`84`) has its own Indoor Sports type.
+Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct from Racquet Ball and Padel.
+Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
+and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Disc Golf belongs to Team/Racket alongside Golf and Frisbee, with its own canonical type. FIT `disc_golf` and explicit
 Frisbee golf provider names preserve that distinction. Historical corrections need retained sources or specific sport
 names; generic FIT classifications alone remain ambiguous. See [Import activities](guides/importing-activities.md).

@@ -14,6 +14,8 @@ const proposedGroupAssignments = [
   [ActivityTypes.Cheerleading, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes['Circuit Training'], ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Combat, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.Dancing, ActivityTypeGroups.IndoorSportsGroup],
+  [ActivityTypes.JumpRope, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.MixedMartialArts, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.EllipticalTrainer, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.FitnessEquipment, ActivityTypeGroups.IndoorSportsGroup],
@@ -49,6 +51,7 @@ const proposedGroupAssignments = [
   [ActivityTypes.Lacrosse, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Frisbee, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Padel, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.Pickleball, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Soccer, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.Volleyball, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.InlineSkating, ActivityTypeGroups.SkatingGroup],
@@ -264,6 +267,49 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.Padel
       )
     ).toEqual([ActivityTypes.Padel]);
+  });
+
+  it.each([
+    ['Dance', ActivityTypes.Dancing],
+    [' dance ', ActivityTypes.Dancing],
+    ['DANCING', ActivityTypes.Dancing],
+    ['Jump Rope', ActivityTypes.JumpRope],
+    ['JumpRope', ActivityTypes.JumpRope],
+    ['jumpRope', ActivityTypes.JumpRope],
+    ['jump_rope', ActivityTypes.JumpRope],
+    ['JUMP-ROPE', ActivityTypes.JumpRope],
+    ['Pickleball', ActivityTypes.Pickleball],
+    ['PICKLEBALL', ActivityTypes.Pickleball],
+    ['racket_pickleball', ActivityTypes.Pickleball],
+    ['RACKET-PICKLEBALL', ActivityTypes.Pickleball]
+  ])('resolves explicit %s to %s', (value, expectedType) => {
+    expect(ActivityTypesHelper.resolveActivityType(value)).toBe(expectedType);
+  });
+
+  it.each([
+    [ActivityTypes.Dancing, ActivityTypeGroups.IndoorSportsGroup, true],
+    [ActivityTypes.JumpRope, ActivityTypeGroups.IndoorSportsGroup, true],
+    [ActivityTypes.Pickleball, ActivityTypeGroups.TeamRacketGroup, false]
+  ] as const)('exposes %s once in %s with indoor hint %s', (type, group, indoor) => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.getActivityTypesForActivityGroup(group).filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeed.type]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([DataSpeedAvg.type]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+    expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+  });
+
+  it('keeps Pickleball distinct from other racket sports and adds no second Dance type', () => {
+    expect(ActivityTypes.Pickleball).not.toBe(ActivityTypes.RacquetBall);
+    expect(ActivityTypes.Pickleball).not.toBe(ActivityTypes.Padel);
+    expect(ActivityTypes.Pickleball).not.toBe(ActivityTypes.Tennis);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).not.toContain('Dance');
+    expect(ActivityTypesHelper.resolveActivityType('rope')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('jump')).toBeNull();
   });
 
   it.each(['Hand Cycle', 'Handcycle', 'cycling_hand_cycling', 'CYCLING-HAND-CYCLING'])(

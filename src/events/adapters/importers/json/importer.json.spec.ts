@@ -27,6 +27,23 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ['Dancing', ActivityTypes.Dancing],
+    ['dancing', ActivityTypes.Dancing],
+    ['DANCING', ActivityTypes.Dancing],
+    ['Dance', ActivityTypes.Dancing],
+    ['dance', ActivityTypes.Dancing],
+    ['Jump Rope', ActivityTypes.JumpRope],
+    ['JumpRope', ActivityTypes.JumpRope],
+    ['jumpRope', ActivityTypes.JumpRope],
+    ['jump_rope', ActivityTypes.JumpRope],
+    ['JUMP_ROPE', ActivityTypes.JumpRope],
+    ['Pickleball', ActivityTypes.Pickleball],
+    ['pickleball', ActivityTypes.Pickleball],
+    ['PICKLEBALL', ActivityTypes.Pickleball],
+    ['racket_pickleball', ActivityTypes.Pickleball],
+    ['Padel', ActivityTypes.Padel],
+    ['Tennis', ActivityTypes.Tennis],
+    ['Racquet Ball', ActivityTypes.RacquetBall],
     ['Wakesurfing', ActivityTypes.Wakesurfing],
     ['wakesurfing', ActivityTypes.Wakesurfing],
     ['Surfing', ActivityTypes.Surfing],

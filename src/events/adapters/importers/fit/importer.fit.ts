@@ -2403,6 +2403,13 @@ export class EventImporterFIT {
       case 'mixedmartialarts':
       case 'mma':
         return ActivityTypes.MixedMartialArts;
+      case 'dance':
+      case 'dancing':
+        return ActivityTypes.Dancing;
+      case 'jumprope':
+        return ActivityTypes.JumpRope;
+      case 'pickleball':
+        return ActivityTypes.Pickleball;
     }
 
     // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.
@@ -2437,7 +2444,9 @@ export class EventImporterFIT {
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
     // Preserve explicit composite mappings, but do not use the legacy standalone
     // activity alias to turn an unrelated or unknown FIT sport into skiing.
-    const canUseSubSportAlone = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '') !== 'backcountry';
+    // Pickleball's FIT sub-sport likewise requires the Racket parent via its composite mapping.
+    const normalizedSubSportName = resolvedSubSportName?.toLowerCase().replace(/[\s_-]/g, '');
+    const canUseSubSportAlone = normalizedSubSportName !== 'backcountry' && normalizedSubSportName !== 'pickleball';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

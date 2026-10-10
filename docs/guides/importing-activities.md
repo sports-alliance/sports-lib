@@ -25,8 +25,44 @@ Suunto App activity ID `112`. Stretching remains `Flexibility Training` for FIT 
 
 `Padel` belongs to `ActivityTypeGroups.TeamRacketGroup` alongside Tennis, Squash, and Racquet Ball.
 FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `padel` and `racket_padel` resolve to
-the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without the Padel
-sub-sport retains its existing Racquet Ball classification.
+the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without a recognized
+specific sub-sport retains its existing Racquet Ball classification.
+
+FIT `sport=dance` (`83`) resolves to the existing `ActivityTypes.Dancing` canonical stored value `Dancing` in
+`ActivityTypeGroups.IndoorSportsGroup`. The explicit sport takes precedence over sub-sport or user-defined profile
+fallbacks. `Dance` and `dance` are aliases of Dancing, not additional canonical types. Existing Dancing JSON remains
+unchanged, and the `DANCING` and `dancing` aliases also restore that value.
+
+`ActivityTypes.JumpRope` has canonical stored value `Jump Rope` in `ActivityTypeGroups.IndoorSportsGroup`. Explicit
+FIT `sport=jump_rope` (`84`) retains this type before sub-sport or profile fallbacks. `JumpRope`, `jumpRope`,
+`jump_rope`, and `JUMP_ROPE` resolve to Jump Rope, including native JSON. Plain `Rope` and `Jump` do not identify it.
+
+`ActivityTypes.Pickleball` has canonical stored value `Pickleball` in `ActivityTypeGroups.TeamRacketGroup`, distinct
+from Racquet Ball, Padel, and Tennis. FIT `sport=racket` (`64`) with `sub_sport=pickleball` (`84`) imports as Pickleball
+before profile fallbacks. The composite requires the Racket parent; a generic or unrelated sport with sub-sport `84`
+retains its previous classification unless an explicit recognized profile establishes the activity. An explicit
+Pickleball sport name or recognized profile also resolves to Pickleball across providers. `pickleball`, `PICKLEBALL`,
+and `racket_pickleball` aliases restore the same canonical type from native JSON. Racket sessions with Padel, Squash,
+Badminton, Racquet Ball, or Table Tennis sub-sports retain their existing types.
+
+These identifiers appear in [Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+Sport and sub-sport IDs are separate namespaces: sport `84` means Jump Rope, while Racket's sub-sport `84` means
+Pickleball. The mappings apply across manufacturers without adding provider transport or workout-delivery support.
+
+Dancing and Jump Rope inherit Indoor Sports' existing speed metric family, movement threshold, indoor hint, and TSS
+selection; Pickleball inherits the corresponding Team/Racket behavior and has a false indoor hint. These catalog hints
+do not establish where an individual session was recorded. None has stroke-rate semantics or a durability adapter.
+No numeric metric, Training formula, modeled Training family, or planning mutation is added. Quantified Self's existing
+Training policy resolves all three to volume-only Other training; a formerly Generic activity belonged to Fitness &
+Gym, while Racquet Ball already belongs to Other training. Usable power curves stay isolated by exact canonical type.
+
+Stored Generic, Unknown Sport, and Racquet Ball labels cannot recover these distinctions on their own. Reparse retained
+FIT `83`, `84`, and `64/84` sources, or restore specific source names/profiles when available, then regenerate separately
+persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
+Adopt the release in both the Quantified Self application and Functions before persisting Jump Rope or Pickleball.
+The existing strict MCP activity-type catalog discovers the new canonical names, groups, and indoor hints; Dancing's
+canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
+remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
 
 `ActivityTypes.DiscGolf` has the canonical stored value `Disc Golf` in `ActivityTypeGroups.TeamRacketGroup`, alongside
 the separate Golf and Frisbee types. FIT `sport=disc_golf` (`69`) imports as Disc Golf across manufacturers, using
@@ -265,8 +301,8 @@ durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
-`Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`, or
-`Mixed Martial Arts`.
+`Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
+`Mixed Martial Arts`, `Jump Rope`, or `Pickleball`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

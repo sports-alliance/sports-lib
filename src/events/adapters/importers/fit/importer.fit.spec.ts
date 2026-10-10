@@ -529,6 +529,48 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 74 },
+      { sport: 74, sub_sport: 0 },
+      { sport: '74', sub_sport: '0' },
+      { sport: 'lacrosse' },
+      { sport: 'lacrosse', sub_sport: 'generic' },
+      { sport: 'Lacrosse', sub_sport: 'generic' },
+      { sport: 'LACROSSE', sub_sport: 'GENERIC' },
+      { sport: 74, sub_sport: 22 },
+      { sport: 74, sub_sport: 90 },
+      { sport: 74, sub_sport: 0, sport_profile_name: 'Field Hockey' },
+      { sport: 74, sport_profile_name: 'Ice Hockey' },
+      { sport: 74, sub_sport: 0, sport_profile_name: 'Custom team profile' }
+    ])('maps explicit Lacrosse session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Lacrosse);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Lacrosse independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 74, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.Lacrosse
+      );
+    });
+
+    it.each([
+      { sport: 0, sub_sport: 0, sport_profile_name: 'Lacrosse' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'LACROSSE' }
+    ])('honors an explicit Lacrosse profile in generic session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.Lacrosse);
+    });
+
+    it.each([
+      [{ sport: 73, sub_sport: 90 }, ActivityTypes.FieldHockey],
+      [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 75, sub_sport: 0 }, ActivityTypes.Volleyball],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom team profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring sports and ambiguous generic session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 65 },
       { sport: 65, sub_sport: 0 },
       { sport: '65', sub_sport: '0' },
@@ -1176,6 +1218,11 @@ describe('EventImporterFIT', () => {
       [23, 69, 0, ActivityTypes.DiscGolf],
       [123, 69, 0, ActivityTypes.DiscGolf],
       [65535, 69, 0, ActivityTypes.DiscGolf],
+      [1, 74, 0, ActivityTypes.Lacrosse],
+      [7, 74, 0, ActivityTypes.Lacrosse],
+      [23, 74, 0, ActivityTypes.Lacrosse],
+      [123, 74, 0, ActivityTypes.Lacrosse],
+      [65535, 74, 0, ActivityTypes.Lacrosse],
       [1, 25, 0, ActivityTypes.Golf],
       [7, 0, 0, ActivityTypes.Generic],
       [23, 0, 0, ActivityTypes.Generic],

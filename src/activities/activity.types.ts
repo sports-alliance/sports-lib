@@ -646,6 +646,12 @@ export enum ActivityTypes {
   'field_hockey' = 'Field Hockey',
   'hockey_field' = 'Field Hockey',
   /**
+   * Lacrosse, identified by an explicit sport name or FIT sport 74.
+   */
+  'Lacrosse' = 'Lacrosse',
+  'lacrosse' = 'Lacrosse',
+  'LACROSSE' = 'Lacrosse',
+  /**
    * Volleyball
    */
   'Volleyball' = 'Volleyball',
@@ -1361,6 +1367,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Handball,
       ActivityTypes.IceHockey,
       ActivityTypes.FieldHockey,
+      ActivityTypes.Lacrosse,
       ActivityTypes.Rugby,
       ActivityTypes.Softball,
       ActivityTypes.Squash,

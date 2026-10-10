@@ -47,6 +47,22 @@ aggregates. Saved routes need no reparse. Quantified Self must upgrade the appli
 persisting Disc Golf; its existing MCP catalog can discover the canonical name, group, and indoor hint without new
 fields, scopes, or tools. Queue lifecycle, write paths, monitoring, and Training algorithms remain unchanged.
 
+`ActivityTypes.Lacrosse` has the canonical stored value `Lacrosse` in `ActivityTypeGroups.TeamRacketGroup`, alongside
+Field Hockey and Rugby. FIT `sport=lacrosse` (`74`) imports as Lacrosse across manufacturers, using Garmin's activity
+reference linked above. The explicit sport takes precedence over generic, Match, or Field sub-sports and user-defined
+profile fallbacks. The aliases `lacrosse` and `LACROSSE` resolve to the same canonical value, including native JSON.
+[Polar's FIT mapping](https://www.polar.com/accesslink-api/#sport-type-mapping-in-fit-files) documents Lacrosse as
+Generic; a generic session needs an explicit Lacrosse sport/profile name to establish that classification. Other
+generic sessions, Field Hockey, Ice Hockey, and Volleyball retain their existing rules.
+
+Lacrosse inherits Team/Racket's speed, movement, indoor-status, and TSS behavior without adding a numeric metric,
+durability adapter, or provider transport. Stored Generic or Unknown Sport labels cannot identify Lacrosse on their
+own. Reparse retained FIT sport `74` or restore an explicit source name/profile when available, then regenerate
+separately persisted summaries or activity-type aggregates. Saved routes need no reparse. Adopt the release in both
+the Quantified Self application and Functions before persisting Lacrosse. Existing MCP activity-type discovery can
+expose its name, group, and indoor hint through the current output schema; no new fields, scopes, or tools are added.
+Queue lifecycle, writes, monitoring, and Training algorithms remain unchanged.
+
 `Field Hockey` belongs to `ActivityTypeGroups.TeamRacketGroup`, distinct from Ice Hockey. Suunto App activity ID
 `113` uses FIT `generic/match` (`0/22`); this pair imports as `ActivityTypes.FieldHockey` only when the recording's
 creator manufacturer is Suunto (`suunto` or FIT ID `23`), using the same creator precedence described below for
@@ -195,7 +211,7 @@ durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
-`Wheelchair Push Walk`, `Wheelchair Push Run`, or `Disc Golf`.
+`Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, or `Lacrosse`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

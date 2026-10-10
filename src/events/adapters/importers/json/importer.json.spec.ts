@@ -27,6 +27,9 @@ import {
 
 describe('EventImporterJSON', () => {
   it.each([
+    ['Lacrosse', ActivityTypes.Lacrosse],
+    ['lacrosse', ActivityTypes.Lacrosse],
+    ['LACROSSE', ActivityTypes.Lacrosse],
     ['Disc Golf', ActivityTypes.DiscGolf],
     ['DiscGolf', ActivityTypes.DiscGolf],
     ['disc_golf', ActivityTypes.DiscGolf],

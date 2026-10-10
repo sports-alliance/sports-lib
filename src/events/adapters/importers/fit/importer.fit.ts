@@ -2382,8 +2382,8 @@ export class EventImporterFIT {
     const resolvedSubSport: string | null =
       resolvedSubSportName && resolvedSubSportName !== 'generic' ? resolvedSubSportName : null;
 
-    // Preserve explicit wheelchair push modes and Disc Golf before sub-sport
-    // or user-defined profile fallbacks can collapse their distinct classifications.
+    // Preserve these explicit sports before sub-sport or user-defined profile
+    // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
       case 'wheelchairpushwalk':
         return ActivityTypes.WheelchairPushWalk;
@@ -2392,6 +2392,8 @@ export class EventImporterFIT {
       case 'discgolf':
       case 'frisbeegolf':
         return ActivityTypes.DiscGolf;
+      case 'lacrosse':
+        return ActivityTypes.Lacrosse;
     }
 
     // Suunto uses generic FIT pairs for Wheelchair sport, Field Hockey, and Chores.

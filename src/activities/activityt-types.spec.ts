@@ -10,6 +10,15 @@ import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
 const proposedGroupAssignments = [
+  [ActivityTypes.EEnduroMTB, ActivityTypeGroups.MountainBikingGroup],
+  [ActivityTypes.TrackCycling, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.RecumbentCycling, ActivityTypeGroups.CyclingGroup],
+  [ActivityTypes.SpeedWalking, ActivityTypeGroups.WalkingGroup],
+  [ActivityTypes.WhitewaterKayaking, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.WhitewaterRafting, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.WingsuitFlying, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.BrickTraining, ActivityTypeGroups.PerformanceGroup],
+  [ActivityTypes.HuntingWithDogs, ActivityTypeGroups.OutdoorAdventuresGroup],
   [ActivityTypes.BMX, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.IndoorSkiing, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.ATV, ActivityTypeGroups.MotorizedGroup],
@@ -245,6 +254,60 @@ describe('ActivityTypes', () => {
       expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(type);
       expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(type);
     }
+  });
+
+  it.each([
+    [ActivityTypes.EEnduroMTB, ActivityTypes.EnduroMTB],
+    [ActivityTypes.TrackCycling, ActivityTypes.Cycling],
+    [ActivityTypes.RecumbentCycling, ActivityTypes.Cycling],
+    [ActivityTypes.SpeedWalking, ActivityTypes.Walking],
+    [ActivityTypes.WhitewaterKayaking, ActivityTypes.Kayaking],
+    [ActivityTypes.WhitewaterRafting, ActivityTypes.Rafting],
+    [ActivityTypes.WingsuitFlying, ActivityTypes.Flying],
+    [ActivityTypes.BrickTraining, ActivityTypes.Multisport],
+    [ActivityTypes.HuntingWithDogs, ActivityTypes.Hunting]
+  ] as const)('preserves the existing %s metric semantics from %s', (type, parent) => {
+    expect(type).not.toBe(parent);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(ActivityTypesMoving.getSpeedThreshold(parent));
+    for (const getter of [
+      'speedDerivedDataTypesToUseForActivityType',
+      'averageSpeedDerivedDataTypesToUseForActivityType',
+      'verticalSpeedDerivedDataTypesToUseForActivityType',
+      'altiDistanceSpeedDerivedDataTypesToUseForActivityType',
+      'usesStrokeRate',
+      'shouldExcludeAscent',
+      'shouldExcludeDescent',
+      'shouldExcludeTerrainSummaryMetrics'
+    ] as const) {
+      expect(ActivityTypesHelper[getter](type)).toEqual(ActivityTypesHelper[getter](parent));
+    }
+    for (const [alias] of Object.entries(ActivityTypes).filter(([, value]) => value === type)) {
+      expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(type);
+      expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(type);
+    }
+  });
+
+  it.each([
+    'Indoor Track',
+    'IndoorTrack',
+    'indoor_track',
+    'Indoor Track Running',
+    'IndoorTrackRunning',
+    'INDOOR-TRACK-RUNNING'
+  ])('maps %s to the existing Indoor Running type', name => {
+    expect(ActivityTypesHelper.resolveActivityType(name)).toBe(ActivityTypes.IndoorRunning);
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.IndoorRunning)).toBe(true);
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray()).not.toContain('Indoor Track Running');
+  });
+
+  it('keeps whitewater parents and ambiguous names separate', () => {
+    expect(ActivityTypes.WhitewaterKayaking).not.toBe(ActivityTypes.WhitewaterRafting);
+    expect(ActivityTypes.EEnduroMTB).not.toBe(ActivityTypes.EMountainBiking);
+    expect(ActivityTypesHelper.resolveActivityType('whitewater')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('Enduro')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('Race Walking')).toBeNull();
   });
 
   it('keeps BMX, indoor skiing, ATV, motocross, and pool triathlon separate from broad types', () => {

@@ -276,6 +276,14 @@ export enum ActivityTypes {
   'MultiSport' = 'Multisport',
   'multisport' = 'Multisport',
 
+  /** Brick Training; explicit FIT multisport/brick (18/80), without inferring its component sports. */
+  'Brick Training' = 'Brick Training',
+  'BrickTraining' = 'Brick Training',
+  'brick_training' = 'Brick Training',
+  'Brick' = 'Brick Training',
+  'brick' = 'Brick Training',
+  'multisport_brick' = 'Brick Training',
+
   /**
    * Virtual Running
    */
@@ -335,7 +343,7 @@ export enum ActivityTypes {
   'Trail running' = 'Trail Running',
   'trail_running' = 'Trail Running',
   /**
-   * Indoor Running
+   * Indoor Running, including explicit Indoor Track and Indoor Track Running names.
    */
   'Indoor running' = 'Indoor Running',
   'Indoor Running' = 'Indoor Running',
@@ -343,6 +351,12 @@ export enum ActivityTypes {
   'running_indoor' = 'Indoor Running',
   'running_indoor_running' = 'Indoor Running',
   'training_indoor_running' = 'Indoor Running',
+  'Indoor Track' = 'Indoor Running',
+  'IndoorTrack' = 'Indoor Running',
+  'indoor_track' = 'Indoor Running',
+  'Indoor Track Running' = 'Indoor Running',
+  'IndoorTrackRunning' = 'Indoor Running',
+  'indoor_track_running' = 'Indoor Running',
   /**
    * Cycling
    */
@@ -350,12 +364,23 @@ export enum ActivityTypes {
   'cycling' = 'Cycling',
   'cycling_road' = 'Cycling',
   'road_biking' = 'Cycling',
-  'cycling_track_cycling' = 'Cycling',
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
   'cycling_commuting' = 'Cycling',
   'cycling_mixed_surface' = 'Cycling',
+  /** Track Cycling; FIT cycling/track_cycling (2/13) does not establish an indoor venue. */
+  'Track Cycling' = 'Track Cycling',
+  'TrackCycling' = 'Track Cycling',
+  'track_cycling' = 'Track Cycling',
+  'cycling_track_cycling' = 'Track Cycling',
+  /** Recumbent Cycling; FIT cycling/recumbent (2/10) does not establish an indoor venue. */
+  'Recumbent Cycling' = 'Recumbent Cycling',
+  'RecumbentCycling' = 'Recumbent Cycling',
+  'recumbent_cycling' = 'Recumbent Cycling',
+  'Recumbent' = 'Recumbent Cycling',
+  'recumbent' = 'Recumbent Cycling',
+  'cycling_recumbent' = 'Recumbent Cycling',
   /**
    * BMX; explicit FIT cycling/bmx (2/29), distinct from general Cycling.
    */
@@ -435,6 +460,18 @@ export enum ActivityTypes {
   'EnduroMTB' = 'Enduro MTB',
   'enduroMTB' = 'Enduro MTB',
   'enduro_mtb' = 'Enduro MTB',
+
+  /** Electric enduro mountain biking; explicit FIT cycling/e_bike_enduro (2/127). */
+  'E-Enduro MTB' = 'E-Enduro MTB',
+  'EEnduroMTB' = 'E-Enduro MTB',
+  'e_enduro_mtb' = 'E-Enduro MTB',
+  'Electric Enduro MTB' = 'E-Enduro MTB',
+  'ElectricEnduroMTB' = 'E-Enduro MTB',
+  'electric_enduro_mtb' = 'E-Enduro MTB',
+  'EBikeEnduro' = 'E-Enduro MTB',
+  'eBikeEnduro' = 'E-Enduro MTB',
+  'e_bike_enduro' = 'E-Enduro MTB',
+  'cycling_e_bike_enduro' = 'E-Enduro MTB',
 
   // Downhill
   'cycling_downhill' = 'Downhill Cycling',
@@ -555,6 +592,11 @@ export enum ActivityTypes {
   'Walk' = 'Walking',
   'walk' = 'Walking',
   'walking_casual_walking' = 'Walking',
+  /** Speed Walking; explicit FIT walking/speed_walking (11/31), without inferring race-walking rules. */
+  'Speed Walking' = 'Speed Walking',
+  'SpeedWalking' = 'Speed Walking',
+  'speed_walking' = 'Speed Walking',
+  'walking_speed_walking' = 'Speed Walking',
   /**
    * Indoor Walking; FIT walking/indoor_walking (11/27) or fitness_equipment/indoor_walking (4/27).
    */
@@ -626,11 +668,21 @@ export enum ActivityTypes {
    */
   'Kayaking' = 'Kayaking',
   'kayaking' = 'Kayaking',
+  /** Whitewater Kayaking; FIT kayaking/whitewater (41/41), distinct from Whitewater Rafting. */
+  'Whitewater Kayaking' = 'Whitewater Kayaking',
+  'WhitewaterKayaking' = 'Whitewater Kayaking',
+  'whitewater_kayaking' = 'Whitewater Kayaking',
+  'kayaking_whitewater' = 'Whitewater Kayaking',
   /**
    * Rafting
    */
   'rafting' = 'Rafting',
   'Rafting' = 'Rafting',
+  /** Whitewater Rafting; FIT rafting/whitewater (42/41), distinct from Whitewater Kayaking. */
+  'Whitewater Rafting' = 'Whitewater Rafting',
+  'WhitewaterRafting' = 'Whitewater Rafting',
+  'whitewater_rafting' = 'Whitewater Rafting',
+  'rafting_whitewater' = 'Whitewater Rafting',
   /**
    * Rowing
    */
@@ -1125,6 +1177,13 @@ export enum ActivityTypes {
    */
   'flying' = 'Flying',
   'Flying' = 'Flying',
+  /** Wingsuit Flying; explicit FIT flying/wingsuit (20/40). */
+  'Wingsuit Flying' = 'Wingsuit Flying',
+  'WingsuitFlying' = 'Wingsuit Flying',
+  'wingsuit_flying' = 'Wingsuit Flying',
+  'Wingsuit' = 'Wingsuit Flying',
+  'wingsuit' = 'Wingsuit Flying',
+  'flying_wingsuit' = 'Wingsuit Flying',
   /**
    * Crossfit
    */
@@ -1236,6 +1295,11 @@ export enum ActivityTypes {
    */
   'Hunting' = 'Hunting',
   'hunting' = 'Hunting',
+  /** Hunting with Dogs; explicit FIT hunting/hunting_with_dogs (28/72). */
+  'Hunting with Dogs' = 'Hunting with Dogs',
+  'HuntingWithDogs' = 'Hunting with Dogs',
+  'hunting_with_dogs' = 'Hunting with Dogs',
+  'hunting_hunting_with_dogs' = 'Hunting with Dogs',
   /**
    * Archery; explicit FIT sport archery (79).
    */
@@ -1454,6 +1518,7 @@ const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
   ActivityTypes.Rowing,
   ActivityTypes.IndoorRowing,
   ActivityTypes.Kayaking,
+  ActivityTypes.WhitewaterKayaking,
   ActivityTypes.Canoeing,
   ActivityTypes.Paddling,
   ActivityTypes.StandUpPaddling
@@ -1558,11 +1623,14 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning],
     [ActivityTypeGroups.WalkingGroup]: [
       ActivityTypes.Walking,
+      ActivityTypes.SpeedWalking,
       ActivityTypes.IndoorWalking,
       ActivityTypes.NordicWalking
     ],
     [ActivityTypeGroups.CyclingGroup]: [
       ActivityTypes.Cycling,
+      ActivityTypes.TrackCycling,
+      ActivityTypes.RecumbentCycling,
       ActivityTypes.BMX,
       ActivityTypes.Cyclocross,
       ActivityTypes.GravelCycling,
@@ -1578,6 +1646,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.MountainBiking,
       ActivityTypes.EMountainBiking,
       ActivityTypes['Enduro MTB'],
+      ActivityTypes.EEnduroMTB,
       ActivityTypes.DownhillCycling
     ],
     [ActivityTypeGroups.SwimmingGroup]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
@@ -1589,6 +1658,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Triathlon,
       ActivityTypes.PoolTriathlon,
       ActivityTypes.Multisport,
+      ActivityTypes.BrickTraining,
       ActivityTypes['Adventure Racing'],
       ActivityTypes.Aquathlon,
       ActivityTypes.Duathlon,
@@ -1640,6 +1710,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Fishing,
       ActivityTypes.FloorClimbing,
       ActivityTypes.Hunting,
+      ActivityTypes.HuntingWithDogs,
       ActivityTypes.Archery,
       ActivityTypes.Shooting,
       ActivityTypes.Geocaching,
@@ -1664,6 +1735,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.SkatingGroup]: [ActivityTypes.InlineSkating, ActivityTypes.Skating],
     [ActivityTypeGroups.AerialSportsGroup]: [
       ActivityTypes.Flying,
+      ActivityTypes.WingsuitFlying,
       ActivityTypes.HangGliding,
       ActivityTypes.Jumpmaster,
       ActivityTypes.Paragliding,
@@ -1699,9 +1771,11 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Grinding,
       ActivityTypes.Canoeing,
       ActivityTypes.Kayaking,
+      ActivityTypes.WhitewaterKayaking,
       ActivityTypes.Paddling,
       ActivityTypes.StandUpPaddling,
       ActivityTypes.Rafting,
+      ActivityTypes.WhitewaterRafting,
       ActivityTypes.WaterSkiing,
       ActivityTypes.WaterTubing,
       ActivityTypes.Windsurfing

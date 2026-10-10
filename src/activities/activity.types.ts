@@ -503,6 +503,17 @@ export enum ActivityTypes {
   'Sailing' = 'Sailing',
   'sailing' = 'Sailing',
   /**
+   * Sailing Expedition; explicit FIT sailing/expedition (32/66), also named Sail Expedition by Garmin.
+   */
+  'Sailing Expedition' = 'Sailing Expedition',
+  'SailingExpedition' = 'Sailing Expedition',
+  'sailingExpedition' = 'Sailing Expedition',
+  'sailing_expedition' = 'Sailing Expedition',
+  'Sail Expedition' = 'Sailing Expedition',
+  'SailExpedition' = 'Sailing Expedition',
+  'sailExpedition' = 'Sailing Expedition',
+  'sail_expedition' = 'Sailing Expedition',
+  /**
    * Sail Racing; explicit FIT sailing/sail_race (32/65), distinct from general Sailing.
    */
   'Sail Racing' = 'Sail Racing',
@@ -799,6 +810,16 @@ export enum ActivityTypes {
   'Scuba Diving' = 'Scuba Diving',
   'ScubaDiving' = 'Scuba Diving',
   /**
+   * CCR Diving; explicit FIT diving/ccr_diving (53/63), using a closed-circuit rebreather.
+   */
+  'CCR Diving' = 'CCR Diving',
+  'CCRDiving' = 'CCR Diving',
+  'ccrDiving' = 'CCR Diving',
+  'ccr_diving' = 'CCR Diving',
+  'diving_ccr_diving' = 'CCR Diving',
+  'CCR' = 'CCR Diving',
+  'ccr' = 'CCR Diving',
+  /**
    * Free Diving
    */
   'Free diving' = 'Free Diving',
@@ -1048,6 +1069,12 @@ export enum ActivityTypes {
    * Hiking
    */
   'Hiking' = 'Hiking',
+  /**
+   * Rucking; explicit FIT hiking/rucking (17/124), distinct from general Hiking and Walking.
+   */
+  'Rucking' = 'Rucking',
+  'rucking' = 'Rucking',
+  'hiking_rucking' = 'Rucking',
   'hiking_trail' = 'Hiking',
   'hiking' = 'Hiking',
   'hike' = 'Hiking',
@@ -1268,6 +1295,7 @@ const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
 
 export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.Sailing,
+  ActivityTypes.SailingExpedition,
   ActivityTypes.SailRacing,
   ActivityTypes.Grinding,
   ActivityTypes.Rowing,
@@ -1283,6 +1311,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
+  ActivityTypes.CCRDiving,
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
   ActivityTypes.Snorkeling,
@@ -1294,6 +1323,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.Snowboarding,
   ActivityTypes.DownhillCycling,
   ActivityTypes.Sailing,
+  ActivityTypes.SailingExpedition,
   ActivityTypes.SailRacing,
   ActivityTypes.Grinding,
   ActivityTypes.Rowing,
@@ -1309,6 +1339,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Diving,
   ActivityTypes.ScubaDiving,
+  ActivityTypes.CCRDiving,
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
   ActivityTypes.Snorkeling,
@@ -1419,6 +1450,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.OutdoorAdventuresGroup]: [
       ActivityTypes.Walking,
       ActivityTypes.Hiking,
+      ActivityTypes.Rucking,
       ActivityTypes.NordicWalking,
       ActivityTypes.HorsebackRiding,
       ActivityTypes.Climbing,
@@ -1478,6 +1510,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Wakeboarding,
       ActivityTypes.Wakesurfing,
       ActivityTypes.Sailing,
+      ActivityTypes.SailingExpedition,
       ActivityTypes.SailRacing,
       ActivityTypes.Grinding,
       ActivityTypes.Canoeing,
@@ -1492,6 +1525,7 @@ export class ActivityTypesGroupMapping {
     [ActivityTypeGroups.DivingGroup]: [
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
+      ActivityTypes.CCRDiving,
       ActivityTypes.FreeDiving,
       ActivityTypes.PoolApnea,
       ActivityTypes.Snorkeling,

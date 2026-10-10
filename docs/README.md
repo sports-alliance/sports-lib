@@ -17,6 +17,11 @@ Pickleball (`racket/pickleball`, `64/84`) has its own Team/Racket type, distinct
 Historical Generic or Racquet Ball imports require specific retained sources, then regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Rucking (`17/124`) belongs to Outdoor Adventures, Sailing Expedition (`32/66`) to Water Sports, and CCR Diving
+(`53/63`) to Diving. Their specific FIT classifications and explicit names preserve separate types from Hiking,
+Sailing, and general Diving. Historical corrections need retained sources and regeneration of affected summaries
+and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
+
 Grinding (`59`) belongs to Water Sports, Indoor Grinding (`59/71`) to Indoor Sports, and Sail Racing (`32/65`)
 to Water Sports. Garmin's Grind Offshore, Grind Onshore, and Sail Race names preserve these separate types.
 Historical Generic, Unknown Sport, or Sailing imports need specific retained sources and regeneration of affected

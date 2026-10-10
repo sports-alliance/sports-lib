@@ -126,6 +126,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Grinding belongs to Water Sports; explicit FIT sport 59 preserves sailing winch activity.
  * Indoor Grinding belongs to Indoor Sports; FIT grinding/indoor_grinding (59/71) and Grind Onshore names preserve it separately.
  * Sail Racing belongs to Water Sports; FIT sailing/sail_race (32/65) and Sail Race names preserve it separately from Sailing.
+ * Rucking belongs to Outdoor Adventures; FIT hiking/rucking (17/124) preserves it separately from Hiking and Walking.
+ * Sailing Expedition belongs to Water Sports; FIT sailing/expedition (32/66) and Sail Expedition names preserve it separately.
+ * CCR Diving belongs to Diving; FIT diving/ccr_diving (53/63) preserves the closed-circuit rebreather type and excludes terrain summaries.
  * FIT Dance (sport 83) reuses the existing Dancing type in Indoor Sports.
  * Jump Rope belongs to Indoor Sports; explicit FIT sport 84 preserves it separately from Pickleball sub-sport 84.
  * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.

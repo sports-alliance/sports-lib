@@ -986,7 +986,8 @@ describe('Activity Utilities', () => {
       ActivityTypes.Wakeboarding,
       ActivityTypes.Wakesurfing,
       ActivityTypes.Grinding,
-      ActivityTypes.SailRacing
+      ActivityTypes.SailRacing,
+      ActivityTypes.SailingExpedition
     ])('does not derive ascent/descent for %s but retains altitude data and explicit source totals', activityType => {
       const activity = new Activity(
         new Date(0),
@@ -1043,6 +1044,7 @@ describe('Activity Utilities', () => {
     it.each([
       ActivityTypes.Diving,
       ActivityTypes.ScubaDiving,
+      ActivityTypes.CCRDiving,
       ActivityTypes.FreeDiving,
       ActivityTypes.PoolApnea,
       ActivityTypes.Snorkeling,

@@ -2436,9 +2436,30 @@ export class EventImporterFIT {
       case 'sailrace':
       case 'sailracing':
         return ActivityTypes.SailRacing;
+      case 'sailexpedition':
+      case 'sailingexpedition':
+        return ActivityTypes.SailingExpedition;
       case 'sailing':
         if (normalizedSubSportName === 'sailrace') {
           return ActivityTypes.SailRacing;
+        }
+        if (normalizedSubSportName === 'expedition') {
+          return ActivityTypes.SailingExpedition;
+        }
+        break;
+      case 'rucking':
+        return ActivityTypes.Rucking;
+      case 'hiking':
+        if (normalizedSubSportName === 'rucking') {
+          return ActivityTypes.Rucking;
+        }
+        break;
+      case 'ccrdiving':
+      case 'ccr':
+        return ActivityTypes.CCRDiving;
+      case 'diving':
+        if (normalizedSubSportName === 'ccrdiving') {
+          return ActivityTypes.CCRDiving;
         }
         break;
     }
@@ -2475,12 +2496,14 @@ export class EventImporterFIT {
     // Backcountry is terrain context shared by skiing, running, cycling, and swimming.
     // Preserve explicit composite mappings, but do not use the legacy standalone
     // activity alias to turn an unrelated or unknown FIT sport into skiing.
-    // Pickleball, Indoor Grinding, and Sail Race require their respective parent sports.
+    // Sport-specific sub-sports require their respective parents before alias fallback.
     const canUseSubSportAlone =
       normalizedSubSportName !== 'backcountry' &&
       normalizedSubSportName !== 'pickleball' &&
       normalizedSubSportName !== 'indoorgrinding' &&
-      normalizedSubSportName !== 'sailrace';
+      normalizedSubSportName !== 'sailrace' &&
+      normalizedSubSportName !== 'rucking' &&
+      normalizedSubSportName !== 'ccrdiving';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

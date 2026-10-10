@@ -379,22 +379,26 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it.each([ActivityTypes.Grinding, ActivityTypes.IndoorGrinding, ActivityTypes.SailRacing])(
-    'retains power TSS calculation for %s without adding a new formula',
-    type => {
-      const activity = createActivity(
-        type,
-        600,
-        new ActivityParsingOptions({ tss: { overrides: { functionalThresholdPower: 200 } } })
-      );
-      addNumericStream(activity, DataPower.type, new Array(600).fill(200));
+  it.each([
+    ActivityTypes.Grinding,
+    ActivityTypes.IndoorGrinding,
+    ActivityTypes.SailRacing,
+    ActivityTypes.Rucking,
+    ActivityTypes.SailingExpedition,
+    ActivityTypes.CCRDiving
+  ])('retains power TSS calculation for %s without adding a new formula', type => {
+    const activity = createActivity(
+      type,
+      600,
+      new ActivityParsingOptions({ tss: { overrides: { functionalThresholdPower: 200 } } })
+    );
+    addNumericStream(activity, DataPower.type, new Array(600).fill(200));
 
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-      expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-      expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
-    }
-  );
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
+  });
 
   it('recomputes imported TSS when preserveImportedTss is disabled', () => {
     const activity = createActivity(

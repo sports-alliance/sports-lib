@@ -64,6 +64,47 @@ The existing strict MCP activity-type catalog discovers the new canonical names,
 canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
 remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
 
+`ActivityTypes.Rucking` has canonical stored value `Rucking` in `ActivityTypeGroups.OutdoorAdventuresGroup`. FIT
+`hiking/rucking` (`17/124`) preserves the type separately from Hiking and Walking before profile fallbacks, across
+manufacturers. Explicit Rucking sport/profile names also establish it. `rucking` and `hiking_rucking` restore the same
+value from native JSON. A generic or unrelated parent with sub-sport `124` does not establish Rucking; a pack-weight
+field alone does not change Hiking or Walking into Rucking. [Garmin's Rucking manual](https://www8.garmin.com/manuals/webhelp/GUID-708A8F4D-9A78-49CF-9528-DE109BBCC472/EN-US/GUID-2167E511-03AE-4E0C-A813-67BBCC047D7A.html)
+lists Rucking under Outdoor. This classification adds no pack-weight metric or weight-dependent calculation.
+
+`ActivityTypes.SailingExpedition` has canonical stored value `Sailing Expedition` in `ActivityTypeGroups.WaterSportsGroup`.
+FIT `sailing/expedition` (`32/66`) preserves this type separately from Sailing and Sail Racing before profile fallbacks.
+Explicit `Sailing Expedition` and `Sail Expedition` sport/profile names, and their camel-case/snake-case aliases, resolve
+to the same type, including native JSON. Standalone Expedition does not establish sailing; `generic/expedition` stays
+Generic, and `hiking/expedition` stays Hiking. Garmin documents
+[Sail Expedition as a multiday sailing activity](https://www.garmin.com/en-GB/p/818345/). Classification alone does not
+restore missing samples or alter the importer's existing duration and stream limits.
+
+`ActivityTypes.CCRDiving` has canonical stored value `CCR Diving` in `ActivityTypeGroups.DivingGroup`. FIT
+`diving/ccr_diving` (`53/63`) preserves this closed-circuit rebreather type before profile fallbacks, separately from
+Diving, Scuba Diving, Free Diving, and Pool Apnea. `CCRDiving`, `ccrDiving`, `ccr_diving`, `diving_ccr_diving`, `CCR`, and
+`ccr` resolve to it, including native JSON. A generic or unrelated parent with sub-sport `63` does not establish CCR
+Diving; sport `63` still identifies Video Gaming. [Garmin's dive modes](https://www8.garmin.com/manuals/webhelp/GUID-120241CE-9583-49CD-A0BC-8839B887F7CA/EN-US/GUID-B0F7269A-8B02-48F3-AED2-CECB581B361F.html)
+identify CCR as closed-circuit rebreather diving. These numeric identifiers appear in
+[Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js); broad `ruck`,
+`expedition`, and `rebreather` activity aliases are not added.
+
+All three have the existing movement threshold, a false indoor hint, and no stroke-rate conversion or durability
+adapter. Rucking inherits Outdoor Adventures' pace/speed and vertical-speed families and normal terrain summaries.
+Sailing Expedition inherits Water Sports' speed/swim-pace families and Sailing's ascent/descent derivation exclusions,
+while retaining raw altitude data, altitude summaries, and explicit source ascent/descent. CCR Diving inherits Diving's
+speed family and excludes terrain summaries (altitude, grade, ascent, and descent) on activities and laps while
+retaining source streams and dive data. All retain their groups' existing TSS selection. No numeric token, unit,
+provider transport, delivery support, Training formula, or modeled family is added. Quantified Self's existing policy
+resolves the new types to volume-only Other training. Usable power curves remain isolated by exact canonical type.
+
+Stored Hiking, Sailing, Diving, Generic, or Unknown Sport labels cannot establish the more specific activities. Reparse
+retained FIT `17/124`, `32/66`, or `53/63` sources, or restore specific source names/profiles, then regenerate separately
+persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
+Adopt the release in both the Quantified Self application and Functions before persisting these types. Existing strict
+MCP catalog discovery exposes their names, groups, and indoor hints without new fields, scopes, tools, or planning
+mutations. Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
+Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+
 `ActivityTypes.Grinding` has canonical stored value `Grinding` in `ActivityTypeGroups.WaterSportsGroup`. Explicit FIT
 sport `grinding` (`59`) identifies operating sailing winches and preserves this type before profile or unrelated
 sub-sport fallbacks. `ActivityTypes.IndoorGrinding` has canonical stored value `Indoor Grinding` in
@@ -420,7 +461,7 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
-`Video Gaming`, `Grinding`, `Indoor Grinding`, or `Sail Racing`.
+`Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, or `CCR Diving`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

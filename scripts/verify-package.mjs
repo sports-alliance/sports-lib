@@ -383,6 +383,32 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
   });
 }
 
+function assertActivityMetadataBudget(initialOutputs) {
+  // The expanded 245-sport catalog and synchronous provider resolver are intentional startup metadata.
+  // Bound their contributions separately so increasing the total does not hide an unrelated eager import.
+  const inputBytes = suffix =>
+    [...initialOutputs.values()].reduce(
+      (total, output) =>
+        total +
+        Object.entries(output.inputs).reduce(
+          (inputTotal, [inputPath, contribution]) =>
+            inputTotal + (normalizePath(inputPath).endsWith(suffix) ? contribution.bytesInOutput : 0),
+          0
+        ),
+      0
+    );
+  const catalogBytes = inputBytes('/activities/activity.types.js');
+  const providerMappingBytes = inputBytes('/activities/activity-types.provider.js');
+  assert.ok(
+    catalogBytes <= 40_000,
+    `Activity catalog contributes ${catalogBytes} startup bytes; expected at most 40000`
+  );
+  assert.ok(
+    providerMappingBytes <= 20_000,
+    `Provider mappings contribute ${providerMappingBytes} startup bytes; expected at most 20000`
+  );
+}
+
 async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   const fixtureName = 'representative-startup.mjs';
   const result = await bundleFixture(temporaryDirectory, fixtureName);
@@ -401,7 +427,8 @@ async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   assert.equal(initialOutputFiles.length, initialOutputs.size, 'Unable to inspect every initial bundle output');
   const initialOutputText = initialOutputFiles.map(outputFile => outputFile.text).join('\n');
 
-  assert.ok(initialBytes <= 60_000, `Representative startup bundle is ${initialBytes} bytes; expected at most 60000`);
+  assertActivityMetadataBudget(initialOutputs);
+  assert.ok(initialBytes <= 85_000, `Representative startup bundle is ${initialBytes} bytes; expected at most 85000`);
   assertInputsExcluded(initialOutputs, [
     '/node_modules/fit-file-parser/',
     '/node_modules/fit-parser/',
@@ -443,7 +470,8 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  assert.ok(initialBytes <= 425_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 425000`);
+  assertActivityMetadataBudget(initialOutputs);
+  assert.ok(initialBytes <= 450_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 450000`);
   assert.ok(
     fitParserBytes <= 30_000,
     `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`

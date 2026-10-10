@@ -3,6 +3,14 @@ import { DataPowerTrainingStressScore } from './data.power-training-stress-score
 import { DataTrainingStressScore } from './data.training-stress-score';
 
 describe('DataTrainingStressScore compatibility', () => {
+  it('offers one-decimal load display without changing default display or canonical persistence', () => {
+    const score = new DataTrainingStressScore(87.34);
+    expect(score.getDisplayValue()).toBe(87);
+    expect(score.getDisplayValue(1)).toBe(87.3);
+    expect(score.getDisplayUnit()).toBe('');
+    expect(score.getValue()).toBe(87.34);
+    expect(new DataTrainingStressScore(0).getDisplayValue(1)).toBe(0);
+  });
   it('keeps the deprecated class alias mapped to the new stat type', () => {
     expect(DataPowerTrainingStressScore.type).toBe(DataTrainingStressScore.type);
   });

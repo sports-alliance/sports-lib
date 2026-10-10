@@ -52,3 +52,23 @@ activity-wide identity data; battery consumption and lifetime calculations conti
 `RouteParsingOptions` applies the same generated-stream controls to point-indexed route streams. Its `includeTypes` filter accepts only route-supported stream types; unknown or activity-only tokens throw a parsing error.
 
 GPX tracks with timestamps normally represent recorded activities. Set `gpx.importTimedTracksAsRoutes` to `true` only when deliberately converting timed track geometry into a reusable route.
+
+## Training stress evaluations
+
+HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
+Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligible sports retain power and pace methods
+in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
+reasons and existing optional physiological overrides.
+Imported scores take precedence with `preserveImportedTss: true` or omission. With false, all evaluation policies use
+calculated candidates; summary generation replaces the score or removes it when no eligible calculation is available.
+
+```ts
+import { ActivityUtilities } from '@sports-alliance/sports-lib';
+const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(event.getFirstActivity());
+// evaluations.automatic / .hr / .met: score, actual method, provenance, estimated, reasons
+```
+
+Read the cached evaluations while retaining the parsed Activity instance. They survive stream disposal on that instance,
+but are not serialized into ordinary activity JSON. Use `evaluateTrainingStressScore` only for an explicit recalculation.
+For complete method comparisons, omit `streams.includeTypes`: a restrictive allowlist can prevent calculation inputs
+from being imported, so evaluations reflect only the inputs that were loaded.

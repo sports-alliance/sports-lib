@@ -297,7 +297,10 @@ describe('Training Stress Score integration', () => {
         for (const importedTss of [0, 42.375]) {
           const options = new ActivityParsingOptions({
             generateUnitStreams: false,
-            tss: { preserveImportedTss: false, overrides: { functionalThresholdPower: 200 } }
+            tss: {
+              preserveImportedTss: false,
+              overrides: { functionalThresholdPower: 200, metScore: 6, thresholdMet: 6 }
+            }
           });
           const activity = createActivity(type as ActivityTypes, 60, options);
           activity.addStat(new DataTrainingStressScore(importedTss));
@@ -317,7 +320,14 @@ describe('Training Stress Score integration', () => {
               expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
               expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(importedTss);
               expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-                TrainingStressScoreMethod.POWER
+                [
+                  ActivityTypes.Walking,
+                  ActivityTypes.NordicWalking,
+                  ActivityTypes.Hiking,
+                  ActivityTypes.Trekking
+                ].includes(type as ActivityTypes)
+                  ? TrainingStressScoreMethod.MET
+                  : TrainingStressScoreMethod.POWER
               );
             }
           }
@@ -638,7 +648,9 @@ describe('Training Stress Score integration', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
-    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(42.5);
+    const computedTss = activity.getStat(DataTrainingStressScore.type)?.getValue() as number;
+    expect(computedTss).toBeGreaterThan(90);
+    expect(computedTss).toBeLessThan(110);
   });
 
   it('uses POWER first when all methods could be computed', () => {
@@ -704,8 +716,14 @@ describe('Training Stress Score integration', () => {
     expect(intensityFactor).toBeCloseTo(normalizedPower / derivedFtp, 3);
   });
 
-  it('falls back to HR when POWER is unavailable', () => {
-    const activity = createActivity(ActivityTypes.Running, 300);
+  it('falls back to calibrated HR when POWER is unavailable', () => {
+    const activity = createActivity(
+      ActivityTypes.Running,
+      300,
+      new ActivityParsingOptions({
+        tss: { overrides: { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 170 } }
+      })
+    );
     addNumericStream(activity, DataHeartRate.type, new Array(300).fill(160));
     addZoneFiveThreshold(activity, DataHeartRate.type, 170);
 
@@ -715,7 +733,7 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
-  it('uses Banister when resting HR is provided and Edwards when it is missing', () => {
+  it('uses Banister with complete calibration and withholds HR when resting HR is missing', () => {
     const banisterActivity = createActivity(
       ActivityTypes.Running,
       3600,
@@ -751,9 +769,9 @@ describe('Training Stress Score integration', () => {
     const edwardsTss = edwardsActivity.getStat(DataTrainingStressScore.type)?.getValue();
 
     expect(banisterActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
-    expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+    expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
     expect(banisterTss).toBeDefined();
-    expect(edwardsTss).toBeDefined();
+    expect(edwardsTss).toBeUndefined();
     expect(banisterTss).not.toBe(edwardsTss);
   });
 
@@ -924,6 +942,10 @@ describe('Training Stress Score integration', () => {
         fixtureName
       );
       const recomputedActivity = recomputedEvent.getFirstActivity();
+      // Explicitly remove the authoritative import for this calculation-only parity test.
+      recomputedActivity.removeStat(DataTrainingStressScore.type);
+      recomputedActivity.removeStat(DataTrainingStressScoreMethod.type);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(recomputedActivity);
       const method = recomputedActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
       const computedTss = recomputedActivity.getStat(DataTrainingStressScore.type)?.getValue() as number;
       const ftp = recomputedActivity.getStat(DataFTP.type)?.getValue() as number;

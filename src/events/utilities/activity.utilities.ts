@@ -1,3 +1,11 @@
+import {
+  fileHeartRateCalibration,
+  trainingStressScoreEvaluations,
+  TrainingStressScoreEvaluations,
+  TrainingStressScoreEvaluation,
+  TrainingStressScorePreference,
+  TrainingStressScoreReason
+} from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataMaxHRSetting } from '../../data/data.max-hr-setting';
@@ -932,7 +940,8 @@ export class ActivityUtilities {
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
    * Explicit stats are preserved except terrain summaries excluded for Diving activities and
    * calculated TSS excluded for Motorized, Adaptive Mobility, and Video Gaming activities.
-   * Those activities retain finite source-imported TSS, including legacy scores without a method.
+   * With imported TSS preservation enabled, those activities retain finite provider scores,
+   * including legacy scores without a method.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     normalizeActivityMetricSemanticsForActivity(activity);
@@ -2499,7 +2508,7 @@ export class ActivityUtilities {
     if (override !== null) {
       return override;
     }
-    return this.getZoneFiveLowerLimit(activity, DataHeartRate.type);
+    return fileHeartRateCalibration.get(activity)?.lactateThresholdHR ?? null;
   }
 
   private static resolveMaxHeartRate(activity: ActivityInterface): number | null {
@@ -2513,11 +2522,15 @@ export class ActivityUtilities {
       return setting;
     }
 
-    return this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataHeartRateMax.type));
+    return fileHeartRateCalibration.get(activity)?.maxHeartRate ?? null;
   }
 
   private static resolveRestingHeartRate(activity: ActivityInterface): number | null {
-    return this.getTssOverrideValue(activity, 'restingHeartRate');
+    return (
+      this.getTssOverrideValue(activity, 'restingHeartRate') ??
+      fileHeartRateCalibration.get(activity)?.restingHeartRate ??
+      null
+    );
   }
 
   private static resolveGender(activity: ActivityInterface): string | undefined {
@@ -2771,29 +2784,131 @@ export class ActivityUtilities {
     );
   }
 
-  private static calculateTrainingStressScoreByPriority(activity: ActivityInterface): TssCalculationResult | null {
-    const powerTss = this.calculatePowerTss(activity);
-    if (powerTss) {
-      return powerTss;
+  /**
+   * Compute all requested policies once from currently available parsed inputs.
+   * Explicit recalculation replaces the cached evaluation; known calculated scores
+   * are never promoted to imported scores. Results contain no raw HR calibration.
+   */
+  public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
+    const walking = [
+      ActivityTypes.Walking,
+      ActivityTypes.NordicWalking,
+      ActivityTypes.Hiking,
+      ActivityTypes.Trekking
+    ].includes(activity.type);
+    const existingScore = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
+    const existingMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
+    const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
+    const imported =
+      existingScore !== null &&
+      preserveImportedTss &&
+      (existingMethod === undefined || existingMethod === TrainingStressScoreMethod.IMPORTED);
+    if (imported) {
+      const importedResult = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => ({
+        preference,
+        score: existingScore,
+        method: TrainingStressScoreMethod.IMPORTED,
+        estimated: false,
+        provenance: 'imported',
+        reasons: ['imported-score']
+      });
+      const result: TrainingStressScoreEvaluations = {
+        version: 1,
+        automatic: importedResult('AUTOMATIC'),
+        hr: importedResult('HR'),
+        met: importedResult('MET')
+      };
+      trainingStressScoreEvaluations.set(activity, result);
+      return result;
     }
-
-    const hrTss = this.calculateHrTss(activity);
-    if (hrTss) {
-      return hrTss;
+    const eligible = this.supportsCalculatedTrainingStressScore(activity);
+    const fileCalibration = fileHeartRateCalibration.get(activity);
+    const overrides = activity.parseOptions?.tss?.overrides;
+    const completeOverride = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'].every(
+      key => overrides?.[key as keyof ActivityParsingTssOverridesOptions] !== undefined
+    );
+    const max = this.resolveMaxHeartRate(activity);
+    const rest = this.resolveRestingHeartRate(activity);
+    const threshold = this.resolveLactateThresholdHr(activity);
+    const hrReason: TrainingStressScoreReason | null =
+      !completeOverride && fileCalibration?.reason
+        ? fileCalibration.reason
+        : max === null || rest === null || threshold === null
+          ? 'missing-hr-calibration'
+          : !(0 < rest && rest < threshold && threshold < max)
+            ? 'invalid-hr-calibration'
+            : !this.getStreamSamplesByDuration(activity, DataHeartRate.type).some(sample => sample.value > 0)
+              ? 'missing-hr-samples'
+              : null;
+    const power = eligible && !walking ? this.calculatePowerTss(activity) : null;
+    const hr = eligible && !hrReason ? this.calculateHrTss(activity) : null;
+    const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
+    // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
+    const pace =
+      eligible && !walking && !power && !hr
+        ? group === ActivityTypeGroups.SwimmingGroup
+          ? this.calculateSwimPaceTss(activity)
+          : this.supportsPaceTss(activity)
+            ? this.calculatePaceTss(activity)
+            : null
+        : null;
+    const met = eligible ? this.calculateMetTss(activity) : null;
+    const automatic = power ?? hr ?? pace ?? met;
+    const automaticReasons: TrainingStressScoreReason[] = [];
+    if (!eligible) automaticReasons.push('unsupported-sport');
+    else {
+      if (!walking && !power) automaticReasons.push('missing-power-inputs');
+      if (!power && !hr) automaticReasons.push(hrReason ?? 'calculation-unavailable');
+      if (
+        !power &&
+        !hr &&
+        !walking &&
+        !pace &&
+        (group === ActivityTypeGroups.SwimmingGroup || this.supportsPaceTss(activity))
+      )
+        automaticReasons.push('missing-pace-inputs');
+      if (!automatic) automaticReasons.push('missing-met-inputs');
     }
-
-    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    const paceLikeTss =
-      activityGroup === ActivityTypeGroups.SwimmingGroup
-        ? this.calculateSwimPaceTss(activity)
-        : this.supportsPaceTss(activity)
-          ? this.calculatePaceTss(activity)
-          : null;
-    if (paceLikeTss) {
-      return paceLikeTss;
+    const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
+      const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
+      const result = preferred ?? automatic;
+      const reasons =
+        preference === 'AUTOMATIC'
+          ? automaticReasons
+          : preferred
+            ? []
+            : [
+                ...new Set<TrainingStressScoreReason>([
+                  preference === 'HR' ? (hrReason ?? 'calculation-unavailable') : 'missing-met-inputs',
+                  ...automaticReasons
+                ])
+              ];
+      return {
+        preference,
+        score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
+        method: result?.calculationMethod ?? null,
+        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET,
+        provenance: result ? 'calculated' : null,
+        reasons
+      };
+    };
+    const result: TrainingStressScoreEvaluations = {
+      version: 1,
+      automatic: resolve('AUTOMATIC'),
+      hr: resolve('HR'),
+      met: resolve('MET')
+    };
+    if (automatic?.calculationMethod === TrainingStressScoreMethod.POWER) {
+      this.persistFunctionalThresholdPowerOverride(activity);
+      this.updatePowerOutputsFromPowerTss(activity, automatic);
     }
+    trainingStressScoreEvaluations.set(activity, result);
+    return result;
+  }
 
-    return this.calculateMetTss(activity);
+  /** Read the last parse-time evaluations, computing them only if none have been cached. */
+  public static getTrainingStressScoreEvaluations(activity: ActivityInterface): TrainingStressScoreEvaluations {
+    return trainingStressScoreEvaluations.get(activity) ?? this.evaluateTrainingStressScore(activity);
   }
 
   private static updatePowerOutputsFromPowerTss(
@@ -2819,53 +2934,15 @@ export class ActivityUtilities {
   }
 
   private static generateTrainingStressScore(activity: ActivityInterface): void {
-    const existingTss = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
-    const existingTssMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
-    const preserveImportedTss = activity.parseOptions?.tss?.preserveImportedTss ?? true;
-
-    // Preserve imported scores for every sport when requested (the default),
-    // including zero and legacy scores without a method, before eligibility checks.
-    const hasImportedTss =
-      existingTss !== null &&
-      (existingTssMethod === undefined || existingTssMethod === TrainingStressScoreMethod.IMPORTED);
-    if (hasImportedTss && preserveImportedTss) {
-      if (existingTssMethod === undefined) {
-        this.setTrainingStressScoreMethod(activity, TrainingStressScoreMethod.IMPORTED);
-      }
-      return;
-    }
-
-    if (!this.supportsCalculatedTrainingStressScore(activity)) {
+    const result = this.evaluateTrainingStressScore(activity).automatic;
+    // A failed recalculation must remove a previous calculated result, including its method.
+    if (result.score === null || result.method === null) {
       activity.removeStat(DataTrainingStressScore.type);
       activity.removeStat(DataTrainingStressScoreMethod.type);
       return;
     }
-
-    if (existingTss !== null && preserveImportedTss) {
-      return;
-    }
-
-    // Disabling preservation discards the previous score and method. If no
-    // calculation succeeds, both stay unset rather than retaining imported TSS.
-    if (!preserveImportedTss) {
-      activity.removeStat(DataTrainingStressScore.type);
-      activity.removeStat(DataTrainingStressScoreMethod.type);
-    }
-
-    const result = this.calculateTrainingStressScoreByPriority(activity);
-    if (!result) {
-      return;
-    }
-
-    activity.addStat(
-      new DataTrainingStressScore(this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS))
-    );
-    this.setTrainingStressScoreMethod(activity, result.calculationMethod);
-
-    if (result.calculationMethod === TrainingStressScoreMethod.POWER) {
-      this.persistFunctionalThresholdPowerOverride(activity);
-      this.updatePowerOutputsFromPowerTss(activity, result);
-    }
+    activity.addStat(new DataTrainingStressScore(result.score));
+    this.setTrainingStressScoreMethod(activity, result.method);
   }
 
   /**

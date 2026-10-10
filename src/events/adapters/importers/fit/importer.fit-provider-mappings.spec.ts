@@ -100,6 +100,7 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
       for (const score of [0, 42.5]) {
         const encoder = new FitEncoder();
         const startTime = FitEncoder.toFitTimestamp(new Date('2026-01-01T12:00:00Z'));
+        const profileBytes = FitEncoder.string(row.identifier);
         encoder.writeMessage(0, [
           { number: 0, size: 1, baseType: FitBaseType.Enum, value: 4 },
           { number: 1, size: 2, baseType: FitBaseType.Uint16, value: manufacturers[source] },
@@ -115,9 +116,9 @@ describe('Approved Garmin, Polar and Strava sport mappings', () => {
           { number: 35, size: 2, baseType: FitBaseType.Uint16, value: score * 10 },
           {
             number: 110,
-            size: row.identifier.length + 1,
+            size: profileBytes.length,
             baseType: FitBaseType.String,
-            value: Buffer.from(`${row.identifier}\0`)
+            value: profileBytes
           }
         ]);
         const event = await EventImporterFIT.getFromArrayBuffer(

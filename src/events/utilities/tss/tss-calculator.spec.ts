@@ -75,19 +75,23 @@ describe('TssCalculator', () => {
     expect(unknown!.trainingStressScore).toBeCloseTo(male!.trainingStressScore, 6);
   });
 
-  it('falls back to Edwards TRIMP when resting HR is missing', () => {
-    const samples = Array.from({ length: 3600 }, (_value, index) => ({ duration: index + 1, hr: 160 }));
+  it.each([
+    { maxHeartRate: 190, lactateThresholdHR: 165 },
+    { restingHeartRate: 55, lactateThresholdHR: 165 },
+    { maxHeartRate: 190, restingHeartRate: 55 },
+    { maxHeartRate: 190, restingHeartRate: 165, lactateThresholdHR: 165 },
+    { maxHeartRate: 165, restingHeartRate: 55, lactateThresholdHR: 165 },
+    { maxHeartRate: Infinity, restingHeartRate: 55, lactateThresholdHR: 165 }
+  ])('requires complete valid calibration: %j', calibration => {
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 3600,
+      samples: [{ duration: 3600, hr: 82 }], ...calibration })).toBeNull();
+  });
 
-    const result = TssCalculator.calculateHrTss({
-      totalDurationWithoutPauses: 3600,
-      lactateThresholdHR: 160,
-      maxHeartRate: 190,
-      samples
-    });
-
-    expect(result).toBeTruthy();
-    expect(result!.calculationMethod).toBe(TrainingStressScoreMethod.HR);
-    expect(result!.trainingStressScore).toBeCloseTo(100, 1);
+  it('gives approximately 7.6 for the synthetic recovery walk', () => {
+    const samples = Array.from({length: 3601}, (_, duration) => ({ duration,
+      hr: duration < 1830 ? 78 : duration < 3600 ? 86 : 100 }));
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 3600, samples,
+      maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165 })?.trainingStressScore).toBeCloseTo(7.6, 1);
   });
 
   it('calculates pace TSS with Minetti grade adjustment and threshold normalization', () => {

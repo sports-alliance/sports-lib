@@ -9,12 +9,14 @@ import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataPowerIntensityFactor } from '../../data/data.power-intensity-factor';
 import { DataTrainingStressScore } from '../../data/data.training-stress-score';
 import { DataHeartRate } from '../../data/data.heart-rate';
+import { DataHeartRateMax } from '../../data/data.heart-rate-max';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../data/data.training-stress-score-method';
 import { ActivityTypes } from '../../activities/activity.types';
 import { Event } from '../event';
 import { EventUtilities } from './event.utilities';
 import { FileType } from '../adapters/file-type.enum';
 import { IntensityZones } from '../../intensity-zones/intensity-zones';
+import { fileHeartRateCalibration } from './tss/tss-evaluation';
 
 describe('Power Analytics Integration', () => {
   it('should generate Power Curve and FTP without inventing activity-local CP/W′', () => {
@@ -116,12 +118,29 @@ describe('Power Analytics Integration', () => {
     expect(method).toBeFalsy();
   });
 
-  it('should calculate TSS from heart-rate stream when power-based TSS is unavailable', () => {
+  it('should calculate TSS from calibrated heart-rate stream when power-based TSS is unavailable', () => {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 3600 * 1000);
 
     // @ts-ignore
     const activity = new Activity(startDate, endDate, ActivityTypes.Running, { toJSON: () => ({}) } as any);
+    const hrStream = activity.createStream(DataHeartRate.type);
+    hrStream.setData(new Array(3600).fill(160));
+    activity.addStream(hrStream);
+    fileHeartRateCalibration.set(activity, { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 160 });
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    const tss = activity.getStat(DataTrainingStressScore.type);
+    expect(tss).toBeDefined();
+    expect(tss!.getValue()).toBeCloseTo(100, 1);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+  });
+
+  it('should not infer HR calibration from observed peak or zone boundaries', () => {
+    const startDate = new Date();
+    const activity = new Activity(startDate, new Date(startDate.getTime() + 3600 * 1000),
+      ActivityTypes.Running, { toJSON: () => ({}) } as any);
     const hrStream = activity.createStream(DataHeartRate.type);
     hrStream.setData(new Array(3600).fill(160));
     activity.addStream(hrStream);
@@ -136,13 +155,15 @@ describe('Power Analytics Integration', () => {
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-    const tss = activity.getStat(DataTrainingStressScore.type);
-    expect(tss).toBeDefined();
-    expect(tss!.getValue()).toBeCloseTo(100, 1);
-    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+    expect(activity.getStat(DataHeartRateMax.type)?.getValue()).toBe(160);
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).hr).toMatchObject({
+      score: null, method: null, reasons: expect.arrayContaining(['missing-hr-calibration']),
+    });
   });
 
-  it('should prefer power-based TSS over heart-rate-zone fallback when both are available', () => {
+  it('should prefer power-based TSS over calibrated heart-rate TSS when both are available', () => {
     const powerValues = new Array(3600).fill(300);
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + powerValues.length * 1000);
@@ -155,14 +176,7 @@ describe('Power Analytics Integration', () => {
     const hrStream = activity.createStream(DataHeartRate.type);
     hrStream.setData(new Array(3600).fill(160));
     activity.addStream(hrStream);
-    const zones = new IntensityZones(DataHeartRate.type);
-    zones.zone1Duration = 0;
-    zones.zone2Duration = 0;
-    zones.zone3Duration = 0;
-    zones.zone4Duration = 0;
-    zones.zone5Duration = 0;
-    zones.zone5LowerLimit = 170;
-    activity.intensityZones.push(zones);
+    fileHeartRateCalibration.set(activity, { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 160 });
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
@@ -170,6 +184,9 @@ describe('Power Analytics Integration', () => {
     expect(tss).toBeDefined();
     expect(tss!.getValue()).toBeCloseTo(109.9, 1);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).hr).toMatchObject({
+      score: 100, method: TrainingStressScoreMethod.HR,
+    });
   });
 
   it('should serialize Power Curve and FTP without generated CP/W′', () => {

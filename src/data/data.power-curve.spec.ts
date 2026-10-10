@@ -42,4 +42,17 @@ describe('DataPowerCurve', () => {
       [DataPowerCurve.type]: [{ duration: 1, power: 100 }]
     });
   });
+
+  it('preserves explicit zero watts per kilogram through repeated JSON round trips', () => {
+    const points = [
+      { duration: 1, power: 0, wattsPerKg: 0 },
+      { duration: 5, power: 100 }
+    ];
+    const first = new DataPowerCurve(points as any);
+    const restored = new DataPowerCurve(first.toJSON()[DataPowerCurve.type]);
+    expect(first.toJSON()).toEqual({ [DataPowerCurve.type]: points });
+    expect(restored.toJSON()).toEqual(first.toJSON());
+    expect(restored.getValue()[0].wattsPerKg?.getValue()).toBe(0);
+    expect(restored.getValue()[1].wattsPerKg).toBeUndefined();
+  });
 });

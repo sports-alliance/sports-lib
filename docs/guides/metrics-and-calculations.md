@@ -370,6 +370,10 @@ FTP = round(0.95 * best_20min_power)
 IF = NP / FTP
 ```
 
+`DataPowerCurve` preserves explicit zero `wattsPerKg` values through JSON restoration; missing W/kg stays absent.
+Existing saved zeros are readable without reparsing. This keeps source statistics stable when consumers restore
+activities for Training load validation; the structured curve remains outside the numeric event-metric catalog.
+
 `samplePowerCurveAtDuration` samples exact points or interpolates in reciprocal-duration (`1/t`) space. Interpolation
 requires neighboring durations within the default 1.25 ratio (configurable up to the hard maximum of 2), keeps the
 strongest duplicate, and never extrapolates. `comparePowerCurveWindows` reports recent/reference retention percentage
@@ -546,10 +550,22 @@ when preservation remains enabled.
 With **false**, existing imported or calculated TSS and its method are discarded. A replacement is calculated for
 eligible sports with sufficient inputs; if calculation is excluded or no method succeeds, both stay unset. Motorized,
 Adaptive Mobility, Video Gaming, Paramotoring, and RC Drone Flying follow the same flag rather than retaining an
-imported score after preservation is disabled. Existing calculated scores on eligible sports remain unchanged when
-preservation is true and are refreshed when false. Missing TSS on eligible sports uses this priority:
+imported score after preservation is disabled. Known calculated scores are refreshed using the current inputs.
+Eligible sports use this priority when preservation is enabled; false skips the imported-score step:
 
-- POWER -> HR -> PACE/SWIM_PACE -> MET
+- Finite imported TSS wins when preservation is enabled, including zero.
+  Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
+- Walking, Nordic Walking, Hiking and Trekking: IMPORTED -> calibrated HR -> calorie-derived MET -> unavailable.
+- Other eligible sports: IMPORTED -> POWER -> calibrated HR -> PACE/SWIM_PACE -> MET -> unavailable.
+
+Walking-family activities never use calculated power or running pace. HR and MET preferences fall back through the
+sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
+they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics when preservation is enabled.
+`preserveImportedTss: false` also applies to the Automatic, HR and MET evaluation policies; direct evaluation does not
+mutate the recorded stat, while summary generation writes its replacement or removes an unavailable score and method.
+
+`DataTrainingStressScore.getDisplayValue(1)` opts into one-decimal load-editor display. Calling it without arguments
+retains the existing integer display; canonical values, JSON keys and numeric metric discovery are unchanged.
 
 Motorized and Adaptive Mobility activities, and the Video Gaming, Paramotoring, and RC Drone Flying types, do not
 receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A finite
@@ -599,8 +615,12 @@ TSS = (100 * EffectiveDuration * NP * IF) / (FTP * 3600)
 
 HR TSS:
 
-- Banister TRIMP when resting HR is available
-- Edwards-zone fallback otherwise
+Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
+One hour at threshold is 100. There is no observed-peak maximum, assumed threshold ratio, or weighted-zone fallback.
+FIT calibration comes from a uniquely referenced session `time_in_zone`, then unambiguous `zones_target` and applicable
+profile fields. Walking uses the general profile maximum, never its running maximum. Repeated conflicting settings,
+ambiguous session references and inconsistent calibration are rejected. Existing explicit physiological overrides remain
+supported; absent settings cannot be inferred from activity samples or zone boundaries.
 
 PACE TSS (running/trail groups):
 
@@ -626,6 +646,17 @@ METScore = (3600 * Energy) / (Weight * Duration)
 IF = METScore / ThresholdMET
 TSS = 100 * (duration/3600) * IF^2
 ```
+
+The default MET reference is 10. File calories, body mass and duration must be positive and finite; no default mass,
+resting-calorie adjustment or sport MET table is supplied. This is explicitly an estimate: 210 kcal / (70 kg × 1 hour)
+is MET 3 and 9 TSS. STT's compatible calorie-to-MET conversion does not imply its different linear scoring formula.
+
+`ActivityUtilities.getTrainingStressScoreEvaluations(activity)` returns the cached parse-time Automatic/HR/MET results
+with actual method, score (null when unavailable), provenance, estimate flag and stable fallback reason codes.
+`evaluateTrainingStressScore(activity)` explicitly recomputes all candidates from the current inputs. Capture the cached
+results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
+from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
+corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
 
 7) SWOLF, moving time fallback, power work, battery, jumps
 

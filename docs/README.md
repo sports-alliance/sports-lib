@@ -236,6 +236,10 @@ unrelated importers and utilities when focused exports are used; the `SportsLib`
 format surface in the initial bundle. Startup-sensitive consumers should use focused root imports. Upgrading does not
 require reparsing activities or routes, regenerating summaries, or migrating native JSON and persisted metrics.
 
+The expanded sport catalog and synchronous provider aliases contribute about 57 kB to the representative browser
+startup fixture, which totals about 79 kB minified before compression. Package verification limits those two tables
+separately and still rejects eagerly bundled FIT decoding, importers, exporters, and other heavy dependencies.
+
 ## Guides
 
 - [Import activities](guides/importing-activities.md) — parse GPX, TCX, FIT, Suunto JSON, and native JSON.
@@ -252,9 +256,17 @@ Use the navigation to browse the curated API, including [SportsLib](https://spor
 
 ## Analytics
 
+Power-curve JSON restoration preserves recorded zero W/kg values, keeping saved activity statistics stable for
+Training load source validation.
+
 `analyzeActivityDurability` produces deterministic durability evidence when an activity has enough eligible source data. Its steady aerobic adapter supports standard mountain biking but records Enduro MTB and Downhill Cycling as explicit unsupported contexts. `samplePowerCurveAtDuration` and `comparePowerCurveWindows` support power-curve comparisons without extrapolating beyond known samples. Parsing retains power streams and power curves but does not infer athlete CP/W′ or persist three-dimensional strain from one workout. `buildPowerDurationEnvelope` and `fitThreeDimensionalCapacityModel` instead use a dated, same-activity-type history to produce a confidence-gated CP/W′/Pmax snapshot; `calculateThreeDimensionalStrain` scores a workout only when the caller supplies a complete ready model. Follow the [rolling capacity and scoring recipe](guides/metrics-and-calculations.md#rolling-capacity-estimation-and-scoring) and the complete [research and implementation guide](guides/three-dimensional-training-model.md).
 
 Capacity diagnostics separately report usable curves and the distinct activities that supplied each component's
 retained envelope anchors, so consumers can disclose concentrated evidence without treating it as a different fit.
 
 `calculateThreeDimensionalImpulseResponse` applies independently calibrated fitness-fatigue responses to the three daily load series. `fitThreeDimensionalImpulseResponseParameters` adds bounded, chronologically validated calibration when callers provide dated daily strain loads and independent CP/W′/Pmax observations; it deliberately returns no generic athlete model when evidence or held-out fit quality is inadequate. Follow the [practical response-calibration recipe](guides/metrics-and-calculations.md#practical-response-calibration-recipe) before integrating it.
+
+[Training stress evaluations](guides/metrics-and-calculations.md) distinguish imported scores, calibrated HR, MET
+estimates and unavailable results. The public ActivityUtilities API returns all three requested policies from the
+parsed file without requiring athlete settings. Load editors can request one-decimal display through
+`DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.

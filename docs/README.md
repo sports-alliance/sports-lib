@@ -12,6 +12,10 @@ Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve th
 Padel belongs to Team/Racket. FIT `racket/padel` imports preserve Padel instead of Racquet Ball; correcting older
 classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Disc Golf belongs to Team/Racket alongside Golf and Frisbee, with its own canonical type. FIT `disc_golf` and explicit
+Frisbee golf provider names preserve that distinction. Historical corrections need retained sources or specific sport
+names; generic FIT classifications alone remain ambiguous. See [Import activities](guides/importing-activities.md).
+
 FIT `cycling/hand_cycling` imports resolve to the existing Hand Cycle type in the Cycling group; correcting older
 Cycling classifications requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 

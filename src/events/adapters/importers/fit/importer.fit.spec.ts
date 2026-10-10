@@ -483,6 +483,52 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 69 },
+      { sport: 69, sub_sport: 0 },
+      { sport: '69', sub_sport: '0' },
+      { sport: 'disc_golf' },
+      { sport: 'disc_golf', sub_sport: 'generic' },
+      { sport: 'Disc Golf', sub_sport: 'generic' },
+      { sport: 'DISC-GOLF', sub_sport: 'GENERIC' },
+      { sport: 69, sub_sport: 22 },
+      { sport: 69, sub_sport: 0, sport_profile_name: 'Golf' },
+      { sport: 69, sport_profile_name: 'Frisbee' },
+      { sport: 69, sub_sport: 0, sport_profile_name: 'Custom course profile' }
+    ])('maps explicit Disc Golf session %j to its distinct canonical type', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.DiscGolf);
+    });
+
+    it.each([1, 7, 23, 123, undefined])('maps Disc Golf independently of manufacturer %j', manufacturer => {
+      expect(importerInternals.getActivityTypeFromSessionObject({ sport: 69, sub_sport: 0 }, manufacturer)).toBe(
+        ActivityTypes.DiscGolf
+      );
+    });
+
+    it.each([
+      { sport: 'FRISBEEGOLF' },
+      { sport: 'Frisbee golf' },
+      { sport: 'FRISBEEGOLF', sub_sport: 'generic', sport_profile_name: 'Golf' },
+      { sport: 'Frisbee golf', sub_sport: 'match', sport_profile_name: 'Frisbee' },
+      { sport: 0, sub_sport: 0, sport_profile_name: 'FRISBEEGOLF' },
+      { sport: 'generic', sub_sport: 'generic', sport_profile_name: 'Frisbee golf' },
+      { sport: 0, sport_profile_name: 'Disc Golf' }
+    ])('honors explicit Disc Golf provider names in session %j', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(ActivityTypes.DiscGolf);
+    });
+
+    it.each([
+      [{ sport: 25, sub_sport: 0 }, ActivityTypes.Golf],
+      [{ sport: 'Frisbee' }, ActivityTypes.Frisbee],
+      [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom course profile' }, ActivityTypes.Generic],
+      [{ sport: 68, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 70, sub_sport: 0 }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous sport context for session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 65 },
       { sport: 65, sub_sport: 0 },
       { sport: '65', sub_sport: '0' },
@@ -1125,6 +1171,14 @@ describe('EventImporterFIT', () => {
       [23, 64, 85, ActivityTypes.Padel],
       [23, 2, 12, ActivityTypes.Handcycle],
       [1, 2, 12, ActivityTypes.Handcycle],
+      [1, 69, 0, ActivityTypes.DiscGolf],
+      [7, 69, 0, ActivityTypes.DiscGolf],
+      [23, 69, 0, ActivityTypes.DiscGolf],
+      [123, 69, 0, ActivityTypes.DiscGolf],
+      [65535, 69, 0, ActivityTypes.DiscGolf],
+      [1, 25, 0, ActivityTypes.Golf],
+      [7, 0, 0, ActivityTypes.Generic],
+      [23, 0, 0, ActivityTypes.Generic],
       [23, 0, 12, ActivityTypes.Wheelchair],
       [1, 65, 0, ActivityTypes.WheelchairPushWalk],
       [23, 65, 0, ActivityTypes.WheelchairPushWalk],

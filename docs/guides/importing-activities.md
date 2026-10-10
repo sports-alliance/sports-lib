@@ -28,6 +28,25 @@ FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `pad
 the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without the Padel
 sub-sport retains its existing Racquet Ball classification.
 
+`ActivityTypes.DiscGolf` has the canonical stored value `Disc Golf` in `ActivityTypeGroups.TeamRacketGroup`, alongside
+the separate Golf and Frisbee types. FIT `sport=disc_golf` (`69`) imports as Disc Golf across manufacturers, using
+[Garmin's activity reference](https://developer.garmin.com/connect-iq/api-docs/Toybox/Activity.html). The explicit sport
+takes precedence over sub-sport and profile fallbacks, including profiles named Golf or Frisbee. The aliases `DiscGolf`
+and `disc_golf` resolve to the same canonical value. Explicit Frisbee golf names also resolve to Disc Golf:
+[Polar's detailed sport catalog](https://www.polar.com/accesslink-api/#detailed-sport-info-values-in-exercise-entity)
+uses `FRISBEEGOLF`, and [Suunto's mapping](https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf)
+calls App activity ID `66` Frisbee golf. Both providers document generic FIT exports for this activity; a generic sport
+without a specific name or recognized profile remains Generic. A supplied `Frisbee golf` name is sufficient, while
+plain `Frisbee` and `Golf` retain their own types. Disc Golf inherits Team/Racket's existing speed, movement,
+indoor-status, and TSS behavior; it adds no durability adapter, numeric metric, or provider transport.
+
+Native JSON preserves the canonical Disc Golf type and its explicit aliases. Stored Generic, Unknown Sport, Golf, or
+Frisbee labels cannot identify a historical Disc Golf activity on their own. Reparse retained FIT sport `69` or restore
+a specific source name/profile when available, then regenerate separately persisted summaries or activity-type
+aggregates. Saved routes need no reparse. Quantified Self must upgrade the application and Functions together before
+persisting Disc Golf; its existing MCP catalog can discover the canonical name, group, and indoor hint without new
+fields, scopes, or tools. Queue lifecycle, write paths, monitoring, and Training algorithms remain unchanged.
+
 `Field Hockey` belongs to `ActivityTypeGroups.TeamRacketGroup`, distinct from Ice Hockey. Suunto App activity ID
 `113` uses FIT `generic/match` (`0/22`); this pair imports as `ActivityTypes.FieldHockey` only when the recording's
 creator manufacturer is Suunto (`suunto` or FIT ID `23`), using the same creator precedence described below for
@@ -176,7 +195,7 @@ durability adapters are added.
 
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
-`Wheelchair Push Walk`, or `Wheelchair Push Run`.
+`Wheelchair Push Walk`, `Wheelchair Push Run`, or `Disc Golf`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

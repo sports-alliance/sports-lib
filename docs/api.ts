@@ -116,6 +116,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
+ * Disc Golf belongs to Team/Racket, distinct from Golf and Frisbee; FIT `disc_golf` and explicit Frisbee golf names resolve to it.
  * Field Hockey belongs to Team/Racket; FIT `hockey/field` resolves to it across manufacturers.
  * Suunto FIT `generic/match` resolves to Field Hockey using creator identity.
  * Ice Hockey belongs to Team/Racket; FIT `hockey/ice` resolves to it across manufacturers.

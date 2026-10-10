@@ -239,6 +239,16 @@ export enum ActivityTypes {
   'generic' = 'Generic',
   'hiit' = 'HIIT',
   'HIIT' = 'HIIT',
+  /** HIIT timer formats reuse HIIT rather than adding separate sports. */
+  'AMRAP' = 'HIIT',
+  'amrap' = 'HIIT',
+  'hiit_amrap' = 'HIIT',
+  'EMOM' = 'HIIT',
+  'emom' = 'HIIT',
+  'hiit_emom' = 'HIIT',
+  'Tabata' = 'HIIT',
+  'tabata' = 'HIIT',
+  'hiit_tabata' = 'HIIT',
   'generic_exercise' = 'Generic',
   'generic_track_me' = 'Generic',
   'Generic' = 'Generic',
@@ -269,6 +279,10 @@ export enum ActivityTypes {
   'Water Sport' = 'Water Sport',
   'WaterSport' = 'Water Sport',
   'water_sport' = 'Water Sport',
+  /** Broad FIT para_sport (68); the source does not identify a particular discipline. */
+  'Para Sport' = 'Para Sport',
+  'ParaSport' = 'Para Sport',
+  'para_sport' = 'Para Sport',
   /** Powered paragliding; explicit FIT flying/fly_paramotor (20/112). Imported TSS only. */
   'Paramotoring' = 'Paramotoring',
   'paramotoring' = 'Paramotoring',
@@ -395,6 +409,12 @@ export enum ActivityTypes {
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
   'cycling_commuting' = 'Cycling',
+  'Bike Commute' = 'Cycling',
+  'BikeCommute' = 'Cycling',
+  'bike_commute' = 'Cycling',
+  'Bike Commuting' = 'Cycling',
+  'BikeCommuting' = 'Cycling',
+  'bike_commuting' = 'Cycling',
   'cycling_mixed_surface' = 'Cycling',
   /** Track Cycling; FIT cycling/track_cycling (2/13) does not establish an indoor venue. */
   'Track Cycling' = 'Track Cycling',
@@ -461,6 +481,10 @@ export enum ActivityTypes {
   'E biking' = 'E-Biking',
   'EBikeRide' = 'E-Biking',
   'E-Biking' = 'E-Biking',
+  'E-Bike Fitness' = 'E-Biking',
+  'EBikeFitness' = 'E-Biking',
+  'e_bike_fitness' = 'E-Biking',
+  'e_biking_e_bike_fitness' = 'E-Biking',
   /**
    * Mountain biking
    */
@@ -625,6 +649,9 @@ export enum ActivityTypes {
   'Walk' = 'Walking',
   'walk' = 'Walking',
   'walking_casual_walking' = 'Walking',
+  'Casual Walking' = 'Walking',
+  'CasualWalking' = 'Walking',
+  'casual_walking' = 'Walking',
   /** Speed Walking; explicit FIT walking/speed_walking (11/31), without inferring race-walking rules. */
   'Speed Walking' = 'Speed Walking',
   'SpeedWalking' = 'Speed Walking',
@@ -951,10 +978,18 @@ export enum ActivityTypes {
   'Table tennis' = 'Table Tennis',
   'Table Tennis' = 'Table Tennis',
   'TableTennis' = 'Table Tennis',
+  /** Broad FIT racket (64), preserving the source category when its subtype is unknown. */
+  'Racket Sport' = 'Racket Sport',
+  'RacketSport' = 'Racket Sport',
+  'racket_sport' = 'Racket Sport',
+  'Racket Sports' = 'Racket Sport',
+  'RacketSports' = 'Racket Sport',
+  'racket_sports' = 'Racket Sport',
+  'racket' = 'Racket Sport',
   /**
    * Racquet Ball
    */
-  'racket' = 'Racquet Ball',
+  'racket_racquetball' = 'Racquet Ball',
   'racquet_ball' = 'Racquet Ball',
   'Racquet Ball' = 'Racquet Ball',
   'RacquetBall' = 'Racquet Ball',
@@ -1014,6 +1049,12 @@ export enum ActivityTypes {
   'PoolApnea' = 'Pool Apnea',
   'poolApnea' = 'Pool Apnea',
   'pool_apnea' = 'Pool Apnea',
+  /** Dynamic apnea is a Pool Apnea format, including FIT diving/dynamic_apnea (53/121). */
+  'Dynamic Apnea' = 'Pool Apnea',
+  'DynamicApnea' = 'Pool Apnea',
+  'dynamic_apnea' = 'Pool Apnea',
+  'diving_dynamic_apnea' = 'Pool Apnea',
+  'pool_apnea_dynamic_apnea' = 'Pool Apnea',
   /**
    * Diving
    */
@@ -1279,6 +1320,13 @@ export enum ActivityTypes {
    * Frisbee
    */
   'Frisbee' = 'Frisbee',
+  /** Ultimate Disc is distinct from recreational Frisbee and Disc Golf; explicit names establish it. */
+  'Ultimate Disc' = 'Ultimate Disc',
+  'UltimateDisc' = 'Ultimate Disc',
+  'ultimate_disc' = 'Ultimate Disc',
+  'Ultimate Frisbee' = 'Ultimate Disc',
+  'UltimateFrisbee' = 'Ultimate Disc',
+  'ultimate_frisbee' = 'Ultimate Disc',
   /**
    * Indoor Training
    */
@@ -1838,6 +1886,8 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Mermaiding
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
+      ActivityTypes.RacketSport,
+      ActivityTypes.UltimateDisc,
       ActivityTypes.Hockey,
       ActivityTypes.TeamSport,
       ActivityTypes.Golf,
@@ -1867,6 +1917,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Volleyball
     ],
     [ActivityTypeGroups.UnspecifiedGroup]: [
+      ActivityTypes.ParaSport,
       ActivityTypes.Chores,
       ActivityTypes.VideoGaming,
       ActivityTypes.RCDroneFlying

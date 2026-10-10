@@ -118,6 +118,12 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
  * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
+ * Racket Sport (FIT 64) and Ultimate Disc belong to Team/Racket; Para Sport (FIT 68) belongs to Unspecified.
+ * Bare Racket preserves its broad category; recognized racket sub-sports or precise racket profiles retain their specific type.
+ * A recognized Para Sport profile can identify its discipline. Ultimate Disc/Ultimate Frisbee require explicit names; sub-sport 92 alone is ambiguous.
+ * AMRAP, EMOM, and Tabata reuse HIIT, including FIT pairs 62/73, 62/74, and 62/75.
+ * E-Bike Fitness (21/28), Casual Walking (11/30), and Bike Commute (2/48) reuse E-Biking, Walking, and Cycling.
+ * Dynamic Apnea (53/121) reuses Pool Apnea in Diving. Workout-specific sub-sports require their documented parents.
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
  * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
  * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.

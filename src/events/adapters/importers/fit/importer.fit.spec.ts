@@ -1007,7 +1007,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 17, sub_sport: 0 }, ActivityTypes.Hiking],
       [{ sport: 11, sub_sport: 0 }, ActivityTypes.Walking],
       [{ sport: 8, sub_sport: 0 }, ActivityTypes.Tennis],
-      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
       [{ sport: 64, sub_sport: 84 }, ActivityTypes.Pickleball],
       [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
       [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
@@ -1075,7 +1075,7 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
-      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
       [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
       [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
       [{ sport: 64, sub_sport: 95 }, ActivityTypes.Badminton],
@@ -1141,7 +1141,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 'Frisbee' }, ActivityTypes.Frisbee],
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom course profile' }, ActivityTypes.Generic],
-      [{ sport: 68, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 68, sub_sport: 0 }, ActivityTypes.ParaSport],
       [{ sport: 70, sub_sport: 0 }, ActivityTypes.TeamSport]
     ])('preserves neighboring and ambiguous sport context for session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
@@ -1979,8 +1979,8 @@ describe('EventImporterFIT', () => {
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 23 }, ActivityTypes.Generic],
       [{ sport: 10, sub_sport: 19 }, ActivityTypes.FlexibilityTraining],
-      [{ sport: 64 }, ActivityTypes.RacquetBall],
-      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
+      [{ sport: 64 }, ActivityTypes.RacketSport],
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacketSport],
       [{ sport: 2 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 0 }, ActivityTypes.Cycling],
       [{ sport: 2, sub_sport: 8 }, ActivityTypes.MountainBiking],

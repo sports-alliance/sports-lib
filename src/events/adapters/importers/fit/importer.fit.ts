@@ -2386,6 +2386,60 @@ export class EventImporterFIT {
     // Preserve these explicit sports before sub-sport or user-defined profile
     // fallbacks can collapse their distinct canonical classifications.
     switch (resolvedSport?.toLowerCase().replace(/[\s_-]/g, '')) {
+      case 'parasport': {
+        const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+        if (profileType && profileType !== ActivityTypes.Generic && profileType !== ActivityTypes.unknown) {
+          return profileType;
+        }
+        return ActivityTypes.ParaSport;
+      }
+      case 'ultimatedisc':
+      case 'ultimatefrisbee':
+        return ActivityTypes.UltimateDisc;
+      case 'racket':
+      case 'racketsport':
+      case 'racketsports': {
+        const racketSubtypes: Record<string, ActivityTypes> = {
+          pickleball: ActivityTypes.Pickleball,
+          padel: ActivityTypes.Padel,
+          platform: ActivityTypes.PlatformTennis,
+          squash: ActivityTypes.Squash,
+          badminton: ActivityTypes.Badminton,
+          racquetball: ActivityTypes.RacquetBall,
+          tabletennis: ActivityTypes.TableTennis
+        };
+        const subtype = Object.entries(racketSubtypes).find(([name]) => name === normalizedSubSportName)?.[1];
+        if (subtype) return subtype;
+        // Broad racket recordings may identify their specific racket sport by profile name.
+        const profileType = this.getActivityTypeByKey(session.sport_profile_name);
+        if (normalizedSubSportName === 'ultimate' && profileType === ActivityTypes.UltimateDisc) return profileType;
+        if (
+          profileType &&
+          (profileType === ActivityTypes.Tennis || Object.values(racketSubtypes).includes(profileType))
+        ) {
+          return profileType;
+        }
+        return ActivityTypes.RacketSport;
+      }
+      case 'amrap':
+      case 'emom':
+      case 'tabata':
+        return ActivityTypes.HIIT;
+      case 'hiit':
+        if (['amrap', 'emom', 'tabata'].includes(normalizedSubSportName ?? '')) return ActivityTypes.HIIT;
+        break;
+      case 'ebikefitness':
+        return ActivityTypes.EBiking;
+      case 'ebiking':
+        if (normalizedSubSportName === 'ebikefitness') return ActivityTypes.EBiking;
+        break;
+      case 'casualwalking':
+        return ActivityTypes.Walking;
+      case 'bikecommute':
+      case 'bikecommuting':
+        return ActivityTypes.Cycling;
+      case 'dynamicapnea':
+        return ActivityTypes.PoolApnea;
       case 'spin':
       case 'indoorcycling':
         return ActivityTypes.IndoorCycling;
@@ -2415,6 +2469,12 @@ export class EventImporterFIT {
       case 'wintersport':
         return ActivityTypes.WinterSport;
       case 'teamsport':
+        if (
+          normalizedSubSportName === 'ultimate' &&
+          this.getActivityTypeByKey(session.sport_profile_name) === ActivityTypes.UltimateDisc
+        ) {
+          return ActivityTypes.UltimateDisc;
+        }
         return ActivityTypes.TeamSport;
       case 'watersport':
         return ActivityTypes.WaterSport;
@@ -2499,6 +2559,9 @@ export class EventImporterFIT {
       case 'walkindoor':
         return ActivityTypes.IndoorWalking;
       case 'walking':
+        if (normalizedSubSportName === 'casualwalking') {
+          return ActivityTypes.Walking;
+        }
         if (normalizedSubSportName === 'speedwalking') {
           return ActivityTypes.SpeedWalking;
         }
@@ -2690,6 +2753,9 @@ export class EventImporterFIT {
       case 'ccr':
         return ActivityTypes.CCRDiving;
       case 'diving':
+        if (normalizedSubSportName === 'dynamicapnea') {
+          return ActivityTypes.PoolApnea;
+        }
         if (normalizedSubSportName === 'ccrdiving') {
           return ActivityTypes.CCRDiving;
         }
@@ -2734,6 +2800,12 @@ export class EventImporterFIT {
     // activity alias to turn an unrelated or unknown FIT sport into skiing.
     // Sport-specific sub-sports require their respective parents before alias fallback.
     const canUseSubSportAlone =
+      normalizedSubSportName !== 'amrap' &&
+      normalizedSubSportName !== 'emom' &&
+      normalizedSubSportName !== 'tabata' &&
+      normalizedSubSportName !== 'ebikefitness' &&
+      normalizedSubSportName !== 'casualwalking' &&
+      normalizedSubSportName !== 'dynamicapnea' &&
       normalizedSubSportName !== 'spin' &&
       normalizedSubSportName !== 'ebikemountain' &&
       normalizedSubSportName !== 'adventurerace' &&

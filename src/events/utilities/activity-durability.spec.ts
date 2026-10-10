@@ -289,6 +289,9 @@ describe('activity durability', () => {
   );
 
   it.each([
+    ActivityTypes.RacketSport,
+    ActivityTypes.ParaSport,
+    ActivityTypes.UltimateDisc,
     ActivityTypes.Hockey,
     ActivityTypes.WinterSport,
     ActivityTypes.TeamSport,

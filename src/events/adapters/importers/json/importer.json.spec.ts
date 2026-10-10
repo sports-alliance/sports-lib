@@ -30,6 +30,14 @@ describe('EventImporterJSON', () => {
     ...Object.entries(ActivityTypes)
       .filter(([, type]) =>
         [
+          ActivityTypes.RacketSport,
+          ActivityTypes.ParaSport,
+          ActivityTypes.UltimateDisc,
+          ActivityTypes.HIIT,
+          ActivityTypes.EBiking,
+          ActivityTypes.Walking,
+          ActivityTypes.Cycling,
+          ActivityTypes.PoolApnea,
           ActivityTypes.Hockey,
           ActivityTypes.WinterSport,
           ActivityTypes.TeamSport,

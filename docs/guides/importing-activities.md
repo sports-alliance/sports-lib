@@ -26,7 +26,7 @@ Suunto App activity ID `112`. Stretching remains `Flexibility Training` for FIT 
 `Padel` belongs to `ActivityTypeGroups.TeamRacketGroup` alongside Tennis, Squash, and Racquet Ball.
 FIT `sport=racket` (`64`) with `sub_sport=padel` (`85`) imports as `Padel`; `padel` and `racket_padel` resolve to
 the same canonical value. Suunto documents this pair for App activity ID `75`. A racket session without a recognized
-specific sub-sport retains its existing Racquet Ball classification.
+specific sub-sport or racket profile name imports as Racket Sport.
 
 FIT `sport=dance` (`83`) resolves to the existing `ActivityTypes.Dancing` canonical stored value `Dancing` in
 `ActivityTypeGroups.IndoorSportsGroup`. The explicit sport takes precedence over sub-sport or user-defined profile
@@ -176,8 +176,8 @@ With `preserveImportedTss: false`, existing TSS and its method are discarded. A 
 sport and inputs support it; otherwise both stay unset. This includes sports excluded from calculated TSS. Existing
 library-calculated scores on eligible sports are retained when true and refreshed when false.
 
-The mapping audit has added 62 canonical types and added or corrected aliases for 70 types since the Sports Lib
-21.5.0 baseline. Both flag settings are tested over the entire 193-type catalog so future additions inherit the same rule.
+The mapping audit has added 65 canonical types since the Sports Lib 21.5.0 baseline. Both flag settings are tested
+over the entire 196-type catalog so future additions inherit the same rule.
 No numeric token, unit, formula, JSON field, or MCP contract changes. Consumers must adopt the library together
 in the application and Functions. A score already overwritten historically can only be recovered from a retained
 original source; native JSON containing the replacement cannot reconstruct the imported number. Correct only
@@ -754,6 +754,66 @@ in that catalog, with no new MCP schemas or scopes.
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom
 ```
+
+## Racket, para, disc, and workout names
+
+The following source names and native-JSON aliases normalize across manufacturers:
+
+| Imported name | Canonical type | Activity group |
+| --- | --- | --- |
+| Racket Sport / Racket Sports / racket | Racket Sport (new) | Team/Racket |
+| Para Sport | Para Sport (new) | Unspecified |
+| Ultimate Disc / Ultimate Frisbee | Ultimate Disc (new) | Team/Racket |
+| AMRAP | HIIT | Indoor Sports |
+| EMOM | HIIT | Indoor Sports |
+| Tabata | HIIT | Indoor Sports |
+| Dynamic Apnea | Pool Apnea | Diving |
+| E-Bike Fitness | E-Biking | Cycling |
+| Casual Walking | Walking | Walking |
+| Bike Commute / Bike Commuting | Cycling | Cycling |
+
+Space-separated, concatenated, and snake-case aliases resolve to the same values. The canonical new enum members are
+`ActivityTypes.RacketSport`, `ActivityTypes.ParaSport`, and `ActivityTypes.UltimateDisc`. Ultimate Disc remains distinct
+from Frisbee and Disc Golf. Broad Para Sport does not identify a particular discipline or establish Adaptive Mobility.
+
+[Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) defines Racket
+sport `64`, Para Sport `68`, HIIT/AMRAP `62/73`, HIIT/EMOM `62/74`, HIIT/Tabata `62/75`, E-Biking/E-Bike Fitness
+`21/28`, Walking/Casual Walking `11/30`, Cycling/Commuting `2/48`, and Diving/Dynamic Apnea `53/121`. These explicit
+pairs preserve their types before conflicting profile names. A matching parent is required; the workout-specific
+sub-sport alone does not relabel a Generic or unrelated activity. Dynamic Apnea also retains Pool Apnea under sport
+`85`. Garmin describes [AMRAP, EMOM, and Tabata as HIIT timer formats](https://www8.garmin.com/manuals/webhelp/GUID-25E3235D-44D2-4384-A591-DD1D71BEBCB1/EN-US/GUID-130DBE4C-91D2-43D1-A6B4-1DEF7958903F.html)
+and [dynamic apnea as a Pool Apnea mode](https://www8.garmin.com/manuals/webhelp/GUID-EA4C028F-6CC0-4957-9BB2-20B2E5DAE9CD/EN-US/GUID-9F0D57E8-05F8-4122-8D5D-93141ADE8CAF.html).
+
+Racket sub-sports retain Pickleball (`84`), Padel (`85`), Platform Tennis (`93`), Squash (`94`), Badminton (`95`),
+Racquet Ball (`96`), and Table Tennis (`97`). With no recognized subtype, a precise Tennis or one of those racket
+profile names can identify the sport. A conflicting non-racket profile retains Racket Sport. A recognized specific
+Para Sport profile can identify its discipline; otherwise it retains Para Sport. Ultimate Disc requires an explicit
+Ultimate Disc or Ultimate Frisbee name/profile. Under Racket or Team Sport, sub-sport `ultimate` (`92`) plus such a
+profile identifies Ultimate Disc; `92` alone does not establish it. Plain Ultimate, Para, Commute, and Dynamic remain
+ambiguous. Existing explicit Disc Golf stays Disc Golf even with a conflicting Ultimate profile.
+
+Suunto's documented Badminton (`36`), Table tennis (`40`), Racquet ball (`41`), and Squash (`42`) exports all use bare
+Racket sport `64`. Without a precise name/profile they now import as Racket Sport. A source-backed correction cannot
+recover their particular racket sport from that numeric pair alone. Suunto Padel (`75`, `64/85`) remains Padel.
+
+The three new types retain the existing speed family, movement threshold, false indoor hint, and ordinary TSS
+eligibility of their groups. They add no stroke-rate conversion or durability adapter. The seven reused types keep
+their existing calculations and hints; Dynamic Apnea inherits Diving's terrain-summary exclusions. Every sport
+preserves finite imported TSS, including zero, with `preserveImportedTss: true` or omission. False discards the score
+and method, recalculates where supported with sufficient inputs, and leaves both unset otherwise.
+
+Quantified Self's current Training registry resolves the three new types and Pool Apnea to volume-only Other training;
+HIIT aliases reuse Fitness/Gym conditioning, E-Biking and Cycling reuse Cycling, and Casual Walking reuses Walking.
+The latter aliases retain existing recorded-load policies and applicable library durability adapters. Adopt the
+library in the application and Functions together. Correct historical Generic, Racquet Ball, or Diving labels only
+from retained source classifications or explicit names, then regenerate event summaries, activity-type aggregates,
+applicable durability evidence, and Training snapshots through the existing source-backed reparse ingress. Stored
+canonical Racquet Ball remains Racquet Ball; only the broad `racket` alias changes to Racket Sport. Saved routes need
+no reparse, and no global reparse follows from these mappings.
+
+The existing strict MCP activity catalog accepts all 196 types without new fields, scopes, consent, or mutations.
+No numeric metric, unit, Training formula, derived schema, planning or delivery capability, provider transport, write
+path, queue lifecycle, or monitoring changes. Supported-activities Help continues to use the installed dynamic catalog.
 
 ## GPX
 

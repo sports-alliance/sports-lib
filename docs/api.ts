@@ -136,6 +136,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving.
  * Explicit profiles preserve these names; Suunto Running/Trail requires a Vertical Running profile to distinguish it.
  * Broad stored canonical names remain readable; recovering specific historical names requires retained source information.
+ * Name lookup rejects non-string values and inherited object keys; invalid native JSON sport names restore Unknown Sport.
+ * LES MILLS RPM, SPRINT and THE TRIP retain Indoor Cycling's trainer flag through serialization.
+ * Decoded scuba and apnea names retain their specific classification across capitalization and separators.
  * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
  * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
  * Specific incompatible FIT classifications take precedence; arbitrary activity titles do not identify a profile name.

@@ -9,6 +9,21 @@ import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
 import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
+describe('Activity type lookup input validation', () => {
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'])(
+    'rejects inherited object key %s',
+    name => {
+      expect(ActivityTypesHelper.resolveActivityType(name)).toBeNull();
+    }
+  );
+
+  it('rejects non-string values without coercing or throwing', () => {
+    for (const value of [null, undefined, 42, {}, ['Running'], Object.create(null)]) {
+      expect(ActivityTypesHelper.resolveActivityType(value)).toBeNull();
+    }
+  });
+});
+
 const proposedGroupAssignments = [
   [ActivityTypes.RacketSport, ActivityTypeGroups.TeamRacketGroup],
   [ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],

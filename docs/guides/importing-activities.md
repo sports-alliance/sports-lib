@@ -960,7 +960,8 @@ Road Running and Road Cycling require a precise name or native road context; bro
 Each Les Mills program has its recorded class name. LES MILLS CXWORX and LES MILLS CORE resolve to one canonical
 LES MILLS CORE type because the program was renamed. LES MILLS TRIP and LES MILLS THE TRIP share LES MILLS THE TRIP.
 Their generic counterparts such as Barre, Core Training, Dancing and Indoor Cycling remain available independently.
-RPM, SPRINT and THE TRIP belong to Cycling and retain an indoor hint and the existing cycling durability adapter.
+RPM, SPRINT and THE TRIP belong to Cycling and retain an indoor hint, Indoor Cycling's trainer flag and the existing
+cycling durability adapter, including native JSON round-trips.
 Other named classes belong to Indoor Sports. No class name creates a new training formula.
 
 AMRAP, EMOM and Tabata remain separate Indoor Sports types, including decoded FIT 62/73, 62/74 and 62/75.
@@ -977,6 +978,12 @@ durability behavior. An explicit Vertical Running profile on Suunto's shared `1/
 Unnamed shared exports remain Generic, Diving, or Trail Running respectively; creator identity alone cannot recover
 these names. Native JSON also recognizes the explicit names. Suunto App IDs `18`, `101`, and `115` are not FIT sport
 IDs and do not change the legacy Suunto JSON/SML ID tables.
+
+Name lookup accepts string sport names and returns null for invalid inputs. JavaScript object keys such as
+`constructor`, `toString` and `__proto__` do not identify sports. Native JSON restores an invalid or unrecognized
+sport name as Unknown Sport; FIT imports retain the recorded sport when the profile name is invalid. Scuba and
+apnea sub-sport names preserve their specific diving classification across capitalization, spaces, hyphens and
+underscores, ahead of conflicting profile names.
 
 All distinct types preserve finite imported TSS, including zero and legacy scores without a method, by default or
 with `preserveImportedTss: true`. False discards the imported score and calculates a replacement only when supported

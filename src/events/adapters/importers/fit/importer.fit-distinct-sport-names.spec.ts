@@ -43,6 +43,18 @@ const jsonActivity = (type: ActivityTypes) => ({
 });
 
 describe('Preserving distinct sport and workout names', () => {
+  it.each([ActivityTypes.LesMillsRPM, ActivityTypes.LesMillsSprint, ActivityTypes.LesMillsTheTrip])(
+    'retains Indoor Cycling trainer semantics for %s through JSON',
+    type => {
+      const activity = EventImporterJSON.getActivityFromJSON(jsonActivity(type));
+      expect(activity.isTrainer()).toBe(true);
+      expect(activity.toJSON().trainer).toBe(true);
+      expect(EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON()))).isTrainer()).toBe(
+        true
+      );
+    }
+  );
+
   it.each(names)('exposes $type once in $group with its existing metric behavior', row => {
     const type = row.type as ActivityTypes;
     const parent = row.parent as ActivityTypes;

@@ -46,6 +46,9 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     ActivityTypes.VirtualCycling,
     ActivityTypes.Treadmill,
     ActivityTypes.IndoorCycling,
+    ActivityTypes.LesMillsRPM,
+    ActivityTypes.LesMillsSprint,
+    ActivityTypes.LesMillsTheTrip,
     ActivityTypes.IndoorRunning,
     ActivityTypes.IndoorRowing,
     ActivityTypes.VirtualRowing,
@@ -167,6 +170,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     );
   }
 
+  /** Identifies trainer activities, including named indoor cycling classes. */
   isTrainer(): boolean {
     return Activity.TRAINER_TYPES.indexOf(this.type) !== -1;
   }

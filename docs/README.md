@@ -37,6 +37,8 @@ their recorded distinctions. Road Bike resolves to Road Cycling; XC Classic Ski 
 Skiing. Broad stored labels remain readable, and imported TSS follows the existing setting.
 Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving. Recognized source
 profiles preserve these names; unnamed shared Suunto exports retain their broader labels.
+Name lookup accepts string sport names; invalid native JSON names restore Unknown Sport. RPM, SPRINT and THE TRIP
+retain Indoor Cycling's trainer flag as well as their own names.
 
 Provider context resolves ambiguous names such as Polar Enduro and Garmin Ski. FIT refinement requires a recognized
 `sport_profile_name`; activity titles alone do not establish a sport. Consumer adoption must update its exact Training

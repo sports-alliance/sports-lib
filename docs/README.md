@@ -13,6 +13,12 @@ is calculated where supported; otherwise both remain unset. See [Metrics and cal
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports preserve that classification; correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
+Garmin names such as Bike Indoor, Gravel Bike, MTB, Climb Indoor, Row Indoor, XC Classic Ski, XC Skate Ski, and Pool
+Swim reuse existing canonical sports. The catalog stays at 196 types, with existing groups, calculations, and TSS
+policy. FIT profile fallback needs an actual recognized `sport_profile_name`; activity titles alone do not establish
+the sport. See [Import activities](guides/importing-activities.md#garmin-activity-profile-names) for all twenty aliases
+and historical correction requirements.
+
 Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
 AMRAP, EMOM, and Tabata reuse HIIT; Dynamic Apnea reuses Pool Apnea; E-Bike Fitness, Casual Walking, and Bike Commute
 reuse E-Biking, Walking, and Cycling. Bare Racket imports now preserve the broad Racket Sport category; precise

@@ -124,6 +124,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * AMRAP, EMOM, and Tabata reuse HIIT, including FIT pairs 62/73, 62/74, and 62/75.
  * E-Bike Fitness (21/28), Casual Walking (11/30), and Bike Commute (2/48) reuse E-Biking, Walking, and Cycling.
  * Dynamic Apnea (53/121) reuses Pool Apnea in Diving. Workout-specific sub-sports require their documented parents.
+ * Garmin profile names reuse existing sports: Bike Indoor, Bike Tour, Road Bike, Gravel Bike, MTB, Climb Indoor, Row Indoor,
+ * XC Classic Ski, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
+ * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
+ * Numeric FIT parent/sub-sport precedence is unchanged; arbitrary activity titles do not identify a profile name.
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
  * Platform Tennis belongs to Team/Racket; FIT `racket/platform` (64/93) preserves it separately from Tennis and Padel.
  * Shooting and Geocaching belong to Outdoor Adventures; explicit FIT sports 56 and 87 retain their distinct canonical types.

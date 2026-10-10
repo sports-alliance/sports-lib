@@ -815,6 +815,54 @@ The existing strict MCP activity catalog accepts all 196 types without new field
 No numeric metric, unit, Training formula, derived schema, planning or delivery capability, provider transport, write
 path, queue lifecycle, or monitoring changes. Supported-activities Help continues to use the installed dynamic catalog.
 
+## Garmin activity-profile names
+
+[Garmin's activity list](https://www8.garmin.com/manuals/webhelp/GUID-C144B465-A0C8-4FE9-AFE6-41A3FE3F1D9A/EN-US/GUID-4906F77A-0B26-48F9-A4DB-72752E06532D.html)
+uses short names that normalize to these existing canonical types:
+
+| Source name | Canonical type | Existing activity group |
+| --- | --- | --- |
+| Bike Indoor | Indoor Cycling | Cycling |
+| Bike Tour / Road Bike / Bike | Cycling | Cycling |
+| Gravel Bike | Gravel Cycling | Cycling |
+| MTB | Mountain Biking | Mountain Biking |
+| Climb Indoor | Indoor Climbing | Outdoor Adventures |
+| Row Indoor | Indoor Rowing | Indoor Sports |
+| XC Classic Ski | Crosscountry Skiing | Winter Sports |
+| XC Skate Ski | Skate Skiing | Winter Sports |
+| Pool Swim | Swimming | Swimming |
+| eBike | E-Biking | Cycling |
+| Cardio | Cardio Training | Indoor Sports |
+| Floor Climb | Floor Climbing | Outdoor Adventures |
+| Strength | Strength Training | Indoor Sports |
+| Fish | Fishing | Outdoor Adventures |
+| Horseback | Horseback Riding | Outdoor Adventures |
+| Hunt | Hunting | Outdoor Adventures |
+| Kayak | Kayaking | Water Sports |
+| Row | Rowing | Water Sports |
+
+All twenty names resolve through `ActivityTypesHelper.resolveActivityType`, native JSON hydration, and existing FIT
+sport/profile-name fallback. Lookup tolerates capitalization, spaces, hyphens, and underscores; multiword enum aliases
+also expose concatenated and snake-case spellings. FIT's `sport_profile_name` must actually contain a recognized name
+for profile fallback to apply. An arbitrary activity title is not that field. These aliases do not change numeric
+FIT parent/sub-sport rules or override an existing specific classification before profile fallback. The shared `eBike`
+alias also recognizes Polar's `E_BIKE` identifier without provider transport changes.
+
+The unique catalog remains at 196 types. Each alias inherits its canonical type's group, indoor hint, metric families,
+stroke-rate semantics, terrain behavior, calculated-TSS eligibility, and applicable durability adapter. In particular,
+Pool Swim, Kayak, Row, and Row Indoor use existing stroke-rate semantics. Every type retains imported TSS exactly,
+including zero, with `preserveImportedTss: true` or omission; false discards it and calculates a replacement only when
+the existing sport policy and available inputs support one.
+
+Quantified Self retains the same exact Training contexts for the canonical types. Historical Generic classifications
+can enter a different existing context after a source-backed correction, so regenerate separately persisted event
+summaries, activity-type aggregates, applicable durability evidence, and Training snapshots. Native JSON can recover
+an explicit alias but cannot identify a sport from an already collapsed Generic value. Adopt the library in application
+and Functions together before persisting the corrections; a separately approved targeted reparse needs a retained
+source name/profile. Saved routes need no reparse. No new canonical sport, numeric metric, unit, formula, derived
+schema, MCP field/scope/consent/mutation, planning or delivery capability, provider transport, write path, queue
+lifecycle, or monitoring change is introduced. The dynamic supported-activities Help remains accurate.
+
 ## GPX
 
 ```ts

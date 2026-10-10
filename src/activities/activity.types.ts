@@ -408,6 +408,14 @@ export enum ActivityTypes {
   'Biking' = 'Cycling',
   'biking' = 'Cycling',
   'Ride' = 'Cycling',
+  /** Garmin activity-profile names reuse the existing cycling types. */
+  'Bike' = 'Cycling',
+  'Bike Tour' = 'Cycling',
+  'BikeTour' = 'Cycling',
+  'bike_tour' = 'Cycling',
+  'Road Bike' = 'Cycling',
+  'RoadBike' = 'Cycling',
+  'road_bike' = 'Cycling',
   'cycling_commuting' = 'Cycling',
   'Bike Commute' = 'Cycling',
   'BikeCommute' = 'Cycling',
@@ -452,6 +460,9 @@ export enum ActivityTypes {
   'gravel_cycling' = 'Gravel Cycling',
   'cycling_gravel_cycling' = 'Gravel Cycling',
   'GravelRide' = 'Gravel Cycling',
+  'Gravel Bike' = 'Gravel Cycling',
+  'GravelBike' = 'Gravel Cycling',
+  'gravel_bike' = 'Gravel Cycling',
   /**
    * Indoor Cycling
    */
@@ -464,6 +475,9 @@ export enum ActivityTypes {
   'Spin' = 'Indoor Cycling',
   'spin' = 'Indoor Cycling',
   'cycling_spin' = 'Indoor Cycling',
+  'Bike Indoor' = 'Indoor Cycling',
+  'BikeIndoor' = 'Indoor Cycling',
+  'bike_indoor' = 'Indoor Cycling',
   /**
    * Virtual Cycling
    */
@@ -480,6 +494,7 @@ export enum ActivityTypes {
   'EBiking' = 'E-Biking',
   'E biking' = 'E-Biking',
   'EBikeRide' = 'E-Biking',
+  'eBike' = 'E-Biking',
   'E-Biking' = 'E-Biking',
   'E-Bike Fitness' = 'E-Biking',
   'EBikeFitness' = 'E-Biking',
@@ -493,6 +508,7 @@ export enum ActivityTypes {
   'Mountain Biking' = 'Mountain Biking',
   'mountain' = 'Mountain Biking', // @todo this feels hacky but exists and indeed it's MTB
   'Mountain biking' = 'Mountain Biking',
+  'MTB' = 'Mountain Biking',
 
   /**
    * E-Mountain Biking
@@ -581,6 +597,9 @@ export enum ActivityTypes {
   'Swim' = 'Swimming',
   'swim' = 'Swimming',
   'swimming_lap_swimming' = 'Swimming',
+  'Pool Swim' = 'Swimming',
+  'PoolSwim' = 'Swimming',
+  'pool_swim' = 'Swimming',
   /**
    * Open Water Swimming
    */
@@ -728,6 +747,7 @@ export enum ActivityTypes {
    */
   'Kayaking' = 'Kayaking',
   'kayaking' = 'Kayaking',
+  'Kayak' = 'Kayaking',
   /** Whitewater Kayaking; FIT kayaking/whitewater (41/41), distinct from Whitewater Rafting. */
   'Whitewater Kayaking' = 'Whitewater Kayaking',
   'WhitewaterKayaking' = 'Whitewater Kayaking',
@@ -748,6 +768,7 @@ export enum ActivityTypes {
    */
   'rowing' = 'Rowing',
   'Rowing' = 'Rowing',
+  'Row' = 'Rowing',
   /**
    * Indoor Rowing
    */
@@ -757,6 +778,9 @@ export enum ActivityTypes {
   'indoor_rowing' = 'Indoor Rowing',
   'rowing_indoor' = 'Indoor Rowing',
   'rowing_indoor_rowing' = 'Indoor Rowing',
+  'Row Indoor' = 'Indoor Rowing',
+  'RowIndoor' = 'Indoor Rowing',
+  'row_indoor' = 'Indoor Rowing',
   /**
    * Climbing
    */
@@ -821,6 +845,9 @@ export enum ActivityTypes {
   'CrosscountrySkiing' = 'Crosscountry Skiing',
   'CrossCountrySkiing' = 'Crosscountry Skiing',
   'cross_country_skiing' = 'Crosscountry Skiing',
+  'XC Classic Ski' = 'Crosscountry Skiing',
+  'XCClassicSki' = 'Crosscountry Skiing',
+  'xc_classic_ski' = 'Crosscountry Skiing',
 
   /**
    * Skate Skiing
@@ -829,6 +856,9 @@ export enum ActivityTypes {
   'Skate Skiing' = 'Skate Skiing',
   'skate_skiing' = 'Skate Skiing',
   'cross_country_skiing_skate_skiing' = 'Skate Skiing',
+  'XC Skate Ski' = 'Skate Skiing',
+  'XCSkateSki' = 'Skate Skiing',
+  'xc_skate_ski' = 'Skate Skiing',
 
   /**
    * Nordic skiing
@@ -1146,6 +1176,7 @@ export enum ActivityTypes {
   'Horseback Riding' = 'Horseback Riding',
   'HorsebackRiding' = 'Horseback Riding',
   'Horseback riding' = 'Horseback Riding',
+  'Horseback' = 'Horseback Riding',
   /**
    * Gymnastics
    */
@@ -1222,6 +1253,7 @@ export enum ActivityTypes {
   'Strength Training' = 'Strength Training',
   'StrengthTraining' = 'Strength Training',
   'generic_strength_training' = 'Strength Training',
+  'Strength' = 'Strength Training',
   /**
    * Track and Field
    */
@@ -1300,6 +1332,9 @@ export enum ActivityTypes {
   'Floor climbing' = 'Floor Climbing',
   'Floor Climbing' = 'Floor Climbing',
   'FloorClimbing' = 'Floor Climbing',
+  'Floor Climb' = 'Floor Climbing',
+  'FloorClimb' = 'Floor Climbing',
+  'floor_climb' = 'Floor Climbing',
   /**
    * Paragliding
    */
@@ -1383,11 +1418,13 @@ export enum ActivityTypes {
    */
   'Fishing' = 'Fishing',
   'fishing' = 'Fishing',
+  'Fish' = 'Fishing',
   /**
    * Hunting
    */
   'Hunting' = 'Hunting',
   'hunting' = 'Hunting',
+  'Hunt' = 'Hunting',
   /** Hunting with Dogs; explicit FIT hunting/hunting_with_dogs (28/72). */
   'Hunting with Dogs' = 'Hunting with Dogs',
   'HuntingWithDogs' = 'Hunting with Dogs',
@@ -1435,6 +1472,9 @@ export enum ActivityTypes {
   'IndoorClimbing' = 'Indoor Climbing',
   'Indoor Climbing' = 'Indoor Climbing',
   'rock_climbing_indoor_climbing' = 'Indoor Climbing',
+  'Climb Indoor' = 'Indoor Climbing',
+  'ClimbIndoor' = 'Indoor Climbing',
+  'climb_indoor' = 'Indoor Climbing',
   /**
    * Bouldering (Garmin sub_sport: rock_climbing + bouldering)
    */
@@ -1519,6 +1559,7 @@ export enum ActivityTypes {
   'Cardio Training' = 'Cardio Training',
   'CardioTraining' = 'Cardio Training',
   'fitness_equipment_cardio_training' = 'Cardio Training',
+  'Cardio' = 'Cardio Training',
   /**
    * Elliptical trainer
    */

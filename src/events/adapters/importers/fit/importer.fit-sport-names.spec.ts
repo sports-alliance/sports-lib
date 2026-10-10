@@ -13,7 +13,31 @@ const importer = EventImporterFIT as unknown as {
   getActivityTypeFromSessionObject(session: unknown, manufacturer?: unknown): ActivityTypes;
 };
 
+const garminProfileNames = [
+  ['Bike Indoor', ActivityTypes.IndoorCycling, ActivityTypeGroups.CyclingGroup],
+  ['Bike Tour', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['Road Bike', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['Gravel Bike', ActivityTypes.GravelCycling, ActivityTypeGroups.CyclingGroup],
+  ['MTB', ActivityTypes.MountainBiking, ActivityTypeGroups.MountainBikingGroup],
+  ['Climb Indoor', ActivityTypes.IndoorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Row Indoor', ActivityTypes.IndoorRowing, ActivityTypeGroups.IndoorSportsGroup],
+  ['XC Classic Ski', ActivityTypes.CrosscountrySkiing, ActivityTypeGroups.WinterSportsGroup],
+  ['XC Skate Ski', ActivityTypes.SkateSkiing, ActivityTypeGroups.WinterSportsGroup],
+  ['Pool Swim', ActivityTypes.Swimming, ActivityTypeGroups.SwimmingGroup],
+  ['Bike', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup],
+  ['eBike', ActivityTypes.EBiking, ActivityTypeGroups.CyclingGroup],
+  ['Cardio', ActivityTypes.CardioTraining, ActivityTypeGroups.IndoorSportsGroup],
+  ['Floor Climb', ActivityTypes.FloorClimbing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Strength', ActivityTypes.StrengthTraining, ActivityTypeGroups.IndoorSportsGroup],
+  ['Fish', ActivityTypes.Fishing, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Horseback', ActivityTypes.HorsebackRiding, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Hunt', ActivityTypes.Hunting, ActivityTypeGroups.OutdoorAdventuresGroup],
+  ['Kayak', ActivityTypes.Kayaking, ActivityTypeGroups.WaterSportsGroup],
+  ['Row', ActivityTypes.Rowing, ActivityTypeGroups.WaterSportsGroup]
+] as const;
+
 const namedSports = [
+  ...garminProfileNames,
   ['Racket Sport', ActivityTypes.RacketSport, ActivityTypeGroups.TeamRacketGroup],
   ['Para Sport', ActivityTypes.ParaSport, ActivityTypeGroups.UnspecifiedGroup],
   ['Ultimate Disc', ActivityTypes.UltimateDisc, ActivityTypeGroups.TeamRacketGroup],
@@ -27,7 +51,7 @@ const namedSports = [
   ['Bike Commute', ActivityTypes.Cycling, ActivityTypeGroups.CyclingGroup]
 ] as const;
 
-describe('Racket, para, disc and recognized workout names', () => {
+describe('Recognized sport and activity-profile names', () => {
   it.each(namedSports)('normalizes the source name %s to %s in %s', (name, expected, group) => {
     for (const alias of [name, name.toUpperCase(), name.replace(/[\s-]/g, ''), name.replace(/[\s-]/g, '_')]) {
       expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(expected);
@@ -39,6 +63,26 @@ describe('Racket, para, disc and recognized workout names', () => {
         ).toBe(expected);
       }
     }
+  });
+
+  it.each(garminProfileNames)('normalizes %s through native JSON and a canonical round trip', (name, expected) => {
+    const canonical = {
+      name: 'profile-name-roundtrip',
+      startDate: 1000,
+      endDate: 61000,
+      type: expected,
+      powerMeter: false,
+      trainer: false,
+      stats: {},
+      streams: [],
+      laps: [],
+      creator: { name: 'test', devices: [] },
+      intensityZones: [],
+      events: []
+    };
+    const activity = EventImporterJSON.getActivityFromJSON({ ...canonical, type: name as ActivityTypes });
+    expect(activity.type).toBe(expected);
+    expect(EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON()))).type).toBe(expected);
   });
 
   it.each([
@@ -112,6 +156,7 @@ describe('Racket, para, disc and recognized workout names', () => {
 
   describe.each([1, 7, 23, 123, 65535])('binary FIT import for manufacturer %s', manufacturer => {
     it.each([
+      ...garminProfileNames.map(([profile, type]) => [0, 0, profile, type] as const),
       [64, 0, '', ActivityTypes.RacketSport],
       [68, 0, '', ActivityTypes.ParaSport],
       [0, 0, 'Ultimate Disc', ActivityTypes.UltimateDisc],

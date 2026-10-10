@@ -22,6 +22,13 @@ Rucking (`17/124`) belongs to Outdoor Adventures, Sailing Expedition (`32/66`) t
 Sailing, and general Diving. Historical corrections need retained sources and regeneration of affected summaries
 and Training snapshots after consumer adoption. See [Import activities](guides/importing-activities.md).
 
+Walking, Indoor Walking, and Nordic Walking now share the Walking group. Indoor Walking retains its indoor hint;
+walking pace, speed, and vertical-speed behavior is preserved. FIT Obstacle Racing (`1/59`) and Ultra Running (`1/67`)
+belong to Running, Enduro (`2/123`) reuses Enduro MTB under Mountain Biking, and Rally (`81/125`) belongs to Motorized.
+Indoor Walking accepts Walking and Fitness Equipment parents (`11/27`, `4/27`). Correct historical classifications
+from specific retained sources; consumers must add the Walking group to exhaustive metadata maps during adoption.
+See [Import activities](guides/importing-activities.md).
+
 Indoor Hand Cycle (`2/88`) belongs to Cycling; Indoor Wheelchair Push Walk (`65/86`) and Run (`66/87`) belong to
 Adaptive Mobility. All three preserve an explicit indoor hint. Overlanding belongs to Motorized, and Trucker Workout
 to Indoor Sports. Their specific FIT classifications and explicit names retain distinct canonical types; Motorized

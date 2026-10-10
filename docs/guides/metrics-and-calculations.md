@@ -536,6 +536,14 @@ these activities. Other Unspecified activities remain eligible for calculated TS
 a durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
 units, JSON representation, and MCP metric discovery remain unchanged.
 
+Walking, Indoor Walking, and Nordic Walking share `WalkingGroup` while preserving the existing walking pace/speed,
+average pace/speed, vertical-speed, and default movement threshold. Only Indoor Walking has the indoor hint. Walking
+has no grade-adjusted running derivation or durability adapter. Obstacle Racing and Ultra Running use Running's
+existing grade-adjusted metrics, TSS selection, and durability protocol, with its usual eligibility checks. Enduro MTB
+continues to emit unsupported-context gravity-MTB durability evidence and keeps its existing TSS eligibility. Rally
+inherits the Motorized calculated-TSS exclusion and imported-score policy above. These classifications add no metric
+token, unit, formula, or durability protocol; see [Import activities](importing-activities.md) for source and adoption requirements.
+
 POWER TSS:
 
 ```text

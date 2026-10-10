@@ -1,4 +1,6 @@
 import { DataPaceAvg } from '../data/data.pace-avg';
+import { DataGradeAdjustedPace } from '../data/data.grade-adjusted-pace';
+import { DataGradeAdjustedPaceAvg } from '../data/data.grade-adjusted-pace-avg';
 import { DataPace } from '../data/data.pace';
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataSpeed } from '../data/data.speed';
@@ -8,6 +10,12 @@ import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
 const proposedGroupAssignments = [
+  [ActivityTypes.ObstacleRacing, ActivityTypeGroups.RunningGroup],
+  [ActivityTypes.UltraRunning, ActivityTypeGroups.RunningGroup],
+  [ActivityTypes.Walking, ActivityTypeGroups.WalkingGroup],
+  [ActivityTypes.IndoorWalking, ActivityTypeGroups.WalkingGroup],
+  [ActivityTypes.NordicWalking, ActivityTypeGroups.WalkingGroup],
+  [ActivityTypes.Rally, ActivityTypeGroups.MotorizedGroup],
   [ActivityTypes.Aerobics, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.Boxing, ActivityTypeGroups.IndoorSportsGroup],
   [ActivityTypes.CardioTraining, ActivityTypeGroups.IndoorSportsGroup],
@@ -210,6 +218,86 @@ describe('ActivityTypes', () => {
       expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(value);
       expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(value);
     }
+  });
+
+  it.each([
+    [ActivityTypes.Walking, false],
+    [ActivityTypes.IndoorWalking, true],
+    [ActivityTypes.NordicWalking, false]
+  ] as const)('preserves walking metrics and the independent indoor hint for %s', (type, indoor) => {
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(type)).toBe(ActivityTypeGroups.WalkingGroup);
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(indoor);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPaceAvg.type,
+      DataSpeedAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+  });
+
+  it.each([ActivityTypes.ObstacleRacing, ActivityTypes.UltraRunning])('inherits running calculations for %s', type => {
+    expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(false);
+    expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(1.5 / 3.6);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPace.type,
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataPaceAvg.type,
+      DataGradeAdjustedPaceAvg.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataVerticalSpeed.type
+    ]);
+    expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([
+      DataGradeAdjustedPace.type
+    ]);
+  });
+
+  it.each([
+    ActivityTypes.ObstacleRacing,
+    ActivityTypes.UltraRunning,
+    ActivityTypes.IndoorWalking,
+    ActivityTypes.EnduroMTB,
+    ActivityTypes.Rally
+  ])('resolves every explicit alias of %s once', type => {
+    expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+    for (const [alias] of Object.entries(ActivityTypes).filter(([, value]) => value === type)) {
+      expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(type);
+      expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(type);
+    }
+  });
+
+  it('keeps ambiguous Enduro names and neighboring activity families separate', () => {
+    expect(ActivityTypesHelper.resolveActivityType('Enduro')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('Ultra')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('Obstacle')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('walking_indoor')).toBe(ActivityTypes.IndoorWalking);
+    expect(ActivityTypesHelper.resolveActivityType('walking_indoor_walking')).toBe(ActivityTypes.IndoorWalking);
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Hiking)).toBe(
+      ActivityTypeGroups.OutdoorAdventuresGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Rucking)).toBe(
+      ActivityTypeGroups.OutdoorAdventuresGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.EnduroMTB)).toBe(
+      ActivityTypeGroups.MountainBikingGroup
+    );
+    expect(ActivityTypesHelper.getActivityGroupForActivityType(ActivityTypes.Motorcycling)).toBe(
+      ActivityTypeGroups.MotorizedGroup
+    );
+    expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Rally)).toBe(false);
+    expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(ActivityTypes.Rally)).toEqual([
+      DataSpeed.type
+    ]);
+    expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(ActivityTypes.Rally)).toEqual([]);
   });
 
   it('keeps the five new classifications distinct from broader and neighboring types', () => {

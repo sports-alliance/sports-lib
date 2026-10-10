@@ -30,6 +30,11 @@ describe('EventImporterJSON', () => {
     ...Object.entries(ActivityTypes)
       .filter(([, type]) =>
         [
+          ActivityTypes.ObstacleRacing,
+          ActivityTypes.UltraRunning,
+          ActivityTypes.IndoorWalking,
+          ActivityTypes.EnduroMTB,
+          ActivityTypes.Rally,
           ActivityTypes.IndoorHandCycle,
           ActivityTypes.Overlanding,
           ActivityTypes.TruckerWorkout,

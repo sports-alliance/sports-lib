@@ -129,6 +129,11 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Rucking belongs to Outdoor Adventures; FIT hiking/rucking (17/124) preserves it separately from Hiking and Walking.
  * Sailing Expedition belongs to Water Sports; FIT sailing/expedition (32/66) and Sail Expedition names preserve it separately.
  * CCR Diving belongs to Diving; FIT diving/ccr_diving (53/63) preserves the closed-circuit rebreather type and excludes terrain summaries.
+ * Walking, Indoor Walking, and Nordic Walking belong to WalkingGroup; the indoor hint is independent of group membership.
+ * FIT walking/indoor_walking (11/27) and fitness_equipment/indoor_walking (4/27) preserve Indoor Walking.
+ * Obstacle Racing and Ultra Running belong to Running; FIT running/obstacle (1/59) and running/ultra (1/67) preserve them.
+ * FIT cycling/enduro (2/123) reuses Enduro MTB; ambiguous Enduro names without cycling context do not establish it.
+ * Rally belongs to Motorized; FIT motor_sports/rally (81/125) preserves it without calculating TSS.
  * Indoor Hand Cycle belongs to Cycling; FIT cycling/indoor_hand_cycling (2/88) preserves its indoor hint and existing cycling calculations.
  * Indoor Wheelchair Push Walk and Run belong to Adaptive Mobility; FIT pairs 65/86 and 66/87 retain their separate indoor types.
  * Overlanding belongs to Motorized; Overland names and the overland sub-sport under motorized parents retain it without calculated TSS.

@@ -214,6 +214,8 @@ describe('activity durability', () => {
   it.each([
     [ActivityTypes.MountainBiking, 'cycling', DataPower.type],
     [ActivityTypes.TrailRunning, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.ObstacleRacing, 'running', DataGradeAdjustedSpeed.type],
+    [ActivityTypes.UltraRunning, 'running', DataGradeAdjustedSpeed.type],
     [ActivityTypes.OpenWaterSwimming, 'open-water-swimming', DataSpeed.type]
   ])('groups %s into %s durability', (type, discipline, outputType) => {
     const result = analyzeActivityDurability(
@@ -278,6 +280,8 @@ describe('activity durability', () => {
   });
 
   it.each([
+    ActivityTypes.IndoorWalking,
+    ActivityTypes.Rally,
     ActivityTypes.WeightTraining,
     ActivityTypes.DiscGolf,
     ActivityTypes.Lacrosse,

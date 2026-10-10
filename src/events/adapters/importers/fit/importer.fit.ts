@@ -2407,24 +2407,68 @@ export class EventImporterFIT {
         if (normalizedSubSportName === 'indoorhandcycling') {
           return ActivityTypes.IndoorHandCycle;
         }
+        if (normalizedSubSportName === 'enduro') {
+          return ActivityTypes.EnduroMTB;
+        }
+        break;
+      case 'enduromtb':
+        return ActivityTypes.EnduroMTB;
+      case 'obstacleracing':
+      case 'obstaclerun':
+        return ActivityTypes.ObstacleRacing;
+      case 'ultrarunning':
+      case 'ultrarun':
+        return ActivityTypes.UltraRunning;
+      case 'running':
+        if (normalizedSubSportName === 'obstacle') {
+          return ActivityTypes.ObstacleRacing;
+        }
+        if (normalizedSubSportName === 'ultra') {
+          return ActivityTypes.UltraRunning;
+        }
+        break;
+      case 'indoorwalking':
+      case 'walkindoor':
+        return ActivityTypes.IndoorWalking;
+      case 'walking':
+        if (normalizedSubSportName === 'indoorwalking') {
+          return ActivityTypes.IndoorWalking;
+        }
         break;
       case 'overland':
       case 'overlanding':
         return ActivityTypes.Overlanding;
       case 'motorsports':
+        if (normalizedSubSportName === 'rally') {
+          return ActivityTypes.Rally;
+        }
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
       case 'motorcycling':
       case 'driving':
         if (normalizedSubSportName === 'overland') {
           return ActivityTypes.Overlanding;
         }
         break;
+      case 'rally':
+      case 'rallydriving':
+        return ActivityTypes.Rally;
       case 'truckerworkout':
       case 'truckerworkouts':
       case 'truckerhealth':
         return ActivityTypes.TruckerWorkout;
       case 'generic':
-      case 'fitnessequipment':
       case 'training':
+        if (normalizedSubSportName === 'truckerworkout') {
+          return ActivityTypes.TruckerWorkout;
+        }
+        break;
+      case 'fitnessequipment':
+        if (normalizedSubSportName === 'indoorwalking') {
+          return ActivityTypes.IndoorWalking;
+        }
         if (normalizedSubSportName === 'truckerworkout') {
           return ActivityTypes.TruckerWorkout;
         }
@@ -2547,7 +2591,12 @@ export class EventImporterFIT {
       normalizedSubSportName !== 'indoorwheelchairwalk' &&
       normalizedSubSportName !== 'indoorwheelchairrun' &&
       normalizedSubSportName !== 'overland' &&
-      normalizedSubSportName !== 'truckerworkout';
+      normalizedSubSportName !== 'truckerworkout' &&
+      normalizedSubSportName !== 'obstacle' &&
+      normalizedSubSportName !== 'ultra' &&
+      normalizedSubSportName !== 'indoorwalking' &&
+      normalizedSubSportName !== 'enduro' &&
+      normalizedSubSportName !== 'rally';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

@@ -14,7 +14,8 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
 import { deserializeDiveSourceRecords } from '../../../../activities/dive-source-records';
-import { ActivityTypes } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
+import { getActivityTypeSourceFromManufacturer } from '../../../../activities/activity-types.provider';
 import {
   normalizeActivityMetricSemanticsForStats,
   normalizeActivityMetricSemanticsForActivity,
@@ -296,7 +297,10 @@ export class EventImporterJSON {
     const activity = new Activity(
       new Date(json.startDate),
       new Date(json.endDate),
-      ActivityTypes[<keyof typeof ActivityTypes>json.type],
+      ActivityTypesHelper.resolveActivityType(
+        json.type,
+        getActivityTypeSourceFromManufacturer(json.creator?.manufacturer)
+      ) ?? ActivityTypes[<keyof typeof ActivityTypes>json.type],
       EventImporterJSON.getCreatorFromJSON(json.creator)
     );
     this.addStatsFromJSON(activity, json.stats);

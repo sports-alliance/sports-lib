@@ -765,7 +765,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 0, sub_sport: 124 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 66 }, ActivityTypes.Generic],
       [{ sport: 17, sub_sport: 66 }, ActivityTypes.Hiking],
-      [{ sport: 0, sub_sport: 66, sport_profile_name: 'Expedition' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 66, sport_profile_name: 'Expedition' }, ActivityTypes.Expedition],
       [{ sport: 0, sub_sport: 63 }, ActivityTypes.Generic],
       [{ sport: 5, sub_sport: 63 }, ActivityTypes.Swimming],
       [{ sport: 53, sub_sport: 0 }, ActivityTypes.Diving],
@@ -853,7 +853,14 @@ describe('EventImporterFIT', () => {
       [{ sport: 'cycling', sport_profile_name: 'Enduro' }, ActivityTypes.EnduroMTB]
     ])('requires the correct running, walking, cycling, or motor-sports context for %j', (session, expectedType) => {
       for (const manufacturer of [1, 7, 23, 123, undefined]) {
-        expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expectedType);
+        const expected =
+          manufacturer === 123 &&
+          'sport_profile_name' in session &&
+          session.sport === 0 &&
+          session.sport_profile_name === 'Enduro'
+            ? ActivityTypes.MotorcycleEnduro
+            : expectedType;
+        expect(importerInternals.getActivityTypeFromSessionObject(session, manufacturer)).toBe(expected);
       }
     });
 

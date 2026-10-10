@@ -116,7 +116,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * vertical-speed derivation; Motorized and Adaptive Mobility activities do not receive calculated
  * TSS or durability, but preserve source-imported TSS. Snorkeling and Mermaiding are canonical
  * diving activities, whose terrain summaries are excluded while raw source streams remain available.
- * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification resolves to Meditation.
+ * Meditation belongs to Indoor Sports; the FIT `generic/breathing` classification defaults to Meditation.
  * Padel belongs to Team/Racket; the FIT `racket/padel` classification resolves to Padel.
  * Racket Sport (FIT 64) and Ultimate Disc belong to Team/Racket; Para Sport (FIT 68) belongs to Unspecified.
  * Bare Racket preserves its broad category; recognized racket sub-sports or precise racket profiles retain their specific type.
@@ -126,6 +126,9 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Dynamic Apnea (53/121) reuses Pool Apnea in Diving. Workout-specific sub-sports require their documented parents.
  * Garmin profile names reuse existing sports: Bike Indoor, Bike Tour, Road Bike, Gravel Bike, MTB, Climb Indoor, Row Indoor,
  * XC Classic Ski, XC Skate Ski, Pool Swim, Bike, eBike, Cardio, Floor Climb, Strength, Fish, Horseback, Hunt, Kayak, and Row.
+ * Provider name resolution accepts optional Garmin, Polar or Strava context for source-specific names.
+ * The expanded catalog has 242 canonical types; Polar profile refinements require compatible FIT parents.
+ * Explicit Garmin Breathwork stays distinct from Meditation; Snorkel requires its recorded profile name.
  * These aliases normalize through FIT sport/profile fallback and native JSON, retaining each canonical type's group and calculations.
  * Numeric FIT parent/sub-sport precedence is unchanged; arbitrary activity titles do not identify a profile name.
  * Pickleball belongs to Team/Racket; FIT `racket/pickleball` (64/84) preserves it separately from Racquet Ball and Padel.
@@ -193,7 +196,7 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * @category Activities and events
  */
 export { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../src/activities/activity.types';
-export type { ActivityTypeGroup } from '../src/activities/activity.types';
+export type { ActivityTypeGroup, ActivityTypeSource } from '../src/activities/activity.types';
 export type { EventInterface } from '../src/events/event.interface';
 export type { EventJSONInterface } from '../src/events/event.json.interface';
 export { FileType } from '../src/events/adapters/file-type.enum';

@@ -1,3 +1,10 @@
+import {
+  resolveCommonActivityTypeAlias,
+  resolveProviderActivityType,
+  ActivityTypeSource
+} from './activity-types.provider';
+export type { ActivityTypeSource } from './activity-types.provider';
+
 import { DataSpeedAvg } from '../data/data.speed-avg';
 import { DataPaceAvg } from '../data/data.pace-avg';
 import { DataSwimPaceAvg } from '../data/data.swim-pace-avg';
@@ -15,7 +22,8 @@ export class ActivityTypesHelper {
     return value.toLowerCase().replace(/[\s_-]/g, '');
   }
 
-  static resolveActivityType(value: unknown): ActivityTypes | null {
+  /** Resolves canonical sports and aliases, using a provider only for source-specific names. */
+  static resolveActivityType(value: unknown, source?: ActivityTypeSource): ActivityTypes | null {
     if (value === null || value === undefined) {
       return null;
     }
@@ -25,10 +33,16 @@ export class ActivityTypesHelper {
       return null;
     }
 
+    const providerMatch = resolveProviderActivityType(raw, source);
+    if (providerMatch) return providerMatch;
+
     const exactMatch = ActivityTypes[raw as keyof typeof ActivityTypes];
     if (exactMatch) {
       return exactMatch as ActivityTypes;
     }
+
+    const commonAlias = resolveCommonActivityTypeAlias(raw);
+    if (commonAlias) return commonAlias;
 
     const normalizedRaw = this.normalizeActivityTypeLookupKey(raw);
     for (const enumKey of Object.keys(ActivityTypes)) {
@@ -1635,6 +1649,129 @@ export enum ActivityTypes {
   'indoorWheelchairRun' = 'Indoor Wheelchair Push Run',
   'indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
   'wheelchair_push_run_indoor_wheelchair_run' = 'Indoor Wheelchair Push Run',
+  /** Adaptive Water Skiing; recognized from an explicit provider sport/profile. */
+  'AdaptiveWaterSkiing' = 'Adaptive Water Skiing',
+  'Adaptive Water Skiing' = 'Adaptive Water Skiing',
+  /** Aqua Fitness; recognized from an explicit provider sport/profile. */
+  'AquaFitness' = 'Aqua Fitness',
+  'Aqua Fitness' = 'Aqua Fitness',
+  /** Backcountry Snowboarding; recognized from an explicit provider sport/profile. */
+  'BackcountrySnowboarding' = 'Backcountry Snowboarding',
+  'Backcountry Snowboarding' = 'Backcountry Snowboarding',
+  /** Barre; recognized from an explicit provider sport/profile. */
+  'Barre' = 'Barre',
+  /** Beach Tennis; recognized from an explicit provider sport/profile. */
+  'BeachTennis' = 'Beach Tennis',
+  'Beach Tennis' = 'Beach Tennis',
+  /** Beach Volleyball; recognized from an explicit provider sport/profile. */
+  'BeachVolleyball' = 'Beach Volleyball',
+  'Beach Volleyball' = 'Beach Volleyball',
+  /** Biathlon; recognized from an explicit provider sport/profile. */
+  'Biathlon' = 'Biathlon',
+  /** Bootcamp; recognized from an explicit provider sport/profile. */
+  'Bootcamp' = 'Bootcamp',
+  /** Breathwork; recognized from an explicit provider sport/profile. */
+  'Breathwork' = 'Breathwork',
+  /** Calisthenics; recognized from an explicit provider sport/profile. */
+  'Calisthenics' = 'Calisthenics',
+  /** Car Racing; recognized from an explicit provider sport/profile. */
+  'CarRacing' = 'Car Racing',
+  'Car Racing' = 'Car Racing',
+  /** Classic Roller Skiing; recognized from an explicit provider sport/profile. */
+  'ClassicRollerSkiing' = 'Classic Roller Skiing',
+  'Classic Roller Skiing' = 'Classic Roller Skiing',
+  /** Core Training; recognized from an explicit provider sport/profile. */
+  'CoreTraining' = 'Core Training',
+  'Core Training' = 'Core Training',
+  /** Crosscountry Running; recognized from an explicit provider sport/profile. */
+  'CrosscountryRunning' = 'Crosscountry Running',
+  'Crosscountry Running' = 'Crosscountry Running',
+  /** Curling; recognized from an explicit provider sport/profile. */
+  'Curling' = 'Curling',
+  /** Dog Agility; recognized from an explicit provider sport/profile. */
+  'DogAgility' = 'Dog Agility',
+  'Dog Agility' = 'Dog Agility',
+  /** Expedition; recognized from an explicit provider sport/profile. */
+  'Expedition' = 'Expedition',
+  /** Finnish Baseball; recognized from an explicit provider sport/profile. */
+  'FinnishBaseball' = 'Finnish Baseball',
+  'Finnish Baseball' = 'Finnish Baseball',
+  /** Fitness Racing; recognized from an explicit provider sport/profile. */
+  'FitnessRacing' = 'Fitness Racing',
+  'Fitness Racing' = 'Fitness Racing',
+  /** Functional Training; recognized from an explicit provider sport/profile. */
+  'FunctionalTraining' = 'Functional Training',
+  'Functional Training' = 'Functional Training',
+  /** Futsal; recognized from an explicit provider sport/profile. */
+  'Futsal' = 'Futsal',
+  /** Hard Enduro; recognized from an explicit provider sport/profile. */
+  'HardEnduro' = 'Hard Enduro',
+  'Hard Enduro' = 'Hard Enduro',
+  /** Indoor Shooting; recognized from an explicit provider sport/profile. */
+  'IndoorShooting' = 'Indoor Shooting',
+  'Indoor Shooting' = 'Indoor Shooting',
+  /** Judo; recognized from an explicit provider sport/profile. */
+  'Judo' = 'Judo',
+  /** Kickbiking; recognized from an explicit provider sport/profile. */
+  'Kickbiking' = 'Kickbiking',
+  /** Kickboxing; recognized from an explicit provider sport/profile. */
+  'Kickboxing' = 'Kickboxing',
+  /** Mind-Body Training; recognized from an explicit provider sport/profile. */
+  'MindBodyTraining' = 'Mind-Body Training',
+  'Mind-Body Training' = 'Mind-Body Training',
+  /** Motorcycle Enduro; recognized from an explicit provider sport/profile. */
+  'MotorcycleEnduro' = 'Motorcycle Enduro',
+  'Motorcycle Enduro' = 'Motorcycle Enduro',
+  /** Mountain Bike Orienteering; recognized from an explicit provider sport/profile. */
+  'MountainBikeOrienteering' = 'Mountain Bike Orienteering',
+  'Mountain Bike Orienteering' = 'Mountain Bike Orienteering',
+  /** Offroad Duathlon; recognized from an explicit provider sport/profile. */
+  'OffroadDuathlon' = 'Offroad Duathlon',
+  'Offroad Duathlon' = 'Offroad Duathlon',
+  /** Offroad Triathlon; recognized from an explicit provider sport/profile. */
+  'OffroadTriathlon' = 'Offroad Triathlon',
+  'Offroad Triathlon' = 'Offroad Triathlon',
+  /** Physical Therapy; recognized from an explicit provider sport/profile. */
+  'PhysicalTherapy' = 'Physical Therapy',
+  'Physical Therapy' = 'Physical Therapy',
+  /** Ringette; recognized from an explicit provider sport/profile. */
+  'Ringette' = 'Ringette',
+  /** Skate Roller Skiing; recognized from an explicit provider sport/profile. */
+  'SkateRollerSkiing' = 'Skate Roller Skiing',
+  'Skate Roller Skiing' = 'Skate Roller Skiing',
+  /** Skateboarding; recognized from an explicit provider sport/profile. */
+  'Skateboarding' = 'Skateboarding',
+  /** Ski Orienteering; recognized from an explicit provider sport/profile. */
+  'SkiOrienteering' = 'Ski Orienteering',
+  'Ski Orienteering' = 'Ski Orienteering',
+  /** Sled Hockey; recognized from an explicit provider sport/profile. */
+  'SledHockey' = 'Sled Hockey',
+  'Sled Hockey' = 'Sled Hockey',
+  /** Snocross; recognized from an explicit provider sport/profile. */
+  'Snocross' = 'Snocross',
+  /** Step Training; recognized from an explicit provider sport/profile. */
+  'StepTraining' = 'Step Training',
+  'Step Training' = 'Step Training',
+  /** Taekwondo; recognized from an explicit provider sport/profile. */
+  'Taekwondo' = 'Taekwondo',
+  /** Trotting; recognized from an explicit provider sport/profile. */
+  'Trotting' = 'Trotting',
+  /** Virtual Rowing; recognized from an explicit provider sport/profile. */
+  'VirtualRowing' = 'Virtual Rowing',
+  'Virtual Rowing' = 'Virtual Rowing',
+  /** Water Running; recognized from an explicit provider sport/profile. */
+  'WaterRunning' = 'Water Running',
+  'Water Running' = 'Water Running',
+  /** Wheelchair Basketball; recognized from an explicit provider sport/profile. */
+  'WheelchairBasketball' = 'Wheelchair Basketball',
+  'Wheelchair Basketball' = 'Wheelchair Basketball',
+  /** Wheelchair Racing; recognized from an explicit provider sport/profile. */
+  'WheelchairRacing' = 'Wheelchair Racing',
+  'Wheelchair Racing' = 'Wheelchair Racing',
+  /** Wheelchair Tennis; recognized from an explicit provider sport/profile. */
+  'WheelchairTennis' = 'Wheelchair Tennis',
+  'Wheelchair Tennis' = 'Wheelchair Tennis',
+
   'Workout' = 'Workout',
 
   'generic_match' = 'Match',
@@ -1651,6 +1788,7 @@ const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
   ActivityTypes.OpenWaterSwimming,
   ActivityTypes.Rowing,
   ActivityTypes.IndoorRowing,
+  ActivityTypes.VirtualRowing,
   ActivityTypes.Kayaking,
   ActivityTypes.WhitewaterKayaking,
   ActivityTypes.Canoeing,
@@ -1659,6 +1797,9 @@ const STROKE_RATE_ACTIVITY_TYPES = new Set<ActivityTypes>([
 ]);
 
 export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
+  ActivityTypes.AquaFitness,
+  ActivityTypes.AdaptiveWaterSkiing,
+  ActivityTypes.WaterRunning,
   ActivityTypes.Sailing,
   ActivityTypes.SailingExpedition,
   ActivityTypes.SailRacing,
@@ -1684,6 +1825,9 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
 ];
 
 export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
+  ActivityTypes.AquaFitness,
+  ActivityTypes.AdaptiveWaterSkiing,
+  ActivityTypes.WaterRunning,
   ActivityTypes.AlpineSkiing,
   ActivityTypes.Snowboarding,
   ActivityTypes.DownhillCycling,
@@ -1746,6 +1890,7 @@ export type ActivityTypeGroup = (typeof ActivityTypeGroups)[keyof typeof Activit
 export class ActivityTypesGroupMapping {
   public static readonly map: Record<ActivityTypeGroup, ActivityTypes[]> = {
     [ActivityTypeGroups.RunningGroup]: [
+      ActivityTypes.CrosscountryRunning,
       ActivityTypes.Running,
       ActivityTypes.TrackRunning,
       ActivityTypes.ObstacleRacing,
@@ -1762,6 +1907,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.NordicWalking
     ],
     [ActivityTypeGroups.CyclingGroup]: [
+      ActivityTypes.Kickbiking,
       ActivityTypes.Cycling,
       ActivityTypes.TrackCycling,
       ActivityTypes.RecumbentCycling,
@@ -1777,6 +1923,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Velomobile
     ],
     [ActivityTypeGroups.MountainBikingGroup]: [
+      ActivityTypes.MountainBikeOrienteering,
       ActivityTypes.MountainBiking,
       ActivityTypes.EMountainBiking,
       ActivityTypes['Enduro MTB'],
@@ -1785,6 +1932,11 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.SwimmingGroup]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
     [ActivityTypeGroups.PerformanceGroup]: [
+      ActivityTypes.FitnessRacing,
+      ActivityTypes.OffroadDuathlon,
+      ActivityTypes.OffroadTriathlon,
+      ActivityTypes.ClassicRollerSkiing,
+      ActivityTypes.SkateRollerSkiing,
       ActivityTypes.Crossfit,
       ActivityTypes.Orienteering,
       ActivityTypes.RollerSki,
@@ -1799,6 +1951,20 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Swimrun
     ],
     [ActivityTypeGroups.IndoorSportsGroup]: [
+      ActivityTypes.Breathwork,
+      ActivityTypes.MindBodyTraining,
+      ActivityTypes.Bootcamp,
+      ActivityTypes.Calisthenics,
+      ActivityTypes.CoreTraining,
+      ActivityTypes.StepTraining,
+      ActivityTypes.FunctionalTraining,
+      ActivityTypes.Judo,
+      ActivityTypes.Kickboxing,
+      ActivityTypes.Barre,
+      ActivityTypes.IndoorShooting,
+      ActivityTypes.Taekwondo,
+      ActivityTypes.PhysicalTherapy,
+      ActivityTypes.VirtualRowing,
       ActivityTypes.Gymnastics,
       ActivityTypes.Yoga,
       ActivityTypes.Meditation,
@@ -1832,6 +1998,9 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.StairStepper
     ],
     [ActivityTypeGroups.OutdoorAdventuresGroup]: [
+      ActivityTypes.Expedition,
+      ActivityTypes.DogAgility,
+      ActivityTypes.Trotting,
       ActivityTypes.Hiking,
       ActivityTypes.Rucking,
       ActivityTypes.HorsebackRiding,
@@ -1852,6 +2021,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Trekking
     ],
     [ActivityTypeGroups.WinterSportsGroup]: [
+      ActivityTypes.BackcountrySnowboarding,
+      ActivityTypes.Biathlon,
+      ActivityTypes.Curling,
+      ActivityTypes.SkiOrienteering,
       ActivityTypes.WinterSport,
       ActivityTypes.CrosscountrySkiing,
       ActivityTypes.SkateSkiing,
@@ -1867,7 +2040,11 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.BackCountrySki,
       ActivityTypes.NordicSki
     ],
-    [ActivityTypeGroups.SkatingGroup]: [ActivityTypes.InlineSkating, ActivityTypes.Skating],
+    [ActivityTypeGroups.SkatingGroup]: [
+      ActivityTypes.Skateboarding,
+      ActivityTypes.InlineSkating,
+      ActivityTypes.Skating
+    ],
     [ActivityTypeGroups.AerialSportsGroup]: [
       ActivityTypes.Paramotoring,
       ActivityTypes.Flying,
@@ -1878,6 +2055,10 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.SkyDiving
     ],
     [ActivityTypeGroups.MotorizedGroup]: [
+      ActivityTypes.CarRacing,
+      ActivityTypes.MotorcycleEnduro,
+      ActivityTypes.HardEnduro,
+      ActivityTypes.Snocross,
       ActivityTypes.Boating,
       ActivityTypes.Driving,
       ActivityTypes.Motorcycling,
@@ -1889,6 +2070,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Snowmobiling
     ],
     [ActivityTypeGroups.AdaptiveMobilityGroup]: [
+      ActivityTypes.WheelchairRacing,
       ActivityTypes.Wheelchair,
       ActivityTypes.WheelchairPushWalk,
       ActivityTypes.WheelchairPushRun,
@@ -1896,6 +2078,9 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IndoorWheelchairPushRun
     ],
     [ActivityTypeGroups.WaterSportsGroup]: [
+      ActivityTypes.AquaFitness,
+      ActivityTypes.AdaptiveWaterSkiing,
+      ActivityTypes.WaterRunning,
       ActivityTypes.WaterSport,
       ActivityTypes.Rowing,
       ActivityTypes.Surfing,
@@ -1927,6 +2112,14 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Mermaiding
     ],
     [ActivityTypeGroups.TeamRacketGroup]: [
+      ActivityTypes.BeachTennis,
+      ActivityTypes.BeachVolleyball,
+      ActivityTypes.FinnishBaseball,
+      ActivityTypes.Futsal,
+      ActivityTypes.SledHockey,
+      ActivityTypes.WheelchairBasketball,
+      ActivityTypes.WheelchairTennis,
+      ActivityTypes.Ringette,
       ActivityTypes.RacketSport,
       ActivityTypes.UltimateDisc,
       ActivityTypes.Hockey,

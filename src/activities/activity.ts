@@ -48,6 +48,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     ActivityTypes.IndoorCycling,
     ActivityTypes.IndoorRunning,
     ActivityTypes.IndoorRowing,
+    ActivityTypes.VirtualRowing,
     ActivityTypes.Crosstrainer,
     ActivityTypes.EllipticalTrainer,
     ActivityTypes.FitnessEquipment,

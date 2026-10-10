@@ -473,6 +473,95 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      { sport: 64, sub_sport: 84 },
+      { sport: '64', sub_sport: '84' },
+      { sport: 'racket', sub_sport: 'pickleball' },
+      { sport: 'RACKET', sub_sport: 'PICKLEBALL' },
+      { sport: 'racket', sub_sport: 84 },
+      { sport: 64, sub_sport: 'pickleball', sport_profile_name: 'Padel' },
+      { sport: 64, sub_sport: 84, sport_profile_name: 'Tennis' },
+      { sport: 64, sub_sport: 84, sport_profile_name: 'Custom racket profile' }
+    ])('maps the explicit FIT racket/pickleball pair %j to Pickleball', session => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(ActivityTypes.Pickleball);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(ActivityTypes.Pickleball);
+    });
+
+    describe.each([
+      [83, 'dance', ActivityTypes.Dancing, 'Aerobics'],
+      [84, 'jump_rope', ActivityTypes.JumpRope, 'Running']
+    ] as const)('explicit FIT sport %s (%s)', (sportId, sportName, expectedType, neighboringType) => {
+      it.each([
+        { sport: sportId },
+        { sport: sportId, sub_sport: 0 },
+        { sport: String(sportId), sub_sport: '0' },
+        { sport: sportName },
+        { sport: sportName, sub_sport: 'generic' },
+        { sport: expectedType, sub_sport: 'generic' },
+        { sport: sportName.toUpperCase().replace(/_/g, '-'), sub_sport: 'GENERIC' },
+        { sport: sportId, sub_sport: 62 },
+        { sport: sportId, sub_sport: 84 },
+        { sport: sportId, sub_sport: 0, sport_profile_name: neighboringType },
+        { sport: sportId, sport_profile_name: 'Custom fitness profile' }
+      ])('preserves its canonical type for session %j', session => {
+        expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      });
+
+      it.each([1, 7, 23, 123, undefined])('maps independently of manufacturer %j', manufacturer => {
+        expect(importerInternals.getActivityTypeFromSessionObject({ sport: sportId, sub_sport: 0 }, manufacturer)).toBe(
+          expectedType
+        );
+      });
+
+      it.each([expectedType, sportName])('honors an explicit %s profile in a generic session', profile => {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport: 0, sport_profile_name: profile }, 7)
+        ).toBe(expectedType);
+      });
+    });
+
+    it.each([
+      ['Dancing', ActivityTypes.Dancing],
+      ['dance', ActivityTypes.Dancing],
+      ['JumpRope', ActivityTypes.JumpRope],
+      ['jumpRope', ActivityTypes.JumpRope],
+      ['Pickleball', ActivityTypes.Pickleball],
+      ['PICKLEBALL', ActivityTypes.Pickleball]
+    ])('honors explicit sport/profile name %s across manufacturers', (name, expectedType) => {
+      for (const manufacturer of [1, 7, 23, 123, undefined]) {
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: name, sport_profile_name: 'Training' },
+            manufacturer
+          )
+        ).toBe(expectedType);
+        expect(
+          importerInternals.getActivityTypeFromSessionObject(
+            { sport: 0, sub_sport: 0, sport_profile_name: name },
+            manufacturer
+          )
+        ).toBe(expectedType);
+      }
+    });
+
+    it.each([
+      [{ sport: 64, sub_sport: 0 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 85 }, ActivityTypes.Padel],
+      [{ sport: 64, sub_sport: 94 }, ActivityTypes.Squash],
+      [{ sport: 64, sub_sport: 95 }, ActivityTypes.Badminton],
+      [{ sport: 64, sub_sport: 96 }, ActivityTypes.RacquetBall],
+      [{ sport: 64, sub_sport: 97 }, ActivityTypes.TableTennis],
+      [{ sport: 8, sub_sport: 0 }, ActivityTypes.Tennis],
+      [{ sport: 1, sub_sport: 84 }, ActivityTypes.Running],
+      [{ sport: 0, sub_sport: 84 }, ActivityTypes.Generic],
+      [{ sub_sport: 84 }, ActivityTypes.unknown],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Rope' }, ActivityTypes.Generic],
+      [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom fitness profile' }, ActivityTypes.Generic]
+    ])('preserves neighboring and ambiguous session %j', (session, expectedType) => {
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 1)).toBe(expectedType);
+      expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
+    });
+
+    it.each([
       { sport: 'cycling', sub_sport: 'hand_cycling' },
       { sport: 2, sub_sport: 12 },
       { sport: '2', sub_sport: '12' },
@@ -1308,6 +1397,23 @@ describe('EventImporterFIT', () => {
     it.each([
       [23, 0, 62, ActivityTypes.Meditation],
       [23, 64, 85, ActivityTypes.Padel],
+      [1, 64, 84, ActivityTypes.Pickleball],
+      [7, 64, 84, ActivityTypes.Pickleball],
+      [23, 64, 84, ActivityTypes.Pickleball],
+      [123, 64, 84, ActivityTypes.Pickleball],
+      [65535, 64, 84, ActivityTypes.Pickleball],
+      [1, 83, 0, ActivityTypes.Dancing],
+      [7, 83, 0, ActivityTypes.Dancing],
+      [23, 83, 0, ActivityTypes.Dancing],
+      [123, 83, 0, ActivityTypes.Dancing],
+      [65535, 83, 0, ActivityTypes.Dancing],
+      [1, 84, 0, ActivityTypes.JumpRope],
+      [7, 84, 0, ActivityTypes.JumpRope],
+      [23, 84, 0, ActivityTypes.JumpRope],
+      [123, 84, 0, ActivityTypes.JumpRope],
+      [65535, 84, 0, ActivityTypes.JumpRope],
+      [1, 84, 84, ActivityTypes.JumpRope],
+      [1, 0, 84, ActivityTypes.Generic],
       [23, 2, 12, ActivityTypes.Handcycle],
       [1, 2, 12, ActivityTypes.Handcycle],
       [1, 69, 0, ActivityTypes.DiscGolf],

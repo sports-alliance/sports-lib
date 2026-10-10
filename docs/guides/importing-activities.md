@@ -64,6 +64,38 @@ The existing strict MCP activity-type catalog discovers the new canonical names,
 canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
 remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
 
+`ActivityTypes.Shooting` has canonical stored value `Shooting`, and `ActivityTypes.Geocaching` has canonical stored value
+`Geocaching`, both in `ActivityTypeGroups.OutdoorAdventuresGroup`. Explicit FIT sports `shooting` (`56`) and `geocaching`
+(`87`) retain these types before sub-sport and profile fallbacks, across manufacturers. Shooting remains distinct from
+Archery and Hunting; Geocaching remains distinct from Hiking and Walking. Lowercase `shooting` and `geocaching` aliases
+also restore their canonical values from native JSON.
+
+`ActivityTypes.PlatformTennis` has canonical stored value `Platform Tennis` in `ActivityTypeGroups.TeamRacketGroup`,
+distinct from Tennis, Padel, Pickleball, and Racquet Ball. FIT `sport=racket` (`64`) with `sub_sport=platform` (`93`)
+imports as Platform Tennis before profile fallbacks. These IDs appear in Garmin's official FIT profile linked above;
+[Garmin's activity profiles](https://support.garmin.com/en-ZA/?faq=g9VOolzNBr08b7mfclmxt7) use the Platform Tennis name.
+Standalone `platform`, a generic session with sub-sport `93`, or a custom profile does not establish Platform Tennis.
+Explicit `Platform Tennis`, `PlatformTennis`, `platformTennis`, and `platform_tennis` sport/profile names do establish it
+across providers. Those aliases and `racket_platform` restore the same canonical value from native JSON. Other racket
+sub-sports retain their existing types.
+
+Shooting and Geocaching inherit Outdoor Adventures' existing movement threshold, speed/pace and vertical-speed
+families, terrain behavior, and TSS selection; Platform Tennis inherits the corresponding Team/Racket speed behavior
+without vertical-speed or grade-adjusted derivation. All three have a false indoor hint, which is a catalog grouping
+and does not establish where an individual session was recorded. None has stroke-rate semantics or a durability
+adapter. This adds no numeric metric, provider transport, workout-delivery support, Training formula, or modeled
+Training family. Quantified Self's existing policy resolves the types to volume-only Other training; formerly Generic
+activities belonged to Fitness & Gym, while Racquet Ball already belongs to Other training. Usable power curves stay
+isolated by exact canonical activity type.
+
+Stored Generic, Unknown Sport, and Racquet Ball labels cannot identify these sports on their own. Reparse retained FIT
+`56`, `87`, and `64/93` sources, or restore specific source names/profiles when available, then regenerate separately
+persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
+Adopt the release in both the Quantified Self application and Functions before persisting the new types. The existing
+strict MCP activity-type catalog discovers their names, groups, and indoor hints without new fields, scopes, tools, or
+planning mutations. Queue lifecycle, write paths, and monitoring remain unchanged. Supported-activities Help links to
+the dynamic catalog and needs no enumerated entry before adoption.
+
 `ActivityTypes.DiscGolf` has the canonical stored value `Disc Golf` in `ActivityTypeGroups.TeamRacketGroup`, alongside
 the separate Golf and Frisbee types. FIT `sport=disc_golf` (`69`) imports as Disc Golf across manufacturers, using
 [Garmin's activity reference](https://developer.garmin.com/connect-iq/api-docs/Toybox/Activity.html). The explicit sport
@@ -302,7 +334,7 @@ durability adapters are added.
 Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
 `Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
 `Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
-`Mixed Martial Arts`, `Jump Rope`, or `Pickleball`.
+`Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, or `Platform Tennis`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

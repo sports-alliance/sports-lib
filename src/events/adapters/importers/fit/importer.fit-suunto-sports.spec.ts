@@ -376,3 +376,114 @@ describe('Suunto named profiles on shared FIT pairs', () => {
     expect(restored.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.375);
   });
 });
+
+const newlyDistinctProfiles = [
+  {
+    sport: 0,
+    subSport: 0,
+    sportName: 'generic',
+    subSportName: 'generic',
+    profile: 'Parkouring',
+    type: ActivityTypes.Parkour,
+    broad: ActivityTypes.Generic
+  },
+  {
+    sport: 53,
+    subSport: 0,
+    sportName: 'diving',
+    subSportName: 'generic',
+    profile: 'Spearfishing',
+    type: ActivityTypes.Spearfishing,
+    broad: ActivityTypes.Diving
+  },
+  {
+    sport: 1,
+    subSport: 3,
+    sportName: 'running',
+    subSportName: 'trail',
+    profile: 'Vertical running',
+    type: ActivityTypes.VerticalRunning,
+    broad: ActivityTypes.TrailRunning
+  }
+];
+
+describe('Suunto distinct names on shared exports', () => {
+  it.each(newlyDistinctProfiles)('preserves explicit $profile across decoded representations', row => {
+    for (const manufacturer of [23, '23', 'suunto', 'SUUNTO', ' Suunto ']) {
+      for (const session of [
+        { sport: row.sport, sub_sport: row.subSport },
+        { sport: String(row.sport), sub_sport: String(row.subSport) },
+        { sport: row.sportName, sub_sport: row.subSportName },
+        { sport: row.sportName.toUpperCase(), sub_sport: row.subSportName.toUpperCase() }
+      ]) {
+        for (const profile of [row.profile, row.type, row.profile.toUpperCase(), ` ${row.profile} `]) {
+          expect(
+            importerInternals.getActivityTypeFromSessionObject(
+              { ...session, sport_profile_name: profile },
+              manufacturer
+            )
+          ).toBe(row.type);
+        }
+        for (const profile of [undefined, 'Custom profile', `${row.profile} intervals`, {}, 115]) {
+          expect(
+            importerInternals.getActivityTypeFromSessionObject(
+              { ...session, sport_profile_name: profile },
+              manufacturer
+            )
+          ).toBe(row.broad);
+        }
+      }
+    }
+  });
+
+  it('requires Suunto creator identity for the Vertical Running refinement on Running/Trail', () => {
+    for (const manufacturer of [undefined, 1, 'garmin', 123, 'polar', 'suunto_sensor']) {
+      expect(
+        importerInternals.getActivityTypeFromSessionObject(
+          { sport: 1, sub_sport: 3, sport_profile_name: 'Vertical running' },
+          manufacturer
+        )
+      ).toBe(ActivityTypes.TrailRunning);
+    }
+    const activity = importSession(
+      { file_ids: [{ manufacturer: 'garmin' }], device_infos: [{ device_index: 1, manufacturer: 'suunto' }] },
+      { sport: 1, sub_sport: 3, sport_profile_name: 'Vertical running' }
+    );
+    expect(activity.type).toBe(ActivityTypes.TrailRunning);
+  });
+
+  it.each(newlyDistinctProfiles)('round-trips imported $type with both TSS settings', row => {
+    for (const preserveImportedTss of [undefined, true, false]) {
+      for (const score of [0, 42.375]) {
+        const options = new ActivityParsingOptions({
+          generateUnitStreams: false,
+          tss: { preserveImportedTss, overrides: { metScore: 6, thresholdMet: 6 } }
+        });
+        const activity = importSession(
+          { file_ids: [{ manufacturer: 'suunto' }] },
+          { sport: row.sport, sub_sport: row.subSport, sport_profile_name: row.profile, training_stress_score: score },
+          options
+        );
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+        const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+        restored.parseOptions = options;
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
+        for (const candidate of [activity, restored]) {
+          expect(candidate.type).toBe(row.type);
+          if (preserveImportedTss === false) {
+            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(score);
+            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.MET
+            );
+          } else {
+            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
+          }
+        }
+      }
+    }
+  });
+});

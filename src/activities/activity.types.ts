@@ -1748,6 +1748,14 @@ export enum ActivityTypes {
   'LesMillsTheTrip' = 'LES MILLS THE TRIP',
   'LES MILLS THE TRIP' = 'LES MILLS THE TRIP',
   'LES MILLS TRIP' = 'LES MILLS THE TRIP',
+  /** Parkour; preserves an explicitly recorded sport name. */
+  'Parkour' = 'Parkour',
+  'Parkouring' = 'Parkour',
+  /** Vertical Running; preserves an explicitly recorded sport name. */
+  'VerticalRunning' = 'Vertical Running',
+  'Vertical Running' = 'Vertical Running',
+  /** Spearfishing; preserves an explicitly recorded sport name. */
+  'Spearfishing' = 'Spearfishing',
   /** Adaptive Water Skiing; recognized from an explicit provider sport/profile. */
   'AdaptiveWaterSkiing' = 'Adaptive Water Skiing',
   'Adaptive Water Skiing' = 'Adaptive Water Skiing',
@@ -1928,6 +1936,7 @@ export const ACTIVITIES_EXCLUDED_FROM_DESCENT = [
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
   ActivityTypes.DynamicApnea,
+  ActivityTypes.Spearfishing,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -1960,6 +1969,7 @@ export const ACTIVITIES_EXCLUDED_FROM_ASCENT = [
   ActivityTypes.FreeDiving,
   ActivityTypes.PoolApnea,
   ActivityTypes.DynamicApnea,
+  ActivityTypes.Spearfishing,
   ActivityTypes.Snorkeling,
   ActivityTypes.Mermaiding
 ];
@@ -2011,7 +2021,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.IndoorRunning,
       ActivityTypes.VirtualRunning
     ],
-    [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning],
+    [ActivityTypeGroups.TrailRunningGroup]: [ActivityTypes.TrailRunning, ActivityTypes.VerticalRunning],
     [ActivityTypeGroups.WalkingGroup]: [
       ActivityTypes.Walking,
       ActivityTypes.SpeedWalking,
@@ -2049,6 +2059,7 @@ export class ActivityTypesGroupMapping {
     ],
     [ActivityTypeGroups.SwimmingGroup]: [ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming],
     [ActivityTypeGroups.PerformanceGroup]: [
+      ActivityTypes.Parkour,
       ActivityTypes.FitnessRacing,
       ActivityTypes.OffroadDuathlon,
       ActivityTypes.OffroadTriathlon,
@@ -2251,6 +2262,7 @@ export class ActivityTypesGroupMapping {
       ActivityTypes.Windsurfing
     ],
     [ActivityTypeGroups.DivingGroup]: [
+      ActivityTypes.Spearfishing,
       ActivityTypes.DynamicApnea,
 
       ActivityTypes.Diving,

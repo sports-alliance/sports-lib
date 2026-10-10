@@ -134,6 +134,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  * Obstacle Racing and Ultra Running belong to Running; FIT running/obstacle (1/59) and running/ultra (1/67) preserve them.
  * FIT cycling/enduro (2/123) reuses Enduro MTB; ambiguous Enduro names without cycling context do not establish it.
  * Rally belongs to Motorized; FIT motor_sports/rally (81/125) preserves it without calculating TSS.
+ * FIT Spin (2/5) reuses Indoor Cycling; cycling/e_bike_mountain (2/47) reuses E-Mountain Biking, like e_biking/47.
+ * Adventure Race (18/82, 1/82) reuses Adventure Racing; Fly Paraglide (20/111) reuses Paragliding.
+ * Broad Hockey (73), Winter Sport (58), Team Sport (70), and Water Sport (78) preserve the source category without guessing subtypes.
+ * Paramotoring (20/112) belongs to Aerial Sports; RC Drone Flying (20/39) belongs to Unspecified. Both retain imported TSS only.
  * E-Enduro MTB belongs to Mountain Biking; FIT cycling/e_bike_enduro (2/127) retains gravity-MTB durability exclusion.
  * Track Cycling (2/13) and Recumbent Cycling (2/10) belong to Cycling without assuming an indoor venue.
  * Speed Walking (11/31) belongs to Walking, without inferring race-walking rules.

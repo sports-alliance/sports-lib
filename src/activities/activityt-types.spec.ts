@@ -10,6 +10,12 @@ import { DataVerticalSpeed } from '../data/data.vertical-speed';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from './activity.types';
 
 const proposedGroupAssignments = [
+  [ActivityTypes.Hockey, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.WinterSport, ActivityTypeGroups.WinterSportsGroup],
+  [ActivityTypes.TeamSport, ActivityTypeGroups.TeamRacketGroup],
+  [ActivityTypes.WaterSport, ActivityTypeGroups.WaterSportsGroup],
+  [ActivityTypes.Paramotoring, ActivityTypeGroups.AerialSportsGroup],
+  [ActivityTypes.RCDroneFlying, ActivityTypeGroups.UnspecifiedGroup],
   [ActivityTypes.EEnduroMTB, ActivityTypeGroups.MountainBikingGroup],
   [ActivityTypes.TrackCycling, ActivityTypeGroups.CyclingGroup],
   [ActivityTypes.RecumbentCycling, ActivityTypeGroups.CyclingGroup],
@@ -115,6 +121,7 @@ const proposedGroupAssignments = [
 ] as const;
 
 const intentionalUnspecifiedActivityTypes = [
+  ActivityTypes.RCDroneFlying,
   ActivityTypes.Chores,
   ActivityTypes.Generic,
   ActivityTypes.Match,
@@ -128,6 +135,32 @@ const intentionalUnspecifiedActivityTypes = [
 ].sort();
 
 describe('ActivityTypes', () => {
+  it.each([
+    [ActivityTypes.Hockey, [DataSpeed.type], [DataSpeedAvg.type], []],
+    [ActivityTypes.TeamSport, [DataSpeed.type], [DataSpeedAvg.type], []],
+    [ActivityTypes.WinterSport, [DataSpeed.type], [DataSpeedAvg.type], []],
+    [ActivityTypes.WaterSport, [DataSpeed.type, DataSwimPace.type], [DataSpeedAvg.type, DataSwimPaceAvg.type], []],
+    [ActivityTypes.Paramotoring, [DataSpeed.type], [DataSpeedAvg.type], [DataVerticalSpeed.type]],
+    [ActivityTypes.RCDroneFlying, [DataSpeed.type], [DataSpeedAvg.type], []]
+  ] as const)(
+    'preserves broad sport metric families without inferring a subtype for %s',
+    (type, speedTypes, averageTypes, verticalTypes) => {
+      expect(ActivityTypesHelper.isIndoorActivityType(type)).toBe(false);
+      expect(ActivityTypesMoving.getSpeedThreshold(type)).toBe(0.3);
+      expect(ActivityTypesHelper.usesStrokeRate(type)).toBe(false);
+      expect(ActivityTypesHelper.speedDerivedDataTypesToUseForActivityType(type)).toEqual(speedTypes);
+      expect(ActivityTypesHelper.averageSpeedDerivedDataTypesToUseForActivityType(type)).toEqual(averageTypes);
+      expect(ActivityTypesHelper.verticalSpeedDerivedDataTypesToUseForActivityType(type)).toEqual(verticalTypes);
+      expect(ActivityTypesHelper.altiDistanceSpeedDerivedDataTypesToUseForActivityType(type)).toEqual([]);
+      expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type)).toBe(false);
+      expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(value => value === type)).toEqual([type]);
+      for (const [alias] of Object.entries(ActivityTypes).filter(([, value]) => value === type)) {
+        expect(ActivityTypesHelper.resolveActivityType(alias)).toBe(type);
+        expect(ActivityTypesHelper.resolveActivityType(alias.toUpperCase().replace(/_/g, '-'))).toBe(type);
+      }
+    }
+  );
+
   beforeEach(() => {});
 
   it('get the correct activity group', () => {
@@ -855,7 +888,7 @@ describe('ActivityTypes', () => {
     }
   );
 
-  it('keeps Ice Hockey unique in Team/Racket without making hockey or ice standalone aliases', () => {
+  it('keeps Ice Hockey unique in Team/Racket while keeping broad Hockey distinct and ice without a standalone alias', () => {
     expect(ActivityTypesHelper.getActivityTypesAsUniqueArray().filter(type => type === 'Ice Hockey')).toEqual([
       ActivityTypes.IceHockey
     ]);
@@ -864,7 +897,7 @@ describe('ActivityTypes', () => {
         type => type === ActivityTypes.IceHockey
       )
     ).toEqual([ActivityTypes.IceHockey]);
-    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBe(ActivityTypes.Hockey);
     expect(ActivityTypesHelper.resolveActivityType('ice')).toBeNull();
     expect(ActivityTypes.IceHockey).not.toBe(ActivityTypes.FieldHockey);
     expect(ActivityTypes.IceHockey).not.toBe(ActivityTypes.IceSkating);
@@ -919,7 +952,8 @@ describe('ActivityTypes', () => {
     ]);
     expect(ActivityTypesHelper.getActivityTypesForActivityGroup(ActivityTypeGroups.UnspecifiedGroup)).toEqual([
       ActivityTypes.Chores,
-      ActivityTypes.VideoGaming
+      ActivityTypes.VideoGaming,
+      ActivityTypes.RCDroneFlying
     ]);
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Chores)).toBe(false);
     expect(ActivityTypesMoving.getSpeedThreshold(ActivityTypes.Chores)).toBe(
@@ -941,7 +975,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.FieldHockey)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
     expect(ActivityTypesHelper.resolveActivityType('IceHockey')).toBe(ActivityTypes.IceHockey);
-    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('hockey')).toBe(ActivityTypes.Hockey);
     expect(ActivityTypesHelper.resolveActivityType('field')).toBeNull();
     expect(ActivityTypes.FieldHockey).not.toBe(ActivityTypes.IceHockey);
   });
@@ -1017,7 +1051,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.isIndoorActivityType(ActivityTypes.Lacrosse)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('generic')).toBe(ActivityTypes.Generic);
     expect(ActivityTypesHelper.resolveActivityType('generic_match')).toBe(ActivityTypes.Match);
-    expect(ActivityTypesHelper.resolveActivityType('team_sport')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('team_sport')).toBe(ActivityTypes.TeamSport);
   });
 
   it.each(['Water Tubing', 'WaterTubing', 'water_tubing', 'WATER-TUBING', ' Water tubing '])(
@@ -1060,7 +1094,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.WaterTubing)).toBe(true);
     expect(ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(ActivityTypes.WaterTubing)).toBe(false);
     expect(ActivityTypesHelper.resolveActivityType('tubing')).toBeNull();
-    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBe(ActivityTypes.WaterSport);
   });
 
   it.each([
@@ -1108,7 +1142,7 @@ describe('ActivityTypes', () => {
     expect(ActivityTypesHelper.shouldExcludeDescent(ActivityTypes.Wakesurfing)).toBe(true);
     expect(ActivityTypes.Wakesurfing).not.toBe(ActivityTypes.Surfing);
     expect(ActivityTypes.Wakesurfing).not.toBe(ActivityTypes.Wakeboarding);
-    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBeNull();
+    expect(ActivityTypesHelper.resolveActivityType('water_sport')).toBe(ActivityTypes.WaterSport);
   });
 
   it('keeps Archery and Mixed Martial Arts distinct with their existing group metric families', () => {

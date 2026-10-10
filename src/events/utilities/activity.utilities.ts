@@ -2765,7 +2765,9 @@ export class ActivityUtilities {
     return (
       activityGroup !== ActivityTypeGroups.MotorizedGroup &&
       activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup &&
-      activity.type !== ActivityTypes.VideoGaming
+      activity.type !== ActivityTypes.VideoGaming &&
+      activity.type !== ActivityTypes.Paramotoring &&
+      activity.type !== ActivityTypes.RCDroneFlying
     );
   }
 

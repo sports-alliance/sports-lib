@@ -261,6 +261,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
     ActivityTypes.VideoGaming
   ])('does not calculate TSS for %s even when power inputs are available', activityType => {
     const activity = createActivity(
@@ -294,6 +296,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
     ActivityTypes.VideoGaming
   ])('preserves imported TSS for %s even when imported-TSS preservation is disabled', activityType => {
     const activity = createActivity(
@@ -320,6 +324,8 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.Motocross,
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
     ActivityTypes.VideoGaming
   ])('removes stale calculated TSS for unsupported activity %s', activityType => {
     const activity = createActivity(activityType, 1200);
@@ -338,7 +344,9 @@ describe('Training Stress Score integration', () => {
     ActivityTypes.Rally,
     ActivityTypes.Overlanding,
     ActivityTypes.IndoorWheelchairPushWalk,
-    ActivityTypes.IndoorWheelchairPushRun
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying
   ])('TSS exclusion policy for %s', type => {
     it.each([TrainingStressScoreMethod.HR, TrainingStressScoreMethod.MET])(
       'suppresses %s calculation and stale scores',
@@ -350,7 +358,9 @@ describe('Training Stress Score integration', () => {
             tss: { overrides: { lactateThresholdHR: 160, metScore: 6, thresholdMet: 6 } }
           })
         );
-        addNumericStream(activity, DataHeartRate.type, new Array(600).fill(160));
+        if (method === TrainingStressScoreMethod.HR) {
+          addNumericStream(activity, DataHeartRate.type, new Array(600).fill(160));
+        }
         activity.addStat(new DataEnergy(120));
         activity.addStat(new DataWeight(70));
         ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
@@ -425,21 +435,31 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it.each([ActivityTypes.Generic, ActivityTypes.Chores, ActivityTypes.Mobility, ActivityTypes.PoolApnea])(
-    'retains calculated TSS eligibility for %s',
-    type => {
-      const activity = createActivity(
-        type,
-        600,
-        new ActivityParsingOptions({ tss: { overrides: { metScore: 6, thresholdMet: 6 } } })
-      );
+  it.each([
+    ActivityTypes.Hockey,
+    ActivityTypes.WinterSport,
+    ActivityTypes.TeamSport,
+    ActivityTypes.WaterSport,
+    ActivityTypes.IndoorCycling,
+    ActivityTypes.EMountainBiking,
+    ActivityTypes.AdventureRacing,
+    ActivityTypes.Paragliding,
+    ActivityTypes.Generic,
+    ActivityTypes.Chores,
+    ActivityTypes.Mobility,
+    ActivityTypes.PoolApnea
+  ])('retains calculated TSS eligibility for %s', type => {
+    const activity = createActivity(
+      type,
+      600,
+      new ActivityParsingOptions({ tss: { overrides: { metScore: 6, thresholdMet: 6 } } })
+    );
 
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-      expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-      expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
-    }
-  );
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
+  });
 
   it.each([
     ActivityTypes.EEnduroMTB,

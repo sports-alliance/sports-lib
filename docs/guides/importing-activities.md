@@ -165,6 +165,55 @@ The strict MCP activity catalog can discover the new values and Walking group us
 No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
 protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
 
+**Spin, E-bike Mountain, Adventure Race, flying variants, and broad sport categories.**
+
+| Canonical type | FIT sport/sub-sport | Group |
+| --- | --- | --- |
+| `Indoor Cycling` (existing) | `cycling/spin` (`2/5`) | Cycling |
+| `E-Mountain Biking` (existing) | `cycling/e_bike_mountain` (`2/47`), `e_biking/e_bike_mountain` (`21/47`) | Mountain Biking |
+| `Adventure Racing` (existing) | `multisport/adventure_race` (`18/82`), `running/adventure_race` (`1/82`) | Performance |
+| `Paragliding` (existing) | `flying/fly_paraglide` (`20/111`) | Aerial Sports |
+| `Hockey` | `hockey` (`73`) | Team/Racket |
+| `Winter Sport` | `winter_sport` (`58`) | Winter Sports |
+| `Team Sport` | `team_sport` (`70`) | Team/Racket |
+| `Water Sport` | `water_sport` (`78`) | Water Sports |
+| `Paramotoring` | `flying/fly_paramotor` (`20/112`) | Aerial Sports |
+| `RC Drone Flying` | `flying/rc_drone` (`20/39`) | Unspecified |
+
+The [official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js) supplies the source
+classifications. [Spinning](https://spinning.com/pages/getting-started) is indoor cycling, so Spin reuses that existing
+type and its indoor hint. [FAI](https://www.fai.org/page/paramotors) identifies paramotoring as powered paragliding;
+RC Drone Flying records remote-controlled aircraft or drone flight. Neither flying type establishes an indoor venue.
+Broad Hockey preserves the source's lack of an ice/field distinction; explicit `hockey/field` (`73/90`) and
+`hockey/ice` (`73/91`) still resolve to Field Hockey and Ice Hockey. Winter, Team, and Water Sport do not infer a
+specific sport, venue, or stroke-rate semantics.
+
+Numeric IDs, numeric strings, normalized parser names, and explicit sport/profile aliases work across manufacturers.
+New native JSON aliases include `Spin`, `cycling_spin`, `cycling_e_bike_mountain`, `AdventureRace`,
+`multisport_adventure_race`, `running_adventure_race`, `FlyParaglide`, `flying_fly_paraglide`, `WinterSport`,
+`TeamSport`, `WaterSport`, `FlyParamotor`, `flying_fly_paramotor`, `RCDrone`, and `flying_rc_drone`.
+Each sport-specific sub-sport requires its documented parent; an unknown or unrelated parent does not inherit the
+standalone alias. Explicit FIT classifications take precedence over a conflicting user-defined profile.
+Suunto's bare Generic Adventure Racing classification and Hang Gliding pair remain unchanged; their pairs do not
+supply the more specific Adventure Race or Paraglide distinction.
+
+Paramotoring and RC Drone Flying omit calculated POWER, HR, pace, and MET TSS, remove stale calculated scores and
+methods, and preserve finite imported TSS, including legacy scores without a method and `preserveImportedTss: false`.
+This is a type-specific policy: other Aerial Sports and Unspecified types retain their existing TSS eligibility.
+The other eight classifications retain their existing group calculations. Water Sport uses the Water Sports speed
+and swim-pace display families without implying swimming or paddling. Indoor Cycling and E-Mountain Biking retain
+the existing cycling durability protocol; the other eight types have no durability adapter. No numeric metric,
+unit, formula, durability protocol, or stored field is added.
+
+In Quantified Self's exact Training registry, Indoor Cycling reuses modeled indoor-cycling. E-Mountain Biking,
+Adventure Racing, Paragliding, and the six new values currently resolve to volume-only Other training; groups do not
+establish modeled contexts or provider delivery support. Adopt the library in the application and Functions together
+and review the dynamic supported-activities catalog. Correct historical broad labels only from retained specific
+sources or explicit aliases, then regenerate event summaries, activity-type aggregates, applicable durability evidence,
+and Training snapshots through the existing source-backed reparse and derived ingress. Broad stored Generic, Cycling,
+Running, or Flying values alone cannot recover missing distinctions. Queue lifecycle, monitoring, saved routes,
+write paths, MCP fields/scopes/mutations, and Training planning capabilities are unchanged.
+
 **Electric enduro, cycling variants, speed walking, whitewater, wingsuit, brick, and hunting with dogs.**
 
 | Canonical type | FIT sport/sub-sport | Group |
@@ -672,7 +721,8 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, `Indoor Wheelchair Push Run`,
 `Obstacle Racing`, `Ultra Running`, `Indoor Walking`, `Rally`, `BMX`, `Indoor Skiing`, `ATV`, `Motocross`, `Pool Triathlon`,
 `E-Enduro MTB`, `Track Cycling`, `Recumbent Cycling`, `Speed Walking`, `Whitewater Kayaking`, `Whitewater Rafting`,
-`Wingsuit Flying`, `Brick Training`, or `Hunting with Dogs`.
+`Wingsuit Flying`, `Brick Training`, `Hunting with Dogs`, `Hockey`, `Winter Sport`, `Team Sport`, `Water Sport`,
+`Paramotoring`, or `RC Drone Flying`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

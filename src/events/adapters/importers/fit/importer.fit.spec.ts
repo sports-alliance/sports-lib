@@ -501,6 +501,45 @@ describe('EventImporterFIT', () => {
     });
 
     describe.each([
+      [5, 'spin'],
+      [47, 'e_bike_mountain'],
+      [82, 'adventure_race'],
+      [111, 'fly_paraglide'],
+      [112, 'fly_paramotor'],
+      [39, 'rc_drone']
+    ])('requires a documented parent for sub-sport %s (%s)', (subSportId, subSportName) => {
+      it.each([subSportId, String(subSportId), subSportName, subSportName.toUpperCase()])(
+        'keeps a broad or unknown classification for %s',
+        sub_sport => {
+          for (const manufacturer of [1, 7, 23, 123, undefined]) {
+            expect(importerInternals.getActivityTypeFromSessionObject({ sport: 0, sub_sport }, manufacturer)).toBe(
+              ActivityTypes.Generic
+            );
+            expect(importerInternals.getActivityTypeFromSessionObject({ sport: 11, sub_sport }, manufacturer)).toBe(
+              ActivityTypes.Walking
+            );
+            expect(importerInternals.getActivityTypeFromSessionObject({ sub_sport }, manufacturer)).toBe(
+              ActivityTypes.unknown
+            );
+            expect(
+              importerInternals.getActivityTypeFromSessionObject({ sport: 'not-a-sport', sub_sport }, manufacturer)
+            ).toBe(ActivityTypes.unknown);
+          }
+        }
+      );
+    });
+
+    describe.each([
+      [2, 5, 'cycling', 'spin', ActivityTypes.IndoorCycling, 'Cycling'],
+      [2, 47, 'cycling', 'e_bike_mountain', ActivityTypes.EMountainBiking, 'Cycling'],
+      [21, 47, 'e_biking', 'e_bike_mountain', ActivityTypes.EMountainBiking, 'E-Biking'],
+      [18, 82, 'multisport', 'adventure_race', ActivityTypes.AdventureRacing, 'Multisport'],
+      [1, 82, 'running', 'adventure_race', ActivityTypes.AdventureRacing, 'Running'],
+      [20, 111, 'flying', 'fly_paraglide', ActivityTypes.Paragliding, 'Flying'],
+      [20, 112, 'flying', 'fly_paramotor', ActivityTypes.Paramotoring, 'Flying'],
+      [20, 39, 'flying', 'rc_drone', ActivityTypes.RCDroneFlying, 'Flying'],
+      [73, 90, 'hockey', 'field', ActivityTypes.FieldHockey, 'Ice Hockey'],
+      [73, 91, 'hockey', 'ice', ActivityTypes.IceHockey, 'Field Hockey'],
       [2, 127, 'cycling', 'e_bike_enduro', ActivityTypes.EEnduroMTB, 'Motorcycling'],
       [2, 13, 'cycling', 'track_cycling', ActivityTypes.TrackCycling, 'Cycling'],
       [2, 10, 'cycling', 'recumbent', ActivityTypes.RecumbentCycling, 'Cycling'],
@@ -571,6 +610,22 @@ describe('EventImporterFIT', () => {
     );
 
     it.each([
+      ['Spin', ActivityTypes.IndoorCycling],
+      ['Indoor Cycling', ActivityTypes.IndoorCycling],
+      ['eBikeMountain', ActivityTypes.EMountainBiking],
+      ['E-Mountain Biking', ActivityTypes.EMountainBiking],
+      ['Adventure Race', ActivityTypes.AdventureRacing],
+      ['Adventure Racing', ActivityTypes.AdventureRacing],
+      ['Fly Paraglide', ActivityTypes.Paragliding],
+      ['Paragliding', ActivityTypes.Paragliding],
+      ['Paramotoring', ActivityTypes.Paramotoring],
+      ['Fly Paramotor', ActivityTypes.Paramotoring],
+      ['RC Drone', ActivityTypes.RCDroneFlying],
+      ['RC Drone Flying', ActivityTypes.RCDroneFlying],
+      ['Hockey', ActivityTypes.Hockey],
+      ['Winter Sport', ActivityTypes.WinterSport],
+      ['Team Sport', ActivityTypes.TeamSport],
+      ['Water Sport', ActivityTypes.WaterSport],
       ['E-Enduro MTB', ActivityTypes.EEnduroMTB],
       ['Electric Enduro MTB', ActivityTypes.EEnduroMTB],
       ['eBikeEnduro', ActivityTypes.EEnduroMTB],
@@ -839,6 +894,10 @@ describe('EventImporterFIT', () => {
     );
 
     describe.each([
+      [73, 'hockey', ActivityTypes.Hockey, 'Ice Hockey'],
+      [58, 'winter_sport', ActivityTypes.WinterSport, 'Alpine Skiing'],
+      [70, 'team_sport', ActivityTypes.TeamSport, 'Football'],
+      [78, 'water_sport', ActivityTypes.WaterSport, 'Swimming'],
       [56, 'shooting', ActivityTypes.Shooting, 'Hunting'],
       [87, 'geocaching', ActivityTypes.Geocaching, 'Hiking'],
       [85, 'pool_apnea', ActivityTypes.PoolApnea, 'Free Diving'],
@@ -1083,7 +1142,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom course profile' }, ActivityTypes.Generic],
       [{ sport: 68, sub_sport: 0 }, ActivityTypes.Generic],
-      [{ sport: 70, sub_sport: 0 }, ActivityTypes.Generic]
+      [{ sport: 70, sub_sport: 0 }, ActivityTypes.TeamSport]
     ])('preserves neighboring and ambiguous sport context for session %j', (session, expectedType) => {
       expect(importerInternals.getActivityTypeFromSessionObject(session, 7)).toBe(expectedType);
       expect(importerInternals.getActivityTypeFromSessionObject(session, 23)).toBe(expectedType);
@@ -1122,7 +1181,7 @@ describe('EventImporterFIT', () => {
     it.each([
       [{ sport: 73, sub_sport: 90 }, ActivityTypes.FieldHockey],
       [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
-      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Hockey],
       [{ sport: 75, sub_sport: 0 }, ActivityTypes.Volleyball],
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom team profile' }, ActivityTypes.Generic]
@@ -1166,7 +1225,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 'surfing', sub_sport: 0 }, ActivityTypes.Surfing],
       [{ sport: 'rafting', sub_sport: 0 }, ActivityTypes.Rafting],
       [{ sport: 77, sub_sport: 0 }, ActivityTypes.Wakesurfing],
-      [{ sport: 'water_sport', sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 'water_sport', sub_sport: 0 }, ActivityTypes.WaterSport],
       [{ sport: 0, sub_sport: 0 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Tubing' }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom water profile' }, ActivityTypes.Generic]
@@ -1219,7 +1278,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 28, sub_sport: 0 }, ActivityTypes.Hunting],
       [{ sport: 47, sub_sport: 0 }, ActivityTypes.Boxing],
       [{ sport: 'Combat', sub_sport: 0 }, ActivityTypes.Combat],
-      [{ sport: 78, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 78, sub_sport: 0 }, ActivityTypes.WaterSport],
       [{ sport: 56, sub_sport: 0 }, ActivityTypes.Shooting],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Martial Arts' }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 0, sport_profile_name: 'Custom sport profile' }, ActivityTypes.Generic]
@@ -1384,8 +1443,8 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
-      [{ sport: 73 }, ActivityTypes.unknown],
-      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Generic],
+      [{ sport: 73 }, ActivityTypes.Hockey],
+      [{ sport: 73, sub_sport: 0 }, ActivityTypes.Hockey],
       [{ sport: 73, sub_sport: 91 }, ActivityTypes.IceHockey],
       [{ sport: 'hockey', sub_sport: 'ice' }, ActivityTypes.IceHockey],
       [{ sub_sport: 90 }, ActivityTypes.unknown],
@@ -1933,7 +1992,7 @@ describe('EventImporterFIT', () => {
       [{ sport: 21 }, ActivityTypes.EBiking],
       [{ sport: 21, sub_sport: 0 }, ActivityTypes.EBiking],
       [{ sport: 'e_biking', sub_sport: 'e_bike_fitness' }, ActivityTypes.EBiking],
-      [{ sport: 2, sub_sport: 47 }, ActivityTypes.Cycling],
+      [{ sport: 2, sub_sport: 47 }, ActivityTypes.EMountainBiking],
       [{ sport: 0, sub_sport: 47 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 12 }, ActivityTypes.Generic],
       [{ sport: 0, sub_sport: 22 }, ActivityTypes.Match],
@@ -1953,6 +2012,76 @@ describe('EventImporterFIT', () => {
     });
 
     it.each([
+      [1, 2, 5, ActivityTypes.IndoorCycling],
+      [7, 2, 5, ActivityTypes.IndoorCycling],
+      [23, 2, 5, ActivityTypes.IndoorCycling],
+      [123, 2, 5, ActivityTypes.IndoorCycling],
+      [65535, 2, 5, ActivityTypes.IndoorCycling],
+      [1, 2, 47, ActivityTypes.EMountainBiking],
+      [7, 2, 47, ActivityTypes.EMountainBiking],
+      [23, 2, 47, ActivityTypes.EMountainBiking],
+      [123, 2, 47, ActivityTypes.EMountainBiking],
+      [65535, 2, 47, ActivityTypes.EMountainBiking],
+      [1, 21, 47, ActivityTypes.EMountainBiking],
+      [7, 21, 47, ActivityTypes.EMountainBiking],
+      [23, 21, 47, ActivityTypes.EMountainBiking],
+      [123, 21, 47, ActivityTypes.EMountainBiking],
+      [65535, 21, 47, ActivityTypes.EMountainBiking],
+      [1, 18, 82, ActivityTypes.AdventureRacing],
+      [7, 18, 82, ActivityTypes.AdventureRacing],
+      [23, 18, 82, ActivityTypes.AdventureRacing],
+      [123, 18, 82, ActivityTypes.AdventureRacing],
+      [65535, 18, 82, ActivityTypes.AdventureRacing],
+      [1, 1, 82, ActivityTypes.AdventureRacing],
+      [7, 1, 82, ActivityTypes.AdventureRacing],
+      [23, 1, 82, ActivityTypes.AdventureRacing],
+      [123, 1, 82, ActivityTypes.AdventureRacing],
+      [65535, 1, 82, ActivityTypes.AdventureRacing],
+      [1, 20, 111, ActivityTypes.Paragliding],
+      [7, 20, 111, ActivityTypes.Paragliding],
+      [23, 20, 111, ActivityTypes.Paragliding],
+      [123, 20, 111, ActivityTypes.Paragliding],
+      [65535, 20, 111, ActivityTypes.Paragliding],
+      [1, 20, 112, ActivityTypes.Paramotoring],
+      [7, 20, 112, ActivityTypes.Paramotoring],
+      [23, 20, 112, ActivityTypes.Paramotoring],
+      [123, 20, 112, ActivityTypes.Paramotoring],
+      [65535, 20, 112, ActivityTypes.Paramotoring],
+      [1, 20, 39, ActivityTypes.RCDroneFlying],
+      [7, 20, 39, ActivityTypes.RCDroneFlying],
+      [23, 20, 39, ActivityTypes.RCDroneFlying],
+      [123, 20, 39, ActivityTypes.RCDroneFlying],
+      [65535, 20, 39, ActivityTypes.RCDroneFlying],
+      [1, 73, 90, ActivityTypes.FieldHockey],
+      [7, 73, 90, ActivityTypes.FieldHockey],
+      [23, 73, 90, ActivityTypes.FieldHockey],
+      [123, 73, 90, ActivityTypes.FieldHockey],
+      [65535, 73, 90, ActivityTypes.FieldHockey],
+      [1, 73, 91, ActivityTypes.IceHockey],
+      [7, 73, 91, ActivityTypes.IceHockey],
+      [23, 73, 91, ActivityTypes.IceHockey],
+      [123, 73, 91, ActivityTypes.IceHockey],
+      [65535, 73, 91, ActivityTypes.IceHockey],
+      [1, 73, 0, ActivityTypes.Hockey],
+      [7, 73, 0, ActivityTypes.Hockey],
+      [23, 73, 0, ActivityTypes.Hockey],
+      [123, 73, 0, ActivityTypes.Hockey],
+      [65535, 73, 0, ActivityTypes.Hockey],
+      [1, 58, 0, ActivityTypes.WinterSport],
+      [7, 58, 0, ActivityTypes.WinterSport],
+      [23, 58, 0, ActivityTypes.WinterSport],
+      [123, 58, 0, ActivityTypes.WinterSport],
+      [65535, 58, 0, ActivityTypes.WinterSport],
+      [1, 70, 0, ActivityTypes.TeamSport],
+      [7, 70, 0, ActivityTypes.TeamSport],
+      [23, 70, 0, ActivityTypes.TeamSport],
+      [123, 70, 0, ActivityTypes.TeamSport],
+      [65535, 70, 0, ActivityTypes.TeamSport],
+      [1, 78, 0, ActivityTypes.WaterSport],
+      [7, 78, 0, ActivityTypes.WaterSport],
+      [23, 78, 0, ActivityTypes.WaterSport],
+      [123, 78, 0, ActivityTypes.WaterSport],
+      [65535, 78, 0, ActivityTypes.WaterSport],
       [1, 2, 127, ActivityTypes.EEnduroMTB],
       [23, 2, 127, ActivityTypes.EEnduroMTB],
       [65535, 2, 127, ActivityTypes.EEnduroMTB],
@@ -2252,7 +2381,7 @@ describe('EventImporterFIT', () => {
       [23, 80, 0, ActivityTypes.MixedMartialArts],
       [123, 80, 0, ActivityTypes.MixedMartialArts],
       [65535, 80, 0, ActivityTypes.MixedMartialArts],
-      [1, 78, 0, ActivityTypes.Generic],
+      [1, 78, 0, ActivityTypes.WaterSport],
       [1, 25, 0, ActivityTypes.Golf],
       [7, 0, 0, ActivityTypes.Generic],
       [23, 0, 0, ActivityTypes.Generic],

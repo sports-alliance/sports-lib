@@ -29,6 +29,13 @@ Indoor Walking accepts Walking and Fitness Equipment parents (`11/27`, `4/27`). 
 from specific retained sources; consumers must add the Walking group to exhaustive metadata maps during adoption.
 See [Import activities](guides/importing-activities.md).
 
+Spin (`2/5`) reuses Indoor Cycling, E-bike Mountain (`2/47`, also `21/47`) reuses E-Mountain Biking,
+Adventure Race (`18/82`, `1/82`) reuses Adventure Racing, and Fly Paraglide (`20/111`) reuses Paragliding.
+Broad Hockey (`73`), Winter Sport (`58`), Team Sport (`70`), and Water Sport (`78`) now retain their source
+classification without guessing a subtype. Paramotoring (`20/112`) belongs to Aerial Sports and RC Drone Flying
+(`20/39`) to Unspecified; both preserve imported TSS without calculating it. See
+[Import activities](guides/importing-activities.md) for groups, aliases, parent guards, and historical corrections.
+
 E-Enduro MTB (`2/127`) belongs to Mountain Biking, Track Cycling (`2/13`) and Recumbent Cycling (`2/10`) to Cycling,
 Speed Walking (`11/31`) to Walking, and separate Whitewater Kayaking (`41/41`) and Whitewater Rafting (`42/41`)
 to Water Sports. Wingsuit Flying (`20/40`), Brick Training (`18/80`), and Hunting with Dogs (`28/72`) belong to

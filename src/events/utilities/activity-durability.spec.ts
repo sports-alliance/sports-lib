@@ -212,6 +212,8 @@ describe('activity durability', () => {
   });
 
   it.each([
+    [ActivityTypes.IndoorCycling, 'cycling', DataPower.type],
+    [ActivityTypes.EMountainBiking, 'cycling', DataPower.type],
     [ActivityTypes.MountainBiking, 'cycling', DataPower.type],
     [ActivityTypes.BMX, 'cycling', DataPower.type],
     [ActivityTypes.TrackCycling, 'cycling', DataPower.type],
@@ -287,6 +289,14 @@ describe('activity durability', () => {
   );
 
   it.each([
+    ActivityTypes.Hockey,
+    ActivityTypes.WinterSport,
+    ActivityTypes.TeamSport,
+    ActivityTypes.WaterSport,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
+    ActivityTypes.AdventureRacing,
+    ActivityTypes.Paragliding,
     ActivityTypes.SpeedWalking,
     ActivityTypes.WhitewaterKayaking,
     ActivityTypes.WhitewaterRafting,

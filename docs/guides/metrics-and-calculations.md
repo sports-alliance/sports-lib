@@ -528,12 +528,13 @@ Priority order:
 
 - POWER -> HR -> PACE/SWIM_PACE -> MET
 
-Motorized and Adaptive Mobility activities, and the Video Gaming activity type, do not receive library-calculated TSS,
-even when calculation inputs or explicit overrides are available. A finite source-provided TSS remains available and is
+Motorized and Adaptive Mobility activities, and the Video Gaming, Paramotoring, and RC Drone Flying types, do not
+receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A finite
+source-provided TSS remains available and is
 labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method retains the existing
 imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for
-these activities. Other Unspecified activities remain eligible for calculated TSS. Neither group nor Video Gaming has
-a durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
+these activities. Other Unspecified and Aerial Sports activities remain eligible for calculated TSS. These excluded
+groups and three types have no durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
 units, JSON representation, and MCP metric discovery remain unchanged.
 
 Walking, Indoor Walking, and Nordic Walking share `WalkingGroup` while preserving the existing walking pace/speed,
@@ -557,6 +558,14 @@ Kayaking retains Kayaking's stroke-rate semantics, and Whitewater Rafting retain
 Flying, Brick Training, and Hunting with Dogs retain the existing Aerial Sports, Performance, and Outdoor Adventures
 metric families, respectively. These six types have no durability adapter. Explicit Indoor Track names reuse Indoor
 Running and its existing running durability policy. No metric token, unit, formula, or durability protocol changes.
+
+FIT Spin reuses Indoor Cycling's indoor hint and cycling calculations. E-bike Mountain reuses E-Mountain Biking's
+cycling calculations. Both use the existing cycling durability protocol. Adventure Race and Fly Paraglide reuse
+Adventure Racing and Paragliding with their existing Performance and Aerial Sports calculations. Broad Hockey,
+Winter Sport, Team Sport, and Water Sport use their respective groups without inferring a specific sport, indoor venue,
+or stroke-rate semantics. Water Sport retains Water Sports' speed/swim-pace display families. Paramotoring remains
+in Aerial Sports and RC Drone Flying in Unspecified, with the type-specific TSS exclusion above; neither has a
+durability adapter. No metric token, unit, numeric formula, persisted field, or durability protocol changes.
 
 POWER TSS:
 

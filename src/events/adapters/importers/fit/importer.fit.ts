@@ -3146,7 +3146,13 @@ export class EventImporterFIT {
       case 'indoorhandcycle':
       case 'indoorhandcycling':
         return ActivityTypes.IndoorHandCycle;
+      case 'bmx':
+      case 'bmxcycling':
+        return ActivityTypes.BMX;
       case 'cycling':
+        if (normalizedSubSportName === 'bmx') {
+          return ActivityTypes.BMX;
+        }
         if (normalizedSubSportName === 'indoorhandcycling') {
           return ActivityTypes.IndoorHandCycle;
         }
@@ -3189,7 +3195,22 @@ export class EventImporterFIT {
           return ActivityTypes.Overlanding;
         }
         break;
+      case 'atv':
+      case 'allterrainvehicle':
+        return ActivityTypes.ATV;
+      case 'motocross':
+        return ActivityTypes.Motocross;
       case 'motorcycling':
+        if (normalizedSubSportName === 'atv') {
+          return ActivityTypes.ATV;
+        }
+        if (normalizedSubSportName === 'motocross') {
+          return ActivityTypes.Motocross;
+        }
+        if (normalizedSubSportName === 'overland') {
+          return ActivityTypes.Overlanding;
+        }
+        break;
       case 'driving':
         if (normalizedSubSportName === 'overland') {
           return ActivityTypes.Overlanding;
@@ -3208,7 +3229,21 @@ export class EventImporterFIT {
           return ActivityTypes.TruckerWorkout;
         }
         break;
+      case 'indoorskiing':
+      case 'xcskiindoor':
+      case 'indoorcrosscountryskiing':
+        return ActivityTypes.IndoorSkiing;
+      case 'pooltriathlon':
+        return ActivityTypes.PoolTriathlon;
+      case 'multisport':
+        if (normalizedSubSportName === 'pooltriathlon') {
+          return ActivityTypes.PoolTriathlon;
+        }
+        break;
       case 'fitnessequipment':
+        if (normalizedSubSportName === 'indoorskiing') {
+          return ActivityTypes.IndoorSkiing;
+        }
         if (normalizedSubSportName === 'indoorwalking') {
           return ActivityTypes.IndoorWalking;
         }
@@ -3339,7 +3374,12 @@ export class EventImporterFIT {
       normalizedSubSportName !== 'ultra' &&
       normalizedSubSportName !== 'indoorwalking' &&
       normalizedSubSportName !== 'enduro' &&
-      normalizedSubSportName !== 'rally';
+      normalizedSubSportName !== 'rally' &&
+      normalizedSubSportName !== 'bmx' &&
+      normalizedSubSportName !== 'indoorskiing' &&
+      normalizedSubSportName !== 'atv' &&
+      normalizedSubSportName !== 'motocross' &&
+      normalizedSubSportName !== 'pooltriathlon';
 
     // FIT diving sub-sports are explicit protocol classifications. Map
     // them before generic activity alias resolution so they retain the

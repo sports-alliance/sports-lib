@@ -165,6 +165,52 @@ The strict MCP activity catalog can discover the new values and Walking group us
 No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
 protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
 
+**BMX, Indoor Skiing, ATV, Motocross, and Pool Triathlon.**
+
+| Canonical type | FIT sport/sub-sport | Group |
+| --- | --- | --- |
+| `BMX` | `cycling/bmx` (`2/29`) | Cycling |
+| `Indoor Skiing` | `fitness_equipment/indoor_skiing` (`4/25`) | Indoor Sports |
+| `ATV` | `motorcycling/atv` (`22/35`) | Motorized |
+| `Motocross` | `motorcycling/motocross` (`22/36`) | Motorized |
+| `Pool Triathlon` | `multisport/pool_triathlon` (`18/126`) | Performance |
+
+The parent/sub-sport combinations come from [Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+Its [activity list](https://www8.garmin.com/manuals/webhelp/GUID-025D75CF-3445-49E1-8D81-1AA74AB4E00F/EN-US/GUID-1AD90095-0C71-4E0C-A8F9-F24643235F14.html)
+lists BMX under Cycling, XC Ski Indoor under Gym, ATV and Motocross under Motorsports, and Pool Triathlon under Multisport.
+Sports Lib groups Pool Triathlon with its existing Triathlon and Multisport types in Performance. Indoor Skiing
+returns a true indoor hint; BMX, ATV, Motocross, and Pool Triathlon return false. A pool-swimming classification does
+not establish that every triathlon leg is indoors.
+
+These explicit pairs take precedence over conflicting profile names across manufacturers. Numeric IDs, numeric
+strings, snake-case, camel-case, and uppercase protocol names resolve consistently. Explicit BMX/BMX Cycling,
+Indoor Skiing/XC Ski Indoor/Indoor Cross Country Skiing, ATV/All-Terrain Vehicle, Motocross, and Pool Triathlon
+sport or profile names also resolve to the new canonical types. Every declared alias hydrates and round-trips through
+native JSON. Bare Quad and MX are not introduced as aliases. A generic, missing, or unrelated parent with sub-sport
+`29`, `25`, `35`, `36`, or `126` alone retains its broader classification. For example, Driving with sub-sport ATV
+remains Driving. Separate sport IDs `25`, `29`, `35`, and `36` still identify Golf, Fishing, Snowshoeing, and Snowmobiling.
+
+BMX inherits Cycling's existing speed/average-speed, vertical-speed, movement threshold, TSS selection, and
+power/heart-rate durability protocol, subject to the usual duration, sample, and context checks. Group membership
+does not prove that a BMX session provides suitable endurance evidence. Indoor Skiing uses its Indoor Sports group's
+existing speed/average-speed, default movement threshold, and TSS selection. Pool Triathlon uses Performance's
+existing speed/average-speed, vertical-speed, default movement threshold, and TSS selection; it does not acquire a
+whole-triathlon durability adapter or swimming stroke-rate calculations. ATV and Motocross inherit Motorized's
+calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve finite imported TSS even when imported
+preservation is disabled. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
+new durability protocol, workout leg, provider transport, or delivery capability is introduced.
+
+Historical Cycling, Fitness Equipment, Crosscountry Skiing, Motorcycling, or Multisport labels cannot establish these
+more specific types by themselves. Correct them from specific retained FIT classifications or explicit source names,
+then regenerate separately persisted event summaries, activity-type aggregates, applicable durability evidence, and
+affected Training snapshots. Saved routes need no reparse. Adopt the release in both Quantified Self packages before
+persisting the new values. Its exact Training registry currently resolves all five types to volume-only Other training;
+a Cycling or Performance group alone does not grant a modeled Training context or provider delivery support. The
+strict MCP activity catalog discovers their canonical names, groups, and indoor hints within its existing read schema
+and scopes. No tool fields, permissions, mutations, queue lifecycle, persistence write path, or monitoring changes.
+Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption. All 121 existing
+Suunto numeric and named protocol pairs remain unchanged; these new pairs have separate synthetic FIT coverage.
+
 `ActivityTypes.IndoorHandCycle` has canonical stored value `Indoor Hand Cycle` in `ActivityTypeGroups.CyclingGroup`.
 FIT `cycling/indoor_hand_cycling` (`2/88`) preserves it before custom profile fallback. Specific `Indoor Hand Cycle`,
 `IndoorHandCycling`, `indoor_hand_cycle`, and `indoor_hand_cycling` names also resolve to it. This remains distinct
@@ -578,7 +624,7 @@ Quantified Self consumers must upgrade the application and Functions together be
 `Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
 `Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, `CCR Diving`,
 `Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, `Indoor Wheelchair Push Run`,
-`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, or `Rally`.
+`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, `Rally`, `BMX`, `Indoor Skiing`, `ATV`, `Motocross`, or `Pool Triathlon`.
 Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
 fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
 and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.

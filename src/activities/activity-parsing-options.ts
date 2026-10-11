@@ -29,6 +29,7 @@ export interface ActivityParsingTssOptions {
   overrides?: ActivityParsingTssOverridesOptions;
   /** @deprecated Valid imported scores are always preserved. Remove the imported stat explicitly to recalculate it. */
   preserveImportedTss?: boolean;
+  /** Allows running grade fallbacks. Never infers a swimming threshold from workout speed. */
   enableHeuristicFallbacks?: boolean;
 }
 

@@ -2547,7 +2547,7 @@ export class ActivityUtilities {
     return this.toPositiveFiniteNumber(averageFromStream);
   }
 
-  private static resolveThresholdSwimSpeed(activity: ActivityInterface, swimSpeed: number): number | null {
+  private static resolveThresholdSwimSpeed(activity: ActivityInterface): number | null {
     const thresholdOverride = this.getTssOverrideValue(activity, 'thresholdSwimSpeed');
     if (thresholdOverride !== null) {
       return thresholdOverride;
@@ -2571,11 +2571,7 @@ export class ActivityUtilities {
       return fromSpeedZones;
     }
 
-    const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
-    if (enableHeuristicFallbacks) {
-      return swimSpeed;
-    }
-
+    // Workout speed is not an independent threshold: using it here forces IF=1.
     return null;
   }
 
@@ -2712,13 +2708,12 @@ export class ActivityUtilities {
     });
   }
 
-  private static calculateSwimPaceTss(activity: ActivityInterface): TssCalculationResult | null {
+  private static calculateSwimPaceTss(activity: ActivityInterface, thresholdSwimSpeed: number | null): TssCalculationResult | null {
     const swimSpeed = this.resolveSwimSpeed(activity);
     if (swimSpeed === null) {
       return null;
     }
 
-    const thresholdSwimSpeed = this.resolveThresholdSwimSpeed(activity, swimSpeed);
     if (thresholdSwimSpeed === null) {
       return null;
     }
@@ -2770,6 +2765,8 @@ export class ActivityUtilities {
    * Compute all requested policies once from currently available parsed inputs.
    * Explicit recalculation replaces the cached evaluation; known calculated scores
    * are never promoted to imported scores. Results contain no raw HR calibration.
+   * Swimming without an independent threshold skips swim pace, even when heuristic
+   * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
     const walking = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
@@ -2806,8 +2803,11 @@ export class ActivityUtilities {
     const hr = eligible && !hrReason ? this.calculateHrTss(activity) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
-    const pace = eligible && !walking && !power && !hr ? group === ActivityTypeGroups.SwimmingGroup
-      ? this.calculateSwimPaceTss(activity) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
+    const needsPace = eligible && !walking && !power && !hr;
+    const swimming = group === ActivityTypeGroups.SwimmingGroup;
+    const swimThreshold = needsPace && swimming ? this.resolveThresholdSwimSpeed(activity) : null;
+    const pace = needsPace ? swimming
+      ? this.calculateSwimPaceTss(activity, swimThreshold) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
     const met = eligible ? this.calculateMetTss(activity) : null;
     const automatic = power ?? hr ?? pace ?? met;
     const automaticReasons: TrainingStressScoreReason[] = [];
@@ -2816,7 +2816,9 @@ export class ActivityUtilities {
       if (!walking && !power) automaticReasons.push('missing-power-inputs');
       if (!power && !hr) automaticReasons.push(hrReason ?? 'calculation-unavailable');
       if (!power && !hr && !walking && !pace &&
-        (group === ActivityTypeGroups.SwimmingGroup || this.supportsPaceTss(activity))) automaticReasons.push('missing-pace-inputs');
+        (swimming || this.supportsPaceTss(activity))) {
+        automaticReasons.push(swimming && swimThreshold === null ? 'missing-swim-threshold' : 'missing-pace-inputs');
+      }
       if (!automatic) automaticReasons.push('missing-met-inputs');
     }
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {

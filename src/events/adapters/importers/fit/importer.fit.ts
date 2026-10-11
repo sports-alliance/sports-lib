@@ -1740,39 +1740,28 @@ export class EventImporterFIT {
     options: ActivityParsingOptions,
     sessionIndex: number
   ): ActivityInterface {
-    /**
-     * Provides start/end date based on records available in given session object first, then in parent fit object
-     */
+    // Cascaded records belong to this session. Whole-file records can supply
+    // bounds only for a sole session; otherwise they can absorb another leg.
     const getStartEndDatesFromRecords = (sessionObject: any, fitDataObject: any): [Date | null, Date | null] => {
-      let startDate: Date | null = null;
-      let endDate: Date | null = null;
-
-      // Try to get from session first
-      if (
-        sessionObject?.laps?.length > 0 && // Current session has laps
-        sessionObject.laps[0].records?.length > 0 && // Current session has records in first lap
-        sessionObject.laps[sessionObject.laps.length - 1].records?.length > 0 // Current session has records in last lap
-      ) {
-        const firstLapRecords = sessionObject.laps[0].records;
-        const firstRecordTimeStamp = firstLapRecords[0]?.timestamp as Date;
-        if (firstRecordTimeStamp) {
-          startDate = firstRecordTimeStamp;
+      const bounds = (groups: any[][]): [Date | null, Date | null] => {
+        let first: Date | null = null;
+        let last: Date | null = null;
+        for (const records of groups) {
+          for (const record of records) {
+            const date = this.getDateFromValue(record?.timestamp);
+            if (!date) continue;
+            if (!first || date < first) first = date;
+            if (!last || date > last) last = date;
+          }
         }
-
-        const lastLapRecords = sessionObject.laps[sessionObject.laps.length - 1].records;
-        const lastRecordTimeStamp = lastLapRecords[lastLapRecords.length - 1]?.timestamp as Date;
-        if (lastRecordTimeStamp) {
-          endDate = lastRecordTimeStamp;
-        }
-      }
-
-      // Then from parent fit object first
-      if ((!startDate || !endDate) && fitDataObject.records?.length) {
-        startDate = fitDataObject.records[0]?.timestamp || null;
-        endDate = fitDataObject.records[fitDataObject.records.length - 1]?.timestamp || null;
-      }
-
-      return [startDate, endDate];
+        return [first, last];
+      };
+      const scoped = bounds([
+        sessionObject.records ?? [],
+        ...(sessionObject.laps ?? []).map((lap: any) => lap.records ?? [])
+      ]);
+      return scoped[0] && scoped[1] ? scoped : fitDataObject.sessions?.length === 1
+        ? bounds([fitDataObject.records ?? []]) : [null, null];
     };
 
     // For some unknown reasons... the fit provided total_timer_time & total_elapsed_time could be inverted..
@@ -1780,21 +1769,26 @@ export class EventImporterFIT {
     this.swapTimesIfRequired(sessionObject);
 
     // Start finding out total elapsed time from fit dedicated fields
-    const totalElapsedTime = sessionObject.total_elapsed_time || sessionObject.total_timer_time || 0;
+    const totalElapsedTime = this.getPositiveNumericValue(sessionObject.total_elapsed_time) ??
+      this.getPositiveNumericValue(sessionObject.total_timer_time) ?? 0;
+    const maxActivityDurationMs = options.maxActivityDurationDays * 24 * 60 * 60 * 1000;
     const [recordStartDate, recordEndDate] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
 
     // Pick start/end date values
-    let startDate = sessionObject.start_time || recordStartDate || null;
+    let startDate = this.getDateFromValue(sessionObject.start_time) || recordStartDate || null;
     let endDate =
-      sessionObject.timestamp ||
+      this.getDateFromValue(sessionObject.timestamp) ||
       (startDate && totalElapsedTime && new Date(startDate.getTime() + totalElapsedTime * 1000)) ||
       recordEndDate ||
       null;
 
-    // Some fit files have wrong dates for session.timestamp && session.start_time and those miss an elapsed time
-    // Get dates from records in that case
+    // Missing duration summaries do not invalidate credible explicit bounds.
+    // Retain corrupt-date recovery when dates are unordered, over the duration
+    // limit, or wholly disjoint from the session's available record evidence.
     if (
-      !totalElapsedTime // Elapsed time missing
+      !totalElapsedTime && (!startDate || !endDate || endDate <= startDate ||
+        +endDate - +startDate > maxActivityDurationMs ||
+        (recordStartDate && recordEndDate && (endDate < recordStartDate || startDate > recordEndDate)))
     ) {
       if (recordStartDate) {
         startDate = recordStartDate;
@@ -1821,8 +1815,11 @@ export class EventImporterFIT {
       endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
     }
 
+    if (!startDate || !endDate) {
+      throw new ParsingEventLibError('Cannot parse start and end dates');
+    }
+
     const elapsedTimeFromDates = (+endDate - +startDate) / 1000; // Get elapsed calculated from dates
-    const maxActivityDurationMs = options.maxActivityDurationDays * 24 * 60 * 60 * 1000;
     const recordDurationMs = recordStartDate && recordEndDate ? +recordEndDate - +recordStartDate : 0;
     const hasReliableRecordDates = recordDurationMs > 0 && recordDurationMs <= maxActivityDurationMs;
     const totalElapsedTimeExceedsRecordDuration =
@@ -1849,7 +1846,7 @@ export class EventImporterFIT {
       ) {
         startDate = recordStartDate;
         endDate = recordEndDate;
-      } else {
+      } else if (totalElapsedTime > 0 && totalElapsedTime * 1000 <= maxActivityDurationMs) {
         endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
       }
     }
@@ -1871,6 +1868,8 @@ export class EventImporterFIT {
       const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
         {
           ...sessionObject,
+          start_time: startDate,
+          timestamp: endDate,
           threshold_power: fileFtp ?? sessionObject?.threshold_power
         },
         startDate,

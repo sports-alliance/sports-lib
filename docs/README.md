@@ -9,6 +9,10 @@ API; implementation adapters and parsers remain available for compatibility but 
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 
+FIT imports preserve credible per-session timestamps when duration summaries are missing, keeping multisport records
+and load scoped to their own legs. See [recorded timing and sensor coverage](guides/importing-activities.md#recorded-timing-and-sensor-coverage)
+for recovery behavior and reparsing existing activities.
+
 Provider-neutral Health and sleep `Data*` classes cover movement, energy, cardiovascular values, wellness, body
 composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. Their canonical tokens, units, display
 formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain

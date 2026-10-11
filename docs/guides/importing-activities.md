@@ -52,6 +52,15 @@ FIT combines complementary records at the same absolute timestamp before padding
 explicit values retain precedence; an absent field does not erase another record's observation. Pool swims with
 recorded HR retain explicit zero/invalid readings as dropout boundaries through load recalculation.
 
+FIT sessions retain credible explicit start/end timestamps when elapsed and timer summaries are absent or zero.
+Missing summaries alone do not replace a leg's bounds with the whole recording. Corrupt-date recovery uses the
+session's own records, including records across its laps; whole-file records are a fallback only for a sole session.
+An unresolved multisport leg is rejected rather than assigned another leg's record range. Elapsed statistics use the
+resolved dates, and explicit timer events can still recover paused time within each leg. The configured maximum
+activity duration remains enforced. Existing affected activities require an original-file reparse and a refresh of
+derived summaries; restoring their saved JSON cannot reconstruct the missing session boundaries. This correction
+adds no metrics or fields and preserves canonical names, units, imported TSS and public JSON schemas.
+
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that
 previous lap; its earliest point supplies the start instead. `TotalTimeSeconds` retains its active-duration meaning and is also the elapsed-time minimum. Separate

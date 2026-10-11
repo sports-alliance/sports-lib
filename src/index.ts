@@ -53,7 +53,9 @@ export class SportsLib {
   }
 
   /**
-   * Parses and returns an event using FIT format
+   * Parses and returns an event using FIT format.
+   * Credible session timestamps remain authoritative without duration summaries. Record-based date recovery
+   * is scoped to the session; whole-file record bounds are used only when there is a sole session.
    * @param arrayBuffer
    * @param options
    */

@@ -250,10 +250,11 @@ describe('FIT pool length ownership', () => {
     expect(activity.getSwimLengths()).toHaveLength(60);
     expect(+activity.endDate - +activity.startDate).toBe(3600000);
   });
-  it('does not change invalid non-swimming session timing merely because another leg has lengths', async () => {
+  it('repairs a non-swimming end from its own duration instead of borrowing whole-file records', async () => {
     const activities = (await swim({ sessions: 2, lastSessionCycling: true })).getActivities();
-    expect(+activities[1].startDate - +startDate).toBe(4100000);
-    expect(+activities[1].endDate - +startDate).toBe(4200000);
+    expect(+activities[1].startDate - +startDate).toBe(3600000);
+    expect(+activities[1].endDate - +startDate).toBe(7200000);
+    expect(activities[1].getSwimLengths()).toHaveLength(0);
   });
   it('uses an unambiguous length index when the length overlaps its indexed lap boundary', async () => {
     const activity = (await swim({ crossingBoundary: true })).getFirstActivity();

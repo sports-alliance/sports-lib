@@ -12,6 +12,8 @@
  * Diving-group terrain summaries, and adds missing speed-derived pace summaries on events,
  * activities, and laps. GPX route exports emit links before route numbers and waypoint symbols/types,
  * following the GPX 1.1 metadata sequence.
+ * FIT imports preserve credible session timestamps without duration summaries; recovery uses session-owned
+ * records, allowing whole-file record bounds only for a sole session. Existing affected imports require reparsing.
  *
  * @category Import and export
  */

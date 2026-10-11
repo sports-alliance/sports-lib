@@ -1252,13 +1252,19 @@ The sport-name changes are in [Sports Lib PR #144](https://github.com/sports-all
 presentation, saved filters, JSON compatibility, derived Training metrics and separately approved provider mappings.
 Neither PR's preparation publishes a package or changes production activities.
 
-The latest approved QS batch covers 50 exact names, including 28 names absent from the published Sports Lib catalog:
-12 team sports, four precision sports, seven water sports, Whitewater Rafting and four diving sports. All 28 are
-already present in this library's tracked catalog. QS preserves separate names and contexts, saved finite nonnegative
-TSS including zero, and independently recorded power histories. Rafting and Whitewater Rafting use the existing
-recorded paddling metrics and power-first zones; the other 48 use recorded elapsed time and saved load. The QS
-registry now has 21 groups and 19 benchmark-capable families; 46 known non-aggregate types retain Other training
-until their classifications are approved. The detailed product policies remain in
+QS has completed the approved Training classifications for all 284 canonical types. The preceding 50-sport batch
+keeps separate team, precision, water and diving contexts; Rafting and Whitewater Rafting use recorded paddling
+metrics and power-first zones. The final 46-sport approval assigns 37 remaining names to exact contexts and explicitly
+retains Chores, Match, Other, Para Sport, RC Drone Flying, Tactical, Unknown Sport, Video Gaming and Winter Sport
+in Other training. Breathwork and Meditation join Fitness & Gym; Cheerleading, Curling and Frisbee join Team Sports.
+Performance Sports, Outdoor Adventures, Aerial Sports and Motorized Activities add four recorded-discovery groups.
+
+Each of the 37 newly classified names keeps saved finite nonnegative TSS including zero and recording elapsed time,
+with omitted intensity zones, distance and durability. Exact power histories remain independent. The QS registry
+now has 25 groups and 23 benchmark-capable families; Fitness & Gym and Other training retain Training Mix only.
+Eleven aggregate/route types retain their individual-leg/exclusion rules, with no unreviewed classifications left.
+All 24 names added to QS's compatibility bridge for this final approval already exist in this library's catalog;
+provider upload, route and planned-workout profiles retain their previously approved mappings. The detailed policies remain in
 [QS Training documentation](https://github.com/jimmykane/quantified-self/blob/codex/provider-sport-compatibility/docs/training-workspace.md#training-sport-registry-and-contexts).
 
 QS currently pins Sports Lib 21.5.0 in both dependency trees and tests the proposed catalog separately. Native JSON

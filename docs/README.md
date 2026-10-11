@@ -60,7 +60,8 @@ contexts before production use. See [distinct sport names](guides/importing-acti
 for the names, groups, TSS policy and historical corrections, and the
 [complete provider mappings](guides/importing-activities.md#garmin-polar-and-strava-provider-names) for all 146 source entries.
 The [Quantified Self adoption guide](guides/importing-activities.md#quantified-self-coordinated-adoption) links the two
-open PRs, the approved Training classifications, and the package/consumer/reparse rollout order.
+open PRs, all 284 reviewed classifications (25 Training groups and nine deliberate Other labels), and the
+package/consumer/reparse rollout order.
 
 Racket Sport (`64`) and Ultimate Disc belong to Team/Racket; Para Sport (`68`) belongs to Unspecified.
 AMRAP, EMOM, and Tabata retain separate canonical types; Dynamic Apnea retains its own Diving type; E-Bike Fitness, Casual Walking, and Bike Commute

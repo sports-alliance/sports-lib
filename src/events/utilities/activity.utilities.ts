@@ -1,8 +1,8 @@
 import { calculateNormalizedPower } from './normalized-power';
-import { hasRecordedZeroPowerWindow } from './tss/recorded-power-evidence';
+import { getRecordedPowerValues } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
-import { fileHeartRateCalibration, fileFunctionalThresholdPower, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataMaxHRSetting } from '../../data/data.max-hr-setting';
@@ -2389,6 +2389,11 @@ export class ActivityUtilities {
     if (timerTime !== null && timerTime > 0) {
       return timerTime;
     }
+    // A validated all-paused file has no eligible duration. Preserve the legacy
+    // fallback for unproven zero summaries, including restored Activity JSON.
+    if (timerTime === 0 && fileActiveDuration.get(activity) === 0) {
+      return 0;
+    }
 
     const movingTime = this.getFiniteStatValue(activity, DataMovingTime.type);
     if (movingTime !== null && movingTime > 0) {
@@ -2459,9 +2464,9 @@ export class ActivityUtilities {
 
     // Unlike a zero summary placeholder, a complete recorded window can prove
     // zero NP. The rolling calculation returns NaN when coverage is unavailable.
-    const computedNormalizedPower = calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents());
-    if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0 ||
-      (computedNormalizedPower === 0 && !hasRecordedZeroPowerWindow(activity, powerStream, timeStream))) {
+    const computedNormalizedPower = calculateNormalizedPower(
+      getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
+    if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0) {
       return null;
     }
 
@@ -2769,6 +2774,7 @@ export class ActivityUtilities {
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    * HR integration excludes explicit timer pauses, including gaps spanning a pause.
+   * Computed normalized power requires complete windows of recorded observations; importer padding adds no coverage.
    * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
@@ -3820,7 +3826,8 @@ export class ActivityUtilities {
       const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
       const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
       const powerStream = powerDurationStream.map(item => item.value) as number[];
-      const normalizedPower = calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents());
+      const normalizedPower = calculateNormalizedPower(
+        getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
       if (Number.isFinite(normalizedPower)) activity.addStat(new DataPowerNormalized(normalizedPower));
     }
 

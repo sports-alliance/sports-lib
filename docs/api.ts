@@ -509,11 +509,13 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * same-ride estimates and restored FTP stats are not calibration.
  * Complete eligible recorded zero-power windows can produce POWER TSS 0; bare zero summaries and missing file
  * power fields cannot. Recorded-power evidence remains private to the parsed instance.
+ * Positive calculated NP also requires complete recorded windows; padded gaps cannot establish a power candidate.
  * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
  * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
- * multisport timing preserves unambiguous initial pauses.
+ * multisport timing preserves unambiguous initial pauses and prevents adjacent-session record leakage.
+ * Missing FIT timer summaries can use explicit active intervals; Suunto JSON/SML retains recorded pause/resume events.
  */
 export type {
   TrainingStressScorePreference,

@@ -40,4 +40,7 @@ export const fileHeartRateCalibration = new WeakMap<ActivityInterface, FileHeart
 // A numeric FTP stat alone is not evidence: it may be a per-ride estimate or
 // restored JSON. Only the original-file importer can establish this provenance.
 export const fileFunctionalThresholdPower = new WeakMap<ActivityInterface, number>();
+// Distinguish an explicitly reconstructed all-paused activity from legacy zero
+// timer placeholders without adding parser evidence to persisted activity data.
+export const fileActiveDuration = new WeakMap<ActivityInterface, number>();
 export const trainingStressScoreEvaluations = new WeakMap<ActivityInterface, TrainingStressScoreEvaluations>();

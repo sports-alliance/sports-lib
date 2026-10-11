@@ -1,4 +1,4 @@
-import { fileHeartRateCalibration, fileFunctionalThresholdPower } from '../../../utilities/tss/tss-evaluation';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
@@ -332,12 +332,22 @@ export class EventImporterFIT {
           isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
         );
 
+        // Resolve every session's bounds before assigning records. A timestamp
+        // shared by adjacent legs belongs to the starting leg; overlapping
+        // interiors cannot establish an owner and must not feed both streams.
+        const sourceTimings = fitDataObject.sessions.map((session: any) => ({
+          timer: session.total_timer_time, elapsed: session.total_elapsed_time
+        }));
+        const sessionActivities: ActivityInterface[] = fitDataObject.sessions.map((session: any, index: number) =>
+          this.getActivityFromSessionObject(session, fitDataObject, options, index));
+        const sessionRecords = this.getSessionRecords(fitDataObject.records, sessionActivities);
+
         // Iterate over the sessions and create their activities
         const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
           // Keep the original timing evidence before legacy date/timer normalization.
-          const sourceTiming = { timer: sessionObject.total_timer_time, elapsed: sessionObject.total_elapsed_time };
+          const sourceTiming = sourceTimings[sessionIndex];
           // Get the activity from the sessionObject
-          const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
+          const activity = sessionActivities[sessionIndex];
           this.addDiveSummaryStats(activity, this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject));
           this.addDiveSourceRecords(activity, fitDataObject);
           // Go over the laps
@@ -497,6 +507,7 @@ export class EventImporterFIT {
             });
 
           this.reconcileInitialTimerState(activity, fitDataObject, sourceTiming);
+          this.restoreMissingTimerDuration(activity, fitDataObject, sourceTiming, sessionActivities);
 
           // Add jumps
           if (fitDataObject.jumps && fitDataObject.jumps.length) {
@@ -530,8 +541,7 @@ export class EventImporterFIT {
           // existing length-derived swim streams, but never replace recorded HR
           // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
-          const recordedSamples = fitDataObject.records.filter((record: any) =>
-            record.timestamp >= activity.startDate && record.timestamp <= activity.endDate);
+          const recordedSamples = sessionRecords[sessionIndex];
           captureRecordedPowerEvidence(activity, recordedSamples);
           const recordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) ? recordedSamples.filter((record: any) =>
             Number.isFinite(record.heart_rate) && record.heart_rate > 0) : [];
@@ -674,6 +684,79 @@ export class EventImporterFIT {
    */
   private static isLengthsBased(sessionObject: any): boolean {
     return sessionObject.laps?.some((lap: any) => lap.lengths?.length) ?? false;
+  }
+
+  private static getSessionRecords(records: any[], activities: ActivityInterface[]): any[][] {
+    const result: any[][] = activities.map(() => []);
+    const windows = activities.map((activity, index) => ({ activity, index }));
+    for (const record of records) {
+      const timestamp = +record.timestamp;
+      if (!Number.isFinite(timestamp)) continue;
+      const candidates = windows.filter(({ activity }) =>
+        timestamp >= +activity.startDate && timestamp <= +activity.endDate);
+      // Retain an inclusive endpoint for a single/final leg. Only remove closing
+      // candidates when another leg actually starts at this exact timestamp.
+      const owners = candidates.some(({ activity }) => +activity.startDate === timestamp)
+        ? candidates.filter(({ activity }) => +activity.endDate !== timestamp || +activity.startDate === timestamp)
+        : candidates;
+      if (owners.length === 1) result[owners[0].index].push(record);
+    }
+    return result;
+  }
+
+  /** Missing/zero summary timers are often placeholders. Recover active time
+   * only from a complete, conflict-free timer timeline anchored at this leg's
+   * start. Do not infer a missing restart or move a pause between sport legs. */
+  private static restoreMissingTimerDuration(
+    activity: ActivityInterface, file: any, sourceTiming: { timer: unknown; elapsed: unknown },
+    activities: ActivityInterface[]
+  ): void {
+    if (sourceTiming.timer !== undefined && sourceTiming.timer !== null && sourceTiming.timer !== 0) return;
+    const duration = (+activity.endDate - +activity.startDate) / 1000;
+    if (!Number.isFinite(duration) || duration <= 0 ||
+        (typeof sourceTiming.elapsed === 'number' && Number.isFinite(sourceTiming.elapsed) && sourceTiming.elapsed > 0 &&
+          Math.abs(duration - sourceTiming.elapsed) > TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS)) return;
+    // Global timer events cannot be assigned to one session when interiors overlap.
+    if (activities.some(other => other !== activity &&
+      +other.startDate < +activity.endDate && +other.endDate > +activity.startDate)) return;
+    const events = (file.events as FITFileActivityEvent[]).filter(event => event.event === 'timer' &&
+      +event.timestamp >= +activity.startDate && +event.timestamp < +activity.endDate)
+      .slice().sort((left, right) => +left.timestamp - +right.timestamp);
+    if (!events.length || +events[0].timestamp !== +activity.startDate || events.some(event =>
+      !['start', 'stop', 'stop_all', 'stop_disable', 'stop_disable_all'].includes(event.event_type))) return;
+    if (events.some((event, index) => index > 0 && +event.timestamp === +events[index - 1].timestamp &&
+      (event.event_type === 'start') !== (events[index - 1].event_type === 'start'))) return;
+    // A stop shared with a preceding leg may be followed by an implicit restart.
+    // Without a supplied timer summary, it cannot prove this whole leg paused.
+    if (events[0].event_type !== 'start' && activities.some(other => other !== activity &&
+      +other.startDate < +activity.startDate && +other.endDate <= +activity.startDate)) return;
+    let running = events[0].event_type === 'start', previous = 0, active = 0;
+    for (const event of events) {
+      const time = (+event.timestamp - +activity.startDate) / 1000;
+      if (running) active += time - previous;
+      previous = time;
+      running = event.event_type === 'start';
+    }
+    if (running) active += duration - previous;
+    const timer = Math.round(active * 100) / 100;
+    fileActiveDuration.set(activity, timer);
+    activity.addStat(new DataTimerTime(timer));
+    activity.addStat(new DataDuration(timer));
+    activity.addStat(new DataPause(Math.round((duration - active) * 100) / 100));
+  }
+
+  private static getSessionTimeInZone(file: any, session: any, sessionIndex: number): any | undefined {
+    const indexValue = (value: any): unknown => value !== null && typeof value === 'object' ? value.value : value;
+    const sessionId = indexValue(session.message_index) ?? sessionIndex;
+    if (!Number.isInteger(sessionId) || (sessionId as number) < 0) return undefined;
+    const sessions: any[] = file.sessions ?? [];
+    if (sessions.filter((entry, index) => (indexValue(entry.message_index) ?? index) === sessionId).length !== 1) {
+      return undefined;
+    }
+    const matches = (file.time_in_zone ?? []).filter((row: any) =>
+      (row.reference_mesg === 'session' || row.reference_mesg === 18) &&
+      (indexValue(row.reference_index) === sessionId || (row.reference_index === undefined && sessions.length === 1)));
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   /** Preserve a pause crossing a sport boundary only when explicit timer events
@@ -1790,17 +1873,12 @@ export class EventImporterFIT {
       // Check for HR zone durations from time_in_zone messages
       // This is an alternative source when sessionObject.time_in_hr_zone is not available
       if (fitDataObject.time_in_zone && fitDataObject.time_in_zone.length) {
-        // Parsed FIT output identifies the target with the session enum and a
-        // message-index mask. An omitted index can only identify the first
-        // session, because there is no source reference for any later one.
+        // Session references use FIT message_index, not the array position.
+        // An omitted reference is only unambiguous in a single-session file.
         const manufacturer =
           (fitDataObject.file_ids && fitDataObject.file_ids[0] && fitDataObject.file_ids[0].manufacturer) || '';
         const zoneIndexOffset = manufacturer === 'garmin' ? 1 : 0;
-        const sessionTimeInZone = fitDataObject.time_in_zone.find(
-          (z: any) =>
-            z.reference_mesg === 'session' &&
-            (z.reference_index?.value === sessionIndex || (sessionIndex === 0 && z.reference_index === undefined))
-        );
+        const sessionTimeInZone = this.getSessionTimeInZone(fitDataObject, sessionObject, sessionIndex);
         if (
           sessionTimeInZone &&
           sessionTimeInZone.time_in_hr_zone &&

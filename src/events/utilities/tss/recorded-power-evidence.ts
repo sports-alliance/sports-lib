@@ -1,5 +1,4 @@
 import type { ActivityInterface } from '../../../activities/activity.interface';
-import { calculateNormalizedPower } from '../normalized-power';
 import { isNumber } from '../helpers';
 
 interface RecordedPowerSample {
@@ -9,13 +8,13 @@ interface RecordedPowerSample {
   RP_Power?: unknown;
 }
 
-// File compatibility mappers pad missing record power with zero. Keep only their
-// actual zero observations privately so that padding cannot prove zero load.
+// File compatibility mappers pad missing record power with zero. Keep their
+// actual observations privately so that padding cannot establish an NP window.
 // Generic caller-supplied streams have no such padding provenance and remain valid.
-const recordedZeroPowerSeconds = new WeakMap<ActivityInterface, Set<number>>();
+const recordedPowerValues = new WeakMap<ActivityInterface, Map<number, number>>();
 
 export function captureRecordedPowerEvidence(activity: ActivityInterface, samples: RecordedPowerSample[]): void {
-  const zeroSeconds = new Set<number>();
+  const observations = new Map<number, number>();
   for (const sample of samples) {
     const time = activity.getDateIndex(
       sample.timestamp instanceof Date ? sample.timestamp : new Date(sample.timestamp)
@@ -23,17 +22,18 @@ export function captureRecordedPowerEvidence(activity: ActivityInterface, sample
     if (!Number.isFinite(time) || time < 0) continue;
     // FIT passes native/developer fields; XML importers pass their unpadded value.
     const value = isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
-    if (value === 0) zeroSeconds.add(time);
-    else zeroSeconds.delete(time); // The last record on the stream grid wins.
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) observations.set(time, value);
+    else observations.delete(time); // The last record on the stream grid wins.
   }
-  recordedZeroPowerSeconds.set(activity, zeroSeconds);
+  recordedPowerValues.set(activity, observations);
 }
 
-export function hasRecordedZeroPowerWindow(activity: ActivityInterface, power: number[], seconds: number[]): boolean {
-  const zeroSeconds = recordedZeroPowerSeconds.get(activity);
-  if (!zeroSeconds) return true;
-  // Recheck current samples and timer boundaries rather than caching eligibility:
-  // regeneration or later stream/event edits must not reuse stale window evidence.
-  const recordedPower = power.map((value, index) => (value === 0 && zeroSeconds.has(seconds[index]) ? 0 : NaN));
-  return calculateNormalizedPower(recordedPower, seconds, activity.getAllEvents()) === 0;
+/** Mask compatibility padding without changing the displayed/caller-owned stream.
+ * Requiring the current value to match its observation also prevents later edits
+ * from reusing stale source evidence. Timer and window validation remain in NP. */
+export function getRecordedPowerValues(activity: ActivityInterface, power: number[], seconds: number[]): number[] {
+  const observations = recordedPowerValues.get(activity);
+  if (!observations) return power;
+  return power.map((value, index) => observations.has(seconds[index]) && observations.get(seconds[index]) === value
+    ? value : NaN);
 }

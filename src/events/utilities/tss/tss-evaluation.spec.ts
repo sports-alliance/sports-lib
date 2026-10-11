@@ -3,6 +3,7 @@ import { ActivityTypes } from '../../../activities/activity.types';
 import { Creator } from '../../../creators/creator';
 import { DataEnergy } from '../../../data/data.energy';
 import { DataWeight } from '../../../data/data.weight';
+import { DataTimerTime } from '../../../data/data.timer-time';
 import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataHeartRateMax } from '../../../data/data.heart-rate-max';
 import { DataFTP } from '../../../data/data.ftp';
@@ -10,7 +11,7 @@ import { DataPowerNormalized } from '../../../data/data.power-normalized';
 import { DataTrainingStressScore } from '../../../data/data.training-stress-score';
 import { DataTrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 import { ActivityUtilities } from '../activity.utilities';
-import { fileHeartRateCalibration } from './tss-evaluation';
+import { fileActiveDuration, fileHeartRateCalibration } from './tss-evaluation';
 import { resolveFitHeartRateCalibration } from '../../adapters/importers/fit/fit-hr-calibration';
 import { TssCalculator } from './tss-calculator';
 
@@ -18,6 +19,20 @@ const walk = (type = ActivityTypes.Walking) => new Activity(new Date(0), new Dat
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
 
 describe('file-only training stress evaluations', () => {
+  it('respects a source-validated zero timer without changing unproven zero-summary fallback', () => {
+    const activity = walk();
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    activity.addStat(new DataTimerTime(0));
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'MET', score: 9 });
+    fileActiveDuration.set(activity, 0);
+    expect(evaluate(activity).automatic.score).toBeNull();
+    // Later explicit positive values take priority over the original proof.
+    activity.addStat(new DataTimerTime(1800));
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'MET', score: 18 });
+    activity.removeStat(DataTimerTime.type);
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'MET', score: 9 });
+  });
   it('does not calculate unused candidates for an imported score', () => {
     const activity = walk(ActivityTypes.Running);
     activity.addStat(new DataTrainingStressScore(42));

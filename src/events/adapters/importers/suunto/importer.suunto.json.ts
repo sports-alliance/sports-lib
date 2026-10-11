@@ -40,6 +40,8 @@ import { DataFeeling } from '../../../../data/data.feeling';
 import { DataRecoveryTime } from '../../../../data/data.recovery-time';
 import { DataVO2Max } from '../../../../data/data.vo2-max';
 import { DataPause } from '../../../../data/data.pause';
+import { DataStartEvent } from '../../../../data/data.start-event';
+import { DataStopEvent } from '../../../../data/data.stop-event';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
 import { DataHeartRateMax } from '../../../../data/data.heart-rate-max';
 import { DataHeartRateMin } from '../../../../data/data.heart-rate-min';
@@ -142,6 +144,7 @@ import { ActivityParsingOptions } from '../../../../activities/activity-parsing-
 export class EventImporterSuuntoJSON {
   private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
 
+  /** Import recorded pause/resume positions as timer events, independently of aggregate duration. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
@@ -360,6 +363,7 @@ export class EventImporterSuuntoJSON {
 
       // Add the samples that belong to the activity and the ibi data.
       activities.forEach((activity: ActivityInterface) => {
+        this.addTimerEvents(activity, eventJSONObject.DeviceLog.Samples);
         // Get the samples that belong to this activity
         const activitySamples = eventJSONObject.DeviceLog.Samples.filter(
           (sample: any) =>
@@ -434,6 +438,31 @@ export class EventImporterSuuntoJSON {
 
       resolve(event);
     });
+  }
+
+  private static addTimerEvents(activity: ActivityInterface, samples: any[]): void {
+    const start = activity.startDate.getTime();
+    const end = activity.endDate.getTime();
+    const timer = samples.flatMap(sample => {
+      if (typeof sample.TimeISO8601 !== 'string' || !sample.TimeISO8601.trim()) return [];
+      const timestamp = new Date(sample.TimeISO8601).getTime();
+      if (!Number.isFinite(timestamp) || timestamp > end || !Array.isArray(sample.Events)) return [];
+      return sample.Events.filter((event: any) => typeof event?.Pause?.State === 'boolean')
+        .map((event: any) => ({ timestamp, paused: event.Pause.State as boolean }));
+    }).sort((left, right) => left.timestamp - right.timestamp);
+
+    // A pause can span a sport change. Carry only an explicitly recorded state;
+    // aggregate pause duration cannot locate a pause or create a timer event.
+    let inheritedPause = false;
+    for (const event of timer) {
+      if (event.timestamp < start) inheritedPause = event.paused;
+    }
+    if (inheritedPause) activity.addEvent(new DataStopEvent(0));
+    for (const event of timer) {
+      if (event.timestamp < start) continue;
+      const seconds = (event.timestamp - start) / 1000;
+      activity.addEvent(event.paused ? new DataStopEvent(seconds) : new DataStartEvent(seconds));
+    }
   }
 
   private static hasFusedLocData(sample: any): boolean {

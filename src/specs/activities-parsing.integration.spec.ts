@@ -1925,7 +1925,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.hasPowerMeter()).toBeTruthy();
 
             expect((activity.getStat(DataPowerAvg.type) as DataNumber).getValue()).toBeCloseTo(152, 0);
-            expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171.93638485969694, 8);
+            // Six absent power fields cannot supply recorded coverage for NP rolling windows.
+            expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171.96232548431834, 8);
             expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(564);
 
             expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);
@@ -2126,7 +2127,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.hasPowerMeter()).toBeTruthy();
 
             expect((activity.getStat(DataPowerAvg.type) as DataNumber).getValue()).toBeCloseTo(152, 0);
-            expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171.93638485969694, 8);
+            // Six absent power fields cannot supply recorded coverage for NP rolling windows.
+            expect((activity.getStat(DataPowerNormalized.type) as DataNumber).getValue()).toBeCloseTo(171.96232548431834, 8);
             expect((activity.getStat(DataPowerMax.type) as DataNumber).getValue()).toEqual(564);
 
             expect(activity.getSquashedStreamData(DataLongitudeDegrees.type).length).toEqual(expectedSamplesLength);

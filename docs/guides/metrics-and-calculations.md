@@ -576,9 +576,17 @@ HR, pace or MET candidates; no threshold is inferred from the ride or its intens
 
 Complete eligible recorded zero-power windows can establish NP 0 and POWER TSS 0 with valid independent FTP and
 duration. A zero NP summary alone cannot establish this: missing, gappy, short or paused-only recordings still need
-an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX importers are not recorded evidence. This private evidence
-survives regeneration on the parsed instance and does not add fields to Activity JSON. Positive device NP keeps its
-existing precedence; imported TSS, including zero, remains authoritative.
+an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX importers are not recorded evidence.
+All computed NP paths use actual recorded power coverage, including when positive readings occur among missing
+fields. A single positive reading cannot create a complete window by padding the rest with zeros. If no complete
+recorded window remains, power is unavailable and the normal eligible fallback applies. Genuine recorded coasting
+zeros remain valid. Compatibility display streams are unchanged. This private evidence survives regeneration on the
+parsed instance and does not add fields to Activity JSON. Positive device NP keeps its existing precedence;
+imported TSS, including zero, remains authoritative.
+
+When a FIT session has a missing or zero timer summary, unambiguous recorded timer intervals can supply its active
+duration instead of treating all elapsed time as active. Explicit all-paused timing retains zero active duration.
+Valid independent timer summaries retain priority; conflicting or insufficient event evidence is not guessed.
 
 HR TSS:
 
@@ -591,6 +599,10 @@ FIT `stop`, `stop_all`, `stop_disable` and `stop_disable_all` are supported. For
 a twenty-minute pause produce 66.7 TSS, whether recording continues during the pause or resumes afterward. This applies
 to HR calculations for every eligible sport. If every HR reading is inside a pause, HR is unavailable and the normal
 fallback order applies. Imported scores remain authoritative.
+
+Suunto JSON and SML imports retain explicit boolean `Pause.State` pause/resume events, including events alongside
+other entries in the same sample. Events use the activity's relative clock, and an explicitly paused state can span
+a sport change. These positions control sample eligibility without replacing valid aggregate duration statistics.
 
 Without explicit timer events, HR retains elapsed-time integration. Ordinary recording gaps and aggregate timer/moving
 duration alone do not identify pause positions; they are not converted into guessed pauses or proportional rescaling.
@@ -668,6 +680,11 @@ unambiguously supports that state. This prevents paused HR/power from counting a
 Conflicting/missing duration evidence does not invent a pause; a full-duration session can retain an implicit restart
 when a device omits the corresponding start event.
 
+Adjacent FIT sessions do not share the next leg's first recorded sample. A terminal record remains eligible for a
+standalone or final session. This prevents heart rate and reset distance counters from leaking into the preceding
+leg. Session `time_in_zone` durations match the session's FIT message index rather than its position in an array;
+ambiguous references are rejected instead of assigning another leg's zone totals.
+
 MET TSS:
 
 ```text
@@ -687,7 +704,9 @@ results before replacing the parsed activity object; the compact evaluations and
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
 corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
 Reparse original files to apply corrected running grade, zero-speed, window and pause handling, preserve recorded pool
-HR, and recover unambiguous multisport initial timer states. Reparse also applies explicit HR-pause exclusion,
+HR, and recover unambiguous multisport initial timer states. Original-file reparse also applies FIT boundary ownership,
+session zone matching, timer-summary fallback, Suunto pause events and recorded positive-power coverage.
+Reparse also applies explicit HR-pause exclusion,
 independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR selection, HR calibration consistency
 and independent swimming-threshold requirements to historical workouts,
 then refresh consuming applications' derived Training summaries. No canonical metric token, unit, or Activity JSON

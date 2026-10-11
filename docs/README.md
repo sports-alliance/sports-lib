@@ -112,6 +112,10 @@ estimates and unavailable results. The public ActivityUtilities API returns all 
 parsed file without requiring athlete settings. Load editors can request one-decimal display through
 `DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.
 
+Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with
+complete rolling 30-second windows. MTB/downhill/enduro use biking-specific maximum HR. Internally inconsistent
+percent-max-HR threshold settings are rejected, preserving imported scores and eligible fallbacks.
+
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
 complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training

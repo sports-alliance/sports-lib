@@ -37,4 +37,7 @@ export interface FileHeartRateCalibration {
 
 // Parser-only evidence must never enter ordinary Activity JSON or DataStore discovery.
 export const fileHeartRateCalibration = new WeakMap<ActivityInterface, FileHeartRateCalibration>();
+// A numeric FTP stat alone is not evidence: it may be a per-ride estimate or
+// restored JSON. Only the original-file importer can establish this provenance.
+export const fileFunctionalThresholdPower = new WeakMap<ActivityInterface, number>();
 export const trainingStressScoreEvaluations = new WeakMap<ActivityInterface, TrainingStressScoreEvaluations>();

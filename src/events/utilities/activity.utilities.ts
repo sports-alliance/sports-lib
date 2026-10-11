@@ -1,4 +1,5 @@
-import { fileHeartRateCalibration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
+import { calculateNormalizedPower } from './normalized-power';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataMaxHRSetting } from '../../data/data.max-hr-setting';
@@ -2450,7 +2451,7 @@ export class ActivityUtilities {
       return null;
     }
 
-    const computedNormalizedPower = this.toPositiveFiniteNumber(this.computeNormalizedPower(powerStream, timeStream));
+    const computedNormalizedPower = this.toPositiveFiniteNumber(calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents()));
     if (computedNormalizedPower === null) {
       return null;
     }
@@ -2465,31 +2466,18 @@ export class ActivityUtilities {
       return override;
     }
 
-    const existingFtp = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataFTP.type));
-    if (existingFtp !== null) {
-      return existingFtp;
-    }
-
-    const derivedFtp = this.calculateFTP(activity);
-    if (!derivedFtp) {
-      return null;
-    }
-
-    if (!activity.getStat(DataFTP.type)) {
-      activity.addStat(derivedFtp);
-    }
-    return this.toPositiveFiniteNumber(derivedFtp.getValue());
+    return this.toPositiveFiniteNumber(fileFunctionalThresholdPower.get(activity));
   }
 
-  private static persistFunctionalThresholdPowerOverride(activity: ActivityInterface): void {
-    const override = this.getTssOverrideValue(activity, 'functionalThresholdPower');
-    if (override === null) {
+  private static persistCalibratedFunctionalThresholdPower(activity: ActivityInterface): void {
+    const calibratedFtp = this.resolveFunctionalThresholdPower(activity);
+    if (calibratedFtp === null) {
       return;
     }
 
     const currentFtp = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataFTP.type));
-    if (currentFtp !== override) {
-      activity.addStat(new DataFTP(override));
+    if (currentFtp !== calibratedFtp) {
+      activity.addStat(new DataFTP(calibratedFtp));
     }
   }
 
@@ -2835,14 +2823,15 @@ export class ActivityUtilities {
     const result: TrainingStressScoreEvaluations = { version: 1,
       automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET') };
     if (automatic?.calculationMethod === TrainingStressScoreMethod.POWER) {
-      this.persistFunctionalThresholdPowerOverride(activity);
+      this.persistCalibratedFunctionalThresholdPower(activity);
       this.updatePowerOutputsFromPowerTss(activity, automatic);
     }
     trainingStressScoreEvaluations.set(activity, result);
     return result;
   }
 
-  /** Read the last parse-time evaluations, computing them only if none have been cached. */
+  /** Read cached parse-time evaluations. Power requires independent file FTP or an explicit override;
+   * per-activity FTP estimates and JSON-restored FTP stats are not calibration. */
   public static getTrainingStressScoreEvaluations(activity: ActivityInterface): TrainingStressScoreEvaluations {
     return trainingStressScoreEvaluations.get(activity) ?? this.evaluateTrainingStressScore(activity);
   }
@@ -3647,48 +3636,6 @@ export class ActivityUtilities {
     return this.round((secondsPerMeter + strokesPerMeter) * poolLength, 1);
   }
 
-  /**
-   * Andrew Coggan weighted power compute method
-   * 1) starting at the 30s mark, calculate a rolling 30 s average (of the preceding time points, obviously).
-   * 2) raise all the values obtained in step #1 to the 4th power.
-   * 3) take the average of all of the values obtained in step #2.
-   * 4) take the 4th root of the value obtained in step #3.
-   * (And when you get tired of exporting every file to, e.g., Excel to perform such calculations, help develop a program
-   * like WKO+ to do the work for you <g>.)
-   */
-  private static computeNormalizedPower(powerArray: number[], timeArray: number[]): number {
-    const WEIGHTED_WATTS_TIME_BUFFER = 30; // Seconds
-
-    const poweredWeightedWatts = [];
-
-    let accumulatedTimeInBuffer = 0; // seconds
-    let wattsInBuffer = [];
-
-    for (const [index, current] of timeArray.entries()) {
-      if (index === 0) {
-        continue;
-      }
-
-      wattsInBuffer.push(powerArray[index]);
-
-      if (accumulatedTimeInBuffer >= WEIGHTED_WATTS_TIME_BUFFER) {
-        const meanWatts = this.getAverage(wattsInBuffer);
-
-        if (Number.isFinite(meanWatts)) {
-          poweredWeightedWatts.push(Math.pow(meanWatts, 4));
-        }
-
-        // Reset
-        accumulatedTimeInBuffer = 0;
-        wattsInBuffer = [];
-      }
-
-      accumulatedTimeInBuffer += current - timeArray[index - 1];
-    }
-
-    return Math.sqrt(Math.sqrt(this.getAverage(poweredWeightedWatts)));
-  }
-
   private static getActivityDataTypeGainOrLoss(
     activity: ActivityInterface,
     streamType: string,
@@ -3852,8 +3799,8 @@ export class ActivityUtilities {
       const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
       const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
       const powerStream = powerDurationStream.map(item => item.value) as number[];
-      const normalizedPower = this.computeNormalizedPower(powerStream, timeStream);
-      activity.addStat(new DataPowerNormalized(normalizedPower));
+      const normalizedPower = calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents());
+      if (Number.isFinite(normalizedPower)) activity.addStat(new DataPowerNormalized(normalizedPower));
     }
 
     // Power Curve
@@ -3867,7 +3814,8 @@ export class ActivityUtilities {
 
     // FTP (0.95 * best 20 minute power)
     if (!activity.getStat(DataFTP.type)) {
-      const ftp = this.calculateFTP(activity);
+      const calibratedFtp = this.resolveFunctionalThresholdPower(activity);
+      const ftp = calibratedFtp === null ? this.calculateFTP(activity) : new DataFTP(calibratedFtp);
       if (ftp) {
         activity.addStat(ftp);
       }

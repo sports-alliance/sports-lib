@@ -16,7 +16,7 @@ import { Event } from '../event';
 import { EventUtilities } from './event.utilities';
 import { FileType } from '../adapters/file-type.enum';
 import { IntensityZones } from '../../intensity-zones/intensity-zones';
-import { fileHeartRateCalibration } from './tss/tss-evaluation';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower } from './tss/tss-evaluation';
 
 describe('Power Analytics Integration', () => {
   it('should generate Power Curve and FTP without inventing activity-local CP/W′', () => {
@@ -77,6 +77,7 @@ describe('Power Analytics Integration', () => {
     powerStream.setData(powerValues);
     activity.addStream(powerStream);
 
+    fileFunctionalThresholdPower.set(activity, 285);
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     const normalizedPower = activity.getStat(DataPowerNormalized.type);
@@ -92,7 +93,7 @@ describe('Power Analytics Integration', () => {
     expect(normalizedPower!.getValue()).toBeCloseTo(300, 1);
     expect(ftp!.getValue()).toBe(285);
     expect(intensityFactor!.getValue()).toBeCloseTo(1.053, 3);
-    expect(tss!.getValue()).toBeCloseTo(109.9, 1);
+    expect(tss!.getValue()).toBeCloseTo(110.8, 1);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
   });
 
@@ -178,11 +179,12 @@ describe('Power Analytics Integration', () => {
     activity.addStream(hrStream);
     fileHeartRateCalibration.set(activity, { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 160 });
 
+    fileFunctionalThresholdPower.set(activity, 285);
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     const tss = activity.getStat(DataTrainingStressScore.type);
     expect(tss).toBeDefined();
-    expect(tss!.getValue()).toBeCloseTo(109.9, 1);
+    expect(tss!.getValue()).toBeCloseTo(110.8, 1);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).hr).toMatchObject({
       score: 100, method: TrainingStressScoreMethod.HR,

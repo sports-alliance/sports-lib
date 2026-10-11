@@ -64,9 +64,8 @@ export class TssCalculator {
 
     try {
       const intensityFactor = normalizedPower / functionalThresholdPower;
-      const effectiveDuration = Math.max(totalDurationWithoutPauses - 29, 0);
       const tss =
-        (100 * effectiveDuration * normalizedPower * intensityFactor) / (functionalThresholdPower * 3600);
+        (100 * totalDurationWithoutPauses * normalizedPower * intensityFactor) / (functionalThresholdPower * 3600);
 
       return this.applyRangeCheck({
         calculationMethod: TrainingStressScoreMethod.POWER,

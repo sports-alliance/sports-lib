@@ -379,7 +379,7 @@ describe('Training Stress Score integration', () => {
     const expectedIf = Math.round((normalizedPower / ftpOverride) * 1000) / 1000;
     const expectedTss =
       Math.round(
-        ((100 * Math.max(3600 - 29, 0) * normalizedPower * (normalizedPower / ftpOverride)) / (ftpOverride * 3600)) * 10
+        ((100 * 3600 * normalizedPower * (normalizedPower / ftpOverride)) / (ftpOverride * 3600)) * 10
       ) / 10;
 
     expect(method).toBe(TrainingStressScoreMethod.POWER);

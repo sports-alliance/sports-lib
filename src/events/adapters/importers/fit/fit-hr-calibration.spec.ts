@@ -58,3 +58,29 @@ describe('FIT session HR calibration precedence', () => {
       .toEqual(expected);
   });
 });
+
+describe('cycling calibration consistency', () => {
+  it.each([ActivityTypes.Cycling, ActivityTypes.MountainBiking, ActivityTypes.DownhillCycling, ActivityTypes['Enduro MTB'], ActivityTypes.EBiking])(
+    'uses the biking maximum for %s without session calibration', type => {
+      expect(resolve({ time_in_zone: [], zones_target: { threshold_heart_rate: 165 }, user_profile: {
+        resting_heart_rate: 55, default_max_heart_rate: 160, default_max_biking_heart_rate: 190
+      } }, calibration, type)).toEqual(expected);
+      expect(resolve({ time_in_zone: [], zones_target: { threshold_heart_rate: 165 }, user_profile: {
+        resting_heart_rate: 55, default_max_heart_rate: 190
+      } }, calibration, type)).toEqual(expected);
+    });
+
+  it.each(['percent_max_hr', 1])('rejects a threshold below valid percent-max boundaries (%s)', hr_calc_type => {
+    expect(resolve({ zones_target: { threshold_heart_rate: 0 } }, { ...calibration,
+      max_heart_rate: 242, resting_heart_rate: 30, threshold_heart_rate: 46,
+      hr_calc_type, hr_zone_high_boundary: [121, 145, 169, 194, 218, 242]
+    }, ActivityTypes.Cycling)).toEqual({ reason: 'invalid-hr-calibration' });
+  });
+
+  it('does not infer calibration from zones or impose percent-max semantics on custom zones', () => {
+    expect(resolve({}, { ...calibration, threshold_heart_rate: undefined,
+      hr_calc_type: 'percent_max_hr', hr_zone_high_boundary: [95, 114, 133, 152, 171, 190]
+    }).lactateThresholdHR).toBeUndefined();
+    expect(resolve({}, { ...calibration, hr_calc_type: 'custom', hr_zone_high_boundary: [170, 180, 190] })).toEqual(expected);
+  });
+});

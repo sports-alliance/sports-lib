@@ -55,7 +55,8 @@ GPX tracks with timestamps normally represent recorded activities. Set `gpx.impo
 
 ## Training stress evaluations
 
-HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
+Power TSS and IF require independent file FTP or `tss.overrides.functionalThresholdPower`; the same-ride FTP
+estimate and an ordinary JSON-restored FTP statistic are ineligible. HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
 Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligible sports retain power and pace methods
 in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
 reasons and existing optional physiological overrides.

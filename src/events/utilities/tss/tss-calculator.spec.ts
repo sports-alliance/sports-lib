@@ -4,6 +4,11 @@ import { TssCalculator } from './tss-calculator';
 import { TrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 
 describe('TssCalculator', () => {
+  it.each([15, 30, 3600])('uses the full eligible duration (%s seconds) with supplied NP', duration => {
+    expect(TssCalculator.calculatePowerTss({ totalDurationWithoutPauses: duration,
+      functionalThresholdPower: 250, normalizedPower: 250, samples: [] })?.trainingStressScore)
+      .toBeCloseTo(100 * duration / 3600, 10);
+  });
   it('keeps power TSS parity with Coggan NP/IF/TSS behavior', () => {
     const result = TssCalculator.calculatePowerTss({
       totalDurationWithoutPauses: 120,
@@ -13,7 +18,7 @@ describe('TssCalculator', () => {
     });
 
     const expectedIntensityFactor = 200 / 250;
-    const expectedTss = (100 * (120 - 29) * 200 * expectedIntensityFactor) / (250 * 3600);
+    const expectedTss = (100 * 120 * 200 * expectedIntensityFactor) / (250 * 3600);
 
     expect(result).toBeTruthy();
     expect(result!.calculationMethod).toBe(TrainingStressScoreMethod.POWER);

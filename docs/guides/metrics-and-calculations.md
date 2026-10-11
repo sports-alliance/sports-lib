@@ -348,14 +348,24 @@ Cadence and stroke-rate semantics are activity-aware:
 
 ```text
 NormalizedPower (NP):
-- Build ~30s buffered means from power-by-time samples
+- Compute every complete rolling 30-second mean on the one-second power grid
 - Raise each mean to the 4th power
 NP = 4th_root(average(mean30s^4))
 
 PowerCurve(duration d): max rolling mean power over window d
-FTP = round(0.95 * best_20min_power)
-IF = NP / FTP
+Estimated FTP stat = round(0.95 * best_20min_power)
+IF = NP / independently supplied FTP
 ```
+
+Normalized power retains recorded zeroes. Gaps, invalid/negative samples, nonconsecutive timestamps and explicit
+start/stop timer boundaries restart the window; stopped samples do not contribute. No interpolation, zero-fill or
+carry-forward is applied to missing seconds. Sparse recordings without a complete window retain valid device NP on
+normal import; a missing calculated NP remains unavailable instead of becoming NaN in serialized statistics.
+The first complete 30-sample window contributes, and longer recordings contribute overlapping windows every second.
+
+The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
+athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file
+calibration can do so. A restored `FTP` JSON stat is not promoted to calibration during recalculation.
 
 `DataPowerCurve` preserves explicit zero `wattsPerKg` values through JSON restoration; missing W/kg stays absent.
 Existing saved zeros are readable without reparsing. This keeps source statistics stable when consumers restore
@@ -551,16 +561,24 @@ POWER TSS:
 
 ```text
 IF = NP / FTP
-EffectiveDuration = max(durationWithoutPauses - 29, 0)
-TSS = (100 * EffectiveDuration * NP * IF) / (FTP * 3600)
+TSS = 100 * (durationWithoutPauses / 3600) * IF^2
 ```
+
+Power uses the full eligible duration, without subtracting the NP window warm-up. One hour with NP equal to FTP is
+100 TSS. FIT FTP comes from explicit session `threshold_power`, uniquely matched session `time_in_zone` FTP, or
+unambiguous `zones_target` FTP. Conflicting same-session values, duplicate session references, conflicting repeated
+global values and invalid supplied values are rejected. A valid scoped FTP can supersede a zero global placeholder.
+Source provenance stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
+serialized into ordinary Activity JSON. Missing calibration reports `missing-power-inputs` and falls through to eligible
+HR, pace or MET candidates; no threshold is inferred from the ride or its intensity factor.
 
 HR TSS:
 
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
 One hour at threshold is 100. There is no observed-peak maximum, assumed threshold ratio, or weighted-zone fallback.
 FIT calibration comes from a uniquely referenced session `time_in_zone`, then unambiguous `zones_target` and applicable
-profile fields. Walking uses the general profile maximum, never its running maximum. Repeated conflicting settings,
+profile fields. Cycling, MTB, downhill and enduro use the biking-specific profile maximum, falling back to the
+general setting when absent. Walking uses the general profile maximum, never its running maximum. Repeated conflicting settings,
 ambiguous session references and inconsistent calibration are rejected. Existing explicit physiological overrides remain
 supported; absent settings cannot be inferred from activity samples or zone boundaries.
 
@@ -568,6 +586,12 @@ A complete, valid, uniquely matched session calibration takes precedence over ze
 global/profile fields. This exception never supplies a missing session value: incomplete or invalid session settings,
 conflicting repeated records, and other malformed lower-priority values still fail validation. Distinct positive
 global defaults retain their existing lower priority to explicit session settings.
+
+For a session using percent-maximum-HR zones, an explicit threshold below the lowest boundary of a valid, strictly
+increasing zone set bounded by the calibrated maximum is rejected as `invalid-hr-calibration`. This is a consistency
+check only: no zone weights, inferred threshold ratios, or replacement physiological values are introduced. Custom
+zone sets do not imply this relationship. Valid independent candidates can still supply TSS, and imported scores always
+retain priority.
 
 PACE TSS (running/trail groups):
 
@@ -614,7 +638,8 @@ with actual method, score (null when unavailable), provenance, estimate flag and
 results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
 corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
-Reparse original files to apply the swimming threshold and FIT session-calibration corrections to historical workouts,
+Reparse original files to apply independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR
+selection and HR calibration consistency checks, as well as the swimming threshold correction, to historical workouts,
 then refresh consuming applications' derived Training summaries. No canonical metric token, unit, or Activity JSON
 schema changes are required. Consumers displaying reason codes should handle the additive `missing-swim-threshold` code.
 

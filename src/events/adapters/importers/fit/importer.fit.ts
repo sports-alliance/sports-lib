@@ -1,4 +1,5 @@
-import { fileHeartRateCalibration } from '../../../utilities/tss/tss-evaluation';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower } from '../../../utilities/tss/tss-evaluation';
+import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
 import { Event } from '../../../event';
@@ -1650,14 +1651,12 @@ export class EventImporterFIT {
         options
       );
       fileHeartRateCalibration.set(activity, resolveFitHeartRateCalibration(fitDataObject, sessionObject, sessionIndex, activity.type));
+      const fileFtp = resolveFitFunctionalThresholdPower(fitDataObject, sessionObject, sessionIndex);
+      if (fileFtp !== null) fileFunctionalThresholdPower.set(activity, fileFtp);
       const normalizedSessionObject = this.normalizeElapsedTimeForResolvedDates(
         {
           ...sessionObject,
-          threshold_power:
-            isNumberOrString(sessionObject?.threshold_power) ||
-            !isNumberOrString(fitDataObject?.zones_target?.functional_threshold_power)
-              ? sessionObject?.threshold_power
-              : fitDataObject.zones_target.functional_threshold_power
+          threshold_power: fileFtp ?? sessionObject?.threshold_power
         },
         startDate,
         endDate,

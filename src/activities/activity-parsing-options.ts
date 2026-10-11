@@ -14,6 +14,7 @@ export interface ActivityParsingStreamOptions {
 }
 
 export interface ActivityParsingTssOverridesOptions {
+  /** Independent FTP in watts. Same-activity FTP estimates never supply power TSS. */
   functionalThresholdPower?: number;
   functionalThresholdPace?: number;
   lactateThresholdHR?: number;

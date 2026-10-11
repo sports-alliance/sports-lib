@@ -28,7 +28,7 @@ export function resolveFitHeartRateCalibration(
   };
   const group = ActivityTypesHelper.getActivityGroupForActivityType(type);
   const sportMax = group === ActivityTypeGroups.RunningGroup || group === ActivityTypeGroups.TrailRunningGroup
-    ? 'default_max_running_heart_rate' : group === ActivityTypeGroups.CyclingGroup
+    ? 'default_max_running_heart_rate' : group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup
       ? 'default_max_biking_heart_rate' : 'default_max_heart_rate';
   let reason: FileHeartRateCalibration['reason'];
   const unique = (rows: RecordValue[], key: string, allowZeroPlaceholder = false): number | undefined => {
@@ -66,6 +66,19 @@ export function resolveFitHeartRateCalibration(
   };
   const { maxHeartRate: max, restingHeartRate: rest, lactateThresholdHR: threshold } = calibration;
   if (rest !== undefined && threshold !== undefined && max !== undefined && !(rest < threshold && threshold < max)) {
+    reason = reason ?? 'invalid-hr-calibration';
+  }
+  // A percent-max zone set can expose a stale/garbage threshold which still
+  // satisfies rest < threshold < max. Use the file only as a consistency check;
+  // never infer a threshold or a load from the zone boundaries.
+  const sessionZones = matches[0];
+  const boundaries = sessionZones?.hr_zone_high_boundary;
+  if (threshold !== undefined && max !== undefined &&
+      (sessionZones?.hr_calc_type === 'percent_max_hr' || sessionZones?.hr_calc_type === 1) &&
+      Array.isArray(boundaries) && boundaries.length >= 2 &&
+      boundaries.every((value, index) => typeof value === 'number' && Number.isFinite(value) &&
+        value > 0 && value <= max && (index === 0 || value > boundaries[index - 1])) &&
+      threshold < boundaries[0]) {
     reason = reason ?? 'invalid-hr-calibration';
   }
   return reason ? { reason } : calibration;

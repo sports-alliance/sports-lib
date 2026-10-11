@@ -11,15 +11,16 @@ interface HeartRateSample {
 /** Put HR samples on the timer-active clock before TRIMP integration. Samples at a
  * stop boundary may close the preceding active interval; samples inside a pause
  * cannot supply HR. Removing paused time also handles recordings with no samples
- * during a pause. Without explicit timer events, retain elapsed-time integration. */
+ * during a pause. Invalid readings retain their boundaries for the integrator.
+ * Without explicit timer events, retain elapsed-time integration. */
 export function getHeartRateSamplesWithoutPauses(samples: HeartRateSample[], events: DataEvent[]): HeartRateSample[] {
   const timer = events.filter(event => Number.isFinite(event.timestamp) &&
     [DataStartEvent.type, DataStopEvent.type, DataStopAllEvent.type].includes(event.getType()))
     .slice().sort((a, b) => a.timestamp - b.timestamp);
   const result: HeartRateSample[] = [];
   let running = true, previousTime = 0, activeTime = 0, timerIndex = 0;
-  for (const sample of samples.filter(sample => Number.isFinite(sample.duration) && sample.duration >= 0 &&
-    Number.isFinite(sample.value) && sample.value > 0).sort((a, b) => a.duration - b.duration)) {
+  for (const sample of samples.filter(sample => Number.isFinite(sample.duration) && sample.duration >= 0)
+    .sort((a, b) => a.duration - b.duration)) {
     let closesActiveInterval = false;
     while (timerIndex < timer.length && timer[timerIndex].timestamp <= sample.duration) {
       const event = timer[timerIndex++], time = Math.max(0, event.timestamp);

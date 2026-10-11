@@ -69,7 +69,8 @@ describe('FIT pool recorded HR', () => {
     for (let repeat = 0; repeat < 2; repeat++) {
       expect(activity.getStream(DataHeartRate.type).getData(true, true)).toEqual([165, 165, 165]);
       expect(activity.getStreamData(DataHeartRate.type)[1200]).toBeNull();
-      expect(evaluate(activity).automatic).toMatchObject({ method: 'HR', score: 83.3 });
+      // HR begins at 600s and ends at 3000s: only the observed 2400s interval supplies load.
+      expect(evaluate(activity).automatic).toMatchObject({ method: 'HR', score: 66.7 });
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     }
   });

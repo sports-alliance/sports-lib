@@ -140,6 +140,7 @@ import { DataDepth } from '../../../../data/data.depth';
 import { DataDepthMax } from '../../../../data/data.depth-max';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 
 export class EventImporterSuuntoJSON {
   private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
@@ -162,30 +163,18 @@ export class EventImporterSuuntoJSON {
       creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
 
       // Go over the samples and get the ones with activity start times
-      const activityStartEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return sample.Events && sample.Events[0] && sample.Events[0].Activity;
-      });
+      const activityStartEventSamples = this.getEventSamples(eventJSONObject.DeviceLog.Samples, 'Activity');
 
       // Check if there is a Fused Altitude event
-      const fusedAltitudeEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return sample.Events && sample.Events[0] && sample.Events[0].Altitude;
-      });
+      const fusedAltitudeEventSamples = this.getEventSamples(eventJSONObject.DeviceLog.Samples, 'Altitude');
 
       // Get the lap start events
-      const lapEventSamples = eventJSONObject.DeviceLog.Samples.filter((sample: any) => {
-        return (
-          sample.Events &&
-          sample.Events[0] &&
-          sample.Events[0].Lap &&
-          sample.Events[0].Lap.Type !== 'Start' &&
-          sample.Events[0].Lap.Type !== 'Stop'
-        );
-      });
+      const allLapEventSamples = this.getEventSamples(eventJSONObject.DeviceLog.Samples, 'Lap');
+      const lapEventSamples = allLapEventSamples.filter((sample: any) =>
+        sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop');
 
       // Get the stop event
-      const stopEventSample = eventJSONObject.DeviceLog.Samples.find((sample: any) => {
-        return sample.Events && sample.Events[0] && sample.Events[0].Lap && sample.Events[0].Lap.Type === 'Stop';
-      });
+      const stopEventSample = allLapEventSamples.find((sample: any) => sample.Events[0].Lap.Type === 'Stop');
 
       // Add the stop event to the laps since it's also a lap stop event
       if (stopEventSample) {
@@ -234,6 +223,12 @@ export class EventImporterSuuntoJSON {
             this.getStats(activityWindows[index]).forEach(stat => {
               activity.addStat(stat);
             });
+            const window = activityWindows[index];
+            const total = this.getNonnegativeNumber(window.Duration);
+            const pause = window.PauseDuration === undefined ? 0 : this.getNonnegativeNumber(window.PauseDuration);
+            if (total !== undefined && pause !== undefined && pause <= total) {
+              fileActiveDuration.set(activity, total - pause);
+            }
           }
           // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
           if (!activity.getDuration()) {
@@ -253,11 +248,14 @@ export class EventImporterSuuntoJSON {
               (activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()
             )
           );
-          // Set the zones for the activity @todo fix
-          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header);
+          // Threshold settings may be shared, but durations belong to their leg.
+          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header, activityWindows[index], activityStartEventSamples.length === 1);
 
           // Add the fused altitude event
-          if (fusedAltitudeEventSamples.length) {
+          if (fusedAltitudeEventSamples.some((sample: any) => {
+            const timestamp = new Date(sample.TimeISO8601).getTime();
+            return timestamp >= activity.startDate.getTime() && timestamp <= activity.endDate.getTime();
+          })) {
             activity.addStat(new DataFusedAltitude(true));
           }
 
@@ -469,54 +467,56 @@ export class EventImporterSuuntoJSON {
     return !!sample.Inertial || !!sample.GpsRef;
   }
 
-  private static setIntensityZones(activity: ActivityInterface, object: any) {
-    SuuntoIntensityZonesMapper.forEach(intensityZonesMap => {
-      if (!object[intensityZonesMap.sampleField]) {
-        return;
+  /** Select by event kind; unrelated entries must never hide activity/lap boundaries. */
+  private static getEventSamples(samples: any[], kind: 'Activity' | 'Lap' | 'Altitude'): any[] {
+    return samples.flatMap(sample => {
+      if (!Array.isArray(sample.Events)) return [];
+      const events = sample.Events.filter((event: any) => event?.[kind] && typeof event[kind] === 'object');
+      if (kind === 'Activity' && events.length > 1) {
+        // Preserve one boundary, but never pick a sport arbitrarily when a sample conflicts.
+        const types = new Set(events.map((event: any) => event.Activity.ActivityType));
+        return [{ ...sample, Events: [types.size === 1 ? events[0] : { Activity: {} }] }];
       }
-      const zones = new IntensityZones(intensityZonesMap.dataType);
-      zones.zone1Duration = object[intensityZonesMap.sampleField].Zone1Duration;
-      zones.zone2Duration = object[intensityZonesMap.sampleField].Zone2Duration;
-      zones.zone2LowerLimit = intensityZonesMap.convertSampleValue(
-        object[intensityZonesMap.sampleField].Zone2LowerLimit
-      );
-      zones.zone3Duration = object[intensityZonesMap.sampleField].Zone3Duration;
-      zones.zone3LowerLimit = intensityZonesMap.convertSampleValue(
-        object[intensityZonesMap.sampleField].Zone3LowerLimit
-      );
-      zones.zone4Duration = object[intensityZonesMap.sampleField].Zone4Duration;
-      zones.zone4LowerLimit = intensityZonesMap.convertSampleValue(
-        object[intensityZonesMap.sampleField].Zone4LowerLimit
-      );
-      zones.zone5Duration = object[intensityZonesMap.sampleField].Zone5Duration;
-      zones.zone5LowerLimit = intensityZonesMap.convertSampleValue(
-        object[intensityZonesMap.sampleField].Zone5LowerLimit
-      );
-      activity.intensityZones.push(zones);
+      return events.map((event: any) => ({ ...sample, Events: [event] }));
+    });
+  }
 
-      switch (intensityZonesMap.dataType) {
-        case DataHeartRate.type:
-          activity.addStat(new DataHeartRateZoneOneDuration(zones.zone1Duration));
-          activity.addStat(new DataHeartRateZoneTwoDuration(zones.zone2Duration));
-          activity.addStat(new DataHeartRateZoneThreeDuration(zones.zone3Duration));
-          activity.addStat(new DataHeartRateZoneFourDuration(zones.zone4Duration));
-          activity.addStat(new DataHeartRateZoneFiveDuration(zones.zone5Duration));
-          break;
-        case DataPower.type:
-          activity.addStat(new DataPowerZoneOneDuration(zones.zone1Duration));
-          activity.addStat(new DataPowerZoneTwoDuration(zones.zone2Duration));
-          activity.addStat(new DataPowerZoneThreeDuration(zones.zone3Duration));
-          activity.addStat(new DataPowerZoneFourDuration(zones.zone4Duration));
-          activity.addStat(new DataPowerZoneFiveDuration(zones.zone5Duration));
-          break;
-        case DataSpeed.type:
-          activity.addStat(new DataSpeedZoneOneDuration(zones.zone1Duration));
-          activity.addStat(new DataSpeedZoneTwoDuration(zones.zone2Duration));
-          activity.addStat(new DataSpeedZoneThreeDuration(zones.zone3Duration));
-          activity.addStat(new DataSpeedZoneFourDuration(zones.zone4Duration));
-          activity.addStat(new DataSpeedZoneFiveDuration(zones.zone5Duration));
-          break;
+  private static getNonnegativeNumber(value: unknown): number | undefined {
+    if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return undefined;
+    const numeric = Number(value);
+    return Number.isFinite(numeric) && numeric >= 0 ? numeric : undefined;
+  }
+
+  private static setIntensityZones(activity: ActivityInterface, header: any, window: any, singleActivity: boolean) {
+    const durationTypes = [
+      [DataHeartRateZoneOneDuration, DataHeartRateZoneTwoDuration, DataHeartRateZoneThreeDuration,
+        DataHeartRateZoneFourDuration, DataHeartRateZoneFiveDuration],
+      [DataPowerZoneOneDuration, DataPowerZoneTwoDuration, DataPowerZoneThreeDuration,
+        DataPowerZoneFourDuration, DataPowerZoneFiveDuration],
+      [DataSpeedZoneOneDuration, DataSpeedZoneTwoDuration, DataSpeedZoneThreeDuration,
+        DataSpeedZoneFourDuration, DataSpeedZoneFiveDuration]
+    ];
+    SuuntoIntensityZonesMapper.forEach((mapping, mappingIndex) => {
+      const parent = header?.[mapping.sampleField];
+      const local = window?.[mapping.sampleField];
+      if (!parent && !local) return;
+      const zones = new IntensityZones(mapping.dataType);
+      for (let index = 1; index <= 5; index++) {
+        const durationKey = `Zone${index}Duration`;
+        // A parent total is applicable only to a single leg. Partial local zone data
+        // must not cause the same parent durations to be copied onto every leg.
+        const duration = this.getNonnegativeNumber(local?.[durationKey] ?? (singleActivity ? parent?.[durationKey] : undefined));
+        if (duration !== undefined) {
+          (zones as any)[`zone${index}Duration`] = duration;
+          activity.addStat(new durationTypes[mappingIndex][index - 1](duration));
+        }
+        const limitKey = `Zone${index}LowerLimit`;
+        const limit = this.getNonnegativeNumber(local?.[limitKey] ?? parent?.[limitKey]);
+        if (limit !== undefined) {
+          (zones as any)[`zone${index}LowerLimit`] = mapping.convertSampleValue(limit);
+        }
       }
+      activity.intensityZones.push(zones);
     });
   }
 

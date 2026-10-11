@@ -583,10 +583,15 @@ recorded window remains, power is unavailable and the normal eligible fallback a
 zeros remain valid. Compatibility display streams are unchanged. This private evidence survives regeneration on the
 parsed instance and does not add fields to Activity JSON. Positive device NP keeps its existing precedence;
 imported TSS, including zero, remains authoritative.
+Explicit TSS reevaluation refreshes library-calculated NP and intensity factor from the current streams and timer
+events. It preserves genuine device NP and an explicitly replaced NP statistic. The cached evaluation getter remains
+unchanged; calculation provenance is private and is not serialized.
 
 When a FIT session has a missing or zero timer summary, unambiguous recorded timer intervals can supply its active
 duration instead of treating all elapsed time as active. Explicit all-paused timing retains zero active duration.
 Valid independent timer summaries retain priority; conflicting or insufficient event evidence is not guessed.
+The same recovery applies to sessionless FIT files: synthesized elapsed time is not treated as a recorded timer
+summary. Only complete, contiguous lap timer coverage can supply a synthesized timer before recorded-event recovery.
 
 HR TSS:
 
@@ -599,10 +604,20 @@ FIT `stop`, `stop_all`, `stop_disable` and `stop_disable_all` are supported. For
 a twenty-minute pause produce 66.7 TSS, whether recording continues during the pause or resumes afterward. This applies
 to HR calculations for every eligible sport. If every HR reading is inside a pause, HR is unavailable and the normal
 fallback order applies. Imported scores remain authoritative.
+HR also requires a positive-duration interval between usable observations. The first observation starts coverage;
+it does not supply HR for the preceding portion of the workout. Explicit invalid/zero HR readings break integration,
+and compatibility display backfill cannot extend the observed bounds. A single isolated reading is therefore unavailable
+and allows the normal fallback, while fully observed resting-HR intervals can legitimately score zero. Ordinary interior
+smart-recording gaps retain their existing treatment; no arbitrary sample-gap cutoff is introduced.
 
 Suunto JSON and SML imports retain explicit boolean `Pause.State` pause/resume events, including events alongside
 other entries in the same sample. Events use the activity's relative clock, and an explicitly paused state can span
 a sport change. These positions control sample eligibility without replacing valid aggregate duration statistics.
+Valid Suunto duration/pause summaries that prove zero active time also prevent elapsed-time TSS fallback, even without
+individual pause events. Activity, lap, stop and altitude events are selected by kind regardless of their array position;
+conflicting activity types within one sample retain an unknown-sport boundary instead of selecting one arbitrarily.
+Multisport zone durations come only from each activity window. Shared header thresholds remain usable, but whole-workout
+zone durations are used only for a single activity and are never distributed across legs.
 
 Without explicit timer events, HR retains elapsed-time integration. Ordinary recording gaps and aggregate timer/moving
 duration alone do not identify pause positions; they are not converted into guessed pauses or proportional rescaling.
@@ -674,6 +689,9 @@ boundary lengths in their session/lap, including final rests; conflicting owners
 is allocated to active lengths only, and idle lengths add no distance or speed. An incomplete/ambiguous length
 assignment cannot establish a complete generated distance total. If lap timing leaves positive recorded lap distance
 without an assigned active length, use the recorded distance stream when available instead of a partial generated total.
+FIT `pool_length` is stored in meters regardless of its display-unit flag. A bounded compatibility correction remains
+for Suunto statute exports only when independent recorded length/lap evidence consistently supports the yards conversion
+and does not support the native meter value. Recorded total distance remains authoritative.
 
 FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
 unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.
@@ -684,6 +702,9 @@ Adjacent FIT sessions do not share the next leg's first recorded sample. A termi
 standalone or final session. This prevents heart rate and reset distance counters from leaking into the preceding
 leg. Session `time_in_zone` durations match the session's FIT message index rather than its position in an array;
 ambiguous references are rejected instead of assigning another leg's zone totals.
+Complete, unique session-to-lap references likewise preserve lap ownership when session summaries appear out of order.
+When explicit lap indexes are absent, unambiguous timing can retain ownership; conflicting explicit references do not
+fall back to the parser's order-dependent cascade.
 
 MET TSS:
 
@@ -706,6 +727,10 @@ corrected eligibility and evaluation metadata; ordinary JSON restoration does no
 Reparse original files to apply corrected running grade, zero-speed, window and pause handling, preserve recorded pool
 HR, and recover unambiguous multisport initial timer states. Original-file reparse also applies FIT boundary ownership,
 session zone matching, timer-summary fallback, Suunto pause events and recorded positive-power coverage.
+It also applies Suunto event-kind selection, proven zero active duration and correctly scoped multisport zone durations.
+Apply an original-file reparse for corrected HR observation coverage, FIT pool units, reordered lap ownership and
+sessionless timer recovery. Explicit evaluation or activity regeneration refreshes calculated NP on an already parsed
+instance; it cannot recover missing file calibration from restored JSON.
 Reparse also applies explicit HR-pause exclusion,
 independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR selection, HR calibration consistency
 and independent swimming-threshold requirements to historical workouts,

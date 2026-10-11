@@ -32,14 +32,14 @@ export class EventImporterSuuntoSML {
         ? samplesWithUTC[samplesWithUTC.length - 1].UTC
         : new Date(startDate.getTime() + json.DeviceLog.Header.Duration * 1000);
 
-    // Filter out the old activity type
-    json.DeviceLog.Samples = json.DeviceLog.Samples.filter((sample: any) => {
-      return !(sample.Events && sample.Events.Activity);
-    });
-
-    // Convert the events
+    // The XML adapter uses the header sport. Retain other simultaneous events
+    // and normalize repeated XML event elements without introducing nested arrays.
     json.DeviceLog.Samples.filter((sample: any) => !!sample.Events).forEach((sample: any) => {
-      sample.Events = [sample.Events];
+      const events = Array.isArray(sample.Events) ? sample.Events : [sample.Events];
+      sample.Events = events.map((event: any) => {
+        const { Activity: _activity, ...remaining } = event;
+        return remaining;
+      }).filter((event: any) => Object.keys(event).length > 0);
     });
 
     // Inject start and end sample with event

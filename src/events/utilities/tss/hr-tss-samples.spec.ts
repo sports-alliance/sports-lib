@@ -17,6 +17,13 @@ describe('HR samples on the active timer clock', () => {
     expect(getHeartRateSamplesWithoutPauses([sample(0), sample(40)], events)).toEqual([sample(0), sample(25)]);
   });
 
+  it('retains explicit invalid HR boundaries on the active clock', () => {
+    const values = [sample(0), sample(5, 0), sample(7, NaN), sample(10), sample(20)];
+    const result = getHeartRateSamplesWithoutPauses(values, []);
+    expect(result).toEqual(values);
+    expect(Number.isNaN(result[2].value)).toBe(true);
+  });
+
   it('keeps ordinary recording gaps and ignores non-timer or nonfinite events', () => {
     const samples = [sample(0), sample(60), sample(120)];
     expect(getHeartRateSamplesWithoutPauses(samples, [new OtherEvent(30), new DataStopEvent(NaN),

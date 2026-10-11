@@ -47,6 +47,37 @@ describe('TssCalculator', () => {
       functionalThresholdPower: 250, normalizedPower: 0, samples: [] })).toBeNull();
   });
 
+  it('requires positive eligible activity duration even when HR samples are present', () => {
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 0,
+      maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165,
+      samples: [{ duration: 0, hr: 165 }, { duration: 3600, hr: 165 }] })).toBeNull();
+  });
+
+  it.each([0, 600, 3600])('requires an observed HR interval, not one reading at %s', duration => {
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 3600,
+      maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165,
+      samples: [{ duration, hr: 165 }] })).toBeNull();
+  });
+
+  it.each([0, -1, NaN, Infinity, null, undefined])('retains invalid HR %s as a break between intervals', invalid => {
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 3600,
+      maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165,
+      samples: [{ duration: 0, hr: 165 }, { duration: 1800, hr: invalid }, { duration: 3600, hr: 165 }] })).toBeNull();
+  });
+
+  it('keeps ordinary sparse intervals without a gap cutoff or pre-first extrapolation', () => {
+    expect(TssCalculator.calculateHrTss({ totalDurationWithoutPauses: 3600,
+      maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165,
+      samples: [{ duration: 600, hr: 165 }, { duration: 3000, hr: 165 }] })?.trainingStressScore)
+      .toBeCloseTo(100 * 2400 / 3600, 10);
+  });
+
+  it('distinguishes observed resting-HR zero from duplicate timestamps with no duration', () => {
+    const input = { totalDurationWithoutPauses: 3600, maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165 };
+    expect(TssCalculator.calculateHrTss({ ...input, samples: [{ duration: 0, hr: 55 }, { duration: 3600, hr: 55 }] })?.trainingStressScore).toBe(0);
+    expect(TssCalculator.calculateHrTss({ ...input, samples: [{ duration: 600, hr: 165 }, { duration: 600, hr: 165 }] })).toBeNull();
+  });
+
   it('calculates HR TSS using Banister TRIMP when max/rest HR exist', () => {
     const hr = 170;
     const samples = Array.from({ length: 3600 }, (_value, index) => ({ duration: index + 1, hr }));

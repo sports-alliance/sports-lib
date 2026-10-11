@@ -117,6 +117,7 @@ export class TssCalculator {
   }
 
   public static calculateHrTss(input: TssInput): TssCalculationResult | null {
+    if (this.positive(input.totalDurationWithoutPauses) === null) return null;
     const maxHeartRate = this.positive(input.maxHeartRate);
     const restingHeartRate = this.positive(input.restingHeartRate);
     const threshold = this.positive(input.lactateThresholdHR);
@@ -125,7 +126,7 @@ export class TssCalculator {
       return null;
     }
     const samples = input.samples
-      .filter(sample => Number.isFinite(sample.hr) && (sample.hr as number) > 0)
+      .filter(sample => Number.isFinite(sample.duration) && sample.duration >= 0)
       .sort((left, right) => left.duration - right.duration);
     if (!samples.length) {
       return null;
@@ -208,26 +209,28 @@ export class TssCalculator {
   }
 
   private static accumulateSampleLoad(samples: TssSample[], loadPerMinuteForSample: (sample: TssSample) => number): number {
-    let previousDuration = 0;
-    let sum = 0;
+    let previousDuration: number | null = null;
+    let sum = 0, coveredSeconds = 0;
 
     samples.forEach(sample => {
-      const dtSeconds = sample.duration - previousDuration;
+      // An invalid observation is a boundary, not a zero workload or a gap to
+      // bridge. The first valid reading starts coverage without extrapolation.
+      if (!Number.isFinite(sample.hr) || (sample.hr as number) <= 0) {
+        previousDuration = null;
+        return;
+      }
+      const dtSeconds = previousDuration === null ? 0 : sample.duration - previousDuration;
       previousDuration = sample.duration;
-
-      if (!Number.isFinite(dtSeconds) || dtSeconds <= 0) {
-        return;
-      }
-
+      if (!Number.isFinite(dtSeconds) || dtSeconds <= 0) return;
       const loadPerMinute = loadPerMinuteForSample(sample);
-      if (!Number.isFinite(loadPerMinute) || loadPerMinute < 0) {
-        return;
-      }
-
+      if (!Number.isFinite(loadPerMinute) || loadPerMinute < 0) return;
       sum += loadPerMinute * (dtSeconds / 60);
+      coveredSeconds += dtSeconds;
     });
 
-    return sum;
+    // Fully observed resting-HR intervals legitimately sum to zero; absent
+    // positive-duration coverage is unavailable instead.
+    return coveredSeconds > 0 ? sum : NaN;
   }
 
   private static resolveSampleGrade(sample: TssSample, speed: number): number | null {

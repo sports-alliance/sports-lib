@@ -1,3 +1,4 @@
+import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, getHeartRateSamplesWithCoverage } from './tss/hr-observation-coverage';
 import { calculateNormalizedPower } from './normalized-power';
 import { getRecordedPowerValues } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
@@ -366,6 +367,38 @@ const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroup, number>([
 ]);
 
 export class ActivityUtilities {
+  private static readonly calculatedNormalizedPower = new WeakMap<ActivityInterface, { stat: DataPowerNormalized; value: number }>();
+  private static readonly calculatedIntensityFactor = new WeakMap<ActivityInterface, { stat: DataPowerIntensityFactor; value: number }>();
+
+  private static invalidateCalculatedPower(activity: ActivityInterface): { normalizedPower: boolean; intensityFactor: boolean } {
+    const invalidated = { normalizedPower: false, intensityFactor: false };
+    const np = this.calculatedNormalizedPower.get(activity);
+    if (np && activity.getStat(DataPowerNormalized.type) === np.stat && np.stat.getValue() === np.value) {
+      activity.removeStat(DataPowerNormalized.type);
+      invalidated.normalizedPower = true;
+    }
+    const factor = this.calculatedIntensityFactor.get(activity);
+    if (factor && activity.getStat(DataPowerIntensityFactor.type) === factor.stat && factor.stat.getValue() === factor.value) {
+      activity.removeStat(DataPowerIntensityFactor.type);
+      invalidated.intensityFactor = true;
+    }
+    this.calculatedNormalizedPower.delete(activity);
+    this.calculatedIntensityFactor.delete(activity);
+    return invalidated;
+  }
+
+  private static setCalculatedNormalizedPower(activity: ActivityInterface, value: number): void {
+    const stat = new DataPowerNormalized(value);
+    activity.addStat(stat);
+    this.calculatedNormalizedPower.set(activity, { stat, value });
+  }
+
+  private static createCalculatedIntensityFactor(activity: ActivityInterface, value: number): DataPowerIntensityFactor {
+    const stat = new DataPowerIntensityFactor(value);
+    this.calculatedIntensityFactor.set(activity, { stat, value });
+    return stat;
+  }
+
   private static geoLibAdapter = new GeoLibAdapter();
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
@@ -938,6 +971,7 @@ export class ActivityUtilities {
    * Explicit stats are preserved except terrain summaries excluded for Diving activities.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
+    this.invalidateCalculatedPower(activity);
     normalizeActivityMetricSemanticsForActivity(activity);
     this.generateMissingStreams(activity);
     this.fixAbnormalStreamData(activity);
@@ -2360,7 +2394,7 @@ export class ActivityUtilities {
     // IF may be generated even when imported TSS bypasses calculated TSS selection.
     // Keep its displayed denominator consistent with the calibration actually used.
     this.persistCalibratedFunctionalThresholdPower(activity);
-    return new DataPowerIntensityFactor(this.round(normalizedPower / ftp, this.INTENSITY_FACTOR_DECIMALS));
+    return this.createCalculatedIntensityFactor(activity, this.round(normalizedPower / ftp, this.INTENSITY_FACTOR_DECIMALS));
   }
 
   private static toPositiveFiniteNumber(value: number | null | undefined): number | null {
@@ -2470,7 +2504,7 @@ export class ActivityUtilities {
       return null;
     }
 
-    activity.addStat(new DataPowerNormalized(computedNormalizedPower));
+    this.setCalculatedNormalizedPower(activity, computedNormalizedPower);
     return computedNormalizedPower;
   }
 
@@ -2617,7 +2651,7 @@ export class ActivityUtilities {
   }
 
   private static getHrTssSamples(activity: ActivityInterface): Array<{ duration: number; hr: number }> {
-    return getHeartRateSamplesWithoutPauses(this.getStreamSamplesByDuration(activity, DataHeartRate.type),
+    return getHeartRateSamplesWithoutPauses(getHeartRateSamplesWithCoverage(activity),
       activity.getAllEvents()).map(sample => ({ duration: sample.duration, hr: sample.value }));
   }
 
@@ -2773,11 +2807,16 @@ export class ActivityUtilities {
    * are never promoted to imported scores. Results contain no raw HR calibration.
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
-   * HR integration excludes explicit timer pauses, including gaps spanning a pause.
+   * HR integration excludes explicit timer pauses and invalid readings, and requires observed interval coverage.
+   * Explicit reevaluation refreshes calculated NP; device-supplied NP and cached getter results retain priority.
    * Computed normalized power requires complete windows of recorded observations; importer padding adds no coverage.
    * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
+    return this.evaluateTrainingStressScoreFromCurrentInputs(activity, true);
+  }
+
+  private static evaluateTrainingStressScoreFromCurrentInputs(activity: ActivityInterface, refreshCalculatedPower = false): TrainingStressScoreEvaluations {
     const walking = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
       .includes(activity.type);
     const existingScore = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
@@ -2793,6 +2832,16 @@ export class ActivityUtilities {
         hr: importedResult('HR'), met: importedResult('MET') };
       trainingStressScoreEvaluations.set(activity, result);
       return result;
+    }
+    if (refreshCalculatedPower) {
+      const invalidated = this.invalidateCalculatedPower(activity);
+      // These remain useful activity statistics even when this sport or its
+      // calibration is ineligible for power TSS. Refresh only removed outputs.
+      if (invalidated.normalizedPower) this.resolveNormalizedPower(activity);
+      if (invalidated.intensityFactor) {
+        const factor = this.calculatePowerIntensityFactor(activity);
+        if (factor) activity.addStat(factor);
+      }
     }
     const eligible = this.supportsCalculatedTrainingStressScore(activity);
     const fileCalibration = fileHeartRateCalibration.get(activity);
@@ -2861,13 +2910,13 @@ export class ActivityUtilities {
     activity: ActivityInterface,
     powerTss: Pick<TssCalculationResult, 'normalizedPower' | 'intensityFactor'>
   ): void {
-    if (Number.isFinite(powerTss.normalizedPower)) {
-      activity.addStat(new DataPowerNormalized(powerTss.normalizedPower as number));
+    if (Number.isFinite(powerTss.normalizedPower) && !activity.getStat(DataPowerNormalized.type)) {
+      this.setCalculatedNormalizedPower(activity, powerTss.normalizedPower as number);
     }
 
     if (Number.isFinite(powerTss.intensityFactor)) {
       activity.addStat(
-        new DataPowerIntensityFactor(this.round(powerTss.intensityFactor as number, this.INTENSITY_FACTOR_DECIMALS))
+        this.createCalculatedIntensityFactor(activity, this.round(powerTss.intensityFactor as number, this.INTENSITY_FACTOR_DECIMALS))
       );
     }
   }
@@ -2880,7 +2929,7 @@ export class ActivityUtilities {
   }
 
   private static generateTrainingStressScore(activity: ActivityInterface): void {
-    const result = this.evaluateTrainingStressScore(activity).automatic;
+    const result = this.evaluateTrainingStressScoreFromCurrentInputs(activity).automatic;
     // A failed recalculation must remove a previous calculated result, including its method.
     if (result.score === null || result.method === null) {
       activity.removeStat(DataTrainingStressScore.type);
@@ -3550,6 +3599,7 @@ export class ActivityUtilities {
    * @param activity
    */
   public static addMissingDataToStreams(activity: ActivityInterface) {
+    captureHeartRateCoverageBeforeFill(activity);
     /**
      * This tries to align data with Strava.
      * Strava fills HR alti cadence with the last value.
@@ -3609,6 +3659,7 @@ export class ActivityUtilities {
           }, [])
         );
       });
+    retainHeartRateCoverageAfterFill(activity);
     /**
      * @todo
      * Linear fill distance where:
@@ -3828,7 +3879,7 @@ export class ActivityUtilities {
       const powerStream = powerDurationStream.map(item => item.value) as number[];
       const normalizedPower = calculateNormalizedPower(
         getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
-      if (Number.isFinite(normalizedPower)) activity.addStat(new DataPowerNormalized(normalizedPower));
+      if (Number.isFinite(normalizedPower)) this.setCalculatedNormalizedPower(activity, normalizedPower);
     }
 
     // Power Curve

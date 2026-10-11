@@ -314,6 +314,7 @@ export class EventImporterFIT {
         }
 
         this.prepareSwimLengths(fitDataObject, options);
+        this.normalizeSuuntoPoolLengths(fitDataObject);
 
         // Check for jumps data at the top level
         if (fitDataObject.jumps && fitDataObject.jumps.length > 0) {
@@ -1378,14 +1379,25 @@ export class EventImporterFIT {
       return lapElapsed && lapElapsed > 0 ? total + lapElapsed : total;
     }, 0);
 
-    const lapTimerTime = laps.reduce((total: number, lapObject: any) => {
-      const lapTimer = this.getNumericValue(lapObject?.total_timer_time);
-      return lapTimer && lapTimer > 0 ? total + lapTimer : total;
-    }, 0);
-
     const elapsedTimeFromDates = (endDate.getTime() - startDate.getTime()) / 1000;
-    const totalElapsedTime = lapElapsedTime > 0 ? lapElapsedTime : elapsedTimeFromDates > 0 ? elapsedTimeFromDates : 0;
-    const totalTimerTime = lapTimerTime > 0 ? lapTimerTime : totalElapsedTime;
+    const totalElapsedTime = elapsedTimeFromDates > 0 ? elapsedTimeFromDates : lapElapsedTime;
+    // Elapsed time is not a supplied timer summary. Keep it absent when lap
+    // coverage is incomplete so explicit timer events can recover active time.
+    const orderedLaps = laps.slice().sort((left: any, right: any) =>
+      +(this.getSessionlessLapStartDate(left) ?? 0) - +(this.getSessionlessLapStartDate(right) ?? 0));
+    let previousEnd = +startDate;
+    const completeLapTimers = orderedLaps.length > 0 && orderedLaps.every((lap: any) => {
+      const lapStart = this.getSessionlessLapStartDate(lap);
+      const lapEnd = this.getSessionlessLapEndDate(lap, lapStart);
+      const timer = this.getNumericValue(lap.total_timer_time);
+      const valid = lapStart && lapEnd && +lapEnd > +lapStart &&
+        Math.abs(+lapStart - previousEnd) <= TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS * 1000 &&
+        timer !== null && timer >= 0 && timer <= (+lapEnd - +lapStart) / 1000 + TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS;
+      if (lapEnd) previousEnd = +lapEnd;
+      return !!valid;
+    }) && Math.abs(previousEnd - +endDate) <= TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS * 1000;
+    const totalTimerTime = completeLapTimers
+      ? orderedLaps.reduce((total: number, lap: any) => total + this.getNumericValue(lap.total_timer_time)!, 0) : null;
 
     if (endDate.getTime() <= startDate.getTime() && totalElapsedTime > 0) {
       endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
@@ -1410,7 +1422,7 @@ export class EventImporterFIT {
     if (totalElapsedTime > 0) {
       sessionObject.total_elapsed_time = totalElapsedTime;
     }
-    if (totalTimerTime > 0) {
+    if (totalTimerTime !== null) {
       sessionObject.total_timer_time = totalTimerTime;
     }
     if (firstLapWithSport?.sport !== undefined) {
@@ -1453,11 +1465,63 @@ export class EventImporterFIT {
         ...session,
         laps: Array.isArray(session?.laps) ? session.laps : []
       }));
+      this.assignReferencedSessionLaps(fitDataObject);
       return;
     }
 
     const synthesizedSession = this.buildSessionFromTopLevelMessages(fitDataObject);
     fitDataObject.sessions = synthesizedSession ? [synthesizedSession] : [];
+  }
+
+  /** The parser's cascade assumes chronological session summaries. Explicit
+   * first_lap_index/num_laps relationships remain authoritative when summaries
+   * appear in a different order; neither array positions nor another leg's
+   * cascaded laps may replace missing or conflicting references. */
+  private static assignReferencedSessionLaps(file: any): void {
+    const laps: any[] = file.laps;
+    if (!laps.length) return;
+    const indexOf = (lap: any): number | null => this.getMessageIndexValue(lap.message_index);
+    const sessions: any[] = file.sessions;
+    // A sole session needs no cross-session reassignment. Several exporters omit
+    // lap IDs, use one-based IDs with zero-based hints, or emit closing markers;
+    // none of those incomplete relationships should erase an existing lap list.
+    if (sessions.length === 1) return;
+    const allIndexed = laps.every(lap => indexOf(lap) !== null);
+    const summariesReordered = sessions.some((session, index) => index > 0 &&
+      +session.start_time < +sessions[index - 1].start_time);
+    if (!allIndexed && !summariesReordered) return;
+    const timeOwned = (session: any): any[] => laps.filter(lap => {
+      const start = this.getLapWindow(lap).startDate;
+      if (!start) return false;
+      const owners = sessions.filter(other => this.isDateInLapWindow(start, other));
+      return owners.length === 1 && owners[0] === session;
+    });
+    const referenced = sessions.map(session => {
+      const first = this.getNumericValue(session.first_lap_index);
+      const count = this.getNumericValue(session.num_laps);
+      if (first === null || count === null || !allIndexed) return null;
+      if (!Number.isInteger(first) || first < 0 || !Number.isInteger(count) || count < 0 || count > laps.length) return [];
+      const matches = laps.filter(lap => {
+        const index = indexOf(lap)!;
+        return index >= first && index < first + count;
+      });
+      const window = this.getLapWindow(session);
+      if (matches.length !== count || matches.some(lap => {
+        const index = indexOf(lap);
+        const lapWindow = this.getLapWindow(lap);
+        return (index !== null && (index < first || index >= first + count ||
+          laps.filter(other => indexOf(other) === index).length !== 1)) ||
+          !window.startDate || !window.endDate || !lapWindow.startDate || !lapWindow.endDate ||
+          +lapWindow.startDate >= +window.endDate || +lapWindow.endDate <= +window.startDate;
+      })) return [];
+      return session.laps.length === matches.length && session.laps.every((lap: any) => matches.includes(lap))
+        ? session.laps : matches.sort((left, right) => +this.getLapWindow(left).startDate! - +this.getLapWindow(right).startDate!);
+    });
+    sessions.forEach((session, index) => {
+      const owned = referenced[index];
+      session.laps = (owned ?? timeOwned(session)).filter((lap: any) => !referenced.some((other, otherIndex) =>
+        otherIndex !== index && other?.includes(lap)));
+    });
   }
 
   private static isValidDate(value: unknown): value is Date {
@@ -2261,11 +2325,43 @@ export class EventImporterFIT {
       return null;
     }
 
-    if (this.getPoolLengthUnit(object?.pool_length_unit) === 'statute') {
-      return poolLength * 0.9144;
-    }
-
+    // FIT stores pool_length in meters; pool_length_unit controls display only.
     return poolLength;
+  }
+
+  /** Some Suunto exports encode the pool setting in yards despite FIT's meter
+   * contract. Preserve that convention only when separate source distance or
+   * speed evidence corroborates conversion, and none corroborates native meters. */
+  private static normalizeSuuntoPoolLengths(file: any): void {
+    const manufacturers = (file.file_ids ?? []).map((id: any) => this.getFitEnumValue(id.manufacturer));
+    if (!manufacturers.length || !manufacturers.every((manufacturer: string | null) =>
+      manufacturer === 'suunto' || manufacturer === '23')) return;
+    for (const session of file.sessions) {
+      const pool = this.getPositiveNumericValue(session.pool_length);
+      if (pool === null || this.getPoolLengthUnit(session.pool_length_unit) !== 'statute') continue;
+      const speedEvidence: number[] = [];
+      for (const length of session.lengths ?? []) {
+        if (this.getSwimLengthType(length.length_type) !== 'active') continue;
+        const speed = this.getPositiveNumericValue(length.avg_speed);
+        const timer = this.getPositiveNumericValue(length.total_timer_time);
+        if (speed !== null && timer !== null) speedEvidence.push(speed * timer);
+      }
+      const lapEvidence: number[] = [];
+      for (const lap of session.laps) {
+        const active = (lap.lengths ?? []).filter((length: any) => this.getSwimLengthType(length.length_type) === 'active').length;
+        const distance = this.getPositiveNumericValue(lap.total_distance);
+        if (active > 0 && distance !== null) lapEvidence.push(distance / active);
+      }
+      const supports = (distance: number, candidate: number): boolean =>
+        Number.isFinite(distance) && Math.abs(distance - candidate) <= Math.max(0.1, candidate * 0.005);
+      const converted = pool * 0.9144;
+      const evidence = [...speedEvidence, ...lapEvidence];
+      const consistentSpeed = speedEvidence.length > 0 && speedEvidence.every(distance => supports(distance, converted));
+      const consistentLaps = lapEvidence.filter(distance => supports(distance, converted)).length >=
+        (session.laps.length === 1 ? 1 : 2);
+      if (!evidence.some(distance => supports(distance, pool)) &&
+          (speedEvidence.length > 0 ? consistentSpeed : consistentLaps)) session.pool_length = converted;
+    }
   }
 
   private static getSwimLengthEndDate(length: any, startDate: Date): Date {
@@ -2967,13 +3063,8 @@ export class EventImporterFIT {
     }
 
     // Pool length
-    if (isNumberOrString(object.pool_length)) {
-      let poolLength = object.pool_length;
-
-      if (object.pool_length_unit) {
-        poolLength = object.pool_length_unit.match(/metric/i) ? object.pool_length : object.pool_length * 0.9144; // Convert to meters from yards when not metric
-      }
-
+    const poolLength = this.getPoolLengthMeters(object);
+    if (poolLength !== null) {
       stats.push(new DataPoolLength(poolLength));
     }
 

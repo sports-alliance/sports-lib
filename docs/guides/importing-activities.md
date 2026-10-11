@@ -46,6 +46,16 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
+### FIT reserved-header compatibility
+
+Ordinary FIT activity imports recover existing device files whose normal record headers set reserved bit 4.
+Messages using this compatibility path must have complete definitions and native/developer payloads within the
+source data section. Other invalid data-header bits remain rejected. This restores imports rejected by FIT Parser
+5.2.0 through 6.2.1 without rewriting the source or changing imported TSS, calibration rules, or checksum policy.
+Strict/raw FIT readers, including the independent workout-reference reader below, retain their existing validation;
+a recoverable activity does not automatically establish valid workout-reference metadata. Retry previously rejected
+original files with Sports Lib 21.6.11 or later. Existing successful imports need no migration.
+
 ### FIT workout references
 
 Read optional source references independently of activity imports:

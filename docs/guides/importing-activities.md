@@ -46,6 +46,18 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
+### Recorded timing and sensor coverage
+
+FIT combines complementary records at the same absolute timestamp before padding missing sensor fields. Later
+explicit values retain precedence; an absent field does not erase another record's observation. Pool swims with
+recorded HR retain explicit zero/invalid readings as dropout boundaries through load recalculation.
+
+TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
+trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that
+previous lap; its earliest point supplies the start instead. `TotalTimeSeconds` retains its active-duration meaning and is also the elapsed-time minimum. Separate
+tracks do not create moving-time intervals across their gaps. Reparse original files to apply these corrections to
+saved activities, then refresh derived summaries. Canonical metric names, units and JSON schemas are unchanged.
+
 ### FIT reserved-header compatibility
 
 Ordinary FIT activity imports recover existing device files whose normal record headers set reserved bit 4.

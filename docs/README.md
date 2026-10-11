@@ -136,6 +136,9 @@ summary end times using explicit file durations. Existing single-lap recorded st
 lengths add no distance, and ambiguous ownership cannot establish a complete generated distance total.
 
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
-complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.
+valid scoped HR/FTP calibration use it without being blocked by unrelated global sport defaults. Complementary
+FIT sensor records at one timestamp retain their supplied fields before padding, and pool HR keeps explicit dropout
+boundaries. TCX elapsed time spans all tracks in each lap while retaining its explicit start and active timer duration.
+Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training
 summaries; serialized metric names and units are unchanged. See the [TSS methods and migration guidance](guides/metrics-and-calculations.md).

@@ -12,12 +12,15 @@ import { DataTrainingStressScoreMethod } from '../../../../data/data.training-st
 const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({ number, value, baseType,
   size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
 async function ride(options: { ftp?: 'session' | 'zones' | 'time_in_zone'; override?: number; imported?: number;
-  met?: boolean; badHr?: boolean; np?: number; watts?: number; pauseType?: number } = {}) {
+  met?: boolean; badHr?: boolean; np?: number; watts?: number; pauseType?: number; globalConflicts?: boolean } = {}) {
   const encoder = new FitEncoder(), start = FitEncoder.toFitTimestamp(new Date('2026-01-01T10:00:00Z'));
   encoder.writeMessage(0, [field(0, 4, FitBaseType.Enum), field(1, 1, FitBaseType.Uint16), field(4, start, FitBaseType.Uint32)]);
   if (options.met) encoder.writeMessage(3, [field(4, 700, FitBaseType.Uint16)], 4);
   if (options.ftp === 'zones' || options.badHr) encoder.writeMessage(7, [
     ...(options.ftp === 'zones' ? [field(3, 250, FitBaseType.Uint16)] : []), ...(options.badHr ? [field(2, 0)] : [])], 5);
+  if (options.globalConflicts) for (const ftp of [0, 150, 200, 225, 275, 300, 350]) {
+    encoder.writeMessage(7, [field(3, ftp, FitBaseType.Uint16)], 5);
+  }
   for (let second = 0; second < 3600; second++) encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32),
     field(7, options.pauseType !== undefined && second >= 1200 && second < 2400 ? 900 : options.watts ?? 100, FitBaseType.Uint16), ...(options.badHr ? [field(3, 154)] : [])], 1);
   if (options.pauseType !== undefined) {
@@ -57,6 +60,12 @@ describe('FIT cycling TSS', () => {
       // Source calibration survives clearing stats on the parsed instance.
       expect(evaluate(activity).automatic).toMatchObject({ method: 'POWER', score: 16 });
     }
+  });
+  it.each(['session', 'time_in_zone'] as const)('keeps scoped %s FTP despite conflicting global sport settings', async ftp => {
+    const activity = await ride({ ftp, watts: 250, globalConflicts: true });
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'POWER', score: 100 });
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'POWER', score: 100 });
   });
   it.each([100, 200])('does not use the same-ride FTP estimate at %s W, including after JSON restoration', async watts => {
     const activity = await ride({ watts });

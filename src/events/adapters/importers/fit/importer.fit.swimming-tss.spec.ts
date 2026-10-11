@@ -10,12 +10,15 @@ const field = (number: number, value: number, baseType = FitBaseType.Uint8) => (
   size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
 
 async function swim(subsport: number, options: { calibrated?: boolean; rest?: number; samples?: boolean;
-  met?: boolean; weight?: boolean; calories?: boolean; imported?: number; heuristics?: boolean; zeroGlobal?: boolean } = {}) {
+  met?: boolean; weight?: boolean; calories?: boolean; imported?: number; heuristics?: boolean; zeroGlobal?: boolean; globalConflicts?: boolean } = {}) {
   const encoder = new FitEncoder();
   const start = FitEncoder.toFitTimestamp(new Date('2026-01-01T10:00:00Z'));
   encoder.writeMessage(0, [field(0, 4, FitBaseType.Enum), field(1, 1, FitBaseType.Uint16), field(4, start, FitBaseType.Uint32)]);
   if (options.met && options.weight !== false) encoder.writeMessage(3, [field(4, 700, FitBaseType.Uint16)], 4);
   if (options.zeroGlobal) encoder.writeMessage(7, [field(2, 0)], 5);
+  if (options.globalConflicts) for (const threshold of [0, 140, 145, 150, 160, 170, 180]) {
+    encoder.writeMessage(7, [field(2, threshold)], 5);
+  }
   for (let second = 0; second <= 3600; second++) encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32),
     field(6, 1000, FitBaseType.Uint16), ...(options.samples === false ? [] : [field(3, second < 1830 ? 78 : second < 3600 ? 86 : 100)])], 1);
   encoder.writeMessage(18, [field(254, 0, FitBaseType.Uint16), field(253, start + 3600, FitBaseType.Uint32),
@@ -51,6 +54,15 @@ describe.each([17, 18])('FIT swimming TSS (subsport %s)', subsport => {
     expect(result.automatic).toMatchObject({ score: 7.6, method: 'HR', estimated: false });
     expect(result.hr).toMatchObject({ score: 7.6, method: 'HR' });
     expect(result.met).toMatchObject({ score: 9, method: 'MET', estimated: true });
+  });
+
+  it('uses scoped HR despite conflicting global sport settings', async () => {
+    const activity = await swim(subsport, { calibrated: true, globalConflicts: true, met: true });
+    for (let repeat = 0; repeat < 2; repeat++) {
+      expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic)
+        .toMatchObject({ method: 'HR', score: 7.6 });
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    }
   });
 
   it.each([{ calibrated: false }, { calibrated: true, rest: 0 }, { calibrated: true, samples: false }])(

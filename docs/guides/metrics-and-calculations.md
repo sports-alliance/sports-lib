@@ -568,8 +568,9 @@ TSS = 100 * (durationWithoutPauses / 3600) * IF^2
 
 Power uses the full eligible duration, without subtracting the NP window warm-up. One hour with NP equal to FTP is
 100 TSS. FIT FTP comes from explicit session `threshold_power`, uniquely matched session `time_in_zone` FTP, or
-unambiguous `zones_target` FTP. Conflicting same-session values, duplicate session references, conflicting repeated
-global values and invalid supplied values are rejected. A valid scoped FTP can supersede a zero global placeholder.
+unambiguous `zones_target` FTP. Conflicting same-session values, duplicate session references and invalid scoped values
+are rejected. Valid scoped FTP takes precedence over unrelated global settings, including conflicting sport defaults.
+Global FTP must be valid and unambiguous when no scoped FTP exists.
 Source provenance stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
 serialized into ordinary Activity JSON. Missing calibration reports `missing-power-inputs` and falls through to eligible
 HR, pace or MET candidates; no threshold is inferred from the ride or its intensity factor.
@@ -580,7 +581,9 @@ an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX 
 All computed NP paths use actual recorded power coverage, including when positive readings occur among missing
 fields. A single positive reading cannot create a complete window by padding the rest with zeros. If no complete
 recorded window remains, power is unavailable and the normal eligible fallback applies. Genuine recorded coasting
-zeros remain valid. Compatibility display streams are unchanged. This private evidence survives regeneration on the
+zeros remain valid. FIT records at the same absolute timestamp are combined before padding: an HR-only record cannot
+erase power from a complementary record. The last explicitly supplied value for each field wins, including zero and
+invalid values; distinct timestamps remain separate. This private evidence survives regeneration on the
 parsed instance and does not add fields to Activity JSON. Positive device NP keeps its existing precedence;
 imported TSS, including zero, remains authoritative.
 Explicit TSS reevaluation refreshes library-calculated NP and intensity factor from the current streams and timer
@@ -624,14 +627,14 @@ duration alone do not identify pause positions; they are not converted into gues
 
 FIT calibration comes from a uniquely referenced session `time_in_zone`, then unambiguous `zones_target` and applicable
 profile fields. Cycling, MTB, downhill and enduro use the biking-specific profile maximum, falling back to the
-general setting when absent. Walking uses the general profile maximum, never its running maximum. Repeated conflicting settings,
-ambiguous session references and inconsistent calibration are rejected. Existing explicit physiological overrides remain
+general setting when absent. Walking uses the general profile maximum, never its running maximum. Ambiguous session
+references, conflicting selected settings and inconsistent calibration are rejected. Existing explicit physiological overrides remain
 supported; absent settings cannot be inferred from activity samples or zone boundaries.
 
-A complete, valid, uniquely matched session calibration takes precedence over zero placeholders in lower-priority
-global/profile fields. This exception never supplies a missing session value: incomplete or invalid session settings,
-conflicting repeated records, and other malformed lower-priority values still fail validation. Distinct positive
-global defaults retain their existing lower priority to explicit session settings.
+A uniquely matched session supplies the authoritative calibration for its leg. Lower-priority global/profile fields
+are read only to fill missing values, so unrelated sport defaults cannot invalidate a complete session calibration.
+Any field needed from a lower-priority source must still be valid and unambiguous, and the completed HR tuple must
+satisfy the ordering above. An invalid explicit session value is never replaced with a global default.
 
 For a session using percent-maximum-HR zones, an explicit threshold below the lowest boundary of a valid, strictly
 increasing zone set bounded by the calibrated maximum is rejected as `invalid-hr-calibration`. This is a consistency
@@ -679,7 +682,8 @@ records can be inconsistent; consumers supplying a threshold must ensure speed a
 swimming interval. The shared duration resolver and calorie-derived MET formula remain unchanged.
 
 FIT pool-length generation preserves a valid recorded HR stream instead of replacing it with lap/length averages.
-Recorded gaps remain gaps through stream/statistic regeneration on the parsed activity instance; this private source
+When valid recorded HR exists, explicit zero/invalid readings are retained as integration boundaries alongside it;
+load cannot bridge those dropouts. Recorded gaps remain gaps through stream/statistic regeneration on the parsed activity instance; this private source
 evidence is not serialized into Activity JSON. Length/lap HR is used only when valid recorded HR is
 wholly absent. A single length-bearing lap can supply generated streams, while its existing recorded streams retain
 priority. Pool summary end times that are missing or do not follow their start can be repaired from valid positive
@@ -730,7 +734,13 @@ session zone matching, timer-summary fallback, Suunto pause events and recorded 
 It also applies Suunto event-kind selection, proven zero active duration and correctly scoped multisport zone durations.
 Apply an original-file reparse for corrected HR observation coverage, FIT pool units, reordered lap ownership and
 sessionless timer recovery. Explicit evaluation or activity regeneration refreshes calculated NP on an already parsed
-instance; it cannot recover missing file calibration from restored JSON.
+instance; it cannot recover missing file calibration from restored JSON. Original-file reparse also applies scoped
+calibration precedence, complementary FIT record merging, pool HR dropout boundaries, and whole-lap TCX track bounds.
+TCX elapsed time spans all tracks from the explicit lap start (or earliest valid point when unavailable). A stated
+start overlapping the previous lap is rejected when all of this lap’s points follow that previous lap, avoiding double
+counting from inconsistent timer-clock start attributes. In either case,
+`TotalTimeSeconds` remains the active duration and the minimum elapsed duration. A gap between tracks does not
+contribute moving time. These bounds retain delayed first samples and do not depend on track ordering.
 Reparse also applies explicit HR-pause exclusion,
 independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR selection, HR calibration consistency
 and independent swimming-threshold requirements to historical workouts,

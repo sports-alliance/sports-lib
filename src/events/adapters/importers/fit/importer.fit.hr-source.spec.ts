@@ -23,13 +23,13 @@ const parse = async (encoder: FitEncoder) => {
 };
 const evaluate = ActivityUtilities.getTrainingStressScoreEvaluations;
 
-async function pool(records: 'complete' | 'partial' | 'absent' | 'invalid', imported?: number, lapAverage: number | null = 100,
+async function pool(records: 'complete' | 'partial' | 'absent' | 'invalid' | 'mixed-invalid', imported?: number, lapAverage: number | null = 100,
   lengthDuration = 1800) {
   const encoder = new FitEncoder(); header(encoder);
   for (let second = 0; second <= 3600; second++) {
     if (records === 'absent' || (records === 'partial' && ![600, 1800, 3000].includes(second))) continue;
     encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32),
-      field(3, records === 'invalid' ? 0 : 165), field(5, 100, FitBaseType.Uint32)], 1);
+      field(3, records === 'invalid' || (records === 'mixed-invalid' && second > 900 && second < 2700) ? 0 : 165), field(5, 100, FitBaseType.Uint32)], 1);
   }
   for (let lap = 0; lap < 2; lap++) {
     const time = start + lap * 1800;
@@ -81,6 +81,15 @@ describe('FIT pool recorded HR', () => {
       for (const type of [DataDistance.type, DataSpeed.type]) {
         expect(activity.getStreamData(type)).toEqual(fallback.getStreamData(type));
       }
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    }
+  });
+
+  it('preserves explicit invalid HR boundaries instead of integrating across them', async () => {
+    const activity = await pool('mixed-invalid');
+    for (let repeat = 0; repeat < 3; repeat++) {
+      expect(evaluate(activity).automatic).toMatchObject({ method: 'HR', score: 50 });
+      expect(activity.getStreamData(DataHeartRate.type)[1800]).toBe(0);
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     }
   });

@@ -64,6 +64,8 @@ export class EventImporterTCX {
     return lapDistance > 0 || lapMaxSpeed > 0;
   }
 
+  /** Import TCX using whole-lap track bounds for elapsed time and the recorded
+   * timer for active duration, retaining a valid explicit lap start. */
   static getFromXML(
     xml: Document,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -385,27 +387,36 @@ export class EventImporterTCX {
         ? Number(<string>lapElement.getElementsByTagName('TotalTimeSeconds')[0].textContent)
         : 0;
 
-      // Loop on track-points to detect moving speed
-      const trackSpeeds: number[] = [];
+      const trackPointTime = (point: Element): number => {
+        const value = point.getElementsByTagName('Time')[0]?.textContent;
+        return value ? new Date(value).getTime() : NaN;
+      };
       const trackElements = Array.from(lapElement.getElementsByTagName('Track'));
+      let firstTime = Infinity, lastTime = -Infinity;
+      for (const track of trackElements) for (const point of Array.from(track.getElementsByTagName('Trackpoint'))) {
+        const time = trackPointTime(point);
+        if (Number.isFinite(time)) {
+          firstTime = Math.min(firstTime, time);
+          lastTime = Math.max(lastTime, time);
+        }
+      }
+      // Tracks can be separated by pauses or arrive out of order. Bound the whole
+      // lap once, retaining its explicit start even when the first sample is late.
+      const rawStart = lapElement.getAttribute('StartTime');
+      const lapStart = rawStart ? new Date(rawStart).getTime() : NaN;
+      const previousEnd = lapArray.length ? +lapArray[lapArray.length - 1].endDate : NaN;
+      // Some exporters leave later lap starts on a timer clock after a pause.
+      // Prefer their own recorded start when the stated start overlaps a prior
+      // lap but all their points unambiguously follow that lap's end.
+      const overlapsPreviousLap = Number.isFinite(firstTime) && lapStart < previousEnd && firstTime >= previousEnd;
+      const startDate = new Date(Number.isFinite(lapStart) && !overlapsPreviousLap
+        ? lapStart : Number.isFinite(firstTime) ? firstTime : 0);
+      if (Number.isFinite(lastTime)) elapsedTime = Math.max(0, (lastTime - +startDate) / 1000);
+
+      // Moving-time intervals remain local to each Track; never bridge a pause.
+      const trackSpeeds: number[] = [];
       trackElements.forEach(trackElement => {
         const trackPointsElements = Array.from(trackElement.getElementsByTagName('Trackpoint'));
-
-        if (!trackPointsElements?.length) {
-          return;
-        }
-
-        // Setting lap elapsed time from first and last track point
-        const firstTrackPoint = trackPointsElements[0];
-        const lastTrackPoint = trackPointsElements[trackPointsElements.length - 1];
-
-        // Assign elapsed time if time available on first and last point
-        if (lastTrackPoint?.getElementsByTagName('Time')?.length) {
-          elapsedTime =
-            (new Date(<string>lastTrackPoint.getElementsByTagName('Time')[0].textContent).getTime() -
-              new Date(<string>firstTrackPoint.getElementsByTagName('Time')[0].textContent).getTime()) /
-            1000;
-        }
 
         // Parsing each track points to determine moving speed
         trackPointsElements.forEach((trackPointElement: Element, index: number) => {
@@ -414,14 +425,8 @@ export class EventImporterTCX {
             return;
           }
 
-          // Getting current time of track point
-          const currentTime = new Date(<string>trackPointElement.getElementsByTagName('Time')[0].textContent).getTime();
-
-          const previousTime = new Date(
-            <string>trackPointsElements[index - 1].getElementsByTagName('Time')[0].textContent
-          ).getTime();
-
-          const seconds = (currentTime - previousTime) / 1000;
+          const seconds = (trackPointTime(trackPointElement) - trackPointTime(trackPointsElements[index - 1])) / 1000;
+          if (!Number.isFinite(seconds) || seconds <= 0) return;
 
           let speed = findTrackPointExtensionValue(trackPointElement.childNodes, 'Speed');
 
@@ -472,20 +477,7 @@ export class EventImporterTCX {
         }
       }
 
-      // Now creating the lap
-      let startDateStr = lapElement.getAttribute('StartTime');
-
-      // If no start time attribute found on lap, try to get it from first track point
-      if (!startDateStr && trackElements.length > 0) {
-        const firstTrackPoints = trackElements[0].getElementsByTagName('Trackpoint');
-        if (firstTrackPoints.length > 0) {
-          startDateStr = firstTrackPoints[0].getElementsByTagName('Time')[0]?.textContent;
-        }
-      }
-
-      const startDate = startDateStr ? new Date(<string>startDateStr) : new Date(0);
-      const endDate = new Date(startDate);
-      endDate.setSeconds(endDate.getSeconds() + elapsedTime);
+      const endDate = new Date(+startDate + elapsedTime * 1000);
       const lap = new Lap(startDate, endDate, lapIndex + 1, LapTypes.AutoLap);
 
       // Add elapsed, active duration and timer stats to lap

@@ -19,13 +19,13 @@ describe('FIT session HR calibration precedence', () => {
       zones_target: { max_heart_rate: 0, threshold_heart_rate: 0 } })).toEqual(expected);
   });
 
-  it('accepts repeated identical zero placeholders without hiding conflicting records', () => {
+  it('ignores unused global defaults, including conflicting records', () => {
     expect(resolve({ messages: { zones_target: [{ threshold_heart_rate: 0 }, { threshold_heart_rate: 0 }] } }))
       .toEqual(expected);
     expect(resolve({ messages: { zones_target: [{ threshold_heart_rate: 0 }, { threshold_heart_rate: 165 }] } }))
-      .toEqual({ reason: 'ambiguous-hr-calibration' });
+      .toEqual(expected);
     expect(resolve({ messages: { zones_target: [{ threshold_heart_rate: 165 }, { threshold_heart_rate: 170 }] } }))
-      .toEqual({ reason: 'ambiguous-hr-calibration' });
+      .toEqual(expected);
   });
 
   it.each([undefined, 0, 190, 200])('does not relax validation for an incomplete/invalid session threshold %s', threshold => {
@@ -33,8 +33,36 @@ describe('FIT session HR calibration precedence', () => {
       .toEqual({ reason: 'invalid-hr-calibration' });
   });
 
-  it.each([-1, '0', NaN, Infinity])('rejects malformed global calibration %s even with a valid session', threshold => {
-    expect(resolve({ zones_target: { threshold_heart_rate: threshold } })).toEqual({ reason: 'invalid-hr-calibration' });
+  it.each([-1, '0', NaN, Infinity])('ignores unused malformed global calibration %s with a valid session', threshold => {
+    expect(resolve({ zones_target: { threshold_heart_rate: threshold } })).toEqual(expected);
+  });
+
+  it('fills only missing session fields and rejects ambiguity in those fields', () => {
+    const partial = { ...calibration, resting_heart_rate: undefined };
+    const messages = {
+      zones_target: [{ max_heart_rate: 180, threshold_heart_rate: 150 }, { max_heart_rate: 200, threshold_heart_rate: 175 }],
+      user_profile: [{ resting_heart_rate: 55, default_max_heart_rate: 0 }]
+    };
+    expect(resolve({ messages }, partial)).toEqual(expected);
+    expect(resolve({ messages: { ...messages, user_profile: [
+      { resting_heart_rate: 55 }, { resting_heart_rate: 60 }
+    ] } }, partial)).toEqual({ reason: 'ambiguous-hr-calibration' });
+    expect(resolve({ messages: { ...messages, user_profile: [{ resting_heart_rate: 170 }] } }, partial))
+      .toEqual({ reason: 'invalid-hr-calibration' });
+    expect(resolve({ messages }, { ...calibration, threshold_heart_rate: undefined }))
+      .toEqual({ reason: 'ambiguous-hr-calibration' });
+  });
+
+  it.each([0, -1, NaN, Infinity, '165'])('does not replace invalid scoped HR %s with a global default', threshold => {
+    expect(resolve({ zones_target: { threshold_heart_rate: 165 } }, { ...calibration, threshold_heart_rate: threshold }))
+      .toEqual({ reason: 'invalid-hr-calibration' });
+  });
+
+  it('uses the applicable profile maximum without validating unrelated general defaults', () => {
+    expect(resolve({ time_in_zone: [], zones_target: { threshold_heart_rate: 165 }, messages: { user_profile: [
+      { default_max_biking_heart_rate: 190, default_max_heart_rate: 180, resting_heart_rate: 55 },
+      { default_max_biking_heart_rate: 190, default_max_heart_rate: 200, resting_heart_rate: 55 }
+    ] } }, calibration, ActivityTypes.Cycling)).toEqual(expected);
   });
 
   it('still rejects ambiguous session references and duplicate session IDs', () => {

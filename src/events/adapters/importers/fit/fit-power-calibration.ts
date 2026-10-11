@@ -12,9 +12,10 @@ export function resolveFitFunctionalThresholdPower(file: any, session: any, sess
   if (matches.length > 1) return null;
   const scoped = [session.threshold_power, matches[0]?.functional_threshold_power].filter(value => value != null);
   if (scoped.some(value => !positive(value)) || new Set(scoped).size > 1) return null;
+  if (scoped.length) return scoped[0];
   const records = file.messages?.zones_target;
   const globals = (Array.isArray(records) && records.length ? records : file.zones_target ? [file.zones_target] : [])
     .map((row: any) => row.functional_threshold_power).filter((value: unknown) => value != null);
-  if (new Set(globals).size > 1 || globals.some((value: unknown) => !positive(value) && !(value === 0 && scoped.length))) return null;
-  return scoped[0] ?? globals[0] ?? null;
+  if (new Set(globals).size > 1 || globals.some((value: unknown) => !positive(value))) return null;
+  return positive(globals[0]) ? globals[0] : null;
 }

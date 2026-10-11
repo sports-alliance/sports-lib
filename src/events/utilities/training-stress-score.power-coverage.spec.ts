@@ -67,7 +67,9 @@ const clearDerivedPower = (activity: Awaited<ReturnType<typeof parse>>) => {
 };
 
 describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power coverage', format => {
-  it.each(['single', 'short', 'gappy', 'duplicate-missing'] as Coverage[])(
+  // FIT coalesces complementary same-timestamp records before padding. XML
+  // importers retain their existing last-record behavior.
+  it.each(['single', 'short', 'gappy', ...(format === 'FIT' ? [] : ['duplicate-missing'])] as Coverage[])(
     'does not promote missing power fields into complete NP windows: %s', async coverage => {
       const activity = await parse(format, coverage);
       const displayPower = activity.getStreamData(DataPower.type).slice();
@@ -81,7 +83,7 @@ describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power covera
       }
     });
 
-  it.each(['complete', 'thirty', 'one-gap', 'zero'] as Coverage[])(
+  it.each(['complete', 'thirty', 'one-gap', 'zero', ...(format === 'FIT' ? ['duplicate-missing'] : [])] as Coverage[])(
     'calculates NP only from complete recorded windows: %s', async coverage => {
       const activity = await parse(format, coverage);
       for (let repeat = 0; repeat < 2; repeat++) {

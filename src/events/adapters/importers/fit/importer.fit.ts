@@ -1,3 +1,4 @@
+import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
@@ -274,6 +275,8 @@ export class EventImporterFIT {
     }
   }
 
+  /** Import file-scoped calibration and combine complementary records before
+   * sensor padding. Recorded pool HR retains explicit dropout boundaries. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -542,10 +545,14 @@ export class EventImporterFIT {
           // existing length-derived swim streams, but never replace recorded HR
           // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
-          const recordedSamples = sessionRecords[sessionIndex];
+          const recordedSamples = coalesceFitRecords(sessionRecords[sessionIndex]);
           captureRecordedPowerEvidence(activity, recordedSamples);
-          const recordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) ? recordedSamples.filter((record: any) =>
-            Number.isFinite(record.heart_rate) && record.heart_rate > 0) : [];
+          // Once a real HR stream exists, keep explicit zero/invalid observations
+          // as coverage boundaries too. Dropping them bridges sensor dropouts.
+          const hasRecordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) && recordedSamples.some((record: any) =>
+            Number.isFinite(record.heart_rate) && record.heart_rate > 0);
+          const recordedHeartRate = hasRecordedHeartRate ? recordedSamples.filter((record: any) =>
+            record.heart_rate !== undefined && record.heart_rate !== null) : [];
           const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, options) : recordedSamples;
 
           // Setup sample info which could be use when getting sample values

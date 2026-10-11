@@ -9,6 +9,15 @@ describe('FIT FTP provenance', () => {
     expect(resolve({ sessions: [session], zones_target: { functional_threshold_power: 240 } }, session, 0)).toBe(240);
     expect(resolve({ sessions: [session], time_in_zone: [scoped], zones_target: { functional_threshold_power: 0 } }, session, 0)).toBe(250);
   });
+  it('uses valid scoped FTP despite conflicting or malformed unused globals', () => {
+    const messages = { zones_target: [
+      { functional_threshold_power: 0 }, { functional_threshold_power: 300 }, { functional_threshold_power: 'invalid' }
+    ] };
+    expect(resolve({ sessions: [session], time_in_zone: [scoped], messages }, session, 0)).toBe(250);
+    expect(resolve({ sessions: [session], messages }, { ...session, threshold_power: 250 }, 0)).toBe(250);
+    expect(resolve({ sessions: [session], time_in_zone: [scoped], messages }, { ...session, threshold_power: 240 }, 0)).toBeNull();
+    expect(resolve({ sessions: [session], messages }, session, 0)).toBeNull();
+  });
   it.each([0, -1, NaN, Infinity, '250'])('rejects invalid explicit FTP %s instead of falling back', threshold_power => {
     expect(resolve({ sessions: [session], zones_target: { functional_threshold_power: 250 } }, { ...session, threshold_power }, 0)).toBeNull();
   });

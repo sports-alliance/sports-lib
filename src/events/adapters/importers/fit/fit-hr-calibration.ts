@@ -31,12 +31,11 @@ export function resolveFitHeartRateCalibration(
     ? 'default_max_running_heart_rate' : group === ActivityTypeGroups.CyclingGroup || group === ActivityTypeGroups.MountainBikingGroup
       ? 'default_max_biking_heart_rate' : 'default_max_heart_rate';
   let reason: FileHeartRateCalibration['reason'];
-  const unique = (rows: RecordValue[], key: string, allowZeroPlaceholder = false): number | undefined => {
+  const unique = (rows: RecordValue[], key: string): number | undefined => {
     const values = rows.map(row => row[key]).filter(value => value !== undefined && value !== null);
     if (new Set(values).size > 1) { reason = 'ambiguous-hr-calibration'; return undefined; }
     if (!values.length) { return undefined; }
     const value = values[0];
-    if (value === 0 && allowZeroPlaceholder) { return undefined; }
     if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
       reason = reason ?? 'invalid-hr-calibration'; return undefined;
     }
@@ -44,25 +43,17 @@ export function resolveFitHeartRateCalibration(
   };
   const zones = records('zones_target');
   const profiles = records('user_profile');
-  // Evaluate every applicable source even when a higher-priority value exists, so
-  // conflicting repeated settings are not hidden by the parser's last-record view.
+  // Session settings are authoritative for this leg. Read lower-priority fields
+  // only to fill gaps, so unrelated sport defaults cannot invalidate them.
+  // Invalid selected values still set a reason and cannot be rescued by fallback.
   const sessionMax = unique(matches, 'max_heart_rate');
   const sessionRest = unique(matches, 'resting_heart_rate');
   const sessionThreshold = unique(matches, 'threshold_heart_rate');
-  // Some devices export zero global defaults alongside complete session settings.
-  // Only a complete, valid, uniquely matched session can supersede those zeros.
-  // Repeated conflicting values and other malformed inputs still fail validation.
-  const completeSession = sessionRest !== undefined && sessionThreshold !== undefined && sessionMax !== undefined &&
-    sessionRest < sessionThreshold && sessionThreshold < sessionMax;
-  const zonesMax = unique(zones, 'max_heart_rate', completeSession);
-  const zonesThreshold = unique(zones, 'threshold_heart_rate', completeSession);
-  const profileMax = unique(profiles, sportMax, completeSession);
-  const generalMax = sportMax === 'default_max_heart_rate' ? profileMax : unique(profiles, 'default_max_heart_rate', completeSession);
-  const profileRest = unique(profiles, 'resting_heart_rate', completeSession);
   const calibration: FileHeartRateCalibration = {
-    maxHeartRate: sessionMax ?? zonesMax ?? profileMax ?? generalMax,
-    restingHeartRate: sessionRest ?? profileRest,
-    lactateThresholdHR: sessionThreshold ?? zonesThreshold
+    maxHeartRate: sessionMax ?? unique(zones, 'max_heart_rate') ?? unique(profiles, sportMax) ??
+      (sportMax === 'default_max_heart_rate' ? undefined : unique(profiles, 'default_max_heart_rate')),
+    restingHeartRate: sessionRest ?? unique(profiles, 'resting_heart_rate'),
+    lactateThresholdHR: sessionThreshold ?? unique(zones, 'threshold_heart_rate')
   };
   const { maxHeartRate: max, restingHeartRate: rest, lactateThresholdHR: threshold } = calibration;
   if (rest !== undefined && threshold !== undefined && max !== undefined && !(rest < threshold && threshold < max)) {

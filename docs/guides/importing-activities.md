@@ -252,9 +252,10 @@ and swim-pace display families without implying swimming or paddling. Indoor Cyc
 the existing cycling durability protocol; the other eight types have no durability adapter. No numeric metric,
 unit, formula, durability protocol, or stored field is added.
 
-In Quantified Self's exact Training registry, Indoor Cycling reuses modeled indoor-cycling. Approved additional
-contexts are tracked in [coordinated adoption](#quantified-self-coordinated-adoption), while unapproved types retain
-Other training; groups do not establish modeled contexts or provider delivery support. Adopt the library in the application and Functions together
+In Quantified Self's exact Training registry, Indoor Cycling reuses modeled indoor-cycling. The completed approved
+classifications are tracked in [coordinated adoption](#quantified-self-coordinated-adoption); the nine broad labels
+explicitly assigned to Other training retain its duration/saved-load policy. Library groups do not establish Training
+contexts or provider delivery support. Adopt the library in the application and Functions together
 and review the dynamic supported-activities catalog. Correct historical broad labels only from retained specific
 sources or explicit aliases, then regenerate event summaries, activity-type aggregates, applicable durability evidence,
 and Training snapshots through the existing source-backed reparse and derived ingress. Broad stored Generic, Cycling,
@@ -483,8 +484,9 @@ available and is labeled `IMPORTED`, including when `preserveImportedTss` is fal
 retains the existing imported-score interpretation; its provenance cannot be recovered from the number alone.
 Pool Apnea and Mobility retain their groups' existing TSS eligibility. None of these types has stroke-rate semantics
 or a durability adapter. No numeric metric token, unit, schema, provider transport, delivery support, or Training formula
-is added. QS's coordinated adoption PR maps Pool Apnea to Diving and Mobility to Fitness & Gym; Video Gaming
-retains Other training pending a separate classification decision. Usable power curves remain isolated by exact canonical activity type.
+is added. QS's coordinated adoption PR maps Pool Apnea to Diving and Mobility to Fitness & Gym. Video Gaming is
+explicitly approved for Other training, with recorded duration and saved TSS including zero. Usable power curves
+remain isolated by exact canonical activity type.
 
 Stored Generic or Unknown Sport labels cannot identify these activities. Reparse retained FIT `85`, `86`, or `63`
 sources, or restore specific source names/profiles, then regenerate separately persisted event summaries, activity-type
@@ -515,9 +517,10 @@ families, terrain behavior, and TSS selection; Platform Tennis inherits the corr
 without vertical-speed or grade-adjusted derivation. All three have a false indoor hint, which is a catalog grouping
 and does not establish where an individual session was recorded. None has stroke-rate semantics or a durability
 adapter. This adds no numeric metric, provider transport, workout-delivery support, Training formula, or modeled
-Training family in the library. QS's coordinated adoption PR maps Shooting to Precision Sports and Platform Tennis
-to Racket Sports; Geocaching retains Other training pending a separate classification decision. Usable power curves
-stay isolated by exact canonical activity type.
+Training family in the library. QS's coordinated adoption PR maps Shooting to Precision Sports, Platform Tennis
+to Racket Sports and Geocaching to its own Outdoor Adventures context. Geocaching uses recorded elapsed time and
+saved TSS including zero, with omitted zones, distance and durability. Usable power curves stay isolated by exact
+canonical activity type.
 
 Stored Generic, Unknown Sport, and Racquet Ball labels cannot identify these sports on their own. Reparse retained FIT
 `56`, `87`, and `64/93` sources, or restore specific source names/profiles when available, then regenerate separately
@@ -830,7 +833,8 @@ preserves finite imported TSS, including zero, with `preserveImportedTss: true` 
 and method, recalculates where supported with sufficient inputs, and leaves both unset otherwise.
 
 Quantified Self's coordinated adoption PR maps Racket Sport to Racket Sports, Ultimate Disc to Team Sports, and
-Dynamic Apnea and Pool Apnea to Diving; Para Sport retains Other training pending a separate classification decision.
+Dynamic Apnea and Pool Apnea to Diving. Para Sport is explicitly approved for Other training, with recorded duration
+and saved TSS including zero.
 HIIT aliases reuse Fitness/Gym conditioning, E-Biking and Cycling reuse Cycling, and Casual Walking reuses Walking.
 The latter aliases retain existing recorded-load policies and applicable library durability adapters. Adopt the
 library in the application and Functions together. Correct historical Generic, Racquet Ball, or Diving labels only
@@ -980,9 +984,10 @@ inputs exist. Existing power-first selection, HR calibration requirements and ME
 
 Consumer adoption must upgrade application and Functions together. Quantified Self's MCP activity catalog dynamically
 accepts these names, groups and indoor hints under its existing strict output schema; numeric metric tokens, units,
-scopes, consent and mutations are unchanged. Its independent exact Training registry has approved mappings prepared
-in the coordinated adoption PR described below; unapproved types retain Other training. Sports Lib group membership
-does not establish a Training context, planning or provider delivery capability.
+scopes, consent and mutations are unchanged. Its independent exact Training registry has completed classifications
+for all 284 canonical types in the [coordinated adoption PR](#quantified-self-coordinated-adoption), including nine
+explicit Other training labels and 11 aggregate/route exclusions. Sports Lib group membership does not establish a
+Training context, planning or provider delivery capability.
 Supported-activities Help uses the installed dynamic catalog. Existing collapsed labels require a retained explicit
 source name or original file, then regeneration of event summaries, activity-type aggregates, applicable durability
 evidence and Training snapshots. No source reparse or production write is performed by the library update.
@@ -1231,13 +1236,14 @@ and legacy scores without a method, with `preserveImportedTss: true` or omission
 discarded, and the existing policy calculates a replacement only where supported with sufficient inputs. This batch
 adds no MET coefficients, numeric metric tokens, units, or formulas.
 
-Quantified Self's exact Training discipline registry remains independent of library groups. Existing targets retain
-their canonical contexts and durability behavior. Its coordinated adoption PR adds the approved exact contexts;
-unapproved types retain volume-only Other training with omitted distance. Library group membership does not add a
-modeled Training discipline, planning capability, or provider delivery support. Within Sports Lib, Crosscountry Running inherits the running-speed durability
-adapter, while Kickbiking and Mountain Bike Orienteering inherit cycling-power; the other 43 new types have no library
-durability adapter. Training still requires its independent capability registry before using any of that evidence. Adoption of these types must review that behavior separately. The existing
-strict MCP activity catalog accepts the new canonical values without new fields, scopes, consent, or mutations.
+Quantified Self's exact Training discipline registry remains independent of library groups. Its coordinated adoption
+PR completes the approved classifications for all 284 canonical types; the nine broad labels explicitly assigned to
+Other training use recorded duration and saved TSS, with omitted zones, distance and durability. Library group
+membership does not add a Training discipline, planning capability or provider delivery support. Within Sports Lib,
+Crosscountry Running inherits the running-speed durability adapter, while Kickbiking and Mountain Bike Orienteering
+inherit cycling-power; the other 43 types added by this provider batch have no library durability adapter. Training's
+approved context and capability policies independently determine whether that evidence is used. The existing strict
+MCP activity catalog accepts the new canonical values without new fields, scopes, consent or mutations.
 
 Adopt the package in the application and Functions together before persisting corrections. A separately approved
 targeted source-backed reparse can correct historical broad/Generic classifications only where the original file or

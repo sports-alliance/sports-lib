@@ -116,6 +116,10 @@ Power TSS now requires independent FTP, uses the full eligible duration, and com
 complete rolling 30-second windows. MTB/downhill/enduro use biking-specific maximum HR. Internally inconsistent
 percent-max-HR threshold settings are rejected, preserving imported scores and eligible fallbacks.
 
+Calculated HR TSS excludes explicit timer pauses and readings inside them across eligible sports, including recording
+gaps spanning a pause. Without timer events, existing elapsed-time integration remains in use; no pause is guessed from
+aggregate duration. Imported scores remain authoritative.
+
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
 complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training

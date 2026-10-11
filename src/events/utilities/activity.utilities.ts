@@ -1,4 +1,5 @@
 import { calculateNormalizedPower } from './normalized-power';
+import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
@@ -2605,7 +2606,13 @@ export class ActivityUtilities {
     });
   }
 
-  private static calculateHrTss(activity: ActivityInterface): TssCalculationResult | null {
+  private static getHrTssSamples(activity: ActivityInterface): Array<{ duration: number; hr: number }> {
+    return getHeartRateSamplesWithoutPauses(this.getStreamSamplesByDuration(activity, DataHeartRate.type),
+      activity.getAllEvents()).map(sample => ({ duration: sample.duration, hr: sample.value }));
+  }
+
+  private static calculateHrTss(activity: ActivityInterface,
+    samples = this.getHrTssSamples(activity)): TssCalculationResult | null {
     const maxHeartRate = this.resolveMaxHeartRate(activity);
     if (maxHeartRate === null) {
       return null;
@@ -2615,10 +2622,6 @@ export class ActivityUtilities {
     const restingHeartRate = this.resolveRestingHeartRate(activity);
     const gender = this.resolveGender(activity);
 
-    const samples = this.getStreamSamplesByDuration(activity, DataHeartRate.type).map(sample => ({
-      duration: sample.duration,
-      hr: sample.value
-    }));
     if (!samples.length) {
       return null;
     }
@@ -2758,6 +2761,7 @@ export class ActivityUtilities {
    * are never promoted to imported scores. Results contain no raw HR calibration.
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
+   * HR integration excludes explicit timer pauses, including gaps spanning a pause.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
     const walking = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
@@ -2784,14 +2788,14 @@ export class ActivityUtilities {
     const max = this.resolveMaxHeartRate(activity);
     const rest = this.resolveRestingHeartRate(activity);
     const threshold = this.resolveLactateThresholdHr(activity);
-    const hrReason: TrainingStressScoreReason | null = !completeOverride && fileCalibration?.reason
+    let hrReason: TrainingStressScoreReason | null = !completeOverride && fileCalibration?.reason
       ? fileCalibration.reason
       : max === null || rest === null || threshold === null ? 'missing-hr-calibration'
-        : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration'
-          : !this.getStreamSamplesByDuration(activity, DataHeartRate.type).some(sample => sample.value > 0)
-            ? 'missing-hr-samples' : null;
+        : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
+    const hrSamples = hrReason ? [] : this.getHrTssSamples(activity);
+    if (!hrReason && !hrSamples.length) hrReason = 'missing-hr-samples';
     const power = eligible && !walking ? this.calculatePowerTss(activity) : null;
-    const hr = eligible && !hrReason ? this.calculateHrTss(activity) : null;
+    const hr = eligible && !hrReason ? this.calculateHrTss(activity, hrSamples) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
     const needsPace = eligible && !walking && !power && !hr;

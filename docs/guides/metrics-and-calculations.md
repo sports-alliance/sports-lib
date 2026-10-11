@@ -578,6 +578,17 @@ HR TSS:
 
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
 One hour at threshold is 100. There is no observed-peak maximum, assumed threshold ratio, or weighted-zone fallback.
+
+HR integration uses a timer-active clock: explicit start/stop events remove paused time, including gaps spanning a
+pause. HR readings inside a pause are excluded; a reading exactly at a stop may close the preceding active interval.
+FIT `stop`, `stop_all`, `stop_disable` and `stop_disable_all` are supported. Forty active minutes at threshold plus
+a twenty-minute pause produce 66.7 TSS, whether recording continues during the pause or resumes afterward. This applies
+to HR calculations for every eligible sport. If every HR reading is inside a pause, HR is unavailable and the normal
+fallback order applies. Imported scores remain authoritative.
+
+Without explicit timer events, HR retains elapsed-time integration. Ordinary recording gaps and aggregate timer/moving
+duration alone do not identify pause positions; they are not converted into guessed pauses or proportional rescaling.
+
 FIT calibration comes from a uniquely referenced session `time_in_zone`, then unambiguous `zones_target` and applicable
 profile fields. Cycling, MTB, downhill and enduro use the biking-specific profile maximum, falling back to the
 general setting when absent. Walking uses the general profile maximum, never its running maximum. Repeated conflicting settings,
@@ -640,7 +651,7 @@ with actual method, score (null when unavailable), provenance, estimate flag and
 results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
 corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
-Reparse original files to apply independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR
+Reparse original files to exclude explicit pauses from HR TSS and apply independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR
 selection and HR calibration consistency checks, as well as the swimming threshold correction, to historical workouts,
 then refresh consuming applications' derived Training summaries. No canonical metric token, unit, or Activity JSON
 schema changes are required. Consumers displaying reason codes should handle the additive `missing-swim-threshold` code.

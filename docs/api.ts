@@ -508,6 +508,7 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * Parse-time TSS policies and diagnostics. Power requires independent file/override FTP;
  * same-ride estimates and restored FTP stats are not calibration. Swimming never assumes its workout speed
  * is threshold speed; consumers can explain the additive `missing-swim-threshold` reason.
+ * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
  */
 export type {
   TrainingStressScorePreference,

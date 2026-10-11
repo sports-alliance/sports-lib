@@ -61,6 +61,11 @@ Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligibl
 in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
 reasons and existing optional physiological overrides.
 
+HR integration excludes explicit timer pauses and readings inside them, including when recording gaps span the pause.
+Without start/stop events it retains elapsed-time integration; aggregate timer duration alone does not locate pauses.
+This correction applies across eligible sports and does not alter imported scores or the MET formula. Reparse original
+files and refresh downstream Training summaries to update historical calculated HR scores.
+
 Swimming never substitutes workout speed for a missing threshold, even with `tss.enableHeuristicFallbacks: true`.
 That option continues to control running-grade fallbacks. Missing swim thresholds produce `missing-swim-threshold`
 and allow the existing eligible HR/MET fallbacks; explicit `thresholdSwimSpeed` and legacy `refSwimSpeed` overrides

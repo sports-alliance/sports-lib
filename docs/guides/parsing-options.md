@@ -60,6 +60,11 @@ Walking and hiking use imported TSS, then calibrated HR, then MET. Other eligibl
 in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
 reasons and existing optional physiological overrides.
 
+Swimming never substitutes workout speed for a missing threshold, even with `tss.enableHeuristicFallbacks: true`.
+That option continues to control running-grade fallbacks. Missing swim thresholds produce `missing-swim-threshold`
+and allow the existing eligible HR/MET fallbacks; explicit `thresholdSwimSpeed` and legacy `refSwimSpeed` overrides
+remain supported.
+
 ```ts
 import { ActivityUtilities } from '@sports-alliance/sports-lib';
 const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(event.getFirstActivity());

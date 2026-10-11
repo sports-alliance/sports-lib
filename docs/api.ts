@@ -504,6 +504,10 @@ export type {
  */
 export { EventUtilities } from '../src/events/utilities/event.utilities';
 
+/**
+ * Parse-time TSS policies and diagnostics. Swimming never assumes its workout speed
+ * is threshold speed; consumers can explain the additive `missing-swim-threshold` reason.
+ */
 export type {
   TrainingStressScorePreference,
   TrainingStressScoreReason,

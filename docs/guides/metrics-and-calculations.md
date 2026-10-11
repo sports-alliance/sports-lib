@@ -564,6 +564,11 @@ profile fields. Walking uses the general profile maximum, never its running maxi
 ambiguous session references and inconsistent calibration are rejected. Existing explicit physiological overrides remain
 supported; absent settings cannot be inferred from activity samples or zone boundaries.
 
+A complete, valid, uniquely matched session calibration takes precedence over zero placeholders in lower-priority
+global/profile fields. This exception never supplies a missing session value: incomplete or invalid session settings,
+conflicting repeated records, and other malformed lower-priority values still fail validation. Distinct positive
+global defaults retain their existing lower priority to explicit session settings.
+
 PACE TSS (running/trail groups):
 
 - Uses Minetti running-cost grade adjustment, then NP-like 30s/4th-power normalization
@@ -576,10 +581,20 @@ TSS = 100 * (duration/3600) * IF^2
 
 SWIM_PACE TSS:
 
+Swimming requires an independent threshold from `thresholdSwimSpeed`, the compatible `refSwimSpeed` override, or the
+existing swim-pace/speed zone threshold. The activity's observed average speed is never its own threshold, including
+when `enableHeuristicFallbacks` is true. Without a threshold, swim pace is skipped and the evaluation reports
+`missing-swim-threshold`; eligible HR/MET candidates can still provide a score. A supplied threshold with missing speed
+or duration instead reports `missing-pace-inputs`. Imported scores, including zero, always retain priority.
+
 ```text
 IF = SwimSpeed / ThresholdSwimSpeed
 TSS = 100 * (duration/3600) * IF^3
 ```
+
+This correction does not change the existing duration or speed resolvers. Pool timer time can include rests, and length
+records can be inconsistent; consumers supplying a threshold must ensure speed and duration represent the intended
+swimming interval. The shared duration resolver and calorie-derived MET formula remain unchanged.
 
 MET TSS:
 
@@ -599,6 +614,9 @@ with actual method, score (null when unavailable), provenance, estimate flag and
 results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
 corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
+Reparse original files to apply the swimming threshold and FIT session-calibration corrections to historical workouts,
+then refresh consuming applications' derived Training summaries. No canonical metric token, unit, or Activity JSON
+schema changes are required. Consumers displaying reason codes should handle the additive `missing-swim-threshold` code.
 
 7) SWOLF, moving time fallback, power work, battery, jumps
 

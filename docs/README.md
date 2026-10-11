@@ -111,3 +111,8 @@ retained envelope anchors, so consumers can disclose concentrated evidence witho
 estimates and unavailable results. The public ActivityUtilities API returns all three requested policies from the
 parsed file without requiring athlete settings. Load editors can request one-decimal display through
 `DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.
+
+Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
+complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.
+Apply these corrections to historical calculations through original-file reparse and refresh downstream Training
+summaries; serialized metric names and units are unchanged. See the [TSS methods and migration guidance](guides/metrics-and-calculations.md).

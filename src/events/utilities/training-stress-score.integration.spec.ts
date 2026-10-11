@@ -503,14 +503,26 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
   });
 
-  it('uses SWIM_PACE for swimming activities before MET', () => {
-    const activity = createActivity(ActivityTypes.Swimming, 1800);
+  it.each(['thresholdSwimSpeed', 'refSwimSpeed'])('uses explicit %s before MET', override => {
+    const activity = createActivity(ActivityTypes.Swimming, 1800,
+      new ActivityParsingOptions({ tss: { overrides: { [override]: 1.2 } } }));
     addNumericStream(activity, DataSpeed.type, new Array(1800).fill(1.05));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
 
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.SWIM_PACE);
-    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeCloseTo(33.5, 1);
+  });
+
+  it('reports missing pace inputs separately when a swim threshold is supplied without speed', () => {
+    const activity = createActivity(ActivityTypes.OpenWaterSwimming, 1800,
+      new ActivityParsingOptions({ tss: { overrides: { thresholdSwimSpeed: 1.2 } } }));
+    const result = ActivityUtilities.evaluateTrainingStressScore(activity).automatic;
+    expect(result.score).toBeNull();
+    expect(result.reasons).toContain('missing-pace-inputs');
+    expect(result.reasons).not.toContain('missing-swim-threshold');
   });
 
   it('converts swim-pace zone threshold (sec/100m) to speed for SWIM_PACE TSS', () => {

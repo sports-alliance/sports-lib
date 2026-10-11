@@ -8,7 +8,7 @@ export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET';
 export type TrainingStressScoreReason =
   | 'imported-score' | 'unsupported-sport' | 'missing-hr-calibration' | 'invalid-hr-calibration'
   | 'ambiguous-hr-calibration' | 'missing-hr-samples' | 'missing-met-inputs'
-  | 'missing-power-inputs' | 'missing-pace-inputs' | 'calculation-unavailable';
+  | 'missing-power-inputs' | 'missing-pace-inputs' | 'missing-swim-threshold' | 'calculation-unavailable';
 
 /** A resolved policy; null is unavailable, while zero is a valid score. */
 export interface TrainingStressScoreEvaluation {

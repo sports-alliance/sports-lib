@@ -56,6 +56,7 @@ export class SportsLib {
    * Parses and returns an event using FIT format.
    * Credible session timestamps remain authoritative without duration summaries. Record-based date recovery
    * is scoped to the session; whole-file record bounds are used only when there is a sole session.
+   * Pool length endpoints and generated samples respect the resolved lap/session bounds and active timer limits.
    * @param arrayBuffer
    * @param options
    */
@@ -78,7 +79,8 @@ export class SportsLib {
   /**
    * Restores an event from Sports Lib's native JSON format.
    *
-   * Explicit stats are preserved except terrain summaries excluded for Diving activities. Missing pace, swim-pace,
+   * Finite explicit stats are preserved except terrain summaries excluded for Diving activities. Legacy null or
+   * non-finite scalar summaries are skipped without changing null stream gaps. Missing pace, swim-pace,
    * and grade-adjusted-pace summaries are hydrated from compatible speed summaries on the event, its activities,
    * and their laps.
    *

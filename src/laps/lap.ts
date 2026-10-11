@@ -1,5 +1,5 @@
+import { StatsUtilities } from '../stats/stats.utilities';
 import { LapInterface } from './lap.interface';
-import { DataInterface } from '../data/data.interface';
 import { DurationClassAbstract } from '../duration/duration.class.abstract';
 import { LapTypes } from './lap.types';
 import { LapJSONInterface } from './lap.json.interface';
@@ -23,11 +23,9 @@ export class Lap extends DurationClassAbstract implements LapInterface {
     return activity.getDateIndex(this.endDate);
   }
 
+  /** Exports native lap JSON, omitting non-finite scalar summary stats. */
   toJSON(activity?: ActivityInterface): LapJSONInterface {
-    const stats = {};
-    this.stats.forEach((value: DataInterface) => {
-      Object.assign(stats, value.toJSON());
-    });
+    const stats = StatsUtilities.serializeStats(this.stats);
     return {
       lapId: this.lapId,
       startDate: this.startDate.getTime(),

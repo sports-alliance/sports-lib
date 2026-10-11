@@ -138,6 +138,10 @@ JSON/SML retains explicit pause/resume positions, including pauses spanning a sp
 Pool FIT imports also support single-lap length streams, retain final boundary/rest lengths, and repair invalid pool
 summary end times using explicit file durations. Existing single-lap recorded streams retain priority. Generated rest
 lengths add no distance, and ambiguous ownership cannot establish a complete generated distance total.
+Length end dates and generated samples are bounded by their resolved activity and owning lap. Contradictory timers
+cannot extend a swim into later legs, while paused lengths keep the existing active sampling limit. Original-file
+reparse applies these corrections to saved swims. Native JSON also omits non-finite scalar summaries and restores
+legacy null summaries safely, preserving valid zero values and stream gaps; that repair needs only JSON restoration.
 
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
 valid scoped HR/FTP calibration use it without being blocked by unrelated global sport defaults. Complementary

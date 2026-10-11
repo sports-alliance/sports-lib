@@ -174,6 +174,7 @@ export type { StreamDataItem, StreamInterface } from '../src/streams/stream.inte
 export type { StreamJSONInterface } from '../src/streams/stream';
 export type { StreamFilterInterface } from '../src/streams/stream.filter.interface';
 export type { StatsClassInterface } from '../src/stats/stats.class.interface';
+/** Shared summary serialization omits non-finite scalar numbers while preserving finite zero and structured stats. */
 export { StatsUtilities } from '../src/stats/stats.utilities';
 export type { NumericRecordAggregation } from '../src/stats/stats.utilities';
 export { Data, DataArray, DataBare, DataBoolean, DataNumber, DataString } from '../src/data';
@@ -516,6 +517,7 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
  * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
+ * swim length endpoints respect chronological lap/session bounds, independently of active timer sampling limits.
  * multisport timing preserves unambiguous initial pauses and prevents adjacent-session record leakage.
  * Missing FIT timer summaries can use explicit active intervals; Suunto JSON/SML retains recorded pause/resume events.
  */

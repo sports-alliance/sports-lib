@@ -276,7 +276,8 @@ export class EventImporterFIT {
   }
 
   /** Import file-scoped calibration and combine complementary records before
-   * sensor padding. Recorded pool HR retains explicit dropout boundaries. */
+   * sensor padding. Recorded pool HR retains explicit dropout boundaries;
+   * generated swim samples cannot extend past their owning lap or session. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -553,7 +554,7 @@ export class EventImporterFIT {
             Number.isFinite(record.heart_rate) && record.heart_rate > 0);
           const recordedHeartRate = hasRecordedHeartRate ? recordedSamples.filter((record: any) =>
             record.heart_rate !== undefined && record.heart_rate !== null) : [];
-          const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, options) : recordedSamples;
+          const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, activity, options) : recordedSamples;
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -845,7 +846,7 @@ export class EventImporterFIT {
    * @param options
    * @private
    */
-  private static generateSamplesFromLengths(sessionObject: any, options: ActivityParsingOptions): any[] {
+  private static generateSamplesFromLengths(sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions): any[] {
     if (!this.isLengthsBased(sessionObject)) {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
     }
@@ -870,12 +871,19 @@ export class EventImporterFIT {
 
     for (const { length, lap, lapIndex } of lengths) {
       const lengthStartDate = this.getSwimLengthStartDate(length);
-      if (!lengthStartDate) {
+      if (!lengthStartDate || lengthStartDate < activity.startDate || lengthStartDate >= activity.endDate) {
+        if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
         continue;
       }
-      const lengthEndDate = this.getSwimLengthEndDate(length, lengthStartDate);
+      const chronologicalEnd = this.getBoundedSwimLengthEndDate(length, lengthStartDate, activity, lap);
+      const timer = this.getNumericValue(length.total_timer_time);
+      // Keep the existing active-timer sampling interval for paused lengths.
+      // A longer/contradictory timer must never extend the chronological bounds.
+      const lengthEndDate = new Date(Math.min(+chronologicalEnd,
+        timer !== null && timer >= 0 ? +lengthStartDate + timer * 1000 : +chronologicalEnd));
       const duration = (+lengthEndDate - +lengthStartDate) / 1000;
       if (duration <= 0 || duration > options.maxActivityDurationDays * 24 * 60 * 60) {
+        if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
         continue;
       }
       const idle = this.getSwimLengthType(length.length_type) === 'idle';
@@ -889,9 +897,12 @@ export class EventImporterFIT {
       distanceKnown = distanceKnown && lengthMeters !== null && lengthMeters >= 0;
       const streamLength = ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate);
       for (let index = 0; index < streamLength; index++) {
+        const offsetMs = Math.min(index * 1000, +lengthEndDate - +lengthStartDate);
         samples.push({
-          timestamp: new Date(+lengthStartDate + index * 1000),
-          distance: distanceKnown ? distance + lengthMeters! * index / (streamLength - 1) : undefined,
+          // The last point is the actual endpoint, including subsecond lengths.
+          // The activity then projects that instant onto its standard 1 Hz grid.
+          timestamp: new Date(+lengthStartDate + offsetMs),
+          distance: distanceKnown ? distance + lengthMeters! * offsetMs / (duration * 1000) : undefined,
           speed: idle ? 0 : length.avg_speed ?? lap.avg_speed,
           cadence: idle ? 0 : length.avg_cadence ?? length.avg_swimming_cadence ?? lap.avg_cadence,
           heart_rate: completeOwnership ? length.avg_heart_rate || lap.avg_heart_rate : undefined
@@ -2371,14 +2382,29 @@ export class EventImporterFIT {
   }
 
   private static getSwimLengthEndDate(length: any, startDate: Date): Date {
-    const timerTime = this.getNumericValue(length?.total_timer_time);
-    const elapsedTime = this.getNumericValue(length?.total_elapsed_time);
-    const duration = timerTime ?? elapsedTime;
+    const timestamp = this.getDateFromValue(length?.timestamp);
+    const elapsedTime = this.getPositiveNumericValue(length?.total_elapsed_time);
+    if (timestamp && +timestamp > +startDate) {
+      // FIT timestamps have whole-second precision; elapsed duration can retain
+      // the fraction when its endpoint rounds to that same encoded second.
+      const elapsedEnd = elapsedTime === null ? null : +startDate + elapsedTime * 1000;
+      if (elapsedEnd !== null && (Math.floor(elapsedEnd / 1000) * 1000 === +timestamp ||
+          Math.ceil(elapsedEnd / 1000) * 1000 === +timestamp)) return new Date(elapsedEnd);
+      return timestamp;
+    }
+    const duration = elapsedTime ?? this.getPositiveNumericValue(length?.total_timer_time);
     if (duration !== null) {
       return new Date(startDate.getTime() + duration * 1000);
     }
+    return startDate;
+  }
 
-    return this.getDateFromValue(length?.timestamp) || startDate;
+  private static getBoundedSwimLengthEndDate(length: any, startDate: Date, activity: ActivityInterface, lap?: any): Date {
+    const end = this.getSwimLengthEndDate(length, startDate);
+    const lapEnd = lap ? this.getLapWindow(lap).endDate : null;
+    // Indexed lengths may legitimately begin before their owning lap. Preserve
+    // that start and its distance, but never let the interval run into later legs.
+    return new Date(Math.max(+startDate, Math.min(+end, +activity.endDate, lapEnd ? +lapEnd : +end)));
   }
 
   /** Repair broken pool summary ends before either ownership or activity/lap construction. */
@@ -2447,7 +2473,7 @@ export class EventImporterFIT {
       return start;
     }
     const end = this.getDateFromValue(length?.timestamp);
-    const duration = this.getNumericValue(length?.total_elapsed_time) ?? this.getNumericValue(length?.total_timer_time);
+    const duration = this.getPositiveNumericValue(length?.total_elapsed_time) ?? this.getPositiveNumericValue(length?.total_timer_time);
     return end && duration !== null && duration > 0 ? new Date(+end - duration * 1000) : null;
   }
 
@@ -2491,9 +2517,14 @@ export class EventImporterFIT {
       });
       if (indexOwners.length === 1) {
         const window = this.getLapWindow(indexOwners[0].lap);
-        const end = this.getSwimLengthEndDate(length, start);
+        const chronologicalEnd = this.getSwimLengthEndDate(length, start);
+        const timer = this.getNumericValue(length.total_timer_time);
+        const end = timer !== null && timer >= 0
+          ? new Date(Math.min(+chronologicalEnd, +start + timer * 1000)) : chronologicalEnd;
         // An explicit index can own a length crossing a lap boundary (for
-        // example, a pause within that length), but still needs temporal overlap.
+        // example, a pause within that length), but its active sampling interval
+        // still needs temporal overlap. A corrupt distant timestamp cannot
+        // establish ownership in a lap entirely after that interval.
         if (window.startDate && window.endDate && +start < +window.endDate && +end > +window.startDate) {
           return indexOwners[0].index + 1;
         }
@@ -2554,14 +2585,8 @@ export class EventImporterFIT {
     sessionObject: any,
     fitDataObject: any
   ): void {
-    const sessionStartDate = this.getDateFromValue(sessionObject?.start_time);
-    const sessionElapsedTime =
-      this.getNumericValue(sessionObject?.total_elapsed_time) ?? this.getNumericValue(sessionObject?.total_timer_time);
-    const sessionEndDate =
-      this.getDateFromValue(sessionObject?.timestamp) ||
-      (sessionStartDate && sessionElapsedTime !== null
-        ? new Date(sessionStartDate.getTime() + sessionElapsedTime * 1000)
-        : null);
+    const sessionStartDate = activity.startDate;
+    const sessionEndDate = activity.endDate;
 
     const rawLengths = Array.isArray(sessionObject?.lengths)
       ? sessionObject.lengths
@@ -2624,7 +2649,7 @@ export class EventImporterFIT {
           index: lengthIndex + 1,
           lapIndex,
           startDate,
-          endDate: this.getSwimLengthEndDate(length, startDate),
+          endDate: this.getBoundedSwimLengthEndDate(length, startDate, activity, lap),
           type: this.getSwimLengthType(length?.length_type) || 'unknown',
           stroke: this.getSwimStroke(length?.swim_stroke),
           strokes: this.getNumericValue(length?.total_strokes),

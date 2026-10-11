@@ -28,6 +28,12 @@ for the Diving activity group, canonicalizes compatible legacy keys, may add mis
 events, activities, and laps, and applies activity-aware cadence-to-stroke-rate normalization without requiring the
 original source file.
 
+Event, activity, lap and shared summary serialization omit non-finite scalar numbers such as infinite pace at zero
+speed. Native event restoration also skips legacy null or non-finite scalar summaries before resolving aliases, so
+an invalid canonical entry cannot hide a valid legacy value. Finite zero, negative values, structured stats and null
+stream gaps retain their meanings. Existing saved event JSON can be restored and reserialized without a source-file
+reparse for this compatibility repair; runtime calculations and canonical metric names/units are unchanged.
+
 Starting with 20.0.2, restoring older Diving-group JSON also removes terrain ascent/descent, altitude min/max/avg,
 and grade min/max/avg summaries from events, activities, and laps. The restored model needs no source-file reparse;
 re-serializing it intentionally writes the corrected summary set while retaining any raw source streams.

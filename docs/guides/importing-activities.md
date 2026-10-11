@@ -61,6 +61,15 @@ activity duration remains enforced. Existing affected activities require an orig
 derived summaries; restoring their saved JSON cannot reconstruct the missing session boundaries. This correction
 adds no metrics or fields and preserves canonical names, units, imported TSS and public JSON schemas.
 
+Pool length end dates use credible ending timestamps, retaining fractional elapsed precision when it agrees with
+the FIT timestamp's whole-second resolution. Positive elapsed duration, then positive timer duration, can recover a
+missing or invalid end. Resolved activity and owning-lap ends bound each length. Generated samples additionally retain
+the existing active-timer limit, so a longer elapsed interval does not invent HR exposure during a pause, and a
+contradictory long timer cannot extend samples into another leg. Explicit indexed lengths crossing a lap's start keep
+their ownership only when their sampling interval overlaps that lap. Recorded HR and single-lap counters retain their
+existing precedence. Reparse original FIT files and refresh derived summaries to correct historical swim bounds;
+the source timer/elapsed stats, imported TSS, metric names, units and JSON shape are retained.
+
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that
 previous lap; its earliest point supplies the start instead. `TotalTimeSeconds` retains its active-duration meaning and is also the elapsed-time minimum. Separate

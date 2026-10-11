@@ -120,6 +120,11 @@ Calculated HR TSS excludes explicit timer pauses and readings inside them across
 gaps spanning a pause. Without timer events, existing elapsed-time integration remains in use; no pause is guessed from
 aggregate duration. Imported scores remain authoritative.
 
+Running pace TSS uses the corrected Minetti cost ratio, full eligible active duration, recorded zeros and complete
+30-second windows that restart at pauses and recording gaps. Pool FIT files preserve recorded HR, including gaps,
+instead of replacing it with lap averages. Multisport initial pauses are retained when session timing unambiguously
+corroborates the prior timer state.
+
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
 complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training

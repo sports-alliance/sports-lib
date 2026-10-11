@@ -1,5 +1,6 @@
 import { calculateNormalizedPower } from './normalized-power';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
+import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
@@ -2672,6 +2673,7 @@ export class ActivityUtilities {
         if (grade === undefined && verticalSpeed !== undefined && speed > 0) {
           grade = verticalSpeed / speed;
         }
+        if (grade === undefined && speed === 0) grade = 0;
         if (grade === undefined) {
           if (!enableHeuristicFallbacks) {
             return null;
@@ -2698,7 +2700,8 @@ export class ActivityUtilities {
     return TssCalculator.calculatePaceTss({
       totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
       functionalThresholdPace,
-      samples
+      samples,
+      timerEvents: activity.getAllEvents()
     });
   }
 
@@ -2762,6 +2765,7 @@ export class ActivityUtilities {
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    * HR integration excludes explicit timer pauses, including gaps spanning a pause.
+   * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
     const walking = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
@@ -3551,7 +3555,12 @@ export class ActivityUtilities {
       DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
-    const timeStream = activity.generateTimeStream();
+    // Recorded pool HR has independent coverage. Its timestamps must neither be
+    // filled from generated lengths nor extend the other swim streams' coverage.
+    const timeStream = activity.generateTimeStream(recordedPoolHeartRate.has(activity)
+      ? activity.getAllStreams().filter(stream => stream.type !== DataHeartRate.type && stream.type !== DataIBI.type)
+        .map(stream => stream.type)
+      : []);
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:
@@ -3563,7 +3572,8 @@ export class ActivityUtilities {
      */
     activity
       .getAllStreams()
-      .filter(stream => streamTypesToBackAndForthFill.indexOf(stream.type) !== -1)
+      .filter(stream => streamTypesToBackAndForthFill.indexOf(stream.type) !== -1 &&
+        !(stream.type === DataHeartRate.type && recordedPoolHeartRate.has(activity)))
       .forEach(stream => {
         // Find the first sample value
         let currentValue = <number>stream.getData(true, true)[0];

@@ -222,6 +222,7 @@ import { StreamInterface } from '../../../../streams/stream.interface';
 import { StatsUtilities } from '../../../../stats/stats.utilities';
 import { StatsClassInterface } from '../../../../stats/stats.class.interface';
 import { SampleInfo } from '../sample-info.interface';
+import { recordedPoolHeartRate } from '../../../../streams/recorded-pool-heart-rate';
 
 // Threshold to detect that session.timestamp are not trustable (when exceeding 15% of session.total_elapsed_time)
 const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
@@ -354,6 +355,8 @@ export class EventImporterFIT {
 
         // Iterate over the sessions and create their activities
         const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
+          // Keep the original timing evidence before legacy date/timer normalization.
+          const sourceTiming = { timer: sessionObject.total_timer_time, elapsed: sessionObject.total_elapsed_time };
           // Get the activity from the sessionObject
           const activity = this.getActivityFromSessionObject(sessionObject, fitDataObject, options, sessionIndex);
           this.addDiveSummaryStats(activity, this.getReferencedDiveSummary(fitDataObject, 'session', sessionObject));
@@ -514,6 +517,8 @@ export class EventImporterFIT {
               }
             });
 
+          this.reconcileInitialTimerState(activity, fitDataObject, sourceTiming);
+
           // Add jumps
           if (fitDataObject.jumps && fitDataObject.jumps.length) {
             fitDataObject.jumps
@@ -542,17 +547,15 @@ export class EventImporterFIT {
               });
           }
 
-          // Get the samples..
-          // Test if activity is lengths based
-          // Indeed when based on lengths, an activity do not provides samples under records object (e.g. Pool swimming activities)
-          // Note: this is how Strava generate streams for this kind of activities
+          // Pool files can contain both lengths and real HR records. Retain the
+          // existing length-derived swim streams, but never replace recorded HR
+          // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
-
-          const samples = isLengthsBased
-            ? this.generateSamplesFromLengths(sessionObject, options)
-            : fitDataObject.records.filter((record: any) => {
-                return record.timestamp >= activity.startDate && record.timestamp <= activity.endDate;
-              });
+          const recordedSamples = fitDataObject.records.filter((record: any) =>
+            record.timestamp >= activity.startDate && record.timestamp <= activity.endDate);
+          const recordedHeartRate = isLengthsBased ? recordedSamples.filter((record: any) =>
+            Number.isFinite(record.heart_rate) && record.heart_rate > 0) : [];
+          const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, options) : recordedSamples;
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -563,7 +566,14 @@ export class EventImporterFIT {
             ) !== -1;
           const samplesInfo = { hasPowerMeter: hasPowerMeter };
 
-          this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings, samplesInfo);
+          this.addSampleStreamsToActivity(activity, samples, recordedHeartRate.length
+            ? allowedSampleMappings.filter(mapping => mapping.dataType !== DataHeartRate.type)
+            : allowedSampleMappings, samplesInfo);
+          if (recordedHeartRate.length) {
+            this.addSampleStreamsToActivity(activity, recordedHeartRate,
+              allowedSampleMappings.filter(mapping => mapping.dataType === DataHeartRate.type), samplesInfo);
+            recordedPoolHeartRate.add(activity);
+          }
 
           return activity;
         };
@@ -673,6 +683,59 @@ export class EventImporterFIT {
    */
   private static isLengthsBased(sessionObject: any): boolean {
     return sessionObject.laps?.filter((lap: any) => lap.lengths?.length).length > 1;
+  }
+
+  /** Preserve a pause crossing a sport boundary only when explicit timer events
+   * and the original session durations agree. Some exporters omit the restart at
+   * a sport change, so carrying every previous stop would erase active legs. */
+  private static reconcileInitialTimerState(
+    activity: ActivityInterface, file: any, sourceTiming: { timer: unknown; elapsed: unknown }
+  ): void {
+    const { timer: recordedTimer, elapsed: recordedElapsed } = sourceTiming;
+    const duration = (+activity.endDate - +activity.startDate) / 1000;
+    const tolerance = TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS;
+    if (typeof recordedTimer !== 'number' || !Number.isFinite(recordedTimer) || recordedTimer < 0 ||
+        typeof recordedElapsed !== 'number' || !Number.isFinite(recordedElapsed) || recordedElapsed <= 0 ||
+        recordedTimer > recordedElapsed + tolerance || Math.abs(duration - recordedElapsed) > tolerance ||
+        !(file.sessions ?? []).some((session: any) =>
+          +session.start_time < +activity.startDate && +session.timestamp <= +activity.startDate)) return;
+
+    const timerEvents = (file.events as FITFileActivityEvent[]).filter(event => event.event === 'timer' &&
+      Number.isFinite(+event.timestamp) &&
+      ['start', 'stop', 'stop_all', 'stop_disable', 'stop_disable_all'].includes(event.event_type))
+      .slice().sort((left, right) => +left.timestamp - +right.timestamp);
+    const preceding = timerEvents.filter(event => +event.timestamp <= +activity.startDate);
+    const last = preceding[preceding.length - 1];
+    if (!last || last.event_type === 'start') return;
+    // A simultaneous start and stop cannot establish an unambiguous inherited state.
+    if (preceding.some(event => +event.timestamp === +last.timestamp && event.event_type === 'start')) return;
+
+    const events = activity.getAllEvents();
+    const isStop = (event: { getType(): string }) =>
+      [DataStopEvent.type, DataStopAllEvent.type].includes(event.getType());
+    const hasBoundaryStop = +last.timestamp === +activity.startDate;
+    const timeline = events.filter(event =>
+      [DataStartEvent.type, DataStopEvent.type, DataStopAllEvent.type].includes(event.getType()) &&
+      !(hasBoundaryStop && event.timestamp === 0 && isStop(event)))
+      .slice().sort((left, right) => left.timestamp - right.timestamp);
+    const activeDuration = (initiallyRunning: boolean): number => {
+      let running = initiallyRunning, previous = 0, active = 0;
+      for (const event of timeline) {
+        const time = Math.min(duration, Math.max(0, event.timestamp));
+        if (running) active += time - previous;
+        previous = time;
+        running = event.getType() === DataStartEvent.type;
+      }
+      return active + (running ? duration - previous : 0);
+    };
+    const matchesRunning = Math.abs(activeDuration(true) - recordedTimer) <= tolerance;
+    const matchesPaused = Math.abs(activeDuration(false) - recordedTimer) <= tolerance;
+    if (matchesRunning === matchesPaused) return;
+    if (matchesPaused && !hasBoundaryStop) {
+      activity.setAllEvents([new DataStopEvent(0), ...events]);
+    } else if (matchesRunning && hasBoundaryStop) {
+      activity.setAllEvents(events.filter(event => !(event.timestamp === 0 && isStop(event))));
+    }
   }
 
   private static getIBIDataForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): number[] {

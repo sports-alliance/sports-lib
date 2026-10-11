@@ -17,6 +17,12 @@ import { DataSwimPace } from '../../data/data.swim-pace';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../data/data.training-stress-score-method';
 import { DataVerticalSpeed } from '../../data/data.vertical-speed';
 import { DataWeight } from '../../data/data.weight';
+import { DataTimerTime } from '../../data/data.timer-time';
+import { DataDuration } from '../../data/data.duration';
+import { DataStartEvent } from '../../data/data.start-event';
+import { DataStopEvent } from '../../data/data.stop-event';
+import { DataStopAllEvent } from '../../data/data.stop-all-event';
+import { DataEvent } from '../../data/data.event';
 import { IntensityZones } from '../../intensity-zones/intensity-zones';
 import { ActivityUtilities } from './activity.utilities';
 import { TssCalculator, type TssSample } from './tss/tss-calculator';
@@ -133,7 +139,7 @@ function buildPaceTssSamplesFromActivity(activity: ActivityInterface): TssSample
     const grade =
       gradeSmoothByDuration.get(duration) ??
       gradeByDuration.get(duration) ??
-      (verticalSpeed === undefined || speed <= 0 ? undefined : verticalSpeed / speed);
+      (speed === 0 ? 0 : verticalSpeed === undefined || speed < 0 ? undefined : verticalSpeed / speed);
 
     if (grade !== undefined) {
       samples.push({ duration, speed, grade, verticalSpeed });
@@ -143,69 +149,36 @@ function buildPaceTssSamplesFromActivity(activity: ActivityInterface): TssSample
   return samples;
 }
 
-function calculatePaceTssWithEnergyCostConvention(
-  samples: TssSample[],
-  thresholdSpeed: number,
-  useCorrectedEnergyCost: (grade: number) => boolean
+function calculateEnergyCostCorrectedPaceTss(
+  samples: TssSample[], thresholdSpeed: number, durationSeconds: number, events: DataEvent[]
 ): number | null {
-  const adjustedSpeedSamples = samples
-    .filter(
-      sample =>
-        Number.isFinite(sample.duration) &&
-        Number.isFinite(sample.speed) &&
-        (sample.speed as number) > 0 &&
-        Number.isFinite(sample.grade)
-    )
-    .sort((left, right) => left.duration - right.duration)
-    .map(sample => {
-      const grade = Math.min(0.45, Math.max(-0.45, sample.grade as number));
-      const cost =
-        155.4 * Math.pow(grade, 5) -
-        30.4 * Math.pow(grade, 4) -
-        43.3 * Math.pow(grade, 3) +
-        46.3 * Math.pow(grade, 2) +
-        19.5 * grade +
-        3.6;
-      const speed = sample.speed as number;
-      return {
-        duration: sample.duration,
-        // At a fixed observed speed, a higher energetic cost must produce a higher equivalent-flat speed.
-        adjustedSpeed: speed * (useCorrectedEnergyCost(grade) ? cost / 3.6 : 3.6 / cost)
-      };
-    });
-
-  if (!adjustedSpeedSamples.length) {
-    return null;
-  }
-
-  const rollingSpeeds = adjustedSpeedSamples.map((sample, index) => {
-    if (sample.duration < 30) {
-      return null;
+  const timer = events.filter(event => [DataStartEvent.type, DataStopEvent.type, DataStopAllEvent.type]
+    .includes(event.getType())).slice().sort((left, right) => left.timestamp - right.timestamp);
+  const ordered = samples.slice().sort((left, right) => left.duration - right.duration);
+  const means: number[] = [];
+  for (let index = 29; index < ordered.length; index++) {
+    const window = ordered.slice(index - 29, index + 1);
+    let running = true;
+    for (const event of timer.filter(event => event.timestamp <= window[0].duration)) {
+      running = event.getType() === DataStartEvent.type;
     }
-    const index30SecondsAgo = Math.max(
-      0,
-      adjustedSpeedSamples.slice(0, index).findIndex(previous => sample.duration - previous.duration < 30)
-    );
-    const window = adjustedSpeedSamples.slice(index30SecondsAgo, index + 1);
-    return window.reduce((sum, item) => sum + item.adjustedSpeed, 0) / window.length;
-  });
-  const validRollingSpeeds = rollingSpeeds.filter((speed): speed is number => speed !== null);
-  if (!validRollingSpeeds.length) {
-    return null;
+    if (!running || timer.some(event => event.timestamp > window[0].duration &&
+      event.timestamp <= window[29].duration)) continue;
+    if (window.some((sample, offset) => sample.duration !== window[0].duration + offset ||
+      !Number.isFinite(sample.speed) || (sample.speed as number) < 0 ||
+      (sample.speed !== 0 && !Number.isFinite(sample.grade)))) continue;
+    const mean = window.reduce((sum, sample) => {
+      if (sample.speed === 0) return sum;
+      const grade = Math.min(0.45, Math.max(-0.45, sample.grade as number));
+      const cost = 155.4 * grade ** 5 - 30.4 * grade ** 4 - 43.3 * grade ** 3 +
+        46.3 * grade ** 2 + 19.5 * grade + 3.6;
+      return sum + (sample.speed as number) * cost / 3.6;
+    }, 0) / 30;
+    means.push(mean);
   }
-
-  const normalizedGradedSpeed = Math.pow(
-    validRollingSpeeds.reduce((sum, speed) => sum + Math.pow(speed, 4), 0) / validRollingSpeeds.length,
-    0.25
-  );
-  const intensityFactor = normalizedGradedSpeed / thresholdSpeed;
-  const duration = adjustedSpeedSamples[adjustedSpeedSamples.length - 1].duration;
-  const tss = 100 * (duration / 3600) * Math.pow(intensityFactor, 2);
-  return Number.isFinite(tss) ? tss : null;
-}
-
-function calculateEnergyCostCorrectedPaceTss(samples: TssSample[], thresholdSpeed: number): number | null {
-  return calculatePaceTssWithEnergyCostConvention(samples, thresholdSpeed, () => true);
+  if (!means.length) return null;
+  const normalizedGradedSpeed = Math.pow(means.reduce((sum, speed) => sum + speed ** 4, 0) / means.length, 0.25);
+  return 100 * durationSeconds / 3600 * (normalizedGradedSpeed / thresholdSpeed) ** 2;
 }
 
 function removeStreamIfPresent(activity: ActivityInterface, streamType: string): void {
@@ -641,115 +614,60 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
-    ['Suunto flat run', '6914538454.fit', 73.35, 62.82],
-    ['Coros hilly 10 km run', '6916663933.fit', 160.05, 134.11],
-    ['Coros hilly half-marathon run', '6916728382.fit', 270.52, 209.35]
-  ])(
-    'parses %s into PACE TSS samples with the expected current and energy-cost-corrected values',
-    async (_label, fixtureName, expectedCurrentTss, expectedCorrectedTss) => {
-      const fixturePath = path.join(__dirname, '../../specs/fixtures/runs/fit', fixtureName);
-      const fixtureBuffer = fs.readFileSync(fixturePath);
-      const fixtureArrayBuffer = fixtureBuffer.buffer.slice(
-        fixtureBuffer.byteOffset,
-        fixtureBuffer.byteOffset + fixtureBuffer.byteLength
-      );
-      const activity = (
-        await EventImporterFIT.getFromArrayBuffer(fixtureArrayBuffer, undefined, fixtureName)
-      ).getFirstActivity();
-      const samples = buildPaceTssSamplesFromActivity(activity);
-      const thresholdSpeed = 3;
-
-      const current = TssCalculator.calculatePaceTss({
-        totalDurationWithoutPauses: samples[samples.length - 1]?.duration ?? 0,
-        functionalThresholdPace: thresholdSpeed,
-        samples
-      });
-      const energyCostCorrected = calculateEnergyCostCorrectedPaceTss(samples, thresholdSpeed);
-
-      expect(activity.type).toBe(ActivityTypes.Running);
-      expect(samples.length).toBeGreaterThan(30);
-      expect(current).not.toBeNull();
-      expect(energyCostCorrected).not.toBeNull();
-      expect(current?.trainingStressScore).toBeCloseTo(expectedCurrentTss, 2);
-      expect(energyCostCorrected).toBeCloseTo(expectedCorrectedTss, 2);
-      expect(energyCostCorrected as number).toBeLessThan(current?.trainingStressScore as number);
-    }
-  );
-
-  it.each([
-    ['Coros hilly 10 km run', '6916663933.fit', 103.21, 181.77, 134.11],
-    ['Coros hilly half-marathon run', '6916728382.fit', 129.39, 317.48, 209.35]
-  ])(
-    'attributes the full-run correction decrease to downhill fixture samples for %s',
-    async (_label, fixtureName, expectedDownhillOnlyTss, expectedUphillOnlyTss, expectedCorrectedTss) => {
-      const fixturePath = path.join(__dirname, '../../specs/fixtures/runs/fit', fixtureName);
-      const fixtureBuffer = fs.readFileSync(fixturePath);
-      const fixtureArrayBuffer = fixtureBuffer.buffer.slice(
-        fixtureBuffer.byteOffset,
-        fixtureBuffer.byteOffset + fixtureBuffer.byteLength
-      );
-      const activity = (
-        await EventImporterFIT.getFromArrayBuffer(fixtureArrayBuffer, undefined, fixtureName)
-      ).getFirstActivity();
-      const samples = buildPaceTssSamplesFromActivity(activity);
-      const thresholdSpeed = 3;
-      const current = TssCalculator.calculatePaceTss({
-        totalDurationWithoutPauses: samples[samples.length - 1]?.duration ?? 0,
-        functionalThresholdPace: thresholdSpeed,
-        samples
-      })?.trainingStressScore;
-      const currentReference = calculatePaceTssWithEnergyCostConvention(samples, thresholdSpeed, () => false);
-      const downhillOnlyCorrected = calculatePaceTssWithEnergyCostConvention(
-        samples,
-        thresholdSpeed,
-        grade => grade < -0.01
-      );
-      const uphillOnlyCorrected = calculatePaceTssWithEnergyCostConvention(
-        samples,
-        thresholdSpeed,
-        grade => grade > 0.01
-      );
-      const fullyCorrected = calculateEnergyCostCorrectedPaceTss(samples, thresholdSpeed);
-
-      expect(current).toBeDefined();
-      expect(currentReference).toBeCloseTo(current as number, 6);
-      expect(downhillOnlyCorrected).not.toBeNull();
-      expect(uphillOnlyCorrected).not.toBeNull();
-      expect(fullyCorrected).not.toBeNull();
-      expect(downhillOnlyCorrected).toBeCloseTo(expectedDownhillOnlyTss, 2);
-      expect(uphillOnlyCorrected).toBeCloseTo(expectedUphillOnlyTss, 2);
-      expect(fullyCorrected).toBeCloseTo(expectedCorrectedTss, 2);
-      expect(downhillOnlyCorrected as number).toBeLessThan(current as number);
-      expect(uphillOnlyCorrected as number).toBeGreaterThan(current as number);
-      expect((current as number) - (downhillOnlyCorrected as number)).toBeGreaterThan(
-        (uphillOnlyCorrected as number) - (current as number)
-      );
-      expect(fullyCorrected as number).toBeLessThan(current as number);
-    }
-  );
-
-  it('persists PACE TSS from parsed hilly-running fixture inputs when higher-priority streams are absent', async () => {
-    const fixturePath = path.join(__dirname, '../../specs/fixtures/runs/fit/6916663933.fit');
-    const fixtureBuffer = fs.readFileSync(fixturePath);
-    const fixtureArrayBuffer = fixtureBuffer.buffer.slice(
-      fixtureBuffer.byteOffset,
-      fixtureBuffer.byteOffset + fixtureBuffer.byteLength
-    );
-    const activity = (
-      await EventImporterFIT.getFromArrayBuffer(fixtureArrayBuffer, undefined, path.basename(fixturePath))
-    ).getFirstActivity();
+    ['Suunto flat run', '6914538454.fit'],
+    ['Coros hilly 10 km run', '6916663933.fit'],
+    ['Coros hilly half-marathon run', '6916728382.fit']
+  ])('matches an independent energy-cost and complete-window reference for %s', async (_label, fixtureName) => {
+    const fixtureBuffer = fs.readFileSync(path.join(__dirname, '../../specs/fixtures/runs/fit', fixtureName));
+    const activity = (await EventImporterFIT.getFromArrayBuffer(fixtureBuffer.buffer.slice(
+      fixtureBuffer.byteOffset, fixtureBuffer.byteOffset + fixtureBuffer.byteLength), undefined, fixtureName)).getFirstActivity();
     const samples = buildPaceTssSamplesFromActivity(activity);
     const thresholdSpeed = 3;
-    const directPaceResult = TssCalculator.calculatePaceTss({
-      totalDurationWithoutPauses: samples[samples.length - 1]?.duration ?? 0,
-      functionalThresholdPace: thresholdSpeed,
-      samples
-    });
-    const persistedTss = recomputeFixtureWithPaceTss(activity, thresholdSpeed);
-
-    expect(directPaceResult).not.toBeNull();
+    const duration = activity.getTimer().getValue() as number;
+    const current = TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: duration,
+      functionalThresholdPace: thresholdSpeed, samples, timerEvents: activity.getAllEvents() });
+    const expected = calculateEnergyCostCorrectedPaceTss(samples, thresholdSpeed, duration, activity.getAllEvents());
+    expect(activity.type).toBe(ActivityTypes.Running);
+    expect(samples.length).toBeGreaterThan(30);
+    expect(current).not.toBeNull();
+    expect(expected).not.toBeNull();
+    expect(current?.trainingStressScore).toBeCloseTo(expected as number, 8);
+    const persisted = recomputeFixtureWithPaceTss(activity, thresholdSpeed);
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.PACE);
-    expect(persistedTss).toBeCloseTo(directPaceResult?.trainingStressScore as number, 1);
+    expect(persisted).toBeCloseTo(expected as number, 1);
+  });
+
+  it.each([ActivityTypes.Running, ActivityTypes.TrailRunning, ActivityTypes.Treadmill, ActivityTypes.TrackAndField])(
+    'uses explicit pauses and active duration for %s pace TSS with file speed zones', type => {
+      const activity = createActivity(type, 3600);
+      activity.addStat(new DataTimerTime(2400));
+      activity.addStat(new DataDuration(2400));
+      addNumericStream(activity, DataSpeed.type, Array.from({ length: 3600 }, (_, second) =>
+        second >= 1200 && second < 2400 ? 30 : 3));
+      addZoneFiveThreshold(activity, DataSpeed.type, 3);
+      activity.addEvent(new DataStartEvent(0));
+      activity.addEvent(new DataStopEvent(1200));
+      activity.addEvent(new DataStartEvent(2400));
+      activity.addEvent(new DataStopAllEvent(3600));
+      expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'PACE', score: 66.7 });
+      activity.addStat(new DataTrainingStressScore(0));
+      expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'IMPORTED', score: 0 });
+    }
+  );
+
+  it('keeps zero pace load valid without grade and falls back from incomplete pace coverage', () => {
+    const activity = createActivity(ActivityTypes.Running, 3600,
+      new ActivityParsingOptions({ tss: { enableHeuristicFallbacks: false } }));
+    addNumericStream(activity, DataSpeed.type, Array(3600).fill(0));
+    addZoneFiveThreshold(activity, DataSpeed.type, 3);
+    expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'PACE', score: 0 });
+    activity.removeStream(DataSpeed.type);
+    addNumericStream(activity, DataSpeed.type, [3, ...Array(3598).fill(null), 3]);
+    addNumericStream(activity, DataGrade.type, Array(3600).fill(0));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'MET', score: 9,
+      reasons: expect.arrayContaining(['missing-pace-inputs']) });
   });
 
   it('keeps TSS unset when no method inputs are available', () => {

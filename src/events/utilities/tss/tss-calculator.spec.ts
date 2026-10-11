@@ -1,7 +1,8 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { TssCalculator } from './tss-calculator';
 import { TrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
+import { DataStartEvent } from '../../../data/data.start-event';
+import { DataStopEvent } from '../../../data/data.stop-event';
+import { DataStopAllEvent } from '../../../data/data.stop-all-event';
 
 describe('TssCalculator', () => {
   it.each([15, 30, 3600])('uses the full eligible duration (%s seconds) with supplied NP', duration => {
@@ -118,7 +119,7 @@ describe('TssCalculator', () => {
     expect(result!.trainingStressScore).toBeCloseTo(100, 1);
   });
 
-  it('produces lower adjusted load uphill than downhill for same raw speed', () => {
+  it('converts uphill and downhill speeds to equal-energy flat speeds', () => {
     const uphill = TssCalculator.calculatePaceTss({
       totalDurationWithoutPauses: 1200,
       functionalThresholdPace: 3,
@@ -133,7 +134,66 @@ describe('TssCalculator', () => {
 
     expect(uphill).toBeTruthy();
     expect(downhill).toBeTruthy();
-    expect(downhill!.trainingStressScore).toBeGreaterThan(uphill!.trainingStressScore);
+    expect(uphill!.averageGradeAdjustedPace).toBeCloseTo(3 * 5.968214 / 3.6, 8);
+    expect(downhill!.averageGradeAdjustedPace).toBeCloseTo(3 * 2.151706 / 3.6, 8);
+    expect(uphill!.trainingStressScore).toBeCloseTo(274.8424255385494 / 3, 8);
+    expect(downhill!.trainingStressScore).toBeCloseTo(35.724064123734564 / 3, 8);
+  });
+
+  it('retains stationary seconds regardless of their position and does not require grade for zero speed', () => {
+    const speeds = [...Array(1800).fill(0), ...Array(1800).fill(3)];
+    const calculate = (values: number[]) => TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: 3600,
+      functionalThresholdPace: 3, samples: values.map((speed, duration) => ({ duration, speed,
+        grade: speed === 0 ? undefined : 0 })) });
+    const means = speeds.slice(29).map((_, index) =>
+      speeds.slice(index, index + 30).reduce((sum, speed) => sum + speed, 0) / 30);
+    const expected = 100 * Math.sqrt(means.reduce((sum, speed) => sum + (speed / 3) ** 4, 0) / means.length);
+    expect(calculate(speeds)?.trainingStressScore).toBeCloseTo(expected, 8);
+    expect(calculate(speeds.slice().reverse())?.trainingStressScore).toBeCloseTo(expected, 8);
+    expect(calculate(Array(3600).fill(0))).toMatchObject({ trainingStressScore: 0, intensityFactor: 0 });
+  });
+
+  it.each([0, 300, 10000])('uses active duration rather than the final sample timestamp (offset %s)', offset => {
+    const result = TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: 2400,
+      functionalThresholdPace: 3,
+      samples: Array.from({ length: 120 }, (_, index) => ({ duration: offset + index, speed: 3, grade: 0 })) });
+    expect(result?.trainingStressScore).toBeCloseTo(100 * 2400 / 3600, 10);
+  });
+
+  it.each([DataStopEvent, DataStopAllEvent])('excludes pause readings and never joins windows across %s', Stop => {
+    const samples = Array.from({ length: 3600 }, (_, duration) => ({ duration,
+      speed: duration >= 1200 && duration < 2400 ? 30 : 3, grade: 0 }));
+    const timerEvents = [new DataStartEvent(0), new Stop(1200), new DataStartEvent(2400), new Stop(3600)];
+    for (const records of [samples, samples.filter(sample => sample.duration < 1200 || sample.duration >= 2400)]) {
+      expect(TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: 2400,
+        functionalThresholdPace: 3, samples: records, timerEvents })?.trainingStressScore)
+        .toBeCloseTo(100 * 2400 / 3600, 10);
+    }
+    expect(TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: 40, functionalThresholdPace: 3,
+      samples: Array.from({ length: 40 }, (_, duration) => ({ duration, speed: 3, grade: 0 })),
+      timerEvents: [new Stop(20), new DataStartEvent(20)] })).toBeNull();
+  });
+
+  it.each([NaN, Infinity, -1, null, undefined])('breaks pace windows at invalid speed %s', speed => {
+    const samples = Array.from({ length: 41 }, (_, duration) => ({ duration,
+      speed: duration === 20 ? speed : 3, grade: 0 }));
+    expect(TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: 41,
+      functionalThresholdPace: 3, samples })).toBeNull();
+  });
+
+  it('requires 30 consecutive one-second samples and valid active duration', () => {
+    const samples = Array.from({ length: 30 }, (_, duration) => ({ duration, speed: 3, grade: 0 }));
+    const calculate = (records: typeof samples) => TssCalculator.calculatePaceTss({
+      totalDurationWithoutPauses: 30, functionalThresholdPace: 3, samples: records });
+    expect(calculate(samples)?.trainingStressScore).toBeCloseTo(100 * 30 / 3600, 10);
+    expect(calculate(samples.slice(1))).toBeNull();
+    expect(calculate([{ duration: 0, speed: 3, grade: 0 }, { duration: 3600, speed: 3, grade: 0 }])).toBeNull();
+    expect(calculate(samples.map(sample => ({ ...sample, duration: sample.duration * 2 })))).toBeNull();
+    expect(calculate(samples.map(sample => ({ ...sample, duration: sample.duration > 14 ? sample.duration + 10 : sample.duration })))).toBeNull();
+    for (const duration of [0, -1, NaN, Infinity]) {
+      expect(TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: duration,
+        functionalThresholdPace: 3, samples })).toBeNull();
+    }
   });
 
   it('calculates swim TSS from CSS/threshold speed with IF^3', () => {

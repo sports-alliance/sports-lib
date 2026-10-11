@@ -1,4 +1,6 @@
 import { TrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
+import type { DataEvent } from '../../../data/data.event';
+import { calculateNormalizedPower } from '../normalized-power';
 
 export interface TssSample {
   duration: number;
@@ -23,6 +25,8 @@ export interface TssInput {
   thresholdMet?: number;
   gender?: string;
   samples: TssSample[];
+  /** Explicit timer boundaries on the sample clock; used by rolling pace calculation. */
+  timerEvents?: DataEvent[];
 }
 
 export interface TssCalculationResult {
@@ -80,91 +84,36 @@ export class TssCalculator {
 
   public static calculatePaceTss(input: TssInput): TssCalculationResult | null {
     const thresholdSpeed = this.positive(input.functionalThresholdPace);
-    if (thresholdSpeed === null) {
+    const durationSeconds = this.positive(input.totalDurationWithoutPauses);
+    if (thresholdSpeed === null || durationSeconds === null) {
       return null;
     }
 
-    const samples = input.samples
-      .filter(sample => Number.isFinite(sample.speed))
-      .sort((left, right) => left.duration - right.duration);
-    if (!samples.length) {
-      return null;
-    }
+    const samples = input.samples.slice().sort((left, right) => left.duration - right.duration);
+    const adjustedSpeed = samples.map(sample => {
+      const speed = sample.speed;
+      if (!Number.isFinite(speed) || (speed as number) < 0) return NaN;
+      // A recorded stationary second remains zero even when grade is unavailable.
+      if (speed === 0) return 0;
+      const grade = this.resolveSampleGrade(sample, speed as number);
+      if (grade === null) return NaN;
+      const cost = this.runningCostMinetti(this.clamp(grade, -0.45, 0.45));
+      // Cost is energy per distance. Equal-energy flat speed increases with cost.
+      return Number.isFinite(cost) && cost > 0 ? (speed as number) * cost / 3.6 : NaN;
+    });
+    // Pace uses the same fourth-power normalization on the one-second grid as NP:
+    // retain zeroes, require complete windows and restart at gaps or timer pauses.
+    const normalizedGradedSpeed = calculateNormalizedPower(adjustedSpeed,
+      samples.map(sample => sample.duration), input.timerEvents);
+    if (!Number.isFinite(normalizedGradedSpeed) || normalizedGradedSpeed < 0) return null;
 
-    try {
-      const adjustedSpeedSamples = samples
-        .map(sample => {
-          const speed = sample.speed as number;
-          if (speed <= 0) {
-            return null;
-          }
-
-          const grade = this.resolveSampleGrade(sample, speed);
-          if (grade === null) {
-            return null;
-          }
-
-          const clampedGrade = this.clamp(grade, -0.45, 0.45);
-          const cost = this.runningCostMinetti(clampedGrade);
-          if (!Number.isFinite(cost) || cost <= 0) {
-            return null;
-          }
-
-          const adjustedSpeed = speed * (3.6 / cost);
-          if (!Number.isFinite(adjustedSpeed) || adjustedSpeed < 0) {
-            return null;
-          }
-
-          return {
-            duration: sample.duration,
-            adjustedSpeed
-          };
-        })
-        .filter((sample): sample is { duration: number; adjustedSpeed: number } => sample !== null);
-
-      if (!adjustedSpeedSamples.length) {
-        return null;
-      }
-
-      const adjusted30sList = adjustedSpeedSamples.map((sample, index) => {
-        if (sample.duration < 30) {
-          return null;
-        }
-
-        const index30SecAgo = Math.max(
-          0,
-          adjustedSpeedSamples.slice(0, index).findIndex(prev => sample.duration - prev.duration < 30)
-        );
-        const mean = this.average(adjustedSpeedSamples.slice(index30SecAgo, index + 1).map(item => item.adjustedSpeed));
-        return Number.isNaN(mean) ? null : mean;
-      });
-
-      let roll4Sum = 0;
-      let roll4Count = 0;
-      adjusted30sList.forEach(value => {
-        if (value !== null) {
-          roll4Sum += Math.pow(value, 4);
-          roll4Count += 1;
-        }
-      });
-      if (roll4Count === 0) {
-        return null;
-      }
-
-      const normalizedGradedSpeed = Math.pow(roll4Sum / roll4Count, 0.25);
-      const intensityFactor = normalizedGradedSpeed / thresholdSpeed;
-      const durationSeconds = adjustedSpeedSamples[adjustedSpeedSamples.length - 1].duration;
-      const tss = 100 * (durationSeconds / 3600) * Math.pow(intensityFactor, 2);
-
-      return this.applyRangeCheck({
-        calculationMethod: TrainingStressScoreMethod.PACE,
-        trainingStressScore: tss,
-        intensityFactor,
-        averageGradeAdjustedPace: normalizedGradedSpeed
-      });
-    } catch {
-      return null;
-    }
+    const intensityFactor = normalizedGradedSpeed / thresholdSpeed;
+    return this.applyRangeCheck({
+      calculationMethod: TrainingStressScoreMethod.PACE,
+      trainingStressScore: 100 * (durationSeconds / 3600) * Math.pow(intensityFactor, 2),
+      intensityFactor,
+      averageGradeAdjustedPace: normalizedGradedSpeed
+    });
   }
 
   public static calculateHrTss(input: TssInput): TssCalculationResult | null {
@@ -322,13 +271,6 @@ export class TssCalculator {
       return null;
     }
     return result;
-  }
-
-  private static average(values: number[]): number {
-    if (!values.length) {
-      return NaN;
-    }
-    return values.reduce((sum, value) => sum + value, 0) / values.length;
   }
 
   private static positive(value: number | null | undefined): number | null {

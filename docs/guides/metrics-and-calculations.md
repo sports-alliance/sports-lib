@@ -608,13 +608,25 @@ retain priority.
 
 PACE TSS (running/trail groups):
 
-- Uses Minetti running-cost grade adjustment, then NP-like 30s/4th-power normalization
+- Uses Minetti running-cost grade adjustment, then NP-like complete rolling 30-second/4th-power normalization.
+- Uphill increases equivalent flat speed; moderate downhill lowers it, while steep downhill follows the model's
+  increasing braking cost within the existing grade limits.
+- Recorded zero speed remains valid. Invalid readings, recording gaps and explicit timer boundaries reset the window;
+  paused readings and incomplete windows contribute no normalized-speed window. Without a complete window, pace is
+  unavailable and the existing eligible fallback order applies. An all-zero complete window can produce valid zero TSS.
+- The full eligible active duration supplies the duration factor; it is not the timestamp of the last positive-speed
+  reading. Explicit timer events identify pauses; aggregate duration does not invent the location of a recording gap.
 
 ```text
 Cost(g) = 155.4*g^5 - 30.4*g^4 - 43.3*g^3 + 46.3*g^2 + 19.5*g + 3.6
-AdjustedSpeed = Speed * (3.6 / Cost(g))
-TSS = 100 * (duration/3600) * IF^2
+AdjustedSpeed = Speed * (Cost(g) / 3.6)
+IF = NormalizedAdjustedSpeed / ThresholdSpeed
+TSS = 100 * (durationWithoutPauses/3600) * IF^2
 ```
+
+The cost ratio follows the equal-energy relation `Cost(g) * Speed = Cost(0) * AdjustedSpeed` from the
+[Minetti running-cost model](https://journals.physiology.org/doi/full/10.1152/japplphysiol.01177.2001).
+Forty active minutes at threshold pace with a twenty-minute explicit pause produce 66.7 TSS.
 
 SWIM_PACE TSS:
 
@@ -632,6 +644,16 @@ TSS = 100 * (duration/3600) * IF^3
 This correction does not change the existing duration or speed resolvers. Pool timer time can include rests, and length
 records can be inconsistent; consumers supplying a threshold must ensure speed and duration represent the intended
 swimming interval. The shared duration resolver and calorie-derived MET formula remain unchanged.
+
+FIT pool-length generation preserves a valid recorded HR stream instead of replacing it with lap/length averages.
+Recorded gaps remain gaps through stream/statistic regeneration on the parsed activity instance; this private source
+evidence is not serialized into Activity JSON. Length/lap HR is used only when valid recorded HR is
+wholly absent. The existing generated swimming speed, distance and stroke streams keep their behavior.
+
+FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
+unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.
+Conflicting/missing duration evidence does not invent a pause; a full-duration session can retain an implicit restart
+when a device omits the corresponding start event.
 
 MET TSS:
 
@@ -651,8 +673,10 @@ with actual method, score (null when unavailable), provenance, estimate flag and
 results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain
 corrected eligibility and evaluation metadata; ordinary JSON restoration does not silently rewrite them.
-Reparse original files to exclude explicit pauses from HR TSS and apply independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR
-selection and HR calibration consistency checks, as well as the swimming threshold correction, to historical workouts,
+Reparse original files to apply corrected running grade, zero-speed, window and pause handling, preserve recorded pool
+HR, and recover unambiguous multisport initial timer states. Reparse also applies explicit HR-pause exclusion,
+independent-FTP eligibility, rolling NP, full-duration power TSS, cycling maximum-HR selection, HR calibration consistency
+and independent swimming-threshold requirements to historical workouts,
 then refresh consuming applications' derived Training summaries. No canonical metric token, unit, or Activity JSON
 schema changes are required. Consumers displaying reason codes should handle the additive `missing-swim-threshold` code.
 

@@ -23,7 +23,8 @@ import { EventUtilities } from '../../../utilities/event.utilities';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber } from '../../../utilities/helpers';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
-import { findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
+import { findChildNode, findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
+import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
 import { DataTotalCycles } from '../../../../data/data-total-cycles';
 import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { ActivityUtilities } from '../../../utilities/activity.utilities';
@@ -138,6 +139,18 @@ export class EventImporterTCX {
             Number.isFinite(findTrackPointExtensionValue(trackPointElement.childNodes, 'Watts'))
           ) !== -1;
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
+        captureRecordedPowerEvidence(activity, trackPointElements.flatMap(point => {
+          const time = point.getElementsByTagName('Time')[0];
+          if (!time) return [];
+          // Follow the same extension selection as the mapper, without allowing
+          // an absent or blank Watts field to prove a recorded zero-power window.
+          const extensions = findChildNode(point.childNodes, 'Extensions');
+          const tpx = extensions && findChildNode(extensions.childNodes, /TPX$/gi);
+          const watts = tpx && findChildNode(tpx.childNodes, /Watts$/);
+          const rawPower = watts?.firstChild?.nodeValue;
+          return [{ timestamp: time.textContent || '',
+            power: typeof rawPower === 'string' && rawPower.trim() !== '' ? Number(rawPower) : undefined }];
+        }));
 
         TCXSampleMapper
           .filter(sampleMapping => isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection))

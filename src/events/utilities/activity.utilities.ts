@@ -1,4 +1,5 @@
 import { calculateNormalizedPower } from './normalized-power';
+import { hasRecordedZeroPowerWindow } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
@@ -2456,8 +2457,11 @@ export class ActivityUtilities {
       return null;
     }
 
-    const computedNormalizedPower = this.toPositiveFiniteNumber(calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents()));
-    if (computedNormalizedPower === null) {
+    // Unlike a zero summary placeholder, a complete recorded window can prove
+    // zero NP. The rolling calculation returns NaN when coverage is unavailable.
+    const computedNormalizedPower = calculateNormalizedPower(powerStream, timeStream, activity.getAllEvents());
+    if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0 ||
+      (computedNormalizedPower === 0 && !hasRecordedZeroPowerWindow(activity, powerStream, timeStream))) {
       return null;
     }
 

@@ -115,6 +115,8 @@ parsed file without requiring athlete settings. Load editors can request one-dec
 Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with
 complete rolling 30-second windows. MTB/downhill/enduro use biking-specific maximum HR. Internally inconsistent
 percent-max-HR threshold settings are rejected, preserving imported scores and eligible fallbacks.
+With independent FTP and duration, complete eligible recorded zero-power windows now yield POWER TSS 0. A zero
+summary or zeros inserted for missing FIT, TCX or GPX power fields cannot establish that evidence.
 
 Calculated HR TSS excludes explicit timer pauses and readings inside them across eligible sports, including recording
 gaps spanning a pause. Without timer events, existing elapsed-time integration remains in use; no pause is guessed from
@@ -124,6 +126,10 @@ Running pace TSS uses the corrected Minetti cost ratio, full eligible active dur
 30-second windows that restart at pauses and recording gaps. Pool FIT files preserve recorded HR, including gaps,
 instead of replacing it with lap averages. Multisport initial pauses are retained when session timing unambiguously
 corroborates the prior timer state.
+
+Pool FIT imports also support single-lap length streams, retain final boundary/rest lengths, and repair invalid pool
+summary end times using explicit file durations. Existing single-lap recorded streams retain priority. Generated rest
+lengths add no distance, and ambiguous ownership cannot establish a complete generated distance total.
 
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
 complete valid session HR calibration can use it despite lower-priority zero defaults. Imported TSS remains unchanged.

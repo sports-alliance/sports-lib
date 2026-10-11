@@ -574,6 +574,12 @@ Source provenance stays private on the parsed instance, survives clearing/regene
 serialized into ordinary Activity JSON. Missing calibration reports `missing-power-inputs` and falls through to eligible
 HR, pace or MET candidates; no threshold is inferred from the ride or its intensity factor.
 
+Complete eligible recorded zero-power windows can establish NP 0 and POWER TSS 0 with valid independent FTP and
+duration. A zero NP summary alone cannot establish this: missing, gappy, short or paused-only recordings still need
+an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX importers are not recorded evidence. This private evidence
+survives regeneration on the parsed instance and does not add fields to Activity JSON. Positive device NP keeps its
+existing precedence; imported TSS, including zero, remains authoritative.
+
 HR TSS:
 
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
@@ -648,7 +654,14 @@ swimming interval. The shared duration resolver and calorie-derived MET formula 
 FIT pool-length generation preserves a valid recorded HR stream instead of replacing it with lap/length averages.
 Recorded gaps remain gaps through stream/statistic regeneration on the parsed activity instance; this private source
 evidence is not serialized into Activity JSON. Length/lap HR is used only when valid recorded HR is
-wholly absent. The existing generated swimming speed, distance and stroke streams keep their behavior.
+wholly absent. A single length-bearing lap can supply generated streams, while its existing recorded streams retain
+priority. Pool summary end times that are missing or do not follow their start can be repaired from valid positive
+file durations before assigning lengths, retaining same-session recorded samples within the next session and duration
+bounds. Unambiguous start-time windows and compatible explicit length indexes keep
+boundary lengths in their session/lap, including final rests; conflicting ownership is not guessed. Generated distance
+is allocated to active lengths only, and idle lengths add no distance or speed. An incomplete/ambiguous length
+assignment cannot establish a complete generated distance total. If lap timing leaves positive recorded lap distance
+without an assigned active length, use the recorded distance stream when available instead of a partial generated total.
 
 FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
 unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.

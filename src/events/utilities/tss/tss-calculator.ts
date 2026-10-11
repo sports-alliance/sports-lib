@@ -60,7 +60,7 @@ export class TssCalculator {
 
   public static calculatePowerTss(input: TssInput): TssCalculationResult | null {
     const functionalThresholdPower = this.positive(input.functionalThresholdPower);
-    const normalizedPower = this.positive(input.normalizedPower);
+    const normalizedPower = input.normalizedPower === 0 ? 0 : this.positive(input.normalizedPower);
     const totalDurationWithoutPauses = this.positive(input.totalDurationWithoutPauses);
     if (functionalThresholdPower === null || normalizedPower === null || totalDurationWithoutPauses === null) {
       return null;

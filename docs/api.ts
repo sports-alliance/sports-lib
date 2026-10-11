@@ -506,11 +506,14 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
 
 /**
  * Parse-time TSS policies and diagnostics. Power requires independent file/override FTP;
- * same-ride estimates and restored FTP stats are not calibration. Swimming never assumes its workout speed
- * is threshold speed; consumers can explain the additive `missing-swim-threshold` reason.
+ * same-ride estimates and restored FTP stats are not calibration.
+ * Complete eligible recorded zero-power windows can produce POWER TSS 0; bare zero summaries and missing file
+ * power fields cannot. Recorded-power evidence remains private to the parsed instance.
+ * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
- * FIT pool imports retain recorded HR and gaps; multisport timing preserves unambiguous initial pauses.
+ * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
+ * multisport timing preserves unambiguous initial pauses.
  */
 export type {
   TrainingStressScorePreference,

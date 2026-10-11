@@ -28,6 +28,25 @@ describe('TssCalculator', () => {
     expect(result!.trainingStressScore).toBeCloseTo(expectedTss, 6);
   });
 
+  it('accepts an explicitly supplied zero NP with valid FTP and duration', () => {
+    expect(TssCalculator.calculatePowerTss({ totalDurationWithoutPauses: 3600,
+      functionalThresholdPower: 250, normalizedPower: 0, samples: [] }))
+      .toEqual({ calculationMethod: TrainingStressScoreMethod.POWER,
+        trainingStressScore: 0, intensityFactor: 0, normalizedPower: 0 });
+  });
+
+  it.each([undefined, NaN, Infinity, -1])('rejects missing or invalid NP %s rather than treating it as zero', normalizedPower => {
+    expect(TssCalculator.calculatePowerTss({ totalDurationWithoutPauses: 3600,
+      functionalThresholdPower: 250, normalizedPower, samples: [] })).toBeNull();
+  });
+
+  it.each([0, -1, NaN, Infinity])('still requires valid FTP and duration for zero NP (%s)', invalid => {
+    expect(TssCalculator.calculatePowerTss({ totalDurationWithoutPauses: 3600,
+      functionalThresholdPower: invalid, normalizedPower: 0, samples: [] })).toBeNull();
+    expect(TssCalculator.calculatePowerTss({ totalDurationWithoutPauses: invalid,
+      functionalThresholdPower: 250, normalizedPower: 0, samples: [] })).toBeNull();
+  });
+
   it('calculates HR TSS using Banister TRIMP when max/rest HR exist', () => {
     const hr = 170;
     const samples = Array.from({ length: 3600 }, (_value, index) => ({ duration: index + 1, hr }));

@@ -1,4 +1,5 @@
 import { fileHeartRateCalibration, fileFunctionalThresholdPower } from '../../../utilities/tss/tss-evaluation';
+import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
@@ -312,29 +313,7 @@ export class EventImporterFIT {
           return;
         }
 
-        // Check if we have length data at the top level (new parser behavior or missing mapping)
-        if (fitDataObject.lengths && fitDataObject.lengths.length > 0) {
-          fitDataObject.sessions?.forEach((session: any) => {
-            const sessionStartTime = new Date(session.start_time).getTime();
-            const sessionEndTime = sessionStartTime + (session.total_elapsed_time || 0) * 1000;
-
-            session.lengths = fitDataObject.lengths.filter((length: any) => {
-              const lengthTime = new Date(length.timestamp || length.start_time).getTime();
-              return lengthTime >= sessionStartTime && lengthTime < sessionEndTime;
-            });
-
-            // Also distribute to laps
-            session.laps?.forEach((lap: any) => {
-              const lapStartTime = new Date(lap.start_time).getTime();
-              const lapEndTime = lapStartTime + (lap.total_elapsed_time || 0) * 1000;
-
-              lap.lengths = fitDataObject.lengths.filter((length: any) => {
-                const lengthTime = new Date(length.timestamp || length.start_time).getTime();
-                return lengthTime >= lapStartTime && lengthTime < lapEndTime;
-              });
-            });
-          });
-        }
+        this.prepareSwimLengths(fitDataObject, options);
 
         // Check for jumps data at the top level
         if (fitDataObject.jumps && fitDataObject.jumps.length > 0) {
@@ -553,7 +532,8 @@ export class EventImporterFIT {
           const isLengthsBased = this.isLengthsBased(sessionObject);
           const recordedSamples = fitDataObject.records.filter((record: any) =>
             record.timestamp >= activity.startDate && record.timestamp <= activity.endDate);
-          const recordedHeartRate = isLengthsBased ? recordedSamples.filter((record: any) =>
+          captureRecordedPowerEvidence(activity, recordedSamples);
+          const recordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) ? recordedSamples.filter((record: any) =>
             Number.isFinite(record.heart_rate) && record.heart_rate > 0) : [];
           const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, options) : recordedSamples;
 
@@ -565,10 +545,21 @@ export class EventImporterFIT {
               )
             ) !== -1;
           const samplesInfo = { hasPowerMeter: hasPowerMeter };
-
-          this.addSampleStreamsToActivity(activity, samples, recordedHeartRate.length
-            ? allowedSampleMappings.filter(mapping => mapping.dataType !== DataHeartRate.type)
-            : allowedSampleMappings, samplesInfo);
+          // Single-lap files previously used their records directly. Keep those
+          // recorded stream types and use newly supported lengths only for missing types.
+          const recordedHasPower = recordedSamples.some((sample: any) =>
+            Number.isFinite(isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power));
+          const preserveRecordedTypes = isLengthsBased && sessionObject.laps.filter((lap: any) => lap.lengths?.length).length === 1;
+          const missingGeneratedDistance = isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
+          const recordedMappings = isLengthsBased ? allowedSampleMappings.filter(mapping =>
+            mapping.dataType !== DataHeartRate.type &&
+            (preserveRecordedTypes || (mapping.dataType === DataDistance.type && missingGeneratedDistance)) &&
+            recordedSamples.some((sample: any) => isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower })))) : [];
+          this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings.filter(mapping =>
+            !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) && !recordedMappings.includes(mapping)), samplesInfo);
+          if (recordedMappings.length) {
+            this.addSampleStreamsToActivity(activity, recordedSamples, recordedMappings, { hasPowerMeter: recordedHasPower });
+          }
           if (recordedHeartRate.length) {
             this.addSampleStreamsToActivity(activity, recordedHeartRate,
               allowedSampleMappings.filter(mapping => mapping.dataType === DataHeartRate.type), samplesInfo);
@@ -682,7 +673,7 @@ export class EventImporterFIT {
    * @private
    */
   private static isLengthsBased(sessionObject: any): boolean {
-    return sessionObject.laps?.filter((lap: any) => lap.lengths?.length).length > 1;
+    return sessionObject.laps?.some((lap: any) => lap.lengths?.length) ?? false;
   }
 
   /** Preserve a pause crossing a sport boundary only when explicit timer events
@@ -768,55 +759,60 @@ export class EventImporterFIT {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
     }
 
-    let samples: any[] = [];
+    const samples: any[] = [];
+    const laps = sessionObject.laps as any[];
+    const poolLength = this.getPoolLengthMeters(sessionObject);
+    const activeCounts = new Map<number, number>();
+    laps.forEach((lap, index) => activeCounts.set(index + 1,
+      (lap.lengths || []).filter((length: any) => this.getSwimLengthType(length.length_type) === 'active').length));
+    const lengths = laps.flatMap((lap, index) => (lap.lengths || []).map((length: any) => ({ length, lap, lapIndex: index + 1 })))
+      .sort((a, b) => +this.getSwimLengthStartDate(a.length)! - +this.getSwimLengthStartDate(b.length)!);
+    let distance = 0;
+    const completeOwnership = !(sessionObject.lengths || []).some((length: any) =>
+      this.getSwimLengthType(length.length_type) === 'active' && this.getLengthLapIndex(length, laps) === null);
+    // Some providers place a swim length before its lap starts, leaving a
+    // positive-distance lap with only rest. Such ownership cannot establish a
+    // complete counter: retain recorded distance instead, or leave it absent.
+    const missingActiveLap = laps.some((lap, index) => (this.getNumericValue(lap.total_distance) ?? 0) > 0 &&
+      !activeCounts.get(index + 1));
+    let distanceKnown = completeOwnership && !missingActiveLap && Array.from(activeCounts.values()).some(count => count > 0);
 
-    // Loop on every laps to catch every lengths where data is (speed, cadence, hr, ...)
-    sessionObject.laps.forEach((lap: any) => {
-      // Loop on every laps
-      if (lap.lengths?.length) {
-        // Get length in meters from lap total distance and total number of lengths
-        // We will use it to generate the distance stream below
-        const lengthMeters = lap.total_distance / lap.lengths.length;
-
-        // For each length of every laps build the streams data we will need for a later use
-        lap.lengths.forEach((length: any) => {
-          // Resolve start/end date of current length
-          const lengthStartDate: Date = length.start_time;
-          const lengthDuration = length.total_timer_time || length.total_elapsed_time || 0;
-          const lengthEndDate = new Date(lengthStartDate.getTime() + lengthDuration * 1000);
-
-          // We check if length is valid comparing to max activity duration
-          if (lengthDuration > options.maxActivityDurationDays * 24 * 60 * 60) {
-            return;
-          }
-
-          if (lengthEndDate.getTime() <= lengthStartDate.getTime()) {
-            return;
-          }
-
-          // Generate a stream from length start date to end date filled by null values
-          const streamLength = ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate);
-          let lengthStream = Array(streamLength).fill(null);
-
-          // Define distance step to be used for distance stream
-          const lengthStepSize = lengthMeters / (lengthStream.length - 1);
-
-          // Generate the length stream based on data we have on current length
-          lengthStream = lengthStream.map((value, index) => {
-            return {
-              timestamp: new Date(lengthStartDate.getTime() + index * 1000),
-              distance: (samples[samples.length - 1]?.distance || 0) + lengthStepSize * index,
-              speed: length.avg_speed || lap.avg_speed,
-              cadence: length.avg_cadence || length.avg_swimming_cadence || lap.avg_cadence,
-              heart_rate: length.avg_heart_rate || lap.avg_heart_rate
-            };
-          });
-
-          // Append to existing samples
-          samples = samples.concat(lengthStream);
+    for (const { length, lap, lapIndex } of lengths) {
+      const lengthStartDate = this.getSwimLengthStartDate(length);
+      if (!lengthStartDate) {
+        continue;
+      }
+      const lengthEndDate = this.getSwimLengthEndDate(length, lengthStartDate);
+      const duration = (+lengthEndDate - +lengthStartDate) / 1000;
+      if (duration <= 0 || duration > options.maxActivityDurationDays * 24 * 60 * 60) {
+        continue;
+      }
+      const idle = this.getSwimLengthType(length.length_type) === 'idle';
+      // Preserve the established lap-distance source for generated streams;
+      // the pool setting can be rounded or disagree with recorded lap totals.
+      const lapDistance = this.getNumericValue(lap.total_distance);
+      const activeCount = activeCounts.get(lapIndex) || 0;
+      const lengthMeters = idle ? 0 : lapDistance !== null && lapDistance >= 0 && activeCount > 0
+        ? lapDistance / activeCount : this.getSwimLengthDistance(length, lap, lapIndex, poolLength, activeCounts);
+      // Unknown distance must not become a fabricated zero or a partial total.
+      distanceKnown = distanceKnown && lengthMeters !== null && lengthMeters >= 0;
+      const streamLength = ActivityUtilities.getDataLength(lengthStartDate, lengthEndDate);
+      for (let index = 0; index < streamLength; index++) {
+        samples.push({
+          timestamp: new Date(+lengthStartDate + index * 1000),
+          distance: distanceKnown ? distance + lengthMeters! * index / (streamLength - 1) : undefined,
+          speed: idle ? 0 : length.avg_speed ?? lap.avg_speed,
+          cadence: idle ? 0 : length.avg_cadence ?? length.avg_swimming_cadence ?? lap.avg_cadence,
+          heart_rate: completeOwnership ? length.avg_heart_rate || lap.avg_heart_rate : undefined
         });
       }
-    });
+      if (distanceKnown) {
+        distance += lengthMeters!;
+      }
+    }
+    if (!distanceKnown) {
+      samples.forEach(sample => delete sample.distance);
+    }
     return samples;
   }
 
@@ -2205,29 +2201,138 @@ export class EventImporterFIT {
     return this.getDateFromValue(length?.timestamp) || startDate;
   }
 
+  /** Repair broken pool summary ends before either ownership or activity/lap construction. */
+  private static prepareSwimLengths(fitDataObject: any, options: ActivityParsingOptions): void {
+    if (!Array.isArray(fitDataObject.lengths) || !fitDataObject.lengths.length) {
+      return;
+    }
+    const sessions = fitDataObject.sessions as any[];
+    const maxDuration = options.maxActivityDurationDays * 24 * 60 * 60;
+    const repairEnd = (summary: any, recordEnd?: Date): void => {
+      const start = this.getDateFromValue(summary.start_time);
+      const end = this.getDateFromValue(summary.timestamp);
+      const elapsed = this.getNumericValue(summary.total_elapsed_time);
+      const duration = elapsed !== null && elapsed > 0 ? elapsed : this.getNumericValue(summary.total_timer_time);
+      if (start && (!end || +end <= +start) && duration !== null && duration > 0 && duration <= maxDuration) {
+        summary.timestamp = new Date(Math.max(+start + duration * 1000, recordEnd ? +recordEnd : 0));
+      }
+    };
+    sessions.forEach(session => {
+      const isPoolSession = this.getFitEnumValue(session.sport) === 'swimming' ||
+        this.getFitEnumValue(session.sport) === '5' || this.getFitEnumValue(session.sub_sport) === 'lap_swimming' ||
+        (this.getPoolLengthMeters(session) ?? 0) > 0;
+      if (isPoolSession) {
+        const start = this.getDateFromValue(session.start_time);
+        const nextStarts = sessions.filter(other => other !== session).map(other => this.getDateFromValue(other.start_time))
+          .filter((date): date is Date => !!date && !!start && +date > +start);
+        const limit = start ? Math.min(+start + maxDuration * 1000, ...nextStarts.map(date => +date)) : 0;
+        const recordEnd = start ? fitDataObject.records.reduce((last: Date | undefined, record: any) => {
+          const date = this.getDateFromValue(record.timestamp);
+          return date && +date >= +start && +date < limit && (!last || +date > +last) &&
+            !sessions.some(other => other !== session && this.isDateInLapWindow(date, other)) ? date : last;
+        }, undefined) : undefined;
+        repairEnd(session, recordEnd);
+      }
+      session.lengths = [];
+      session.laps.forEach((lap: any) => {
+        if (isPoolSession) {
+          repairEnd(lap);
+        }
+        lap.lengths = [];
+      });
+    });
+    for (const length of fitDataObject.lengths) {
+      const start = this.getSwimLengthStartDate(length);
+      if (!start) {
+        continue;
+      }
+      // A length belongs to the interval in which it starts. FIT timestamp is an
+      // ending timestamp, so using it drops boundary lengths and moves them to later laps.
+      const owners = sessions.filter(session => this.isDateInLapWindow(start, session));
+      if (owners.length !== 1) {
+        continue;
+      }
+      const session = owners[0];
+      session.lengths.push(length);
+      const lapIndex = this.getLengthLapIndex(length, session.laps);
+      if (lapIndex !== null) {
+        session.laps[lapIndex - 1].lengths.push(length);
+      }
+    }
+  }
+
+  private static getSwimLengthStartDate(length: any): Date | null {
+    const start = this.getDateFromValue(length?.start_time);
+    if (start) {
+      return start;
+    }
+    const end = this.getDateFromValue(length?.timestamp);
+    const duration = this.getNumericValue(length?.total_elapsed_time) ?? this.getNumericValue(length?.total_timer_time);
+    return end && duration !== null && duration > 0 ? new Date(+end - duration * 1000) : null;
+  }
+
   private static getLapWindow(lap: any): { startDate: Date | null; endDate: Date | null } {
     const startDate = this.getDateFromValue(lap?.start_time);
     const elapsedTime = this.getNumericValue(lap?.total_elapsed_time) ?? this.getNumericValue(lap?.total_timer_time);
-    const endDate =
-      this.getDateFromValue(lap?.timestamp) ||
-      (startDate && elapsedTime !== null ? new Date(startDate.getTime() + elapsedTime * 1000) : null);
-
+    const timestamp = this.getDateFromValue(lap?.timestamp);
+    const endDate = startDate && timestamp && +timestamp > +startDate ? timestamp :
+      (startDate && elapsedTime !== null && elapsedTime > 0 ? new Date(+startDate + elapsedTime * 1000) : null);
     return { startDate, endDate };
   }
 
+  private static isDateInLapWindow(date: Date, lap: any): boolean {
+    const { startDate, endDate } = this.getLapWindow(lap);
+    return !!startDate && !!endDate && +date >= +startDate && +date < +endDate;
+  }
+
   private static getLengthLapIndex(length: any, laps: any[]): number | null {
-    const lengthStartDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
-    if (!lengthStartDate) {
+    const start = this.getSwimLengthStartDate(length);
+    if (!start) {
       return null;
     }
-
-    const lengthTime = lengthStartDate.getTime();
-    const lapIndex = laps.findIndex(lap => {
-      const { startDate, endDate } = this.getLapWindow(lap);
-      return !!startDate && !!endDate && lengthTime >= startDate.getTime() && lengthTime < endDate.getTime();
-    });
-
-    return lapIndex === -1 ? null : lapIndex + 1;
+    let timeOwners = laps.map((lap, index) => ({ lap, index }))
+      .filter(({ lap }) => this.isDateInLapWindow(start, lap));
+    // Whole-second FIT starts can overlap a previous fractional-duration end.
+    // Only resolve this bounded rounding overlap at the next lap's exact start.
+    if (timeOwners.length > 1) {
+      const startsHere = timeOwners.filter(({ lap }) => +this.getLapWindow(lap).startDate! === +start);
+      if (startsHere.length === 1 && timeOwners.every(({ lap, index }) => index === startsHere[0].index ||
+        +this.getLapWindow(lap).endDate! - +start <= 1000)) {
+        timeOwners = startsHere;
+      }
+    }
+    const messageIndex = this.getMessageIndexValue(length?.message_index);
+    if (messageIndex !== null) {
+      const indexOwners = laps.map((lap, index) => ({ lap, index })).filter(({ lap }) => {
+        const first = this.getNumericValue(lap.first_length_index);
+        const count = this.getNumericValue(lap.num_lengths);
+        return first !== null && Number.isInteger(first) && first >= 0 && count !== null && Number.isInteger(count) &&
+          count > 0 && messageIndex >= first && messageIndex < first + count;
+      });
+      if (indexOwners.length === 1) {
+        const window = this.getLapWindow(indexOwners[0].lap);
+        const end = this.getSwimLengthEndDate(length, start);
+        // An explicit index can own a length crossing a lap boundary (for
+        // example, a pause within that length), but still needs temporal overlap.
+        if (window.startDate && window.endDate && +start < +window.endDate && +end > +window.startDate) {
+          return indexOwners[0].index + 1;
+        }
+        return null;
+      }
+      if (indexOwners.length > 1 || timeOwners.length !== 1) {
+        return null;
+      }
+      const ownLap = timeOwners[0].lap;
+      const ownFirst = this.getNumericValue(ownLap.first_length_index);
+      const ownCount = this.getNumericValue(ownLap.num_lengths);
+      const contradictsOwnRange = ownFirst !== null && Number.isInteger(ownFirst) && ownFirst >= 0 &&
+        ownCount !== null && Number.isInteger(ownCount) && ownCount > 0 &&
+        (messageIndex < ownFirst || messageIndex >= ownFirst + ownCount);
+      if (contradictsOwnRange) {
+        return null;
+      }
+    }
+    return timeOwners.length === 1 ? timeOwners[0].index + 1 : null;
   }
 
   private static getSwimLengthDistance(
@@ -2290,7 +2395,7 @@ export class EventImporterFIT {
 
     const lengths = rawLengths
       .filter((length: any) => {
-        const lengthDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
+        const lengthDate = this.getSwimLengthStartDate(length);
         return (
           !!lengthDate &&
           lengthDate.getTime() >= sessionStartDate.getTime() &&
@@ -2298,8 +2403,8 @@ export class EventImporterFIT {
         );
       })
       .sort((a: any, b: any) => {
-        const aDate = this.getDateFromValue(a?.start_time) || this.getDateFromValue(a?.timestamp);
-        const bDate = this.getDateFromValue(b?.start_time) || this.getDateFromValue(b?.timestamp);
+        const aDate = this.getSwimLengthStartDate(a);
+        const bDate = this.getSwimLengthStartDate(b);
         return (aDate?.getTime() || 0) - (bDate?.getTime() || 0);
       });
 
@@ -2324,7 +2429,7 @@ export class EventImporterFIT {
     });
 
     lengths.forEach((length: any, lengthIndex: number) => {
-      const startDate = this.getDateFromValue(length?.start_time) || this.getDateFromValue(length?.timestamp);
+      const startDate = this.getSwimLengthStartDate(length);
       if (!startDate) {
         return;
       }

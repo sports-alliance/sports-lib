@@ -237,7 +237,7 @@ describe('EventImporterFIT native diving messages', () => {
     const startTime = FitEncoder.toFitTimestamp(new Date('2026-08-22T10:00:00.000Z'));
     const endTime = startTime + 1000;
 
-    encoder.writeMessage(0, [enum8(0, 1), uint16(1, 1), uint32(4, startTime)]);
+    encoder.writeMessage(0, [enum8(0, 4), uint16(1, 1), uint32(4, startTime)]);
     encoder.writeMessage(
       18,
       [

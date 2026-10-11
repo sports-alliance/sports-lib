@@ -145,7 +145,8 @@ import { fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 export class EventImporterSuuntoJSON {
   private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
 
-  /** Import recorded pause/resume positions as timer events, independently of aggregate duration. */
+  /** Import recorded timer events and leg-owned zones. Workout speed limits are
+   * shared only across one sport; mixed-sport legs require their own limits. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
@@ -187,6 +188,9 @@ export class EventImporterSuuntoJSON {
             return windowObj.Window.Type === 'Activity';
           }).map((activityWindow: any) => activityWindow.Window)
         : [];
+      const activityTypes = activityStartEventSamples.map((sample: any) =>
+        ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[sample.Events[0].Activity.ActivityType]]);
+      const singleSport = new Set(activityTypes).size === 1;
 
       // Get the lap windows
       const lapWindows = eventJSONObject.DeviceLog.Windows
@@ -208,11 +212,7 @@ export class EventImporterSuuntoJSON {
             activityStartEventSamples.length - 1 === index
               ? new Date(fallbackEndTime)
               : new Date(activityStartEventSamples[index + 1].TimeISO8601),
-            ActivityTypes[
-              <keyof typeof ActivityTypes>(
-                ImporterSuuntoActivityIds[activityStartEventSample.Events[0].Activity.ActivityType]
-              )
-            ],
+            activityTypes[index],
             creator,
             options
           );
@@ -248,8 +248,9 @@ export class EventImporterSuuntoJSON {
               (activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()
             )
           );
-          // Threshold settings may be shared, but durations belong to their leg.
-          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header, activityWindows[index], activityStartEventSamples.length === 1);
+          // A global speed threshold cannot calibrate different sports in the same workout.
+          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header, activityWindows[index],
+            activityStartEventSamples.length === 1, singleSport);
 
           // Add the fused altitude event
           if (fusedAltitudeEventSamples.some((sample: any) => {
@@ -487,7 +488,10 @@ export class EventImporterSuuntoJSON {
     return Number.isFinite(numeric) && numeric >= 0 ? numeric : undefined;
   }
 
-  private static setIntensityZones(activity: ActivityInterface, header: any, window: any, singleActivity: boolean) {
+  private static setIntensityZones(activity: ActivityInterface, header: any, window: any,
+    singleActivity: boolean, singleSport: boolean) {
+    const localSportMatches = window?.ActivityId === undefined ||
+      ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[window.ActivityId]] === activity.type;
     const durationTypes = [
       [DataHeartRateZoneOneDuration, DataHeartRateZoneTwoDuration, DataHeartRateZoneThreeDuration,
         DataHeartRateZoneFourDuration, DataHeartRateZoneFiveDuration],
@@ -511,7 +515,11 @@ export class EventImporterSuuntoJSON {
           activity.addStat(new durationTypes[mappingIndex][index - 1](duration));
         }
         const limitKey = `Zone${index}LowerLimit`;
-        const limit = this.getNonnegativeNumber(local?.[limitKey] ?? parent?.[limitKey]);
+        // Keep durations and thresholds separate: a workout-level speed limit has
+        // no verified sport scope in a mixed workout. Do not copy it into leg JSON,
+        // where regeneration would otherwise turn it into a swimming/running threshold.
+        const parentLimit = mapping.dataType !== DataSpeed.type || singleSport ? parent?.[limitKey] : undefined;
+        const limit = this.getNonnegativeNumber((localSportMatches ? local?.[limitKey] : undefined) ?? parentLimit);
         if (limit !== undefined) {
           (zones as any)[`zone${index}LowerLimit`] = mapping.convertSampleValue(limit);
         }

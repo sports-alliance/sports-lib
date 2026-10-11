@@ -41,6 +41,10 @@ const distanceMetres = activity.getDistance().getValue();
 
 See [Import activities](https://sports-alliance.github.io/sports-lib/documents/Import_activities.html) for the other supported formats and parsing options.
 
+FIT activity imports reject files explicitly declared as monitoring, settings, courses, or other non-activity types.
+Use `SportsLib.importRoutesFromFit` for FIT courses. Completed `activity_summary` files retain their recorded sessions;
+legacy activity files without a declared file type retain recovery.
+
 ## Package formats
 
 Sports Lib 21 publishes module-preserving ESM for `import` consumers and per-module CommonJS for `require` consumers.

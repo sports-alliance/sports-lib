@@ -23,6 +23,11 @@ npm install @sports-alliance/sports-lib @xmldom/xmldom
 
 ## GPX
 
+Heart-rate observations include direct `heartrate`, Garmin track-point extensions and direct ClueTrust GPXDATA `hr`
+elements in `http://www.cluetrust.com/XML/GPXDATA/1/0`, as used by COROS. The namespace URI establishes this alias;
+an arbitrary XML prefix or unrelated `hr` element does not. Original-file reparsing recovers previously missed samples
+and related summaries. HR observations alone do not provide the calibration required for HR TSS.
+
 ```ts
 import { SportsLib } from '@sports-alliance/sports-lib';
 import { DOMParser } from '@xmldom/xmldom';
@@ -47,6 +52,14 @@ const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
 
 ### Recorded timing and sensor coverage
+
+`importFromFit` accepts recorded activity files and completed `activity_summary` files with explicit sessions. Summary
+files can retain session values without record streams, as in Wahoo exports, but cannot synthesize missing sessions.
+Explicit non-activity `file_id.type` values, including monitoring, settings, planned workouts and courses, reject with
+`ParsingEventLibError`, including conflicting file IDs. Missing file IDs or type fields still permit legacy
+activity/sessionless recovery. Use `importRoutesFromFit` for courses; this does not change route parsing.
+Existing wrongly imported monitoring files fail original-file reparsing instead of producing replacement workouts;
+consumers must retain or separately review their existing stored data rather than automatically delete it.
 
 FIT combines complementary records at the same absolute timestamp before padding missing sensor fields. Later
 explicit values retain precedence; an absent field does not erase another record's observation. Pool swims with
@@ -245,6 +258,12 @@ kayaking, canoeing, paddling, and stand-up paddling expose `Stroke Rate` in `spm
 from being emitted for one activity.
 
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
+
+In mixed-sport Suunto files, a header speed-zone boundary is not owned by every leg. Only applicable leg-local speed
+boundaries populate those legs' intensity zones; local durations remain available. A header threshold remains eligible
+when all legs have one resolved sport type. Without an independent running/swimming threshold, pace TSS falls back
+through the existing eligible methods, or reports unavailable. Overrides and imported scores retain their usual priority.
+Reparse original Suunto files to correct older copied boundaries; saved JSON cannot establish their original ownership.
 
 Native JSON hydration preserves explicit stats, except terrain summaries excluded for the Diving activity group, and
 fills missing pace, swim-pace, and grade-adjusted-pace summaries from compatible speed summaries on events, activities,

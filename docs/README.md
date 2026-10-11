@@ -13,6 +13,13 @@ FIT imports preserve credible per-session timestamps when duration summaries are
 and load scoped to their own legs. See [recorded timing and sensor coverage](guides/importing-activities.md#recorded-timing-and-sensor-coverage)
 for recovery behavior and reparsing existing activities.
 
+Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
+Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.
+Suunto mixed-sport pace thresholds must belong to their leg; pool-distance recovery avoids adding a cumulative final
+lap total twice when independent length and recorded-distance evidence agree. GPX imports retain ClueTrust GPXDATA
+heart-rate extensions, including COROS exports. These corrections require original-file reparsing and derived-summary
+refreshes for affected activities; existing non-activity imports need separate consumer review, not automatic deletion.
+
 Provider-neutral Health and sleep `Data*` classes cover movement, energy, cardiovascular values, wellness, body
 composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. Their canonical tokens, units, display
 formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain

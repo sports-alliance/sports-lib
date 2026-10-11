@@ -277,7 +277,8 @@ export class EventImporterFIT {
 
   /** Import file-scoped calibration and combine complementary records before
    * sensor padding. Recorded pool HR retains explicit dropout boundaries;
-   * generated swim samples cannot extend past their owning lap or session. */
+   * generated swim samples cannot extend past their owning lap or session.
+   * Reject explicit non-activity file types before recovering missing sessions. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -306,6 +307,25 @@ export class EventImporterFIT {
           return;
         }
         if (!fitDataObject) {
+          reject(new EmptyEventLibError());
+          return;
+        }
+
+        // A monitoring/settings/course file can contain timestamped events, but
+        // those events are not evidence of a recorded workout. Keep recovery for
+        // legacy activity files with a missing file type, while rejecting any
+        // explicit conflicting or non-activity declaration before synthesis.
+        const fileTypes = (fitDataObject.file_ids ?? []).map((fileId: any) => fileId.type)
+          .filter((type: any) => type !== undefined && type !== null);
+        if (fileTypes.some((type: any) => !['activity', 'activity_summary', 4, 20].includes(type))) {
+          reject(new ParsingEventLibError('FIT file is not an activity file'));
+          return;
+        }
+        // Wahoo exports completed workouts as activity_summary with a session
+        // and no records. Retain those explicit summaries without synthesizing
+        // a workout from unrelated timestamped messages in a sessionless file.
+        if (fileTypes.some((type: any) => type === 'activity_summary' || type === 20) &&
+          !fitDataObject.sessions?.length) {
           reject(new EmptyEventLibError());
           return;
         }
@@ -554,7 +574,11 @@ export class EventImporterFIT {
             Number.isFinite(record.heart_rate) && record.heart_rate > 0);
           const recordedHeartRate = hasRecordedHeartRate ? recordedSamples.filter((record: any) =>
             record.heart_rate !== undefined && record.heart_rate !== null) : [];
-          const samples = isLengthsBased ? this.generateSamplesFromLengths(sessionObject, activity, options) : recordedSamples;
+          const cumulativePoolDistance = isLengthsBased
+            ? this.resolveCumulativePoolDistance(sessionObject, activity, recordedSamples) : null;
+          const samples = isLengthsBased
+            ? this.generateSamplesFromLengths(sessionObject, activity, options, cumulativePoolDistance !== null)
+            : recordedSamples;
 
           // Setup sample info which could be use when getting sample values
           const hasPowerMeter =
@@ -572,7 +596,8 @@ export class EventImporterFIT {
           const missingGeneratedDistance = isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
           const recordedMappings = isLengthsBased ? allowedSampleMappings.filter(mapping =>
             mapping.dataType !== DataHeartRate.type &&
-            (preserveRecordedTypes || (mapping.dataType === DataDistance.type && missingGeneratedDistance)) &&
+            (preserveRecordedTypes || (mapping.dataType === DataDistance.type &&
+              (missingGeneratedDistance || cumulativePoolDistance === 'recorded'))) &&
             recordedSamples.some((sample: any) => isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower })))) : [];
           this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings.filter(mapping =>
             !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) && !recordedMappings.includes(mapping)), samplesInfo);
@@ -846,7 +871,9 @@ export class EventImporterFIT {
    * @param options
    * @private
    */
-  private static generateSamplesFromLengths(sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions): any[] {
+  private static generateSamplesFromLengths(
+    sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions, usePoolLengthDistance = false
+  ): any[] {
     if (!this.isLengthsBased(sessionObject)) {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
     }
@@ -891,7 +918,7 @@ export class EventImporterFIT {
       // the pool setting can be rounded or disagree with recorded lap totals.
       const lapDistance = this.getNumericValue(lap.total_distance);
       const activeCount = activeCounts.get(lapIndex) || 0;
-      const lengthMeters = idle ? 0 : lapDistance !== null && lapDistance >= 0 && activeCount > 0
+      const lengthMeters = idle ? 0 : !usePoolLengthDistance && lapDistance !== null && lapDistance >= 0 && activeCount > 0
         ? lapDistance / activeCount : this.getSwimLengthDistance(length, lap, lapIndex, poolLength, activeCounts);
       // Unknown distance must not become a fabricated zero or a partial total.
       distanceKnown = distanceKnown && lengthMeters !== null && lengthMeters >= 0;
@@ -916,6 +943,76 @@ export class EventImporterFIT {
       samples.forEach(sample => delete sample.distance);
     }
     return samples;
+  }
+
+  /** Some exports omit earlier lap distances and put the whole swim total on
+   * the final lap. Never add that cumulative total to preceding pool lengths.
+   * Complete length geometry must agree with independent records or a session
+   * total before it can replace the established lap-distance calculation. */
+  private static resolveCumulativePoolDistance(
+    session: any, activity: ActivityInterface, records: any[]
+  ): 'recorded' | 'lengths' | null {
+    const pool = this.getPositiveNumericValue(session.pool_length);
+    const laps = session.laps as any[];
+    const lengths = (session.lengths ?? []) as any[];
+    if (pool === null || laps.length < 2 || !lengths.length) return null;
+    if (lengths.some(length => !['active', 'idle'].includes(this.getSwimLengthType(length.length_type) ?? ''))) return null;
+    const active = lengths.filter(length => this.getSwimLengthType(length.length_type) === 'active')
+      .sort((left, right) => +(this.getSwimLengthStartDate(left) ?? 0) - +(this.getSwimLengthStartDate(right) ?? 0));
+    if (!active.length) return null;
+    const declaredCount = this.getNumericValue(session.num_active_lengths);
+    if (declaredCount !== null && declaredCount !== active.length) return null;
+    const sameDistance = (left: number, right: number) => Math.round(left * 100) === Math.round(right * 100);
+    const indexes = new Set<number>();
+    const owners = new Set<number>();
+    let firstStart = 0, previousStart = 0, previousEnd = 0, previousRecordedTimer = false;
+    for (const length of active) {
+      const start = this.getSwimLengthStartDate(length);
+      const lapIndex = this.getLengthLapIndex(length, laps);
+      const index = this.getMessageIndexValue(length.message_index);
+      const explicitDistance = this.getNumericValue(length.total_distance);
+      if (!start || start < activity.startDate || start >= activity.endDate || lapIndex === null ||
+          (index !== null && indexes.has(index)) ||
+          (explicitDistance !== null && !sameDistance(explicitDistance, pool))) return null;
+      if (index !== null) indexes.add(index);
+      const end = this.getBoundedSwimLengthEndDate(length, start, activity, laps[lapIndex - 1]);
+      const timer = this.getNumericValue(length.total_timer_time);
+      const activeEnd = timer === null ? +end : Math.min(+end, +start + timer * 1000);
+      if (activeEnd <= +start) return null;
+      // FIT start timestamps encode whole seconds, while duration may retain
+      // fractions. Only overlap within that same encoded second is rounding.
+      if (previousEnd > +start && (!previousRecordedTimer || previousStart === +start ||
+          previousStart % 1000 !== 0 || +start % 1000 !== 0 ||
+          Math.floor(previousEnd / 1000) * 1000 !== +start)) return null;
+      if (!firstStart) firstStart = +start;
+      previousStart = +start;
+      previousEnd = activeEnd;
+      previousRecordedTimer = timer !== null && timer >= 0;
+      owners.add(lapIndex);
+    }
+    const activeLaps = [...owners].sort((left, right) => left - right);
+    const distanceLaps = activeLaps.filter(index => this.getNumericValue(laps[index - 1].total_distance) !== null);
+    const total = pool * active.length;
+    if (activeLaps.length < 2 || distanceLaps.length !== 1 || distanceLaps[0] !== activeLaps[activeLaps.length - 1] ||
+        !sameDistance(this.getNumericValue(laps[distanceLaps[0] - 1].total_distance)!, total)) return null;
+
+    const counter = records.filter(record => record.distance !== undefined && record.distance !== null);
+    let previousDistance = -1, previousTimestamp = -Infinity;
+    const validCounter = counter.length >= 2 && counter.every(record => {
+      const distance = this.getNumericValue(record.distance);
+      const timestamp = this.getDateFromValue(record.timestamp);
+      if (distance === null || distance < 0 || !timestamp || timestamp < activity.startDate || timestamp > activity.endDate ||
+          distance < previousDistance || +timestamp <= previousTimestamp) return false;
+      previousDistance = distance;
+      previousTimestamp = +timestamp;
+      return true;
+    });
+    if (validCounter && this.getNumericValue(counter[0].distance) === 0 &&
+        +this.getDateFromValue(counter[0].timestamp)! <= firstStart &&
+        Math.floor(previousTimestamp / 1000) >= Math.floor(previousEnd / 1000) &&
+        sameDistance(previousDistance, total)) return 'recorded';
+    const sessionDistance = this.getNumericValue(session.total_distance);
+    return sessionDistance !== null && sameDistance(sessionDistance, total) ? 'lengths' : null;
   }
 
   private static mapDeviceInfosToDevices(deviceInfos: any[]): DeviceInterface[] {

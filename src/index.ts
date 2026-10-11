@@ -30,7 +30,7 @@ export type {
  */
 export class SportsLib {
   /**
-   * Parses and returns an event using GPX format
+   * Parses and returns an event using GPX format, including namespace-qualified ClueTrust GPXDATA heart rate.
    * @param gpxString
    * @param options
    * @param domParser custom DOMParser (case of NodeJs usage)
@@ -57,6 +57,9 @@ export class SportsLib {
    * Credible session timestamps remain authoritative without duration summaries. Record-based date recovery
    * is scoped to the session; whole-file record bounds are used only when there is a sole session.
    * Pool length endpoints and generated samples respect the resolved lap/session bounds and active timer limits.
+   * Explicit non-activity file types are rejected; missing file types retain legacy activity recovery.
+   * Completed activity_summary files require recorded sessions and do not use sessionless recovery.
+   * Use importRoutesFromFit for FIT courses.
    * @param arrayBuffer
    * @param options
    */
@@ -68,7 +71,8 @@ export class SportsLib {
   }
 
   /**
-   * Parses and returns an event using Suunto format
+   * Parses and returns an event using Suunto format. Mixed-sport pace calibration must belong to the individual leg;
+   * unscoped header speed-zone boundaries are retained only for files with one resolved sport type.
    * @param jsonString
    * @param options
    */

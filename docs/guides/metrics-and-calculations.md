@@ -672,6 +672,11 @@ when `enableHeuristicFallbacks` is true. Without a threshold, swim pace is skipp
 `missing-swim-threshold`; eligible HR/MET candidates can still provide a score. A supplied threshold with missing speed
 or duration instead reports `missing-pace-inputs`. Imported scores, including zero, always retain priority.
 
+Suunto header speed zones are shared only within a file containing one resolved sport type. Mixed-sport legs retain
+applicable local boundaries and durations without copying unscoped header boundaries; a running threshold cannot serve
+as a swim threshold. This scope also survives native JSON restoration. Existing affected Suunto imports require an
+original-file reparse; no change to the pace formulas or generic fallback order is involved.
+
 ```text
 IF = SwimSpeed / ThresholdSwimSpeed
 TSS = 100 * (duration/3600) * IF^3
@@ -693,6 +698,12 @@ boundary lengths in their session/lap, including final rests; conflicting owners
 is allocated to active lengths only, and idle lengths add no distance or speed. An incomplete/ambiguous length
 assignment cannot establish a complete generated distance total. If lap timing leaves positive recorded lap distance
 without an assigned active length, use the recorded distance stream when available instead of a partial generated total.
+When earlier active laps omit distance and the final active lap carries the complete pool-length total, that final
+value must not be added to the preceding lengths again. Recovery requires complete, uniquely owned active lengths:
+prefer a monotonic recorded counter covering the full swim and agreeing with that geometry; otherwise generate from
+the geometry only when the session total independently agrees. Partial, reset, late, or invalid counters cannot
+establish complete recorded coverage. Consistent per-lap distance handling remains unchanged. Reparse affected originals
+and regenerate derived summaries to replace previously inflated distance streams.
 FIT `pool_length` is stored in meters regardless of its display-unit flag. A bounded compatibility correction remains
 for Suunto statute exports only when independent recorded length/lap evidence consistently supports the yards conversion
 and does not support the native meter value. Recorded total distance remains authoritative.

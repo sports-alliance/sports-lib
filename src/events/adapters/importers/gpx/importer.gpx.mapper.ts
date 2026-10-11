@@ -11,6 +11,7 @@ import { DataPower } from '../../../../data/data.power';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { isNumberOrString } from '../../../utilities/helpers';
 import { SampleInfo } from '../sample-info.interface';
+import { CLUETRUST_HEART_RATE } from './gx-parser';
 
 export const GPXSampleMapper: {
   dataType: string;
@@ -44,6 +45,11 @@ export const GPXSampleMapper: {
         sample.extensions[0].TrackPointExtension[0].hr
       ) {
         return Number(sample.extensions[0].TrackPointExtension[0].hr[0]);
+      }
+      const values = sample.extensions[0][CLUETRUST_HEART_RATE];
+      if (values?.length === 1 && isNumberOrString(values[0]) && String(values[0]).trim() !== '') {
+        const heartRate = Number(values[0]);
+        return Number.isFinite(heartRate) ? heartRate : null;
       }
       return null;
     }

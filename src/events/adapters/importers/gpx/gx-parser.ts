@@ -1,3 +1,7 @@
+// Keep this namespace-qualified key internal to GPX parsing. A direct `hr` from
+// another extension namespace does not necessarily describe heart rate.
+export const CLUETRUST_HEART_RATE = '{http://www.cluetrust.com/XML/GPXDATA/1/0}hr';
+
 export class GXParser {
   constructor(xml: string, domParser: any = null) {
     domParser = domParser || DOMParser;
@@ -30,7 +34,17 @@ export class GXParser {
         if (!attrs[name]) {
           attrs[name] = [];
         }
-        attrs[name].push(this.parseChild(child));
+        const value = this.parseChild(child);
+        attrs[name].push(value);
+        if (name === 'hr' && child.namespaceURI === 'http://www.cluetrust.com/XML/GPXDATA/1/0') {
+          if (!attrs[CLUETRUST_HEART_RATE]) {
+            attrs[CLUETRUST_HEART_RATE] = [];
+          }
+          const hasElementChildren = Array.from(child.childNodes as ArrayLike<any>)
+            .some((node: any) => !!node.localName);
+          // An inline namespace declaration is metadata, not the sample value.
+          attrs[CLUETRUST_HEART_RATE].push(hasElementChildren ? value : child.textContent);
+        }
       }
     }
 

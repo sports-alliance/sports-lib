@@ -2354,6 +2354,9 @@ export class ActivityUtilities {
       return null;
     }
 
+    // IF may be generated even when imported TSS bypasses calculated TSS selection.
+    // Keep its displayed denominator consistent with the calibration actually used.
+    this.persistCalibratedFunctionalThresholdPower(activity);
     return new DataPowerIntensityFactor(this.round(normalizedPower / ftp, this.INTENSITY_FACTOR_DECIMALS));
   }
 

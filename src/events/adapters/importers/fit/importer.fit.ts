@@ -485,9 +485,11 @@ export class EventImporterFIT {
                     activity.addEvent(new DataStartEvent(activity.getDateIndex(activityEvent.timestamp)));
                     break;
                   case 'stop':
+                  case 'stop_disable':
                     activity.addEvent(new DataStopEvent(activity.getDateIndex(activityEvent.timestamp)));
                     break;
                   case 'stop_all':
+                  case 'stop_disable_all':
                     activity.addEvent(new DataStopAllEvent(activity.getDateIndex(activityEvent.timestamp)));
                     break;
                   default:
@@ -2984,6 +2986,6 @@ export class EventImporterFIT {
 export interface FITFileActivityEvent {
   event: string;
   timestamp: Date;
-  event_type: 'start' | 'stop' | 'stop_all';
+  event_type: 'start' | 'stop' | 'stop_all' | 'stop_disable' | 'stop_disable_all';
   data: number;
 }

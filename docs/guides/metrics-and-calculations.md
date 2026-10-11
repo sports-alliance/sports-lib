@@ -358,14 +358,16 @@ IF = NP / independently supplied FTP
 ```
 
 Normalized power retains recorded zeroes. Gaps, invalid/negative samples, nonconsecutive timestamps and explicit
-start/stop timer boundaries restart the window; stopped samples do not contribute. No interpolation, zero-fill or
+start/stop timer boundaries restart the window; stopped samples do not contribute. FIT `stop_disable` and
+`stop_disable_all` have the same stopped-state behavior as `stop` and `stop_all`. No interpolation, zero-fill or
 carry-forward is applied to missing seconds. Sparse recordings without a complete window retain valid device NP on
 normal import; a missing calculated NP remains unavailable instead of becoming NaN in serialized statistics.
 The first complete 30-sample window contributes, and longer recordings contribute overlapping windows every second.
 
 The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
 athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file
-calibration can do so. A restored `FTP` JSON stat is not promoted to calibration during recalculation.
+calibration can do so. A restored `FTP` JSON stat is not promoted to calibration during recalculation. When IF is
+calculated, the FTP stat reflects the calibration used even if an imported TSS is preserved.
 
 `DataPowerCurve` preserves explicit zero `wattsPerKg` values through JSON restoration; missing W/kg stays absent.
 Existing saved zeros are readable without reparsing. This keeps source statistics stable when consumers restore

@@ -26,6 +26,34 @@ import {
 } from '../../../../data/data.running-dynamics';
 
 describe('EventImporterJSON', () => {
+  it.each(['Morning walk', 'Πρωινή βόλτα 🥾', '  Warm-up  ', '', null, undefined])(
+    'restores the activity name %p while preserving legacy unnamed activities', name => {
+      const json = {
+        name: name ?? null,
+        startDate: 0,
+        endDate: 60000,
+        type: ActivityTypes.Walking,
+        powerMeter: false,
+        trainer: false,
+        stats: {},
+        streams: [],
+        laps: [],
+        creator: { name: 'Example Exporter', devices: [] },
+        intensityZones: [],
+        events: []
+      };
+      if (name === undefined) {
+        delete (json as Partial<typeof json>).name;
+      }
+
+      const activity = EventImporterJSON.getActivityFromJSON(json);
+      expect(activity.name).toBe(name ?? '');
+      const roundTrip = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+      expect(roundTrip.name).toBe(name ?? '');
+      expect(roundTrip.toJSON().name).toBe(name || null);
+    }
+  );
+
   it('round-trips canonical running-dynamics stats and streams without renaming or dropping them', () => {
     const event = EventImporterJSON.getEventFromJSON({
       name: 'running-dynamics-round-trip',

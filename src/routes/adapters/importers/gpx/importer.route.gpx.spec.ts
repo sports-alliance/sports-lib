@@ -29,6 +29,34 @@ describe('RouteImporterGPX', () => {
     return fs.readFileSync(routeSamplePath, 'utf-8');
   }
 
+  it.each(['1.0', '1.1'])('keeps the GPX %s exporter without using the schema version as device metadata', async version => {
+    const gpxString = `<gpx creator="Example Exporter" version="${version}"
+      xmlns="http://www.topografix.com/GPX/${version.replace('.', '/')}">
+      <rte><name>Walking route</name>
+        <rtept lat="1" lon="2"/><rtept lat="1.001" lon="2.001"/>
+      </rte>
+    </gpx>`;
+    const routeFile = await RouteImporterGPX.getFromString(gpxString, DOMParser);
+    const restored = RouteImporterJSON.getRouteFileFromJSON(JSON.parse(JSON.stringify(routeFile.toJSON())));
+    for (const result of [routeFile, restored]) {
+      for (const creator of [result.creator, result.getFirstRoute().creator]) {
+        expect(creator!.name).toBe('Example Exporter');
+        expect(creator!.manufacturer).toBeUndefined();
+        expect(creator!.swInfo).toBeUndefined();
+      }
+    }
+  });
+
+  it.each(['', 'creator=""'])('preserves the unknown exporter fallback for %p', async creatorAttribute => {
+    const routeFile = await RouteImporterGPX.getFromString(`<gpx ${creatorAttribute} version="1.1"
+      xmlns="http://www.topografix.com/GPX/1/1">
+      <rte><rtept lat="1" lon="2"/><rtept lat="1.001" lon="2.001"/></rte>
+    </gpx>`, DOMParser);
+    expect(routeFile.creator!.name).toBe('Unknown Device');
+    expect(routeFile.getFirstRoute().creator!.name).toBe('Unknown Device');
+    expect(routeFile.creator!.manufacturer).toBeUndefined();
+  });
+
   it('parses route.gpx as a first-class route file', async () => {
     const result = await RouteImporterGPX.getFromString(readRouteSample(), DOMParser);
 

@@ -667,7 +667,7 @@ describe('Training Stress Score integration', () => {
     activity.addStat(new DataEnergy(210));
     activity.addStat(new DataWeight(70));
     expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'MET', score: 9,
-      reasons: expect.arrayContaining(['missing-pace-inputs']) });
+      reasons: expect.arrayContaining(['calculation-unavailable']) });
   });
 
   it('keeps TSS unset when no method inputs are available', () => {

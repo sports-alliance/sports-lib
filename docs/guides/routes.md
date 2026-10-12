@@ -48,6 +48,10 @@ FIT Course files preserve route geometry, altitude, cumulative distance, creatio
 
 For GPX timed-track behavior and route stream filtering, see [Configure parsing](parsing-options.md).
 
+GPX route files and their routes retain the exporter name from `creator`. The GPX schema `version` is not a
+manufacturer or device software version. Correcting an older persisted manufacturer value requires reparsing the
+original GPX through the consumer’s normal route lifecycle; JSON restoration cannot establish creator provenance.
+
 ## Native JSON summaries
 
 Routes and route files omit non-finite scalar summary numbers (`NaN`, `Infinity`, and `-Infinity`) on export.

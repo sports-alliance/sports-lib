@@ -23,6 +23,10 @@ npm install @sports-alliance/sports-lib @xmldom/xmldom
 
 ## GPX
 
+The GPX `creator` attribute supplies the exporter name. Its `version` attribute is the GPX schema version,
+not the manufacturer or device software version; neither is inferred from the exporter name. Reparse original GPX
+to correct manufacturer values persisted by older importers.
+
 Heart-rate observations include direct `heartrate`, Garmin track-point extensions and direct ClueTrust GPXDATA `hr`
 elements in `http://www.cluetrust.com/XML/GPXDATA/1/0`, as used by COROS. The namespace URI establishes this alias;
 an arbitrary XML prefix or unrelated `hr` element does not. Original-file reparsing recovers previously missed samples
@@ -50,6 +54,10 @@ const tcxEvent = await SportsLib.importFromTCX(tcxDocument);
 
 const fitEvent = await SportsLib.importFromFit(fitArrayBuffer);
 ```
+
+TCX sport values use the canonical activity-type resolver. Unrecognized, missing or blank sports become
+`Unknown Sport`; recognized Running/Biking values retain existing indoor detection when GPS is absent.
+Reparse original TCX to correct previously missing sport classifications, then refresh consuming summaries.
 
 ### Recorded timing and sensor coverage
 
@@ -264,6 +272,10 @@ boundaries populate those legs' intensity zones; local durations remain availabl
 when all legs have one resolved sport type. Without an independent running/swimming threshold, pace TSS falls back
 through the existing eligible methods, or reports unavailable. Overrides and imported scores retain their usual priority.
 Reparse original Suunto files to correct older copied boundaries; saved JSON cannot establish their original ownership.
+
+Native JSON hydration preserves each child activity’s saved name independently of the parent event title.
+Names already present in stored JSON need no source reparse; a name discarded before storage cannot be recovered
+from that JSON.
 
 Native JSON hydration preserves explicit stats, except terrain summaries excluded for the Diving activity group, and
 fills missing pace, swim-pace, and grade-adjusted-pace summaries from compatible speed summaries on events, activities,

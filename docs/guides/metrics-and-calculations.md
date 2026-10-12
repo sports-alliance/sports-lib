@@ -735,6 +735,11 @@ is MET 3 and 9 TSS. STT's compatible calorie-to-MET conversion does not imply it
 
 `ActivityUtilities.getTrainingStressScoreEvaluations(activity)` returns the cached parse-time Automatic/HR/MET results
 with actual method, score (null when unavailable), provenance, estimate flag and stable fallback reason codes.
+Missing or unusable required inputs retain their method-specific missing-input reasons. When an eligible calculation
+receives its inputs but cannot return a valid result (including the existing calculated-score range guard), it reports
+`calculation-unavailable` instead. This distinction changes diagnostics only: formulas, score limits, valid zero, imported
+priority and fallback order remain unchanged. Reevaluation needs the parsed inputs; refresh saved evaluation metadata
+through the consumer’s source-file lifecycle when those inputs are no longer available.
 `evaluateTrainingStressScore(activity)` explicitly recomputes all candidates from the current inputs. Capture the cached
 results before replacing the parsed activity object; the compact evaluations and raw calibration are intentionally absent
 from ordinary Activity JSON and DataStore. Historical persisted calculated scores need an original-file reparse to gain

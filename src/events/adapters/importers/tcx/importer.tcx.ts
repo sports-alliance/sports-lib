@@ -13,7 +13,7 @@ import { DataPause } from '../../../../data/data.pause';
 import { DataSpeedMax } from '../../../../data/data.speed-max';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
 import { DataHeartRateMax } from '../../../../data/data.heart-rate-max';
-import { ActivityTypes, ActivityTypesMoving } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper, ActivityTypesMoving } from '../../../../activities/activity.types';
 import { DataSpeedAvg } from '../../../../data/data.speed-avg';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.names';
@@ -65,7 +65,8 @@ export class EventImporterTCX {
   }
 
   /** Import TCX using whole-lap track bounds for elapsed time and the recorded
-   * timer for active duration, retaining a valid explicit lap start. */
+   * timer for active duration, retaining a valid explicit lap start. Resolve known sport aliases
+   * to their canonical type and preserve unrecognized or absent sports as Unknown Sport. */
   static getFromXML(
     xml: Document,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -78,8 +79,10 @@ export class EventImporterTCX {
         xml.getElementsByTagName('TrainingCenterDatabase')[0].getElementsByTagName('Activity')
       ).map(activityElement => {
         // Getting activity type
-        const activityType =
-          ActivityTypes[<keyof typeof ActivityTypes>activityElement.getAttribute('Sport') || 'unknown'];
+        const resolvedActivityType = ActivityTypesHelper.resolveActivityType(activityElement.getAttribute('Sport'));
+        const activityType = resolvedActivityType && Object.values(ActivityTypes).includes(resolvedActivityType)
+          ? resolvedActivityType
+          : ActivityTypes.unknown;
 
         // TCX begins with laps, get them
         const laps = this.getLaps(<any>activityElement.getElementsByTagName('Lap'), activityType);

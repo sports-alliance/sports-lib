@@ -23,6 +23,8 @@ import {
 } from '../../../../streams/stream.selection';
 
 export class EventImporterGPX {
+  /** Imports timed GPX tracks, preserving the exporter name without treating the GPX schema
+   * version as device manufacturer or software metadata. */
   static getFromString(
     gpx: string,
     domParser?: any,
@@ -87,7 +89,7 @@ export class EventImporterGPX {
           startDate,
           endDate,
           activityType,
-          new Creator(parsedGPX.creator, undefined, parsedGPX.version),
+          new Creator(parsedGPX.creator),
           options,
           activityName
         );

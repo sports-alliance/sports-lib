@@ -18,6 +18,8 @@
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
+ * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
+ * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
  *
  * @category Import and export
  */
@@ -529,6 +531,8 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * swim length endpoints respect chronological lap/session bounds, independently of active timer sampling limits.
  * multisport timing preserves unambiguous initial pauses and prevents adjacent-session record leakage.
  * Missing FIT timer summaries can use explicit active intervals; Suunto JSON/SML retains recorded pause/resume events.
+ * TSS evaluation keeps missing input diagnostics distinct from `calculation-unavailable` when a supplied
+ * candidate cannot produce an accepted result. Existing calculation limits and fallback ordering are unchanged.
  */
 export type {
   TrainingStressScorePreference,

@@ -296,7 +296,7 @@ export class EventImporterJSON {
   }
 
   /**
-   * Restores a native JSON activity, normalizes activity-aware summary semantics, and hydrates
+   * Restores a native JSON activity including its name, normalizes activity-aware summary semantics, and hydrates
    * missing speed-derived pace summaries on it and its laps.
    */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
@@ -304,7 +304,9 @@ export class EventImporterJSON {
       new Date(json.startDate),
       new Date(json.endDate),
       ActivityTypes[<keyof typeof ActivityTypes>json.type],
-      EventImporterJSON.getCreatorFromJSON(json.creator)
+      EventImporterJSON.getCreatorFromJSON(json.creator),
+      undefined,
+      json.name ?? ''
     );
     this.addStatsFromJSON(activity, json.stats);
     if (json.powerCurve && json.powerCurve[DataPowerCurve.type] !== undefined) {

@@ -1,9 +1,47 @@
 import { EventImporterGPX } from './importer.gpx';
 import xmldom from '@xmldom/xmldom';
+import { EventImporterJSON } from '../json/importer.json';
 
 describe('importer.gpx', () => {
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it.each(['1.0', '1.1'])('keeps the GPX %s exporter without inventing device metadata', async version => {
+    const gpxString = `<gpx creator="Example Exporter" version="${version}"
+      xmlns="http://www.topografix.com/GPX/${version.replace('.', '/')}">
+      <trk><name>Morning walk</name><trkseg>
+        <trkpt lat="1" lon="2"><time>2024-01-01T10:00:00Z</time></trkpt>
+        <trkpt lat="1.001" lon="2.001"><time>2024-01-01T10:01:00Z</time></trkpt>
+      </trkseg></trk>
+    </gpx>`;
+    const event = await EventImporterGPX.getFromString(gpxString, xmldom.DOMParser);
+    const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+    for (const activity of [event.getFirstActivity(), restored.getFirstActivity()]) {
+      expect(activity.creator.name).toBe('Example Exporter');
+      expect(activity.creator.manufacturer).toBeUndefined();
+      expect(activity.creator.swInfo).toBeUndefined();
+      expect(activity.name).toBe('Morning walk');
+    }
+  });
+
+  it('preserves individual track names separately from the event name through native JSON', async () => {
+    const gpxString = `<gpx creator="Example Exporter" version="1.1"
+      xmlns="http://www.topografix.com/GPX/1/1">
+      <metadata><name>Workout collection</name></metadata>
+      <trk><name>Warm-up</name><trkseg>
+        <trkpt lat="1" lon="2"><time>2024-01-01T10:00:00Z</time></trkpt>
+        <trkpt lat="1.001" lon="2.001"><time>2024-01-01T10:01:00Z</time></trkpt>
+      </trkseg></trk>
+      <trk><name>Κύριο μέρος</name><trkseg>
+        <trkpt lat="1.001" lon="2.001"><time>2024-01-01T10:02:00Z</time></trkpt>
+        <trkpt lat="1.002" lon="2.002"><time>2024-01-01T10:03:00Z</time></trkpt>
+      </trkseg></trk>
+    </gpx>`;
+    const event = await EventImporterGPX.getFromString(gpxString, xmldom.DOMParser);
+    const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+    expect(restored.name).toBe(event.name);
+    expect(restored.getActivities().map(activity => activity.name)).toEqual(['Warm-up', 'Κύριο μέρος']);
   });
 
   it('parses gpx without name', async () => {

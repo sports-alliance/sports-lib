@@ -20,6 +20,12 @@ lap total twice when independent length and recorded-distance evidence agree. GP
 heart-rate extensions, including COROS exports. These corrections require original-file reparsing and derived-summary
 refreshes for affected activities; existing non-activity imports need separate consumer review, not automatic deletion.
 
+Native activity JSON restores child names independently of event titles. GPX activity and route imports retain the
+exporter name without assigning the schema version as a manufacturer; unknown TCX sports use `Unknown Sport`.
+TSS diagnostics distinguish missing inputs from calculations that cannot return a valid score, preserving the formulas,
+limits and fallback order. See [activity import compatibility](guides/importing-activities.md) and
+[TSS calculations](guides/metrics-and-calculations.md) for source-reparse requirements.
+
 Native route JSON omits non-finite scalar summaries and tolerates legacy invalid summaries on restoration while
 preserving valid values and geometry checks. Files without valid summaries use existing child-route aggregation;
 no original-file reparse is needed. See [native route JSON summaries](guides/routes.md#native-json-summaries).

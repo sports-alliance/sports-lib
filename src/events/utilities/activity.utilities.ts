@@ -366,6 +366,11 @@ const SPEED_STREAM_STD_DEV_THRESHOLD_MAP = new Map<ActivityTypeGroup, number>([
   [ActivityTypeGroups.SwimmingGroup, 5 / 3.6] // kph to m/s
 ]);
 
+interface TssCandidate {
+  result: TssCalculationResult | null;
+  reason: TrainingStressScoreReason | null;
+}
+
 export class ActivityUtilities {
   private static readonly calculatedNormalizedPower = new WeakMap<ActivityInterface, { stat: DataPowerNormalized; value: number }>();
   private static readonly calculatedIntensityFactor = new WeakMap<ActivityInterface, { stat: DataPowerIntensityFactor; value: number }>();
@@ -2611,43 +2616,32 @@ export class ActivityUtilities {
     return null;
   }
 
-  private static resolveMetScore(activity: ActivityInterface, durationSeconds: number): number | null {
-    const override = this.getTssOverrideValue(activity, 'metScore');
-    if (override !== null) {
-      return override;
-    }
-
-    const energy = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataEnergy.type));
-    const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
-    if (energy === null || weight === null || durationSeconds <= 0) {
-      return null;
-    }
-
-    const estimatedMetScore = TssCalculator.estimateMetScore(energy, weight, durationSeconds);
-    return this.toPositiveFiniteNumber(estimatedMetScore);
-  }
-
   private static resolveMetThreshold(activity: ActivityInterface): number {
     return this.getTssOverrideValue(activity, 'thresholdMet') ?? 10;
   }
 
-  private static calculatePowerTss(activity: ActivityInterface): TssCalculationResult | null {
+  private static calculatedTssCandidate(result: TssCalculationResult | null): TssCandidate {
+    return { result, reason: result === null ? 'calculation-unavailable' : null };
+  }
+
+  private static calculatePowerTss(activity: ActivityInterface): TssCandidate {
     const ftp = this.resolveFunctionalThresholdPower(activity);
     if (ftp === null) {
-      return null;
+      return { result: null, reason: 'missing-power-inputs' };
     }
 
     const normalizedPower = this.resolveNormalizedPower(activity);
-    if (normalizedPower === null) {
-      return null;
+    const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
+    if (normalizedPower === null || !(durationSeconds > 0)) {
+      return { result: null, reason: 'missing-power-inputs' };
     }
 
-    return TssCalculator.calculatePowerTss({
-      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+    return this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
+      totalDurationWithoutPauses: durationSeconds,
       functionalThresholdPower: ftp,
       normalizedPower,
       samples: []
-    });
+    }));
   }
 
   private static getHrTssSamples(activity: ActivityInterface): Array<{ duration: number; hr: number }> {
@@ -2680,15 +2674,15 @@ export class ActivityUtilities {
     });
   }
 
-  private static calculatePaceTss(activity: ActivityInterface): TssCalculationResult | null {
+  private static calculatePaceTss(activity: ActivityInterface): TssCandidate {
     const functionalThresholdPace = this.resolveFunctionalThresholdPace(activity);
     if (functionalThresholdPace === null) {
-      return null;
+      return { result: null, reason: 'missing-pace-inputs' };
     }
 
     const speedSamples = this.getStreamSamplesByDuration(activity, DataSpeed.type);
     if (!speedSamples.length) {
-      return null;
+      return { result: null, reason: 'missing-pace-inputs' };
     }
 
     const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
@@ -2736,53 +2730,62 @@ export class ActivityUtilities {
           sample !== null
       );
 
-    if (!samples.length || samples.length !== speedSamples.length) {
-      return null;
+    const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
+    if (!samples.length || samples.length !== speedSamples.length || !(durationSeconds > 0)) {
+      return { result: null, reason: 'missing-pace-inputs' };
     }
 
-    return TssCalculator.calculatePaceTss({
-      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+    return this.calculatedTssCandidate(TssCalculator.calculatePaceTss({
+      totalDurationWithoutPauses: durationSeconds,
       functionalThresholdPace,
       samples,
       timerEvents: activity.getAllEvents()
-    });
+    }));
   }
 
-  private static calculateSwimPaceTss(activity: ActivityInterface, thresholdSwimSpeed: number | null): TssCalculationResult | null {
+  private static calculateSwimPaceTss(activity: ActivityInterface, thresholdSwimSpeed: number | null): TssCandidate {
     const swimSpeed = this.resolveSwimSpeed(activity);
-    if (swimSpeed === null) {
-      return null;
-    }
-
     if (thresholdSwimSpeed === null) {
-      return null;
+      return { result: null, reason: 'missing-swim-threshold' };
+    }
+    const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
+    if (swimSpeed === null || !(durationSeconds > 0)) {
+      return { result: null, reason: 'missing-pace-inputs' };
     }
 
-    return TssCalculator.calculateSwimTss({
-      totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+    return this.calculatedTssCandidate(TssCalculator.calculateSwimTss({
+      totalDurationWithoutPauses: durationSeconds,
       swimSpeed,
       thresholdSwimSpeed,
       samples: []
-    });
+    }));
   }
 
-  private static calculateMetTss(activity: ActivityInterface): TssCalculationResult | null {
+  private static calculateMetTss(activity: ActivityInterface): TssCandidate {
     const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
     if (durationSeconds <= 0) {
-      return null;
+      return { result: null, reason: 'missing-met-inputs' };
     }
 
-    const metScore = this.resolveMetScore(activity, durationSeconds);
+    let metScore = this.getTssOverrideValue(activity, 'metScore');
     if (metScore === null) {
-      return null;
+      const energy = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataEnergy.type));
+      const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
+      if (energy === null || weight === null) {
+        return { result: null, reason: 'missing-met-inputs' };
+      }
+      metScore = this.toPositiveFiniteNumber(TssCalculator.estimateMetScore(energy, weight, durationSeconds));
+    }
+    if (metScore === null) {
+      return { result: null, reason: 'calculation-unavailable' };
     }
 
-    return TssCalculator.calculateMetTss({
+    return this.calculatedTssCandidate(TssCalculator.calculateMetTss({
       totalDurationWithoutPauses: durationSeconds,
       metScore,
       thresholdMet: this.resolveMetThreshold(activity),
       samples: []
-    });
+    }));
   }
 
   private static supportsPaceTss(activity: ActivityInterface): boolean {
@@ -2811,6 +2814,8 @@ export class ActivityUtilities {
    * Explicit reevaluation refreshes calculated NP; device-supplied NP and cached getter results retain priority.
    * Computed normalized power requires complete windows of recorded observations; importer padding adds no coverage.
    * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
+   * Missing input reasons describe unresolved prerequisites. Once those inputs resolve, a calculator
+   * rejection reports `calculation-unavailable`, including unusable rolling coverage or existing range checks.
    */
   public static evaluateTrainingStressScore(activity: ActivityInterface): TrainingStressScoreEvaluations {
     return this.evaluateTrainingStressScoreFromCurrentInputs(activity, true);
@@ -2857,34 +2862,37 @@ export class ActivityUtilities {
         : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
     const hrSamples = hrReason ? [] : this.getHrTssSamples(activity);
     if (!hrReason && !hrSamples.length) hrReason = 'missing-hr-samples';
-    const power = eligible && !walking ? this.calculatePowerTss(activity) : null;
+    const powerCandidate = eligible && !walking ? this.calculatePowerTss(activity) : null;
+    const power = powerCandidate?.result ?? null;
     const hr = eligible && !hrReason ? this.calculateHrTss(activity, hrSamples) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
     const needsPace = eligible && !walking && !power && !hr;
     const swimming = group === ActivityTypeGroups.SwimmingGroup;
     const swimThreshold = needsPace && swimming ? this.resolveThresholdSwimSpeed(activity) : null;
-    const pace = needsPace ? swimming
+    const paceCandidate = needsPace ? swimming
       ? this.calculateSwimPaceTss(activity, swimThreshold) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
-    const met = eligible ? this.calculateMetTss(activity) : null;
+    const pace = paceCandidate?.result ?? null;
+    const metCandidate = eligible ? this.calculateMetTss(activity) : null;
+    const met = metCandidate?.result ?? null;
     const automatic = power ?? hr ?? pace ?? met;
     const automaticReasons: TrainingStressScoreReason[] = [];
     if (!eligible) automaticReasons.push('unsupported-sport');
     else {
-      if (!walking && !power) automaticReasons.push('missing-power-inputs');
+      if (!walking && !power) automaticReasons.push(powerCandidate?.reason ?? 'missing-power-inputs');
       if (!power && !hr) automaticReasons.push(hrReason ?? 'calculation-unavailable');
       if (!power && !hr && !walking && !pace &&
         (swimming || this.supportsPaceTss(activity))) {
-        automaticReasons.push(swimming && swimThreshold === null ? 'missing-swim-threshold' : 'missing-pace-inputs');
+        automaticReasons.push(paceCandidate?.reason ?? 'missing-pace-inputs');
       }
-      if (!automatic) automaticReasons.push('missing-met-inputs');
+      if (!automatic) automaticReasons.push(metCandidate?.reason ?? 'missing-met-inputs');
     }
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
       const result = preferred ?? automatic;
       const reasons = preference === 'AUTOMATIC' ? automaticReasons : preferred ? [] :
         [...new Set<TrainingStressScoreReason>([
-          preference === 'HR' ? hrReason ?? 'calculation-unavailable' : 'missing-met-inputs', ...automaticReasons
+          preference === 'HR' ? hrReason ?? 'calculation-unavailable' : metCandidate?.reason ?? 'missing-met-inputs', ...automaticReasons
         ])];
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
         method: result?.calculationMethod ?? null, estimated: result?.calculationMethod === TrainingStressScoreMethod.MET,

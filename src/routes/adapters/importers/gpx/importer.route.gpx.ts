@@ -22,6 +22,8 @@ interface GPXRouteCandidate {
 }
 
 export class RouteImporterGPX {
+  /** Imports GPX routes, preserving the exporter name without treating the GPX schema
+   * version as device manufacturer or software metadata. */
   static getFromString(
     gpx: string,
     domParser?: any,
@@ -30,7 +32,7 @@ export class RouteImporterGPX {
   ): Promise<RouteFileInterface> {
     return new Promise((resolve, reject) => {
       const parsedGPX: any = new GXParser(gpx, domParser);
-      const creator = new Creator(parsedGPX.creator || 'Unknown Device', undefined, parsedGPX.version);
+      const creator = new Creator(parsedGPX.creator || 'Unknown Device');
       const metadata = RouteImporterGPX.toArray(parsedGPX.metadata)[0] || {};
       const routeFileName = RouteImporterGPX.getText(metadata.name) || name;
       const routeFile = new RouteFile(

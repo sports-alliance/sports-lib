@@ -136,6 +136,10 @@ parsed file without requiring athlete settings. Load editors can request one-dec
 Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with
 complete rolling 30-second windows. MTB/downhill/enduro use biking-specific maximum HR. Internally inconsistent
 percent-max-HR threshold settings are rejected, preserving imported scores and eligible fallbacks.
+For percent-HRR zones, a complete session calibration is also rejected when its threshold lies below the lowest
+boundary of an exact six-boundary 50–100% reserve pattern. This narrow file-consistency check preserves custom
+patterns and uses the existing `invalid-hr-calibration` fallback explanation; it does not infer a replacement threshold.
+Historical affected scores require original-file reparse and a refresh of consuming applications' derived summaries.
 With independent FTP and duration, complete eligible recorded zero-power windows now yield POWER TSS 0. A zero
 summary or zeros inserted for missing FIT, TCX or GPX power fields cannot establish that evidence.
 Positive computed NP also requires actual recorded coverage: padded gaps cannot complete a rolling window or block

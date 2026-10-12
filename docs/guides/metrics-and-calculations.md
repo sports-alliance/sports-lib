@@ -642,6 +642,24 @@ check only: no zone weights, inferred threshold ratios, or replacement physiolog
 zone sets do not imply this relationship. Valid independent candidates can still supply TSS, and imported scores always
 retain priority.
 
+For percent-heart-rate-reserve (`percent_hrr`) zones, a narrower consistency check applies only when one uniquely
+matched session `time_in_zone` record explicitly supplies all three valid HR calibration values and exactly six
+positive, strictly increasing boundaries. Every boundary must exactly equal
+`round(restingHR + fraction * (maximumHR - restingHR))` for fractions `0.5, 0.6, 0.7, 0.8, 0.9, 1.0`.
+If its threshold is strictly below the first boundary, HR is unavailable with `invalid-hr-calibration`, and Automatic
+or preferred HR uses the existing sport-eligible fallback order. The MET fallback remains explicitly estimated;
+without an eligible fallback the result is unavailable, not zero. Imported TSS, including zero, remains authoritative.
+
+This is a conservative safeguard for questionable file calibration, not a universal physiological threshold minimum
+or a measurement of the athlete's true threshold. Different modes, customized/incomplete patterns, and calibration
+assembled from global/profile defaults do not trigger this HRR check. No boundary is rounded into a match, no missing
+threshold is inferred, and no score is capped or replaced with an assumed physiological value. Complete explicit
+physiological overrides retain their existing precedence. Recorded samples and calibration fields are not rewritten.
+Existing persisted scores require an original-file reparse to apply the check, followed by refreshed derived Training
+summaries. Ordinary JSON restoration cannot recover this private calibration evidence. Canonical metric tokens, units,
+JSON schemas, evaluation fields and reason codes remain unchanged, so existing QS/MCP projections need no additional
+fields, permissions or private calibration exposure.
+
 PACE TSS (running/trail groups):
 
 - Uses Minetti running-cost grade adjustment, then NP-like complete rolling 30-second/4th-power normalization.

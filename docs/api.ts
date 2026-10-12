@@ -526,6 +526,8 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * Positive calculated NP also requires complete recorded windows; padded gaps cannot establish a power candidate.
  * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
+ * FIT rejects a complete scoped HRR threshold below its exact six-boundary 50–100% reserve pattern with
+ * `invalid-hr-calibration`; custom patterns remain eligible under existing rules and fallbacks are unchanged.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
  * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
  * swim length endpoints respect chronological lap/session bounds, independently of active timer sampling limits.

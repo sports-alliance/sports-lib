@@ -4,11 +4,23 @@ import type { ActivityInterface } from '../../../activities/activity.interface';
 /** A requested calculation policy. Imported scores always take precedence. */
 export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET';
 
-/** Stable machine-readable diagnostics, suitable for a consumer's localized explanation. */
+/**
+ * Stable machine-readable diagnostics, suitable for a consumer's localized explanation.
+ * `invalid-hr-calibration` includes inconsistent file settings, such as a scoped threshold
+ * below the lowest boundary of the recognized six-boundary 50–100% HRR pattern.
+ */
 export type TrainingStressScoreReason =
-  | 'imported-score' | 'unsupported-sport' | 'missing-hr-calibration' | 'invalid-hr-calibration'
-  | 'ambiguous-hr-calibration' | 'missing-hr-samples' | 'missing-met-inputs'
-  | 'missing-power-inputs' | 'missing-pace-inputs' | 'missing-swim-threshold' | 'calculation-unavailable';
+  | 'imported-score'
+  | 'unsupported-sport'
+  | 'missing-hr-calibration'
+  | 'invalid-hr-calibration'
+  | 'ambiguous-hr-calibration'
+  | 'missing-hr-samples'
+  | 'missing-met-inputs'
+  | 'missing-power-inputs'
+  | 'missing-pace-inputs'
+  | 'missing-swim-threshold'
+  | 'calculation-unavailable';
 
 /** A resolved policy; null is unavailable, while zero is a valid score. */
 export interface TrainingStressScoreEvaluation {

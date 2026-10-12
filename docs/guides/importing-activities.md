@@ -82,16 +82,37 @@ activity duration remains enforced. Existing affected activities require an orig
 derived summaries; restoring their saved JSON cannot reconstruct the missing session boundaries. This correction
 adds no metrics or fields and preserves canonical names, units, imported TSS and public JSON schemas.
 
-A sole explicit FIT session can also retain its full chronology when its elapsed summary omits long pauses.
-This exception requires ordered records spanning the exact source endpoints, a complete alternating timer
-timeline in one event group, and records at distinct times within every active interval. The summed intervals
-must agree with the independently supplied positive timer summary. The precision tolerance is one second per
-closed interval plus one millisecond: FIT event timestamps encode whole seconds and timer summaries encode
-milliseconds. It does not grow with workout duration. Missing, repeated, conflicting or out-of-order transitions,
-unsupported records and multiple sessions retain the existing timestamp recovery behavior. The configured
-duration limit still applies. `Elapsed time` and `Pause Time` then cover the full chronology while `Duration`
-and `Timer time` preserve the recorded active time; long pauses do not become training load. Existing truncated
-imports need original-file reparsing and derived-summary refreshes. Canonical metrics and JSON schemas are unchanged.
+A sole explicit FIT session can also retain chronology omitted by an inconsistent elapsed summary. The pause-only
+proof requires ordered records from the source start through the final stop (the final sample may precede that stop
+by one whole-second tick), a complete alternating timer timeline in one event group, and records at distinct times
+within every active interval. The summed intervals must agree with the positive source timer summary. Its precision
+tolerance is one second per closed interval plus one millisecond: FIT event timestamps encode whole seconds and timer
+summaries encode milliseconds. It does not grow with workout duration.
+
+A separate delayed-save proof can use the last recorded exercise stop rather than a later save timestamp. It additionally
+requires a complete monotonic distance counter ending at the source session distance, records supporting every active
+interval, and the same active-time agreement. Repeated `stop_all` events while already stopped do not add active time or
+extend the exercise end. Records during a stop must retain the preceding distance. The explicit source start remains
+unchanged; a one-tick difference in the initial timer timestamp does not move it. Missing starts, unclosed intervals,
+conflicting groups, advancing distance during a stop, inconsistent timer sums and unrecorded final stops reject this proof.
+
+An early ending timestamp that agrees with active time can instead be repaired from the independently supplied elapsed
+duration when a single start/stop envelope agrees with that elapsed duration and a complete, ordered distance counter
+reaches the session distance after the premature end. Those envelope events do not redefine active time. Both proofs
+require a sole explicit session, preserve the configured duration limit and leave unsupported files on the existing
+recovery path. `Elapsed time` and `Pause Time` reflect the corroborated chronology, while `Duration` and `Timer time`
+retain the supplied active time; long pauses do not become training load.
+
+For malformed multisport ending timestamps, a valid explicit leg start can be retained with its own elapsed duration
+only when its earliest cascaded record belongs to an independently bounded, disjoint earlier session, and the
+repaired end contains every later cascaded record. This prevents a contaminated cascade from moving the later leg to the
+workout's start. Conflicting ownership, insufficient duration evidence and ordinary single-session date recovery retain
+their existing behavior.
+
+Existing affected imports need original-file reparsing and derived-summary refreshes; saved JSON cannot reconstruct
+omitted samples. Imported TSS remains authoritative. Calculated metrics can change when valid recorded samples are
+restored. These corrections add no metric tokens, units, options, exports or serialized fields, and do not change route
+parsing or MCP schemas, scopes, projections or mutation capabilities.
 
 Pool length end dates use credible ending timestamps, retaining fractional elapsed precision when it agrees with
 the FIT timestamp's whole-second resolution. Positive elapsed duration, then positive timer duration, can recover a

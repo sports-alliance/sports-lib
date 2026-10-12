@@ -149,6 +149,33 @@ describe('FIT session record-bound recovery', () => {
       .toThrow(DurationExceededEventLibError);
   });
 
+  it('does not shorten an ordinary invalid-end session to a fractional elapsed summary', () => {
+    const activity = resolve(
+      session({ start_time: at(0), timestamp: at(0), total_elapsed_time: 90.8 }),
+      [],
+      records([0, 91])
+    );
+    expect([activity.startDate, activity.endDate]).toEqual([at(0), at(91)]);
+  });
+
+  it.each([
+    { otherEnd: 500, lastRecord: 420 },
+    { otherEnd: 413, lastRecord: 426 },
+    { otherEnd: 413, lastRecord: 418 }
+  ])('does not infer a later-leg boundary from conflicting ownership or incomplete elapsed evidence: %j', fields => {
+    const leg = session({
+      start_time: at(419),
+      timestamp: at(0),
+      total_elapsed_time: 6.663,
+      total_timer_time: 0.646,
+      records: records([0, fields.lastRecord])
+    });
+    const other = session({ start_time: at(0), timestamp: at(fields.otherEnd) });
+    const activity = resolve(leg, [other]);
+    // The new narrow repair is ineligible; retain the existing corrupt-date fallback.
+    expect(activity.startDate).toEqual(at(0));
+  });
+
   it('honors a caller-supplied duration limit when validating explicit bounds', () => {
     const leg = session({ start_time: at(0), timestamp: at(30 * 86400) });
     const activity = internals.getActivityFromSessionObject(leg, { sessions: [leg], records: [] },

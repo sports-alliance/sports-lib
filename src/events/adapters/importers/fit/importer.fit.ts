@@ -281,7 +281,9 @@ export class EventImporterFIT {
    * generated swim samples cannot extend past their owning lap or session.
    * Reject explicit non-activity file types before recovering missing sessions.
    * Retain a sole session's full chronology when ordered records and complete
-   * timer intervals corroborate it, preserving active time and duration limits. */
+   * timer intervals corroborate it, preserving active time and duration limits.
+   * Recover premature ends or delayed saves only with independent timing and
+   * distance evidence; multisport start recovery requires disjoint ownership. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -339,7 +341,7 @@ export class EventImporterFIT {
         // Ordinary sessions do not need an extra record pass. Preserve the raw
         // evidence before session synthesis or legacy timing normalization.
         const corroboratedSessionElapsed = typeof sourceElapsed === 'number' && sourceElapsed > 0 &&
-          sourceSpan / sourceElapsed > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD
+          (sourceSpan / sourceElapsed > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD || sourceSpan + 1 < sourceElapsed)
           ? getCorroboratedSessionElapsedTime(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60)
           : null;
         this.normalizeFitDataObjectForActivities(fitDataObject);
@@ -1897,12 +1899,60 @@ export class EventImporterFIT {
     const [recordStartDate, recordEndDate] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
 
     // Pick start/end date values
-    let startDate = this.getDateFromValue(sessionObject.start_time) || recordStartDate || null;
+    const explicitStartDate = this.getDateFromValue(sessionObject.start_time);
+    let startDate = explicitStartDate || recordStartDate || null;
     let endDate =
       this.getDateFromValue(sessionObject.timestamp) ||
       (startDate && totalElapsedTime && new Date(startDate.getTime() + totalElapsedTime * 1000)) ||
       recordEndDate ||
       null;
+
+    // A malformed multisport lap cascade can contain an earlier leg's records.
+    // Preserve this explicit start only when that prefix is independently owned
+    // by an earlier, disjoint session and this leg's elapsed duration contains
+    // every later record. Ordinary invalid-date recovery remains unchanged.
+    const explicitElapsed = this.getPositiveNumericValue(sessionObject.total_elapsed_time);
+    const explicitEndDate =
+      explicitStartDate && explicitElapsed !== null && explicitElapsed * 1000 <= maxActivityDurationMs
+        ? new Date(+explicitStartDate + explicitElapsed * 1000)
+        : null;
+    if (
+      explicitStartDate &&
+      explicitEndDate &&
+      endDate &&
+      endDate <= explicitStartDate &&
+      recordStartDate &&
+      recordStartDate < explicitStartDate &&
+      recordEndDate &&
+      recordEndDate >= explicitStartDate &&
+      recordEndDate <= explicitEndDate &&
+      fitDataObject.sessions.some((other: any) => {
+        if (other === sessionObject) return false;
+        const otherStart = this.getDateFromValue(other.start_time);
+        let otherEnd = this.getDateFromValue(other.timestamp);
+        const otherElapsed = this.getPositiveNumericValue(other.total_elapsed_time);
+        if (
+          otherStart &&
+          (!otherEnd || otherEnd <= otherStart) &&
+          otherElapsed !== null &&
+          otherElapsed * 1000 <= maxActivityDurationMs
+        )
+          otherEnd = new Date(+otherStart + otherElapsed * 1000);
+        return (
+          otherStart &&
+          otherEnd &&
+          otherStart <= recordStartDate &&
+          recordStartDate < otherEnd &&
+          otherEnd <= explicitStartDate &&
+          +otherEnd - +otherStart <= maxActivityDurationMs
+        );
+      })
+    ) {
+      endDate = explicitEndDate;
+    }
+    if (explicitStartDate && corroboratedSessionElapsed !== null) {
+      endDate = new Date(+explicitStartDate + corroboratedSessionElapsed * 1000);
+    }
 
     // Missing duration summaries do not invalidate credible explicit bounds.
     // Retain corrupt-date recovery when dates are unordered, over the duration
@@ -1952,8 +2002,7 @@ export class EventImporterFIT {
     // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
     // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
     // @see test case implying 'fixtures/rides/fit/5319808632.fit' fit file
-    const preserveCorroboratedChronology = corroboratedSessionElapsed === elapsedTimeFromDates && totalElapsedTime > 0 &&
-      elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD;
+    const preserveCorroboratedChronology = corroboratedSessionElapsed === elapsedTimeFromDates;
     if (!preserveCorroboratedChronology && totalElapsedTime &&
         elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
       if (totalElapsedTime) {

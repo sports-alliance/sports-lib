@@ -1,5 +1,6 @@
 interface TimingRecord {
   timestamp?: unknown;
+  distance?: unknown;
 }
 
 interface TimerEvent extends TimingRecord {
@@ -12,6 +13,7 @@ interface TimingSession extends TimingRecord {
   start_time?: unknown;
   total_timer_time?: unknown;
   total_elapsed_time?: unknown;
+  total_distance?: unknown;
 }
 
 interface TimingFile {
@@ -32,7 +34,7 @@ const wholeSecond = (value: unknown): number | null => {
  * interval supported by ordered records. Global events cannot prove multisport ownership.
  * Call before session synthesis or normalization can supply missing evidence.
  */
-export function getCorroboratedSessionElapsedTime(file: TimingFile, maxDurationSeconds: number): number | null {
+function getCorroboratedPausedSessionElapsedTime(file: TimingFile, maxDurationSeconds: number): number | null {
   if (
     !Array.isArray(file.sessions) ||
     file.sessions.length !== 1 ||
@@ -114,9 +116,200 @@ export function getCorroboratedSessionElapsedTime(file: TimingFile, maxDurationS
   }
   if (
     wholeSecond(file.records[0].timestamp) !== start ||
-    previous !== end ||
+    // A whole-second final sample can precede the independently recorded stop by one tick.
+    previous < end - 1 ||
     intervals.some(interval => interval.firstRecord === undefined || interval.lastRecord === interval.firstRecord)
   )
     return null;
   return end - start;
+}
+
+const positive = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0;
+const validGroup = (group: unknown) =>
+  group === undefined || (typeof group === 'number' && Number.isInteger(group) && group >= 0 && group < 255);
+const isStop = (type: unknown) => ['stop', 'stop_all', 'stop_disable', 'stop_disable_all'].includes(type as string);
+const sameDistance = (left: number, right: number) =>
+  Number.isSafeInteger(Math.round(left * 100)) &&
+  Number.isSafeInteger(Math.round(right * 100)) &&
+  Math.round(left * 100) === Math.round(right * 100);
+
+/** Repair a premature end only when the explicit elapsed duration and complete
+ * start/stop envelope agree, and an ordered complete distance counter reaches the
+ * independently supplied session distance after the premature timestamp.
+ * These envelope events do not establish active time; keep the supplied timer.
+ */
+function getElapsedEnvelope(file: TimingFile, max: number): number | null {
+  const session = file.sessions![0],
+    start = wholeSecond(session.start_time),
+    end = wholeSecond(session.timestamp);
+  const elapsed = session.total_elapsed_time,
+    timer = session.total_timer_time,
+    distance = session.total_distance;
+  if (
+    start === null ||
+    end === null ||
+    !positive(elapsed) ||
+    !positive(timer) ||
+    elapsed < timer ||
+    elapsed > max ||
+    !positive(distance) ||
+    end <= start ||
+    elapsed <= end - start + 1 ||
+    Math.abs(end - start - timer) >= 1
+  )
+    return null;
+  const events = file.events?.filter(event => event?.event === 'timer');
+  if (
+    !events ||
+    events.length !== 2 ||
+    events[0].event_type !== 'start' ||
+    !isStop(events[1].event_type) ||
+    wholeSecond(events[0].timestamp) !== start ||
+    !validGroup(events[0].event_group) ||
+    !validGroup(events[1].event_group) ||
+    (events[0].event_group !== undefined &&
+      events[1].event_group !== undefined &&
+      events[0].event_group !== events[1].event_group)
+  )
+    return null;
+  const stop = wholeSecond(events[1].timestamp);
+  if (stop === null || Math.abs(stop - start - elapsed) >= 1) return null;
+  if (!file.records || file.records.length < 2) return null;
+  let previous = -Infinity,
+    previousDistance = -Infinity;
+  for (const record of file.records) {
+    const time = wholeSecond(record?.timestamp),
+      value = record?.distance;
+    if (
+      time === null ||
+      time < start ||
+      time > start + elapsed ||
+      time < previous ||
+      typeof value !== 'number' ||
+      !Number.isFinite(value) ||
+      value < 0 ||
+      value < previousDistance
+    )
+      return null;
+    previous = time;
+    previousDistance = value;
+  }
+  return file.records[0].distance === 0 && previous > end && sameDistance(previousDistance, distance) ? elapsed : null;
+}
+
+/** A delayed save may be much later than the final recorded exercise stop.
+ * Unlike the pause-only proof above, this recovery requires a complete monotonic
+ * distance counter. Repeated stop_all while already stopped is idempotent; it
+ * never adds active time or moves the final exercise stop. Stationary records
+ * while stopped are allowed, but advancing distance there is contradictory.
+ */
+function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null {
+  const session = file.sessions![0],
+    start = wholeSecond(session.start_time),
+    saved = wholeSecond(session.timestamp);
+  const elapsed = session.total_elapsed_time,
+    timer = session.total_timer_time,
+    distance = session.total_distance;
+  if (
+    start === null ||
+    saved === null ||
+    saved <= start ||
+    !positive(elapsed) ||
+    !positive(timer) ||
+    elapsed < timer ||
+    !positive(distance) ||
+    !file.records ||
+    file.records.length < 4
+  )
+    return null;
+  const events = file.events?.filter(event => event?.event === 'timer');
+  if (!events || events.length < 4 || !validGroup(events[0].event_group)) return null;
+  const intervals: Array<{ start: number; end: number; first?: number; last?: number }> = [];
+  let opened: number | null = null,
+    previous = -Infinity,
+    active = 0;
+  for (const event of events) {
+    const time = wholeSecond(event.timestamp);
+    if (
+      time === null ||
+      time < start - 1 ||
+      time > saved ||
+      time <= previous ||
+      event.event_group !== events[0].event_group
+    )
+      return null;
+    if (event.event_type === 'start') {
+      if (opened !== null) return null;
+      opened = time;
+    } else if (isStop(event.event_type)) {
+      if (opened === null) {
+        if (event.event_type !== 'stop_all' || intervals.length === 0) return null;
+      } else {
+        intervals.push({ start: opened, end: time });
+        active += time - opened;
+        opened = null;
+      }
+    } else return null;
+    previous = time;
+  }
+  if (opened !== null || intervals.length < 2 || Math.abs(intervals[0].start - start) > 1) return null;
+  const end = intervals[intervals.length - 1].end,
+    span = end - start;
+  if (
+    span <= elapsed ||
+    span > max ||
+    active >= span ||
+    Math.abs(active * 1000 - Math.round(timer * 1000)) > intervals.length * 1000 + 1
+  )
+    return null;
+  previous = -Infinity;
+  let previousDistance = -Infinity,
+    first: number | null = null,
+    index = 0;
+  for (const record of file.records) {
+    const time = wholeSecond(record?.timestamp),
+      value = record?.distance;
+    if (time === null || time < previous || time > end) return null;
+    previous = time;
+    // Pre-start observations do not move the explicitly supplied start.
+    if (time < start) continue;
+    first ??= time;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value < previousDistance) return null;
+    while (index < intervals.length && time > intervals[index].end) index++;
+    const interval = intervals[index];
+    if (interval && time >= interval.start) {
+      interval.first ??= time;
+      interval.last = time;
+    } else if (value !== previousDistance) return null;
+    previousDistance = value;
+  }
+  if (
+    first === null ||
+    first > start + 1 ||
+    previous !== end ||
+    !sameDistance(previousDistance, distance) ||
+    intervals.some(interval => interval.first === undefined || interval.first === interval.last)
+  )
+    return null;
+  return span;
+}
+
+/** Return an independently corroborated elapsed duration for a sole explicit
+ * session. No provider-specific defaults, source mutation or inferred active time.
+ */
+export function getCorroboratedSessionElapsedTime(file: TimingFile, maxDurationSeconds: number): number | null {
+  if (
+    !Array.isArray(file.sessions) ||
+    file.sessions.length !== 1 ||
+    !file.sessions[0] ||
+    !Array.isArray(file.records) ||
+    !Array.isArray(file.events) ||
+    !positive(maxDurationSeconds)
+  )
+    return null;
+  return (
+    getCorroboratedPausedSessionElapsedTime(file, maxDurationSeconds) ??
+    getElapsedEnvelope(file, maxDurationSeconds) ??
+    getRecordedTimerEnvelope(file, maxDurationSeconds)
+  );
 }

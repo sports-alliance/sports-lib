@@ -15,6 +15,9 @@ for recovery behavior and reparsing existing activities.
 Sole-session FIT recordings with a complete corroborated timer timeline also retain later records across long pauses,
 keeping full elapsed time separate from recorded active time and training load. Existing truncated imports need an
 original-file reparse; duration limits and public metric/JSON contracts remain unchanged.
+Corroborated timer and distance evidence can also recover premature endings and distinguish exercise stops from
+delayed saves. Malformed multisport cascades retain a later leg's explicit start only with independent session ownership
+and duration evidence. See the same timing guide for the eligibility checks and unsupported cases.
 
 Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
 Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.

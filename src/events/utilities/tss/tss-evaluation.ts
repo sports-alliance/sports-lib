@@ -54,5 +54,8 @@ export const fileHeartRateCalibration = new WeakMap<ActivityInterface, FileHeart
 export const fileFunctionalThresholdPower = new WeakMap<ActivityInterface, number>();
 // Distinguish an explicitly reconstructed all-paused activity from legacy zero
 // timer placeholders without adding parser evidence to persisted activity data.
-export const fileActiveDuration = new WeakMap<ActivityInterface, number>();
+// null marks a contradictory source duration that cannot be independently recovered.
+// It blocks elapsed/moving-time fallback on the parsed instance; ordinary JSON
+// retains missing stats, not the private source evidence.
+export const fileActiveDuration = new WeakMap<ActivityInterface, number | null>();
 export const trainingStressScoreEvaluations = new WeakMap<ActivityInterface, TrainingStressScoreEvaluations>();

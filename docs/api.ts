@@ -18,6 +18,8 @@
  * retains full chronology across long pauses, with active duration and configured duration limits unchanged.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
+ * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
+ * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.

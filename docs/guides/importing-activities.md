@@ -299,6 +299,23 @@ from being emitted for one activity.
 
 Use `importFromSuunto(suuntoJson)` for Suunto JSON. Use `importFromJSON(eventJson)` only for Sports Lib's native `EventJSONInterface` representation.
 
+Suunto JSON/SML activity and lap windows without `PauseDuration` supply active time, not elapsed time.
+Elapsed time comes from the owning interval; an explicit elapsed/pause pair retains its supplied semantics.
+Negative pauses are never emitted. An impossible active summary can be recovered from an explicit Activity start
+and non-conflicting boolean pause states inside the recorded timeline. Repeated equal states are idempotent.
+A single-leg header can corroborate window precision only when its start agrees, its active value agrees at float32
+precision and its entire elapsed interval lies inside the source sample envelope. This does not extend the activity
+or its streams. Float32-equivalent timestamp/summary differences alone cannot create a negative pause.
+
+Mismatched window counts or conflicting sport identifiers cannot donate timing to a leg. Without independent recovery
+evidence, contradictory active time leaves `Duration`, `Timer time` and `Pause Time` absent, not zero; duration-dependent
+load candidates (including HR) and newly calculated or cached durability evidence stay unavailable on that parsed instance.
+Valid imported scores remain eligible, including zero; HR calibration alone cannot establish active duration.
+Event summaries do not publish partial active/pause totals when a leg is unresolved. Missing summaries retain the
+existing timestamp fallback. Original-file reparse is required for historical corrections and for retaining private
+source evidence during regeneration; native JSON preserves the resulting values/absence but cannot recover that evidence.
+No metric names, units, public fields, route behavior or JSON schemas change.
+
 In mixed-sport Suunto files, a header speed-zone boundary is not owned by every leg. Only applicable leg-local speed
 boundaries populate those legs' intensity zones; local durations remain available. A header threshold remains eligible
 when all legs have one resolved sport type. Without an independent running/swimming threshold, pace TSS falls back

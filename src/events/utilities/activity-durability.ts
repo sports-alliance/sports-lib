@@ -1,4 +1,5 @@
 import { ActivityInterface } from '../../activities/activity.interface';
+import { fileActiveDuration } from './tss/tss-evaluation';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import {
   DURABILITY_PROTOCOL_ELIGIBILITY_THRESHOLDS,
@@ -370,6 +371,8 @@ export function analyzeActivityDurability(
   activity: ActivityInterface,
   options: AnalyzeActivityDurabilityOptions = {}
 ): ActivityDurabilityAnalysis {
+  // A contradictory source duration cannot qualify through elapsed-date fallback.
+  if (fileActiveDuration.get(activity) === null) return { timeline: [], summary: null };
   const protocol = DEFAULT_DURABILITY_PROTOCOL;
   const sourceFingerprint = calculateActivityDurabilitySourceFingerprint(activity);
   const adapter = resolveActivityDurabilityAdapter(activity.type);

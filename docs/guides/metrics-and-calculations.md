@@ -37,7 +37,7 @@ Time metric semantics:
 - `Duration` (unit: `s`): active duration (timer time).
 - `Timer time` (unit: `s`): explicit timer/active time.
 - `Elapsed time` (unit: `s`): wall-clock elapsed time (includes pauses).
-- `Pause Time` (unit: `s`): explicit paused time, computed as `max(ElapsedTime - TimerTime, 0)`.
+- `Pause Time` (unit: `s`): supported paused time; inconsistent source timing must not produce a negative value.
 - `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
 
 For a sole FIT session whose complete timer timeline and ordered records corroborate longer chronology,
@@ -45,6 +45,13 @@ For a sole FIT session whose complete timer timeline and ordered records corrobo
 stay active-only. See [recorded timing](importing-activities.md#recorded-timing-and-sensor-coverage) for evidence
 requirements, precision tolerance, duration limits and original-file reparse requirements. No metric token,
 unit or JSON schema changes; downstream numeric reads receive the corrected existing values after reparse.
+
+Suunto JSON/SML windows keep active time separate from their interval's elapsed time. Contradictory active timing
+requires independent header or timer-event evidence; otherwise active/timer/pause summaries and duration-dependent
+TSS candidates and durability evidence remain unavailable. Multisport active/pause totals require every leg; ordinary native JSON retains
+missing summaries without manufacturing zeros. See the [Suunto import contract](importing-activities.md) for scope,
+source precision and original-file regeneration requirements. Imported TSS retains priority; calculated HR still requires
+valid active timing as well as calibration and sample coverage.
 
 High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, stroke rate, power, altitude, depth, grade, vertical metrics

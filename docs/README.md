@@ -19,6 +19,10 @@ Corroborated timer and distance evidence can also recover premature endings and 
 delayed saves. Malformed multisport cascades retain a later leg's explicit start only with independent session ownership
 and duration evidence. See the same timing guide for the eligibility checks and unsupported cases.
 
+Suunto JSON/SML imports distinguish active and elapsed time and never emit a negative pause. Inconsistent timing
+requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.
+Historical corrections require an original-file reparse; saved JSON alone cannot recover private timing evidence.
+
 Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
 Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.
 Suunto mixed-sport pace thresholds must belong to their leg; pool-distance recovery avoids adding a cumulative final

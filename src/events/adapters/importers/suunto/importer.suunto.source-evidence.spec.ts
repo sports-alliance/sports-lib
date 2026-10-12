@@ -69,11 +69,11 @@ describe('Suunto source evidence', () => {
     expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic.score).toBeNull();
   });
 
-  it('does not promote an inconsistent pause summary into proven zero active duration', async () => {
+  it('keeps inconsistent pause timing unavailable instead of assuming a full active duration', async () => {
     const data = payload();
     data.DeviceLog.Windows[0].Window.PauseDuration = 4000;
     const activity = (await parse(data)).getFirstActivity();
-    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBe(100);
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBeNull();
   });
 
   it('keeps per-leg zone durations separate while retaining shared threshold settings', async () => {

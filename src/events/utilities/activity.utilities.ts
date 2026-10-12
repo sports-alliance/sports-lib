@@ -1012,6 +1012,7 @@ export class ActivityUtilities {
     const canonicalExistingDurability = normalizeDurabilityEvidenceValue(existingDurability);
     const hasSourceData = canonicalExistingDurability ? hasActivityDurabilitySourceData(activity) : false;
     const canReuseExistingDurability =
+      fileActiveDuration.get(activity) !== null &&
       !!canonicalExistingDurability &&
       (!hasSourceData ||
         canonicalExistingDurability.sourceFingerprint === calculateActivityDurabilitySourceFingerprint(activity));
@@ -1142,16 +1143,20 @@ export class ActivityUtilities {
     let averageRPE = 0;
 
     // Sum Duration
-    activities.forEach(activity => {
-      duration += activity.getDuration().getValue();
-    });
-    stats.push(new DataDuration(duration));
+    if (activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
+      activities.forEach(activity => {
+        duration += activity.getDuration().getValue();
+      });
+      stats.push(new DataDuration(duration));
+    }
 
     // Sum pause time
-    activities.forEach(activity => {
-      pauseTime += activity.getPause().getValue();
-    });
-    stats.push(new DataPause(pauseTime));
+    if (activities.every(activity => Number.isFinite(activity.getPause()?.getValue()))) {
+      activities.forEach(activity => {
+        pauseTime += activity.getPause().getValue();
+      });
+      stats.push(new DataPause(pauseTime));
+    }
 
     // Sum Distance
     activities.forEach(activity => {
@@ -1584,7 +1589,7 @@ export class ActivityUtilities {
         movingTime += <number>activityMovingTime.getValue();
       }
     });
-    if (movingTime) {
+    if (movingTime && activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
       stats.push(new DataMovingTime(movingTime));
     }
 
@@ -2424,6 +2429,7 @@ export class ActivityUtilities {
   }
 
   private static getDurationSecondsWithoutPauses(activity: ActivityInterface): number {
+    if (fileActiveDuration.get(activity) === null) return 0;
     const timerTime = this.getFiniteStatValue(activity, DataTimerTime.type);
     if (timerTime !== null && timerTime > 0) {
       return timerTime;
@@ -4619,6 +4625,21 @@ export class ActivityUtilities {
         const swolf50m = ActivityUtilities.computeSwimSwolf(avgPace100m, avgStrokeRate, 50);
         activity.addStat(new DataSWOLF50m(swolf50m));
       }
+    }
+
+    if (fileActiveDuration.get(activity) === null) {
+      // Contradictory file timing is unavailable, not zero or elapsed time. This
+      // survives repeated same-instance generation without persisting evidence.
+      for (const type of [
+        DataDuration.type,
+        DataTimerTime.type,
+        DataPause.type,
+        DataMovingTime.type,
+        DataPowerWork.type
+      ]) {
+        activity.removeStat(type);
+      }
+      return;
     }
 
     if (!activity.getStat(DataDuration.type)) {

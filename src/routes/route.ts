@@ -1,13 +1,13 @@
 import { ActivityTypes } from '../activities/activity.types';
 import { Creator } from '../creators/creator';
 import { CreatorInterface } from '../creators/creator.interface';
-import { DataInterface } from '../data/data.interface';
 import { DataLatitudeDegrees } from '../data/data.latitude-degrees';
 import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { DataPositionInterface } from '../data/data.position.interface';
 import { DataAltitude } from '../data/data.altitude';
 import { isNumber } from '../events/utilities/helpers';
 import { StatsClassAbstract } from '../stats/stats.class.abstract';
+import { StatsUtilities } from '../stats/stats.utilities';
 import { RouteInterface } from './route.interface';
 import { RouteParsingOptions } from './route-parsing-options';
 import { RouteLinkInterface, RouteMetadataInterface, RoutePointInterface } from './route-point.interface';
@@ -208,11 +208,9 @@ export class Route extends StatsClassAbstract implements RouteInterface {
     );
   }
 
+  /** Serializes route data while omitting non-finite scalar summary stats. */
   toJSON(): RouteJSONInterface {
-    const stats = {};
-    this.stats.forEach((value: DataInterface) => {
-      Object.assign(stats, value.toJSON());
-    });
+    const stats = StatsUtilities.serializeStats(this.stats);
 
     const routeJSON: RouteJSONInterface = {
       name: this.name || null,

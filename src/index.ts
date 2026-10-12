@@ -123,6 +123,8 @@ export class SportsLib {
 
   /**
    * Parses and returns first-class routes using native format (SportsLib exported format).
+   * Skips legacy null/non-finite scalar summaries. When no valid file summary remains,
+   * restores it using the existing child-route aggregation; geometry validation is unchanged.
    * @param json RouteFileJSONInterface
    */
   public static importRoutesFromJSON(json: RouteFileJSONInterface): RouteFileInterface {

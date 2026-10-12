@@ -20,6 +20,10 @@ lap total twice when independent length and recorded-distance evidence agree. GP
 heart-rate extensions, including COROS exports. These corrections require original-file reparsing and derived-summary
 refreshes for affected activities; existing non-activity imports need separate consumer review, not automatic deletion.
 
+Native route JSON omits non-finite scalar summaries and tolerates legacy invalid summaries on restoration while
+preserving valid values and geometry checks. Files without valid summaries use existing child-route aggregation;
+no original-file reparse is needed. See [native route JSON summaries](guides/routes.md#native-json-summaries).
+
 Provider-neutral Health and sleep `Data*` classes cover movement, energy, cardiovascular values, wellness, body
 composition, sleep stages, sleep scores, and sleep-qualified vital aggregates. Their canonical tokens, units, display
 formatting, aliases, and JSON behavior are documented in the metrics guide; provider transport and persistence remain

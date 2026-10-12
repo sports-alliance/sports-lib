@@ -129,7 +129,12 @@ export type { EventInterface } from '../src/events/event.interface';
 export type { EventJSONInterface } from '../src/events/event.json.interface';
 export { FileType } from '../src/events/adapters/file-type.enum';
 
-/** @category Routes */
+/**
+ * First-class routes and route files serialize without non-finite scalar summaries.
+ * Native JSON restoration skips legacy null/non-finite summaries and aggregates child routes
+ * only when no valid file-level summary remains; geometry, streams and metadata retain their contracts.
+ * @category Routes
+ */
 export { Route, RouteFile, RouteStream } from '../src/routes';
 export type {
   RouteFileInterface,

@@ -26,6 +26,7 @@ import {
 } from '../../../../activities/dive-source-records';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataElapsedTime } from '../../../../data/data.elapsed-time';
+import { getCorroboratedSessionElapsedTime } from './fit-session-timing';
 import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
@@ -278,7 +279,9 @@ export class EventImporterFIT {
   /** Import file-scoped calibration and combine complementary records before
    * sensor padding. Recorded pool HR retains explicit dropout boundaries;
    * generated swim samples cannot extend past their owning lap or session.
-   * Reject explicit non-activity file types before recovering missing sessions. */
+   * Reject explicit non-activity file types before recovering missing sessions.
+   * Retain a sole session's full chronology when ordered records and complete
+   * timer intervals corroborate it, preserving active time and duration limits. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -330,6 +333,15 @@ export class EventImporterFIT {
           return;
         }
 
+        const soleSourceSession = fitDataObject.sessions?.length === 1 ? fitDataObject.sessions[0] : undefined;
+        const sourceElapsed = soleSourceSession?.total_elapsed_time;
+        const sourceSpan = (+soleSourceSession?.timestamp - +soleSourceSession?.start_time) / 1000;
+        // Ordinary sessions do not need an extra record pass. Preserve the raw
+        // evidence before session synthesis or legacy timing normalization.
+        const corroboratedSessionElapsed = typeof sourceElapsed === 'number' && sourceElapsed > 0 &&
+          sourceSpan / sourceElapsed > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD
+          ? getCorroboratedSessionElapsedTime(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60)
+          : null;
         this.normalizeFitDataObjectForActivities(fitDataObject);
 
         if (!fitDataObject.sessions.length) {
@@ -364,7 +376,8 @@ export class EventImporterFIT {
           timer: session.total_timer_time, elapsed: session.total_elapsed_time
         }));
         const sessionActivities: ActivityInterface[] = fitDataObject.sessions.map((session: any, index: number) =>
-          this.getActivityFromSessionObject(session, fitDataObject, options, index));
+          this.getActivityFromSessionObject(session, fitDataObject, options, index,
+            index === 0 ? corroboratedSessionElapsed : null));
         const sessionRecords = this.getSessionRecords(fitDataObject.records, sessionActivities);
 
         // Iterate over the sessions and create their activities
@@ -1846,7 +1859,8 @@ export class EventImporterFIT {
     sessionObject: any,
     fitDataObject: any,
     options: ActivityParsingOptions,
-    sessionIndex: number
+    sessionIndex: number,
+    corroboratedSessionElapsed: number | null = null
   ): ActivityInterface {
     // Cascaded records belong to this session. Whole-file records can supply
     // bounds only for a sole session; otherwise they can absorb another leg.
@@ -1938,7 +1952,10 @@ export class EventImporterFIT {
     // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
     // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
     // @see test case implying 'fixtures/rides/fit/5319808632.fit' fit file
-    if (totalElapsedTime && elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
+    const preserveCorroboratedChronology = corroboratedSessionElapsed === elapsedTimeFromDates && totalElapsedTime > 0 &&
+      elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD;
+    if (!preserveCorroboratedChronology && totalElapsedTime &&
+        elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
       if (totalElapsedTime) {
         endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
       }
@@ -1978,6 +1995,7 @@ export class EventImporterFIT {
           ...sessionObject,
           start_time: startDate,
           timestamp: endDate,
+          ...(preserveCorroboratedChronology ? { total_elapsed_time: elapsedTimeFromDates } : {}),
           threshold_power: fileFtp ?? sessionObject?.threshold_power
         },
         startDate,

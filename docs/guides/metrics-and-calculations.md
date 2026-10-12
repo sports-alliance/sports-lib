@@ -40,6 +40,12 @@ Time metric semantics:
 - `Pause Time` (unit: `s`): explicit paused time, computed as `max(ElapsedTime - TimerTime, 0)`.
 - `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
 
+For a sole FIT session whose complete timer timeline and ordered records corroborate longer chronology,
+`Elapsed time` includes the full span and `Pause Time` its inactive portion; the recorded `Duration` and `Timer time`
+stay active-only. See [recorded timing](importing-activities.md#recorded-timing-and-sensor-coverage) for evidence
+requirements, precision tolerance, duration limits and original-file reparse requirements. No metric token,
+unit or JSON schema changes; downstream numeric reads receive the corrected existing values after reparse.
+
 High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, stroke rate, power, altitude, depth, grade, vertical metrics
 - Zones and targets: heart-rate/power/speed zone durations and zone targets

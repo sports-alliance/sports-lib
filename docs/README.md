@@ -12,6 +12,9 @@ They do not combine child recovery estimates or promote an earlier estimate when
 FIT imports preserve credible per-session timestamps when duration summaries are missing, keeping multisport records
 and load scoped to their own legs. See [recorded timing and sensor coverage](guides/importing-activities.md#recorded-timing-and-sensor-coverage)
 for recovery behavior and reparsing existing activities.
+Sole-session FIT recordings with a complete corroborated timer timeline also retain later records across long pauses,
+keeping full elapsed time separate from recorded active time and training load. Existing truncated imports need an
+original-file reparse; duration limits and public metric/JSON contracts remain unchanged.
 
 Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
 Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.

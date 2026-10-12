@@ -14,6 +14,8 @@
  * following the GPX 1.1 metadata sequence.
  * FIT imports preserve credible session timestamps without duration summaries; recovery uses session-owned
  * records, allowing whole-file record bounds only for a sole session. Existing affected imports require reparsing.
+ * A sole explicit FIT session with ordered endpoint-spanning records and complete corroborated timer intervals
+ * retains full chronology across long pauses, with active duration and configured duration limits unchanged.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified

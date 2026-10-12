@@ -82,6 +82,17 @@ activity duration remains enforced. Existing affected activities require an orig
 derived summaries; restoring their saved JSON cannot reconstruct the missing session boundaries. This correction
 adds no metrics or fields and preserves canonical names, units, imported TSS and public JSON schemas.
 
+A sole explicit FIT session can also retain its full chronology when its elapsed summary omits long pauses.
+This exception requires ordered records spanning the exact source endpoints, a complete alternating timer
+timeline in one event group, and records at distinct times within every active interval. The summed intervals
+must agree with the independently supplied positive timer summary. The precision tolerance is one second per
+closed interval plus one millisecond: FIT event timestamps encode whole seconds and timer summaries encode
+milliseconds. It does not grow with workout duration. Missing, repeated, conflicting or out-of-order transitions,
+unsupported records and multiple sessions retain the existing timestamp recovery behavior. The configured
+duration limit still applies. `Elapsed time` and `Pause Time` then cover the full chronology while `Duration`
+and `Timer time` preserve the recorded active time; long pauses do not become training load. Existing truncated
+imports need original-file reparsing and derived-summary refreshes. Canonical metrics and JSON schemas are unchanged.
+
 Pool length end dates use credible ending timestamps, retaining fractional elapsed precision when it agrees with
 the FIT timestamp's whole-second resolution. Positive elapsed duration, then positive timer duration, can recover a
 missing or invalid end. Resolved activity and owning-lap ends bound each length. Generated samples additionally retain

@@ -91,6 +91,11 @@ TCX files and refresh dependent summaries to recover historical omissions; no to
 `Trackpoint/Extensions/TPX/Cadence` is **not** treated as an alias for standard Cadence/RunCadence. Its exporter
 convention may count both feet rather than complete cycles; units must be established before adding a conversion.
 Standard trackpoint Cadence and TPX RunCadence retain their existing behavior, including activity-aware Stroke Rate.
+Recorded lap cadence is read only from a single, finite, nonnegative `Cadence` directly owned by that lap,
+in the lap's TCX namespace (including existing v1 and unnamespaced legacy documents). Trackpoint values cannot
+supply that field, even when they appear before the recorded lap value. This also prevents unsupported TPX/Cadence
+from entering through the lap-summary path. Existing stream-derived averages and explicit LX AvgRunCadence remain
+unchanged. The existing lap-stat token is retained; reparse the original TCX to remove historical false lap values.
 See [#156](https://github.com/sports-alliance/sports-lib/issues/156).
 
 ### Recorded timing and sensor coverage

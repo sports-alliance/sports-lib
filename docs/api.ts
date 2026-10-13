@@ -31,6 +31,7 @@
  * Recognized COROS direct Extensions/Speed uses km/h and is normalized to m/s for streams and lap calculations.
  * Position/AltitudeMeters can supply missing standard altitude in metres. Both paths reject ambiguous candidates,
  * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.
+ * Recorded lap cadence must belong directly to its lap. Descendant trackpoint cadence does not supply lap summaries.
  *
  * @category Import and export
  */

@@ -56,3 +56,18 @@ export const findTCXAltitude = (point: Element): number | null => {
   const position = uniqueChild(point, 'Position');
   return position ? numericText(uniqueChild(position, 'AltitudeMeters')) : null;
 };
+
+/** A recorded lap value must be owned by the lap itself. A descendant search
+ * can otherwise promote its first trackpoint (including unsupported TPX/Cadence
+ * with unknown units) to a lap summary. Keep the existing lap-stat token. */
+export const findTCXLapCadence = (lap: Element): number | null => {
+  // Retain existing direct-field support for TCX v1 and unnamespaced legacy
+  // documents. A candidate must still use its own lap's namespace.
+  const namespace = lap.namespaceURI || '';
+  if (![tcxNamespace, 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v1', ''].includes(namespace))
+    return null;
+  const candidates = children(lap, 'Cadence');
+  const field = candidates.length === 1 && (candidates[0].namespaceURI || '') === namespace ? candidates[0] : null;
+  const value = numericText(field);
+  return value !== null && value >= 0 ? value : null;
+};

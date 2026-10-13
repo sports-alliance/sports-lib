@@ -19,7 +19,7 @@ import { LapTypes } from '../../../../laps/lap.types';
 import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.names';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { TCXSampleMapper } from './importer.tcx.mapper';
-import { findTCXSpeed, hasCorosDirectSpeed } from './tcx.compatibility';
+import { findTCXLapCadence, findTCXSpeed, hasCorosDirectSpeed } from './tcx.compatibility';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber } from '../../../utilities/helpers';
 import { DataMovingTime } from '../../../../data/data.moving-time';
@@ -71,7 +71,8 @@ export class EventImporterTCX {
    * Recover finite, nonnegative speed from a single directly owned ActivityExtension/v2 TPX when
    * Extensions is absent, retaining wrapped precedence and canonical Speed/Pace metrics.
    * Recognized COROS direct Extensions/Speed is converted from km/h to m/s.
-   * Position/AltitudeMeters can supply missing standard altitude in metres. */
+   * Position/AltitudeMeters can supply missing standard altitude in metres.
+   * Recorded lap cadence must be directly owned by the lap, never a trackpoint. */
   static getFromXML(
     xml: Document,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -552,8 +553,9 @@ export class EventImporterTCX {
         }
       }
 
-      if (lapElement.getElementsByTagName('Cadence')[0]) {
-        lap.addStat(new DataCadence(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
+      const lapCadence = findTCXLapCadence(lapElement);
+      if (lapCadence !== null) {
+        lap.addStat(new DataCadence(lapCadence));
       }
 
       // Fetching activity lap speed from records or from extensions if exists according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema

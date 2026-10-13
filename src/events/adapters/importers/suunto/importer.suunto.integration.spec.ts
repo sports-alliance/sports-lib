@@ -133,7 +133,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
     }
   });
 
-  it('should keep stream output unchanged when includeTypes is set (current scope guard)', async () => {
+  it('should select requested streams without changing their observations', async () => {
     const filePath = path.join(samplesDir, 'running-with-extra-data.json');
     if (!fs.existsSync(filePath)) {
       console.warn('running-with-extra-data.json not found. Skipping includeTypes scope guard test.');
@@ -156,9 +156,13 @@ describe('EventImporterSuuntoJSON Integration', () => {
       .getActivities()
       .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
 
-    const baselineStreamTypes = baselineActivity.getAllStreams().map(stream => stream.type);
     const includeFilteredStreamTypes = includeFilteredActivity.getAllStreams().map(stream => stream.type);
-    expect(includeFilteredStreamTypes).toEqual(baselineStreamTypes);
+    expect(includeFilteredStreamTypes).toEqual([DataDistance.type]);
+    // A full parse can fill extra distance slots from other sensors. Every selected
+    // observation still agrees at its timestamp; unrelated streams are omitted.
+    includeFilteredActivity.getStreamData(DataDistance.type).forEach((value, index) => {
+      if (value !== null) expect(value).toBe(baselineActivity.getStreamData(DataDistance.type)[index]);
+    });
   });
 
   it('should map Suunto Endurance to Stamina without creating Potential Stamina', async () => {

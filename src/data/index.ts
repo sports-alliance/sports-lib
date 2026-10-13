@@ -237,6 +237,7 @@ export * from './data.speed-zone-two-duration';
 export * from './data.speed';
 export * from './data.sport-profile-name';
 export * from './data.stamina';
+export * from './data.estimated-sustainable-distance';
 export * from './data.stance-time';
 export * from './data.start-altitude';
 export * from './data.start-event';

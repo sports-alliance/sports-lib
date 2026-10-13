@@ -1,4 +1,8 @@
 import { ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
+import {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin
+} from '../../data/data.estimated-sustainable-distance';
 import { DataAbsolutePressure } from '../../data/data.absolute-pressure';
 import { DataAbsolutePressureAvg } from '../../data/data.absolute-pressure-avg';
 import { DataAbsolutePressureMax } from '../../data/data.absolute-pressure-max';
@@ -123,9 +127,9 @@ interface StreamSummaryAggregatePolicy {
 interface StreamSummaryFamilyPolicy {
   key: string;
   sourceTypes: readonly string[];
-  min: StreamSummaryAggregatePolicy;
-  max: StreamSummaryAggregatePolicy;
-  avg: StreamSummaryAggregatePolicy;
+  min?: StreamSummaryAggregatePolicy;
+  max?: StreamSummaryAggregatePolicy;
+  avg?: StreamSummaryAggregatePolicy;
   isActivityTypeEligible?: (activityType: ActivityTypes) => boolean;
 }
 
@@ -172,6 +176,11 @@ function family(
  * each source must opt in with its calculation and eligibility policies.
  */
 export const STREAM_SUMMARY_FAMILY_POLICIES: readonly StreamSummaryFamilyPolicy[] = [
+  {
+    key: 'estimatedSustainableDistance',
+    sourceTypes: [DataEstimatedSustainableDistance.type],
+    min: { target: DataEstimatedSustainableDistanceMin, isValueValid: isNonNegative }
+  },
   family('altitude', [DataAltitudeSmooth.type, DataAltitude.type], DataAltitudeMin, DataAltitudeMax, DataAltitudeAvg, {
     isActivityTypeEligible: excludesTerrainSummary
   }),
@@ -284,10 +293,10 @@ export const STREAM_SUMMARY_FAMILY_POLICIES: readonly StreamSummaryFamilyPolicy[
 function deriveAggregate(
   target: StatsClassInterface,
   values: readonly (number | null)[],
-  policy: StreamSummaryAggregatePolicy,
+  policy: StreamSummaryAggregatePolicy | undefined,
   aggregate: 'min' | 'max' | 'avg'
 ): void {
-  if (target.getStat(policy.target.type)) {
+  if (!policy || target.getStat(policy.target.type)) {
     return;
   }
 

@@ -145,6 +145,16 @@ import { fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 import { readSuuntoTimingSource, resolveSuuntoTiming, SuuntoTiming } from './suunto-timing';
 import { DurationClassInterface } from '../../../../duration/duration.class.interface';
 import { StatsClassInterface } from '../../../../stats/stats.class.interface';
+import {
+  getStreamSelectionFromOptions,
+  isStreamTypeAllowedForImport,
+  pruneActivityStreamsBySelection,
+  StreamSelection
+} from '../../../../streams/stream.selection';
+import {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin
+} from '../../../../data/data.estimated-sustainable-distance';
 
 export class EventImporterSuuntoJSON {
   private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
@@ -161,6 +171,7 @@ export class EventImporterSuuntoJSON {
   ): Promise<EventInterface> {
     return new Promise((resolve, _reject) => {
       const eventJSONObject = JSON.parse(jsonString);
+      const streamSelection = getStreamSelectionFromOptions(options);
       // debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
@@ -168,6 +179,8 @@ export class EventImporterSuuntoJSON {
           eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
       );
       creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
+      // The format establishes the provider; a device's display name does not.
+      creator.manufacturer = 'Suunto';
       creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
       creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
 
@@ -179,8 +192,9 @@ export class EventImporterSuuntoJSON {
 
       // Get the lap start events
       const allLapEventSamples = this.getEventSamples(eventJSONObject.DeviceLog.Samples, 'Lap');
-      const lapEventSamples = allLapEventSamples.filter((sample: any) =>
-        sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop');
+      const lapEventSamples = allLapEventSamples.filter(
+        (sample: any) => sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop'
+      );
 
       // Get the stop event
       const stopEventSample = allLapEventSamples.find((sample: any) => sample.Events[0].Lap.Type === 'Stop');
@@ -196,8 +210,10 @@ export class EventImporterSuuntoJSON {
             return windowObj.Window.Type === 'Activity';
           }).map((activityWindow: any) => activityWindow.Window)
         : [];
-      const activityTypes = activityStartEventSamples.map((sample: any) =>
-        ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[sample.Events[0].Activity.ActivityType]]);
+      const activityTypes = activityStartEventSamples.map(
+        (sample: any) =>
+          ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[sample.Events[0].Activity.ActivityType]]
+      );
       const singleSport = new Set(activityTypes).size === 1;
 
       // Get the lap windows
@@ -249,14 +265,21 @@ export class EventImporterSuuntoJSON {
           this.applyTiming(activity, timing);
           fileActiveDuration.set(activity, timing.active);
           // A global speed threshold cannot calibrate different sports in the same workout.
-          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header, activityWindows[index],
-            activityStartEventSamples.length === 1, singleSport);
+          this.setIntensityZones(
+            activity,
+            eventJSONObject.DeviceLog.Header,
+            activityWindows[index],
+            activityStartEventSamples.length === 1,
+            singleSport
+          );
 
           // Add the fused altitude event
-          if (fusedAltitudeEventSamples.some((sample: any) => {
-            const timestamp = new Date(sample.TimeISO8601).getTime();
-            return timestamp >= activity.startDate.getTime() && timestamp <= activity.endDate.getTime();
-          })) {
+          if (
+            fusedAltitudeEventSamples.some((sample: any) => {
+              const timestamp = new Date(sample.TimeISO8601).getTime();
+              return timestamp >= activity.startDate.getTime() && timestamp <= activity.endDate.getTime();
+            })
+          ) {
             activity.addStat(new DataFusedAltitude(true));
           }
 
@@ -412,11 +435,16 @@ export class EventImporterSuuntoJSON {
         );
 
         // Should filter on type and create the samples
-        this.setStreamsForActivity(activity, activitySamples);
+        this.setStreamsForActivity(activity, activitySamples, streamSelection);
       });
 
       // Add the ibiData
-      if (eventJSONObject.DeviceLog['R-R'] && eventJSONObject.DeviceLog['R-R'].Data) {
+      if (
+        eventJSONObject.DeviceLog['R-R'] &&
+        eventJSONObject.DeviceLog['R-R'].Data &&
+        (isStreamTypeAllowedForImport('IBI', streamSelection) ||
+          isStreamTypeAllowedForImport(DataHeartRate.type, streamSelection))
+      ) {
         // prepare the data array per activity removing the offset
         activities.forEach((activity: ActivityInterface) => {
           let timeSum = 0;
@@ -432,9 +460,9 @@ export class EventImporterSuuntoJSON {
             if (existingHRStream) {
               activity.removeStream(existingHRStream);
             }
-            this.setStreamsForActivity(activity, hrSamplesFromIBI);
+            this.setStreamsForActivity(activity, hrSamplesFromIBI, streamSelection);
           }
-          activity.addStream(new IBIStream(ibiData));
+          if (isStreamTypeAllowedForImport('IBI', streamSelection)) activity.addStream(new IBIStream(ibiData));
         });
       }
 
@@ -451,6 +479,13 @@ export class EventImporterSuuntoJSON {
       }
 
       if (activities.length === 1) {
+        // A sole activity can inherit missing source observations from the workout header.
+        // Preserve a more specific window observation, including valid zero.
+        this.getStats(eventJSONObject.DeviceLog.Header)
+          .filter(stat => stat instanceof DataStamina || stat instanceof DataEstimatedSustainableDistance)
+          .forEach(stat => {
+            if (!activities[0].getStat(stat.getType())) activities[0].addStat(stat);
+          });
         const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(
           stat =>
             stat instanceof DataSteps ||
@@ -477,6 +512,7 @@ export class EventImporterSuuntoJSON {
         }
       }
 
+      activities.forEach(activity => pruneActivityStreamsBySelection(activity, streamSelection));
       resolve(event);
     });
   }
@@ -496,13 +532,17 @@ export class EventImporterSuuntoJSON {
   private static addTimerEvents(activity: ActivityInterface, samples: any[]): void {
     const start = activity.startDate.getTime();
     const end = activity.endDate.getTime();
-    const timer = samples.flatMap(sample => {
-      if (typeof sample.TimeISO8601 !== 'string' || !sample.TimeISO8601.trim()) return [];
-      const timestamp = new Date(sample.TimeISO8601).getTime();
-      if (!Number.isFinite(timestamp) || timestamp > end || !Array.isArray(sample.Events)) return [];
-      return sample.Events.filter((event: any) => typeof event?.Pause?.State === 'boolean')
-        .map((event: any) => ({ timestamp, paused: event.Pause.State as boolean }));
-    }).sort((left, right) => left.timestamp - right.timestamp);
+    const timer = samples
+      .flatMap(sample => {
+        if (typeof sample.TimeISO8601 !== 'string' || !sample.TimeISO8601.trim()) return [];
+        const timestamp = new Date(sample.TimeISO8601).getTime();
+        if (!Number.isFinite(timestamp) || timestamp > end || !Array.isArray(sample.Events)) return [];
+        return sample.Events.filter((event: any) => typeof event?.Pause?.State === 'boolean').map((event: any) => ({
+          timestamp,
+          paused: event.Pause.State as boolean
+        }));
+      })
+      .sort((left, right) => left.timestamp - right.timestamp);
 
     // A pause can span a sport change. Carry only an explicitly recorded state;
     // aggregate pause duration cannot locate a pause or create a timer event.
@@ -542,17 +582,38 @@ export class EventImporterSuuntoJSON {
     return Number.isFinite(numeric) && numeric >= 0 ? numeric : undefined;
   }
 
-  private static setIntensityZones(activity: ActivityInterface, header: any, window: any,
-    singleActivity: boolean, singleSport: boolean) {
-    const localSportMatches = window?.ActivityId === undefined ||
+  private static setIntensityZones(
+    activity: ActivityInterface,
+    header: any,
+    window: any,
+    singleActivity: boolean,
+    singleSport: boolean
+  ) {
+    const localSportMatches =
+      window?.ActivityId === undefined ||
       ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[window.ActivityId]] === activity.type;
     const durationTypes = [
-      [DataHeartRateZoneOneDuration, DataHeartRateZoneTwoDuration, DataHeartRateZoneThreeDuration,
-        DataHeartRateZoneFourDuration, DataHeartRateZoneFiveDuration],
-      [DataPowerZoneOneDuration, DataPowerZoneTwoDuration, DataPowerZoneThreeDuration,
-        DataPowerZoneFourDuration, DataPowerZoneFiveDuration],
-      [DataSpeedZoneOneDuration, DataSpeedZoneTwoDuration, DataSpeedZoneThreeDuration,
-        DataSpeedZoneFourDuration, DataSpeedZoneFiveDuration]
+      [
+        DataHeartRateZoneOneDuration,
+        DataHeartRateZoneTwoDuration,
+        DataHeartRateZoneThreeDuration,
+        DataHeartRateZoneFourDuration,
+        DataHeartRateZoneFiveDuration
+      ],
+      [
+        DataPowerZoneOneDuration,
+        DataPowerZoneTwoDuration,
+        DataPowerZoneThreeDuration,
+        DataPowerZoneFourDuration,
+        DataPowerZoneFiveDuration
+      ],
+      [
+        DataSpeedZoneOneDuration,
+        DataSpeedZoneTwoDuration,
+        DataSpeedZoneThreeDuration,
+        DataSpeedZoneFourDuration,
+        DataSpeedZoneFiveDuration
+      ]
     ];
     SuuntoIntensityZonesMapper.forEach((mapping, mappingIndex) => {
       const parent = header?.[mapping.sampleField];
@@ -563,7 +624,9 @@ export class EventImporterSuuntoJSON {
         const durationKey = `Zone${index}Duration`;
         // A parent total is applicable only to a single leg. Partial local zone data
         // must not cause the same parent durations to be copied onto every leg.
-        const duration = this.getNonnegativeNumber(local?.[durationKey] ?? (singleActivity ? parent?.[durationKey] : undefined));
+        const duration = this.getNonnegativeNumber(
+          local?.[durationKey] ?? (singleActivity ? parent?.[durationKey] : undefined)
+        );
         if (duration !== undefined) {
           (zones as any)[`zone${index}Duration`] = duration;
           activity.addStat(new durationTypes[mappingIndex][index - 1](duration));
@@ -602,9 +665,14 @@ export class EventImporterSuuntoJSON {
     return samples;
   }
 
-  private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {
+  private static setStreamsForActivity(
+    activity: ActivityInterface,
+    samples: any[],
+    streamSelection: StreamSelection | null
+  ): void {
     // console.log(`Setting streams for activity with ${samples.length} samples`);
     SuuntoSampleMapper.forEach(sampleMapping => {
+      if (!isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)) return;
       const subjectSamples = <any[]>samples.filter(sample => {
         const value = sample[sampleMapping.sampleField];
         return (
@@ -931,21 +999,22 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataMaxHRSetting(object.Personal.MaxHR * 60)); // Convert from Hz to bpm
     }
 
-    if (Array.isArray(object.Endurance)) {
-      const endurance = object.Endurance[0];
-      if (isNumber(endurance?.Cur)) {
-        stats.push(new DataStamina(endurance.Cur));
-      }
-      if (isNumber(endurance?.Min)) {
-        stats.push(new DataStaminaMin(endurance.Min));
-      }
-    } else if (object.Endurance) {
-      if (isNumber(object.Endurance.Cur)) {
-        stats.push(new DataStamina(object.Endurance.Cur));
-      }
-      if (isNumber(object.Endurance.Min)) {
-        stats.push(new DataStaminaMin(object.Endurance.Min));
-      }
+    const endurance = this.getSummaryObject(object, 'Endurance');
+    if (endurance) {
+      const current = this.getPercentageSummaryValue(endurance, 'Cur');
+      const minimum = this.getPercentageSummaryValue(endurance, 'Min');
+      if (current !== null) stats.push(new DataStamina(current));
+      if (minimum !== null) stats.push(new DataStaminaMin(minimum));
+    }
+    // Metres are the adopted source-unit assumption pending Suunto confirmation.
+    // Cur is the end-of-scope estimate, not necessarily the final sampled observation.
+    // EnduranceValid is undocumented; it must not erase populated observations.
+    const sustainableDistance = this.getSummaryObject(object, 'EnduranceDistance');
+    if (sustainableDistance) {
+      const current = this.getFiniteSummaryValue(sustainableDistance, 'Cur');
+      const minimum = this.getFiniteSummaryValue(sustainableDistance, 'Min');
+      if (current !== null && current >= 0) stats.push(new DataEstimatedSustainableDistance(current));
+      if (minimum !== null && minimum >= 0) stats.push(new DataEstimatedSustainableDistanceMin(minimum));
     }
 
     // Depth (Diving)
@@ -1162,7 +1231,14 @@ export const SuuntoSampleMapper: {
   {
     dataType: DataStamina.type,
     sampleField: 'Endurance',
-    convertSampleValue: (value: number) => Number(value)
+    convertSampleValue: (value: number) => Number(value),
+    isSampleValueValid: value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100
+  },
+  {
+    dataType: DataEstimatedSustainableDistance.type,
+    sampleField: 'EnduranceDistance',
+    convertSampleValue: (value: number) => Number(value),
+    isSampleValueValid: value => typeof value === 'number' && Number.isFinite(value) && value >= 0
   },
   {
     dataType: DataVerticalOscillation.type,

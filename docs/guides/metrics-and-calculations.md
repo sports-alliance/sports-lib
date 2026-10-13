@@ -5,6 +5,39 @@ summary: Canonical metric tokens, units, and derivation behavior.
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Endurance estimates
+
+`Stamina` and its `Average`, `Minimum`, and `Maximum` keys remain unchanged. Suunto JSON/SML `Endurance`
+continues to use this percentage family; Garmin Stamina and Potential Stamina retain their existing mappings.
+Consumers may label verified Suunto observations **EnergySense Endurance** without changing serialized keys.
+The Suunto importer now records `creator.manufacturer = 'Suunto'` from the source format. Friendly device names
+alone do not establish that provenance.
+
+`DataEstimatedSustainableDistance` adds canonical `Estimated Sustainable Distance` and
+`DataEstimatedSustainableDistanceMin` adds `Minimum Estimated Sustainable Distance`. Values are finite,
+nonnegative metres, with separate miles display variants registered in `DynamicDataLoader`; zero is valid.
+They represent estimates, never travelled distance or distance remaining to a target, and are not summed across
+activities. A sole activity's stats can appear unchanged on its parent event. No multi-activity estimate is derived.
+
+Suunto JSON/SML `EnduranceDistance` samples map directly to the distance stream. Object/array summaries map `Cur`
+to the end-of-scope scalar and `Min` to the provider minimum. Both take precedence over sampled observations;
+only a missing minimum is derived from the canonical one-second samples. The normal timestamp collision policy
+can make that sampled minimum differ from the minimum of all raw readings. Samples alone do not fabricate an ending scalar. Gaps and increases
+are preserved, while missing, null, nonnumeric, nonfinite and negative distances are omitted. There are no derived
+average/maximum variants. The undocumented `EnduranceValid` flag does not suppress populated observations or assert
+provider validation. Both Suunto formats now honor `streams.includeTypes`, including derivation dependencies.
+
+**Source-unit assumption:** `EnduranceDistance` is interpreted as metres by explicit integration decision, pending
+Suunto confirmation of the raw field contract. [Suunto's EnergySense explanation](https://us.suunto.com/blogs/blog/what-is-energysense)
+describes sustainable distance and remaining endurance but does not specify the export field's unit or validity flag.
+The raw numeric values are retained without scaling; this mapping is an assumption, not a documented field definition.
+No speculative FIT mapping is added: an export without these observations remains unavailable.
+
+Label changes require no key migration. New persisted distance summaries and explicit Suunto manufacturer metadata
+require original-file reparse for historical records; retained JSON/SML can hydrate charts without a persistence rewrite.
+FIT-only records cannot recover omitted source fields. Downstream regeneration must preserve freshly parsed endurance
+summary values before deriving missing stats, and numeric discovery must require actual persisted availability.
+
 ## Swim distance display
 
 `DataSwimDistance` keeps the canonical `Distance` token, meter value and JSON representation. Its optional

@@ -187,3 +187,8 @@ boundaries. TCX elapsed time spans all tracks in each lap while retaining its ex
 Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training
 summaries; serialized metric names and units are unchanged. See the [TSS methods and migration guidance](guides/metrics-and-calculations.md).
+
+Suunto EnergySense observations retain canonical `Stamina` percentages and add `Estimated Sustainable Distance`
+plus its minimum. Source `Cur` endings and `Min` summaries remain distinct from sampled values. The distance source
+unit is provisionally interpreted as metres, pending provider confirmation; no FIT field is inferred. See
+[metric semantics and historical reparse](guides/metrics-and-calculations.md#endurance-estimates).

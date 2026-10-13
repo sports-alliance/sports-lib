@@ -32,6 +32,18 @@
 export { SportsLib } from '../src/index';
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
+/**
+ * Recorded sustainable-distance estimates, distinct from travelled or target distance.
+ * Canonical metres and minimum; miles variants are presentation only. Suunto raw units
+ * currently follow an explicitly adopted metres assumption pending provider confirmation.
+ * @category Data
+ */
+export {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin,
+  DataEstimatedSustainableDistanceMiles,
+  DataEstimatedSustainableDistanceMinMiles
+} from '../src/data/data.estimated-sustainable-distance';
 export type { EventExporter } from '../src/events/adapters/exporters/exporter.interface';
 
 /**

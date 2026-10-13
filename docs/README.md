@@ -6,6 +6,10 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display one decimal place in meters.
+Stored values and calculations retain full precision; existing stats need no reparse or migration. See
+[Position error display](guides/metrics-and-calculations.md#position-error-display).
+
 Regenerated multi-activity events carry the positive `Recovery Time` reported by their chronologically final activity.
 They do not combine child recovery estimates or promote an earlier estimate when the final activity has none.
 

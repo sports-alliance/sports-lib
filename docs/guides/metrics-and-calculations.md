@@ -49,6 +49,25 @@ choose it from the first swim-pace preference without changing general distance 
 This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. MCP numeric
 discovery and canonical wire values remain unchanged; the display unit is not a new metric or persisted unit.
 
+## Position error display
+
+`EHPE` is estimated horizontal position error; `EVPE` is estimated vertical position error. Both are device estimates
+in meters, not measured deviations from a known reference position. Their base, Average, Minimum and Maximum classes
+return `m` from `getUnit()` and `getDisplayUnit()`, and format `getDisplayValue()` to one decimal place. For example,
+`new DataEHPEAvg(3.87654)` displays `3.9 m`. Values remain in meters even above 1000; position error does not
+use the general distance formatter's kilometer switching. Suunto sample import preserves its recorded numeric values.
+
+Only display formatting and the formerly empty unit metadata change. `getValue()`, summary calculations, canonical
+type tokens and JSON numeric values retain full precision. Existing persisted stats gain the corrected display when
+loaded with this version, without activity/route reparsing, summary regeneration or a persisted-data migration.
+
+Quantified Self MCP consumer review: all eight existing classes remain package-root exports, enumerable through
+`DataStore` and loadable through `DynamicDataLoader` using their existing canonical tokens. The numeric catalog's unit
+metadata changes from empty to `m`; numeric query values and persisted stat keys do not change. Quantified Self must
+adopt the same package version in its frontend and Functions and verify catalog/persistence tests under its
+MCP metric-surface workflow. This correction introduces no metric, tool, output field, scope, consent, provider action
+or additional exposure; downstream package adoption and release remain separate work.
+
 Data Coverage & Calculation Reference
 ---
 

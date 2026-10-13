@@ -66,7 +66,9 @@ export class EventImporterTCX {
 
   /** Import TCX using whole-lap track bounds for elapsed time and the recorded
    * timer for active duration, retaining a valid explicit lap start. Resolve known sport aliases
-   * to their canonical type and preserve unrecognized or absent sports as Unknown Sport. */
+   * to their canonical type and preserve unrecognized or absent sports as Unknown Sport.
+   * Recover finite, nonnegative speed from a single directly owned ActivityExtension/v2 TPX when
+   * Extensions is absent, retaining wrapped precedence and canonical Speed/Pace metrics. */
   static getFromXML(
     xml: Document,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,

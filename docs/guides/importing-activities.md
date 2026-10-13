@@ -59,6 +59,15 @@ TCX sport values use the canonical activity-type resolver. Unrecognized, missing
 `Unknown Sport`; recognized Running/Biking values retain existing indoor detection when GPS is absent.
 Reparse original TCX to correct previously missing sport classifications, then refresh consuming summaries.
 
+TCX also recovers recorded speed when a trackpoint directly contains a single `TPX` in the
+`http://www.garmin.com/xmlschemas/ActivityExtension/v2` namespace but omits the `Extensions` wrapper.
+Its directly owned `Speed` must be a finite, nonnegative number; zero is retained, and ambiguous or invalid
+values stay missing. Normal wrapped extensions retain precedence. This compatibility path applies only to speed,
+using the existing canonical `Speed` (m/s), derived `Pace`, and summary calculations; it does not recover unwrapped
+power or cadence or supply missing TSS calibration. Canonical names, units, and native JSON schemas are unchanged.
+Previously omitted observations require reparsing the original TCX and refreshing consuming summaries; restoring
+saved activity JSON cannot recover them.
+
 ### Recorded timing and sensor coverage
 
 `importFromFit` accepts recorded activity files and completed `activity_summary` files with explicit sessions. Summary

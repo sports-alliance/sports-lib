@@ -26,6 +26,8 @@
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
+ * TCX retains finite recorded speed from a single ActivityExtension/v2 TPX directly under a trackpoint when
+ * Extensions is absent. Wrapped extensions retain precedence; historical missing speed requires original-file reparse.
  *
  * @category Import and export
  */

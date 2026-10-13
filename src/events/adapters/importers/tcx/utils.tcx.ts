@@ -35,6 +35,38 @@ export const findLapExtensionValue = (childNodes: NodeListOf<ChildNode>, extensi
   return findExtensionValue(childNodes, extensionName, 'LX');
 };
 
+const activityExtensionNamespace = 'http://www.garmin.com/xmlschemas/ActivityExtension/v2';
+const trainingCenterNamespace = 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2';
+
+/** Some exports omit Extensions around a directly owned, namespaced TPX Speed.
+ * Keep this compatibility path limited to the observed speed layout; accepting
+ * other fields here would also require changing their recorded-sensor evidence.
+ */
+const findUnwrappedSpeed = (childNodes: NodeListOf<ChildNode>): number | null => {
+  const containers = Array.from(childNodes).filter(
+    (node): node is Element =>
+      node.nodeType === 1 &&
+      (node as Element).localName === 'TPX' &&
+      (node as Element).namespaceURI === activityExtensionNamespace
+  );
+  if (containers.length !== 1) return null;
+
+  const values = Array.from(containers[0].childNodes).filter(
+    (node): node is Element =>
+      node.nodeType === 1 &&
+      (node as Element).localName === 'Speed' &&
+      [activityExtensionNamespace, trainingCenterNamespace, ''].includes((node as Element).namespaceURI || '')
+  );
+  if (values.length !== 1 || Array.from(values[0].childNodes).some(node => node.nodeType === 1)) return null;
+
+  const text = values[0].textContent?.trim() || '';
+  // An empty XML field is missing, not recorded zero. Accept decimal/exponent
+  // notation, but never non-finite, negative, hex or unit-suffixed values.
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return null;
+  const value = Number(text);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+};
+
 export const findExtensionValue = (
   childNodes: NodeListOf<ChildNode>,
   extensionName: string,
@@ -42,7 +74,7 @@ export const findExtensionValue = (
 ): number | null => {
   const trackPointsChild: ChildNode | null = findChildNode(childNodes, 'Extensions');
   if (!trackPointsChild) {
-    return null;
+    return namespace === 'TPX' && extensionName === 'Speed' ? findUnwrappedSpeed(childNodes) : null;
   }
   const tpxChildNode = findChildNode(trackPointsChild.childNodes, new RegExp(`${namespace}$`, 'gi'));
   if (tpxChildNode) {

@@ -39,6 +39,9 @@ refreshes for affected activities; existing non-activity imports need separate c
 
 Native activity JSON restores child names independently of event titles. GPX activity and route imports retain the
 exporter name without assigning the schema version as a manufacturer; unknown TCX sports use `Unknown Sport`.
+TCX imports recover recorded speed from an unambiguous ActivityExtension/v2 TPX directly under a trackpoint when
+the Extensions wrapper is missing. Existing canonical Speed/Pace metrics and JSON schemas are unchanged; original-file
+reparsing and summary refreshes recover historical omissions. Normal wrapped extensions retain precedence.
 TSS diagnostics distinguish missing inputs from calculations that cannot return a valid score, preserving the formulas,
 limits and fallback order. See [activity import compatibility](guides/importing-activities.md) and
 [TSS calculations](guides/metrics-and-calculations.md) for source-reparse requirements.

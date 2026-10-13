@@ -68,6 +68,31 @@ power or cadence or supply missing TSS calibration. Canonical names, units, and 
 Previously omitted observations require reparsing the original TCX and refreshing consuming summaries; restoring
 saved activity JSON cannot recover them.
 
+Two further TCX layouts are supported with standard fields retaining precedence:
+
+- Activities whose single, directly owned `Creator/Name` is `COROS Wearables` can supply speed through
+  `Trackpoint/Extensions/Speed`, with all three elements in the TCX v2 namespace. This exporter records
+  **km/h**, so the importer divides by 3.6 before creating canonical Speed/Pace streams or calculating lap
+  speed summaries and moving time. Standard TPX speed remains in m/s, including in COROS activities.
+  This conversion is scoped to the recognized layout and creator; it never guesses units from sample magnitudes.
+  Unknown creators and ambiguous containers remain unsupported. The exporter convention is also described in
+  [GPS Wizard's TCX format analysis](https://logiqx.github.io/gps-wizard/formats/tcx.html).
+- A single `Trackpoint/Position/AltitudeMeters`, with all three elements in the TCX v2 namespace, supplies
+  missing standard altitude in metres. Negative elevations and zero are valid. Existing altitude processing
+  (gap filling, optional smoothing, terrain metrics and summaries) applies identically to standard altitude.
+
+Both fallback paths reject blank, non-finite, nested-value and duplicate/conflicting candidates. An existing
+standard container/field keeps its precedence even if empty or malformed. Recorded duration, timestamps and
+distance remain independent; recovered speed can change moving time and speed summaries, and recovered altitude
+can change terrain-derived metrics. No TSS calibration is invented. Canonical metric tokens, units and JSON
+schemas remain unchanged, including the existing numeric metrics used by Quantified Self MCP. Reparse original
+TCX files and refresh dependent summaries to recover historical omissions; no token migration is required.
+
+`Trackpoint/Extensions/TPX/Cadence` is **not** treated as an alias for standard Cadence/RunCadence. Its exporter
+convention may count both feet rather than complete cycles; units must be established before adding a conversion.
+Standard trackpoint Cadence and TPX RunCadence retain their existing behavior, including activity-aware Stroke Rate.
+See [#156](https://github.com/sports-alliance/sports-lib/issues/156).
+
 ### Recorded timing and sensor coverage
 
 `importFromFit` accepts recorded activity files and completed `activity_summary` files with explicit sessions. Summary

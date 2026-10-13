@@ -42,6 +42,9 @@ exporter name without assigning the schema version as a manufacturer; unknown TC
 TCX imports recover recorded speed from an unambiguous ActivityExtension/v2 TPX directly under a trackpoint when
 the Extensions wrapper is missing. Existing canonical Speed/Pace metrics and JSON schemas are unchanged; original-file
 reparsing and summary refreshes recover historical omissions. Normal wrapped extensions retain precedence.
+Recognized COROS direct Extensions/Speed is converted from km/h for both streams and lap calculations; other
+creators do not inherit this unit assumption. Position/AltitudeMeters can supply missing standard altitude in metres.
+Both use existing canonical metrics and require original-file reparsing; ambiguous TPX/Cadence units remain unsupported.
 TSS diagnostics distinguish missing inputs from calculations that cannot return a valid score, preserving the formulas,
 limits and fallback order. See [activity import compatibility](guides/importing-activities.md) and
 [TSS calculations](guides/metrics-and-calculations.md) for source-reparse requirements.

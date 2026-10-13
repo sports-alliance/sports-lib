@@ -28,6 +28,9 @@
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
  * TCX retains finite recorded speed from a single ActivityExtension/v2 TPX directly under a trackpoint when
  * Extensions is absent. Wrapped extensions retain precedence; historical missing speed requires original-file reparse.
+ * Recognized COROS direct Extensions/Speed uses km/h and is normalized to m/s for streams and lap calculations.
+ * Position/AltitudeMeters can supply missing standard altitude in metres. Both paths reject ambiguous candidates,
+ * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.
  *
  * @category Import and export
  */

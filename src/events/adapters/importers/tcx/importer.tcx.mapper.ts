@@ -10,10 +10,15 @@ import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { convertSpeedToPace } from '../../../utilities/helpers';
 import { findChildNode, findChildNodeValue, findTrackPointExtensionValue } from './utils.tcx';
 import { SampleInfo } from '../sample-info.interface';
+import { findTCXAltitude, findTCXSpeed } from './tcx.compatibility';
+
+interface TCXSampleInfo extends SampleInfo {
+  corosDirectSpeed?: boolean;
+}
 
 export const TCXSampleMapper: {
   dataType: string;
-  getSampleValue(trackPointsElement: Element, sampleInfo?: SampleInfo): number | null;
+  getSampleValue(trackPointsElement: Element, sampleInfo?: TCXSampleInfo): number | null;
 }[] = [
   {
     dataType: DataLatitudeDegrees.type,
@@ -46,7 +51,7 @@ export const TCXSampleMapper: {
   {
     dataType: DataAltitude.type,
     getSampleValue: (trackPointsElement: Element) => {
-      return findChildNodeValue(trackPointsElement.childNodes, 'AltitudeMeters');
+      return findTCXAltitude(trackPointsElement);
     }
   },
   {
@@ -73,16 +78,14 @@ export const TCXSampleMapper: {
   },
   {
     dataType: DataSpeed.type,
-    getSampleValue: (trackPointsElement: Element) => {
-      // TODO(sports-lib): validate TCX speed-field unit assumptions for extension namespaces
-      // and keep one canonical base speed stream path.
-      return findTrackPointExtensionValue(trackPointsElement.childNodes, 'Speed');
+    getSampleValue: (trackPointsElement: Element, sampleInfo?: TCXSampleInfo) => {
+      return findTCXSpeed(trackPointsElement, sampleInfo?.corosDirectSpeed);
     }
   },
   {
     dataType: DataPace.type,
-    getSampleValue: (trackPointsElement: Element) => {
-      const speed = findTrackPointExtensionValue(trackPointsElement.childNodes, 'Speed');
+    getSampleValue: (trackPointsElement: Element, sampleInfo?: TCXSampleInfo) => {
+      const speed = findTCXSpeed(trackPointsElement, sampleInfo?.corosDirectSpeed);
       return speed !== null ? convertSpeedToPace(speed) : null;
     }
   },

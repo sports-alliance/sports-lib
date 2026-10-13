@@ -739,6 +739,16 @@ FIT `pool_length` is stored in meters regardless of its display-unit flag. A bou
 for Suunto statute exports only when independent recorded length/lap evidence consistently supports the yards conversion
 and does not support the native meter value. Recorded total distance remains authoritative.
 
+Length-based FIT imports retain session-owned recorded `Power` for both single- and multi-lap activities. Only finite,
+nonnegative observations are retained, including recorded zeros; missing/invalid readings remain gaps instead of
+being padded at other sensors' timestamps. Those gaps survive Activity JSON and regeneration. Power samples cannot
+extend length-derived distance or other filled swim streams into rests or missing length intervals. Recorded power
+can supply existing power summaries and calculations; NP still requires complete recorded windows and respects timer
+stops, and power TSS still requires independent FTP. No swimming-specific eligibility or threshold is inferred.
+Valid imported TSS and device-supplied summaries keep their existing precedence. Reparse original files to recover
+previously omitted power, then regenerate consuming summaries as appropriate. Existing metric tokens, units, public
+APIs and JSON structure remain compatible; an old saved JSON cannot recover omitted observations on its own.
+
 FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
 unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.
 Conflicting/missing duration evidence does not invent a pause; a full-duration session can retain an implicit restart

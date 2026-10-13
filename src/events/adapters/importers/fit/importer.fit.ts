@@ -613,18 +613,59 @@ export class EventImporterFIT {
           // Single-lap files previously used their records directly. Keep those
           // recorded stream types and use newly supported lengths only for missing types.
           const recordedHasPower = recordedSamples.some((sample: any) =>
-            Number.isFinite(isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power));
-          const preserveRecordedTypes = isLengthsBased && sessionObject.laps.filter((lap: any) => lap.lengths?.length).length === 1;
-          const missingGeneratedDistance = isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
-          const recordedMappings = isLengthsBased ? allowedSampleMappings.filter(mapping =>
-            mapping.dataType !== DataHeartRate.type &&
-            (preserveRecordedTypes || (mapping.dataType === DataDistance.type &&
-              (missingGeneratedDistance || cumulativePoolDistance === 'recorded'))) &&
-            recordedSamples.some((sample: any) => isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower })))) : [];
-          this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings.filter(mapping =>
-            !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) && !recordedMappings.includes(mapping)), samplesInfo);
+            Number.isFinite(
+              isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power
+            )
+          );
+          const preserveRecordedTypes =
+            isLengthsBased && sessionObject.laps.filter((lap: any) => lap.lengths?.length).length === 1;
+          const missingGeneratedDistance =
+            isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
+          const recordedMappings = isLengthsBased
+            ? allowedSampleMappings.filter(
+                mapping =>
+                  mapping.dataType !== DataHeartRate.type &&
+                  (preserveRecordedTypes ||
+                    mapping.dataType === DataPower.type ||
+                    (mapping.dataType === DataDistance.type &&
+                      (missingGeneratedDistance || cumulativePoolDistance === 'recorded'))) &&
+                  recordedSamples.some((sample: any) =>
+                    isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower }))
+                  )
+              )
+            : [];
+          this.addSampleStreamsToActivity(
+            activity,
+            samples,
+            allowedSampleMappings.filter(
+              mapping =>
+                !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) &&
+                !recordedMappings.includes(mapping)
+            ),
+            samplesInfo
+          );
           if (recordedMappings.length) {
-            this.addSampleStreamsToActivity(activity, recordedSamples, recordedMappings, { hasPowerMeter: recordedHasPower });
+            // Recorded pool power has its own coverage. The ordinary FIT mapper
+            // pads absent power at other sensor timestamps with zero; retain
+            // actual observations here so gaps also survive JSON restoration.
+            const poolMappings = recordedMappings.map(mapping =>
+              mapping.dataType === DataPower.type
+                ? {
+                    ...mapping,
+                    getSampleValue: (sample: { power?: unknown; Power?: unknown; RP_Power?: unknown }) => {
+                      const watts = isNumber(sample.power)
+                        ? sample.power
+                        : isNumber(sample.Power)
+                          ? sample.Power
+                          : sample.RP_Power;
+                      return typeof watts === 'number' && Number.isFinite(watts) && watts >= 0 ? watts : null;
+                    }
+                  }
+                : mapping
+            );
+            this.addSampleStreamsToActivity(activity, recordedSamples, poolMappings, {
+              hasPowerMeter: recordedHasPower
+            });
           }
           if (recordedHeartRate.length) {
             this.addSampleStreamsToActivity(activity, recordedHeartRate,

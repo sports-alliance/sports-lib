@@ -3629,12 +3629,23 @@ export class ActivityUtilities {
       DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
-    // Recorded pool HR has independent coverage. Its timestamps must neither be
-    // filled from generated lengths nor extend the other swim streams' coverage.
-    const timeStream = activity.generateTimeStream(recordedPoolHeartRate.has(activity)
-      ? activity.getAllStreams().filter(stream => stream.type !== DataHeartRate.type && stream.type !== DataIBI.type)
-        .map(stream => stream.type)
-      : []);
+    // Recorded pool sensors have independent coverage. Their timestamps must
+    // not extend length-derived streams. Lengths survive JSON restoration, so
+    // power-only timestamps remain excluded after hydration as well.
+    const hasPoolLengths = activity.getSwimLengths().length > 0;
+    const timeStream = activity.generateTimeStream(
+      recordedPoolHeartRate.has(activity) || hasPoolLengths
+        ? activity
+            .getAllStreams()
+            .filter(
+              stream =>
+                stream.type !== DataIBI.type &&
+                !(stream.type === DataHeartRate.type && recordedPoolHeartRate.has(activity)) &&
+                !(stream.type === DataPower.type && hasPoolLengths)
+            )
+            .map(stream => stream.type)
+        : []
+    );
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:

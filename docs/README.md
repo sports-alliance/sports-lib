@@ -169,6 +169,9 @@ JSON/SML retains explicit pause/resume positions, including pauses spanning a sp
 Pool FIT imports also support single-lap length streams, retain final boundary/rest lengths, and repair invalid pool
 summary end times using explicit file durations. Existing single-lap recorded streams retain priority. Generated rest
 lengths add no distance, and ambiguous ownership cannot establish a complete generated distance total.
+Single- and multi-lap pool imports retain session-owned recorded power, preserving zeros and gaps through JSON and
+regeneration. Power timestamps do not extend length-derived streams; existing FTP and TSS eligibility still apply.
+An original-file reparse recovers previously omitted observations without changing metric tokens or the JSON schema.
 Length end dates and generated samples are bounded by their resolved activity and owning lap. Contradictory timers
 cannot extend a swim into later legs, while paused lengths keep the existing active sampling limit. Original-file
 reparse applies these corrections to saved swims. Native JSON also omits non-finite scalar summaries and restores

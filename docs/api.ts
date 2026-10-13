@@ -200,6 +200,22 @@ export type {
 } from '../src/data';
 export { UnitSystem } from '../src/data/data.interface';
 /**
+ * Estimated horizontal and vertical position error in meters. Base and Average/Minimum/Maximum
+ * metrics display one decimal place while retaining full-precision canonical numeric JSON.
+ *
+ * @category Streams, stats, and data
+ */
+export {
+  DataEHPE,
+  DataEHPEAvg,
+  DataEHPEMax,
+  DataEHPEMin,
+  DataEVPE,
+  DataEVPEAvg,
+  DataEVPEMax,
+  DataEVPEMin
+} from '../src/data';
+/**
  * Canonical running-dynamics metrics. FIT protocol fields named `stance_time*` map to the
  * Ground Contact Time family; those protocol names are not public metric tokens. Suunto running
  * flight time and contact-time-to-flight-time ratio remain distinct from jump hang time and FIT

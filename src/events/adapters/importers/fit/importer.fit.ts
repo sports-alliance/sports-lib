@@ -344,6 +344,7 @@ export class EventImporterFIT {
           (sourceSpan / sourceElapsed > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD || sourceSpan + 1 < sourceElapsed)
           ? getCorroboratedSessionElapsedTime(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60)
           : null;
+        const corroboratedLapTimestamps = this.getCorroboratedLapTimestamps(fitDataObject);
         this.normalizeFitDataObjectForActivities(fitDataObject);
 
         if (!fitDataObject.sessions.length) {
@@ -392,7 +393,13 @@ export class EventImporterFIT {
           this.addDiveSourceRecords(activity, fitDataObject);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
-            const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
+            const lap = this.getLapFromSessionLapObject(
+              sessionLapObject,
+              activity,
+              index,
+              options,
+              corroboratedLapTimestamps.has(sessionLapObject)
+            );
             this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject));
             activity.addLap(lap);
           });
@@ -1658,10 +1665,64 @@ export class EventImporterFIT {
     return value instanceof Date && Number.isFinite(value.getTime());
   }
 
+  /** Preserve independently corroborated source ends before cascade/timing recovery. */
+  private static getCorroboratedLapTimestamps(fitDataObject: any): WeakSet<object> {
+    const corroborated = new WeakSet<object>();
+    const laps: any[] = fitDataObject.laps ?? [];
+    const sessions: any[] = fitDataObject.sessions ?? [];
+    const startCounts = new Map<number, number>();
+    for (const lap of laps) {
+      if (this.isValidDate(lap?.start_time)) {
+        const start = +lap.start_time;
+        startCounts.set(start, (startCounts.get(start) ?? 0) + 1);
+      }
+    }
+    for (const lap of laps) {
+      if (!this.isValidDate(lap?.start_time) || !this.isValidDate(lap?.timestamp)) continue;
+      const start = +lap.start_time;
+      const end = +lap.timestamp;
+      const elapsed = lap.total_elapsed_time;
+      const timer = lap.total_timer_time;
+      // FIT timestamps have whole-second precision, whereas elapsed is stored
+      // in milliseconds. Its span must be one of the two quantized endpoints;
+      // proximity to a cascaded record alone cannot validate a lap timestamp.
+      const span = (end - start) / 1000;
+      if (
+        start % 1000 ||
+        end % 1000 ||
+        end <= start ||
+        startCounts.get(start) !== 1 ||
+        typeof elapsed !== 'number' ||
+        !Number.isFinite(elapsed) ||
+        elapsed <= 0 ||
+        // A longer timer must also agree at timestamp precision. Otherwise
+        // existing recovery may swap the summaries and invalidate this proof.
+        (timer !== undefined &&
+          timer !== null &&
+          (typeof timer !== 'number' ||
+            !Number.isFinite(timer) ||
+            timer < 0 ||
+            (timer > elapsed && span !== Math.floor(timer) && span !== Math.ceil(timer)))) ||
+        (span !== Math.floor(elapsed) && span !== Math.ceil(elapsed))
+      )
+        continue;
+      const owners = sessions.filter(
+        session =>
+          this.isValidDate(session?.start_time) &&
+          this.isValidDate(session?.timestamp) &&
+          +session.start_time <= start &&
+          end <= +session.timestamp
+      );
+      if (owners.length === 1) corroborated.add(lap);
+    }
+    return corroborated;
+  }
+
   private static getValidLapTimestamp(
     sessionLapObject: any,
     startDate: Date | null,
-    lastRecordTimestamp: Date | null
+    lastRecordTimestamp: Date | null,
+    corroboratedTimestamp = false
   ): Date | null {
     const timestamp = sessionLapObject?.timestamp;
     if (!this.isValidDate(timestamp)) {
@@ -1681,7 +1742,7 @@ export class EventImporterFIT {
       return null;
     }
 
-    if (lastRecordTimestamp && timestamp.getTime() < lastRecordTimestamp.getTime()) {
+    if (!corroboratedTimestamp && lastRecordTimestamp && timestamp.getTime() < lastRecordTimestamp.getTime()) {
       return null;
     }
 
@@ -1797,7 +1858,8 @@ export class EventImporterFIT {
     sessionLapObject: any,
     activity: ActivityInterface,
     lapIndex: number,
-    options: ActivityParsingOptions
+    options: ActivityParsingOptions,
+    corroboratedTimestamp = false
   ): LapInterface {
     this.swapTimesIfRequired(sessionLapObject);
 
@@ -1814,7 +1876,15 @@ export class EventImporterFIT {
         new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
-    const validTimestamp = this.getValidLapTimestamp(sessionLapObject, startDate, lastRecordTimestamp);
+    const validTimestamp = this.getValidLapTimestamp(
+      sessionLapObject,
+      startDate,
+      lastRecordTimestamp,
+      corroboratedTimestamp &&
+        !!startDate &&
+        startDate >= activity.startDate &&
+        sessionLapObject.timestamp <= activity.endDate
+    );
 
     const endDate =
       validTimestamp ||

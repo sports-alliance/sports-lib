@@ -294,6 +294,90 @@ function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null 
   return span;
 }
 
+/** Keep a terminal whole-second record when an independently recorded stop and
+ * the millisecond elapsed summary identify the same final timestamp tick. This
+ * is not permission to round an arbitrary summary or extend to the last record:
+ * the complete timer timeline and every active interval must be source-backed.
+ * Only elapsed chronology changes; the supplied active timer is retained.
+ */
+function getTerminalRecordPrecisionEnvelope(file: TimingFile, max: number): number | null {
+  const session = file.sessions![0],
+    start = wholeSecond(session.start_time),
+    saved = wholeSecond(session.timestamp);
+  const elapsed = session.total_elapsed_time,
+    timer = session.total_timer_time;
+  if (
+    start === null ||
+    saved === null ||
+    !positive(elapsed) ||
+    !positive(timer) ||
+    elapsed < timer ||
+    saved <= start ||
+    saved - start > max ||
+    !file.records ||
+    file.records.length < 2
+  )
+    return null;
+  const span = Math.ceil(elapsed),
+    end = start + span;
+  // A FIT timestamp has one-second resolution, unlike a duration's milliseconds.
+  // Require the actual stop/record at that next tick, never a whole-second gap.
+  if (span === elapsed || span > max || end > saved) return null;
+  const events = file.events?.filter(event => event?.event === 'timer');
+  if (!events || events.length < 2 || events.length % 2 !== 0 || !validGroup(events[0].event_group)) return null;
+  const intervals: Array<{ start: number; end: number; first?: number; last?: number }> = [];
+  let previous = -Infinity,
+    active = 0;
+  for (let index = 0; index < events.length; index++) {
+    const event = events[index],
+      time = wholeSecond(event.timestamp),
+      starts = index % 2 === 0;
+    if (
+      time === null ||
+      time < start ||
+      time > end ||
+      time <= previous ||
+      event.event_group !== events[0].event_group ||
+      (starts ? event.event_type !== 'start' : !isStop(event.event_type))
+    )
+      return null;
+    if (starts) intervals.push({ start: time, end: time });
+    else {
+      intervals[intervals.length - 1].end = time;
+      active += time - previous;
+    }
+    previous = time;
+  }
+  // The difference of two quantized timestamps has <1 second error per closed
+  // interval. Compare encoded milliseconds to avoid floating-point boundary drift.
+  if (
+    intervals[0].start !== start ||
+    previous !== end ||
+    Math.abs(active * 1000 - Math.round(timer * 1000)) >= intervals.length * 1000
+  )
+    return null;
+  previous = -Infinity;
+  let index = 0;
+  for (const record of file.records) {
+    const time = wholeSecond(record?.timestamp);
+    if (time === null || time < start || time > end || time < previous) return null;
+    while (index < intervals.length && time > intervals[index].end) index++;
+    const interval = intervals[index];
+    if (interval && time >= interval.start) {
+      interval.first ??= time;
+      interval.last = time;
+    }
+    previous = time;
+  }
+  if (
+    wholeSecond(file.records[0].timestamp) !== start ||
+    previous !== end ||
+    intervals.some(interval => interval.first === undefined || interval.first === interval.last)
+  )
+    return null;
+  return span;
+}
+
 /** Return an independently corroborated elapsed duration for a sole explicit
  * session. No provider-specific defaults, source mutation or inferred active time.
  */
@@ -310,6 +394,7 @@ export function getCorroboratedSessionElapsedTime(file: TimingFile, maxDurationS
   return (
     getCorroboratedPausedSessionElapsedTime(file, maxDurationSeconds) ??
     getElapsedEnvelope(file, maxDurationSeconds) ??
-    getRecordedTimerEnvelope(file, maxDurationSeconds)
+    getRecordedTimerEnvelope(file, maxDurationSeconds) ??
+    getTerminalRecordPrecisionEnvelope(file, maxDurationSeconds)
   );
 }

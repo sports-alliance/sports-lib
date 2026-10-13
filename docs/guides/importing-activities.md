@@ -109,6 +109,24 @@ repaired end contains every later cascaded record. This prevents a contaminated 
 workout's start. Conflicting ownership, insufficient duration evidence and ordinary single-session date recovery retain
 their existing behavior.
 
+FIT lap bounds also retain an independently corroborated source end when the decoder's cascaded
+lap records extend into later workout data. This requires a unique source lap start, a positive
+start/end span consistent with the millisecond elapsed summary at FIT's whole-second timestamp
+precision, one containing explicit source session, and containment within the resolved activity.
+A supplied timer must be finite and nonnegative. If it exceeds elapsed, it must also agree with
+the source span at whole-second timestamp precision; contradictory summaries retain the existing
+timing-recovery path rather than corroborating an end before normalization.
+Uncorroborated or ambiguous lap timestamps retain the existing recovery behavior. This changes
+the lap's time window, not its supplied duration, distance or activity samples.
+
+A fractional elapsed summary can also clip a terminal whole-second record. The importer retains
+that record only when a complete, alternating timer timeline from the same event group and
+ordered records independently establish the stop at that next timestamp tick. Each timer
+interval must have distinct supporting records, and the timer sum must agree with the source
+active duration within FIT timestamp precision. Only elapsed chronology advances; the supplied
+active duration remains unchanged. Unsupported terminal records, zero-length timer intervals
+and contradictory timelines do not gain this recovery.
+
 Existing affected imports need original-file reparsing and derived-summary refreshes; saved JSON cannot reconstruct
 omitted samples. Imported TSS remains authoritative. Calculated metrics can change when valid recorded samples are
 restored. These corrections add no metric tokens, units, options, exports or serialized fields, and do not change route

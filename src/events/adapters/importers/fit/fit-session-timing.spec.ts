@@ -522,3 +522,267 @@ describe('corroborated FIT endpoint recovery', () => {
     expect(resolve(file, max)).toBeNull();
   });
 });
+
+describe('source-corroborated FIT terminal timestamp precision', () => {
+  const terminalFile = (): File => ({
+    sessions: [{ start_time: at(0), timestamp: at(200), total_elapsed_time: 100.4, total_timer_time: 80.4 }],
+    records: [0, 20, 40, 60, 80, 101].map(record),
+    events: [0, 40, 60, 101].map((second, index) => ({
+      timestamp: at(second),
+      event: 'timer',
+      event_type: index % 2 ? 'stop_all' : 'start',
+      event_group: 0
+    }))
+  });
+
+  it('retains the final timestamp tick only when both timer and records independently corroborate it', () => {
+    const file = terminalFile(),
+      before = structuredClone(file);
+    expect(resolve(file, max)).toBe(101);
+    expect(file).toEqual(before);
+  });
+
+  it.each(['stop', 'stop_all', 'stop_disable', 'stop_disable_all'])(
+    'accepts a single complete %s interval without requiring distance',
+    stop => {
+      const file = terminalFile();
+      file.events = [file.events![0], { ...file.events![3], event_type: stop }];
+      file.sessions![0].total_timer_time = 100.4;
+      expect(resolve(file, max)).toBe(101);
+    }
+  );
+
+  it('uses a strict FIT timestamp quantization bound per closed interval', () => {
+    const file = terminalFile();
+    file.sessions![0].total_timer_time = 79.001;
+    expect(resolve(file, max)).toBe(101);
+    file.sessions![0].total_timer_time = 79;
+    expect(resolve(file, max)).toBeNull();
+    file.sessions![0].total_timer_time = 82.999;
+    expect(resolve(file, max)).toBe(101);
+    file.sessions![0].total_timer_time = 83;
+    expect(resolve(file, max)).toBeNull();
+  });
+
+  const rejected: Array<[string, (file: File) => void]> = [
+    [
+      'whole-second discrepancy',
+      f => {
+        f.sessions![0].total_elapsed_time = 100;
+      }
+    ],
+    [
+      'larger source discrepancy',
+      f => {
+        f.sessions![0].total_elapsed_time = 99.999;
+      }
+    ],
+    [
+      'elapsed before active duration',
+      f => {
+        f.sessions![0].total_timer_time = 100.5;
+      }
+    ],
+    [
+      'missing elapsed',
+      f => {
+        delete f.sessions![0].total_elapsed_time;
+      }
+    ],
+    [
+      'missing active duration',
+      f => {
+        delete f.sessions![0].total_timer_time;
+      }
+    ],
+    [
+      'zero active duration',
+      f => {
+        f.sessions![0].total_timer_time = 0;
+      }
+    ],
+    [
+      'missing explicit start',
+      f => {
+        delete f.sessions![0].start_time;
+      }
+    ],
+    [
+      'missing explicit end',
+      f => {
+        delete f.sessions![0].timestamp;
+      }
+    ],
+    [
+      'session ends before terminal record',
+      f => {
+        f.sessions![0].timestamp = at(100);
+      }
+    ],
+    [
+      'multisport ownership',
+      f => {
+        f.sessions!.push({ ...f.sessions![0] });
+      }
+    ],
+    [
+      'missing first record',
+      f => {
+        f.records!.shift();
+      }
+    ],
+    [
+      'missing terminal record',
+      f => {
+        f.records!.pop();
+      }
+    ],
+    [
+      'post-stop record',
+      f => {
+        f.records!.push(record(102));
+      }
+    ],
+    [
+      'pre-start record',
+      f => {
+        f.records!.unshift(record(-1));
+      }
+    ],
+    [
+      'unordered records',
+      f => {
+        f.records!.reverse();
+      }
+    ],
+    [
+      'invalid record timestamp',
+      f => {
+        f.records![1].timestamp = new Date(NaN);
+      }
+    ],
+    [
+      'fractional record timestamp',
+      f => {
+        f.records![1].timestamp = at(20.5);
+      }
+    ],
+    [
+      'unsupported active interval',
+      f => {
+        f.records = [0, 60, 80, 101].map(record);
+      }
+    ],
+    [
+      'duplicate-only interval support',
+      f => {
+        f.records = [0, 0, 60, 80, 101].map(record);
+      }
+    ],
+    [
+      'missing initial start',
+      f => {
+        f.events!.shift();
+      }
+    ],
+    [
+      'missing final stop',
+      f => {
+        f.events!.pop();
+      }
+    ],
+    [
+      'later unobserved stop',
+      f => {
+        f.events![3].timestamp = at(102);
+      }
+    ],
+    [
+      'earlier stop',
+      f => {
+        f.events![3].timestamp = at(100);
+      }
+    ],
+    [
+      'duplicate start',
+      f => {
+        f.events![1].event_type = 'start';
+      }
+    ],
+    [
+      'duplicate stop',
+      f => {
+        f.events![2].event_type = 'stop';
+      }
+    ],
+    [
+      'idempotent stop outside complete sequence',
+      f => {
+        f.events!.push({ ...f.events![3], timestamp: at(150) });
+      }
+    ],
+    [
+      'zero-length interval',
+      f => {
+        f.events![1].timestamp = at(0);
+      }
+    ],
+    [
+      'zero-length pause',
+      f => {
+        f.events![2].timestamp = at(40);
+      }
+    ],
+    [
+      'mixed timer groups',
+      f => {
+        f.events![2].event_group = 1;
+      }
+    ],
+    [
+      'invalid timer group',
+      f => {
+        f.events!.forEach(e => {
+          e.event_group = 255;
+        });
+      }
+    ],
+    [
+      'partly missing timer group',
+      f => {
+        delete f.events![1].event_group;
+      }
+    ],
+    [
+      'unsupported timer event',
+      f => {
+        f.events![1].event_type = 'marker';
+      }
+    ],
+    [
+      'source timestamp over the duration cap',
+      f => {
+        f.sessions![0].timestamp = at(max + 1);
+      }
+    ],
+    [
+      'clock jump',
+      f => {
+        f.records![5].timestamp = at(max + 1);
+        f.events![3].timestamp = at(max + 1);
+      }
+    ]
+  ];
+  it.each(rejected)('preserves existing safeguards for %s', (_name, mutate) => {
+    const file = terminalFile();
+    mutate(file);
+    expect(resolve(file, max)).toBeNull();
+  });
+
+  it('does not exceed the configured duration bound', () => {
+    expect(resolve(terminalFile(), 100)).toBeNull();
+    const file = terminalFile();
+    file.sessions![0].timestamp = at(101);
+    expect(resolve(file, 101)).toBe(101);
+  });
+});

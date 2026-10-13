@@ -1,3 +1,4 @@
+import { resolveSuuntoMultisportLaps } from './suunto-laps';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Creator } from '../../../../creators/creator';
@@ -151,7 +152,9 @@ export class EventImporterSuuntoJSON {
   /** Import recorded timer events and leg-owned zones. Workout speed limits are
    * shared only across one sport; mixed-sport legs require their own limits.
    * Window active time is distinct from elapsed time. Contradictory timing needs
-   * independent source evidence, otherwise active/timer/pause stats are absent. */
+   * independent source evidence, otherwise active/timer/pause stats are absent.
+   * Multisport lap windows match timestamp and sport ownership, including switch
+   * remainders. Cross-leg laps are retained once on their ending activity. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
@@ -287,80 +290,109 @@ export class EventImporterSuuntoJSON {
         fileActiveDuration.set(fallback, timing.active);
       }
 
-      // set the start dates of all lap types to the start of the first activity
-      const lapStartDatesByType = lapEventSamples.reduce(
-        (lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
-          // If its a stop event then set the start date to the previous
-          if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
-            lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(
-              lapEventSamples[index - 1].TimeISO8601
-            );
+      if (activities.length > 1) {
+        const sources = resolveSuuntoMultisportLaps(
+          activities,
+          activityStartEventSamples.map(sample => sample.Events[0].Activity.ActivityType),
+          lapEventSamples.map(sample => ({
+            end: +new Date(sample.TimeISO8601),
+            type: LapTypes[<keyof typeof LapTypes>sample.Events[0].Lap.Type]
+          })),
+          eventJSONObject.DeviceLog.Windows || []
+        );
+        sources.forEach((source, index) => {
+          const lap = new Lap(new Date(source.start), new Date(source.end), index + 1, source.type);
+          if (source.window) this.getStats(source.window).forEach(stat => lap.addStat(stat));
+          if (source.recoverTiming) {
+            this.applyTiming(lap, resolveSuuntoTiming(source.start, source.end, source.window, timingSource));
+          } else {
+            // A global summary can supply its own active time. Without one,
+            // the inferred marker interval cannot calibrate active duration.
+            const span = (source.end - source.start) / 1000;
+            const timing =
+              source.window?.Duration !== undefined
+                ? resolveSuuntoTiming(source.start, source.end, source.window, { ...timingSource, pauses: [] })
+                : { elapsed: span, active: null, pause: null };
+            this.applyTiming(lap, timing);
+          }
+          source.owner.addLap(lap);
+        });
+      } else {
+        // set the start dates of all lap types to the start of the first activity
+        const lapStartDatesByType = lapEventSamples.reduce(
+          (lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
+            // If its a stop event then set the start date to the previous
+            if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
+              lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(
+                lapEventSamples[index - 1].TimeISO8601
+              );
+              return lapStartDatesByTypeObject;
+            }
+            lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
             return lapStartDatesByTypeObject;
-          }
-          lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
-          return lapStartDatesByTypeObject;
-        },
-        {}
-      );
-      const laps = lapEventSamples.reduce(
-        (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
-          // if there is only one lap then skip it's the whole activity
-          if (lapEventSamples.length === 1) {
+          },
+          {}
+        );
+        const laps = lapEventSamples.reduce(
+          (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
+            // if there is only one lap then skip it's the whole activity
+            if (lapEventSamples.length === 1) {
+              return lapArray;
+            }
+            // Set the end date
+            const lapEndDate = new Date(lapEventSample.TimeISO8601);
+            // Set the start date.
+            // Set it for the next run
+            const lap = new Lap(
+              lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
+              lapEndDate,
+              lapIndex + 1,
+              LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
+            );
+            lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
+
+            if (lapWindows[lapIndex]) {
+              this.getStats(lapWindows[lapIndex]).forEach(stat => {
+                lap.addStat(stat);
+              });
+            }
+            this.applyTiming(
+              lap,
+              resolveSuuntoTiming(
+                +lap.startDate,
+                +lap.endDate,
+                lapWindows[lapIndex],
+                timingSource,
+                undefined,
+                lapWindows.length > 0 && lapWindows.length !== lapEventSamples.length
+              )
+            );
+            lapArray.push(lap);
             return lapArray;
-          }
-          // Set the end date
-          const lapEndDate = new Date(lapEventSample.TimeISO8601);
-          // Set the start date.
-          // Set it for the next run
-          const lap = new Lap(
-            lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
-            lapEndDate,
-            lapIndex + 1,
-            LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
-          );
-          lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
+          },
+          []
+        );
 
-          if (lapWindows[lapIndex]) {
-            this.getStats(lapWindows[lapIndex]).forEach(stat => {
-              lap.addStat(stat);
+        // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
+        // @todo move laps to event so we don't have cross border laps to acivities and decouple them
+        activities.forEach((activity: ActivityInterface) => {
+          laps
+            .filter((lap: LapInterface) => {
+              // If the lap start belongs to the activity
+              if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
+                return true;
+              }
+              // if the lap end belongs also...
+              if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
+                return true;
+              }
+              return false;
+            })
+            .forEach((activityLap: LapInterface) => {
+              activity.addLap(activityLap);
             });
-          }
-          this.applyTiming(
-            lap,
-            resolveSuuntoTiming(
-              +lap.startDate,
-              +lap.endDate,
-              lapWindows[lapIndex],
-              timingSource,
-              undefined,
-              lapWindows.length > 0 && lapWindows.length !== lapEventSamples.length
-            )
-          );
-          lapArray.push(lap);
-          return lapArray;
-        },
-        []
-      );
-
-      // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
-      // @todo move laps to event so we don't have cross border laps to acivities and decouple them
-      activities.forEach((activity: ActivityInterface) => {
-        laps
-          .filter((lap: LapInterface) => {
-            // If the lap start belongs to the activity
-            if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
-              return true;
-            }
-            // if the lap end belongs also...
-            if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
-              return true;
-            }
-            return false;
-          })
-          .forEach((activityLap: LapInterface) => {
-            activity.addLap(activityLap);
-          });
-      });
+        });
+      }
 
       // Add the samples that belong to the activity and the ibi data.
       activities.forEach((activity: ActivityInterface) => {

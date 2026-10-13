@@ -22,6 +22,9 @@ and duration evidence. See the same timing guide for the eligibility checks and 
 Suunto JSON/SML imports distinguish active and elapsed time and never emit a negative pause. Inconsistent timing
 requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.
 Historical corrections require an original-file reparse; saved JSON alone cannot recover private timing evidence.
+Native Suunto multisport lap summaries match source timestamps and sport ownership, including sport-change remainders.
+Cross-leg laps remain once on their ending leg and never derive whole-lap averages from that leg's partial streams.
+Original-file reparse corrects affected historical laps without changing activity totals or public JSON schemas.
 
 Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
 Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.

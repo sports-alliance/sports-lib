@@ -320,7 +320,8 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
   activity types.
 - Existing laps use their activity's normalized 1 Hz streams. Lap windows are half-open (`[start, end)`), assigning an
   exact shared boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint. Overlapping
-  laps are evaluated independently.
+  laps are evaluated independently. A lap beginning before the containing activity keeps source summaries, but does
+  not derive whole-lap averages from that leg's partial streams. Existing terminal clipping remains unchanged. Speed-derived pace can still use its own source speed.
 - Generated lap summaries store canonical stats only. Unit variants are resolved by consumers from the canonical stat
   and current unit settings; activity unit-stat generation remains unchanged for compatibility.
 - Native JSON restoration remains snapshot-based and does not regenerate these lap summaries from included streams.
@@ -346,7 +347,8 @@ Cadence and stroke-rate semantics are activity-aware:
   cadence and stroke-rate streams or summaries.
 - Native JSON hydration applies the same resolver to activity and lap streams/stats. Existing stored Sports Lib JSON
   therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
-  A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
+  A lap beginning before its containing activity is not reinterpreted using only its containing leg's sport; the same exception
+  applies to terrain exclusions. A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
   while newly generated mixed events aggregate cadence and stroke rate separately.
 - Summary-only native event JSON removes Diving-group terrain summaries when its `Activity Types` stat is present,
   while other summary semantics remain opt-in. Applications can call

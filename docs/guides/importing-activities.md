@@ -334,6 +334,21 @@ existing timestamp fallback. Original-file reparse is required for historical co
 source evidence during regeneration; native JSON preserves the resulting values/absence but cannot recover that evidence.
 No metric names, units, public fields, route behavior or JSON schemas change.
 
+Native Suunto JSON multisport laps match timestamped `Lap`/`Autolap` windows to their recorded endpoints and
+sport identifiers, never to sample-array positions. A sport change can supply a partial lap without a separate Lap
+sample; that remainder stays with its sport leg instead of shifting all subsequent summaries. A final summary batch
+can be reconciled to Stop only when the same timestamp also contains the final sport's Activity summary and the Move
+summary. Independent manual and automatic counters keep their own starts when both flush at Stop.
+Conflicting windows or sport identifiers do not supply another lap's distance or active duration.
+
+A genuine lap spanning sports remains one lap on the leg containing its endpoint. An unmatched source marker is
+retained once with its inferred interval, but that interval alone cannot establish active duration. Cross-leg laps keep
+source summaries; a single leg's samples cannot generate whole-lap averages or determine cadence/stroke or terrain
+semantics for the complete lap. Lap JSON and metric tokens are unchanged. Original-file reparse is required to correct
+historical source matching; native JSON cannot recover discarded source windows. Activity/event totals, streams and
+training-load methods are unchanged by this lap correction. Consumers should label cross-leg laps separately from
+sport-local laps and must not clamp their endpoints onto earlier legs' final map or chart samples.
+
 In mixed-sport Suunto files, a header speed-zone boundary is not owned by every leg. Only applicable leg-local speed
 boundaries populate those legs' intensity zones; local durations remain available. A header threshold remains eligible
 when all legs have one resolved sport type. Without an independent running/swimming threshold, pace TSS falls back

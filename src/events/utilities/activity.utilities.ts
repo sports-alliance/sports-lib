@@ -973,7 +973,8 @@ export class ActivityUtilities {
    * Fills missing activity streams and summary stats, then derives canonical min/max/average and
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
-   * Explicit stats are preserved except terrain summaries excluded for Diving activities.
+   * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
+   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.invalidateCalculatedPower(activity);
@@ -987,6 +988,13 @@ export class ActivityUtilities {
       const activityEnd = activity.endDate.getTime();
       const lapStart = lap.startDate.getTime();
       const lapEnd = lap.endDate.getTime();
+      // A lap beginning before its ending leg may span sports. This leg's
+      // streams cannot supply a whole-lap average. Keep terminal clipping
+      // unchanged for laps that start locally but have a later source end.
+      if (lapStart < activityStart) {
+        hydrateMissingSpeedDerivedStats(lap);
+        return;
+      }
       const includesActivityEndpoint = lapEnd >= activityEnd;
       const startIndex = Math.max(0, Math.ceil((lapStart - activityStart) / 1000));
       const endIndex = Math.max(

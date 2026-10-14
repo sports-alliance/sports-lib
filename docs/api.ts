@@ -18,6 +18,9 @@
  * retains full chronology across long pauses, with active duration and configured duration limits unchanged.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
+ * A single declared missing final FIT session becomes Unknown Sport only with corroborated timer, record and
+ * distance bounds. Earlier legs retain their samples and calibration; ambiguous laps are not reassigned.
+ * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg

@@ -121,6 +121,27 @@ activity duration remains enforced. Existing affected activities require an orig
 derived summaries; restoring their saved JSON cannot reconstruct the missing session boundaries. This correction
 adds no metrics or fields and preserves canonical names, units, imported TSS and public JSON schemas.
 
+A missing final FIT session can be recovered as the existing `Unknown Sport` type when the activity message declares
+exactly one more session than the file contains. The recorded prefix must have contiguous, ordered bounds and either
+no session indexes or consecutive zero-based indexes. The final activity timestamp, last record and closing timer
+event must agree. One ordered timer timeline must corroborate every existing session's active duration within the
+existing one-second timestamp tolerance; the tail's active time excludes its recorded pauses. A nondecreasing distance
+counter at both tail boundaries supplies the distance delta. Conflicting readings at the same timestamp reject recovery.
+
+This recovery preserves earlier legs, including their closing samples, summaries and calibration context. Only records
+strictly after the last recorded session are added to the new leg. Trailing laps or pool lengths, ambiguous bounds,
+explicit sport messages, conflicting timer groups, multiple missing sessions and duration-limit violations are left
+unchanged for separate investigation. It does not guess a sport, redistribute laps, copy earlier calories or infer
+calibration. Existing summary generation uses the recovered streams; TSS stays unavailable unless independently eligible
+inputs exist. `Generic` remains a separate intentional sport type.
+
+Consumers must reparse the original file to recover a missing leg, keep the existing event identity and reconcile child
+identities and user controls before persistence. Repeated reparses must reuse the recovered leg instead of adding another
+copy. In Quantified Self the existing Other training policy applies to Unknown Sport; manual overrides and exclusions
+remain attached to their original legs. Adopt a released library version in both app and Functions before any production
+reparse, then refresh affected derived summaries. No new metric tokens, fields, MCP scopes or public schemas are required;
+existing stored activities remain unchanged until reparse. Route import behavior is unaffected.
+
 A sole explicit FIT session can also retain chronology omitted by an inconsistent elapsed summary. The pause-only
 proof requires ordered records from the source start through the final stop (the final sample may precede that stop
 by one whole-second tick), a complete alternating timer timeline in one event group, and records at distinct times

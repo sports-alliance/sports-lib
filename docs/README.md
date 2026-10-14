@@ -22,6 +22,9 @@ original-file reparse; duration limits and public metric/JSON contracts remain u
 Corroborated timer and distance evidence can also recover premature endings and distinguish exercise stops from
 delayed saves. Malformed multisport cascades retain a later leg's explicit start only with independent session ownership
 and duration evidence. See the same timing guide for the eligibility checks and unsupported cases.
+An explicitly declared missing final session can be retained as `Unknown Sport` only with corroborating record,
+timer and distance evidence. Earlier legs and their boundary samples remain unchanged; ambiguous laps and multiple
+missing sessions stay unresolved. Recovery requires original-file reparse and consumer identity/control reconciliation.
 
 Suunto JSON/SML imports distinguish active and elapsed time and never emit a negative pause. Inconsistent timing
 requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.

@@ -283,7 +283,9 @@ export class EventImporterFIT {
    * Retain a sole session's full chronology when ordered records and complete
    * timer intervals corroborate it, preserving active time and duration limits.
    * Recover premature ends or delayed saves only with independent timing and
-   * distance evidence; multisport start recovery requires disjoint ownership. */
+   * distance evidence; multisport start recovery requires disjoint ownership.
+   * A corroborated missing final session is retained as Unknown Sport without
+   * moving earlier records or laps, or inferring sport-specific calibration. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -293,6 +295,7 @@ export class EventImporterFIT {
 
     // @ts-ignore
     const { default: FitFileParser } = await import('fit-file-parser');
+    const { getMissingFinalSession } = await import('./fit-missing-session');
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,
@@ -345,6 +348,7 @@ export class EventImporterFIT {
           ? getCorroboratedSessionElapsedTime(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60)
           : null;
         const corroboratedLapTimestamps = this.getCorroboratedLapTimestamps(fitDataObject);
+        const missingFinalSession = getMissingFinalSession(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60);
         this.normalizeFitDataObjectForActivities(fitDataObject);
 
         if (!fitDataObject.sessions.length) {
@@ -384,7 +388,8 @@ export class EventImporterFIT {
         const sessionRecords = this.getSessionRecords(fitDataObject.records, sessionActivities);
 
         // Iterate over the sessions and create their activities
-        const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
+        const recordedFile = fitDataObject;
+        const createActivity = (sessionObject: any, sessionIndex: number, fitDataObject = recordedFile): ActivityInterface => {
           // Keep the original timing evidence before legacy date/timer normalization.
           const sourceTiming = sourceTimings[sessionIndex];
           // Get the activity from the sessionObject
@@ -675,7 +680,27 @@ export class EventImporterFIT {
 
           return activity;
         };
-        const activities: ActivityInterface[] = fitDataObject.sessions.map(createActivity);
+        const activities: ActivityInterface[] = fitDataObject.sessions.map((session: any, index: number) => createActivity(session, index));
+        if (missingFinalSession) {
+          // Complete recorded legs with their original file context first. Adding
+          // a synthetic session must not change sole-session calibration matching
+          // or take its closing sample. Only previously unowned records follow.
+          const index = activities.length;
+          missingFinalSession.jumps = (fitDataObject.jumps ?? []).filter((jump: any) =>
+            +jump.timestamp > +missingFinalSession.start_time && +jump.timestamp < +missingFinalSession.timestamp);
+          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession],
+            jumps: missingFinalSession.jumps };
+          const recovered = this.getActivityFromSessionObject(missingFinalSession, recoveredFile, options, index);
+          // A normalization of earlier bounds may have changed ownership. Do not
+          // append if the recovered window now overlaps any recorded leg.
+          if (sessionActivities.every(activity => +activity.endDate <= +recovered.startDate)) {
+            sourceTimings.push({ timer: missingFinalSession.total_timer_time, elapsed: missingFinalSession.total_elapsed_time });
+            sessionActivities.push(recovered);
+            sessionRecords.push(fitDataObject.records.filter((record: any) =>
+              +record.timestamp > +recovered.startDate && +record.timestamp <= +recovered.endDate));
+            activities.push(createActivity(missingFinalSession, index, recoveredFile));
+          }
+        }
 
         // If there are no activities to parse ....
         if (!activities.length) {

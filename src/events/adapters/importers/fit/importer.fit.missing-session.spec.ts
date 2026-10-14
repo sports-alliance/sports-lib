@@ -11,11 +11,12 @@ import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataPause } from '../../../../data/data.pause';
 import { DataTrainingStressScore } from '../../../../data/data.training-stress-score';
+import { DataJumpHeightAvg } from '../../../../data/data.jump-stats';
 
 const start = FitEncoder.toFitTimestamp(new Date('2026-01-01T00:00:00Z'));
 const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({ number, value, baseType,
-  size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
-function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = false, tailLength = false) {
+  size: baseType === FitBaseType.Uint32 || baseType === FitBaseType.Float32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
+function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = false, tailLength = false, jumps = false) {
   const encoder = new FitEncoder();
   encoder.writeMessage(0, [field(0, 4, FitBaseType.Enum), field(1, 23, FitBaseType.Uint16)]);
   for (let second = 0; second <= 30; second++) encoder.writeMessage(20, [
@@ -32,6 +33,9 @@ function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = f
     field(7, 20000, FitBaseType.Uint32)], 5);
   if (tailLength) encoder.writeMessage(101, [field(253, start + 30, FitBaseType.Uint32), field(2, start + 10, FitBaseType.Uint32),
     field(3, 20000, FitBaseType.Uint32), field(12, 1, FitBaseType.Enum)], 6);
+  if (jumps) for (const [second, height] of [[5, 2], [25, 4]]) encoder.writeMessage(285, [
+    field(253, start + second, FitBaseType.Uint32), field(0, 5, FitBaseType.Float32),
+    field(1, height, FitBaseType.Float32), field(4, 10, FitBaseType.Float32)], 8);
   encoder.writeMessage(34, [field(253, start + 30, FitBaseType.Uint32), field(1, declared, FitBaseType.Uint16)], 7);
   const bytes = encoder.close();
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
@@ -90,6 +94,14 @@ describe('FIT final Unknown Sport recovery', () => {
     expect(event.getActivities()).toHaveLength(2);
     expect(event.getActivities()[1].getAllStreams().map(stream => stream.type)).toEqual([DataHeartRate.type]);
     expect(event.getActivities()[1].getStat(DataDistance.type)?.getValue()).toBe(40);
+  });
+  it('leaves jump-bearing incomplete files unchanged until auxiliary ownership is resolved', async () => {
+    const before = await EventImporterFIT.getFromArrayBuffer(source(1, false, false, false, true), options());
+    const after = await EventImporterFIT.getFromArrayBuffer(source(2, false, false, false, true), options());
+    expect(before.getStat(DataJumpHeightAvg.type)?.getValue()).toBe(2);
+    expect(after.getStat(DataJumpHeightAvg.type)?.getValue()).toBe(2);
+    expect(after.getActivities()).toHaveLength(1);
+    expect(after.toJSON()).toEqual(before.toJSON());
   });
   it('enforces the caller duration limit without discarding existing valid legs', async () => {
     const event = await EventImporterFIT.getFromArrayBuffer(source(), options({ maxActivityDurationDays: 15 / 86400 }));

@@ -686,10 +686,7 @@ export class EventImporterFIT {
           // a synthetic session must not change sole-session calibration matching
           // or take its closing sample. Only previously unowned records follow.
           const index = activities.length;
-          missingFinalSession.jumps = (fitDataObject.jumps ?? []).filter((jump: any) =>
-            +jump.timestamp > +missingFinalSession.start_time && +jump.timestamp < +missingFinalSession.timestamp);
-          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession],
-            jumps: missingFinalSession.jumps };
+          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession] };
           const recovered = this.getActivityFromSessionObject(missingFinalSession, recoveredFile, options, index);
           // A normalization of earlier bounds may have changed ownership. Do not
           // append if the recovered window now overlaps any recorded leg.

@@ -134,6 +134,8 @@ explicit sport messages, conflicting timer groups, multiple missing sessions and
 unchanged for separate investigation. It does not guess a sport, redistribute laps, copy earlier calories or infer
 calibration. Existing summary generation uses the recovered streams; TSS stays unavailable unless independently eligible
 inputs exist. `Generic` remains a separate intentional sport type.
+Incomplete files containing jumps also remain unchanged: existing jump association can extend beyond a recorded leg,
+so appending a tail without resolving that ownership could duplicate events and skew workout jump averages.
 
 Consumers must reparse the original file to recover a missing leg, keep the existing event identity and reconcile child
 identities and user controls before persistence. Repeated reparses must reuse the recovered leg instead of adding another

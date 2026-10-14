@@ -66,6 +66,7 @@ describe('corroborated missing final FIT session', () => {
     ['cascaded pool length', f => f.sessions[0].laps = [{ timestamp: date(10), lengths: [{ timestamp: date(20) }] }]],
     ['unknown pool length bounds', f => f.lengths = [{}]],
     ['explicit sport message', f => f.sports = [{ sport: 'running' }]],
+    ['jump ownership', f => f.jumps = [{ timestamp: date(25), distance: 5, score: 10 }]],
     ['explicit tail sport', f => f.records[2].sport = 'running'],
     ['explicit tail subsport', f => f.records[2].sub_sport = 'trail'],
     ['no timer start', f => f.events.shift()],

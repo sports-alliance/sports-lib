@@ -17,6 +17,10 @@ export function getMissingFinalSession(file: any, maxDurationSeconds: number): a
   const sessions: any[] = file.sessions ?? [], records: any[] = file.records ?? [];
   if (!sessions.length || file.activity?.num_sessions !== sessions.length + 1 ||
       file.messages?.activity?.length > 1 || !finite(maxDurationSeconds) || maxDurationSeconds <= 0) return null;
+  // Existing jump association can extend beyond a recorded session. Appending
+  // a tail would duplicate those events and distort parent aggregates. Leave
+  // jump-bearing files unchanged until that independent ownership is resolved.
+  if (file.jumps?.length) return null;
   const windows = sessions.map(session => ({ start: seconds(session?.start_time), end: seconds(session?.timestamp), session }));
   if (windows.some((window, index) => window.start === null || window.end === null || window.end <= window.start ||
       (index > 0 && window.start !== windows[index - 1].end))) return null;

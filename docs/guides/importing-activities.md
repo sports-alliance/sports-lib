@@ -176,6 +176,14 @@ extend the exercise end. Records during a stop must retain the preceding distanc
 unchanged; a one-tick difference in the initial timer timestamp does not move it. Missing starts, unclosed intervals,
 conflicting groups, advancing distance during a stop, inconsistent timer sums and unrecorded final stops reject this proof.
 
+Explicit zero-distance sessions can use this delayed-save proof when the activity message also declares exactly one
+session and every in-session distance record is present and zero. At least two closed timer intervals must each have
+distinct supporting records, with the final record exactly at the final exercise stop. For this zero-distance case,
+the active-time discrepancy must be strictly less than one second per closed interval, reflecting timestamp
+quantization rather than a percentage of workout duration. Missing distance is not treated as zero. This does not
+relax multisport ownership, duration limits or existing positive-distance checks, and never substitutes elapsed time
+for active time in training-load calculations.
+
 An early ending timestamp that agrees with active time can instead be repaired from the independently supplied elapsed
 duration when a single start/stop envelope agrees with that elapsed duration and a complete, ordered distance counter
 reaches the session distance after the premature end. Those envelope events do not redefine active time. Both proofs

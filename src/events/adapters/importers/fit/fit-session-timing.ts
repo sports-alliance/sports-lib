@@ -17,6 +17,7 @@ interface TimingSession extends TimingRecord {
 }
 
 interface TimingFile {
+  activity?: { num_sessions?: unknown };
   sessions?: TimingSession[];
   records?: TimingRecord[];
   events?: TimerEvent[];
@@ -202,6 +203,8 @@ function getElapsedEnvelope(file: TimingFile, max: number): number | null {
  * distance counter. Repeated stop_all while already stopped is idempotent; it
  * never adds active time or moves the final exercise stop. Stationary records
  * while stopped are allowed, but advancing distance there is contradictory.
+ * Explicit zero distance needs a declared sole session and an entirely zero
+ * counter; missing distance is not evidence of a stationary recording.
  */
 function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null {
   const session = file.sessions![0],
@@ -210,6 +213,7 @@ function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null 
   const elapsed = session.total_elapsed_time,
     timer = session.total_timer_time,
     distance = session.total_distance;
+  const zeroDistance = distance === 0;
   if (
     start === null ||
     saved === null ||
@@ -217,7 +221,8 @@ function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null 
     !positive(elapsed) ||
     !positive(timer) ||
     elapsed < timer ||
-    !positive(distance) ||
+    (distance !== 0 && !positive(distance)) ||
+    (zeroDistance && file.activity?.num_sessions !== 1) ||
     !file.records ||
     file.records.length < 4
   )
@@ -255,13 +260,14 @@ function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null 
   if (opened !== null || intervals.length < 2 || Math.abs(intervals[0].start - start) > 1) return null;
   const end = intervals[intervals.length - 1].end,
     span = end - start;
-  if (
-    span <= elapsed ||
-    span > max ||
-    active >= span ||
-    Math.abs(active * 1000 - Math.round(timer * 1000)) > intervals.length * 1000 + 1
-  )
-    return null;
+  const timerErrorMilliseconds = Math.abs(active * 1000 - Math.round(timer * 1000));
+  // Zero-distance recovery has no progressing counter to corroborate the timer.
+  // Require strict agreement within whole-second endpoint quantization; retain
+  // the established positive-distance tolerance for existing imports.
+  const timerDisagrees = zeroDistance
+    ? timerErrorMilliseconds >= intervals.length * 1000
+    : timerErrorMilliseconds > intervals.length * 1000 + 1;
+  if (span <= elapsed || span > max || active >= span || timerDisagrees) return null;
   previous = -Infinity;
   let previousDistance = -Infinity,
     first: number | null = null,
@@ -287,7 +293,7 @@ function getRecordedTimerEnvelope(file: TimingFile, max: number): number | null 
     first === null ||
     first > start + 1 ||
     previous !== end ||
-    !sameDistance(previousDistance, distance) ||
+    (zeroDistance ? previousDistance !== 0 : !sameDistance(previousDistance, distance)) ||
     intervals.some(interval => interval.first === undefined || interval.first === interval.last)
   )
     return null;

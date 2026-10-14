@@ -21,7 +21,8 @@ keeping full elapsed time separate from recorded active time and training load. 
 original-file reparse; duration limits and public metric/JSON contracts remain unchanged.
 Corroborated timer and distance evidence can also recover premature endings and distinguish exercise stops from
 delayed saves. Malformed multisport cascades retain a later leg's explicit start only with independent session ownership
-and duration evidence. See the same timing guide for the eligibility checks and unsupported cases.
+and duration evidence. Explicit zero-distance delayed saves require a declared sole session, complete zero counters
+and a corroborated closed timer timeline; active time remains unchanged. See the same timing guide for eligibility.
 An explicitly declared missing final session can be retained as `Unknown Sport` only with corroborating record,
 timer and distance evidence. Earlier legs and their boundary samples remain unchanged; ambiguous laps and multiple
 missing sessions stay unresolved. Recovery requires original-file reparse and consumer identity/control reconciliation.

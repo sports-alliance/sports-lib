@@ -287,6 +287,8 @@ export class EventImporterFIT {
    * timer intervals corroborate it, preserving active time and duration limits.
    * Recover premature ends or delayed saves only with independent timing and
    * distance evidence; multisport start recovery requires disjoint ownership.
+   * Zero-distance delayed saves additionally need a declared sole session and
+   * complete zero counters; missing distance does not establish this evidence.
    * A corroborated missing final session is retained as Unknown Sport without
    * moving earlier records or laps, or inferring sport-specific calibration. */
   static async getFromArrayBuffer(

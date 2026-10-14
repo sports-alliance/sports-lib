@@ -1,3 +1,4 @@
+import { normalizeTimingValidity, resolveSwimTimingSeconds } from '../../duration/timing-validity';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { fileActiveDuration } from './tss/tss-evaluation';
 import { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
@@ -291,6 +292,8 @@ function addSwimLengthFingerprints(fingerprint: DurabilityFingerprint, activity:
     fingerprint.add(`${prefix}-distance`, safeReadDataValue(length.distance));
     fingerprint.add(`${prefix}-timer-time`, safeReadDataValue(length.timerTime));
     fingerprint.add(`${prefix}-elapsed-time`, safeReadDataValue(length.elapsedTime));
+    const validity = normalizeTimingValidity(length.timingValidity);
+    if (validity) fingerprint.add(`${prefix}-rejected-timing`, JSON.stringify(validity));
     fingerprint.add(`${prefix}-average-speed`, safeReadDataValue(length.avgSpeed));
     fingerprint.add(`${prefix}-swolf`, length.swolf);
   });
@@ -531,8 +534,11 @@ function analyzePoolDurability(
   const thirdCount = Math.floor(selected.length / 3);
   const selectedDurationSeconds = sumLengthDurations(selected);
   const rawActiveDurationSeconds = sumLengthDurations(rawActiveLengths);
-  const coverageRatio =
-    rawActiveDurationSeconds > 0
+  const hasRejectedTiming = rawActiveLengths.some(length => normalizeTimingValidity(length.timingValidity));
+  // Unknown active timing cannot become full coverage by dropping the affected rows.
+  const coverageRatio = hasRejectedTiming
+    ? 0
+    : rawActiveDurationSeconds > 0
       ? Math.min(1, selectedDurationSeconds / rawActiveDurationSeconds)
       : rawActiveLengths.length > 0
         ? selected.length / rawActiveLengths.length
@@ -545,7 +551,7 @@ function analyzePoolDurability(
   );
   const hardZoneRatio = resolveHardZoneRatio(activity, 'pool-length-speed');
   let reason: DurabilityEligibilityReason = 'eligible';
-  if (!rawActiveLengths.length) {
+  if (!rawActiveLengths.length || hasRejectedTiming) {
     reason = 'missing-output';
   } else if (!context) {
     reason = comparableLengths.length ? 'unsupported-context' : resolveMissingPoolReason(rawActiveLengths);
@@ -986,7 +992,9 @@ function resolveLengthPoolMeters(length: SwimLengthInterface): number | null {
 }
 
 function resolveLengthDurationSeconds(length: SwimLengthInterface): number | null {
-  return toPositiveFinite(length.timerTime?.getValue()) || toPositiveFinite(length.elapsedTime?.getValue());
+  return normalizeTimingValidity(length.timingValidity)
+    ? toPositiveFinite(resolveSwimTimingSeconds(length))
+    : toPositiveFinite(length.timerTime?.getValue()) || toPositiveFinite(length.elapsedTime?.getValue());
 }
 
 function resolveLengthPaceSecondsPer100m(length: SwimLengthInterface): number | null {

@@ -1,4 +1,7 @@
+import { TimingValidity } from '../duration/timing-validity';
 export interface SwimLengthJSONInterface {
+  /** Rejected source timing, retained independently of usable values. */
+  timingValidity?: TimingValidity;
   index: number;
   lapIndex: number | null;
   startDate: number;

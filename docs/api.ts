@@ -600,3 +600,6 @@ export { TrainingStressScoreMethod } from '../src/data/data.training-stress-scor
 
 /** Canonical TSS metric with integer default display and optional one-decimal load-editor display. */
 export { DataTrainingStressScore } from '../src/data/data.training-stress-score';
+
+export { normalizeTimingValidity, resolveSwimTimingSeconds } from '../src/duration/timing-validity';
+export type { TimingValidity } from '../src/duration/timing-validity';

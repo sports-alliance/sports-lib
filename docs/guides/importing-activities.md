@@ -241,9 +241,33 @@ the session proves that the retained lengths cannot establish a complete counter
 length-derived counter and retains recorded distance samples when available. Recorded totals and individual length
 distances remain intact. It does not redistribute missing distance, invent lengths, or extend the session. Missing or
 contradictory range/count evidence does not activate this additional guard. These checks apply only to swimming with
-a lap-swimming sub-sport or positive pool length. Corrupt source durations and ambiguous timestamps remain unresolved.
+a lap-swimming sub-sport or positive pool length. Ambiguous timestamps and durations without independent contradictory evidence remain unresolved.
 Historical corrections require original-file reparse after adopting a release containing the fix; JSON restoration
 alone cannot supply the omitted evidence. Recorded pace, SWOLF and TSS inputs, pool units and public schemas are unchanged.
+
+### Contradicted pool timing
+
+For one explicitly identified pool-swim session, the importer can withhold a length or lap timer/elapsed duration that
+exceeds an independently supported whole-workout envelope. This requires ordered timer events from the session start
+to a recorded stop and timestamped samples within that envelope. All summary timestamps widen the bound; valid child
+length totals can additionally support a lap duration. The one-second allowance follows FIT timestamp resolution.
+There is no fixed duration limit and `timer > elapsed` alone is not a rejection rule. Multisession files, incomplete
+timer evidence and later recorded samples are deferred, preserving valid multisport laps and long rests.
+
+Affected lengths and laps retain their identity, distance, strokes and rest classification. Each contradicted field is
+omitted from usable timing; an independent valid elapsed field remains available. The additive native-JSON
+`timingValidity` field has `version: 1`, reason `exceeds-workout-envelope`, and the rejected `timerTime` and/or
+`elapsedTime` source value. `normalizeTimingValidity` reads this allowlist and `resolveSwimTimingSeconds` returns usable
+active time or `null`; rejected timer time must never fall back to elapsed time. Bounded start/end dates describe
+containment and must not be used to reconstruct rejected measured time. Legacy JSON without the field keeps its
+existing interpretation.
+
+No synthetic readings are generated from an affected length, and an affected active length cannot establish a complete
+generated distance counter. Recorded sensor samples and authoritative workout totals remain available. Moving time may
+instead be regenerated from valid recorded samples. Active lengths with rejected timing make pool durability
+unavailable (`missing-output`, zero qualifying coverage) rather than improving coverage by dropping the affected rows.
+Original-file reparse is required to classify historical data; native JSON preserves a classification once present.
+This change adds no numeric metric names, changes no route parsing, and does not infer replacement durations.
 
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that

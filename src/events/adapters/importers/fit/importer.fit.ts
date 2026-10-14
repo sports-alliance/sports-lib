@@ -1,3 +1,4 @@
+import { rejectImpossiblePoolTiming, rejectedPoolTiming } from './fit-pool-timing';
 import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
@@ -343,6 +344,8 @@ export class EventImporterFIT {
           reject(new EmptyEventLibError());
           return;
         }
+
+        rejectImpossiblePoolTiming(fitDataObject);
 
         const soleSourceSession = fitDataObject.sessions?.length === 1 ? fitDataObject.sessions[0] : undefined;
         const sourceElapsed = soleSourceSession?.total_elapsed_time;
@@ -998,6 +1001,10 @@ export class EventImporterFIT {
       Array.from(activeCounts.values()).some(count => count > 0);
 
     for (const { length, lap, lapIndex } of lengths) {
+      if (length[rejectedPoolTiming]) {
+        if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
+        continue;
+      }
       const lengthStartDate = this.getSwimLengthStartDate(length);
       if (!lengthStartDate || lengthStartDate < activity.startDate || lengthStartDate >= activity.endDate) {
         if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
@@ -1940,6 +1947,14 @@ export class EventImporterFIT {
     options: ActivityParsingOptions,
     corroboratedTimestamp = false
   ): LapInterface {
+    const sourceTimingValidity = sessionLapObject[rejectedPoolTiming];
+    if (sourceTimingValidity) {
+      sessionLapObject = {
+        ...sessionLapObject,
+        ...(sourceTimingValidity.timerTime !== undefined ? { total_timer_time: undefined } : {}),
+        ...(sourceTimingValidity.elapsedTime !== undefined ? { total_elapsed_time: undefined } : {})
+      };
+    }
     this.swapTimesIfRequired(sessionLapObject);
 
     const firstRecordTimestamp = sessionLapObject?.records?.[0]?.timestamp || null;
@@ -1973,17 +1988,25 @@ export class EventImporterFIT {
         new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
+    const timingValidity = sessionLapObject[rejectedPoolTiming];
+    // Retain a bounded containment interval, never present it as measured time.
+    const boundedEnd =
+      timingValidity && startDate
+        ? new Date(Math.max(+startDate, Math.min(+(endDate || startDate), +activity.endDate)))
+        : endDate;
     const resolvedDates =
-      !startDate || !endDate || endDate <= startDate
-        ? this.resolveInvalidLapDates(
-            sessionLapObject,
-            activity,
-            startDate,
-            endDate,
-            firstRecordTimestamp,
-            lastRecordTimestamp
-          )
-        : { startDate, endDate };
+      timingValidity && startDate
+        ? { startDate, endDate: boundedEnd }
+        : !startDate || !endDate || endDate <= startDate
+          ? this.resolveInvalidLapDates(
+              sessionLapObject,
+              activity,
+              startDate,
+              endDate,
+              firstRecordTimestamp,
+              lastRecordTimestamp
+            )
+          : { startDate, endDate };
 
     const lap = new Lap(
       resolvedDates.startDate,
@@ -1991,6 +2014,7 @@ export class EventImporterFIT {
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
+    lap.timingValidity = timingValidity;
     // Set the calories
     if (sessionLapObject.total_calories) {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
@@ -2714,8 +2738,21 @@ export class EventImporterFIT {
     return startDate;
   }
 
-  private static getBoundedSwimLengthEndDate(length: any, startDate: Date, activity: ActivityInterface, lap?: any): Date {
-    const end = this.getSwimLengthEndDate(length, startDate);
+  private static getBoundedSwimLengthEndDate(
+    length: any,
+    startDate: Date,
+    activity: ActivityInterface,
+    lap?: any
+  ): Date {
+    const rejected = length[rejectedPoolTiming];
+    const safeLength = rejected
+      ? {
+          ...length,
+          ...(rejected.elapsedTime !== undefined ? { total_elapsed_time: undefined } : {}),
+          ...(rejected.timerTime !== undefined ? { total_timer_time: undefined } : {})
+        }
+      : length;
+    const end = this.getSwimLengthEndDate(safeLength, startDate);
     const lapEnd = lap ? this.getLapWindow(lap).endDate : null;
     // Indexed lengths may legitimately begin before their owning lap. Preserve
     // that start and its distance, but never let the interval run into later legs.
@@ -2956,11 +2993,14 @@ export class EventImporterFIT {
 
       const lapIndex = this.getLengthLapIndex(length, laps);
       const lap = lapIndex === null ? undefined : lapByIndex.get(lapIndex);
-      const timerTime = this.getNumericValue(length?.total_timer_time);
-      const elapsedTime = this.getNumericValue(length?.total_elapsed_time);
+      const timerTime =
+        length[rejectedPoolTiming]?.timerTime !== undefined ? null : this.getNumericValue(length?.total_timer_time);
+      const elapsedTime =
+        length[rejectedPoolTiming]?.elapsedTime !== undefined ? null : this.getNumericValue(length?.total_elapsed_time);
 
       activity.addSwimLength(
         new SwimLength({
+          ...(length[rejectedPoolTiming] ? { timingValidity: length[rejectedPoolTiming] } : {}),
           index: lengthIndex + 1,
           lapIndex,
           startDate,
@@ -3178,7 +3218,7 @@ export class EventImporterFIT {
       if (object.lengths && object.lengths.length > 0) {
         object.lengths.forEach((lengthVal: any) => {
           if (lengthVal.length_type === 'active') {
-            movingTime += lengthVal.total_timer_time;
+            movingTime += lengthVal[rejectedPoolTiming]?.timerTime !== undefined ? NaN : lengthVal.total_timer_time;
           }
         });
       } else if (object.records && object.records.length > 0) {
@@ -3658,6 +3698,17 @@ export class EventImporterFIT {
       }
     }
 
+    const validity = object[rejectedPoolTiming];
+    if (validity) {
+      const unavailable = new Set<string>([DataPause.type]);
+      if (validity.elapsedTime !== undefined) unavailable.add(DataElapsedTime.type);
+      if (validity.timerTime !== undefined) {
+        unavailable.add(DataDuration.type);
+        unavailable.add(DataTimerTime.type);
+        unavailable.add(DataMovingTime.type);
+      }
+      return stats.filter(stat => !unavailable.has(stat.getType()));
+    }
     return stats;
   }
 

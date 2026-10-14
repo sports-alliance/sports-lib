@@ -443,7 +443,9 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  assert.ok(initialBytes <= 425_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 425000`);
+  // Additive pool timing validity and chronology checks: measured 428,916 bytes
+  // versus 424,883 before this change. Keep a bounded budget for the public facade.
+  assert.ok(initialBytes <= 430_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 430000`);
   assert.ok(
     fitParserBytes <= 30_000,
     `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`

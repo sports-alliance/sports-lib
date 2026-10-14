@@ -1,3 +1,4 @@
+import { TimingValidity } from '../duration/timing-validity';
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
 import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
@@ -8,6 +9,8 @@ import { DataSpeed } from '../data/data.speed';
 import { SwimLengthJSONInterface } from './swim-length.json.interface';
 
 export interface SwimLengthInterface extends SerializableClassInterface {
+  /** Rejected source timing, retained independently of usable values. */
+  timingValidity?: TimingValidity;
   index: number;
   lapIndex: number | null;
   startDate: Date;

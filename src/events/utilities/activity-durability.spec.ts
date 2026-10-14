@@ -68,6 +68,25 @@ function swimLength(
 }
 
 describe('activity durability', () => {
+  it('does not improve pool coverage by dropping rejected active timing and preserves valid rests', () => {
+    const lengths = Array.from({ length: 90 }, (_, i) => swimLength(i, 120, 40));
+    const a = mockActivity({ type: ActivityTypes.Swimming, swimLengths: lengths });
+    const before = analyzeActivityDurability(a).summary;
+    const rest = {
+      ...swimLength(91, 120, 40),
+      type: 'idle',
+      timingValidity: { version: 1, reason: 'exceeds-workout-envelope', timerTime: 4000000 }
+    } as SwimLengthInterface;
+    lengths.push(rest);
+    const withRest = analyzeActivityDurability(a).summary;
+    expect(withRest?.eligibility).toEqual(before?.eligibility);
+    expect(withRest?.coverageRatio).toEqual(before?.coverageRatio);
+    lengths[0].timingValidity = rest.timingValidity;
+    expect(analyzeActivityDurability(a).summary).toMatchObject({
+      coverageRatio: 0,
+      eligibility: { eligible: false, reason: 'missing-output' }
+    });
+  });
   it('calculates aerobic efficiency defensively', () => {
     expect(calculateAerobicEfficiency(240, 150)).toBe(1.6);
     expect(calculateAerobicEfficiency(0, 150)).toBeNull();

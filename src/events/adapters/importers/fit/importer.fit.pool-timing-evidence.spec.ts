@@ -1,3 +1,7 @@
+import { resolveSwimTimingSeconds } from '../../../../duration/timing-validity';
+import { DataDuration } from '../../../../data/data.duration';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
+import { DataPause } from '../../../../data/data.pause';
 import { FitBaseType as T, FitEncoder } from 'fit-file-parser/encoder';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { ActivityInterface } from '../../../../activities/activity.interface';
@@ -17,6 +21,9 @@ const field = (number: number, value: number, baseType = T.Uint32) => ({
 });
 interface Fixture {
   normal?: boolean;
+  completeTimer?: boolean;
+  lapTimer?: number;
+  lapElapsed?: number;
   elapsed?: number | null;
   timer?: number | null;
   nextStart?: number;
@@ -66,6 +73,13 @@ function bytes(o: Fixture = {}) {
         ],
         2
       );
+  if (o.completeTimer) {
+    for (const [offset, eventType] of [
+      [0, 0],
+      [120, 4]
+    ])
+      e.writeMessage(21, [field(253, start + offset), field(0, 0, T.Enum), field(1, eventType, T.Enum)], 5);
+  }
   const lapCount = o.splitLaps ? 2 : 1;
   for (let lap = 0; lap < lapCount; lap++)
     e.writeMessage(
@@ -74,8 +88,8 @@ function bytes(o: Fixture = {}) {
         field(254, lap, T.Uint16),
         field(2, start + (lap * 120) / lapCount),
         field(253, start + ((lap + 1) * 120) / lapCount),
-        field(7, 120000 / lapCount),
-        field(8, 120000 / lapCount),
+        field(7, ((o.lapElapsed ?? 120) * 1000) / lapCount),
+        field(8, ((o.lapTimer ?? 120) * 1000) / lapCount),
         field(9, 10000 / lapCount),
         field(32, 4 / lapCount, T.Uint16),
         field(35, (lap * 4) / lapCount, T.Uint16),
@@ -116,6 +130,48 @@ async function parse(o: Fixture = {}, options = new ActivityParsingOptions({ gen
 const ends = (activity: ActivityInterface) => activity.getSwimLengths().map(length => (+length.endDate - +base) / 1000);
 
 describe('FIT corroborated pool chronology and source completeness', () => {
+  it.each([30, 4000000])('withholds impossible timer with elapsed %s through JSON and regeneration', async elapsed => {
+    const activity = (
+      await parse({
+        records: true,
+        completeTimer: true,
+        normal: true,
+        elapsed,
+        timer: 4000000,
+        lapElapsed: 120,
+        lapTimer: 4000000,
+        imported: 0
+      })
+    ).getFirstActivity();
+    const length = activity.getSwimLengths()[0];
+    expect(activity.getSwimLengths()).toHaveLength(4);
+    expect(length.distance?.getValue()).toBe(25);
+    expect(length.strokes).toBe(10);
+    expect(length.timerTime).toBeNull();
+    expect(length.elapsedTime?.getValue() ?? null).toBe(elapsed === 30 ? 30 : null);
+    expect(resolveSwimTimingSeconds(length)).toBeNull();
+    const lap = activity.getLaps()[0];
+    expect(lap.getStat(DataDuration.type)).toBeUndefined();
+    expect(lap.getStat(DataPause.type)).toBeUndefined();
+    expect(lap.getStat(DataElapsedTime.type)?.getValue()).toBe(120);
+    expect(+lap.endDate).toBeLessThanOrEqual(+activity.endDate);
+    const heartRate = activity.getStreamData(DataHeartRate.type).slice();
+    const restored = EventImporterJSON.getActivityFromJSON(activity.toJSON());
+    for (const candidate of [activity, restored]) {
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(candidate);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(candidate);
+      expect(resolveSwimTimingSeconds(candidate.getSwimLengths()[0])).toBeNull();
+      expect(candidate.getSwimLengths()[0].toJSON().timingValidity).toEqual(length.timingValidity);
+      expect(candidate.getLaps()[0].getStat(DataDuration.type)).toBeUndefined();
+      if (candidate === activity) expect(candidate.getStreamData(DataHeartRate.type)).toEqual(heartRate);
+      // Native JSON does not carry private stream-gap provenance; recorded samples must survive.
+      heartRate.forEach((value, index) => {
+        if (typeof value === 'number' && Number.isFinite(value))
+          expect(candidate.getStreamData(DataHeartRate.type)[index]).toBe(value);
+      });
+      expect(candidate.getDistance().getValue()).toBe(100);
+    }
+  });
   it.each([
     { timer: 30, elapsed: 30, expected: 30 },
     { timer: 15, elapsed: 30, expected: 30 },

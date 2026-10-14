@@ -1,3 +1,9 @@
+import { DataDuration } from '../../../../data/data.duration';
+import { DataTimerTime } from '../../../../data/data.timer-time';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
+import { DataMovingTime } from '../../../../data/data.moving-time';
+import { DataPause } from '../../../../data/data.pause';
+import { normalizeTimingValidity } from '../../../../duration/timing-validity';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Lap } from '../../../../laps/lap';
@@ -177,7 +183,16 @@ export class EventImporterJSON {
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>json.type]
     );
+    lap.timingValidity = normalizeTimingValidity(json.timingValidity);
     this.addStatsFromJSON(lap, json.stats);
+    // An additive validity marker must also protect hydration of stale saved stats.
+    if (lap.timingValidity) {
+      lap.removeStat(DataPause.type);
+      if (lap.timingValidity.elapsedTime !== undefined) lap.removeStat(DataElapsedTime.type);
+      if (lap.timingValidity.timerTime !== undefined) {
+        [DataDuration.type, DataTimerTime.type, DataMovingTime.type].forEach(type => lap.removeStat(type));
+      }
+    }
     return lap;
   }
 

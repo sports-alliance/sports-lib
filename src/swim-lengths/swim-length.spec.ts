@@ -1,3 +1,6 @@
+import { DataElapsedTime } from '../data/data.elapsed-time';
+import { resolveSwimTimingSeconds, normalizeTimingValidity } from '../duration/timing-validity';
+import { EventImporterJSON } from '../events/adapters/importers/json/importer.json';
 import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
@@ -7,6 +10,55 @@ import { DataSpeed } from '../data/data.speed';
 import { SwimLength } from './swim-length';
 
 describe('SwimLength', () => {
+  it('preserves rejected timing across JSON without converting it to elapsed time or zero', () => {
+    const timingValidity = { version: 1, reason: 'exceeds-workout-envelope', timerTime: 4000000 } as const;
+    const length = SwimLength.fromJSON({
+      index: 1,
+      startDate: 0,
+      endDate: 30000,
+      type: 'active',
+      distance: 25,
+      elapsedTime: 30,
+      timerTime: 4000000,
+      timingValidity
+    } as any);
+    expect(length.timerTime).toBeNull();
+    expect(length.elapsedTime?.getValue()).toBe(30);
+    expect(resolveSwimTimingSeconds(length)).toBeNull();
+    expect(SwimLength.fromJSON(length.toJSON()).toJSON()).toEqual(length.toJSON());
+    expect(length.toJSON().timingValidity).toEqual(timingValidity);
+    const lap = EventImporterJSON.getLapFromJSON(
+      {
+        startDate: 0,
+        endDate: 30000,
+        type: 'Manual',
+        stats: { [DataDuration.type]: 4000000, [DataElapsedTime.type]: 30, [DataDistance.type]: 25 },
+        timingValidity
+      } as any,
+      0
+    );
+    expect(lap.getDuration()).toBeUndefined();
+    expect(lap.getDistance().getValue()).toBe(25);
+    expect(EventImporterJSON.getLapFromJSON(lap.toJSON(), 0).toJSON()).toEqual(lap.toJSON());
+  });
+  it('keeps legacy missing and zero timing and ignores unsupported validity metadata', () => {
+    const row = { index: 1, startDate: 0, endDate: 30000, type: 'idle', elapsedTime: 30, timerTime: 0 };
+    const zero = SwimLength.fromJSON(row as any);
+    expect(resolveSwimTimingSeconds(zero)).toBe(0);
+    expect(resolveSwimTimingSeconds(SwimLength.fromJSON({ ...row, timerTime: null } as any))).toBe(30);
+    expect(zero.toJSON()).not.toHaveProperty('timingValidity');
+    for (const invalid of [
+      null,
+      [],
+      {},
+      { version: 2, reason: 'exceeds-workout-envelope', timerTime: 4 },
+      { version: 1, reason: 'exceeds-workout-envelope', timerTime: -1 }
+    ])
+      expect(normalizeTimingValidity(invalid)).toBeUndefined();
+    expect(
+      normalizeTimingValidity({ version: 1, reason: 'exceeds-workout-envelope', timerTime: 4, private: 'discard' })
+    ).toEqual({ version: 1, reason: 'exceeds-workout-envelope', timerTime: 4 });
+  });
   it('hydrates nullable measured fields defensively from partial JSON rows', () => {
     const swimLength = SwimLength.fromJSON({
       index: 1,

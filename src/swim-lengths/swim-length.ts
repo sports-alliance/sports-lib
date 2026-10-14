@@ -1,3 +1,4 @@
+import { normalizeTimingValidity, TimingValidity } from '../duration/timing-validity';
 import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
@@ -10,6 +11,7 @@ import { SwimLengthJSONInterface } from './swim-length.json.interface';
 export type SwimLengthInit = Omit<SwimLengthInterface, 'toJSON'>;
 
 export class SwimLength implements SwimLengthInterface {
+  timingValidity?: TimingValidity;
   index!: number;
   lapIndex!: number | null;
   startDate!: Date;
@@ -57,6 +59,9 @@ export class SwimLength implements SwimLengthInterface {
     };
 
     return new SwimLength({
+      ...(normalizeTimingValidity(json.timingValidity)
+        ? { timingValidity: normalizeTimingValidity(json.timingValidity) }
+        : {}),
       index: json.index,
       lapIndex: nullableNumber(json.lapIndex),
       startDate: new Date(json.startDate),
@@ -64,8 +69,14 @@ export class SwimLength implements SwimLengthInterface {
       type: json.type,
       stroke: json.stroke ?? null,
       strokes: nullableNumber(json.strokes),
-      elapsedTime: nullableData(json.elapsedTime, DataDuration),
-      timerTime: nullableData(json.timerTime, DataDuration),
+      elapsedTime:
+        normalizeTimingValidity(json.timingValidity)?.elapsedTime !== undefined
+          ? null
+          : nullableData(json.elapsedTime, DataDuration),
+      timerTime:
+        normalizeTimingValidity(json.timingValidity)?.timerTime !== undefined
+          ? null
+          : nullableData(json.timerTime, DataDuration),
       distance: nullableData(json.distance, DataDistance),
       poolLength: nullableData(json.poolLength, DataDistance),
       avgSpeed: nullableData(json.avgSpeed, DataSpeed),
@@ -79,6 +90,9 @@ export class SwimLength implements SwimLengthInterface {
 
   toJSON(): SwimLengthJSONInterface {
     return {
+      ...(normalizeTimingValidity(this.timingValidity)
+        ? { timingValidity: normalizeTimingValidity(this.timingValidity) }
+        : {}),
       index: this.index,
       lapIndex: this.lapIndex,
       startDate: this.startDate.getTime(),
@@ -86,8 +100,14 @@ export class SwimLength implements SwimLengthInterface {
       type: this.type,
       stroke: this.stroke,
       strokes: this.strokes,
-      elapsedTime: this.elapsedTime?.getValue() ?? null,
-      timerTime: this.timerTime?.getValue() ?? null,
+      elapsedTime:
+        normalizeTimingValidity(this.timingValidity)?.elapsedTime !== undefined
+          ? null
+          : (this.elapsedTime?.getValue() ?? null),
+      timerTime:
+        normalizeTimingValidity(this.timingValidity)?.timerTime !== undefined
+          ? null
+          : (this.timerTime?.getValue() ?? null),
       distance: this.distance?.getValue() ?? null,
       poolLength: this.poolLength?.getValue() ?? null,
       avgSpeed: this.avgSpeed?.getValue() ?? null,

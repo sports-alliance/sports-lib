@@ -192,7 +192,12 @@ regeneration. Power timestamps do not extend length-derived streams; existing FT
 An original-file reparse recovers previously omitted observations without changing metric tokens or the JSON schema.
 Length end dates and generated samples are bounded by their resolved activity and owning lap. Contradictory timers
 cannot extend a swim into later legs, while paused lengths keep the existing active sampling limit. Original-file
-reparse applies these corrections to saved swims. Native JSON also omits non-finite scalar summaries and restores
+reparse applies these corrections to saved swims. Shared later length timestamps use elapsed endpoints only with
+consecutive-length and lap/session corroboration. Complete raw lap ranges can establish that omitted active lengths
+make a generated distance counter incomplete; recorded distance remains the fallback, otherwise the stream is absent.
+Source totals, individual distances and duration stats remain intact; ambiguous or corrupt source timing is not guessed.
+See the [import guide](guides/importing-activities.md) for the guards and historical reparse requirements.
+Native JSON also omits non-finite scalar summaries and restores
 legacy null summaries safely, preserving valid zero values and stream gaps; that repair needs only JSON restoration.
 
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with

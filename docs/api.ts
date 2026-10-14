@@ -574,6 +574,9 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
  * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
  * swim length endpoints respect chronological lap/session bounds, independently of active timer sampling limits.
+ * Shared pool timestamps use elapsed endpoints only with consecutive-length corroboration; complete raw lap ranges
+ * can prove a generated distance counter incomplete, retaining recorded samples or leaving the stream absent.
+ * Source totals, timer/elapsed statistics, metric tokens, units and serialized fields remain unchanged.
  * multisport timing preserves unambiguous initial pauses and prevents adjacent-session record leakage.
  * Missing FIT timer summaries can use explicit active intervals; Suunto JSON/SML retains recorded pause/resume events.
  * TSS evaluation keeps missing input diagnostics distinct from `calculation-unavailable` when a supplied

@@ -232,6 +232,7 @@ const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 const TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS = 1;
 
 export class EventImporterFIT {
+  private static readonly poolLengthEndDates = new WeakMap<object, Date>();
   private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
   private static readonly MIN_VALID_VO2_MAX = 10;
   private static readonly MAX_VALID_VO2_MAX = 100;
@@ -279,6 +280,8 @@ export class EventImporterFIT {
   /** Import file-scoped calibration and combine complementary records before
    * sensor padding. Recorded pool HR retains explicit dropout boundaries;
    * generated swim samples cannot extend past their owning lap or session.
+   * Shared pool timestamps need consecutive-length corroboration before elapsed
+   * time supplies an endpoint. Incomplete source lengths cannot generate distance.
    * Reject explicit non-activity file types before recovering missing sessions.
    * Retain a sole session's full chronology when ordered records and complete
    * timer intervals corroborate it, preserving active time and duration limits.
@@ -296,6 +299,7 @@ export class EventImporterFIT {
     // @ts-ignore
     const { default: FitFileParser } = await import('fit-file-parser');
     const { getMissingFinalSession } = await import('./fit-missing-session');
+    const { getPoolLengthEvidence } = await import('./fit-pool-evidence');
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,
@@ -357,6 +361,13 @@ export class EventImporterFIT {
         }
 
         this.prepareSwimLengths(fitDataObject, options);
+        const poolEvidence = getPoolLengthEvidence(fitDataObject, {
+          number: value => this.getNumericValue(value), index: value => this.getMessageIndexValue(value),
+          date: value => this.getDateFromValue(value),
+          window: summary => this.getLapWindow(summary), enum: value => this.getFitEnumValue(value),
+          type: value => this.getSwimLengthType(value)
+        });
+        poolEvidence.ends.forEach((end, length) => this.poolLengthEndDates.set(length, end));
         this.normalizeSuuntoPoolLengths(fitDataObject);
 
         // Check for jumps data at the top level
@@ -604,7 +615,8 @@ export class EventImporterFIT {
           const cumulativePoolDistance = isLengthsBased
             ? this.resolveCumulativePoolDistance(sessionObject, activity, recordedSamples) : null;
           const samples = isLengthsBased
-            ? this.generateSamplesFromLengths(sessionObject, activity, options, cumulativePoolDistance !== null)
+            ? this.generateSamplesFromLengths(sessionObject, activity, options, cumulativePoolDistance !== null,
+              !poolEvidence.incompleteSessions.has(sessionObject))
             : recordedSamples;
 
           // Setup sample info which could be use when getting sample values
@@ -957,7 +969,8 @@ export class EventImporterFIT {
    * @private
    */
   private static generateSamplesFromLengths(
-    sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions, usePoolLengthDistance = false
+    sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions, usePoolLengthDistance = false,
+    completeSourceLengths = true
   ): any[] {
     if (!this.isLengthsBased(sessionObject)) {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
@@ -979,7 +992,8 @@ export class EventImporterFIT {
     // complete counter: retain recorded distance instead, or leave it absent.
     const missingActiveLap = laps.some((lap, index) => (this.getNumericValue(lap.total_distance) ?? 0) > 0 &&
       !activeCounts.get(index + 1));
-    let distanceKnown = completeOwnership && !missingActiveLap && Array.from(activeCounts.values()).some(count => count > 0);
+    let distanceKnown = completeSourceLengths && completeOwnership && !missingActiveLap &&
+      Array.from(activeCounts.values()).some(count => count > 0);
 
     for (const { length, lap, lapIndex } of lengths) {
       const lengthStartDate = this.getSwimLengthStartDate(length);
@@ -2679,6 +2693,8 @@ export class EventImporterFIT {
   }
 
   private static getSwimLengthEndDate(length: any, startDate: Date): Date {
+    const corroboratedEnd = this.poolLengthEndDates.get(length);
+    if (corroboratedEnd) return corroboratedEnd;
     const timestamp = this.getDateFromValue(length?.timestamp);
     const elapsedTime = this.getPositiveNumericValue(length?.total_elapsed_time);
     if (timestamp && +timestamp > +startDate) {

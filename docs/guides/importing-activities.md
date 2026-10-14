@@ -203,6 +203,22 @@ their ownership only when their sampling interval overlaps that lap. Recorded HR
 existing precedence. Reparse original FIT files and refresh derived summaries to correct historical swim bounds;
 the source timer/elapsed stats, imported TSS, metric names, units and JSON shape are retained.
 
+Some pool exports give consecutive lengths the same later summary timestamp. Elapsed time supplies an earlier
+endpoint only when the next length's explicitly recorded start corroborates it at FIT's whole-second precision, both message indexes are
+unique and consecutive, and both lengths already belong to one explicit lap range. The elapsed interval must fit
+inside that lap and session, with a nonnegative timer no longer than elapsed time. This does not guess an endpoint
+for a terminal length, change ownership, or rewrite source timer/elapsed statistics.
+
+A complete generated pool-distance counter also requires complete source evidence. When a non-overlapping explicit
+lap range contains every declared active/rest length and agrees with its active count, an active member omitted from
+the session proves that the retained lengths cannot establish a complete counter. The importer then retains recorded
+distance samples when available, otherwise leaves the Distance stream absent. Recorded totals and individual length
+distances remain intact. It does not redistribute missing distance, invent lengths, or extend the session. Missing or
+contradictory range/count evidence does not activate this additional guard. These checks apply only to swimming with
+a lap-swimming sub-sport or positive pool length. Corrupt source durations and ambiguous timestamps remain unresolved.
+Historical corrections require original-file reparse after adopting a release containing the fix; JSON restoration
+alone cannot supply the omitted evidence. Pace, SWOLF, TSS inputs, pool units and public schemas are unchanged.
+
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that
 previous lap; its earliest point supplies the start instead. `TotalTimeSeconds` retains its active-duration meaning and is also the elapsed-time minimum. Separate

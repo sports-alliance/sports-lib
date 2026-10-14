@@ -11,7 +11,7 @@ import { DataPower } from '../../../../data/data.power';
 import { DataLongitudeDegrees } from '../../../../data/data.longitude-degrees';
 import { isNumberOrString } from '../../../utilities/helpers';
 import { SampleInfo } from '../sample-info.interface';
-import { CLUETRUST_HEART_RATE } from './gx-parser';
+import { CLUETRUST_HEART_RATE, GPX_RECORDED_SPEED } from './gx-parser';
 
 export const GPXSampleMapper: {
   dataType: string;
@@ -131,7 +131,7 @@ export const GPXSampleMapper: {
       if (sample.extensions[0].speed && isNumberOrString(sample.extensions[0].speed[0])) {
         return Number(sample.extensions[0].speed[0]);
       }
-      return null;
+      return sample[GPX_RECORDED_SPEED] ?? null;
     }
   },
   {

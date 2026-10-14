@@ -20,6 +20,14 @@ const file = new Blob([gpxText], { type: exporter.fileType });
 GPX represents both cadence and stroke rate through its cadence extension. `EventExporterGPX` writes the canonical
 `Stroke Rate` stream there for supported stroke-rate activities so the values survive a GPX round trip.
 
+Activity exports declare Garmin TrackPointExtension/v2, whose schema defines speed in metres/second. They preserve
+finite, nonnegative canonical `Speed` readings, including zero, and omit missing or invalid readings. Sensor fields
+follow the v2 schema sequence; independent power/distance extensions retain their existing behavior. Importing the
+result restores recorded speed rather than deriving a replacement from coordinates. Native JSON names and units
+are unchanged. Older QS GPX exports used v1 and omitted zero speeds: the importer recognizes their metadata for
+legacy m/s compatibility, but cannot invent observations absent from the exported file. Re-export from a source that
+retains those readings to recover them. See [recorded GPX speed](importing-activities.md#gpx).
+
 ## Native JSON round trips
 
 Native JSON is the persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore

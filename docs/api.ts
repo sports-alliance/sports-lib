@@ -28,6 +28,8 @@
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
+ * GPX retains directly owned v2 speed in m/s, with narrow evidenced v1 exporter compatibility and existing
+ * direct-field precedence. Historical recovery requires original-file reparse; metric names and JSON stay stable.
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
  * TCX retains finite recorded speed from a single ActivityExtension/v2 TPX directly under a trackpoint when
  * Extensions is absent. Wrapped extensions retain precedence; historical missing speed requires original-file reparse.
@@ -39,6 +41,9 @@
  * @category Import and export
  */
 export { SportsLib } from '../src/index';
+/** Positional activity GPX uses TrackPointExtension/v2, preserving finite nonnegative speed including zero.
+ * @category Import and export
+ */
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
 /**

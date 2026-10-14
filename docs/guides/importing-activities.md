@@ -32,6 +32,24 @@ elements in `http://www.cluetrust.com/XML/GPXDATA/1/0`, as used by COROS. The na
 an arbitrary XML prefix or unrelated `hr` element does not. Original-file reparsing recovers previously missed samples
 and related summaries. HR observations alone do not provide the calibration required for HR TSS.
 
+Recorded `trkpt/extensions/TrackPointExtension/speed` uses canonical `Speed` in m/s when the block and field
+belong to Garmin's `http://www.garmin.com/xmlschemas/TrackPointExtension/v2` namespace. The v1 schema never
+defined speed; compatibility is limited to the evidenced Amazfit/Zepp (`Amazfit ` creator prefix or `Zepp App`),
+`Intervals.icu`, and older QS exports identified by their direct GPX metadata link to `https://quantified-self.io/`.
+An unknown v1 exporter does not inherit a unit assumption. Prefix spelling is irrelevant; namespace and direct
+ownership are required. One extension, one recognized block and one finite nonnegative scalar speed are required.
+Zero is retained; blank, non-finite, negative, nested, attributed or duplicate/conflicting fallback values are ignored
+(namespace declarations are allowed). Existing direct `extensions/speed` retains precedence and behavior.
+
+Recovery supplies the existing Speed stream, without adding a metric or blending missing samples with GPS speed.
+When no usable speed stream exists, the established distance/GPS fallback remains. Speed-dependent pace, moving time,
+work and durability summaries can change; recorded distance and timer duration remain independent. Pace-based TSS
+still requires eligible calibration, and no calibration is inferred from these readings. Selective stream parsing
+and canonical JSON names/units remain unchanged. Reparse original GPX files and refresh dependent summaries to
+recover previously ignored observations; regenerating saved JSON cannot restore discarded source values.
+New [GPX exports](exporting.md) use v2 and retain recorded zero speeds. Old exports that omitted zeros cannot recover
+those readings without an independent original containing them. Saved-route parsing is unchanged.
+
 ```ts
 import { SportsLib } from '@sports-alliance/sports-lib';
 import { DOMParser } from '@xmldom/xmldom';

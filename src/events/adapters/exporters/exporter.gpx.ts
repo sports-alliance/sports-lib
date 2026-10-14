@@ -22,8 +22,10 @@ export class EventExporterGPX implements EventExporter {
   fileType = 'application/gpx+xml';
   fileExtension = 'gpx';
 
-  getAsString(event: EventInterface): Promise<string> {
-    return new Promise((resolve, _reject) => {
+  /** Exports positional activities with TrackPointExtension/v2 speed in m/s, retaining recorded zero. */
+  async getAsString(event: EventInterface): Promise<string> {
+    const { setGPXPointSpeed, useGPXTrackPointV2 } = await import('../gpx-speed');
+    return new Promise<string>((resolve, _reject) => {
       const tracks: typeof Track = [];
       event.getActivities().forEach(activity => {
         // We cannot export activities with no positional data!
@@ -48,21 +50,20 @@ export class EventExporterGPX implements EventExporter {
               DataSpeed.type
             ])
             .reduce((pointsArray: (typeof Point)[], data, _index, _array) => {
-              pointsArray.push(
-                new Point(<number>data[DataLatitudeDegrees.type], <number>data[DataLongitudeDegrees.type], {
-                  ele: data[DataAltitude.type] || undefined,
-                  time: new Date(activity.startDate.getTime() + <number>data[DataTime.type] * 1000),
-                  hr: data[DataHeartRate.type],
+              const point = new Point(<number>data[DataLatitudeDegrees.type], <number>data[DataLongitudeDegrees.type], {
+                ele: data[DataAltitude.type] || undefined,
+                time: new Date(activity.startDate.getTime() + <number>data[DataTime.type] * 1000),
+                hr: data[DataHeartRate.type],
+                power: data[DataPower.type] || undefined,
+                atemp: data[DataTemperature.type] || undefined,
+                cad: data[DataStrokeRate.type] || data[DataCadence.type] || undefined,
+                extensions: {
                   power: data[DataPower.type] || undefined,
-                  speed: data[DataSpeed.type] || undefined,
-                  atemp: data[DataTemperature.type] || undefined,
-                  cad: data[DataStrokeRate.type] || data[DataCadence.type] || undefined,
-                  extensions: {
-                    power: data[DataPower.type] || undefined,
-                    distance: data[DataDistance.type] || undefined
-                  }
-                })
-              );
+                  distance: data[DataDistance.type] || undefined
+                }
+              });
+              setGPXPointSpeed(point, data[DataSpeed.type]);
+              pointsArray.push(point);
               return pointsArray;
             }, [])
         );
@@ -72,6 +73,7 @@ export class EventExporterGPX implements EventExporter {
       });
 
       const builder = new GarminBuilder();
+      useGPXTrackPointV2(builder);
       builder.setTracks(tracks);
       builder.setMetadata(
         new Metadata({

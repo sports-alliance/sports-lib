@@ -42,6 +42,10 @@ refreshes for affected activities; existing non-activity imports need separate c
 
 Native activity JSON restores child names independently of event titles. GPX activity and route imports retain the
 exporter name without assigning the schema version as a manufacturer; unknown TCX sports use `Unknown Sport`.
+GPX activity imports retain recorded m/s speed from standard TrackPointExtension/v2 and evidenced legacy v1
+exporters, preserving zero, gaps and canonical Speed/Pace identities. Activity exports use v2 and keep zero speeds.
+Historical recovery requires original-file reparse and dependent-summary refresh; see the
+[GPX compatibility guide](guides/importing-activities.md#gpx). Saved-route parsing is unchanged.
 TCX imports recover recorded speed from an unambiguous ActivityExtension/v2 TPX directly under a trackpoint when
 the Extensions wrapper is missing. Existing canonical Speed/Pace metrics and JSON schemas are unchanged; original-file
 reparsing and summary refreshes recover historical omissions. Normal wrapped extensions retain precedence.

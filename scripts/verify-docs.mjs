@@ -13,6 +13,7 @@ const requiredPages = [
   'documents/Export_and_persist_data.html',
   'documents/Metrics_and_calculations.html',
   'documents/Three-dimensional_power_and_training-response_model.html',
+  'documents/Validation_and_compatibility.html',
   'classes/API.SportsLib.html',
   'classes/API.ActivityParsingOptions.html',
   'classes/API.RouteParsingOptions.html',

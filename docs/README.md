@@ -6,6 +6,11 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+**Regression-tested against over 189,000 real-world source files.** Corpus investigations have driven compatibility
+fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on evidence in the file. See
+[Validation and compatibility](guides/validation.md) for examples, the dated corpus snapshot, activity and route
+coverage, methodology and known limitations.
+
 EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display one decimal place in meters.
 Stored values and calculations retain full precision; existing stats need no reparse or migration. See
 [Position error display](guides/metrics-and-calculations.md#position-error-display).
@@ -144,6 +149,7 @@ require reparsing activities or routes, regenerating summaries, or migrating nat
 - [Metrics and calculations](guides/metrics-and-calculations.md) — canonical metric tokens, units, and derivation rules.
 - [Three-dimensional power and training-response model](guides/three-dimensional-training-model.md) — research
   provenance, implemented equations, capacity estimation, strain scoring, calibration, and limitations.
+- [Validation and compatibility](guides/validation.md) — verified corpus counts, testing scope, route coverage and known limitations.
 
 ## API reference
 

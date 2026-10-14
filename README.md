@@ -4,6 +4,12 @@ Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activ
 It also exposes provider-neutral Health and sleep scalar data classes with canonical units, display formatting, aliases,
 and JSON round-trip behavior.
 
+**Regression-tested against over 189,000 real-world source files.** This work has driven compatibility fixes for
+vendor quirks, incomplete recordings and malformed data. Importers use evidence in the file to recover valid
+observations while preserving zeros, pauses and sport boundaries. See our
+[validation guide](https://sports-alliance.github.io/sports-lib/documents/Validation_and_compatibility.html)
+for supported recovery examples, activity and route coverage, methodology and known limitations.
+
 ## Documentation
 
 The hosted documentation contains the supported API and all consumer guidance:
@@ -15,6 +21,7 @@ The hosted documentation contains the supported API and all consumer guidance:
 - [Export and persist data](https://sports-alliance.github.io/sports-lib/documents/Export_and_persist_data.html)
 - [Metrics and calculations](https://sports-alliance.github.io/sports-lib/documents/Metrics_and_calculations.html)
 - [Three-dimensional power and training-response model](https://sports-alliance.github.io/sports-lib/documents/Three-dimensional_power_and_training-response_model.html)
+- [Validation and compatibility](https://sports-alliance.github.io/sports-lib/documents/Validation_and_compatibility.html)
 
 ## Install
 

@@ -74,7 +74,7 @@ export class SportsLib {
    * Parses and returns an event using Suunto format. Mixed-sport pace calibration must belong to the individual leg;
    * unscoped header speed-zone boundaries are retained only for files with one resolved sport type.
    * Retains source endurance summaries and supports selective streams.
-   * EnduranceDistance currently assumes metres pending provider confirmation.
+   * EnduranceDistance source values are in metres and are retained without scaling.
    * @param jsonString
    * @param options
    */

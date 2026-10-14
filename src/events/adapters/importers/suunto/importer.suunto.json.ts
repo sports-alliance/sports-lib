@@ -1006,7 +1006,7 @@ export class EventImporterSuuntoJSON {
       if (current !== null) stats.push(new DataStamina(current));
       if (minimum !== null) stats.push(new DataStaminaMin(minimum));
     }
-    // Metres are the adopted source-unit assumption pending Suunto confirmation.
+    // EnduranceDistance is in metres (maintainer confirmation in issue #158).
     // Cur is the end-of-scope estimate, not necessarily the final sampled observation.
     // EnduranceValid is undocumented; it must not erase populated observations.
     const sustainableDistance = this.getSummaryObject(object, 'EnduranceDistance');

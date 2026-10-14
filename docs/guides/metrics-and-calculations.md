@@ -27,10 +27,11 @@ are preserved, while missing, null, nonnumeric, nonfinite and negative distances
 average/maximum variants. The undocumented `EnduranceValid` flag does not suppress populated observations or assert
 provider validation. Both Suunto formats now honor `streams.includeTypes`, including derivation dependencies.
 
-**Source-unit assumption:** `EnduranceDistance` is interpreted as metres by explicit integration decision, pending
-Suunto confirmation of the raw field contract. [Suunto's EnergySense explanation](https://us.suunto.com/blogs/blog/what-is-energysense)
-describes sustainable distance and remaining endurance but does not specify the export field's unit or validity flag.
-The raw numeric values are retained without scaling; this mapping is an assumption, not a documented field definition.
+**Source unit:** `EnduranceDistance` is in metres, as confirmed by the maintainer in
+[#158](https://github.com/sports-alliance/sports-lib/issues/158).
+The raw numeric values are retained without scaling; this confirmation requires no conversion change or data migration.
+[Suunto's EnergySense explanation](https://us.suunto.com/blogs/blog/what-is-energysense) describes sustainable distance and
+remaining endurance but does not specify the export field's unit or validity flag.
 No speculative FIT mapping is added: an export without these observations remains unavailable.
 
 Label changes require no key migration. New persisted distance summaries and explicit Suunto manufacturer metadata

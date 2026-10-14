@@ -222,5 +222,5 @@ summaries; serialized metric names and units are unchanged. See the [TSS methods
 
 Suunto EnergySense observations retain canonical `Stamina` percentages and add `Estimated Sustainable Distance`
 plus its minimum. Source `Cur` endings and `Min` summaries remain distinct from sampled values. The distance source
-unit is provisionally interpreted as metres, pending provider confirmation; no FIT field is inferred. See
+unit is metres, as confirmed by the maintainer in [#158](https://github.com/sports-alliance/sports-lib/issues/158); no FIT field is inferred. See
 [metric semantics and historical reparse](guides/metrics-and-calculations.md#endurance-estimates).

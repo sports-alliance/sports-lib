@@ -211,13 +211,13 @@ for a terminal length, change ownership, or rewrite source timer/elapsed statist
 
 A complete generated pool-distance counter also requires complete source evidence. When a non-overlapping explicit
 lap range contains every declared active/rest length and agrees with its active count, an active member omitted from
-the session proves that the retained lengths cannot establish a complete counter. The importer then retains recorded
-distance samples when available, otherwise leaves the Distance stream absent. Recorded totals and individual length
+the session proves that the retained lengths cannot establish a complete counter. The importer disables that
+length-derived counter and retains recorded distance samples when available. Recorded totals and individual length
 distances remain intact. It does not redistribute missing distance, invent lengths, or extend the session. Missing or
 contradictory range/count evidence does not activate this additional guard. These checks apply only to swimming with
 a lap-swimming sub-sport or positive pool length. Corrupt source durations and ambiguous timestamps remain unresolved.
 Historical corrections require original-file reparse after adopting a release containing the fix; JSON restoration
-alone cannot supply the omitted evidence. Pace, SWOLF, TSS inputs, pool units and public schemas are unchanged.
+alone cannot supply the omitted evidence. Recorded pace, SWOLF and TSS inputs, pool units and public schemas are unchanged.
 
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that

@@ -114,8 +114,9 @@ describe('GPX recorded speed', () => {
 
   it('retains missing readings and zeros through canonical JSON and repeated regeneration', async () => {
     const event = await parse(gpx([block('3'), '', block('0'), block('4')]));
+    let restored = event;
     for (let i = 0; i < 2; i++) {
-      const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+      restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(restored.toJSON())));
       const a = restored.getFirstActivity();
       ActivityUtilities.generateMissingStreamsForActivity(a);
       expect(a.getStreamData(DataSpeed.type)).toEqual([3, null, 0, 4]);

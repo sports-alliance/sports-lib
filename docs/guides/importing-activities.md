@@ -247,6 +247,15 @@ alone cannot supply the omitted evidence. Recorded pace, SWOLF and TSS inputs, p
 
 ### Contradicted pool timing
 
+**Keep a known-invalid swimming duration unavailable; do not replace it with elapsed time.** Active time measures
+swimming, while elapsed time can include rests. A missing timer and a timer proved wrong by the source are different cases.
+
+For a synthetic example, suppose a length reports 7,200 seconds of active time in a workout independently established
+to last 1,800 seconds. Its active time is impossible. A separate, valid 45-second elapsed value still cannot tell us how
+much of that interval was spent swimming. The importer leaves the length's timer unavailable and retains the rejected
+7,200-second value in `timingValidity` for diagnostics. It keeps the length, distance, strokes and rest classification.
+These example numbers are not rejection thresholds.
+
 For one explicitly identified pool-swim session, the importer can withhold a length or lap timer/elapsed duration that
 exceeds an independently supported whole-workout envelope. This requires ordered timer events from the session start
 to a recorded stop and timestamped samples within that envelope. All summary timestamps widen the bound; valid child
@@ -268,6 +277,42 @@ instead be regenerated from valid recorded samples. Active lengths with rejected
 unavailable (`missing-output`, zero qualifying coverage) rather than improving coverage by dropping the affected rows.
 Original-file reparse is required to classify historical data; native JSON preserves a classification once present.
 This change adds no numeric metric names, changes no route parsing, and does not infer replacement durations.
+
+#### Using swim timing in an application
+
+Sports Lib already applies this rule to its generated swim samples and pool durability analysis. Applications that
+calculate or display swim timing themselves should use the exported resolver for each swim length:
+
+```typescript
+import { resolveSwimTimingSeconds, type SwimLengthInterface } from '@sports-alliance/sports-lib';
+
+function displayLengthTiming(length: SwimLengthInterface): string {
+  const seconds = resolveSwimTimingSeconds(length);
+  return seconds === null ? 'Unavailable' : `${seconds} s`;
+}
+```
+
+The resolver distinguishes these cases:
+
+| Length timer | Elapsed time | Result |
+|---|---|---|
+| Valid 30 seconds | 45 seconds | 30 seconds |
+| Missing, with no rejected-timer marker | Valid 45 seconds | 45 seconds, retaining the existing fallback |
+| Rejected by `timingValidity.timerTime` | Valid 45 seconds | `null` (unavailable) |
+| Valid zero | 45 seconds | 0 seconds |
+
+The legacy elapsed fallback does not independently prove active swimming time. Do not add another fallback after
+the resolver returns `null`: replacing it with elapsed time, `endDate - startDate` or zero would erase the distinction
+between rejected, missing and measured timing. Keep the row and show its usable measurements; calculations requiring
+the rejected duration must remain unavailable rather than silently omit that row or invent a replacement duration.
+For laps, the importer withholds the affected timing stats; custom lap calculations must likewise honor the marker
+instead of rebuilding those stats from dates or other duration fields.
+
+When persisting through Sports Lib's native JSON APIs, the marker is retained automatically. Applications with their
+own serializers must preserve it on laps and swim lengths so later reads do not revive a rejected duration. Treat the
+values inside the marker as rejected source evidence, never usable timing. Older JSON without a marker keeps its
+existing interpretation; reparse the original file to classify historical timing, then refresh dependent summaries.
+No blanket historical reparse is required, and no new user setting is needed.
 
 TCX lap elapsed time covers every Track, starting at `Lap.StartTime` when valid, otherwise the earliest valid
 trackpoint. A stated start overlapping the previous lap is rejected when this lap’s recorded points all follow that

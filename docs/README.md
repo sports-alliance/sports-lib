@@ -207,8 +207,15 @@ reparse applies these corrections to saved swims. Shared later length timestamps
 consecutive-length and lap/session corroboration. Complete raw lap ranges can establish that omitted active lengths
 make a generated distance counter incomplete; recorded distance remains the fallback, without inferring a complete
 counter from the retained lengths.
-Source totals, individual distances and duration stats remain intact; ambiguous or corrupt source timing is not guessed.
+For these boundary and distance corrections, source totals, individual distances and duration stats remain intact;
+ambiguous source timing is not guessed.
 See the [import guide](guides/importing-activities.md) for the guards and historical reparse requirements.
+Separately, when independent workout evidence proves a pool lap or length duration impossible, that duration becomes
+unavailable. The row and its usable measurements remain, with rejected source timing retained in optional native-JSON
+`timingValidity` metadata. Elapsed time can include rests, so it must not replace a rejected active duration. The library
+handles this in its swim calculations; applications doing their own timing calculations should use
+`resolveSwimTimingSeconds` for lengths and preserve the marker in custom serializers. See the
+[plain-language example and integration guidance](guides/importing-activities.md#contradicted-pool-timing).
 Native JSON also omits non-finite scalar summaries and restores
 legacy null summaries safely, preserving valid zero values and stream gaps; that repair needs only JSON restoration.
 

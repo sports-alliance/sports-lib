@@ -24,7 +24,13 @@ export function normalizeTimingValidity(value: unknown): TimingValidity | undefi
   };
 }
 
-/** Rejected timer time must not silently fall back to elapsed time. */
+/**
+ * Resolve usable swim-length timing in seconds, retaining valid zero.
+ * A rejected timer returns null even if elapsed time is valid: elapsed can include rests.
+ * Otherwise use the timer when present, or an unrejected elapsed value when the timer is absent,
+ * preserving the existing fallback for legacy lengths without a timing-validity marker.
+ * Callers must keep null unavailable rather than apply another elapsed/date/zero fallback.
+ */
 export function resolveSwimTimingSeconds(length: {
   timingValidity?: TimingValidity;
   timerTime: { getValue(): unknown } | null;

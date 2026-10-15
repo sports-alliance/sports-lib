@@ -37,6 +37,7 @@ requires independent recorded evidence; otherwise active duration and its depend
 Historical corrections require an original-file reparse; saved JSON alone cannot recover private timing evidence.
 Native Suunto multisport lap summaries match source timestamps and sport ownership, including sport-change remainders.
 Final lap summaries retain their own manual/automatic counter despite interleaved markers.
+Ambiguous automatic remainders stay unassigned even when a valid manual summary ends at the same Stop.
 Cross-leg laps remain once on their ending leg and never derive whole-lap averages from that leg's partial streams.
 Original-file reparse corrects affected historical laps without changing activity totals or public JSON schemas.
 

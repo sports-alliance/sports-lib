@@ -26,6 +26,7 @@
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
  * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
  * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.
+ * A concurrent manual summary cannot resolve an ambiguous automatic remainder; that remainder stays unassigned.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.

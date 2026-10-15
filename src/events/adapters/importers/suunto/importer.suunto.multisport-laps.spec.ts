@@ -260,6 +260,76 @@ describe('Suunto multisport lap source matching', () => {
     expect(terminal[0].getStat(DataDistance.type)).toBeUndefined();
   });
 
+  it.each([false, true])(
+    'does not invent an automatic counter alongside a manual Stop summary (reverse windows: %s)',
+    async reverse => {
+      const data = fixture();
+      data.DeviceLog.Samples.splice(
+        6,
+        0,
+        marker(550, { Lap: { Type: 'Interval' } }),
+        marker(600, { Lap: { Type: 'Manual' } })
+      );
+      data.DeviceLog.Windows.push(window(600, 'Lap', 3, 100, 800), window(800, 'Lap', 3, 200, 800));
+      if (reverse) {
+        data.DeviceLog.Windows = [
+          ...data.DeviceLog.Windows.filter(w => w.Window.Type === 'Activity'),
+          ...data.DeviceLog.Windows.filter(w => w.Window.Type !== 'Activity').reverse()
+        ];
+      }
+      const event = await parse(data);
+      expect(event.getDistance().getValue()).toBe(3511);
+      expect(event.getDuration()?.getValue()).toBe(800);
+      for (const candidate of [event, EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())))]) {
+        const leg = candidate.getActivities()[3];
+        for (let repeat = 0; repeat < 2; repeat++) {
+          const terminal = leg.getLaps().filter(l => +l.endDate === origin + 800000);
+          expect(terminal.map(l => [l.type, (+l.startDate - origin) / 1000, l.getDuration()?.getValue()])).toEqual([
+            ['Manual', 600, 200]
+          ]);
+          expect(terminal[0].getDistance().getValue()).toBe(800);
+          ActivityUtilities.generateMissingStreamsAndStatsForActivity(leg);
+        }
+      }
+    }
+  );
+
+  it('does not invent an automatic counter for an unmarked sport-change remainder', async () => {
+    const data = fixture();
+    data.DeviceLog.Samples.splice(3, 0, marker(200, { Lap: { Type: 'Interval' } }));
+    const event = await parse(data);
+    const leg = event.getActivities()[1];
+    expect(leg.getLaps().some(l => +l.endDate === origin + 400000)).toBe(false);
+    const recorded = leg.getLaps().find(l => +l.endDate === origin + 250000)!;
+    expect(recorded.type).toBe('Distance');
+    expect(recorded.getDuration()?.getValue()).toBe(150);
+    expect(recorded.getDistance().getValue()).toBe(1000);
+    expect(event.getDistance().getValue()).toBe(3511);
+    expect(event.getDuration()?.getValue()).toBe(800);
+  });
+
+  it.each([3, 2, undefined])('checks automatic ambiguity across the full scope owned by sport id %s', async sport => {
+    const data = fixture();
+    data.DeviceLog.Samples.splice(3, 0, marker(200, { Lap: { Type: 'Interval' } }));
+    data.DeviceLog.Samples.splice(7, 0, marker(600, { Lap: { Type: 'Manual' } }));
+    data.DeviceLog.Windows.push(window(600, 'Lap', sport, 100, 800), window(800, 'Lap', sport, 200, 800));
+    data.DeviceLog.Windows.find(w => w.Window.Type === 'Autolap' && w.TimeISO8601 === time(800))!.Window.ActivityId =
+      sport;
+    const event = await parse(data);
+    const terminal = event
+      .getActivities()[3]
+      .getLaps()
+      .filter(l => +l.endDate === origin + 800000);
+    expect(terminal.map(l => [l.type, (+l.startDate - origin) / 1000, l.getDuration()?.getValue()])).toEqual(
+      sport === 3
+        ? [
+            ['Manual', 600, 200],
+            ['Distance', 650, 150]
+          ]
+        : [['Manual', 600, 200]]
+    );
+  });
+
   it('keeps independent global automatic lap types overlapping instead of joining their cursors', async () => {
     const data = fixture();
     data.DeviceLog.Samples = [

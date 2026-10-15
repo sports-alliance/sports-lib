@@ -543,7 +543,9 @@ sample; that remainder stays with its sport leg instead of shifting all subseque
 can be reconciled to Stop only when the same timestamp also contains the final sport's Activity summary and the Move
 summary. Independent manual and automatic counters keep their own starts, including when only one supplies a final
 summary at Stop after a marker from the other counter. If an automatic summary could belong to multiple automatic
-counter types, retain the unmatched Stop marker without borrowing that ambiguous summary.
+counter types, withhold that ambiguous summary, including when a valid manual summary also flushes at Stop.
+Retain the Stop marker once if no unambiguous summary represents it; do not invent a generic automatic counter.
+Check counter ambiguity across the whole workout for global summaries, and only within the owning leg for sport-local summaries.
 Conflicting windows or sport identifiers do not supply another lap's distance or active duration.
 
 A genuine lap spanning sports remains one lap on the leg containing its endpoint. An unmatched source marker is

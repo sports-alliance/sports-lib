@@ -79,10 +79,17 @@ export function resolveSuuntoMultisportLaps(
       const triggers = new Set(
         boundaries
           .filter(
-            b => b.end > +owner.startDate && b.end <= +owner.endDate && b.type !== LapTypes.Stop && matchesKind(b, w)
+            b =>
+              (global || b.end > +owner.startDate) &&
+              b.end <= +owner.endDate &&
+              b.type !== LapTypes.Stop &&
+              matchesKind(b, w)
           )
           .map(b => b.type)
       );
+      // A concurrent manual summary does not identify which automatic counter
+      // owns this remainder. The generic fallback is only for absent evidence.
+      if (triggers.size > 1) continue;
       type = triggers.size === 1 ? [...triggers][0] : w.Window.Type === 'Lap' ? LapTypes.Manual : LapTypes.AutoLap;
     }
     // Stop is the endpoint trigger, not a lap counter. A lone final manual

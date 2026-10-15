@@ -244,3 +244,7 @@ Suunto EnergySense observations retain canonical `Stamina` percentages and add `
 plus its minimum. Source `Cur` endings and `Min` summaries remain distinct from sampled values. The distance source
 unit is metres, as confirmed by the maintainer in [#158](https://github.com/sports-alliance/sports-lib/issues/158); no FIT field is inferred. See
 [metric semantics and historical reparse](guides/metrics-and-calculations.md#endurance-estimates).
+
+Native JSON preserves valid source lap identifiers (including zero), and event regeneration restores complete
+multisport timer/elapsed totals without substituting other clocks. See [JSON compatibility](guides/exporting.md#native-json-round-trips)
+and [regenerated multisport timing](guides/metrics-and-calculations.md#regenerated-multisport-timing).

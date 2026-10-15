@@ -480,6 +480,7 @@ export type { IntensityZonesJSONInterface } from '../src/intensity-zones/intensi
 export { LapTypes, LapTypesHelper } from '../src/laps/lap.types';
 export type { LapType } from '../src/laps/lap.types';
 export type { LapInterface } from '../src/laps/lap.interface';
+/** Native JSON preserves valid source lap IDs, including zero; IDs are not row ordinals. */
 export type { LapJSONInterface } from '../src/laps/lap.json.interface';
 export type { SwimLengthInterface } from '../src/swim-lengths/swim-length.interface';
 export type { SwimLengthJSONInterface } from '../src/swim-lengths/swim-length.json.interface';
@@ -576,7 +577,8 @@ export type {
 /**
  * Event aggregation and regeneration. Generated homogeneous Diving-group event summaries omit
  * terrain ascent/descent, altitude min/max/avg, and grade min/max/avg; mixed event summaries
- * aggregate those metrics only from their non-diving activities.
+ * aggregate those metrics only from their non-diving activities. Timer/elapsed totals each require complete,
+ * finite nonnegative child values; missing clocks remain unavailable.
  *
  * @category Activities and events
  */

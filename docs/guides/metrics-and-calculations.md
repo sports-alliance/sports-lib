@@ -5,6 +5,15 @@ summary: Canonical metric tokens, units, and derivation behavior.
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Regenerated multisport timing
+
+`EventUtilities.reGenerateStatsForEvent` independently sums `Timer time` and `Elapsed time` when every leg supplies a
+finite nonnegative value for that clock. Zero is valid. A missing or invalid child value leaves that parent clock
+unavailable; wall-clock dates and other clocks are not substitutes. Child timing and rests are unchanged. Regenerating
+an existing event with complete child timing restores these totals without an original-file reparse. Generic event
+regeneration still rebuilds summaries from children; source-only parent observations must be retained separately by
+an original-file import workflow, never distributed among legs or treated as current values after edits or merges.
+
 ## Endurance estimates
 
 `Stamina` and its `Average`, `Minimum`, and `Maximum` keys remain unchanged. Suunto JSON/SML `Endurance`

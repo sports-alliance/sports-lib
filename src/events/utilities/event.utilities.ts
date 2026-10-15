@@ -59,7 +59,8 @@ export class EventUtilities {
    * Regeneration model:
    * - Single-activity event: copies current summary-eligible activity stats into the event.
    * - Multi-activity event: recomputes event summary stats from activity stats, copies a positive recovery estimate
-   *   from the chronologically final activity, and aggregates power curves.
+   *   from the chronologically final activity, and aggregates power curves. Timer/elapsed totals are independently
+   *   available only when every activity supplies a finite nonnegative value for that clock.
    * - The resulting event summary is canonicalized for its contributing activity types. In particular, an
    *   all-Diving-group event omits terrain ascent/descent, altitude, and grade summaries; mixed events aggregate
    *   those summaries only from their non-diving activities.

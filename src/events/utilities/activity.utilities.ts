@@ -1090,6 +1090,7 @@ export class ActivityUtilities {
     );
   }
 
+  /** Aggregates child summaries; timer/elapsed totals require finite nonnegative values on every leg. */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
     // If only one
@@ -1155,6 +1156,18 @@ export class ActivityUtilities {
     if (durations.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) {
       duration = durations.reduce((sum, value) => sum + value, 0);
       stats.push(new DataDuration(duration));
+    }
+
+    // Keep independent clocks independent: never substitute elapsed time or dates for a missing timer.
+    for (const TimeData of [DataTimerTime, DataElapsedTime]) {
+      const values = activities.map(activity => activity.getStat(TimeData.type)?.getValue());
+      if (
+        activities.length > 0 &&
+        values.every((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
+      ) {
+        const total = values.reduce((sum, value) => sum + value, 0);
+        if (Number.isFinite(total)) stats.push(new TimeData(total));
+      }
     }
 
     // Sum pause time

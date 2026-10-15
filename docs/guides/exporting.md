@@ -36,6 +36,12 @@ for the Diving activity group, canonicalizes compatible legacy keys, may add mis
 events, activities, and laps, and applies activity-aware cadence-to-stroke-rate normalization without requiring the
 original source file.
 
+Native lap JSON retains nonnegative safe-integer `lapId` values, including zero and nonconsecutive IDs. These are
+source identifiers, not display row numbers. Missing or invalid legacy IDs receive deterministic one-based fallbacks;
+activity hydration avoids collisions with saved IDs. Existing duplicate source IDs remain unchanged. Already-renumbered
+saved IDs cannot be recovered without the original file. This correction adds no JSON fields and changes no lap timing,
+rest classification, order, or measurements.
+
 Event, activity, lap and shared summary serialization omit non-finite scalar numbers such as infinite pace at zero
 speed. Native event restoration also skips legacy null or non-finite scalar summaries before resolving aliases, so
 an invalid canonical entry cannot hide a valid legacy value. Finite zero, negative values, structured stats and null

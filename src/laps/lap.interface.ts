@@ -9,6 +9,7 @@ import { ActivityInterface } from '../activities/activity.interface';
 export interface LapInterface extends StatsClassInterface, DurationClassInterface, SerializableClassInterface {
   /** Rejected source timing, retained independently of usable values. */
   timingValidity?: TimingValidity;
+  /** Source identifier, preserved by native JSON hydration when a nonnegative safe integer; not a row ordinal. */
   lapId: number;
 
   type: LapTypes;

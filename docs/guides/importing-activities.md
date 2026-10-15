@@ -157,6 +157,12 @@ explicit sport messages, conflicting timer groups, multiple missing sessions and
 unchanged for separate investigation. It does not guess a sport, redistribute laps, copy earlier calories or infer
 calibration. Existing summary generation uses the recovered streams; TSS stays unavailable unless independently eligible
 inputs exist. `Generic` remains a separate intentional sport type.
+Sport-only `activity_metrics` cannot establish ownership for this unknown leg, so they do not supply its VO₂ max,
+training effect or recovery time. A `user_metrics` observation is eligible only when exactly one row has an explicit
+`start_of_activity` equal to the recovered leg's start. Missing, earlier or competing starts do not fall back to the
+first row. Earlier recorded legs retain their existing metrics. A workout therefore cannot promote an earlier recovery
+estimate as if the recovered final leg had supplied it. Existing affected imports need original-file reparse;
+saved JSON alone cannot establish which leg owned an incorrectly copied observation.
 Incomplete files containing jumps also remain unchanged: existing jump association can extend beyond a recorded leg,
 so appending a tail without resolving that ownership could duplicate events and skew workout jump averages.
 

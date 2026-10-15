@@ -11,12 +11,16 @@ import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataPause } from '../../../../data/data.pause';
 import { DataTrainingStressScore } from '../../../../data/data.training-stress-score';
+import { DataVO2Max } from '../../../../data/data.vo2-max';
+import { DataRecoveryTime } from '../../../../data/data.recovery-time';
+import { DataAerobicTrainingEffect } from '../../../../data/data-aerobic-training-effect';
+import { DataAnaerobicTrainingEffect } from '../../../../data/data-anaerobic-training-effect';
 import { DataJumpHeightAvg } from '../../../../data/data.jump-stats';
 
 const start = FitEncoder.toFitTimestamp(new Date('2026-01-01T00:00:00Z'));
 const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({ number, value, baseType,
   size: baseType === FitBaseType.Uint32 || baseType === FitBaseType.Float32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
-function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = false, tailLength = false, jumps = false) {
+function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = false, tailLength = false, jumps = false, metrics?: 'activity' | 'earlier-user' | 'tail-user' | 'duplicate-user' | 'unscoped-user' | 'mixed-user' | 'timestamp-user') {
   const encoder = new FitEncoder();
   encoder.writeMessage(0, [field(0, 4, FitBaseType.Enum), field(1, 23, FitBaseType.Uint16)]);
   for (let second = 0; second <= 30; second++) encoder.writeMessage(20, [
@@ -36,6 +40,15 @@ function source(declared = 2, calibration: boolean | 'tail' = false, tailLap = f
   if (jumps) for (const [second, height] of [[5, 2], [25, 4]]) encoder.writeMessage(285, [
     field(253, start + second, FitBaseType.Uint32), field(0, 5, FitBaseType.Float32),
     field(1, height, FitBaseType.Float32), field(4, 10, FitBaseType.Float32)], 8);
+  if (metrics === 'activity') encoder.writeMessage(140, [field(11, 1, FitBaseType.Enum),
+    field(4, 30), field(20, 15), field(7, Math.round(50 * 18724.571428571428), FitBaseType.Uint32),
+    field(9, 120, FitBaseType.Uint16)], 9);
+  if (metrics && metrics !== 'activity') {
+    for (let i = 0; i < (['duplicate-user', 'mixed-user'].includes(metrics) ? 2 : 1); i++) encoder.writeMessage(79, [
+      ...(metrics === 'unscoped-user' ? [] : [field(metrics === 'timestamp-user' ? 253 : 16,
+        start + (metrics === 'earlier-user' || (metrics === 'mixed-user' && i === 0) ? 0 : 10), FitBaseType.Uint32)]),
+      field(0, Math.round((42 + i * 7) * 292.57142857142856), FitBaseType.Uint16)], 10);
+  }
   encoder.writeMessage(34, [field(253, start + 30, FitBaseType.Uint32), field(1, declared, FitBaseType.Uint16)], 7);
   const bytes = encoder.close();
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
@@ -67,6 +80,40 @@ describe('FIT final Unknown Sport recovery', () => {
     expect(tail.getStat(DataTrainingStressScore.type)).toBeUndefined();
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(tail).automatic.score).toBeNull();
     expect(after.getStat(DataDistance.type)?.getValue()).toBe(60);
+  });
+  it.each(['activity', 'earlier-user', 'unscoped-user', 'duplicate-user', 'timestamp-user'] as const)(
+    'does not copy unrelated or ambiguous %s summaries onto the recovered leg', async metrics => {
+      const before = await EventImporterFIT.getFromArrayBuffer(source(1, false, false, false, false, metrics), options());
+      const after = await EventImporterFIT.getFromArrayBuffer(source(2, false, false, false, false, metrics), options());
+      expect(after.getFirstActivity().toJSON()).toEqual(before.getFirstActivity().toJSON());
+      expect(before.getFirstActivity().getStat(DataVO2Max.type)?.getValue()).toBeGreaterThan(0);
+      if (metrics === 'activity') {
+        expect(before.getFirstActivity().getStat(DataRecoveryTime.type)?.getValue()).toBe(7200);
+        expect(before.getFirstActivity().getStat(DataAerobicTrainingEffect.type)?.getValue()).toBe(3);
+        expect(before.getFirstActivity().getStat(DataAnaerobicTrainingEffect.type)?.getValue()).toBe(1.5);
+      }
+      for (const event of [after, EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(after.toJSON())))]) {
+        for (let repeat = 0; repeat < 2; repeat++) {
+          expect(event.getActivities()).toHaveLength(2);
+          const tail = event.getActivities()[1];
+          for (const DataClass of [DataVO2Max, DataRecoveryTime, DataAerobicTrainingEffect, DataAnaerobicTrainingEffect]) {
+            expect(tail.getStat(DataClass.type)).toBeUndefined();
+          }
+          expect(event.getStat(DataRecoveryTime.type)).toBeUndefined();
+          expect(tail.getDistance().getValue()).toBe(40);
+          EventUtilities.generateStatsForAll(event);
+        }
+      }
+    }
+  );
+  it('retains a unique user-metric observation explicitly starting at the recovered leg', async () => {
+    const event = await EventImporterFIT.getFromArrayBuffer(source(2, false, false, false, false, 'tail-user'), options());
+    expect(event.getActivities()[1].getStat(DataVO2Max.type)?.getValue()).toBe(42);
+  });
+  it('selects the unique explicitly owned user metric even when an earlier row precedes it', async () => {
+    const event = await EventImporterFIT.getFromArrayBuffer(source(2, false, false, false, false, 'mixed-user'), options());
+    expect(event.getFirstActivity().getStat(DataVO2Max.type)?.getValue()).toBe(42);
+    expect(event.getActivities()[1].getStat(DataVO2Max.type)?.getValue()).toBeCloseTo(49, 2);
   });
   it('round-trips and regenerates without duplicate legs or inflated totals', async () => {
     let event = await EventImporterFIT.getFromArrayBuffer(source(), options());

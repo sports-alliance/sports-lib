@@ -33,6 +33,8 @@ and a corroborated closed timer timeline; active time remains unchanged. See the
 An explicitly declared missing final session can be retained as `Unknown Sport` only with corroborating record,
 timer and distance evidence. Earlier legs and their boundary samples remain unchanged; ambiguous laps and multiple
 missing sessions stay unresolved. Recovery requires original-file reparse and consumer identity/control reconciliation.
+Recovered legs cannot borrow earlier VO₂ max, training effect or recovery estimates through unscoped metric fallbacks.
+A user-metric observation is retained only when its explicit start uniquely matches the recovered leg.
 
 Suunto JSON/SML imports distinguish active and elapsed time and never emit a negative pause. Inconsistent timing
 requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.

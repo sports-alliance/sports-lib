@@ -294,7 +294,9 @@ export class EventImporterFIT {
    * Zero-distance delayed saves additionally need a declared sole session and
    * complete zero counters; missing distance does not establish this evidence.
    * A corroborated missing final session is retained as Unknown Sport without
-   * moving earlier records or laps, or inferring sport-specific calibration. */
+   * moving earlier records or laps, or inferring sport-specific calibration.
+   * Recovered legs do not inherit sport-only activity metrics; user metrics
+   * require a unique explicit start matching the recovered leg. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -706,7 +708,12 @@ export class EventImporterFIT {
           // a synthetic session must not change sole-session calibration matching
           // or take its closing sample. Only previously unowned records follow.
           const index = activities.length;
-          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession] };
+          // Sport-only activity metrics cannot identify an unknown leg. User
+          // metrics need one explicit matching start; never use the first-row fallback.
+          const userMetrics = (fitDataObject.user_metrics ?? []).filter((metric: any) =>
+            metric.start_of_activity instanceof Date && +metric.start_of_activity === +missingFinalSession.start_time);
+          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession],
+            activity_metrics: [], user_metrics: userMetrics.length === 1 ? userMetrics : [] };
           const recovered = this.getActivityFromSessionObject(missingFinalSession, recoveredFile, options, index);
           // A normalization of earlier bounds may have changed ownership. Do not
           // append if the recovered window now overlaps any recorded leg.

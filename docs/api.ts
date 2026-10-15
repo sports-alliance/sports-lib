@@ -22,6 +22,8 @@
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
  * A single declared missing final FIT session becomes Unknown Sport only with corroborated timer, record and
  * distance bounds. Earlier legs retain their samples and calibration; ambiguous laps are not reassigned.
+ * The recovered leg does not inherit sport-only activity metrics or unrelated/ambiguous user metrics.
+ * A user-metric observation requires one explicit start matching that leg.
  * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.

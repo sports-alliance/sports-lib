@@ -541,7 +541,9 @@ Native Suunto JSON multisport laps match timestamped `Lap`/`Autolap` windows to 
 sport identifiers, never to sample-array positions. A sport change can supply a partial lap without a separate Lap
 sample; that remainder stays with its sport leg instead of shifting all subsequent summaries. A final summary batch
 can be reconciled to Stop only when the same timestamp also contains the final sport's Activity summary and the Move
-summary. Independent manual and automatic counters keep their own starts, including when only one supplies a final
+summary. That Activity summary must be the latest timestamped one and fall after the final leg's start;
+an existing explicit lap endpoint cannot be moved. Earlier batches stay with their own intervals even when a sport
+is repeated later in the workout. Independent manual and automatic counters keep their own starts, including when only one supplies a final
 summary at Stop after a marker from the other counter. If an automatic summary could belong to multiple automatic
 counter types, withhold that ambiguous summary, including when a valid manual summary also flushes at Stop.
 Retain the Stop marker once if no unambiguous summary represents it; do not invent a generic automatic counter.

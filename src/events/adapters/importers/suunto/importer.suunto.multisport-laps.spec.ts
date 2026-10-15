@@ -129,6 +129,60 @@ describe('Suunto multisport lap source matching', () => {
     ]);
   });
 
+  it.each([800, 799.98, 805])('keeps an earlier same-sport batch separate from the final batch at %s', async flush => {
+    const data = fixture();
+    data.DeviceLog.Windows.slice(-2).forEach(w => (w.TimeISO8601 = time(flush)));
+    data.DeviceLog.Windows.push(window(flush, 'Move', 2, 800, 3511));
+    data.DeviceLog.Windows.push(window(400, 'Move', 2, 400, 1749));
+    expect((await parse(data)).toJSON()).toEqual((await parse(fixture())).toJSON());
+  });
+
+  it('does not promote an earlier-leg batch when later activity summaries are missing', async () => {
+    const control = fixture();
+    control.DeviceLog.Windows = control.DeviceLog.Windows.filter(
+      w => w.Window.Type !== 'Activity' || w.TimeISO8601 <= time(400)
+    );
+    const data = structuredClone(control);
+    data.DeviceLog.Windows.push(window(400, 'Move', 2, 400, 1749));
+    expect((await parse(data)).toJSON()).toEqual((await parse(control)).toJSON());
+  });
+
+  it('keeps an independently recorded lap endpoint when the final activity summary is missing', async () => {
+    const control = fixture();
+    control.DeviceLog.Samples.splice(6, 0, marker(600, { Lap: { Type: 'Manual' } }));
+    control.DeviceLog.Windows = control.DeviceLog.Windows.filter(
+      w => !(w.Window.Type === 'Activity' && w.TimeISO8601 === time(800))
+    );
+    control.DeviceLog.Windows.push(window(600, 'Activity', 3, 100, 800), window(600, 'Lap', 3, 100, 800));
+    const data = structuredClone(control);
+    data.DeviceLog.Windows.push(window(600, 'Move', 2, 600, 2549));
+    expect((await parse(data)).toJSON()).toEqual((await parse(control)).toJSON());
+  });
+
+  it('does not promote an intermediate batch within the final leg over a later activity summary', async () => {
+    const control = fixture();
+    control.DeviceLog.Windows.push(window(600, 'Activity', 3, 100, 800), window(600, 'Autolap', 3, 100, 800));
+    control.DeviceLog.Windows.find(w => w.Window.Type === 'Autolap' && w.TimeISO8601 === time(650))!.Window.Duration =
+      50;
+    const data = structuredClone(control);
+    data.DeviceLog.Windows.push(window(600, 'Move', 2, 600, 2549));
+    // Array order cannot turn an intermediate timestamp into the final summary.
+    const activity = (await parse(data)).getActivities()[3];
+    expect(laps(await parse(data))).toEqual(laps(await parse(control)));
+    expect(activity.getLaps().map(l => [(+l.startDate - origin) / 1000, (+l.endDate - origin) / 1000])).toEqual([
+      [500, 600],
+      [600, 650],
+      [650, 800]
+    ]);
+    const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+    for (const candidate of [activity, restored]) {
+      const before = candidate.getLaps().map(l => l.toJSON());
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(candidate);
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(candidate);
+      expect(candidate.getLaps().map(l => l.toJSON())).toEqual(before);
+    }
+  });
+
   it('preserves a corroborated whole-workout lap across sports once, on its ending leg', async () => {
     const data = fixture();
     data.DeviceLog.Samples = [

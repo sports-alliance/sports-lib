@@ -31,6 +31,10 @@ export function resolveSuuntoMultisportLaps(
   const last = activities[activities.length - 1];
   const stop = +last.endDate;
   const timestamp = (w: SourceWindow) => (w.TimeISO8601 ? Date.parse(w.TimeISO8601) : NaN);
+  const finalActivitySummaryTime = windows.reduce((latest, w) => {
+    const time = timestamp(w);
+    return w.Window.Type === 'Activity' && Number.isFinite(time) ? Math.max(latest, time) : latest;
+  }, -Infinity);
   const ownerAt = (end: number) => activities.find(a => end > +a.startDate && end <= +a.endDate);
   const sameSport = (a: ActivityInterface, id: unknown) =>
     id !== undefined && id !== null && String(activityIds[activities.indexOf(a)]) === String(id);
@@ -42,7 +46,12 @@ export function resolveSuuntoMultisportLaps(
     const end = timestamp(w);
     // Suunto may flush the final summaries after the explicit Stop. Require
     // the final sport summary and Move summary in that same timestamped batch.
+    // A repeated sport's earlier batch is not terminal. An explicit endpoint
+    // also outranks this recovery, even if the final activity summary is missing.
     const terminal =
+      end > +last.startDate &&
+      end === finalActivitySummaryTime &&
+      !boundaries.some(b => b.end === end && b.end !== stop) &&
       sameSport(last, w.Window.ActivityId) &&
       windows.filter(v => v.Window.Type === 'Activity' && timestamp(v) === end && sameSport(last, v.Window.ActivityId))
         .length === 1 &&

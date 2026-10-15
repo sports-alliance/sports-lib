@@ -166,7 +166,9 @@ export class EventImporterSuuntoJSON {
    * Multisport lap windows match timestamp and sport ownership, including switch
    * remainders. Final summaries retain their manual/automatic counter even when
    * only one counter flushes at Stop. Ambiguous automatic remainders cannot borrow
-   * a counter from a concurrent manual summary. Cross-leg laps stay on their ending activity. */
+   * a counter from a concurrent manual summary. Stop alignment requires the last
+   * timestamped Activity summary in the final leg and cannot move an explicit lap endpoint.
+   * Cross-leg laps stay on their ending activity. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT

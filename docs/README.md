@@ -36,6 +36,7 @@ Suunto JSON/SML imports distinguish active and elapsed time and never emit a neg
 requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.
 Historical corrections require an original-file reparse; saved JSON alone cannot recover private timing evidence.
 Native Suunto multisport lap summaries match source timestamps and sport ownership, including sport-change remainders.
+Final lap summaries retain their own manual/automatic counter despite interleaved markers.
 Cross-leg laps remain once on their ending leg and never derive whole-lap averages from that leg's partial streams.
 Original-file reparse corrects affected historical laps without changing activity totals or public JSON schemas.
 
@@ -55,6 +56,8 @@ Historical recovery requires original-file reparse and dependent-summary refresh
 TCX imports recover recorded speed from an unambiguous ActivityExtension/v2 TPX directly under a trackpoint when
 the Extensions wrapper is missing. Existing canonical Speed/Pace metrics and JSON schemas are unchanged; original-file
 reparsing and summary refreshes recover historical omissions. Normal wrapped extensions retain precedence.
+Compatibility recovery rejects unit/validity attributes and competing namespace lookalikes; namespace declarations
+remain allowed.
 Recognized COROS direct Extensions/Speed is converted from km/h for both streams and lap calculations; other
 creators do not inherit this unit assumption. Position/AltitudeMeters can supply missing standard altitude in metres.
 Both use existing canonical metrics and require original-file reparsing; ambiguous TPX/Cadence units remain unsupported.

@@ -85,9 +85,24 @@ export function resolveSuuntoMultisportLaps(
       );
       type = triggers.size === 1 ? [...triggers][0] : w.Window.Type === 'Lap' ? LapTypes.Manual : LapTypes.AutoLap;
     }
-    const group = `${global ? 'global' : activities.indexOf(owner)}-${type}`;
+    // Stop is the endpoint trigger, not a lap counter. A lone final manual
+    // summary must not start at a more recent automatic marker (or vice versa).
+    let counterType = type;
+    if (type === LapTypes.Stop) {
+      const counters = new Set(
+        boundaries
+          .filter(
+            b => b.end < end && b.type !== LapTypes.Stop && (global || b.end > +owner.startDate) && matchesKind(b, w)
+          )
+          .map(b => b.type)
+      );
+      if (counters.size > 1) continue;
+      counterType =
+        counters.size === 1 ? [...counters][0] : w.Window.Type === 'Lap' ? LapTypes.Manual : LapTypes.AutoLap;
+    }
+    const group = `${global ? 'global' : activities.indexOf(owner)}-${counterType}`;
     const earlier = boundaries
-      .filter(b => b.end < end && (type === LapTypes.Stop || b.type === type) && (global || b.end > +owner.startDate))
+      .filter(b => b.end < end && b.type === counterType && (global || b.end > +owner.startDate))
       .slice(-1)[0];
     const start = Math.max(
       cursors.get(group) ?? -Infinity,

@@ -70,6 +70,7 @@ export class EventImporterTCX {
    * to their canonical type and preserve unrecognized or absent sports as Unknown Sport.
    * Recover finite, nonnegative speed from a single directly owned ActivityExtension/v2 TPX when
    * Extensions is absent, retaining wrapped precedence and canonical Speed/Pace metrics.
+   * Compatibility scalars reject competing namespace lookalikes and non-namespace attributes.
    * Recognized COROS direct Extensions/Speed is converted from km/h to m/s.
    * Position/AltitudeMeters can supply missing standard altitude in metres.
    * Recorded lap cadence must be directly owned by the lap, never a trackpoint. */

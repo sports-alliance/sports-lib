@@ -6,6 +6,7 @@ import { DataDistance } from '../../../../data/data.distance';
 import { DataHeartRateAvg } from '../../../../data/data.heart-rate-avg';
 import { DataCadenceAvg } from '../../../../data/data.cadence-avg';
 import { DataStrokeRateAvg } from '../../../../data/data.stroke-rate-avg';
+import { ActivityUtilities } from '../../../utilities/activity.utilities';
 
 const origin = Date.parse('2026-01-01T00:00:00Z');
 const time = (s: number) => new Date(origin + s * 1000).toISOString();
@@ -192,6 +193,71 @@ describe('Suunto multisport lap source matching', () => {
       ['Manual', 600, 200],
       ['Distance', 650, 150]
     ]);
+  });
+
+  it('keeps the manual counter start when only its summary flushes at Stop after an automatic marker', async () => {
+    const data = fixture();
+    data.DeviceLog.Samples.splice(6, 0, marker(600, { Lap: { Type: 'Manual' } }));
+    data.DeviceLog.Windows = data.DeviceLog.Windows.filter(
+      w => !(w.Window.Type === 'Autolap' && w.TimeISO8601 === time(800))
+    );
+    data.DeviceLog.Windows.push(window(600, 'Lap', 3, 100, 800), window(800, 'Lap', 3, 200, 800));
+    const event = await parse(data);
+    const terminal = event
+      .getActivities()[3]
+      .getLaps()
+      .filter(l => +l.endDate === origin + 800000);
+    expect(terminal.map(l => [l.type, (+l.startDate - origin) / 1000, l.getDuration()?.getValue()])).toEqual([
+      ['Stop', 600, 200]
+    ]);
+  });
+
+  it.each(['Lap', 'Autolap'])('keeps the %s final counter independent of other markers and pauses', async kind => {
+    const data = fixture();
+    const other = kind === 'Lap' ? 'Autolap' : 'Lap';
+    const type = (name: string) => (name === 'Lap' ? 'Manual' : 'Distance');
+    data.DeviceLog.Samples = [
+      marker(0, { Activity: { ActivityType: 83 } }),
+      marker(100, { Activity: { ActivityType: 3 } }),
+      marker(600, { Lap: { Type: type(kind) } }),
+      marker(650, { Lap: { Type: type(other) } }),
+      marker(650, { Pause: { State: true } }),
+      marker(700, { Pause: { State: false } }),
+      marker(800, { Lap: { Type: 'Stop' } })
+    ];
+    data.DeviceLog.Windows = [
+      window(100, 'Activity', 83, 100, 100),
+      window(800, 'Activity', 3, 650, 2000),
+      window(600, kind, 3, 500, 1000),
+      window(650, other, 3, 550, 1200),
+      window(800, kind, 3, 150, 1000)
+    ];
+    const event = await parse(data);
+    for (const candidate of [event, EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())))]) {
+      const leg = candidate.getActivities()[1];
+      for (let repeat = 0; repeat < 2; repeat++) {
+        const terminal = leg.getLaps().filter(l => +l.endDate === origin + 800000);
+        expect(terminal).toHaveLength(1);
+        expect(+terminal[0].startDate).toBe(origin + 600000);
+        expect(terminal[0].getDuration()?.getValue()).toBe(150);
+        expect(terminal[0].getPause()?.getValue()).toBe(50);
+        expect(terminal[0].getDistance().getValue()).toBe(1000);
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(leg);
+      }
+    }
+  });
+
+  it('retains an unmatched Stop without borrowing a summary when two automatic counters are possible', async () => {
+    const data = fixture();
+    data.DeviceLog.Samples.splice(6, 0, marker(600, { Lap: { Type: 'Interval' } }));
+    const terminal = (await parse(data))
+      .getActivities()[3]
+      .getLaps()
+      .filter(l => +l.endDate === origin + 800000);
+    expect(terminal).toHaveLength(1);
+    expect(terminal[0].type).toBe('Stop');
+    expect(terminal[0].getDuration()).toBeUndefined();
+    expect(terminal[0].getStat(DataDistance.type)).toBeUndefined();
   });
 
   it('keeps independent global automatic lap types overlapping instead of joining their cursors', async () => {

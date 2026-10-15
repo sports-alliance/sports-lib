@@ -15,7 +15,14 @@ const uniqueChild = (parent: Element, name: string): Element | null => {
 };
 
 const numericText = (element: Element | null): number | null => {
-  if (!element || Array.from(element.childNodes).some(node => node.nodeType === 1)) return null;
+  // These compatibility layouts establish units only for a plain scalar.
+  // Unknown attributes may specify conflicting units or invalidity; xmlns is metadata.
+  if (
+    !element ||
+    Array.from(element.childNodes).some(node => node.nodeType === 1) ||
+    Array.from(element.attributes).some(attr => attr.namespaceURI !== 'http://www.w3.org/2000/xmlns/')
+  )
+    return null;
   const text = element.textContent?.trim() || '';
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return null;
   const value = Number(text);

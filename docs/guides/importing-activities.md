@@ -86,6 +86,10 @@ power or cadence or supply missing TSS calibration. Canonical names, units, and 
 Previously omitted observations require reparsing the original TCX and refreshing consuming summaries; restoring
 saved activity JSON cannot recover them.
 
+Compatibility scalars must contain only numeric text and optional XML namespace declarations. Attributes such as
+`unit="km/h"` cannot silently become m/s, and competing `TPX` or `Speed` elements in other namespaces prevent
+unwrapped recovery. Existing standard wrapped-field handling is unchanged.
+
 Two further TCX layouts are supported with standard fields retaining precedence:
 
 - Activities whose single, directly owned `Creator/Name` is `COROS Wearables` can supply speed through
@@ -99,7 +103,8 @@ Two further TCX layouts are supported with standard fields retaining precedence:
   missing standard altitude in metres. Negative elevations and zero are valid. Existing altitude processing
   (gap filling, optional smoothing, terrain metrics and summaries) applies identically to standard altitude.
 
-Both fallback paths reject blank, non-finite, nested-value and duplicate/conflicting candidates. An existing
+Both fallback paths reject blank, non-finite, nested-value, attributed and duplicate/conflicting candidates
+(XML namespace declarations are allowed). An existing
 standard container/field keeps its precedence even if empty or malformed. Recorded duration, timestamps and
 distance remain independent; recovered speed can change moving time and speed summaries, and recovered altitude
 can change terrain-derived metrics. No TSS calibration is invented. Canonical metric tokens, units and JSON
@@ -536,7 +541,9 @@ Native Suunto JSON multisport laps match timestamped `Lap`/`Autolap` windows to 
 sport identifiers, never to sample-array positions. A sport change can supply a partial lap without a separate Lap
 sample; that remainder stays with its sport leg instead of shifting all subsequent summaries. A final summary batch
 can be reconciled to Stop only when the same timestamp also contains the final sport's Activity summary and the Move
-summary. Independent manual and automatic counters keep their own starts when both flush at Stop.
+summary. Independent manual and automatic counters keep their own starts, including when only one supplies a final
+summary at Stop after a marker from the other counter. If an automatic summary could belong to multiple automatic
+counter types, retain the unmatched Stop marker without borrowing that ambiguous summary.
 Conflicting windows or sport identifiers do not supply another lap's distance or active duration.
 
 A genuine lap spanning sports remains one lap on the leg containing its endpoint. An unmatched source marker is

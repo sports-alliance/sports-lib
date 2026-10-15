@@ -25,6 +25,7 @@
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
  * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
+ * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
@@ -33,6 +34,7 @@
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
  * TCX retains finite recorded speed from a single ActivityExtension/v2 TPX directly under a trackpoint when
  * Extensions is absent. Wrapped extensions retain precedence; historical missing speed requires original-file reparse.
+ * Compatibility scalars reject non-namespace attributes and competing namespace lookalikes.
  * Recognized COROS direct Extensions/Speed uses km/h and is normalized to m/s for streams and lap calculations.
  * Position/AltitudeMeters can supply missing standard altitude in metres. Both paths reject ambiguous candidates,
  * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.

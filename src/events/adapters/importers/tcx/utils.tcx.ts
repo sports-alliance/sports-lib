@@ -44,20 +44,22 @@ const trainingCenterNamespace = 'http://www.garmin.com/xmlschemas/TrainingCenter
  */
 const findUnwrappedSpeed = (childNodes: NodeListOf<ChildNode>): number | null => {
   const containers = Array.from(childNodes).filter(
-    (node): node is Element =>
-      node.nodeType === 1 &&
-      (node as Element).localName === 'TPX' &&
-      (node as Element).namespaceURI === activityExtensionNamespace
+    (node): node is Element => node.nodeType === 1 && (node as Element).localName === 'TPX'
   );
-  if (containers.length !== 1) return null;
+  // Count namespace lookalikes before validating ownership: a conflicting field
+  // must not make this malformed-layout recovery appear unambiguous.
+  if (containers.length !== 1 || containers[0].namespaceURI !== activityExtensionNamespace) return null;
 
   const values = Array.from(containers[0].childNodes).filter(
-    (node): node is Element =>
-      node.nodeType === 1 &&
-      (node as Element).localName === 'Speed' &&
-      [activityExtensionNamespace, trainingCenterNamespace, ''].includes((node as Element).namespaceURI || '')
+    (node): node is Element => node.nodeType === 1 && (node as Element).localName === 'Speed'
   );
-  if (values.length !== 1 || Array.from(values[0].childNodes).some(node => node.nodeType === 1)) return null;
+  if (
+    values.length !== 1 ||
+    ![activityExtensionNamespace, trainingCenterNamespace, ''].includes(values[0].namespaceURI || '') ||
+    Array.from(values[0].childNodes).some(node => node.nodeType === 1) ||
+    Array.from(values[0].attributes).some(attr => attr.namespaceURI !== 'http://www.w3.org/2000/xmlns/')
+  )
+    return null;
 
   const text = values[0].textContent?.trim() || '';
   // An empty XML field is missing, not recorded zero. Accept decimal/exponent

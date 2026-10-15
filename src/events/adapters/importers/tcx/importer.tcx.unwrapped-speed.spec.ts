@@ -65,7 +65,10 @@ describe('TCX speed without the Extensions wrapper', () => {
     '<ae:TPX><Speed><Value>2</Value></Speed></ae:TPX>',
     speed('2') + speed('3'),
     speed('2') + speed('2'),
-    '<ae:TPX><Speed>2</Speed><Speed>3</Speed></ae:TPX>'
+    '<ae:TPX><Speed>2</Speed><Speed>3</Speed></ae:TPX>',
+    '<ae:TPX><Speed unit="km/h">36</Speed></ae:TPX>',
+    '<ae:TPX><Speed>2</Speed><other:Speed>36</other:Speed></ae:TPX>',
+    speed('2') + '<other:TPX><Speed>36</Speed></other:TPX>'
   ])('does not guess from unrelated, nested or ambiguous nodes: %s', xml => {
     expect(findTrackPointExtensionValue(children(xml), 'Speed')).toBeNull();
   });

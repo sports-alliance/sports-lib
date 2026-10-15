@@ -164,7 +164,8 @@ export class EventImporterSuuntoJSON {
    * Window active time is distinct from elapsed time. Contradictory timing needs
    * independent source evidence, otherwise active/timer/pause stats are absent.
    * Multisport lap windows match timestamp and sport ownership, including switch
-   * remainders. Cross-leg laps are retained once on their ending activity. */
+   * remainders. Final summaries retain their manual/automatic counter even when
+   * only one counter flushes at Stop. Cross-leg laps stay on their ending activity. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT

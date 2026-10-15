@@ -62,7 +62,8 @@ describe('TCX exporter-specific speed and nested altitude', () => {
     directSpeed('7.2') + '<other:Extensions/>',
     `<Container>${directSpeed('7.2')}</Container>`,
     '<Extensions><Speed>7.2</Speed><ae:TPX/></Extensions>',
-    '<Extensions><Speed>7.2</Speed><other:TPX/></Extensions>'
+    '<Extensions><Speed>7.2</Speed><other:TPX/></Extensions>',
+    '<Extensions><Speed unit="m/s">7.2</Speed></Extensions>'
   ])('rejects ambiguous or unrelated direct speed: %s', xml => {
     expect(findTCXSpeed(element(xml), true)).toBeNull();
   });
@@ -70,6 +71,8 @@ describe('TCX exporter-specific speed and nested altitude', () => {
   it('accepts equivalent namespace prefixes, without broadening field ownership', () => {
     expect(findTCXSpeed(element('<t:Extensions><t:Speed>7.2</t:Speed></t:Extensions>'), true)).toBe(2);
     expect(findTCXAltitude(element('<t:Position><t:AltitudeMeters>-2</t:AltitudeMeters></t:Position>'))).toBe(-2);
+    expect(findTCXSpeed(element(`<Extensions><Speed xmlns="${tcx}">7.2</Speed></Extensions>`), true)).toBe(2);
+    expect(findTCXAltitude(element(`<Position><AltitudeMeters xmlns="${tcx}">0</AltitudeMeters></Position>`))).toBe(0);
     expect(hasCorosDirectSpeed(element('<t:Creator><t:Name>COROS Wearables</t:Name></t:Creator>'))).toBe(true);
   });
 
@@ -125,7 +128,8 @@ describe('TCX exporter-specific speed and nested altitude', () => {
     '<Position><AltitudeMeters>2</AltitudeMeters><other:AltitudeMeters>3</other:AltitudeMeters></Position>',
     nestedAltitude('2') + '<Position/>',
     nestedAltitude('2') + '<other:Position/>',
-    `<Container>${nestedAltitude('2')}</Container>`
+    `<Container>${nestedAltitude('2')}</Container>`,
+    '<Position><AltitudeMeters unit="ft">30</AltitudeMeters></Position>'
   ])('rejects ambiguous or unrelated nested altitude: %s', xml => {
     expect(findTCXAltitude(element(xml))).toBeNull();
   });

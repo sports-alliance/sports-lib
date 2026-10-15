@@ -16,6 +16,26 @@ const fixture = (): File => ({
 });
 
 describe('corroborated FIT session chronology', () => {
+  it.each([0, 2, 3, '1'])('declines global timer recovery for conflicting declared session count %s', count => {
+    const file = fixture();
+    file.activity = { num_sessions: count };
+    expect(resolve(file, max)).toBeNull();
+  });
+
+  it('retains recovery for an explicitly declared sole session', () => {
+    const file = fixture();
+    file.activity = { num_sessions: 1 };
+    expect(resolve(file, max)).toBe(end);
+  });
+
+  it('declines recovery from multiple activity summaries even when the final count is one', () => {
+    const file = Object.assign(fixture(), {
+      activity: { num_sessions: 1 },
+      messages: { activity: [{ num_sessions: 2 }, { num_sessions: 1 }] }
+    });
+    expect(resolve(file, max)).toBeNull();
+  });
+
   it('retains chronology supported by every complete active interval without changing source data', () => {
     const file = fixture(),
       original = structuredClone(file);
@@ -315,6 +335,16 @@ describe('corroborated FIT endpoint recovery', () => {
     records: [distanceRecord(2, 0), distanceRecord(50, 1000), distanceRecord(95, 2000)]
   });
 
+  it.each([delayedSave, prematureEnd])('requires uncontradicted session ownership for endpoint recovery %#', make => {
+    const file = make();
+    const expected = resolve(file, max);
+    expect(expected).not.toBeNull();
+    file.activity = { num_sessions: 1 };
+    expect(resolve(file, max)).toBe(expected);
+    file.activity.num_sessions = 2;
+    expect(resolve(file, max)).toBeNull();
+  });
+
   it('chooses the final exercise stop rather than a delayed save, without changing the source', () => {
     const file = delayedSave(),
       before = structuredClone(file);
@@ -540,6 +570,14 @@ describe('source-corroborated FIT terminal timestamp precision', () => {
       before = structuredClone(file);
     expect(resolve(file, max)).toBe(101);
     expect(file).toEqual(before);
+  });
+
+  it('does not extend terminal chronology when the file declares another session', () => {
+    const file = terminalFile();
+    file.activity = { num_sessions: 1 };
+    expect(resolve(file, max)).toBe(101);
+    file.activity.num_sessions = 2;
+    expect(resolve(file, max)).toBeNull();
   });
 
   it.each(['stop', 'stop_all', 'stop_disable', 'stop_disable_all'])(

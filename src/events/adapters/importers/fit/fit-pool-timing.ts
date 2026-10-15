@@ -14,7 +14,8 @@ type PoolFile = {
   sessions?: (Summary & { sport?: unknown; sub_sport?: unknown; pool_length?: unknown })[];
   laps?: Summary[];
   lengths?: Summary[];
-  activity?: Summary | Summary[];
+  activity?: (Summary & { num_sessions?: unknown }) | (Summary & { num_sessions?: unknown })[];
+  messages?: { activity?: unknown[] };
   events?: { timestamp?: unknown; event?: unknown; event_type?: unknown }[];
   records?: { timestamp?: unknown }[];
 };
@@ -28,6 +29,14 @@ const date = (value: unknown): number | null =>
  */
 export function rejectImpossiblePoolTiming(file: PoolFile): void {
   if (file.sessions?.length !== 1) return;
+  const activities = Array.isArray(file.activity) ? file.activity : file.activity ? [file.activity] : [];
+  // An explicitly incomplete session list cannot establish a whole-workout bound.
+  if (
+    activities.length > 1 ||
+    (file.messages?.activity?.length ?? 0) > 1 ||
+    activities.some(activity => activity.num_sessions != null && activity.num_sessions !== 1)
+  )
+    return;
   const session = file.sessions[0];
   if (
     !['swimming', 5].includes(session.sport as string | number) ||
@@ -74,7 +83,6 @@ export function rejectImpossiblePoolTiming(file: PoolFile): void {
     sessionStart + session.total_elapsed_time,
     sessionStart + (finite(session.total_timer_time) ? session.total_timer_time : 0)
   );
-  const activities = Array.isArray(file.activity) ? file.activity : file.activity ? [file.activity] : [];
   for (const summary of [...file.sessions, ...activities, ...laps, ...lengths, ...(file.events ?? [])]) {
     const time = date(summary.timestamp);
     if (time !== null) end = Math.max(end, time);

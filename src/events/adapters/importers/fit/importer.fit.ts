@@ -286,6 +286,9 @@ export class EventImporterFIT {
    * Reject explicit non-activity file types before recovering missing sessions.
    * Retain a sole session's full chronology when ordered records and complete
    * timer intervals corroborate it, preserving active time and duration limits.
+   * Whole-workout timing recovery and pool timing rejection decline when an explicit
+   * activity session count contradicts the sole decoded session or multiple activity summaries exist;
+   * absent counts stay compatible.
    * Recover premature ends or delayed saves only with independent timing and
    * distance evidence; multisport start recovery requires disjoint ownership.
    * Zero-distance delayed saves additionally need a declared sole session and

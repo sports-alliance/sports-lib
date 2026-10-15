@@ -18,6 +18,7 @@ interface TimingSession extends TimingRecord {
 
 interface TimingFile {
   activity?: { num_sessions?: unknown };
+  messages?: { activity?: unknown[] };
   sessions?: TimingSession[];
   records?: TimingRecord[];
   events?: TimerEvent[];
@@ -392,6 +393,10 @@ export function getCorroboratedSessionElapsedTime(file: TimingFile, maxDurationS
     !Array.isArray(file.sessions) ||
     file.sessions.length !== 1 ||
     !file.sessions[0] ||
+    (file.messages?.activity?.length ?? 0) > 1 ||
+    // A decoded session count is not whole-workout ownership when the source
+    // explicitly declares missing sessions. Keep absent legacy counts compatible.
+    (file.activity?.num_sessions != null && file.activity.num_sessions !== 1) ||
     !Array.isArray(file.records) ||
     !Array.isArray(file.events) ||
     !positive(maxDurationSeconds)

@@ -21,6 +21,27 @@ const fixture = () => ({
   lengths: [{ start_time: d(0), timestamp: d(30), total_elapsed_time: 30, total_timer_time: 4000000 }]
 });
 describe('source-proven impossible pool timing', () => {
+  it.each([0, 2, 3, '1'])('does not reject timing with conflicting declared session count %s', count => {
+    const file = { ...fixture(), activity: { timestamp: d(3600), num_sessions: count } };
+    const before = structuredClone(file);
+    rejectImpossiblePoolTiming(file);
+    expect(file).toEqual(before);
+  });
+  it('retains impossible-timer rejection with a declared sole session', () => {
+    const file = { ...fixture(), activity: { timestamp: d(3600), num_sessions: 1 } };
+    rejectImpossiblePoolTiming(file);
+    expect(file.lengths[0]).toMatchObject({ [rejectedPoolTiming]: { timerTime: 4000000 } });
+  });
+  it('does not reject timing using multiple activity summaries', () => {
+    const file = {
+      ...fixture(),
+      activity: { timestamp: d(3600), num_sessions: 1 },
+      messages: { activity: [{ num_sessions: 2 }, { num_sessions: 1 }] }
+    };
+    const before = structuredClone(file);
+    rejectImpossiblePoolTiming(file);
+    expect(file).toEqual(before);
+  });
   it('retains independent elapsed and rejected timer evidence before normalization', () => {
     const file = fixture();
     rejectImpossiblePoolTiming(file);

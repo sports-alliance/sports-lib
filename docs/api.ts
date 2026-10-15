@@ -16,6 +16,8 @@
  * records, allowing whole-file record bounds only for a sole session. Existing affected imports require reparsing.
  * A sole explicit FIT session with ordered endpoint-spanning records and complete corroborated timer intervals
  * retains full chronology across long pauses, with active duration and configured duration limits unchanged.
+ * Whole-workout timing recovery and pool timing rejection require any explicit session count to agree;
+ * missing sessions or multiple activity summaries cannot supply sole-session ownership. Absent legacy counts remain compatible.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
  * A single declared missing final FIT session becomes Unknown Sport only with corroborated timer, record and

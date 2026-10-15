@@ -34,7 +34,13 @@ const init = () => {
 };
 async function envelope(
   mode: 'saved' | 'premature' | 'correct',
-  settings: { imported?: number; cap?: number; redundantStops?: boolean; conflictingGroup?: boolean } = {}
+  settings: {
+    imported?: number;
+    cap?: number;
+    redundantStops?: boolean;
+    conflictingGroup?: boolean;
+    sessions?: number | number[];
+  } = {}
 ) {
   const e = init(),
     short = mode === 'premature';
@@ -107,6 +113,9 @@ async function envelope(
     ],
     3
   );
+  if (settings.sessions !== undefined)
+    for (const count of Array.isArray(settings.sessions) ? settings.sessions : [settings.sessions])
+      e.writeMessage(34, [f(253, start + (short ? 100 : 15000), B.Uint32), f(1, count, B.Uint16)], 6);
   return parse(e, settings.cap);
 }
 
@@ -129,6 +138,17 @@ function assertRoundTrip(event: Awaited<ReturnType<typeof parse>>) {
 }
 
 describe('FIT corroborated session ending repairs', () => {
+  it('does not apply whole-file endpoint recovery when the FIT activity declares missing sessions', async () => {
+    const one = (await envelope('saved', { sessions: 1 })).getFirstActivity();
+    const two = (await envelope('saved', { sessions: 2 })).getFirstActivity();
+    expect(one.getStat(DataElapsedTime.type)?.getValue()).toBe(10000);
+    expect(two.getStat(DataElapsedTime.type)?.getValue()).toBe(2200);
+    expect(two.getDuration()?.getValue()).toBe(2000.2);
+  });
+  it('does not let the last encoded activity summary hide conflicting whole-file ownership', async () => {
+    const activity = (await envelope('saved', { sessions: [2, 1] })).getFirstActivity();
+    expect(activity.getStat(DataElapsedTime.type)?.getValue()).toBe(2200);
+  });
   it.each([false, true])(
     'retains the recorded exercise before a delayed save (redundant stops: %s)',
     async redundantStops => {

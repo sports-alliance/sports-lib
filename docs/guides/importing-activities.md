@@ -167,7 +167,12 @@ remain attached to their original legs. Adopt a released library version in both
 reparse, then refresh affected derived summaries. No new metric tokens, fields, MCP scopes or public schemas are required;
 existing stored activities remain unchanged until reparse. Route import behavior is unaffected.
 
-A sole explicit FIT session can also retain chronology omitted by an inconsistent elapsed summary. The pause-only
+A sole explicit FIT session can also retain chronology omitted by an inconsistent elapsed summary. If the activity
+message supplies a session count, it must be exactly one: a decoded list with one session does not establish whole-workout
+ownership when the source declares missing sessions or an invalid count. Multiple activity summaries also prevent this
+recovery; the decoder's final summary must not hide earlier conflicting ownership. Missing legacy counts retain existing behavior.
+This guard applies to pause, delayed-save, premature-end and terminal-timestamp recovery, and to whole-workout pool timing
+rejection below. It does not change the separate evidence required for recovering a missing final session. The pause-only
 proof requires ordered records from the source start through the final stop (the final sample may precede that stop
 by one whole-second tick), a complete alternating timer timeline in one event group, and records at distinct times
 within every active interval. The summed intervals must agree with the positive source timer summary. Its precision

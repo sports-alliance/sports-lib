@@ -37,6 +37,7 @@ interface Fixture {
   unit?: number;
   imported?: number;
   splitLaps?: boolean;
+  sessions?: number;
 }
 function bytes(o: Fixture = {}) {
   const e = new FitEncoder(),
@@ -118,6 +119,7 @@ function bytes(o: Fixture = {}) {
     ],
     4
   );
+  if (o.sessions !== undefined) e.writeMessage(34, [field(253, start + 120), field(1, o.sessions, T.Uint16)], 6);
   return e.close();
 }
 async function parse(o: Fixture = {}, options = new ActivityParsingOptions({ generateUnitStreams: false })) {
@@ -130,6 +132,15 @@ async function parse(o: Fixture = {}, options = new ActivityParsingOptions({ gen
 const ends = (activity: ActivityInterface) => activity.getSwimLengths().map(length => (+length.endDate - +base) / 1000);
 
 describe('FIT corroborated pool chronology and source completeness', () => {
+  it('defers pool timing rejection when an encoded activity declares missing sessions', async () => {
+    const options = { records: true, completeTimer: true, normal: true, timer: 4000000 };
+    const one = (await parse({ ...options, sessions: 1 })).getFirstActivity();
+    const two = (await parse({ ...options, sessions: 2 })).getFirstActivity();
+    expect(one.getSwimLengths()[0].timingValidity?.timerTime).toBe(4000000);
+    expect(two.getSwimLengths()[0].timingValidity).toBeUndefined();
+    expect(two.getSwimLengths()).toHaveLength(4);
+    expect(two.getDistance().getValue()).toBe(100);
+  });
   it.each([30, 4000000])('withholds impossible timer with elapsed %s through JSON and regeneration', async elapsed => {
     const activity = (
       await parse({

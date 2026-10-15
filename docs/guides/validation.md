@@ -38,8 +38,14 @@ As of **15 October 2026**, the validation covers **189,337 distinct source files
 |---|---:|
 | Successfully parsed activity files | 182,180 |
 | Successfully parsed route files | 1,203 |
-| Expected activity-import rejections | 5,954 |
+| FIT files declared as non-activity, rejected by the activity importer | 5,951 |
+| FIT activity imports rejected because start/end dates could not be determined | 2 |
+| Activity import rejected by the default 14-day duration limit | 1 |
 | **Total** | **189,337** |
+
+The 5,951 non-activity FIT files exercise the activity importer's file-type checks. The other three entries are
+activity-import failures or limits. These rejection outcomes also occurred before 22.0.0; they are separate
+from the successfully parsed activity and route counts above.
 
 Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
 count does not represent unique workouts or athletes.
@@ -55,7 +61,8 @@ Validation included:
 - Timing, distance, multisport ownership, swimming lengths and rests.
 - Training-load calculations, eligibility and fallback behavior.
 - Native JSON restoration and repeated regeneration in Quantified Self.
-- Expected rejection of unsupported or unusable inputs.
+- File-type rejection of explicitly non-activity FIT inputs.
+- Separate tracking of the two undetermined-date failures and the one default-duration-limit rejection.
 
 Checks vary by format and scenario. Intentional changes were reviewed against source evidence; the completed
 comparisons found no unexpected differences or newly introduced rejections.

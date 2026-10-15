@@ -1,3 +1,4 @@
+import { resolveSuuntoMultisportLaps } from './suunto-laps';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Creator } from '../../../../creators/creator';
@@ -141,18 +142,40 @@ import { DataDepthMax } from '../../../../data/data.depth-max';
 import { FileType } from '../../file-type.enum';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
+import { readSuuntoTimingSource, resolveSuuntoTiming, SuuntoTiming } from './suunto-timing';
+import { DurationClassInterface } from '../../../../duration/duration.class.interface';
+import { StatsClassInterface } from '../../../../stats/stats.class.interface';
+import {
+  getStreamSelectionFromOptions,
+  isStreamTypeAllowedForImport,
+  pruneActivityStreamsBySelection,
+  StreamSelection
+} from '../../../../streams/stream.selection';
+import {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin
+} from '../../../../data/data.estimated-sustainable-distance';
 
 export class EventImporterSuuntoJSON {
   private static readonly MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE = 10;
 
   /** Import recorded timer events and leg-owned zones. Workout speed limits are
-   * shared only across one sport; mixed-sport legs require their own limits. */
+   * shared only across one sport; mixed-sport legs require their own limits.
+   * Window active time is distinct from elapsed time. Contradictory timing needs
+   * independent source evidence, otherwise active/timer/pause stats are absent.
+   * Multisport lap windows match timestamp and sport ownership, including switch
+   * remainders. Final summaries retain their manual/automatic counter even when
+   * only one counter flushes at Stop. Ambiguous automatic remainders cannot borrow
+   * a counter from a concurrent manual summary. Stop alignment requires the last
+   * timestamped Activity summary in the final leg and cannot move an explicit lap endpoint.
+   * Cross-leg laps stay on their ending activity. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
   ): Promise<EventInterface> {
     return new Promise((resolve, _reject) => {
       const eventJSONObject = JSON.parse(jsonString);
+      const streamSelection = getStreamSelectionFromOptions(options);
       // debugger;
       // Create a creator and pass it to all activities (later)
       const creator = new Creator(
@@ -160,6 +183,8 @@ export class EventImporterSuuntoJSON {
           eventJSONObject.DeviceLog.Device.Name // If not fallback to typed
       );
       creator.serialNumber = eventJSONObject.DeviceLog.Device.SerialNumber;
+      // The format establishes the provider; a device's display name does not.
+      creator.manufacturer = 'Suunto';
       creator.hwInfo = eventJSONObject.DeviceLog.Device.Info.HW;
       creator.swInfo = eventJSONObject.DeviceLog.Device.Info.SW;
 
@@ -171,8 +196,9 @@ export class EventImporterSuuntoJSON {
 
       // Get the lap start events
       const allLapEventSamples = this.getEventSamples(eventJSONObject.DeviceLog.Samples, 'Lap');
-      const lapEventSamples = allLapEventSamples.filter((sample: any) =>
-        sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop');
+      const lapEventSamples = allLapEventSamples.filter(
+        (sample: any) => sample.Events[0].Lap.Type !== 'Start' && sample.Events[0].Lap.Type !== 'Stop'
+      );
 
       // Get the stop event
       const stopEventSample = allLapEventSamples.find((sample: any) => sample.Events[0].Lap.Type === 'Stop');
@@ -188,8 +214,10 @@ export class EventImporterSuuntoJSON {
             return windowObj.Window.Type === 'Activity';
           }).map((activityWindow: any) => activityWindow.Window)
         : [];
-      const activityTypes = activityStartEventSamples.map((sample: any) =>
-        ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[sample.Events[0].Activity.ActivityType]]);
+      const activityTypes = activityStartEventSamples.map(
+        (sample: any) =>
+          ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[sample.Events[0].Activity.ActivityType]]
+      );
       const singleSport = new Set(activityTypes).size === 1;
 
       // Get the lap windows
@@ -198,6 +226,8 @@ export class EventImporterSuuntoJSON {
             return windowObj.Window.Type === 'Lap' || windowObj.Window.Type === 'Autolap';
           }).map((lapWindow: any) => lapWindow.Window)
         : [];
+
+      const timingSource = readSuuntoTimingSource(eventJSONObject.DeviceLog.Samples);
 
       // Create the activities
       const activities: ActivityInterface[] = activityStartEventSamples.map(
@@ -223,40 +253,37 @@ export class EventImporterSuuntoJSON {
             this.getStats(activityWindows[index]).forEach(stat => {
               activity.addStat(stat);
             });
-            const window = activityWindows[index];
-            const total = this.getNonnegativeNumber(window.Duration);
-            const pause = window.PauseDuration === undefined ? 0 : this.getNonnegativeNumber(window.PauseDuration);
-            if (total !== undefined && pause !== undefined && pause <= total) {
-              fileActiveDuration.set(activity, total - pause);
-            }
           }
-          // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
-          if (!activity.getDuration()) {
-            const elapsedSeconds = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;
-            activity.setDuration(new DataDuration(elapsedSeconds));
-            activity.setTimer(new DataTimerTime(elapsedSeconds));
-            activity.addStat(new DataElapsedTime(elapsedSeconds));
-          } else if (!activity.getStat(DataElapsedTime.type)) {
-            const elapsedSeconds = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;
-            activity.addStat(new DataElapsedTime(elapsedSeconds));
-          }
-          if (!activity.getTimer()) {
-            activity.setTimer(new DataTimerTime(activity.getDuration().getValue()));
-          }
-          activity.setPause(
-            new DataPause(
-              (activity.endDate.getTime() - activity.startDate.getTime()) / 1000 - activity.getDuration().getValue()
-            )
+          const timing = resolveSuuntoTiming(
+            +activity.startDate,
+            +activity.endDate,
+            activityWindows[index],
+            timingSource,
+            activityStartEventSamples.length === 1 ? eventJSONObject.DeviceLog.Header : undefined,
+            (activityWindows.length > 0 && activityWindows.length !== activityStartEventSamples.length) ||
+              (activityWindows[index]?.ActivityId !== undefined &&
+                ActivityTypes[
+                  <keyof typeof ActivityTypes>ImporterSuuntoActivityIds[activityWindows[index].ActivityId]
+                ] !== activity.type)
           );
+          this.applyTiming(activity, timing);
+          fileActiveDuration.set(activity, timing.active);
           // A global speed threshold cannot calibrate different sports in the same workout.
-          this.setIntensityZones(activity, eventJSONObject.DeviceLog.Header, activityWindows[index],
-            activityStartEventSamples.length === 1, singleSport);
+          this.setIntensityZones(
+            activity,
+            eventJSONObject.DeviceLog.Header,
+            activityWindows[index],
+            activityStartEventSamples.length === 1,
+            singleSport
+          );
 
           // Add the fused altitude event
-          if (fusedAltitudeEventSamples.some((sample: any) => {
-            const timestamp = new Date(sample.TimeISO8601).getTime();
-            return timestamp >= activity.startDate.getTime() && timestamp <= activity.endDate.getTime();
-          })) {
+          if (
+            fusedAltitudeEventSamples.some((sample: any) => {
+              const timestamp = new Date(sample.TimeISO8601).getTime();
+              return timestamp >= activity.startDate.getTime() && timestamp <= activity.endDate.getTime();
+            })
+          ) {
             activity.addStat(new DataFusedAltitude(true));
           }
 
@@ -278,87 +305,121 @@ export class EventImporterSuuntoJSON {
             options
           )
         );
+        // With no leg markers, the header owns the single fallback activity.
+        const fallback = activities[0];
+        const timing = resolveSuuntoTiming(
+          +fallback.startDate,
+          +fallback.endDate,
+          eventJSONObject.DeviceLog.Header,
+          timingSource
+        );
+        this.applyTiming(fallback, timing);
+        fileActiveDuration.set(fallback, timing.active);
       }
 
-      // set the start dates of all lap types to the start of the first activity
-      const lapStartDatesByType = lapEventSamples.reduce(
-        (lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
-          // If its a stop event then set the start date to the previous
-          if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
-            lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(
-              lapEventSamples[index - 1].TimeISO8601
-            );
+      if (activities.length > 1) {
+        const sources = resolveSuuntoMultisportLaps(
+          activities,
+          activityStartEventSamples.map(sample => sample.Events[0].Activity.ActivityType),
+          lapEventSamples.map(sample => ({
+            end: +new Date(sample.TimeISO8601),
+            type: LapTypes[<keyof typeof LapTypes>sample.Events[0].Lap.Type]
+          })),
+          eventJSONObject.DeviceLog.Windows || []
+        );
+        sources.forEach((source, index) => {
+          const lap = new Lap(new Date(source.start), new Date(source.end), index + 1, source.type);
+          if (source.window) this.getStats(source.window).forEach(stat => lap.addStat(stat));
+          if (source.recoverTiming) {
+            this.applyTiming(lap, resolveSuuntoTiming(source.start, source.end, source.window, timingSource));
+          } else {
+            // A global summary can supply its own active time. Without one,
+            // the inferred marker interval cannot calibrate active duration.
+            const span = (source.end - source.start) / 1000;
+            const timing =
+              source.window?.Duration !== undefined
+                ? resolveSuuntoTiming(source.start, source.end, source.window, { ...timingSource, pauses: [] })
+                : { elapsed: span, active: null, pause: null };
+            this.applyTiming(lap, timing);
+          }
+          source.owner.addLap(lap);
+        });
+      } else {
+        // set the start dates of all lap types to the start of the first activity
+        const lapStartDatesByType = lapEventSamples.reduce(
+          (lapStartDatesByTypeObject: any, lapEventSample: any, index: number) => {
+            // If its a stop event then set the start date to the previous
+            if (lapEventSample.Events[0].Lap.Type === 'Stop' && lapEventSamples.length > 1) {
+              lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = new Date(
+                lapEventSamples[index - 1].TimeISO8601
+              );
+              return lapStartDatesByTypeObject;
+            }
+            lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
             return lapStartDatesByTypeObject;
-          }
-          lapStartDatesByTypeObject[lapEventSample.Events[0].Lap.Type] = activities[0].startDate;
-          return lapStartDatesByTypeObject;
-        },
-        {}
-      );
-      const laps = lapEventSamples.reduce(
-        (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
-          // if there is only one lap then skip it's the whole activity
-          if (lapEventSamples.length === 1) {
+          },
+          {}
+        );
+        const laps = lapEventSamples.reduce(
+          (lapArray: LapInterface[], lapEventSample: any, lapIndex: number): LapInterface[] => {
+            // if there is only one lap then skip it's the whole activity
+            if (lapEventSamples.length === 1) {
+              return lapArray;
+            }
+            // Set the end date
+            const lapEndDate = new Date(lapEventSample.TimeISO8601);
+            // Set the start date.
+            // Set it for the next run
+            const lap = new Lap(
+              lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
+              lapEndDate,
+              lapIndex + 1,
+              LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
+            );
+            lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
+
+            if (lapWindows[lapIndex]) {
+              this.getStats(lapWindows[lapIndex]).forEach(stat => {
+                lap.addStat(stat);
+              });
+            }
+            this.applyTiming(
+              lap,
+              resolveSuuntoTiming(
+                +lap.startDate,
+                +lap.endDate,
+                lapWindows[lapIndex],
+                timingSource,
+                undefined,
+                lapWindows.length > 0 && lapWindows.length !== lapEventSamples.length
+              )
+            );
+            lapArray.push(lap);
             return lapArray;
-          }
-          // Set the end date
-          const lapEndDate = new Date(lapEventSample.TimeISO8601);
-          // Set the start date.
-          // Set it for the next run
-          const lap = new Lap(
-            lapStartDatesByType[lapEventSample.Events[0].Lap.Type],
-            lapEndDate,
-            lapIndex + 1,
-            LapTypes[<keyof typeof LapTypes>lapEventSample.Events[0].Lap.Type]
-          );
-          lapStartDatesByType[lapEventSample.Events[0].Lap.Type] = lapEndDate;
+          },
+          []
+        );
 
-          if (lapWindows[lapIndex]) {
-            this.getStats(lapWindows[lapIndex]).forEach(stat => {
-              lap.addStat(stat);
+        // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
+        // @todo move laps to event so we don't have cross border laps to acivities and decouple them
+        activities.forEach((activity: ActivityInterface) => {
+          laps
+            .filter((lap: LapInterface) => {
+              // If the lap start belongs to the activity
+              if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
+                return true;
+              }
+              // if the lap end belongs also...
+              if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
+                return true;
+              }
+              return false;
+            })
+            .forEach((activityLap: LapInterface) => {
+              activity.addLap(activityLap);
             });
-          }
-          // Add the pause from end date minurs start date and removing the duration as widows do not contain the pause time
-          if (!lap.getDuration()) {
-            const elapsedSeconds = (lap.endDate.getTime() - lap.startDate.getTime()) / 1000;
-            lap.setDuration(new DataDuration(elapsedSeconds));
-            lap.setTimer(new DataTimerTime(elapsedSeconds));
-            lap.addStat(new DataElapsedTime(elapsedSeconds));
-          } else if (!lap.getStat(DataElapsedTime.type)) {
-            const elapsedSeconds = (lap.endDate.getTime() - lap.startDate.getTime()) / 1000;
-            lap.addStat(new DataElapsedTime(elapsedSeconds));
-          }
-          if (!lap.getTimer()) {
-            lap.setTimer(new DataTimerTime(lap.getDuration().getValue()));
-          }
-          lap.setPause(
-            new DataPause((lap.endDate.getTime() - lap.startDate.getTime()) / 1000 - lap.getDuration().getValue())
-          );
-          lapArray.push(lap);
-          return lapArray;
-        },
-        []
-      );
-
-      // Add the laps to the belonging activity. If a lap starts or stops at the activity date delta then it belong to the acitvity
-      // @todo move laps to event so we don't have cross border laps to acivities and decouple them
-      activities.forEach((activity: ActivityInterface) => {
-        laps
-          .filter((lap: LapInterface) => {
-            // If the lap start belongs to the activity
-            if (lap.startDate <= activity.endDate && lap.startDate >= activity.startDate) {
-              return true;
-            }
-            // if the lap end belongs also...
-            if (lap.endDate >= activity.startDate && lap.endDate <= activity.endDate) {
-              return true;
-            }
-            return false;
-          })
-          .forEach((activityLap: LapInterface) => {
-            activity.addLap(activityLap);
-          });
-      });
+        });
+      }
 
       // Add the samples that belong to the activity and the ibi data.
       activities.forEach((activity: ActivityInterface) => {
@@ -378,11 +439,16 @@ export class EventImporterSuuntoJSON {
         );
 
         // Should filter on type and create the samples
-        this.setStreamsForActivity(activity, activitySamples);
+        this.setStreamsForActivity(activity, activitySamples, streamSelection);
       });
 
       // Add the ibiData
-      if (eventJSONObject.DeviceLog['R-R'] && eventJSONObject.DeviceLog['R-R'].Data) {
+      if (
+        eventJSONObject.DeviceLog['R-R'] &&
+        eventJSONObject.DeviceLog['R-R'].Data &&
+        (isStreamTypeAllowedForImport('IBI', streamSelection) ||
+          isStreamTypeAllowedForImport(DataHeartRate.type, streamSelection))
+      ) {
         // prepare the data array per activity removing the offset
         activities.forEach((activity: ActivityInterface) => {
           let timeSum = 0;
@@ -398,9 +464,9 @@ export class EventImporterSuuntoJSON {
             if (existingHRStream) {
               activity.removeStream(existingHRStream);
             }
-            this.setStreamsForActivity(activity, hrSamplesFromIBI);
+            this.setStreamsForActivity(activity, hrSamplesFromIBI, streamSelection);
           }
-          activity.addStream(new IBIStream(ibiData));
+          if (isStreamTypeAllowedForImport('IBI', streamSelection)) activity.addStream(new IBIStream(ibiData));
         });
       }
 
@@ -417,6 +483,13 @@ export class EventImporterSuuntoJSON {
       }
 
       if (activities.length === 1) {
+        // A sole activity can inherit missing source observations from the workout header.
+        // Preserve a more specific window observation, including valid zero.
+        this.getStats(eventJSONObject.DeviceLog.Header)
+          .filter(stat => stat instanceof DataStamina || stat instanceof DataEstimatedSustainableDistance)
+          .forEach(stat => {
+            if (!activities[0].getStat(stat.getType())) activities[0].addStat(stat);
+          });
         const stats = this.getStats(eventJSONObject.DeviceLog.Header).filter(
           stat =>
             stat instanceof DataSteps ||
@@ -432,23 +505,48 @@ export class EventImporterSuuntoJSON {
 
       // Populate the event stats from the Header Object
       this.getStats(eventJSONObject.DeviceLog.Header).forEach(stat => {
-        event.addStat(stat);
+        if (![DataDuration.type, DataTimerTime.type, DataElapsedTime.type, DataPause.type].includes(stat.getType())) {
+          event.addStat(stat);
+        }
       });
+      for (const Constructor of [DataElapsedTime, DataTimerTime]) {
+        const values = activities.map(activity => activity.getStat(Constructor.type)?.getValue());
+        if (values.every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0)) {
+          event.addStat(new Constructor((values as number[]).reduce((sum, value) => sum + value, 0)));
+        }
+      }
 
+      activities.forEach(activity => pruneActivityStreamsBySelection(activity, streamSelection));
       resolve(event);
     });
+  }
+
+  private static applyTiming(target: DurationClassInterface & StatsClassInterface, timing: SuuntoTiming): void {
+    for (const type of [DataDuration.type, DataTimerTime.type, DataElapsedTime.type, DataPause.type]) {
+      target.removeStat(type);
+    }
+    if (Number.isFinite(timing.elapsed) && timing.elapsed >= 0) target.addStat(new DataElapsedTime(timing.elapsed));
+    if (timing.active !== null) {
+      target.setDuration(new DataDuration(timing.active));
+      target.setTimer(new DataTimerTime(timing.active));
+      target.setPause(new DataPause(timing.pause!));
+    }
   }
 
   private static addTimerEvents(activity: ActivityInterface, samples: any[]): void {
     const start = activity.startDate.getTime();
     const end = activity.endDate.getTime();
-    const timer = samples.flatMap(sample => {
-      if (typeof sample.TimeISO8601 !== 'string' || !sample.TimeISO8601.trim()) return [];
-      const timestamp = new Date(sample.TimeISO8601).getTime();
-      if (!Number.isFinite(timestamp) || timestamp > end || !Array.isArray(sample.Events)) return [];
-      return sample.Events.filter((event: any) => typeof event?.Pause?.State === 'boolean')
-        .map((event: any) => ({ timestamp, paused: event.Pause.State as boolean }));
-    }).sort((left, right) => left.timestamp - right.timestamp);
+    const timer = samples
+      .flatMap(sample => {
+        if (typeof sample.TimeISO8601 !== 'string' || !sample.TimeISO8601.trim()) return [];
+        const timestamp = new Date(sample.TimeISO8601).getTime();
+        if (!Number.isFinite(timestamp) || timestamp > end || !Array.isArray(sample.Events)) return [];
+        return sample.Events.filter((event: any) => typeof event?.Pause?.State === 'boolean').map((event: any) => ({
+          timestamp,
+          paused: event.Pause.State as boolean
+        }));
+      })
+      .sort((left, right) => left.timestamp - right.timestamp);
 
     // A pause can span a sport change. Carry only an explicitly recorded state;
     // aggregate pause duration cannot locate a pause or create a timer event.
@@ -488,17 +586,38 @@ export class EventImporterSuuntoJSON {
     return Number.isFinite(numeric) && numeric >= 0 ? numeric : undefined;
   }
 
-  private static setIntensityZones(activity: ActivityInterface, header: any, window: any,
-    singleActivity: boolean, singleSport: boolean) {
-    const localSportMatches = window?.ActivityId === undefined ||
+  private static setIntensityZones(
+    activity: ActivityInterface,
+    header: any,
+    window: any,
+    singleActivity: boolean,
+    singleSport: boolean
+  ) {
+    const localSportMatches =
+      window?.ActivityId === undefined ||
       ActivityTypes[<keyof typeof ActivityTypes>ImporterSuuntoActivityIds[window.ActivityId]] === activity.type;
     const durationTypes = [
-      [DataHeartRateZoneOneDuration, DataHeartRateZoneTwoDuration, DataHeartRateZoneThreeDuration,
-        DataHeartRateZoneFourDuration, DataHeartRateZoneFiveDuration],
-      [DataPowerZoneOneDuration, DataPowerZoneTwoDuration, DataPowerZoneThreeDuration,
-        DataPowerZoneFourDuration, DataPowerZoneFiveDuration],
-      [DataSpeedZoneOneDuration, DataSpeedZoneTwoDuration, DataSpeedZoneThreeDuration,
-        DataSpeedZoneFourDuration, DataSpeedZoneFiveDuration]
+      [
+        DataHeartRateZoneOneDuration,
+        DataHeartRateZoneTwoDuration,
+        DataHeartRateZoneThreeDuration,
+        DataHeartRateZoneFourDuration,
+        DataHeartRateZoneFiveDuration
+      ],
+      [
+        DataPowerZoneOneDuration,
+        DataPowerZoneTwoDuration,
+        DataPowerZoneThreeDuration,
+        DataPowerZoneFourDuration,
+        DataPowerZoneFiveDuration
+      ],
+      [
+        DataSpeedZoneOneDuration,
+        DataSpeedZoneTwoDuration,
+        DataSpeedZoneThreeDuration,
+        DataSpeedZoneFourDuration,
+        DataSpeedZoneFiveDuration
+      ]
     ];
     SuuntoIntensityZonesMapper.forEach((mapping, mappingIndex) => {
       const parent = header?.[mapping.sampleField];
@@ -509,7 +628,9 @@ export class EventImporterSuuntoJSON {
         const durationKey = `Zone${index}Duration`;
         // A parent total is applicable only to a single leg. Partial local zone data
         // must not cause the same parent durations to be copied onto every leg.
-        const duration = this.getNonnegativeNumber(local?.[durationKey] ?? (singleActivity ? parent?.[durationKey] : undefined));
+        const duration = this.getNonnegativeNumber(
+          local?.[durationKey] ?? (singleActivity ? parent?.[durationKey] : undefined)
+        );
         if (duration !== undefined) {
           (zones as any)[`zone${index}Duration`] = duration;
           activity.addStat(new durationTypes[mappingIndex][index - 1](duration));
@@ -548,9 +669,14 @@ export class EventImporterSuuntoJSON {
     return samples;
   }
 
-  private static setStreamsForActivity(activity: ActivityInterface, samples: any[]): void {
+  private static setStreamsForActivity(
+    activity: ActivityInterface,
+    samples: any[],
+    streamSelection: StreamSelection | null
+  ): void {
     // console.log(`Setting streams for activity with ${samples.length} samples`);
     SuuntoSampleMapper.forEach(sampleMapping => {
+      if (!isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)) return;
       const subjectSamples = <any[]>samples.filter(sample => {
         const value = sample[sampleMapping.sampleField];
         return (
@@ -877,21 +1003,22 @@ export class EventImporterSuuntoJSON {
       stats.push(new DataMaxHRSetting(object.Personal.MaxHR * 60)); // Convert from Hz to bpm
     }
 
-    if (Array.isArray(object.Endurance)) {
-      const endurance = object.Endurance[0];
-      if (isNumber(endurance?.Cur)) {
-        stats.push(new DataStamina(endurance.Cur));
-      }
-      if (isNumber(endurance?.Min)) {
-        stats.push(new DataStaminaMin(endurance.Min));
-      }
-    } else if (object.Endurance) {
-      if (isNumber(object.Endurance.Cur)) {
-        stats.push(new DataStamina(object.Endurance.Cur));
-      }
-      if (isNumber(object.Endurance.Min)) {
-        stats.push(new DataStaminaMin(object.Endurance.Min));
-      }
+    const endurance = this.getSummaryObject(object, 'Endurance');
+    if (endurance) {
+      const current = this.getPercentageSummaryValue(endurance, 'Cur');
+      const minimum = this.getPercentageSummaryValue(endurance, 'Min');
+      if (current !== null) stats.push(new DataStamina(current));
+      if (minimum !== null) stats.push(new DataStaminaMin(minimum));
+    }
+    // EnduranceDistance is in metres (maintainer confirmation in issue #158).
+    // Cur is the end-of-scope estimate, not necessarily the final sampled observation.
+    // EnduranceValid is undocumented; it must not erase populated observations.
+    const sustainableDistance = this.getSummaryObject(object, 'EnduranceDistance');
+    if (sustainableDistance) {
+      const current = this.getFiniteSummaryValue(sustainableDistance, 'Cur');
+      const minimum = this.getFiniteSummaryValue(sustainableDistance, 'Min');
+      if (current !== null && current >= 0) stats.push(new DataEstimatedSustainableDistance(current));
+      if (minimum !== null && minimum >= 0) stats.push(new DataEstimatedSustainableDistanceMin(minimum));
     }
 
     // Depth (Diving)
@@ -1108,7 +1235,14 @@ export const SuuntoSampleMapper: {
   {
     dataType: DataStamina.type,
     sampleField: 'Endurance',
-    convertSampleValue: (value: number) => Number(value)
+    convertSampleValue: (value: number) => Number(value),
+    isSampleValueValid: value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100
+  },
+  {
+    dataType: DataEstimatedSustainableDistance.type,
+    sampleField: 'EnduranceDistance',
+    convertSampleValue: (value: number) => Number(value),
+    isSampleValueValid: value => typeof value === 'number' && Number.isFinite(value) && value >= 0
   },
   {
     dataType: DataVerticalOscillation.type,

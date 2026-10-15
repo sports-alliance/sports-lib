@@ -20,6 +20,14 @@ const file = new Blob([gpxText], { type: exporter.fileType });
 GPX represents both cadence and stroke rate through its cadence extension. `EventExporterGPX` writes the canonical
 `Stroke Rate` stream there for supported stroke-rate activities so the values survive a GPX round trip.
 
+Activity exports declare Garmin TrackPointExtension/v2, whose schema defines speed in metres/second. They preserve
+finite, nonnegative canonical `Speed` readings, including zero, and omit missing or invalid readings. Sensor fields
+follow the v2 schema sequence; independent power/distance extensions retain their existing behavior. Importing the
+result restores recorded speed rather than deriving a replacement from coordinates. Native JSON names and units
+are unchanged. Older QS GPX exports used v1 and omitted zero speeds: the importer recognizes their metadata for
+legacy m/s compatibility, but cannot invent observations absent from the exported file. Re-export from a source that
+retains those readings to recover them. See [recorded GPX speed](importing-activities.md#gpx).
+
 ## Native JSON round trips
 
 Native JSON is the persistence format for the Sports Lib model. Call `toJSON()` to obtain the typed contract and restore
@@ -27,6 +35,12 @@ it with the corresponding `SportsLib` method. Restoration preserves explicit sta
 for the Diving activity group, canonicalizes compatible legacy keys, may add missing speed-derived pace summaries on
 events, activities, and laps, and applies activity-aware cadence-to-stroke-rate normalization without requiring the
 original source file.
+
+Native lap JSON retains nonnegative safe-integer `lapId` values, including zero and nonconsecutive IDs. These are
+source identifiers, not display row numbers. Missing or invalid legacy IDs receive deterministic one-based fallbacks;
+activity hydration avoids collisions with saved IDs. Existing duplicate source IDs remain unchanged. Already-renumbered
+saved IDs cannot be recovered without the original file. This correction adds no JSON fields and changes no lap timing,
+rest classification, order, or measurements.
 
 Event, activity, lap and shared summary serialization omit non-finite scalar numbers such as infinite pace at zero
 speed. Native event restoration also skips legacy null or non-finite scalar summaries before resolving aliases, so

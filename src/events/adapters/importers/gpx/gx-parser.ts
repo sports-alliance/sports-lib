@@ -1,12 +1,21 @@
 // Keep this namespace-qualified key internal to GPX parsing. A direct `hr` from
 // another extension namespace does not necessarily describe heart rate.
 export const CLUETRUST_HEART_RATE = '{http://www.cluetrust.com/XML/GPXDATA/1/0}hr';
+// A symbol keeps XML attributes/elements from impersonating validated source evidence.
+export const GPX_RECORDED_SPEED = Symbol('GPX recorded speed');
 
 export class GXParser {
-  constructor(xml: string, domParser: any = null) {
+  private readonly recordedSpeedReader?: (point: Element) => number | null;
+
+  constructor(
+    xml: string,
+    domParser: any = null,
+    speedReaderFactory?: (root: Element) => (point: Element) => number | null
+  ) {
     domParser = domParser || DOMParser;
     const parser = new domParser();
     const root = parser.parseFromString(xml, 'text/xml');
+    this.recordedSpeedReader = speedReaderFactory?.(root.documentElement);
 
     return this.parseChild(root.documentElement);
   }
@@ -40,14 +49,19 @@ export class GXParser {
           if (!attrs[CLUETRUST_HEART_RATE]) {
             attrs[CLUETRUST_HEART_RATE] = [];
           }
-          const hasElementChildren = Array.from(child.childNodes as ArrayLike<any>)
-            .some((node: any) => !!node.localName);
+          const hasElementChildren = Array.from(child.childNodes as ArrayLike<any>).some(
+            (node: any) => !!node.localName
+          );
           // An inline namespace declaration is metadata, not the sample value.
           attrs[CLUETRUST_HEART_RATE].push(hasElementChildren ? value : child.textContent);
         }
       }
     }
 
+    if (elm.localName === 'trkpt' && this.recordedSpeedReader) {
+      const speed = this.recordedSpeedReader(elm);
+      if (speed !== null) attrs[GPX_RECORDED_SPEED] = speed;
+    }
     if (Object.keys(attrs).length === 0) {
       return elm.textContent;
     }

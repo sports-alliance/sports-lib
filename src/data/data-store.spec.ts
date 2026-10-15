@@ -33,6 +33,12 @@ import {
 } from './data.vertical-speed';
 import { DataStore as _DataStore, DynamicDataLoader } from './data.store';
 import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
+import {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin,
+  DataEstimatedSustainableDistanceMiles,
+  DataEstimatedSustainableDistanceMinMiles
+} from './data.estimated-sustainable-distance';
 import { DataSwimDistance } from './data.swim-distance';
 import { DataJumpDistance } from './data.jump-distance';
 import {
@@ -139,6 +145,8 @@ describe('DataStore', () => {
     DataJumpSpeedMaxKnots.type,
     DataDistanceFeet.type,
     DataDistanceMiles.type,
+    DataEstimatedSustainableDistanceMiles.type,
+    DataEstimatedSustainableDistanceMinMiles.type,
     DataGNSSDistanceMiles.type,
     DataDepthFeet.type,
     DataDepthMaxFeet.type,
@@ -457,10 +465,14 @@ describe('DataStore', () => {
         (dataType: string) =>
           dataType !== DataDistanceFeet.type &&
           dataType !== DataDistanceMiles.type &&
+          dataType !== DataEstimatedSustainableDistanceMiles.type &&
+          dataType !== DataEstimatedSustainableDistanceMinMiles.type &&
           dataType !== DataGNSSDistanceMiles.type
       );
 
     const getExpectedImperialDistanceType = (dataType: string): string => {
+      if (dataType === DataEstimatedSustainableDistance.type) return DataEstimatedSustainableDistanceMiles.type;
+      if (dataType === DataEstimatedSustainableDistanceMin.type) return DataEstimatedSustainableDistanceMinMiles.type;
       if (
         dataType === DataJumpDistance.type ||
         dataType === DataJumpDistanceMin.type ||

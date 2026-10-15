@@ -973,7 +973,8 @@ export class ActivityUtilities {
    * Fills missing activity streams and summary stats, then derives canonical min/max/average and
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
-   * Explicit stats are preserved except terrain summaries excluded for Diving activities.
+   * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
+   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.invalidateCalculatedPower(activity);
@@ -987,6 +988,13 @@ export class ActivityUtilities {
       const activityEnd = activity.endDate.getTime();
       const lapStart = lap.startDate.getTime();
       const lapEnd = lap.endDate.getTime();
+      // A lap beginning before its ending leg may span sports. This leg's
+      // streams cannot supply a whole-lap average. Keep terminal clipping
+      // unchanged for laps that start locally but have a later source end.
+      if (lapStart < activityStart) {
+        hydrateMissingSpeedDerivedStats(lap);
+        return;
+      }
       const includesActivityEndpoint = lapEnd >= activityEnd;
       const startIndex = Math.max(0, Math.ceil((lapStart - activityStart) / 1000));
       const endIndex = Math.max(
@@ -1012,6 +1020,7 @@ export class ActivityUtilities {
     const canonicalExistingDurability = normalizeDurabilityEvidenceValue(existingDurability);
     const hasSourceData = canonicalExistingDurability ? hasActivityDurabilitySourceData(activity) : false;
     const canReuseExistingDurability =
+      fileActiveDuration.get(activity) !== null &&
       !!canonicalExistingDurability &&
       (!hasSourceData ||
         canonicalExistingDurability.sourceFingerprint === calculateActivityDurabilitySourceFingerprint(activity));
@@ -1081,6 +1090,7 @@ export class ActivityUtilities {
     );
   }
 
+  /** Aggregates child summaries; timer/elapsed totals require finite nonnegative values on every leg. */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
     // If only one
@@ -1142,16 +1152,30 @@ export class ActivityUtilities {
     let averageRPE = 0;
 
     // Sum Duration
-    activities.forEach(activity => {
-      duration += activity.getDuration().getValue();
-    });
-    stats.push(new DataDuration(duration));
+    const durations = activities.map(activity => activity.getDuration()?.getValue());
+    if (durations.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) {
+      duration = durations.reduce((sum, value) => sum + value, 0);
+      stats.push(new DataDuration(duration));
+    }
+
+    // Keep independent clocks independent: never substitute elapsed time or dates for a missing timer.
+    for (const TimeData of [DataTimerTime, DataElapsedTime]) {
+      const values = activities.map(activity => activity.getStat(TimeData.type)?.getValue());
+      if (
+        activities.length > 0 &&
+        values.every((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
+      ) {
+        const total = values.reduce((sum, value) => sum + value, 0);
+        if (Number.isFinite(total)) stats.push(new TimeData(total));
+      }
+    }
 
     // Sum pause time
-    activities.forEach(activity => {
-      pauseTime += activity.getPause().getValue();
-    });
-    stats.push(new DataPause(pauseTime));
+    const pauses = activities.map(activity => activity.getPause()?.getValue());
+    if (pauses.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) {
+      pauseTime = pauses.reduce((sum, value) => sum + value, 0);
+      stats.push(new DataPause(pauseTime));
+    }
 
     // Sum Distance
     activities.forEach(activity => {
@@ -1584,7 +1608,7 @@ export class ActivityUtilities {
         movingTime += <number>activityMovingTime.getValue();
       }
     });
-    if (movingTime) {
+    if (movingTime && activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
       stats.push(new DataMovingTime(movingTime));
     }
 
@@ -2424,6 +2448,7 @@ export class ActivityUtilities {
   }
 
   private static getDurationSecondsWithoutPauses(activity: ActivityInterface): number {
+    if (fileActiveDuration.get(activity) === null) return 0;
     const timerTime = this.getFiniteStatValue(activity, DataTimerTime.type);
     if (timerTime !== null && timerTime > 0) {
       return timerTime;
@@ -3623,12 +3648,23 @@ export class ActivityUtilities {
       DataDistance.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
-    // Recorded pool HR has independent coverage. Its timestamps must neither be
-    // filled from generated lengths nor extend the other swim streams' coverage.
-    const timeStream = activity.generateTimeStream(recordedPoolHeartRate.has(activity)
-      ? activity.getAllStreams().filter(stream => stream.type !== DataHeartRate.type && stream.type !== DataIBI.type)
-        .map(stream => stream.type)
-      : []);
+    // Recorded pool sensors have independent coverage. Their timestamps must
+    // not extend length-derived streams. Lengths survive JSON restoration, so
+    // power-only timestamps remain excluded after hydration as well.
+    const hasPoolLengths = activity.getSwimLengths().length > 0;
+    const timeStream = activity.generateTimeStream(
+      recordedPoolHeartRate.has(activity) || hasPoolLengths
+        ? activity
+            .getAllStreams()
+            .filter(
+              stream =>
+                stream.type !== DataIBI.type &&
+                !(stream.type === DataHeartRate.type && recordedPoolHeartRate.has(activity)) &&
+                !(stream.type === DataPower.type && hasPoolLengths)
+            )
+            .map(stream => stream.type)
+        : []
+    );
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:
@@ -4621,13 +4657,30 @@ export class ActivityUtilities {
       }
     }
 
-    if (!activity.getStat(DataDuration.type)) {
-      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
+    if (fileActiveDuration.get(activity) === null) {
+      // Contradictory file timing is unavailable, not zero or elapsed time. This
+      // survives repeated same-instance generation without persisting evidence.
+      for (const type of [
+        DataDuration.type,
+        DataTimerTime.type,
+        DataPause.type,
+        DataMovingTime.type,
+        DataPowerWork.type
+      ]) {
+        activity.removeStat(type);
+      }
+      return;
+    }
+
+    let durationStat = activity.getDuration();
+    if (!durationStat) {
+      durationStat = new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000);
+      activity.setDuration(durationStat);
     }
 
     // If timer time not set, then assign elapsed time by default (e.g. GPX file dont support timer time)
     if (!activity.getStat(DataTimerTime.type)) {
-      activity.addStat(new DataTimerTime(this.round(activity.getDuration().getValue(), 2)));
+      activity.addStat(new DataTimerTime(this.round(durationStat.getValue(), 2)));
     }
 
     // If missing moving time
@@ -4704,7 +4757,7 @@ export class ActivityUtilities {
         const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
         pauseTime =
           movingTimeStat && movingTimeStat.getValue()
-            ? activity.getDuration().getValue() - movingTimeStat.getValue()
+            ? durationStat.getValue() - movingTimeStat.getValue()
             : 0;
       }
 

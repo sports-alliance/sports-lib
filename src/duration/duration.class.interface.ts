@@ -8,27 +8,25 @@ export interface DurationClassInterface {
   endDate: Date;
 
   /**
-   * Returns the duration in seconds
-   * (This excludes pauses)
+   * Returns active duration, or undefined when absent or rejected. Valid zero is retained.
+   * This excludes pauses; do not replace rejected duration with elapsed time.
    */
-  getDuration(): DataDuration;
+  getDuration(): DataDuration | undefined;
 
   /**
-   * Returns the timer in seconds
-   * (This excludes pauses)
+   * Returns timer time excluding pauses, or undefined when absent or rejected.
    */
-  getTimer(): DataTimerTime;
+  getTimer(): DataTimerTime | undefined;
 
   /**
-   * Returns the moving time in seconds
-   * (This excludes pauses)
+   * Returns moving time, or undefined when unavailable. Valid zero is retained.
    */
-  getMovingTime(): DataMovingTime;
+  getMovingTime(): DataMovingTime | undefined;
 
   /**
-   * Returns the paused time
+   * Returns paused time, or undefined when unavailable. Valid zero is retained.
    */
-  getPause(): DataPause;
+  getPause(): DataPause | undefined;
 
   setDuration(duration: DataDuration): void;
 

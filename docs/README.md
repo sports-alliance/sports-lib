@@ -6,6 +6,11 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+**Regression-tested against 189,337 real-world source files.** Corpus investigations have driven compatibility
+fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on evidence in the file. See
+[Validation and compatibility](guides/validation.md) for examples, the dated corpus snapshot, activity and route
+coverage, methodology and known limitations.
+
 EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display one decimal place in meters.
 Stored values and calculations retain full precision; existing stats need no reparse or migration. See
 [Position error display](guides/metrics-and-calculations.md#position-error-display).
@@ -16,6 +21,30 @@ They do not combine child recovery estimates or promote an earlier estimate when
 FIT imports preserve credible per-session timestamps when duration summaries are missing, keeping multisport records
 and load scoped to their own legs. See [recorded timing and sensor coverage](guides/importing-activities.md#recorded-timing-and-sensor-coverage)
 for recovery behavior and reparsing existing activities.
+Sole-session FIT recordings with a complete corroborated timer timeline also retain later records across long pauses,
+keeping full elapsed time separate from recorded active time and training load. Existing truncated imports need an
+original-file reparse; duration limits and public metric/JSON contracts remain unchanged.
+Whole-workout timing recovery and pool timing rejection decline when the source declares additional or invalid
+session counts or multiple activity summaries, even if only one session was decoded. Missing legacy counts retain their existing behavior.
+Corroborated timer and distance evidence can also recover premature endings and distinguish exercise stops from
+delayed saves. Malformed multisport cascades retain a later leg's explicit start only with independent session ownership
+and duration evidence. Explicit zero-distance delayed saves require a declared sole session, complete zero counters
+and a corroborated closed timer timeline; active time remains unchanged. See the same timing guide for eligibility.
+An explicitly declared missing final session can be retained as `Unknown Sport` only with corroborating record,
+timer and distance evidence. Earlier legs and their boundary samples remain unchanged; ambiguous laps and multiple
+missing sessions stay unresolved. Recovery requires original-file reparse and consumer identity/control reconciliation.
+Recovered legs cannot borrow earlier VO₂ max, training effect or recovery estimates through unscoped metric fallbacks.
+A user-metric observation is retained only when its explicit start uniquely matches the recovered leg.
+
+Suunto JSON/SML imports distinguish active and elapsed time and never emit a negative pause. Inconsistent timing
+requires independent recorded evidence; otherwise active duration and its dependent load candidates stay unavailable.
+Historical corrections require an original-file reparse; saved JSON alone cannot recover private timing evidence.
+Native Suunto multisport lap summaries match source timestamps and sport ownership, including sport-change remainders.
+Final lap summaries retain their own manual/automatic counter despite interleaved markers.
+Final-batch recovery cannot move earlier same-sport summaries or independently recorded lap endpoints to Stop.
+Ambiguous automatic remainders stay unassigned even when a valid manual summary ends at the same Stop.
+Cross-leg laps remain once on their ending leg and never derive whole-lap averages from that leg's partial streams.
+Original-file reparse corrects affected historical laps without changing activity totals or public JSON schemas.
 
 Activity imports reject explicitly non-activity FIT files instead of synthesizing workouts from monitoring events.
 Completed `activity_summary` files remain supported when they contain recorded sessions, even without record streams.
@@ -26,6 +55,20 @@ refreshes for affected activities; existing non-activity imports need separate c
 
 Native activity JSON restores child names independently of event titles. GPX activity and route imports retain the
 exporter name without assigning the schema version as a manufacturer; unknown TCX sports use `Unknown Sport`.
+GPX activity imports retain recorded m/s speed from standard TrackPointExtension/v2 and evidenced legacy v1
+exporters, preserving zero, gaps and canonical Speed/Pace identities. Activity exports use v2 and keep zero speeds.
+Historical recovery requires original-file reparse and dependent-summary refresh; see the
+[GPX compatibility guide](guides/importing-activities.md#gpx). Saved-route parsing is unchanged.
+TCX imports recover recorded speed from an unambiguous ActivityExtension/v2 TPX directly under a trackpoint when
+the Extensions wrapper is missing. Existing canonical Speed/Pace metrics and JSON schemas are unchanged; original-file
+reparsing and summary refreshes recover historical omissions. Normal wrapped extensions retain precedence.
+Compatibility recovery rejects unit/validity attributes and competing namespace lookalikes; namespace declarations
+remain allowed.
+Recognized COROS direct Extensions/Speed is converted from km/h for both streams and lap calculations; other
+creators do not inherit this unit assumption. Position/AltitudeMeters can supply missing standard altitude in metres.
+Both use existing canonical metrics and require original-file reparsing; ambiguous TPX/Cadence units remain unsupported.
+Recorded TCX lap cadence comes only from the lap's own field; a trackpoint can no longer masquerade as a lap summary.
+Historical false lap values need source reparsing; stream-derived cadence summaries keep their existing behavior.
 TSS diagnostics distinguish missing inputs from calculations that cannot return a valid score, preserving the formulas,
 limits and fallback order. See [activity import compatibility](guides/importing-activities.md) and
 [TSS calculations](guides/metrics-and-calculations.md) for source-reparse requirements.
@@ -115,6 +158,7 @@ require reparsing activities or routes, regenerating summaries, or migrating nat
 - [Metrics and calculations](guides/metrics-and-calculations.md) — canonical metric tokens, units, and derivation rules.
 - [Three-dimensional power and training-response model](guides/three-dimensional-training-model.md) — research
   provenance, implemented equations, capacity estimation, strain scoring, calibration, and limitations.
+- [Validation and compatibility](guides/validation.md) — verified corpus counts, testing scope, route coverage and known limitations.
 
 ## API reference
 
@@ -140,6 +184,10 @@ parsed file without requiring athlete settings. Load editors can request one-dec
 Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with
 complete rolling 30-second windows. MTB/downhill/enduro use biking-specific maximum HR. Internally inconsistent
 percent-max-HR threshold settings are rejected, preserving imported scores and eligible fallbacks.
+For percent-HRR zones, a complete session calibration is also rejected when its threshold lies below the lowest
+boundary of an exact six-boundary 50–100% reserve pattern. This narrow file-consistency check preserves custom
+patterns and uses the existing `invalid-hr-calibration` fallback explanation; it does not infer a replacement threshold.
+Historical affected scores require original-file reparse and a refresh of consuming applications' derived summaries.
 With independent FTP and duration, complete eligible recorded zero-power windows now yield POWER TSS 0. A zero
 summary or zeros inserted for missing FIT, TCX or GPX power fields cannot establish that evidence.
 Positive computed NP also requires actual recorded coverage: padded gaps cannot complete a rolling window or block
@@ -159,9 +207,29 @@ JSON/SML retains explicit pause/resume positions, including pauses spanning a sp
 Pool FIT imports also support single-lap length streams, retain final boundary/rest lengths, and repair invalid pool
 summary end times using explicit file durations. Existing single-lap recorded streams retain priority. Generated rest
 lengths add no distance, and ambiguous ownership cannot establish a complete generated distance total.
+Single- and multi-lap pool imports retain session-owned recorded power, preserving zeros and gaps through JSON and
+regeneration. Power timestamps do not extend length-derived streams; existing FTP and TSS eligibility still apply.
+An original-file reparse recovers previously omitted observations without changing metric tokens or the JSON schema.
 Length end dates and generated samples are bounded by their resolved activity and owning lap. Contradictory timers
 cannot extend a swim into later legs, while paused lengths keep the existing active sampling limit. Original-file
-reparse applies these corrections to saved swims. Native JSON also omits non-finite scalar summaries and restores
+reparse applies these corrections to saved swims. Shared later length timestamps use elapsed endpoints only with
+consecutive-length and lap/session corroboration. Complete raw lap ranges can establish that omitted active lengths
+make a generated distance counter incomplete; recorded distance remains the fallback, without inferring a complete
+counter from the retained lengths.
+For these boundary and distance corrections, source totals, individual distances and duration stats remain intact;
+ambiguous source timing is not guessed.
+See the [import guide](guides/importing-activities.md) for the guards and historical reparse requirements.
+Separately, when independent workout evidence proves a pool lap or length duration impossible, that duration becomes
+unavailable. The row and its usable measurements remain, with rejected source timing retained in optional native-JSON
+`timingValidity` metadata. Elapsed time can include rests, so it must not replace a rejected active duration. The library
+handles this in its swim calculations; applications doing their own timing calculations should use
+`resolveSwimTimingSeconds` for lengths and preserve the marker in custom serializers. See the
+[plain-language example and integration guidance](guides/importing-activities.md#contradicted-pool-timing).
+
+Duration, timer, moving-time and pause getters now correctly declare `Data… | undefined`. Guard missing statistics
+before reading them and retain valid zero. This typing correction changes no stored JSON and needs no reparse by itself;
+see [optional duration statistics](guides/importing-activities.md#optional-duration-statistics).
+Native JSON also omits non-finite scalar summaries and restores
 legacy null summaries safely, preserving valid zero values and stream gaps; that repair needs only JSON restoration.
 
 Swimming without an independent threshold now skips swim-pace TSS instead of assuming threshold effort. FIT files with
@@ -171,3 +239,12 @@ boundaries. TCX elapsed time spans all tracks in each lap while retaining its ex
 Imported TSS remains unchanged.
 Apply these corrections to historical calculations through original-file reparse and refresh downstream Training
 summaries; serialized metric names and units are unchanged. See the [TSS methods and migration guidance](guides/metrics-and-calculations.md).
+
+Suunto EnergySense observations retain canonical `Stamina` percentages and add `Estimated Sustainable Distance`
+plus its minimum. Source `Cur` endings and `Min` summaries remain distinct from sampled values. The distance source
+unit is metres, as confirmed by the maintainer in [#158](https://github.com/sports-alliance/sports-lib/issues/158); no FIT field is inferred. See
+[metric semantics and historical reparse](guides/metrics-and-calculations.md#endurance-estimates).
+
+Native JSON preserves valid source lap identifiers (including zero), and event regeneration restores complete
+multisport timer/elapsed totals without substituting other clocks. See [JSON compatibility](guides/exporting.md#native-json-round-trips)
+and [regenerated multisport timing](guides/metrics-and-calculations.md#regenerated-multisport-timing).

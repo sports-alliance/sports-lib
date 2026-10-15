@@ -14,18 +14,58 @@
  * following the GPX 1.1 metadata sequence.
  * FIT imports preserve credible session timestamps without duration summaries; recovery uses session-owned
  * records, allowing whole-file record bounds only for a sole session. Existing affected imports require reparsing.
+ * A sole explicit FIT session with ordered endpoint-spanning records and complete corroborated timer intervals
+ * retains full chronology across long pauses, with active duration and configured duration limits unchanged.
+ * Whole-workout timing recovery and pool timing rejection require any explicit session count to agree;
+ * missing sessions or multiple activity summaries cannot supply sole-session ownership. Absent legacy counts remain compatible.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
+ * A single declared missing final FIT session becomes Unknown Sport only with corroborated timer, record and
+ * distance bounds. Earlier legs retain their samples and calibration; ambiguous laps are not reassigned.
+ * The recovered leg does not inherit sport-only activity metrics or unrelated/ambiguous user metrics.
+ * A user-metric observation requires one explicit start matching that leg.
+ * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
+ * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
+ * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
+ * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
+ * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
+ * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.
+ * A concurrent manual summary cannot resolve an ambiguous automatic remainder; that remainder stays unassigned.
+ * Final-batch recovery requires the final leg's latest Activity summary and preserves explicit lap endpoints.
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
+ * GPX retains directly owned v2 speed in m/s, with narrow evidenced v1 exporter compatibility and existing
+ * direct-field precedence. Historical recovery requires original-file reparse; metric names and JSON stay stable.
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.
+ * TCX retains finite recorded speed from a single ActivityExtension/v2 TPX directly under a trackpoint when
+ * Extensions is absent. Wrapped extensions retain precedence; historical missing speed requires original-file reparse.
+ * Compatibility scalars reject non-namespace attributes and competing namespace lookalikes.
+ * Recognized COROS direct Extensions/Speed uses km/h and is normalized to m/s for streams and lap calculations.
+ * Position/AltitudeMeters can supply missing standard altitude in metres. Both paths reject ambiguous candidates,
+ * retain existing canonical metrics and require source reparse; unsupported TPX/Cadence units are not inferred.
+ * Recorded lap cadence must belong directly to its lap. Descendant trackpoint cadence does not supply lap summaries.
  *
  * @category Import and export
  */
 export { SportsLib } from '../src/index';
+/** Positional activity GPX uses TrackPointExtension/v2, preserving finite nonnegative speed including zero.
+ * @category Import and export
+ */
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
+/**
+ * Recorded sustainable-distance estimates, distinct from travelled or target distance.
+ * Canonical metres and minimum; miles variants are presentation only. Suunto source values
+ * are in metres and are retained without scaling.
+ * @category Data
+ */
+export {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin,
+  DataEstimatedSustainableDistanceMiles,
+  DataEstimatedSustainableDistanceMinMiles
+} from '../src/data/data.estimated-sustainable-distance';
 export type { EventExporter } from '../src/events/adapters/exporters/exporter.interface';
 
 /**
@@ -83,7 +123,11 @@ export type {
   RouteParsingStreamOptions
 } from '../src/routes/route-parsing-options';
 
-/** @category Activities and events */
+/**
+ * Duration, timer, moving-time and pause getters return their Data class or undefined when absent.
+ * Keep measured zero distinct from missing timing; do not reconstruct rejected timing from elapsed dates.
+ * @category Activities and events
+ */
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
 /**
@@ -127,6 +171,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  */
 export { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../src/activities/activity.types';
 export type { ActivityTypeGroup } from '../src/activities/activity.types';
+/**
+ * Duration, timer, moving-time and pause getters may return undefined, as on activities and laps.
+ * @category Activities and events
+ */
 export type { EventInterface } from '../src/events/event.interface';
 export type { EventJSONInterface } from '../src/events/event.json.interface';
 export { FileType } from '../src/events/adapters/file-type.enum';
@@ -432,6 +480,7 @@ export type { IntensityZonesJSONInterface } from '../src/intensity-zones/intensi
 export { LapTypes, LapTypesHelper } from '../src/laps/lap.types';
 export type { LapType } from '../src/laps/lap.types';
 export type { LapInterface } from '../src/laps/lap.interface';
+/** Native JSON preserves valid source lap IDs, including zero; IDs are not row ordinals. */
 export type { LapJSONInterface } from '../src/laps/lap.json.interface';
 export type { SwimLengthInterface } from '../src/swim-lengths/swim-length.interface';
 export type { SwimLengthJSONInterface } from '../src/swim-lengths/swim-length.json.interface';
@@ -528,7 +577,8 @@ export type {
 /**
  * Event aggregation and regeneration. Generated homogeneous Diving-group event summaries omit
  * terrain ascent/descent, altitude min/max/avg, and grade min/max/avg; mixed event summaries
- * aggregate those metrics only from their non-diving activities.
+ * aggregate those metrics only from their non-diving activities. Timer/elapsed totals each require complete,
+ * finite nonnegative child values; missing clocks remain unavailable.
  *
  * @category Activities and events
  */
@@ -542,9 +592,14 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * Positive calculated NP also requires complete recorded windows; padded gaps cannot establish a power candidate.
  * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
+ * FIT rejects a complete scoped HRR threshold below its exact six-boundary 50–100% reserve pattern with
+ * `invalid-hr-calibration`; custom patterns remain eligible under existing rules and fallbacks are unchanged.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
  * FIT pool imports retain recorded HR and gaps, single-lap data and unambiguous boundary lengths;
  * swim length endpoints respect chronological lap/session bounds, independently of active timer sampling limits.
+ * Shared pool timestamps use elapsed endpoints only with consecutive-length corroboration; complete raw lap ranges
+ * can prove a generated distance counter incomplete, disabling it while retaining recorded samples when available.
+ * Source totals, timer/elapsed statistics, metric tokens, units and serialized fields remain unchanged.
  * multisport timing preserves unambiguous initial pauses and prevents adjacent-session record leakage.
  * Missing FIT timer summaries can use explicit active intervals; Suunto JSON/SML retains recorded pause/resume events.
  * TSS evaluation keeps missing input diagnostics distinct from `calculation-unavailable` when a supplied
@@ -563,3 +618,6 @@ export { TrainingStressScoreMethod } from '../src/data/data.training-stress-scor
 
 /** Canonical TSS metric with integer default display and optional one-decimal load-editor display. */
 export { DataTrainingStressScore } from '../src/data/data.training-stress-score';
+
+export { normalizeTimingValidity, resolveSwimTimingSeconds } from '../src/duration/timing-validity';
+export type { TimingValidity } from '../src/duration/timing-validity';

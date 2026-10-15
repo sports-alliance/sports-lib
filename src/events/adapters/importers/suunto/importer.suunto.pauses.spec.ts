@@ -42,8 +42,8 @@ describe('Suunto recorded pause events', () => {
     expect(activity.getAllEvents().map(event => [event.timestamp, event.getType()])).toEqual([
       [1200, DataStopEvent.type], [2400, DataStartEvent.type]
     ]);
-    expect(activity.getDuration().getValue()).toBe(2400);
-    expect(activity.getTimer().getValue()).toBe(2400);
+    expect(activity.getDuration()!.getValue()).toBe(2400);
+    expect(activity.getTimer()!.getValue()).toBe(2400);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({ method: 'PACE', score: 66.7 });
     expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic).toMatchObject({ method: 'PACE', score: 66.7 });
   });
@@ -88,7 +88,7 @@ describe('Suunto recorded pause events', () => {
     data.DeviceLog.Samples = [sample(0, [{ Activity: { ActivityType: 3 } }]), sample(3600, [{ Lap: { Type: 'Stop' } }])];
     const activity = (await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data), options)).getFirstActivity();
     expect(activity.getAllEvents()).toEqual([]);
-    expect(activity.getTimer().getValue()).toBe(2400);
+    expect(activity.getTimer()!.getValue()).toBe(2400);
   });
 
   it('preserves pause/resume events through the SML XML adapter', async () => {
@@ -104,6 +104,6 @@ describe('Suunto recorded pause events', () => {
     expect(activity.getAllEvents().map(event => [event.timestamp, event.getType()])).toEqual([
       [100, DataStopEvent.type], [300, DataStartEvent.type]
     ]);
-    expect(activity.getTimer().getValue()).toBe(400);
+    expect(activity.getTimer()!.getValue()).toBe(400);
   });
 });

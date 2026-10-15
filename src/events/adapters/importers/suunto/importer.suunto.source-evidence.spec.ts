@@ -64,16 +64,16 @@ describe('Suunto source evidence', () => {
     data.DeviceLog.Header.PauseDuration = 3600;
     data.DeviceLog.Header.SpeedZones.Zone5Duration = 0;
     const activity = (await parse(data)).getFirstActivity();
-    expect(activity.getTimer().getValue()).toBe(0);
+    expect(activity.getTimer()!.getValue()).toBe(0);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBeNull();
     expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic.score).toBeNull();
   });
 
-  it('does not promote an inconsistent pause summary into proven zero active duration', async () => {
+  it('keeps inconsistent pause timing unavailable instead of assuming a full active duration', async () => {
     const data = payload();
     data.DeviceLog.Windows[0].Window.PauseDuration = 4000;
     const activity = (await parse(data)).getFirstActivity();
-    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBe(100);
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBeNull();
   });
 
   it('keeps per-leg zone durations separate while retaining shared threshold settings', async () => {
@@ -106,7 +106,7 @@ describe('Suunto source evidence', () => {
       <Sample><UTC>${time(600)}</UTC><Speed>3</Speed><Events><Lap><Type>Stop</Type></Lap></Events></Sample>
       </Samples></DeviceLog></sml>`;
     const activity = (await EventImporterSuuntoSML.getFromXML(xml, options)).getFirstActivity();
-    expect(activity.getTimer().getValue()).toBe(0);
+    expect(activity.getTimer()!.getValue()).toBe(0);
     expect(activity.getLaps()).toHaveLength(2);
     expect(activity.getAllEvents()).toHaveLength(1);
     expect(activity.getStat(DataFusedAltitude.type)?.getValue()).toBe(true);

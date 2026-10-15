@@ -31,6 +31,12 @@ import { DataAltitude } from './data.altitude';
 import { DataCadence } from './data.cadence';
 import { DataStrokeRate } from './data.stroke-rate';
 import { DataDistance, DataDistanceFeet, DataDistanceMiles } from './data.distance';
+import {
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin,
+  DataEstimatedSustainableDistanceMiles,
+  DataEstimatedSustainableDistanceMinMiles
+} from './data.estimated-sustainable-distance';
 import { DataDuration } from './data.duration';
 import { DataElapsedTime } from './data.elapsed-time';
 import { DataEHPE } from './data.ehpe';
@@ -626,6 +632,10 @@ export const DataStore: any = {
   DataDuration,
   DataElapsedTime,
   DataDistance,
+  DataEstimatedSustainableDistance,
+  DataEstimatedSustainableDistanceMin,
+  DataEstimatedSustainableDistanceMiles,
+  DataEstimatedSustainableDistanceMinMiles,
   DataCadence,
   DataStrokeRate,
   DataGPSAltitude,
@@ -1440,6 +1450,12 @@ export class DynamicDataLoader {
     [DataDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
     },
+    [DataEstimatedSustainableDistance.type]: {
+      [DataEstimatedSustainableDistanceMiles.type]: convertMetersToMiles
+    },
+    [DataEstimatedSustainableDistanceMin.type]: {
+      [DataEstimatedSustainableDistanceMinMiles.type]: convertMetersToMiles
+    },
     [DataWheelchairPushDistance.type]: {
       [DataDistanceMiles.type]: convertMetersToMiles
     },
@@ -1470,6 +1486,8 @@ export class DynamicDataLoader {
   static speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
 
   static dataTypeMinDataType: { [type: string]: string } = {
+    [DataEstimatedSustainableDistance.type]: DataEstimatedSustainableDistanceMin.type,
+    [DataEstimatedSustainableDistanceMiles.type]: DataEstimatedSustainableDistanceMinMiles.type,
     [DataAltitude.type]: DataAltitudeMin.type,
     [DataHeartRate.type]: DataHeartRateMin.type,
 
@@ -1787,6 +1805,12 @@ export class DynamicDataLoader {
   }
 
   private static getDistanceImperialDataType(dataType: string): string | null {
+    if (dataType === DataEstimatedSustainableDistance.type) {
+      return DataEstimatedSustainableDistanceMiles.type;
+    }
+    if (dataType === DataEstimatedSustainableDistanceMin.type) {
+      return DataEstimatedSustainableDistanceMinMiles.type;
+    }
     const unitGroup = DynamicDataLoader.dataTypeUnitGroups[dataType];
     if (!unitGroup) {
       return null;

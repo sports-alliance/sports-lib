@@ -5,6 +5,49 @@ summary: Canonical metric tokens, units, and derivation behavior.
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Regenerated multisport timing
+
+`EventUtilities.reGenerateStatsForEvent` independently sums `Timer time` and `Elapsed time` when every leg supplies a
+finite nonnegative value for that clock. Zero is valid. A missing or invalid child value leaves that parent clock
+unavailable; wall-clock dates and other clocks are not substitutes. Child timing and rests are unchanged. Regenerating
+an existing event with complete child timing restores these totals without an original-file reparse. Generic event
+regeneration still rebuilds summaries from children; source-only parent observations must be retained separately by
+an original-file import workflow, never distributed among legs or treated as current values after edits or merges.
+
+## Endurance estimates
+
+`Stamina` and its `Average`, `Minimum`, and `Maximum` keys remain unchanged. Suunto JSON/SML `Endurance`
+continues to use this percentage family; Garmin Stamina and Potential Stamina retain their existing mappings.
+Consumers may label verified Suunto observations **EnergySense Endurance** without changing serialized keys.
+The Suunto importer now records `creator.manufacturer = 'Suunto'` from the source format. Friendly device names
+alone do not establish that provenance.
+
+`DataEstimatedSustainableDistance` adds canonical `Estimated Sustainable Distance` and
+`DataEstimatedSustainableDistanceMin` adds `Minimum Estimated Sustainable Distance`. Values are finite,
+nonnegative metres, with separate miles display variants registered in `DynamicDataLoader`; zero is valid.
+They represent estimates, never travelled distance or distance remaining to a target, and are not summed across
+activities. A sole activity's stats can appear unchanged on its parent event. No multi-activity estimate is derived.
+
+Suunto JSON/SML `EnduranceDistance` samples map directly to the distance stream. Object/array summaries map `Cur`
+to the end-of-scope scalar and `Min` to the provider minimum. Both take precedence over sampled observations;
+only a missing minimum is derived from the canonical one-second samples. The normal timestamp collision policy
+can make that sampled minimum differ from the minimum of all raw readings. Samples alone do not fabricate an ending scalar. Gaps and increases
+are preserved, while missing, null, nonnumeric, nonfinite and negative distances are omitted. There are no derived
+average/maximum variants. The undocumented `EnduranceValid` flag does not suppress populated observations or assert
+provider validation. Both Suunto formats now honor `streams.includeTypes`, including derivation dependencies.
+
+**Source unit:** `EnduranceDistance` is in metres, as confirmed by the maintainer in
+[#158](https://github.com/sports-alliance/sports-lib/issues/158).
+The raw numeric values are retained without scaling; this confirmation requires no conversion change or data migration.
+[Suunto's EnergySense explanation](https://us.suunto.com/blogs/blog/what-is-energysense) describes sustainable distance and
+remaining endurance but does not specify the export field's unit or validity flag.
+No speculative FIT mapping is added: an export without these observations remains unavailable.
+
+Label changes require no key migration. New persisted distance summaries and explicit Suunto manufacturer metadata
+require original-file reparse for historical records; retained JSON/SML can hydrate charts without a persistence rewrite.
+FIT-only records cannot recover omitted source fields. Downstream regeneration must preserve freshly parsed endurance
+summary values before deriving missing stats, and numeric discovery must require actual persisted availability.
+
 ## Swim distance display
 
 `DataSwimDistance` keeps the canonical `Distance` token, meter value and JSON representation. Its optional
@@ -56,8 +99,21 @@ Time metric semantics:
 - `Duration` (unit: `s`): active duration (timer time).
 - `Timer time` (unit: `s`): explicit timer/active time.
 - `Elapsed time` (unit: `s`): wall-clock elapsed time (includes pauses).
-- `Pause Time` (unit: `s`): explicit paused time, computed as `max(ElapsedTime - TimerTime, 0)`.
+- `Pause Time` (unit: `s`): supported paused time; inconsistent source timing must not produce a negative value.
 - `Moving time` (unit: `s`): movement-only time; separate from pause semantics.
+
+For a sole FIT session whose complete timer timeline and ordered records corroborate longer chronology,
+`Elapsed time` includes the full span and `Pause Time` its inactive portion; the recorded `Duration` and `Timer time`
+stay active-only. See [recorded timing](importing-activities.md#recorded-timing-and-sensor-coverage) for evidence
+requirements, precision tolerance, duration limits and original-file reparse requirements. No metric token,
+unit or JSON schema changes; downstream numeric reads receive the corrected existing values after reparse.
+
+Suunto JSON/SML windows keep active time separate from their interval's elapsed time. Contradictory active timing
+requires independent header or timer-event evidence; otherwise active/timer/pause summaries and duration-dependent
+TSS candidates and durability evidence remain unavailable. Multisport active/pause totals require every leg; ordinary native JSON retains
+missing summaries without manufacturing zeros. See the [Suunto import contract](importing-activities.md) for scope,
+source precision and original-file regeneration requirements. Imported TSS retains priority; calculated HR still requires
+valid active timing as well as calibration and sample coverage.
 
 High-level metric domains include:
 - Core streams/stats: time, distance, speed, pace, swim pace, heart rate, cadence, stroke rate, power, altitude, depth, grade, vertical metrics
@@ -326,7 +382,8 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
   activity types.
 - Existing laps use their activity's normalized 1 Hz streams. Lap windows are half-open (`[start, end)`), assigning an
   exact shared boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint. Overlapping
-  laps are evaluated independently.
+  laps are evaluated independently. A lap beginning before the containing activity keeps source summaries, but does
+  not derive whole-lap averages from that leg's partial streams. Existing terminal clipping remains unchanged. Speed-derived pace can still use its own source speed.
 - Generated lap summaries store canonical stats only. Unit variants are resolved by consumers from the canonical stat
   and current unit settings; activity unit-stat generation remains unchanged for compatibility.
 - Native JSON restoration remains snapshot-based and does not regenerate these lap summaries from included streams.
@@ -352,7 +409,8 @@ Cadence and stroke-rate semantics are activity-aware:
   cadence and stroke-rate streams or summaries.
 - Native JSON hydration applies the same resolver to activity and lap streams/stats. Existing stored Sports Lib JSON
   therefore does not need source-file reparsing; serializing the hydrated model writes the canonical stroke-rate types.
-  A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
+  A lap beginning before its containing activity is not reinterpreted using only its containing leg's sport; the same exception
+  applies to terrain exclusions. A homogeneous event summary is normalized as well. Ambiguous historical mixed-event summaries remain unchanged,
   while newly generated mixed events aggregate cadence and stroke rate separately.
 - Summary-only native event JSON removes Diving-group terrain summaries when its `Activity Types` stat is present,
   while other summary semantics remain opt-in. Applications can call
@@ -661,6 +719,24 @@ check only: no zone weights, inferred threshold ratios, or replacement physiolog
 zone sets do not imply this relationship. Valid independent candidates can still supply TSS, and imported scores always
 retain priority.
 
+For percent-heart-rate-reserve (`percent_hrr`) zones, a narrower consistency check applies only when one uniquely
+matched session `time_in_zone` record explicitly supplies all three valid HR calibration values and exactly six
+positive, strictly increasing boundaries. Every boundary must exactly equal
+`round(restingHR + fraction * (maximumHR - restingHR))` for fractions `0.5, 0.6, 0.7, 0.8, 0.9, 1.0`.
+If its threshold is strictly below the first boundary, HR is unavailable with `invalid-hr-calibration`, and Automatic
+or preferred HR uses the existing sport-eligible fallback order. The MET fallback remains explicitly estimated;
+without an eligible fallback the result is unavailable, not zero. Imported TSS, including zero, remains authoritative.
+
+This is a conservative safeguard for questionable file calibration, not a universal physiological threshold minimum
+or a measurement of the athlete's true threshold. Different modes, customized/incomplete patterns, and calibration
+assembled from global/profile defaults do not trigger this HRR check. No boundary is rounded into a match, no missing
+threshold is inferred, and no score is capped or replaced with an assumed physiological value. Complete explicit
+physiological overrides retain their existing precedence. Recorded samples and calibration fields are not rewritten.
+Existing persisted scores require an original-file reparse to apply the check, followed by refreshed derived Training
+summaries. Ordinary JSON restoration cannot recover this private calibration evidence. Canonical metric tokens, units,
+JSON schemas, evaluation fields and reason codes remain unchanged, so existing QS/MCP projections need no additional
+fields, permissions or private calibration exposure.
+
 PACE TSS (running/trail groups):
 
 - Uses Minetti running-cost grade adjustment, then NP-like complete rolling 30-second/4th-power normalization.
@@ -726,6 +802,16 @@ and regenerate derived summaries to replace previously inflated distance streams
 FIT `pool_length` is stored in meters regardless of its display-unit flag. A bounded compatibility correction remains
 for Suunto statute exports only when independent recorded length/lap evidence consistently supports the yards conversion
 and does not support the native meter value. Recorded total distance remains authoritative.
+
+Length-based FIT imports retain session-owned recorded `Power` for both single- and multi-lap activities. Only finite,
+nonnegative observations are retained, including recorded zeros; missing/invalid readings remain gaps instead of
+being padded at other sensors' timestamps. Those gaps survive Activity JSON and regeneration. Power samples cannot
+extend length-derived distance or other filled swim streams into rests or missing length intervals. Recorded power
+can supply existing power summaries and calculations; NP still requires complete recorded windows and respects timer
+stops, and power TSS still requires independent FTP. No swimming-specific eligibility or threshold is inferred.
+Valid imported TSS and device-supplied summaries keep their existing precedence. Reparse original files to recover
+previously omitted power, then regenerate consuming summaries as appropriate. Existing metric tokens, units, public
+APIs and JSON structure remain compatible; an old saved JSON cannot recover omitted observations on its own.
 
 FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
 unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.

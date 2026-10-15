@@ -623,7 +623,7 @@ describe('Training Stress Score integration', () => {
       fixtureBuffer.byteOffset, fixtureBuffer.byteOffset + fixtureBuffer.byteLength), undefined, fixtureName)).getFirstActivity();
     const samples = buildPaceTssSamplesFromActivity(activity);
     const thresholdSpeed = 3;
-    const duration = activity.getTimer().getValue() as number;
+    const duration = activity.getTimer()!.getValue() as number;
     const current = TssCalculator.calculatePaceTss({ totalDurationWithoutPauses: duration,
       functionalThresholdPace: thresholdSpeed, samples, timerEvents: activity.getAllEvents() });
     const expected = calculateEnergyCostCorrectedPaceTss(samples, thresholdSpeed, duration, activity.getAllEvents());

@@ -16,6 +16,7 @@ import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { DataSpeedAvg } from '../../../../data/data.speed-avg';
 import { DataSwimPaceAvg } from '../../../../data/data.swim-pace-avg';
 import { LapTypes } from '../../../../laps/lap.types';
+import { DataStore, DynamicDataLoader } from '../../../../data/data.store';
 import {
   DataContactTimeToFlightTimeRatio,
   DataContactTimeToFlightTimeRatioAvg,
@@ -26,8 +27,99 @@ import {
 } from '../../../../data/data.running-dynamics';
 
 describe('EventImporterJSON', () => {
+  it.each(['Suunto', 'Garmin', undefined])(
+    'preserves all legacy stamina keys, values and gaps across repeated JSON reloads for %p',
+    manufacturer => {
+      // Literal persisted keys guard compatibility independently of class/token changes.
+      const stats = {
+        Stamina: 0,
+        'Minimum Stamina': 0,
+        'Maximum Stamina': 100,
+        'Average Stamina': 85.123,
+        'Potential Stamina': 66,
+        'Minimum Potential Stamina': 50,
+        'Maximum Potential Stamina': 99,
+        'Average Potential Stamina': 79.876,
+        'Beginning Potential Stamina': 99,
+        'Ending Potential Stamina': 66
+      };
+      const streams = [
+        { type: 'Stamina', data: [100, null, 0, 72] },
+        { type: 'Potential Stamina', data: [99, null, 50, 66] }
+      ];
+      Object.keys(stats).forEach(type => {
+        const DataClass = DynamicDataLoader.getDataClassFromDataType(type);
+        expect(Object.values(DataStore).filter((candidate: any) => candidate.type === type)).toEqual([DataClass]);
+      });
+
+      for (const storedStreams of [
+        [],
+        streams,
+        Object.fromEntries(streams.map(stream => [stream.type, stream.data]))
+      ]) {
+        let event = EventImporterJSON.getEventFromJSON({
+          name: 'Synthetic legacy workout',
+          startDate: 0,
+          endDate: 3000,
+          srcFileType: FileType.FIT,
+          description: null,
+          isMerge: false,
+          privacy: Privacy.Private,
+          powerCurve: null,
+          stats,
+          activities: [
+            {
+              name: null,
+              startDate: 0,
+              endDate: 3000,
+              type: ActivityTypes.Running,
+              powerMeter: false,
+              trainer: false,
+              stats,
+              streams: storedStreams,
+              creator: { name: 'Custom name', manufacturer, devices: [] },
+              intensityZones: [],
+              events: [],
+              laps: [
+                {
+                  lapId: 0,
+                  startIndex: null,
+                  endIndex: null,
+                  startDate: 0,
+                  endDate: 3000,
+                  type: LapTypes.Manual,
+                  stats
+                }
+              ]
+            }
+          ]
+        });
+        for (let pass = 0; pass < 3; pass++) {
+          const json = JSON.parse(JSON.stringify(event.toJSON()));
+          expect(json.stats).toEqual(stats);
+          expect(json.activities[0].stats).toEqual(stats);
+          expect(json.activities[0].laps[0].stats).toEqual(stats);
+          const activity = event.getFirstActivity();
+          expect(
+            activity
+              .getAllStreams()
+              .map(stream => stream.type)
+              .sort()
+          ).toEqual(Array.isArray(storedStreams) && storedStreams.length === 0 ? [] : ['Potential Stamina', 'Stamina']);
+          for (const stream of activity.getAllStreams()) {
+            expect(stream.getData()).toEqual(streams.find(candidate => candidate.type === stream.type)?.data);
+          }
+          expect(activity.creator.manufacturer).toBe(manufacturer);
+          expect(JSON.stringify(json)).not.toMatch(/EnergySense|Sustainable Distance/);
+          event = EventImporterJSON.getEventFromJSON(json);
+        }
+      }
+    }
+  );
+
   it.each(['Morning walk', 'Πρωινή βόλτα 🥾', '  Warm-up  ', '', null, undefined])(
-    'restores the activity name %p while preserving legacy unnamed activities', name => {
+    'restores the activity name %p while preserving legacy unnamed activities',
+    name => {
       const json = {
         name: name ?? null,
         startDate: 0,

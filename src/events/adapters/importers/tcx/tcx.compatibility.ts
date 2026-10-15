@@ -1,0 +1,80 @@
+import { findChildNode, findChildNodeValue, findTrackPointExtensionValue } from './utils.tcx';
+
+const tcxNamespace = 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2';
+
+const children = (parent: Element, name: string): Element[] =>
+  Array.from(parent.childNodes).filter(
+    (node): node is Element => node.nodeType === 1 && (node as Element).localName === name
+  );
+
+// Count foreign-namespace lookalikes too: a conflicting candidate must not make
+// a malformed container appear unambiguous.
+const uniqueChild = (parent: Element, name: string): Element | null => {
+  const matches = children(parent, name);
+  return matches.length === 1 && matches[0].namespaceURI === tcxNamespace ? matches[0] : null;
+};
+
+const numericText = (element: Element | null): number | null => {
+  // These compatibility layouts establish units only for a plain scalar.
+  // Unknown attributes may specify conflicting units or invalidity; xmlns is metadata.
+  if (
+    !element ||
+    Array.from(element.childNodes).some(node => node.nodeType === 1) ||
+    Array.from(element.attributes).some(attr => attr.namespaceURI !== 'http://www.w3.org/2000/xmlns/')
+  )
+    return null;
+  const text = element.textContent?.trim() || '';
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : null;
+};
+
+/** COROS's direct Extensions/Speed layout records km/h, unlike standard TPX
+ * speed in m/s. Match the activity-owned exporter identity, never the magnitude
+ * of its speed samples or the identity of another activity in the file. */
+export const hasCorosDirectSpeed = (activity: Element): boolean => {
+  if (activity.namespaceURI !== tcxNamespace) return false;
+  const creator = uniqueChild(activity, 'Creator');
+  const name = creator && uniqueChild(creator, 'Name');
+  return (
+    !!name &&
+    !Array.from(name.childNodes).some(node => node.nodeType === 1) &&
+    name.textContent?.trim() === 'COROS Wearables'
+  );
+};
+
+export const findTCXSpeed = (point: Element, corosDirectSpeed = false): number | null => {
+  const standard = findTrackPointExtensionValue(point.childNodes, 'Speed');
+  if (standard !== null || !corosDirectSpeed || point.namespaceURI !== tcxNamespace) return standard;
+  const extensions = uniqueChild(point, 'Extensions');
+  // A TPX, including an empty or invalid one, retains existing precedence.
+  if (!extensions || children(extensions, 'TPX').length) return null;
+  const value = numericText(uniqueChild(extensions, 'Speed'));
+  return value !== null && value >= 0 ? value / 3.6 : null;
+};
+
+/** Some TCX exporters put metre-valued altitude inside Position. An existing
+ * standard field retains precedence, even when it is empty or malformed. */
+export const findTCXAltitude = (point: Element): number | null => {
+  if (findChildNode(point.childNodes, 'AltitudeMeters')) {
+    return findChildNodeValue(point.childNodes, 'AltitudeMeters');
+  }
+  if (point.namespaceURI !== tcxNamespace) return null;
+  const position = uniqueChild(point, 'Position');
+  return position ? numericText(uniqueChild(position, 'AltitudeMeters')) : null;
+};
+
+/** A recorded lap value must be owned by the lap itself. A descendant search
+ * can otherwise promote its first trackpoint (including unsupported TPX/Cadence
+ * with unknown units) to a lap summary. Keep the existing lap-stat token. */
+export const findTCXLapCadence = (lap: Element): number | null => {
+  // Retain existing direct-field support for TCX v1 and unnamespaced legacy
+  // documents. A candidate must still use its own lap's namespace.
+  const namespace = lap.namespaceURI || '';
+  if (![tcxNamespace, 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v1', ''].includes(namespace))
+    return null;
+  const candidates = children(lap, 'Cadence');
+  const field = candidates.length === 1 && (candidates[0].namespaceURI || '') === namespace ? candidates[0] : null;
+  const value = numericText(field);
+  return value !== null && value >= 0 ? value : null;
+};

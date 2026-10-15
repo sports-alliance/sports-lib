@@ -8,7 +8,7 @@ export interface ActivityParsingStreamOptions {
   /**
    * Optional allowlist of stream types to include in final activity output.
    *
-   * This is currently enforced for FIT/TCX/GPX importers.
+   * Enforced for FIT/TCX/GPX and Suunto JSON/SML importers.
    */
   includeTypes?: string[];
 }

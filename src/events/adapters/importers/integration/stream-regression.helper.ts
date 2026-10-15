@@ -5,7 +5,9 @@ export function getPrimaryActivityForStreamRegression(event: EventInterface): Ac
   return event
     .getActivities()
     .reduce((previous, current) =>
-      previous.getDuration().getValue() > current.getDuration().getValue() ? previous : current
+      (previous.getDuration()?.getValue() ?? -Infinity) > (current.getDuration()?.getValue() ?? -Infinity)
+        ? previous
+        : current
     );
 }
 

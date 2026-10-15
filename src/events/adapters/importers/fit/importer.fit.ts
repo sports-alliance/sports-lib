@@ -1,3 +1,4 @@
+import { rejectImpossiblePoolTiming, rejectedPoolTiming } from './fit-pool-timing';
 import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
 import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
@@ -26,6 +27,7 @@ import {
 } from '../../../../activities/dive-source-records';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataElapsedTime } from '../../../../data/data.elapsed-time';
+import { getCorroboratedSessionElapsedTime } from './fit-session-timing';
 import { DataEnergy } from '../../../../data/data.energy';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { LapInterface } from '../../../../laps/lap.interface';
@@ -231,6 +233,7 @@ const INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD = 1.15;
 const TIMER_ELAPSED_ROUNDING_TOLERANCE_SECONDS = 1;
 
 export class EventImporterFIT {
+  private static readonly poolLengthEndDates = new WeakMap<object, Date>();
   private static readonly INVALID_FIT_HRV_INTERVAL_MS = 65535;
   private static readonly MIN_VALID_VO2_MAX = 10;
   private static readonly MAX_VALID_VO2_MAX = 100;
@@ -278,7 +281,22 @@ export class EventImporterFIT {
   /** Import file-scoped calibration and combine complementary records before
    * sensor padding. Recorded pool HR retains explicit dropout boundaries;
    * generated swim samples cannot extend past their owning lap or session.
-   * Reject explicit non-activity file types before recovering missing sessions. */
+   * Shared pool timestamps need consecutive-length corroboration before elapsed
+   * time supplies an endpoint. Incomplete source lengths cannot generate distance.
+   * Reject explicit non-activity file types before recovering missing sessions.
+   * Retain a sole session's full chronology when ordered records and complete
+   * timer intervals corroborate it, preserving active time and duration limits.
+   * Whole-workout timing recovery and pool timing rejection decline when an explicit
+   * activity session count contradicts the sole decoded session or multiple activity summaries exist;
+   * absent counts stay compatible.
+   * Recover premature ends or delayed saves only with independent timing and
+   * distance evidence; multisport start recovery requires disjoint ownership.
+   * Zero-distance delayed saves additionally need a declared sole session and
+   * complete zero counters; missing distance does not establish this evidence.
+   * A corroborated missing final session is retained as Unknown Sport without
+   * moving earlier records or laps, or inferring sport-specific calibration.
+   * Recovered legs do not inherit sport-only activity metrics; user metrics
+   * require a unique explicit start matching the recovered leg. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -288,6 +306,8 @@ export class EventImporterFIT {
 
     // @ts-ignore
     const { default: FitFileParser } = await import('fit-file-parser');
+    const { getMissingFinalSession } = await import('./fit-missing-session');
+    const { getPoolLengthEvidence } = await import('./fit-pool-evidence');
     return new Promise((resolve, reject) => {
       const fitFileParser = new FitFileParser({
         force: true,
@@ -330,6 +350,19 @@ export class EventImporterFIT {
           return;
         }
 
+        rejectImpossiblePoolTiming(fitDataObject);
+
+        const soleSourceSession = fitDataObject.sessions?.length === 1 ? fitDataObject.sessions[0] : undefined;
+        const sourceElapsed = soleSourceSession?.total_elapsed_time;
+        const sourceSpan = (+soleSourceSession?.timestamp - +soleSourceSession?.start_time) / 1000;
+        // Ordinary sessions do not need an extra record pass. Preserve the raw
+        // evidence before session synthesis or legacy timing normalization.
+        const corroboratedSessionElapsed = typeof sourceElapsed === 'number' && sourceElapsed > 0 &&
+          (sourceSpan / sourceElapsed > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD || sourceSpan + 1 < sourceElapsed)
+          ? getCorroboratedSessionElapsedTime(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60)
+          : null;
+        const corroboratedLapTimestamps = this.getCorroboratedLapTimestamps(fitDataObject);
+        const missingFinalSession = getMissingFinalSession(fitDataObject, options.maxActivityDurationDays * 24 * 60 * 60);
         this.normalizeFitDataObjectForActivities(fitDataObject);
 
         if (!fitDataObject.sessions.length) {
@@ -338,6 +371,13 @@ export class EventImporterFIT {
         }
 
         this.prepareSwimLengths(fitDataObject, options);
+        const poolEvidence = getPoolLengthEvidence(fitDataObject, {
+          number: value => this.getNumericValue(value), index: value => this.getMessageIndexValue(value),
+          date: value => this.getDateFromValue(value),
+          window: summary => this.getLapWindow(summary), enum: value => this.getFitEnumValue(value),
+          type: value => this.getSwimLengthType(value)
+        });
+        poolEvidence.ends.forEach((end, length) => this.poolLengthEndDates.set(length, end));
         this.normalizeSuuntoPoolLengths(fitDataObject);
 
         // Check for jumps data at the top level
@@ -364,11 +404,13 @@ export class EventImporterFIT {
           timer: session.total_timer_time, elapsed: session.total_elapsed_time
         }));
         const sessionActivities: ActivityInterface[] = fitDataObject.sessions.map((session: any, index: number) =>
-          this.getActivityFromSessionObject(session, fitDataObject, options, index));
+          this.getActivityFromSessionObject(session, fitDataObject, options, index,
+            index === 0 ? corroboratedSessionElapsed : null));
         const sessionRecords = this.getSessionRecords(fitDataObject.records, sessionActivities);
 
         // Iterate over the sessions and create their activities
-        const createActivity = (sessionObject: any, sessionIndex: number): ActivityInterface => {
+        const recordedFile = fitDataObject;
+        const createActivity = (sessionObject: any, sessionIndex: number, fitDataObject = recordedFile): ActivityInterface => {
           // Keep the original timing evidence before legacy date/timer normalization.
           const sourceTiming = sourceTimings[sessionIndex];
           // Get the activity from the sessionObject
@@ -377,7 +419,13 @@ export class EventImporterFIT {
           this.addDiveSourceRecords(activity, fitDataObject);
           // Go over the laps
           sessionObject.laps.forEach((sessionLapObject: any, index: number) => {
-            const lap = this.getLapFromSessionLapObject(sessionLapObject, activity, index, options);
+            const lap = this.getLapFromSessionLapObject(
+              sessionLapObject,
+              activity,
+              index,
+              options,
+              corroboratedLapTimestamps.has(sessionLapObject)
+            );
             this.addDiveSummaryStats(lap, this.getReferencedDiveSummary(fitDataObject, 'lap', sessionLapObject));
             activity.addLap(lap);
           });
@@ -577,7 +625,8 @@ export class EventImporterFIT {
           const cumulativePoolDistance = isLengthsBased
             ? this.resolveCumulativePoolDistance(sessionObject, activity, recordedSamples) : null;
           const samples = isLengthsBased
-            ? this.generateSamplesFromLengths(sessionObject, activity, options, cumulativePoolDistance !== null)
+            ? this.generateSamplesFromLengths(sessionObject, activity, options, cumulativePoolDistance !== null,
+              !poolEvidence.incompleteSessions.has(sessionObject))
             : recordedSamples;
 
           // Setup sample info which could be use when getting sample values
@@ -591,18 +640,59 @@ export class EventImporterFIT {
           // Single-lap files previously used their records directly. Keep those
           // recorded stream types and use newly supported lengths only for missing types.
           const recordedHasPower = recordedSamples.some((sample: any) =>
-            Number.isFinite(isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power));
-          const preserveRecordedTypes = isLengthsBased && sessionObject.laps.filter((lap: any) => lap.lengths?.length).length === 1;
-          const missingGeneratedDistance = isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
-          const recordedMappings = isLengthsBased ? allowedSampleMappings.filter(mapping =>
-            mapping.dataType !== DataHeartRate.type &&
-            (preserveRecordedTypes || (mapping.dataType === DataDistance.type &&
-              (missingGeneratedDistance || cumulativePoolDistance === 'recorded'))) &&
-            recordedSamples.some((sample: any) => isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower })))) : [];
-          this.addSampleStreamsToActivity(activity, samples, allowedSampleMappings.filter(mapping =>
-            !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) && !recordedMappings.includes(mapping)), samplesInfo);
+            Number.isFinite(
+              isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power
+            )
+          );
+          const preserveRecordedTypes =
+            isLengthsBased && sessionObject.laps.filter((lap: any) => lap.lengths?.length).length === 1;
+          const missingGeneratedDistance =
+            isLengthsBased && !samples.some((sample: any) => Number.isFinite(sample.distance));
+          const recordedMappings = isLengthsBased
+            ? allowedSampleMappings.filter(
+                mapping =>
+                  mapping.dataType !== DataHeartRate.type &&
+                  (preserveRecordedTypes ||
+                    mapping.dataType === DataPower.type ||
+                    (mapping.dataType === DataDistance.type &&
+                      (missingGeneratedDistance || cumulativePoolDistance === 'recorded'))) &&
+                  recordedSamples.some((sample: any) =>
+                    isNumber(mapping.getSampleValue(sample, { hasPowerMeter: recordedHasPower }))
+                  )
+              )
+            : [];
+          this.addSampleStreamsToActivity(
+            activity,
+            samples,
+            allowedSampleMappings.filter(
+              mapping =>
+                !(recordedHeartRate.length && mapping.dataType === DataHeartRate.type) &&
+                !recordedMappings.includes(mapping)
+            ),
+            samplesInfo
+          );
           if (recordedMappings.length) {
-            this.addSampleStreamsToActivity(activity, recordedSamples, recordedMappings, { hasPowerMeter: recordedHasPower });
+            // Recorded pool power has its own coverage. The ordinary FIT mapper
+            // pads absent power at other sensor timestamps with zero; retain
+            // actual observations here so gaps also survive JSON restoration.
+            const poolMappings = recordedMappings.map(mapping =>
+              mapping.dataType === DataPower.type
+                ? {
+                    ...mapping,
+                    getSampleValue: (sample: { power?: unknown; Power?: unknown; RP_Power?: unknown }) => {
+                      const watts = isNumber(sample.power)
+                        ? sample.power
+                        : isNumber(sample.Power)
+                          ? sample.Power
+                          : sample.RP_Power;
+                      return typeof watts === 'number' && Number.isFinite(watts) && watts >= 0 ? watts : null;
+                    }
+                  }
+                : mapping
+            );
+            this.addSampleStreamsToActivity(activity, recordedSamples, poolMappings, {
+              hasPowerMeter: recordedHasPower
+            });
           }
           if (recordedHeartRate.length) {
             this.addSampleStreamsToActivity(activity, recordedHeartRate,
@@ -612,7 +702,29 @@ export class EventImporterFIT {
 
           return activity;
         };
-        const activities: ActivityInterface[] = fitDataObject.sessions.map(createActivity);
+        const activities: ActivityInterface[] = fitDataObject.sessions.map((session: any, index: number) => createActivity(session, index));
+        if (missingFinalSession) {
+          // Complete recorded legs with their original file context first. Adding
+          // a synthetic session must not change sole-session calibration matching
+          // or take its closing sample. Only previously unowned records follow.
+          const index = activities.length;
+          // Sport-only activity metrics cannot identify an unknown leg. User
+          // metrics need one explicit matching start; never use the first-row fallback.
+          const userMetrics = (fitDataObject.user_metrics ?? []).filter((metric: any) =>
+            metric.start_of_activity instanceof Date && +metric.start_of_activity === +missingFinalSession.start_time);
+          const recoveredFile = { ...fitDataObject, sessions: [...fitDataObject.sessions, missingFinalSession],
+            activity_metrics: [], user_metrics: userMetrics.length === 1 ? userMetrics : [] };
+          const recovered = this.getActivityFromSessionObject(missingFinalSession, recoveredFile, options, index);
+          // A normalization of earlier bounds may have changed ownership. Do not
+          // append if the recovered window now overlaps any recorded leg.
+          if (sessionActivities.every(activity => +activity.endDate <= +recovered.startDate)) {
+            sourceTimings.push({ timer: missingFinalSession.total_timer_time, elapsed: missingFinalSession.total_elapsed_time });
+            sessionActivities.push(recovered);
+            sessionRecords.push(fitDataObject.records.filter((record: any) =>
+              +record.timestamp > +recovered.startDate && +record.timestamp <= +recovered.endDate));
+            activities.push(createActivity(missingFinalSession, index, recoveredFile));
+          }
+        }
 
         // If there are no activities to parse ....
         if (!activities.length) {
@@ -872,7 +984,8 @@ export class EventImporterFIT {
    * @private
    */
   private static generateSamplesFromLengths(
-    sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions, usePoolLengthDistance = false
+    sessionObject: any, activity: ActivityInterface, options: ActivityParsingOptions, usePoolLengthDistance = false,
+    completeSourceLengths = true
   ): any[] {
     if (!this.isLengthsBased(sessionObject)) {
       throw new ParsingEventLibError('Trying to get samples from activities lengths, but no lengths is available');
@@ -894,9 +1007,14 @@ export class EventImporterFIT {
     // complete counter: retain recorded distance instead, or leave it absent.
     const missingActiveLap = laps.some((lap, index) => (this.getNumericValue(lap.total_distance) ?? 0) > 0 &&
       !activeCounts.get(index + 1));
-    let distanceKnown = completeOwnership && !missingActiveLap && Array.from(activeCounts.values()).some(count => count > 0);
+    let distanceKnown = completeSourceLengths && completeOwnership && !missingActiveLap &&
+      Array.from(activeCounts.values()).some(count => count > 0);
 
     for (const { length, lap, lapIndex } of lengths) {
+      if (length[rejectedPoolTiming]) {
+        if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
+        continue;
+      }
       const lengthStartDate = this.getSwimLengthStartDate(length);
       if (!lengthStartDate || lengthStartDate < activity.startDate || lengthStartDate >= activity.endDate) {
         if (this.getSwimLengthType(length.length_type) === 'active') distanceKnown = false;
@@ -1643,10 +1761,64 @@ export class EventImporterFIT {
     return value instanceof Date && Number.isFinite(value.getTime());
   }
 
+  /** Preserve independently corroborated source ends before cascade/timing recovery. */
+  private static getCorroboratedLapTimestamps(fitDataObject: any): WeakSet<object> {
+    const corroborated = new WeakSet<object>();
+    const laps: any[] = fitDataObject.laps ?? [];
+    const sessions: any[] = fitDataObject.sessions ?? [];
+    const startCounts = new Map<number, number>();
+    for (const lap of laps) {
+      if (this.isValidDate(lap?.start_time)) {
+        const start = +lap.start_time;
+        startCounts.set(start, (startCounts.get(start) ?? 0) + 1);
+      }
+    }
+    for (const lap of laps) {
+      if (!this.isValidDate(lap?.start_time) || !this.isValidDate(lap?.timestamp)) continue;
+      const start = +lap.start_time;
+      const end = +lap.timestamp;
+      const elapsed = lap.total_elapsed_time;
+      const timer = lap.total_timer_time;
+      // FIT timestamps have whole-second precision, whereas elapsed is stored
+      // in milliseconds. Its span must be one of the two quantized endpoints;
+      // proximity to a cascaded record alone cannot validate a lap timestamp.
+      const span = (end - start) / 1000;
+      if (
+        start % 1000 ||
+        end % 1000 ||
+        end <= start ||
+        startCounts.get(start) !== 1 ||
+        typeof elapsed !== 'number' ||
+        !Number.isFinite(elapsed) ||
+        elapsed <= 0 ||
+        // A longer timer must also agree at timestamp precision. Otherwise
+        // existing recovery may swap the summaries and invalidate this proof.
+        (timer !== undefined &&
+          timer !== null &&
+          (typeof timer !== 'number' ||
+            !Number.isFinite(timer) ||
+            timer < 0 ||
+            (timer > elapsed && span !== Math.floor(timer) && span !== Math.ceil(timer)))) ||
+        (span !== Math.floor(elapsed) && span !== Math.ceil(elapsed))
+      )
+        continue;
+      const owners = sessions.filter(
+        session =>
+          this.isValidDate(session?.start_time) &&
+          this.isValidDate(session?.timestamp) &&
+          +session.start_time <= start &&
+          end <= +session.timestamp
+      );
+      if (owners.length === 1) corroborated.add(lap);
+    }
+    return corroborated;
+  }
+
   private static getValidLapTimestamp(
     sessionLapObject: any,
     startDate: Date | null,
-    lastRecordTimestamp: Date | null
+    lastRecordTimestamp: Date | null,
+    corroboratedTimestamp = false
   ): Date | null {
     const timestamp = sessionLapObject?.timestamp;
     if (!this.isValidDate(timestamp)) {
@@ -1666,7 +1838,7 @@ export class EventImporterFIT {
       return null;
     }
 
-    if (lastRecordTimestamp && timestamp.getTime() < lastRecordTimestamp.getTime()) {
+    if (!corroboratedTimestamp && lastRecordTimestamp && timestamp.getTime() < lastRecordTimestamp.getTime()) {
       return null;
     }
 
@@ -1782,8 +1954,17 @@ export class EventImporterFIT {
     sessionLapObject: any,
     activity: ActivityInterface,
     lapIndex: number,
-    options: ActivityParsingOptions
+    options: ActivityParsingOptions,
+    corroboratedTimestamp = false
   ): LapInterface {
+    const sourceTimingValidity = sessionLapObject[rejectedPoolTiming];
+    if (sourceTimingValidity) {
+      sessionLapObject = {
+        ...sessionLapObject,
+        ...(sourceTimingValidity.timerTime !== undefined ? { total_timer_time: undefined } : {}),
+        ...(sourceTimingValidity.elapsedTime !== undefined ? { total_elapsed_time: undefined } : {})
+      };
+    }
     this.swapTimesIfRequired(sessionLapObject);
 
     const firstRecordTimestamp = sessionLapObject?.records?.[0]?.timestamp || null;
@@ -1799,7 +1980,15 @@ export class EventImporterFIT {
         new Date(sessionLapObject.timestamp.getTime() - sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
-    const validTimestamp = this.getValidLapTimestamp(sessionLapObject, startDate, lastRecordTimestamp);
+    const validTimestamp = this.getValidLapTimestamp(
+      sessionLapObject,
+      startDate,
+      lastRecordTimestamp,
+      corroboratedTimestamp &&
+        !!startDate &&
+        startDate >= activity.startDate &&
+        sessionLapObject.timestamp <= activity.endDate
+    );
 
     const endDate =
       validTimestamp ||
@@ -1809,17 +1998,25 @@ export class EventImporterFIT {
         new Date(sessionLapObject.start_time.getTime() + sessionLapObject.total_elapsed_time * 1000)) ||
       null;
 
+    const timingValidity = sessionLapObject[rejectedPoolTiming];
+    // Retain a bounded containment interval, never present it as measured time.
+    const boundedEnd =
+      timingValidity && startDate
+        ? new Date(Math.max(+startDate, Math.min(+(endDate || startDate), +activity.endDate)))
+        : endDate;
     const resolvedDates =
-      !startDate || !endDate || endDate <= startDate
-        ? this.resolveInvalidLapDates(
-            sessionLapObject,
-            activity,
-            startDate,
-            endDate,
-            firstRecordTimestamp,
-            lastRecordTimestamp
-          )
-        : { startDate, endDate };
+      timingValidity && startDate
+        ? { startDate, endDate: boundedEnd }
+        : !startDate || !endDate || endDate <= startDate
+          ? this.resolveInvalidLapDates(
+              sessionLapObject,
+              activity,
+              startDate,
+              endDate,
+              firstRecordTimestamp,
+              lastRecordTimestamp
+            )
+          : { startDate, endDate };
 
     const lap = new Lap(
       resolvedDates.startDate,
@@ -1827,6 +2024,7 @@ export class EventImporterFIT {
       lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>sessionLapObject.lap_trigger] || LapTypes.unknown
     );
+    lap.timingValidity = timingValidity;
     // Set the calories
     if (sessionLapObject.total_calories) {
       lap.addStat(new DataEnergy(sessionLapObject.total_calories));
@@ -1846,7 +2044,8 @@ export class EventImporterFIT {
     sessionObject: any,
     fitDataObject: any,
     options: ActivityParsingOptions,
-    sessionIndex: number
+    sessionIndex: number,
+    corroboratedSessionElapsed: number | null = null
   ): ActivityInterface {
     // Cascaded records belong to this session. Whole-file records can supply
     // bounds only for a sole session; otherwise they can absorb another leg.
@@ -1883,12 +2082,60 @@ export class EventImporterFIT {
     const [recordStartDate, recordEndDate] = getStartEndDatesFromRecords(sessionObject, fitDataObject);
 
     // Pick start/end date values
-    let startDate = this.getDateFromValue(sessionObject.start_time) || recordStartDate || null;
+    const explicitStartDate = this.getDateFromValue(sessionObject.start_time);
+    let startDate = explicitStartDate || recordStartDate || null;
     let endDate =
       this.getDateFromValue(sessionObject.timestamp) ||
       (startDate && totalElapsedTime && new Date(startDate.getTime() + totalElapsedTime * 1000)) ||
       recordEndDate ||
       null;
+
+    // A malformed multisport lap cascade can contain an earlier leg's records.
+    // Preserve this explicit start only when that prefix is independently owned
+    // by an earlier, disjoint session and this leg's elapsed duration contains
+    // every later record. Ordinary invalid-date recovery remains unchanged.
+    const explicitElapsed = this.getPositiveNumericValue(sessionObject.total_elapsed_time);
+    const explicitEndDate =
+      explicitStartDate && explicitElapsed !== null && explicitElapsed * 1000 <= maxActivityDurationMs
+        ? new Date(+explicitStartDate + explicitElapsed * 1000)
+        : null;
+    if (
+      explicitStartDate &&
+      explicitEndDate &&
+      endDate &&
+      endDate <= explicitStartDate &&
+      recordStartDate &&
+      recordStartDate < explicitStartDate &&
+      recordEndDate &&
+      recordEndDate >= explicitStartDate &&
+      recordEndDate <= explicitEndDate &&
+      fitDataObject.sessions.some((other: any) => {
+        if (other === sessionObject) return false;
+        const otherStart = this.getDateFromValue(other.start_time);
+        let otherEnd = this.getDateFromValue(other.timestamp);
+        const otherElapsed = this.getPositiveNumericValue(other.total_elapsed_time);
+        if (
+          otherStart &&
+          (!otherEnd || otherEnd <= otherStart) &&
+          otherElapsed !== null &&
+          otherElapsed * 1000 <= maxActivityDurationMs
+        )
+          otherEnd = new Date(+otherStart + otherElapsed * 1000);
+        return (
+          otherStart &&
+          otherEnd &&
+          otherStart <= recordStartDate &&
+          recordStartDate < otherEnd &&
+          otherEnd <= explicitStartDate &&
+          +otherEnd - +otherStart <= maxActivityDurationMs
+        );
+      })
+    ) {
+      endDate = explicitEndDate;
+    }
+    if (explicitStartDate && corroboratedSessionElapsed !== null) {
+      endDate = new Date(+explicitStartDate + corroboratedSessionElapsed * 1000);
+    }
 
     // Missing duration summaries do not invalidate credible explicit bounds.
     // Retain corrupt-date recovery when dates are unordered, over the duration
@@ -1938,7 +2185,9 @@ export class EventImporterFIT {
     // Test case where sometime elapsed time (calculated from dates) can be very high comparing to computed totalElapsedTime
     // If elapsed time (calculated from dates) is detected as "strange" then use elapsed time from fit fields instead
     // @see test case implying 'fixtures/rides/fit/5319808632.fit' fit file
-    if (totalElapsedTime && elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
+    const preserveCorroboratedChronology = corroboratedSessionElapsed === elapsedTimeFromDates;
+    if (!preserveCorroboratedChronology && totalElapsedTime &&
+        elapsedTimeFromDates / totalElapsedTime > INVALID_DATES_ELAPSED_TIME_RATIO_THRESHOLD) {
       if (totalElapsedTime) {
         endDate = new Date(startDate.getTime() + totalElapsedTime * 1000);
       }
@@ -1978,6 +2227,7 @@ export class EventImporterFIT {
           ...sessionObject,
           start_time: startDate,
           timestamp: endDate,
+          ...(preserveCorroboratedChronology ? { total_elapsed_time: elapsedTimeFromDates } : {}),
           threshold_power: fileFtp ?? sessionObject?.threshold_power
         },
         startDate,
@@ -2479,6 +2729,8 @@ export class EventImporterFIT {
   }
 
   private static getSwimLengthEndDate(length: any, startDate: Date): Date {
+    const corroboratedEnd = this.poolLengthEndDates.get(length);
+    if (corroboratedEnd) return corroboratedEnd;
     const timestamp = this.getDateFromValue(length?.timestamp);
     const elapsedTime = this.getPositiveNumericValue(length?.total_elapsed_time);
     if (timestamp && +timestamp > +startDate) {
@@ -2496,8 +2748,21 @@ export class EventImporterFIT {
     return startDate;
   }
 
-  private static getBoundedSwimLengthEndDate(length: any, startDate: Date, activity: ActivityInterface, lap?: any): Date {
-    const end = this.getSwimLengthEndDate(length, startDate);
+  private static getBoundedSwimLengthEndDate(
+    length: any,
+    startDate: Date,
+    activity: ActivityInterface,
+    lap?: any
+  ): Date {
+    const rejected = length[rejectedPoolTiming];
+    const safeLength = rejected
+      ? {
+          ...length,
+          ...(rejected.elapsedTime !== undefined ? { total_elapsed_time: undefined } : {}),
+          ...(rejected.timerTime !== undefined ? { total_timer_time: undefined } : {})
+        }
+      : length;
+    const end = this.getSwimLengthEndDate(safeLength, startDate);
     const lapEnd = lap ? this.getLapWindow(lap).endDate : null;
     // Indexed lengths may legitimately begin before their owning lap. Preserve
     // that start and its distance, but never let the interval run into later legs.
@@ -2738,11 +3003,14 @@ export class EventImporterFIT {
 
       const lapIndex = this.getLengthLapIndex(length, laps);
       const lap = lapIndex === null ? undefined : lapByIndex.get(lapIndex);
-      const timerTime = this.getNumericValue(length?.total_timer_time);
-      const elapsedTime = this.getNumericValue(length?.total_elapsed_time);
+      const timerTime =
+        length[rejectedPoolTiming]?.timerTime !== undefined ? null : this.getNumericValue(length?.total_timer_time);
+      const elapsedTime =
+        length[rejectedPoolTiming]?.elapsedTime !== undefined ? null : this.getNumericValue(length?.total_elapsed_time);
 
       activity.addSwimLength(
         new SwimLength({
+          ...(length[rejectedPoolTiming] ? { timingValidity: length[rejectedPoolTiming] } : {}),
           index: lengthIndex + 1,
           lapIndex,
           startDate,
@@ -2960,7 +3228,7 @@ export class EventImporterFIT {
       if (object.lengths && object.lengths.length > 0) {
         object.lengths.forEach((lengthVal: any) => {
           if (lengthVal.length_type === 'active') {
-            movingTime += lengthVal.total_timer_time;
+            movingTime += lengthVal[rejectedPoolTiming]?.timerTime !== undefined ? NaN : lengthVal.total_timer_time;
           }
         });
       } else if (object.records && object.records.length > 0) {
@@ -3440,6 +3708,17 @@ export class EventImporterFIT {
       }
     }
 
+    const validity = object[rejectedPoolTiming];
+    if (validity) {
+      const unavailable = new Set<string>([DataPause.type]);
+      if (validity.elapsedTime !== undefined) unavailable.add(DataElapsedTime.type);
+      if (validity.timerTime !== undefined) {
+        unavailable.add(DataDuration.type);
+        unavailable.add(DataTimerTime.type);
+        unavailable.add(DataMovingTime.type);
+      }
+      return stats.filter(stat => !unavailable.has(stat.getType()));
+    }
     return stats;
   }
 

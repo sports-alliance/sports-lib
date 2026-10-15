@@ -1,3 +1,4 @@
+import { normalizeTimingValidity, TimingValidity } from '../duration/timing-validity';
 import { StatsUtilities } from '../stats/stats.utilities';
 import { LapInterface } from './lap.interface';
 import { DurationClassAbstract } from '../duration/duration.class.abstract';
@@ -6,6 +7,7 @@ import { LapJSONInterface } from './lap.json.interface';
 import { ActivityInterface } from '../activities/activity.interface';
 
 export class Lap extends DurationClassAbstract implements LapInterface {
+  public timingValidity?: TimingValidity;
   public lapId: number;
   public type: LapTypes;
 
@@ -27,6 +29,9 @@ export class Lap extends DurationClassAbstract implements LapInterface {
   toJSON(activity?: ActivityInterface): LapJSONInterface {
     const stats = StatsUtilities.serializeStats(this.stats);
     return {
+      ...(normalizeTimingValidity(this.timingValidity)
+        ? { timingValidity: normalizeTimingValidity(this.timingValidity) }
+        : {}),
       lapId: this.lapId,
       startDate: this.startDate.getTime(),
       endDate: this.endDate.getTime(),

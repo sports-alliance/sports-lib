@@ -1,3 +1,9 @@
+import { DataDuration } from '../../../../data/data.duration';
+import { DataTimerTime } from '../../../../data/data.timer-time';
+import { DataElapsedTime } from '../../../../data/data.elapsed-time';
+import { DataMovingTime } from '../../../../data/data.moving-time';
+import { DataPause } from '../../../../data/data.pause';
+import { normalizeTimingValidity } from '../../../../duration/timing-validity';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Lap } from '../../../../laps/lap';
@@ -169,16 +175,33 @@ export class EventImporterJSON {
     return device;
   }
 
-  /** Restores a native JSON lap and hydrates any missing speed-derived pace summaries. */
+  /**
+   * Restores a native JSON lap, retaining a nonnegative safe-integer source ID (including zero).
+   * Missing/invalid IDs use the one-based array position. Activity hydration additionally
+   * avoids fallback collisions with saved IDs. Missing speed-derived pace summaries are hydrated.
+   */
   static getLapFromJSON(json: LapJSONInterface, lapIndex: number): LapInterface {
     const lap = new Lap(
       new Date(json.startDate),
       new Date(json.endDate),
-      lapIndex + 1,
+      this.isValidLapId(json.lapId) ? json.lapId : lapIndex + 1,
       LapTypes[<keyof typeof LapTypes>json.type]
     );
+    lap.timingValidity = normalizeTimingValidity(json.timingValidity);
     this.addStatsFromJSON(lap, json.stats);
+    // An additive validity marker must also protect hydration of stale saved stats.
+    if (lap.timingValidity) {
+      lap.removeStat(DataPause.type);
+      if (lap.timingValidity.elapsedTime !== undefined) lap.removeStat(DataElapsedTime.type);
+      if (lap.timingValidity.timerTime !== undefined) {
+        [DataDuration.type, DataTimerTime.type, DataMovingTime.type].forEach(type => lap.removeStat(type));
+      }
+    }
     return lap;
+  }
+
+  private static isValidLapId(value: unknown): value is number {
+    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
   }
 
   private static getCanonicalDataType(dataType: string): string {
@@ -313,8 +336,19 @@ export class EventImporterJSON {
       activity.powerCurve = new DataPowerCurve(<any>json.powerCurve[DataPowerCurve.type]);
       activity.addStat(<any>activity.powerCurve);
     }
+    const reservedLapIds = new Set(json.laps.map(lap => lap.lapId).filter(id => this.isValidLapId(id)));
+    let nextFallbackLapId = 1;
     json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
-      activity.addLap(EventImporterJSON.getLapFromJSON(lapJSON, index));
+      const lap = this.getLapFromJSON(lapJSON, index);
+      if (!this.isValidLapId(lapJSON.lapId)) {
+        // Array positions increase, and every ID skipped by an earlier fallback
+        // remains occupied. Continue from there without changing the assigned ID.
+        lap.lapId = Math.max(lap.lapId, nextFallbackLapId);
+        while (reservedLapIds.has(lap.lapId)) lap.lapId++;
+        reservedLapIds.add(lap.lapId);
+        nextFallbackLapId = lap.lapId + 1;
+      }
+      activity.addLap(lap);
     });
     if (Array.isArray(json.swimLengths)) {
       json.swimLengths.forEach(swimLengthJSON => {

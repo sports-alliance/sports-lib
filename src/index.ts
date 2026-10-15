@@ -73,6 +73,8 @@ export class SportsLib {
   /**
    * Parses and returns an event using Suunto format. Mixed-sport pace calibration must belong to the individual leg;
    * unscoped header speed-zone boundaries are retained only for files with one resolved sport type.
+   * Retains source endurance summaries and supports selective streams.
+   * EnduranceDistance source values are in metres and are retained without scaling.
    * @param jsonString
    * @param options
    */
@@ -257,3 +259,5 @@ export * from './users/user.export-to-csv.settings.interface';
 export * from './users/user.service.meta.interface';
 
 export type { TrainingStressScorePreference, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from './events/utilities/tss/tss-evaluation';
+
+export * from './duration/timing-validity';

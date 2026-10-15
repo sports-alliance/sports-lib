@@ -19,6 +19,7 @@ import { LapTypes } from '../../../../laps/lap.types';
 import { ImporterSuuntoDeviceNames } from '../suunto/importer.suunto.device.names';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { TCXSampleMapper } from './importer.tcx.mapper';
+import { findTCXLapCadence, findTCXSpeed, hasCorosDirectSpeed } from './tcx.compatibility';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber } from '../../../utilities/helpers';
 import { DataMovingTime } from '../../../../data/data.moving-time';
@@ -66,7 +67,13 @@ export class EventImporterTCX {
 
   /** Import TCX using whole-lap track bounds for elapsed time and the recorded
    * timer for active duration, retaining a valid explicit lap start. Resolve known sport aliases
-   * to their canonical type and preserve unrecognized or absent sports as Unknown Sport. */
+   * to their canonical type and preserve unrecognized or absent sports as Unknown Sport.
+   * Recover finite, nonnegative speed from a single directly owned ActivityExtension/v2 TPX when
+   * Extensions is absent, retaining wrapped precedence and canonical Speed/Pace metrics.
+   * Compatibility scalars reject competing namespace lookalikes and non-namespace attributes.
+   * Recognized COROS direct Extensions/Speed is converted from km/h to m/s.
+   * Position/AltitudeMeters can supply missing standard altitude in metres.
+   * Recorded lap cadence must be directly owned by the lap, never a trackpoint. */
   static getFromXML(
     xml: Document,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -85,7 +92,8 @@ export class EventImporterTCX {
           : ActivityTypes.unknown;
 
         // TCX begins with laps, get them
-        const laps = this.getLaps(<any>activityElement.getElementsByTagName('Lap'), activityType);
+        const corosDirectSpeed = hasCorosDirectSpeed(activityElement);
+        const laps = this.getLaps(<any>activityElement.getElementsByTagName('Lap'), activityType, corosDirectSpeed);
 
         // Create activity
         const startDate = laps[0].startDate;
@@ -143,7 +151,7 @@ export class EventImporterTCX {
           trackPointElements.findIndex(trackPointElement =>
             Number.isFinite(findTrackPointExtensionValue(trackPointElement.childNodes, 'Watts'))
           ) !== -1;
-        const samplesInfo = { hasPowerMeter: hasPowerMeter };
+        const samplesInfo = { hasPowerMeter, corosDirectSpeed };
         captureRecordedPowerEvidence(activity, trackPointElements.flatMap(point => {
           const time = point.getElementsByTagName('Time')[0];
           if (!time) return [];
@@ -220,25 +228,24 @@ export class EventImporterTCX {
   private static extractAndAssignActivityStatsFromLaps(laps: LapInterface[], activity: Activity): Activity {
     // Go over the laps and start filling up the stats and creating the points
     laps.forEach((lap: LapInterface) => {
-      if (lap.getDuration().getValue() === 0) {
+      const lapDuration = lap.getDuration();
+      if (lapDuration?.getValue() === 0) {
         return;
       }
 
       // Append duration to whole activity
-      if (lap.getDuration()?.getValue() > 0) {
-        if (!activity.getDuration()) {
-          activity.setDuration(new DataDuration(0));
-        }
-
-        activity.getDuration().setValue(activity.getDuration().getValue() + lap.getDuration().getValue());
+      if (lapDuration && lapDuration.getValue() > 0) {
+        const duration = activity.getDuration() ?? new DataDuration(0);
+        duration.setValue(duration.getValue() + lapDuration.getValue());
+        activity.setDuration(duration);
       }
 
       // Append timer time to whole activity
-      if (lap.getTimer()?.getValue() > 0) {
-        if (!activity.getTimer()) {
-          activity.setTimer(new DataTimerTime(0));
-        }
-        activity.getTimer().setValue(activity.getTimer().getValue() + lap.getTimer().getValue());
+      const lapTimer = lap.getTimer();
+      if (lapTimer && lapTimer.getValue() > 0) {
+        const timer = activity.getTimer() ?? new DataTimerTime(0);
+        timer.setValue(timer.getValue() + lapTimer.getValue());
+        activity.setTimer(timer);
       }
 
       // Append elapsed time to whole activity
@@ -253,19 +260,19 @@ export class EventImporterTCX {
       }
 
       // Append moving time to whole activity
-      if (lap.getMovingTime()?.getValue() > 0) {
-        if (!activity.getMovingTime()) {
-          activity.setMovingTime(new DataMovingTime(0));
-        }
-        activity.getMovingTime().setValue(activity.getMovingTime().getValue() + lap.getMovingTime().getValue());
+      const lapMovingTime = lap.getMovingTime();
+      if (lapMovingTime && lapMovingTime.getValue() > 0) {
+        const movingTime = activity.getMovingTime() ?? new DataMovingTime(0);
+        movingTime.setValue(movingTime.getValue() + lapMovingTime.getValue());
+        activity.setMovingTime(movingTime);
       }
 
       // Append pause time to whole activity
-      if (lap.getPause()?.getValue() > 0) {
-        if (!activity.getPause()) {
-          activity.setPause(new DataPause(0));
-        }
-        activity.getPause().setValue(activity.getPause().getValue() + lap.getPause().getValue());
+      const lapPause = lap.getPause();
+      if (lapPause && lapPause.getValue() > 0) {
+        const pause = activity.getPause() ?? new DataPause(0);
+        pause.setValue(pause.getValue() + lapPause.getValue());
+        activity.setPause(pause);
       }
 
       // Append distance to whole activity
@@ -380,7 +387,7 @@ export class EventImporterTCX {
     return creator;
   }
 
-  private static getLaps(lapElements: HTMLElement[], activityType: ActivityTypes): LapInterface[] {
+  private static getLaps(lapElements: HTMLElement[], activityType: ActivityTypes, corosDirectSpeed = false): LapInterface[] {
     return Array.from(lapElements).reduce((lapArray: LapInterface[], lapElement: HTMLElement, lapIndex: number) => {
       // Calculating lap time data (moving time, timer time, elapsed time...)
       const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activityType);
@@ -431,7 +438,7 @@ export class EventImporterTCX {
           const seconds = (trackPointTime(trackPointElement) - trackPointTime(trackPointsElements[index - 1])) / 1000;
           if (!Number.isFinite(seconds) || seconds <= 0) return;
 
-          let speed = findTrackPointExtensionValue(trackPointElement.childNodes, 'Speed');
+          let speed = findTCXSpeed(trackPointElement, corosDirectSpeed);
 
           // Try to get m/s using delta distance if speed extension is missing
           if (speed === null) {
@@ -546,8 +553,9 @@ export class EventImporterTCX {
         }
       }
 
-      if (lapElement.getElementsByTagName('Cadence')[0]) {
-        lap.addStat(new DataCadence(Number(lapElement.getElementsByTagName('Cadence')[0].textContent)));
+      const lapCadence = findTCXLapCadence(lapElement);
+      if (lapCadence !== null) {
+        lap.addStat(new DataCadence(lapCadence));
       }
 
       // Fetching activity lap speed from records or from extensions if exists according https://www8.garmin.com/xmlschemas/ActivityExtensionv2.xsd schema

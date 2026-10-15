@@ -65,7 +65,7 @@ describe('FIT reserved-header compatibility through the activity importer', () =
       await EventImporterFIT.getFromArrayBuffer(withReservedHeaders(source, 0x10).buffer)
     ).getActivities()[0];
     expect(activity.type).toBe(expected.type);
-    expect(activity.getDuration().getValue()).toBe(60);
+    expect(activity.getDuration()!.getValue()).toBe(60);
     expect(activity.getDistance().getValue()).toBe(1000);
     expect(activity.getStreamData(DataHeartRate.type)).toEqual(expected.getStreamData(DataHeartRate.type));
     const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(activity);

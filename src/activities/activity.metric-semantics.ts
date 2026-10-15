@@ -107,7 +107,10 @@ export function normalizeActivityMetricSemanticsForStats(
 export function normalizeActivityMetricSemanticsForActivity(activity: ActivityInterface): void {
   normalizeStrokeRateSemanticsForActivity(activity);
   removeExcludedTerrainSummaryMetricsForStats(activity, [activity.type]);
-  activity.getLaps().forEach(lap => removeExcludedTerrainSummaryMetricsForStats(lap, [activity.type]));
+  activity
+    .getLaps()
+    .filter(lap => +lap.startDate >= +activity.startDate)
+    .forEach(lap => removeExcludedTerrainSummaryMetricsForStats(lap, [activity.type]));
 }
 
 /**
@@ -150,7 +153,10 @@ export function normalizeStrokeRateSemanticsForActivity(activity: ActivityInterf
   }
 
   normalizeActivityMetricSemanticsForStats(activity, [activity.type]);
-  activity.getLaps().forEach(lap => normalizeActivityMetricSemanticsForStats(lap, [activity.type]));
+  activity
+    .getLaps()
+    .filter(lap => +lap.startDate >= +activity.startDate)
+    .forEach(lap => normalizeActivityMetricSemanticsForStats(lap, [activity.type]));
 }
 
 function resolveActivityTypes(activityTypes: readonly unknown[]): ActivityTypes[] {

@@ -48,7 +48,7 @@ describe('FIT session bounds without duration summaries', () => {
       const control = (await importLegs({ timing: 'both' })).getActivities();
       expect(activities.map(a => [a.startDate, a.endDate])).toEqual([[at(0), at(3600)], [at(3600), at(7200)]]);
       expect(activities.map(a => a.getStat(DataElapsedTime.type)?.getValue())).toEqual([3600, 3600]);
-      expect(activities.map(a => a.getTimer().getValue())).toEqual([3600, 3600]);
+      expect(activities.map(a => a.getTimer()!.getValue())).toEqual([3600, 3600]);
       expect(activities.map(a => a.getStream(DataHeartRate.type).getData(true, true)))
         .toEqual([Array(60).fill(165), Array(61).fill(100)]);
       expect(activities.map(a => ActivityUtilities.getTrainingStressScoreEvaluations(a)))
@@ -63,8 +63,8 @@ describe('FIT session bounds without duration summaries', () => {
   it('recovers explicit pauses within each retained session', async () => {
     const activities = (await importLegs({ pause: true })).getActivities();
     const control = (await importLegs({ timing: 'both', pause: true })).getActivities();
-    expect(activities.map(a => a.getTimer().getValue())).toEqual([2400, 3600]);
-    expect(activities.map(a => a.getPause().getValue())).toEqual([1200, 0]);
+    expect(activities.map(a => a.getTimer()!.getValue())).toEqual([2400, 3600]);
+    expect(activities.map(a => a.getPause()!.getValue())).toEqual([1200, 0]);
     expect(activities.map(a => ActivityUtilities.getTrainingStressScoreEvaluations(a)))
       .toEqual(control.map(a => ActivityUtilities.getTrainingStressScoreEvaluations(a)));
   });
@@ -128,7 +128,7 @@ describe('FIT session record-bound recovery', () => {
     const activity = resolve(session(fields));
     expect([activity.startDate, activity.endDate]).toEqual([at(0), at(120)]);
     expect(activity.getStat(DataElapsedTime.type)?.getValue()).toBe(120);
-    expect(activity.getTimer().getValue()).toBe(120);
+    expect(activity.getTimer()!.getValue()).toBe(120);
   });
 
   it('uses only the current session lap records when recovering a multisport leg', () => {
@@ -136,7 +136,7 @@ describe('FIT session record-bound recovery', () => {
     const other = session({ start_time: at(3600), timestamp: at(7200) });
     const activity = resolve(leg, [other], records([0, 60, 120, 3600, 7200]));
     expect([activity.startDate, activity.endDate]).toEqual([at(0), at(120)]);
-    expect(activity.getTimer().getValue()).toBe(120);
+    expect(activity.getTimer()!.getValue()).toBe(120);
   });
 
   it('does not borrow the whole-file record range for a session with unknown bounds', () => {
@@ -147,6 +147,33 @@ describe('FIT session record-bound recovery', () => {
   it.each([undefined, 30 * 86400])('does not bypass the duration limit when no credible record range exists (%s)', duration => {
     expect(() => resolve(session({ start_time: at(0), timestamp: at(30 * 86400), total_elapsed_time: duration }), [], []))
       .toThrow(DurationExceededEventLibError);
+  });
+
+  it('does not shorten an ordinary invalid-end session to a fractional elapsed summary', () => {
+    const activity = resolve(
+      session({ start_time: at(0), timestamp: at(0), total_elapsed_time: 90.8 }),
+      [],
+      records([0, 91])
+    );
+    expect([activity.startDate, activity.endDate]).toEqual([at(0), at(91)]);
+  });
+
+  it.each([
+    { otherEnd: 500, lastRecord: 420 },
+    { otherEnd: 413, lastRecord: 426 },
+    { otherEnd: 413, lastRecord: 418 }
+  ])('does not infer a later-leg boundary from conflicting ownership or incomplete elapsed evidence: %j', fields => {
+    const leg = session({
+      start_time: at(419),
+      timestamp: at(0),
+      total_elapsed_time: 6.663,
+      total_timer_time: 0.646,
+      records: records([0, fields.lastRecord])
+    });
+    const other = session({ start_time: at(0), timestamp: at(fields.otherEnd) });
+    const activity = resolve(leg, [other]);
+    // The new narrow repair is ineligible; retain the existing corrupt-date fallback.
+    expect(activity.startDate).toEqual(at(0));
   });
 
   it('honors a caller-supplied duration limit when validating explicit bounds', () => {

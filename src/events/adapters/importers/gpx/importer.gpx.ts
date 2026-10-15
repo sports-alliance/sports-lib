@@ -23,18 +23,19 @@ import {
 } from '../../../../streams/stream.selection';
 
 export class EventImporterGPX {
-  /** Imports timed GPX tracks, preserving the exporter name without treating the GPX schema
-   * version as device manufacturer or software metadata. */
-  static getFromString(
+  /** Imports timed GPX tracks, including directly owned v2 recorded speed and corroborated legacy
+   * v1 exporter conventions in m/s. Historical recovery requires original-file reparse. */
+  static async getFromString(
     gpx: string,
     domParser?: any,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     name = 'New Event'
   ): Promise<EventInterface> {
-    return new Promise((resolve, reject) => {
+    const { createGPXRecordedSpeedReader } = await import('../../gpx-speed');
+    return new Promise<EventInterface>((resolve, reject) => {
       const streamSelection = getStreamSelectionFromOptions(options);
       // debugger
-      const parsedGPX: any = new GXParser(gpx, domParser);
+      const parsedGPX: any = new GXParser(gpx, domParser, createGPXRecordedSpeedReader);
       const tracks = parsedGPX.trk || [];
 
       if (!tracks?.length) {
@@ -98,15 +99,18 @@ export class EventImporterGPX {
         const hasPowerMeter =
           samples.findIndex(sample => sample.extensions?.find((ext: any) => ext.power?.length)) !== -1;
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
-        captureRecordedPowerEvidence(activity, samples.map(sample => {
-          const rawPower = sample.extensions?.[0]?.power?.[0];
-          return {
-            timestamp: sample.time[0],
-            // Match the mapper's first extension, retaining absent/blank fields as
-            // unknown rather than its compatibility zero padding.
-            power: isNumberOrString(rawPower) && String(rawPower).trim() !== '' ? Number(rawPower) : undefined
-          };
-        }));
+        captureRecordedPowerEvidence(
+          activity,
+          samples.map(sample => {
+            const rawPower = sample.extensions?.[0]?.power?.[0];
+            return {
+              timestamp: sample.time[0],
+              // Match the mapper's first extension, retaining absent/blank fields as
+              // unknown rather than its compatibility zero padding.
+              power: isNumberOrString(rawPower) && String(rawPower).trim() !== '' ? Number(rawPower) : undefined
+            };
+          })
+        );
 
         // Match
         GPXSampleMapper.filter(sampleMapping =>

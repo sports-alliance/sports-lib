@@ -203,6 +203,21 @@ function createActivity(type = ActivityTypes.Running): Activity {
   return new Activity(new Date(0), new Date(5000), type, new Creator('test'), defaultOptions);
 }
 
+it('retains terminal clipping for a lap whose source end exceeds the activity end', () => {
+  const activity = new Activity(
+    new Date(0),
+    new Date(2000),
+    ActivityTypes.Running,
+    new Creator('Synthetic'),
+    defaultOptions
+  );
+  activity.addStream(new Stream(DataHeartRate.type, [100, 120, 140]));
+  const lap = new Lap(new Date(0), new Date(3000), 1, LapTypes.Manual);
+  activity.addLap(lap);
+  ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+  expect(lap.getStat('Average Heart Rate')?.getValue()).toBe(120);
+});
+
 describe('activity stream-summary regression coverage', () => {
   it.each(regressionCases)('derives the canonical $name min/avg/max family', testCase => {
     const activity = createActivity();

@@ -32,14 +32,14 @@ conditions and historical reparse requirements. The known limitations below rema
 
 ## Verified corpus
 
-The validation covers **189,282 distinct source files**:
+As of **15 October 2026**, the validation covers **189,337 distinct source files**:
 
 | Classification | Files |
 |---|---:|
-| Successfully parsed activity files | 182,126 |
+| Successfully parsed activity files | 182,180 |
 | Successfully parsed route files | 1,203 |
-| Expected activity-import rejections | 5,953 |
-| **Total** | **189,282** |
+| Expected activity-import rejections | 5,954 |
+| **Total** | **189,337** |
 
 Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
 count does not represent unique workouts or athletes.
@@ -58,12 +58,7 @@ Validation included:
 - Expected rejection of unsupported or unusable inputs.
 
 Checks vary by format and scenario. Intentional changes were reviewed against source evidence; the completed
-comparisons found no unexpected differences or new rejections.
-
-The tested implementation was
-[sports-lib revision `f21cbb34`](https://github.com/sports-alliance/sports-lib/commit/f21cbb341c6acf0566ed0105c42d03406af422a7),
-containing changes unreleased at the time. Coverage combines a full replay of 188,708 files with a subsequent audit of
-574 additions against the same build.
+comparisons found no unexpected differences or newly introduced rejections.
 
 ## Route coverage
 

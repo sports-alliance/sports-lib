@@ -58,4 +58,57 @@ describe('native JSON lap identifiers', () => {
         .map(item => item.lapId)
     ).toEqual([2, 1, 4, 3, 0, 6]);
   });
+
+  it('keeps the established fallback assignments across mixed saved and missing IDs', () => {
+    const choices = [undefined, null, 0, 1, 3, Number.MAX_SAFE_INTEGER];
+    for (let combination = 0; combination < choices.length ** 4; combination++) {
+      let remaining = combination;
+      const ids = Array.from({ length: 4 }, () => {
+        const id = choices[remaining % choices.length];
+        remaining = Math.floor(remaining / choices.length);
+        return id;
+      });
+      // Compatibility oracle: each missing ID takes the first unused ID at or
+      // above its one-based array position, with all saved IDs reserved first.
+      const reserved = new Set(ids.filter((id): id is number => typeof id === 'number'));
+      const expected = ids.map((id, index) => {
+        if (typeof id === 'number') return id;
+        let fallback = index + 1;
+        while (reserved.has(fallback)) fallback++;
+        reserved.add(fallback);
+        return fallback;
+      });
+      const restored = EventImporterJSON.getActivityFromJSON(activity(ids) as any);
+      expect(restored.getLaps().map(item => item.lapId)).toEqual(expected);
+    }
+  });
+
+  it('does not repeat occupied-ID scans for a large legacy activity', () => {
+    const count = 4000;
+    const ids = [...Array(count).fill(undefined), ...Array.from({ length: count }, (_, index) => index + 1)];
+    const originalHas = Set.prototype.has;
+    let numericLookups = 0;
+    Set.prototype.has = function (this: Set<unknown>, value: unknown) {
+      if (typeof value === 'number') numericLookups++;
+      return originalHas.call(this, value);
+    };
+    let restored;
+    try {
+      restored = EventImporterJSON.getActivityFromJSON(activity(ids) as any);
+    } finally {
+      Set.prototype.has = originalHas;
+    }
+    const expected = [
+      ...Array.from({ length: count }, (_, index) => count + index + 1),
+      ...Array.from({ length: count }, (_, index) => index + 1)
+    ];
+    expect(restored.getLaps().map(item => item.lapId)).toEqual(expected);
+    // Count work instead of wall time so the regression check is stable under CI load.
+    expect(numericLookups).toBeLessThanOrEqual(ids.length * 2);
+    expect(
+      EventImporterJSON.getActivityFromJSON(restored.toJSON())
+        .getLaps()
+        .map(item => item.lapId)
+    ).toEqual(expected);
+  });
 });

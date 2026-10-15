@@ -337,11 +337,16 @@ export class EventImporterJSON {
       activity.addStat(<any>activity.powerCurve);
     }
     const reservedLapIds = new Set(json.laps.map(lap => lap.lapId).filter(id => this.isValidLapId(id)));
+    let nextFallbackLapId = 1;
     json.laps.forEach((lapJSON: LapJSONInterface, index: number) => {
       const lap = this.getLapFromJSON(lapJSON, index);
       if (!this.isValidLapId(lapJSON.lapId)) {
+        // Array positions increase, and every ID skipped by an earlier fallback
+        // remains occupied. Continue from there without changing the assigned ID.
+        lap.lapId = Math.max(lap.lapId, nextFallbackLapId);
         while (reservedLapIds.has(lap.lapId)) lap.lapId++;
         reservedLapIds.add(lap.lapId);
+        nextFallbackLapId = lap.lapId + 1;
       }
       activity.addLap(lap);
     });

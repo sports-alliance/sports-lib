@@ -30,3 +30,32 @@ const distance: DataDistance = new DataDistance(1);
 const importFromJSON: (json: EventJSONInterface) => EventInterface = SportsLib.importFromJSON;
 
 export { distance, importFromJSON, user };
+
+// These checks run against the packed declarations under strictNullChecks.
+type TimedEntity =
+  | EventInterface
+  | import('@sports-alliance/sports-lib').ActivityInterface
+  | import('@sports-alliance/sports-lib').LapInterface;
+export function optionalTiming(entity: TimedEntity) {
+  const absent: { [K in 'getDuration' | 'getTimer' | 'getMovingTime' | 'getPause']: ReturnType<TimedEntity[K]> } = {
+    getDuration: undefined,
+    getTimer: undefined,
+    getMovingTime: undefined,
+    getPause: undefined
+  };
+  // @ts-expect-error A missing duration must be checked before dereferencing it.
+  entity.getDuration().getValue();
+  // @ts-expect-error A missing timer must be checked before dereferencing it.
+  entity.getTimer().getValue();
+  // @ts-expect-error A missing moving time must be checked before dereferencing it.
+  entity.getMovingTime().getValue();
+  // @ts-expect-error A missing pause must be checked before dereferencing it.
+  entity.getPause().getValue();
+  const seconds: Array<number | undefined> = [
+    entity.getDuration()?.getValue(),
+    entity.getTimer()?.getValue(),
+    entity.getMovingTime()?.getValue(),
+    entity.getPause()?.getValue()
+  ];
+  return { absent, seconds };
+}

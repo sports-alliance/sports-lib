@@ -46,7 +46,7 @@ describe('FIT activity file types', () => {
     const event = await SportsLib.importFromFit(source([20], true, false, imported));
     expect(event.getActivities()).toHaveLength(1);
     const activity = event.getFirstActivity();
-    expect(activity.getTimer().getValue()).toBe(3600);
+    expect(activity.getTimer()!.getValue()).toBe(3600);
     if (imported !== undefined) {
       expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic)
         .toMatchObject({ method: 'IMPORTED', score: imported });
@@ -67,7 +67,7 @@ describe('FIT activity file types', () => {
         const event = await SportsLib.importFromFit(source(types, session),
           new ActivityParsingOptions({ generateUnitStreams: false }));
         expect(event.getActivities()).toHaveLength(1);
-        expect(event.getFirstActivity().getTimer().getValue()).toBe(3600);
+        expect(event.getFirstActivity().getTimer()!.getValue()).toBe(3600);
       }
     });
 });

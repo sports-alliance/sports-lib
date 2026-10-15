@@ -216,6 +216,10 @@ unavailable. The row and its usable measurements remain, with rejected source ti
 handles this in its swim calculations; applications doing their own timing calculations should use
 `resolveSwimTimingSeconds` for lengths and preserve the marker in custom serializers. See the
 [plain-language example and integration guidance](guides/importing-activities.md#contradicted-pool-timing).
+
+Duration, timer, moving-time and pause getters now correctly declare `Data… | undefined`. Guard missing statistics
+before reading them and retain valid zero. This typing correction changes no stored JSON and needs no reparse by itself;
+see [optional duration statistics](guides/importing-activities.md#optional-duration-statistics).
 Native JSON also omits non-finite scalar summaries and restores
 legacy null summaries safely, preserving valid zero values and stream gaps; that repair needs only JSON restoration.
 

@@ -160,31 +160,31 @@ describe('FIT sessionless active-time recovery', () => {
   it.each([{ session: true }, {}, { timers: [0] }, { timers: [1200, null] }, { timers: [1200, 1200], gap: true }])(
     'recovers explicit pauses without treating elapsed or partial lap timers as supplied %#', async options => {
       const activity = await sessionless(options);
-      expect(activity.getTimer().getValue()).toBe(2400);
-      expect(activity.getPause().getValue()).toBe(1200);
+      expect(activity.getTimer()!.getValue()).toBe(2400);
+      expect(activity.getPause()!.getValue()).toBe(1200);
       expect(evaluate(activity).automatic).toMatchObject({ method: 'POWER', score: 66.7 });
     });
   it.each([{ timers: [1500, 1500] }, { session: true, sessionTimer: 3000 }])('preserves complete supplied timers %#', async options => {
     const activity = await sessionless(options);
-    expect(activity.getTimer().getValue()).toBe(3000);
+    expect(activity.getTimer()!.getValue()).toBe(3000);
     expect(evaluate(activity).automatic.score).toBe(83.3);
   });
   it('retains complete lap summaries without timer events', async () => {
-    expect((await sessionless({ timers: [1200, 1200], events: [] })).getTimer().getValue()).toBe(2400);
+    expect((await sessionless({ timers: [1200, 1200], events: [] })).getTimer()!.getValue()).toBe(2400);
   });
   it.each([{ events: [] }, { events: [[1200, 1], [2400, 0]] }, { events: [[0, 0], [0, 1]] }])('does not invent pauses for absent/unanchored/conflicting events %#', async ({ events }) => {
     const activity = await sessionless({ events: events as Array<[number, number]> });
-    expect(activity.getTimer().getValue()).toBe(3600);
+    expect(activity.getTimer()!.getValue()).toBe(3600);
   });
   it('keeps validated all-paused zero unavailable through recalculation', async () => {
     const activity = await sessionless({ events: [[0, 1]], timers: [0] });
-    expect(activity.getTimer().getValue()).toBe(0);
+    expect(activity.getTimer()!.getValue()).toBe(0);
     expect(evaluate(activity).automatic.score).toBeNull();
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     expect(evaluate(activity).automatic.score).toBeNull();
   });
   it('recovers timer events even without laps', async () => {
-    expect((await sessionless({ lapless: true })).getTimer().getValue()).toBe(2400);
+    expect((await sessionless({ lapless: true })).getTimer()!.getValue()).toBe(2400);
   });
   it('preserves imported TSS while recovering a session timer', async () => {
     expect(evaluate(await sessionless({ session: true, imported: 0 })).automatic).toMatchObject({ method: 'IMPORTED', score: 0 });

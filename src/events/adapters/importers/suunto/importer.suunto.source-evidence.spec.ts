@@ -64,7 +64,7 @@ describe('Suunto source evidence', () => {
     data.DeviceLog.Header.PauseDuration = 3600;
     data.DeviceLog.Header.SpeedZones.Zone5Duration = 0;
     const activity = (await parse(data)).getFirstActivity();
-    expect(activity.getTimer().getValue()).toBe(0);
+    expect(activity.getTimer()!.getValue()).toBe(0);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.score).toBeNull();
     expect(ActivityUtilities.evaluateTrainingStressScore(activity).automatic.score).toBeNull();
   });
@@ -106,7 +106,7 @@ describe('Suunto source evidence', () => {
       <Sample><UTC>${time(600)}</UTC><Speed>3</Speed><Events><Lap><Type>Stop</Type></Lap></Events></Sample>
       </Samples></DeviceLog></sml>`;
     const activity = (await EventImporterSuuntoSML.getFromXML(xml, options)).getFirstActivity();
-    expect(activity.getTimer().getValue()).toBe(0);
+    expect(activity.getTimer()!.getValue()).toBe(0);
     expect(activity.getLaps()).toHaveLength(2);
     expect(activity.getAllEvents()).toHaveLength(1);
     expect(activity.getStat(DataFusedAltitude.type)?.getValue()).toBe(true);

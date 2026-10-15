@@ -15,20 +15,20 @@ export abstract class DurationClassAbstract extends StatsClassAbstract implement
     this.endDate = endDate;
   }
 
-  getDuration(): DataDuration {
-    return <DataDuration>this.stats.get(DataDuration.type);
+  getDuration(): DataDuration | undefined {
+    return this.stats.get(DataDuration.type) as DataDuration | undefined;
   }
 
-  getTimer(): DataTimerTime {
-    return <DataTimerTime>this.stats.get(DataTimerTime.type);
+  getTimer(): DataTimerTime | undefined {
+    return this.stats.get(DataTimerTime.type) as DataTimerTime | undefined;
   }
 
-  getMovingTime(): DataMovingTime {
-    return <DataMovingTime>this.stats.get(DataMovingTime.type);
+  getMovingTime(): DataMovingTime | undefined {
+    return this.stats.get(DataMovingTime.type) as DataMovingTime | undefined;
   }
 
-  getPause(): DataPause {
-    return <DataPause>this.stats.get(DataPause.type);
+  getPause(): DataPause | undefined {
+    return this.stats.get(DataPause.type) as DataPause | undefined;
   }
 
   setDuration(duration: DataDuration) {

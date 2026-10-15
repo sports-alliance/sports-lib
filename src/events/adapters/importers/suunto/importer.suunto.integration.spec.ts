@@ -151,10 +151,10 @@ describe('EventImporterSuuntoJSON Integration', () => {
 
     const baselineActivity = baselineEvent
       .getActivities()
-      .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+      .reduce((prev, current) => (prev.getDuration()!.getValue() > current.getDuration()!.getValue() ? prev : current));
     const includeFilteredActivity = includeFilteredEvent
       .getActivities()
-      .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+      .reduce((prev, current) => (prev.getDuration()!.getValue() > current.getDuration()!.getValue() ? prev : current));
 
     const includeFilteredStreamTypes = includeFilteredActivity.getAllStreams().map(stream => stream.type);
     expect(includeFilteredStreamTypes).toEqual([DataDistance.type]);
@@ -264,7 +264,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
       // Find the main running activity (longest duration)
       activity = event
         .getActivities()
-        .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+        .reduce((prev, current) => (prev.getDuration()!.getValue() > current.getDuration()!.getValue() ? prev : current));
     });
 
     it('should parse Ground Contact Time stream', () => {
@@ -345,7 +345,7 @@ describe('EventImporterSuuntoJSON Integration', () => {
       const event = await parseSuuntoFile(filePath);
       const activity = event
         .getActivities()
-        .reduce((prev, current) => (prev.getDuration().getValue() > current.getDuration().getValue() ? prev : current));
+        .reduce((prev, current) => (prev.getDuration()!.getValue() > current.getDuration()!.getValue() ? prev : current));
 
       expect(activity.hasStreamData(DataHeartRate.type)).toBe(true);
 

@@ -1151,18 +1151,16 @@ export class ActivityUtilities {
     let averageRPE = 0;
 
     // Sum Duration
-    if (activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
-      activities.forEach(activity => {
-        duration += activity.getDuration().getValue();
-      });
+    const durations = activities.map(activity => activity.getDuration()?.getValue());
+    if (durations.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) {
+      duration = durations.reduce((sum, value) => sum + value, 0);
       stats.push(new DataDuration(duration));
     }
 
     // Sum pause time
-    if (activities.every(activity => Number.isFinite(activity.getPause()?.getValue()))) {
-      activities.forEach(activity => {
-        pauseTime += activity.getPause().getValue();
-      });
+    const pauses = activities.map(activity => activity.getPause()?.getValue());
+    if (pauses.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) {
+      pauseTime = pauses.reduce((sum, value) => sum + value, 0);
       stats.push(new DataPause(pauseTime));
     }
 
@@ -4661,13 +4659,15 @@ export class ActivityUtilities {
       return;
     }
 
-    if (!activity.getStat(DataDuration.type)) {
-      activity.addStat(new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000));
+    let durationStat = activity.getDuration();
+    if (!durationStat) {
+      durationStat = new DataDuration((activity.endDate.getTime() - activity.startDate.getTime()) / 1000);
+      activity.setDuration(durationStat);
     }
 
     // If timer time not set, then assign elapsed time by default (e.g. GPX file dont support timer time)
     if (!activity.getStat(DataTimerTime.type)) {
-      activity.addStat(new DataTimerTime(this.round(activity.getDuration().getValue(), 2)));
+      activity.addStat(new DataTimerTime(this.round(durationStat.getValue(), 2)));
     }
 
     // If missing moving time
@@ -4744,7 +4744,7 @@ export class ActivityUtilities {
         const movingTimeStat = <DataMovingTime>activity.getStat(DataMovingTime.type);
         pauseTime =
           movingTimeStat && movingTimeStat.getValue()
-            ? activity.getDuration().getValue() - movingTimeStat.getValue()
+            ? durationStat.getValue() - movingTimeStat.getValue()
             : 0;
       }
 

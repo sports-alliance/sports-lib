@@ -245,6 +245,31 @@ a lap-swimming sub-sport or positive pool length. Ambiguous timestamps and durat
 Historical corrections require original-file reparse after adopting a release containing the fix; JSON restoration
 alone cannot supply the omitted evidence. Recorded pace, SWOLF and TSS inputs, pool units and public schemas are unchanged.
 
+### Optional duration statistics
+
+On events, activities and laps, `getDuration()`, `getTimer()`, `getMovingTime()` and `getPause()` return their
+corresponding `Data` object **or `undefined`**. The TypeScript declarations now match this existing runtime behavior.
+A missing statistic does not make parsing fail. Guard the getter before reading or formatting its value:
+
+```typescript
+import type { ActivityInterface } from '@sports-alliance/sports-lib';
+
+function displayDuration(activity: ActivityInterface): string {
+  const duration = activity.getDuration();
+  return duration === undefined ? 'Unavailable' : duration.getDisplayValue();
+}
+```
+
+Use `activity.getDuration()?.getValue()` when a calculation accepts `number | undefined`. A recorded zero remains
+a valid value; do not test seconds by truthiness or replace missing time with `0`, elapsed time or date differences.
+For a total that requires every leg's duration, leave it unavailable when a contributing leg has no usable duration.
+Normal measured durations keep the same values and formatting. With `strictNullChecks`, unguarded access now produces
+a compile-time error, so consumers must fix those call sites when upgrading. Native JSON still omits absent stats;
+no persisted-data migration or source reparse is needed solely for this typing correction.
+
+Swim-length fields use a separate representation: missing `timerTime`/`elapsedTime` are `null`, and
+`resolveSwimTimingSeconds()` returns `number | null`. The timing-validity rules below still apply.
+
 ### Contradicted pool timing
 
 **Keep a known-invalid swimming duration unavailable; do not replace it with elapsed time.** Active time measures

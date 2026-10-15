@@ -227,25 +227,24 @@ export class EventImporterTCX {
   private static extractAndAssignActivityStatsFromLaps(laps: LapInterface[], activity: Activity): Activity {
     // Go over the laps and start filling up the stats and creating the points
     laps.forEach((lap: LapInterface) => {
-      if (lap.getDuration().getValue() === 0) {
+      const lapDuration = lap.getDuration();
+      if (lapDuration?.getValue() === 0) {
         return;
       }
 
       // Append duration to whole activity
-      if (lap.getDuration()?.getValue() > 0) {
-        if (!activity.getDuration()) {
-          activity.setDuration(new DataDuration(0));
-        }
-
-        activity.getDuration().setValue(activity.getDuration().getValue() + lap.getDuration().getValue());
+      if (lapDuration && lapDuration.getValue() > 0) {
+        const duration = activity.getDuration() ?? new DataDuration(0);
+        duration.setValue(duration.getValue() + lapDuration.getValue());
+        activity.setDuration(duration);
       }
 
       // Append timer time to whole activity
-      if (lap.getTimer()?.getValue() > 0) {
-        if (!activity.getTimer()) {
-          activity.setTimer(new DataTimerTime(0));
-        }
-        activity.getTimer().setValue(activity.getTimer().getValue() + lap.getTimer().getValue());
+      const lapTimer = lap.getTimer();
+      if (lapTimer && lapTimer.getValue() > 0) {
+        const timer = activity.getTimer() ?? new DataTimerTime(0);
+        timer.setValue(timer.getValue() + lapTimer.getValue());
+        activity.setTimer(timer);
       }
 
       // Append elapsed time to whole activity
@@ -260,19 +259,19 @@ export class EventImporterTCX {
       }
 
       // Append moving time to whole activity
-      if (lap.getMovingTime()?.getValue() > 0) {
-        if (!activity.getMovingTime()) {
-          activity.setMovingTime(new DataMovingTime(0));
-        }
-        activity.getMovingTime().setValue(activity.getMovingTime().getValue() + lap.getMovingTime().getValue());
+      const lapMovingTime = lap.getMovingTime();
+      if (lapMovingTime && lapMovingTime.getValue() > 0) {
+        const movingTime = activity.getMovingTime() ?? new DataMovingTime(0);
+        movingTime.setValue(movingTime.getValue() + lapMovingTime.getValue());
+        activity.setMovingTime(movingTime);
       }
 
       // Append pause time to whole activity
-      if (lap.getPause()?.getValue() > 0) {
-        if (!activity.getPause()) {
-          activity.setPause(new DataPause(0));
-        }
-        activity.getPause().setValue(activity.getPause().getValue() + lap.getPause().getValue());
+      const lapPause = lap.getPause();
+      if (lapPause && lapPause.getValue() > 0) {
+        const pause = activity.getPause() ?? new DataPause(0);
+        pause.setValue(pause.getValue() + lapPause.getValue());
+        activity.setPause(pause);
       }
 
       // Append distance to whole activity

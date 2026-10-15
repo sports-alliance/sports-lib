@@ -87,10 +87,10 @@ describe('FIT multiday session chronology', () => {
       activity = event.getFirstActivity();
     const control = (await parse({ completeElapsed: true })).getFirstActivity();
     expect((+activity.endDate - +activity.startDate) / 1000).toBe(end);
-    expect(activity.getDuration().getValue()).toBe(7200.35);
-    expect(activity.getTimer().getValue()).toBe(7200.35);
+    expect(activity.getDuration()!.getValue()).toBe(7200.35);
+    expect(activity.getTimer()!.getValue()).toBe(7200.35);
     expect(activity.getStat(DataElapsedTime.type)?.getValue()).toBe(end);
-    expect(activity.getPause().getValue()).toBe(end - 7200.35);
+    expect(activity.getPause()!.getValue()).toBe(end - 7200.35);
     expect(activity.getStream(DataHeartRate.type).getData(true, true)).toEqual(Array(122).fill(165));
     const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
     expect(evaluations).toEqual(ActivityUtilities.getTrainingStressScoreEvaluations(control));

@@ -115,7 +115,11 @@ export type {
   RouteParsingStreamOptions
 } from '../src/routes/route-parsing-options';
 
-/** @category Activities and events */
+/**
+ * Duration, timer, moving-time and pause getters return their Data class or undefined when absent.
+ * Keep measured zero distinct from missing timing; do not reconstruct rejected timing from elapsed dates.
+ * @category Activities and events
+ */
 export type { ActivityInterface } from '../src/activities/activity.interface';
 export type { ActivityJSONInterface } from '../src/activities/activity.json.interface';
 /**
@@ -159,6 +163,10 @@ export { normalizeActivityMetricSemanticsForStats } from '../src/activities/acti
  */
 export { ActivityTypeGroups, ActivityTypes, ActivityTypesHelper } from '../src/activities/activity.types';
 export type { ActivityTypeGroup } from '../src/activities/activity.types';
+/**
+ * Duration, timer, moving-time and pause getters may return undefined, as on activities and laps.
+ * @category Activities and events
+ */
 export type { EventInterface } from '../src/events/event.interface';
 export type { EventJSONInterface } from '../src/events/event.json.interface';
 export { FileType } from '../src/events/adapters/file-type.enum';

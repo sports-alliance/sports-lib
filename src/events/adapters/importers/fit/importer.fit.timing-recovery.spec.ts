@@ -137,9 +137,9 @@ describe('FIT corroborated session ending repairs', () => {
       const control = (await envelope('correct')).getFirstActivity();
       expect((+activity.endDate - +activity.startDate) / 1000).toBe(10000);
       expect(activity.getStat(DataElapsedTime.type)?.getValue()).toBe(10000);
-      expect(activity.getDuration().getValue()).toBe(2000.2);
-      expect(activity.getTimer().getValue()).toBe(2000.2);
-      expect(activity.getPause().getValue()).toBe(7999.8);
+      expect(activity.getDuration()!.getValue()).toBe(2000.2);
+      expect(activity.getTimer()!.getValue()).toBe(2000.2);
+      expect(activity.getPause()!.getValue()).toBe(7999.8);
       expect(activity.getStream(DataHeartRate.type).getData(true, true)).toEqual(Array(7).fill(165));
       expect(activity.getDistance().getValue()).toBe(2000);
       expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity)).toEqual(
@@ -158,9 +158,9 @@ describe('FIT corroborated session ending repairs', () => {
       activity = event.getFirstActivity();
     expect((+activity.endDate - +activity.startDate) / 1000).toBe(100.5);
     expect(activity.getStat(DataElapsedTime.type)?.getValue()).toBe(100.5);
-    expect(activity.getDuration().getValue()).toBe(90.8);
-    expect(activity.getTimer().getValue()).toBe(90.8);
-    expect(activity.getPause().getValue()).toBe(9.7);
+    expect(activity.getDuration()!.getValue()).toBe(90.8);
+    expect(activity.getTimer()!.getValue()).toBe(90.8);
+    expect(activity.getPause()!.getValue()).toBe(9.7);
     expect(activity.getStream(DataHeartRate.type).getData(true, true)).toEqual(Array(3).fill(165));
     expect(activity.getStreamData(DataDistance.type)[95]).toBe(2000);
     assertRoundTrip(event);
@@ -244,7 +244,7 @@ describe('FIT invalid multisport end with a valid explicit start', () => {
       [0, 413.68],
       [419, 425.663]
     ]);
-    expect(activities.map(a => a.getDuration().getValue())).toEqual([307.94, 0.65]);
+    expect(activities.map(a => a.getDuration()!.getValue())).toEqual([307.94, 0.65]);
     expect(activities.map(a => a.getStream(DataHeartRate.type).getData(true, true))).toEqual([
       [100, 101, 106, 120, 130],
       [116, 128]

@@ -6,7 +6,7 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
-**Regression-tested against 189,337 real-world source files.** Coverage includes activity and route imports
+**Regression-tested against 191,548 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on
 evidence in the file. See

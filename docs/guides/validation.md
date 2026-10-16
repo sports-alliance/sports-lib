@@ -32,7 +32,7 @@ conditions and historical reparse requirements. The known limitations below rema
 
 ## Verified corpus
 
-As of **15 October 2026**, the validation covers **189,337 distinct source files**, including activity and route
+As of **16 October 2026**, the validation covers **191,548 distinct source files**, including activity and route
 imports and file-type validation.
 
 Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
@@ -56,7 +56,7 @@ comparisons found no unexpected differences or newly introduced rejections.
 
 ## Route coverage
 
-The route corpus contains **1,202 GPX files and one FIT file**.
+The route corpus contains **1,230 GPX files and one FIT file**.
 
 Each was imported through the route APIs, compared with the published implementation and restored from native JSON.
 Comparisons covered the complete serialized output, including geometry, metadata and statistics. No failures or

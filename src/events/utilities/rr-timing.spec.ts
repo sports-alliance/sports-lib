@@ -1,4 +1,4 @@
-import { collectRRIntervals } from './rr-timing';
+import { collectRRIntervals, isRRIntervalInBounds } from './rr-timing';
 
 describe('R-R batch timing', () => {
   it('keeps a running cursor for repeated and older batch timestamps', () => {
@@ -27,5 +27,18 @@ describe('R-R batch timing', () => {
     expect(samples.map(sample => sample.time)).toEqual([1000, 1000, 1800]);
     expect(samples[0].interval).toBe(0);
     expect(samples[1].interval).toBeNaN();
+  });
+
+  it('uses a caller-provided clock only when the first batch has no timestamp', () => {
+    expect(collectRRIntervals([{ time: null, intervals: [800] }], 1000)).toEqual([{ time: 1800, interval: 800 }]);
+    expect(collectRRIntervals([{ time: 0, intervals: [800] }], 1000)).toEqual([{ time: 800, interval: 800 }]);
+  });
+
+  it('retains only intersecting positive intervals and in-bounds invalid observations', () => {
+    expect(isRRIntervalInBounds({ time: 2300, interval: 800 }, 100, 2000)).toBe(true);
+    expect(isRRIntervalInBounds({ time: 2800, interval: 800 }, 100, 2000)).toBe(false);
+    expect(isRRIntervalInBounds({ time: 100, interval: 800 }, 100, 2000)).toBe(false);
+    expect(isRRIntervalInBounds({ time: 100, interval: NaN }, 100, 2000)).toBe(true);
+    expect(isRRIntervalInBounds({ time: 2001, interval: NaN }, 100, 2000)).toBe(false);
   });
 });

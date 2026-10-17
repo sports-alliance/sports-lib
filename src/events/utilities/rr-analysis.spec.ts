@@ -158,6 +158,24 @@ describe('activity R-R analysis', () => {
     expect(result.summary.dfaAlpha1Max).toBeGreaterThanOrEqual(result.summary.dfaAlpha1Median!);
   });
 
+  it('summarizes the heart-rate range from complete covered ten-second windows', () => {
+    const input = samples([...Array(20).fill(800), ...Array(20).fill(1000)]);
+    const result = analyzeRRIntervals(input, input[input.length - 1].time)!;
+    expect(result.windows[0].heartRate).toBeNull();
+    expect(result.summary).toMatchObject({ minimumHeartRate: 60, maximumHeartRate: 75 });
+    expect(analyzeRRIntervals(samples([800, 850, 900]), 3000)!.summary).toMatchObject({
+      minimumHeartRate: null,
+      maximumHeartRate: null
+    });
+  });
+
+  it('does not publish a rolling heart rate from a sparse or stale recording', () => {
+    const result = analyzeRRIntervals([...samples(Array(20).fill(800)), ...samples([800], 35000)], 40000)!;
+    expect(result.windows.find(window => window.time === 20000)!.heartRate).toBeNull();
+    expect(result.windows.find(window => window.time === 40000)!.heartRate).toBeNull();
+    expect(result.summary).toMatchObject({ minimumHeartRate: 75, maximumHeartRate: 75 });
+  });
+
   it('never computes DFA across a gap, even when duration coverage exceeds 90%', () => {
     const input = [...samples(signal(80)), ...samples(signal(90), 65000)];
     const result = analyzeRRIntervals(input, input[input.length - 1].time)!;
@@ -182,6 +200,16 @@ describe('DFA alpha1', () => {
     expect(calculateDFAAlpha1(Array(100).fill(800))).toBeNull();
     expect(calculateDFAAlpha1([...signal(100), NaN])).toBeNull();
     expect(calculateDFAAlpha1([...signal(100), 0])).toBeNull();
+  });
+
+  it.each([800.1, 800.01, 123.456789])('has no DFA estimate for constant fractional intervals %s', interval => {
+    expect(calculateDFAAlpha1(Array(150).fill(interval))).toBeNull();
+    expect(run(Array(200).fill(interval))!.summary.dfaWindowCount).toBe(0);
+  });
+
+  it('retains scale invariance for large finite inputs without overflowing', () => {
+    const rr = signal(257);
+    expect(calculateDFAAlpha1(rr.map(value => value * 1e300))).toBeCloseTo(calculateDFAAlpha1(rr)!, 10);
   });
 
   it('is invariant to interval scale and offset', () => {

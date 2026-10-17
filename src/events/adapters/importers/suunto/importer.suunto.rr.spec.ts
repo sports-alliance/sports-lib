@@ -25,6 +25,16 @@ const payload = () => ({
 });
 
 describe('Suunto R-R activity stats', () => {
+  it('clips end-crossing intervals to activity coverage without including them as beats', async () => {
+    const data = payload();
+    data.DeviceLog.Header.Duration = 2;
+    data.DeviceLog.Samples[1].TimeISO8601 = time(2000);
+    data.DeviceLog['R-R'].Data = [800, 800, 800];
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data));
+    expect(event.getStat(DataRRIntervalCount.type)!.getValue()).toBe(2);
+    expect(event.getStat(DataRRCoverage.type)!.getValue()).toBe(100);
+  });
+
   it('counts invalid observations at the beginning of an activity', async () => {
     const data = payload();
     data.DeviceLog['R-R'].Data = [0, 800, 850];
@@ -61,5 +71,19 @@ describe('Suunto R-R activity stats', () => {
     const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(payload()), options);
     expect(event.getFirstActivity().hasStreamData(DataIBI.type)).toBe(false);
     expect(event.getStat(DataRRIntervalCount.type)).toBeUndefined();
+  });
+
+  it('keeps cumulative timing for an untimestamped SML interval batch', async () => {
+    const Samples = payload().DeviceLog.Samples.map(sample => ({
+      TimeISO8601: sample.TimeISO8601,
+      Attributes: { 'suunto/sml': { Sample: { Events: sample.Events } } }
+    }));
+    const event = await EventImporterSuuntoSML.getFromJSONString(
+      JSON.stringify({
+        Samples: [Samples[0], { Attributes: { 'suunto/sml': { 'R-R': { Data: '800,850,900' } } } }, Samples[1]]
+      })
+    );
+    expect(event.getStat(DataRRIntervalCount.type)!.getValue()).toBe(3);
+    expect(event.getStat(DataRRRMSSD.type)!.getValue()).toBe(50);
   });
 });

@@ -9,6 +9,8 @@ import {
   DataRRSDNN,
   DataRRIntervalCount,
   DataRRGapCount,
+  DataRRHeartRateMin,
+  DataRRHeartRateMax,
   DataRRDFAAlpha1Median
 } from '../../data/data.rr';
 import { ActivityUtilities } from './activity.utilities';
@@ -24,6 +26,16 @@ const activity = (rr: number[], times?: number[]) => {
 };
 
 describe('activity R-R stats', () => {
+  it('persists the available rolling HR range as canonical event stats', () => {
+    const child = activity([...Array(20).fill(800), ...Array(20).fill(1000)]);
+    child.endDate = new Date(36000);
+    const event = new Event('Synthetic', child.startDate, child.endDate, FileType.SUUNTO);
+    event.addActivity(child);
+    EventUtilities.generateStatsForAll(event);
+    const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+    expect(restored.getStat(DataRRHeartRateMin.type)!.getValue()).toBe(60);
+    expect(restored.getStat(DataRRHeartRateMax.type)!.getValue()).toBe(75);
+  });
   it('does not derive beat statistics from a resampled one-second chart stream', () => {
     const child = activity([]);
     child.removeStream('IBI');

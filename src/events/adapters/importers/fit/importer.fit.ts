@@ -64,6 +64,7 @@ import { FITSampleMapper } from './importer.fit.mapper';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
+import { isRRIntervalInBounds } from '../../../utilities/rr-timing';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
 import { Device } from '../../../../activities/devices/device';
 import { ImporterFitAntPlusDeviceNames } from '../../../../fit/device-names/importer.fit.ant-plus.device.names';
@@ -965,12 +966,14 @@ export class EventImporterFIT {
     let elapsed = 0;
     for (const record of hrvRecords) {
       for (const raw of (Array.isArray(record.time) ? record.time : [record.time])) {
+        // Unused uint16 array slots decode as null (or 65.535 s in older decoders).
+        // They are padding, not observations or evidence of elapsed recording time.
+        if (raw === null || raw === undefined) continue;
         const value = typeof raw === 'number' ? raw * 1000 : NaN;
+        if (value === this.INVALID_FIT_HRV_INTERVAL_MS) continue;
         if (Number.isFinite(value) && value > 0) elapsed += value;
         const absolute = eventStartDate.getTime() + elapsed;
-        if (value === this.INVALID_FIT_HRV_INTERVAL_MS) continue;
-        const invalidAtStart = absolute === activity.startDate.getTime() && (!Number.isFinite(value) || value <= 0);
-        if ((absolute > activity.startDate.getTime() || invalidAtStart) && absolute <= activity.endDate.getTime()) {
+        if (isRRIntervalInBounds({ time: absolute, interval: value }, +activity.startDate, +activity.endDate)) {
           intervals.push(Number.isFinite(value) ? value : null);
           times.push(absolute - activity.startDate.getTime());
         }

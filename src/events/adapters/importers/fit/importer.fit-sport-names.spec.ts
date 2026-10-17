@@ -249,15 +249,10 @@ describe('Recognized sport and activity-profile names', () => {
             for (const candidate of [event, restored]) {
               expect(candidate.getFirstActivity().type).toBe(expected);
               expect(candidate.getActivityTypesAsArray()).toEqual([expected]);
-              if (preserveImportedTss === false) {
-                expect(candidate.getFirstActivity().getStat(DataTrainingStressScore.type)).toBeUndefined();
-                expect(candidate.getFirstActivity().getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
-              } else {
-                expect(candidate.getFirstActivity().getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
-                expect(candidate.getFirstActivity().getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-                  TrainingStressScoreMethod.IMPORTED
-                );
-              }
+              expect(candidate.getFirstActivity().getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+              expect(candidate.getFirstActivity().getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+                TrainingStressScoreMethod.IMPORTED
+              );
             }
           }
         }

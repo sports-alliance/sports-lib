@@ -36,8 +36,8 @@ When the recording's creator manufacturer is Suunto, this pair imports as the ex
 in Indoor Sports. Other manufacturers and recordings without Suunto creator identity retain Flexibility Training.
 A Suunto accessory or product name alone does not establish that identity. Both types already share the same
 Quantified Self Mobility & movement Training context. The catalog, numeric metrics, units, JSON schema, and MCP
-contract are unchanged. Imported TSS stays exact with `preserveImportedTss: true` or omission; false replaces it
-with a supported calculation or leaves it unset. Reparse retained Suunto `10/19` sources to correct older
+contract are unchanged. Valid nonnegative imported TSS stays exact, including zero. The legacy
+`preserveImportedTss` flag is deprecated and does not discard imported scores. Reparse retained Suunto `10/19` sources to correct older
 Flexibility Training classifications, then regenerate persisted event summaries and activity-type aggregates.
 
 The same Suunto creator guard preserves these distinct documented exports using existing canonical sports:
@@ -64,8 +64,8 @@ preserves that canonical sport before the broader composite alias. Without that 
 Training and Alpine Skiing. No workout title, filename, external metadata, or binary decoding inference is used.
 
 All these types already exist in the catalog. Their existing groups, TSS policies and numeric metric contracts
-remain in force; Motorized activities preserve imported TSS by default and receive no calculated replacement when
-preservation is disabled. Reparse retained Suunto sources to correct previously broader labels, then regenerate
+remain in force; Motorized activities preserve valid nonnegative imported TSS for every legacy flag setting and
+receive no library-calculated TSS. Reparse retained Suunto sources to correct previously broader labels, then regenerate
 persisted summaries, activity-type aggregates and affected Training snapshots. Native JSON alone cannot recover
 the source sport/sub-sport or a discarded source profile.
 
@@ -192,8 +192,8 @@ retains the existing broader classification. Rally requires the Motor Sports par
 Obstacle Racing and Ultra Running inherit the existing running metric and TSS selection and running durability
 protocol, subject to its usual sample, duration, and context checks. Enduro MTB retains its existing gravity-MTB
 unsupported-context durability evidence and existing TSS eligibility. Indoor Walking retains ordinary TSS eligibility.
-Rally omits calculated power/HR/MET TSS and removes stale calculated scores while preserving finite imported TSS,
-even when imported-score preservation is disabled. Rally has no durability adapter. No numeric metric token, unit,
+Rally omits calculated power/HR/MET TSS and removes stale calculated scores while preserving valid nonnegative imported TSS
+for every legacy flag setting. Rally has no durability adapter. No numeric metric token, unit,
 formula, durability protocol, workout delivery capability, provider transport, or Training planning contract changes.
 
 Historical Running, Walking, Fitness Equipment, Cycling, or Motorsports labels need specific retained FIT sources or
@@ -245,7 +245,7 @@ Suunto's bare Generic Adventure Racing classification and Hang Gliding pair rema
 supply the more specific Adventure Race or Paraglide distinction.
 
 Paramotoring and RC Drone Flying omit calculated POWER, HR, pace, and MET TSS, remove stale calculated scores and
-methods, and preserve finite imported TSS, including legacy scores without a method and `preserveImportedTss: false`.
+methods, and preserve valid nonnegative imported TSS, including legacy scores without a method and `preserveImportedTss: false`.
 This is a type-specific policy: other Aerial Sports and Unspecified types retain their existing TSS eligibility.
 The other eight classifications retain their existing group calculations. Water Sport uses the Water Sports speed
 and swim-pace display families without implying swimming or paddling. Indoor Cycling and E-Mountain Biking retain
@@ -339,8 +339,8 @@ does not prove that a BMX session provides suitable endurance evidence. Indoor S
 existing speed/average-speed, default movement threshold, and TSS selection. Pool Triathlon uses Performance's
 existing speed/average-speed, vertical-speed, default movement threshold, and TSS selection; it does not acquire a
 whole-triathlon durability adapter or swimming stroke-rate calculations. ATV and Motocross inherit Motorized's
-calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve finite imported TSS even when imported
-preservation is disabled. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
+calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve valid nonnegative imported TSS for every
+legacy flag setting. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
 new durability protocol, workout leg, provider transport, or delivery capability is introduced.
 
 Historical Cycling, Fitness Equipment, Crosscountry Skiing, Motorcycling, or Multisport labels cannot establish these
@@ -395,7 +395,7 @@ families, `4/3.6` movement threshold, power TSS eligibility, and existing power/
 other four use their existing groups' speed/average-speed families and default movement threshold, with no
 vertical-speed, grade-adjusted, or stroke-rate derivation. Existing raw metrics and terrain summaries remain readable.
 Overlanding and both indoor wheelchair types omit calculated power/HR/MET TSS and stale calculated scores while
-preserving finite imported TSS, even if imported-score preservation is disabled. Trucker Workout retains its group's
+preserving valid nonnegative imported TSS for every legacy flag setting. Trucker Workout retains its group's
 existing TSS selection. Those four have no durability adapter. No numeric metric token, unit, formula, durability
 protocol, provider transport, workout delivery capability, or modeled Training family is added.
 
@@ -479,7 +479,7 @@ lists Gaming under Other. Sport and sub-sport IDs are separate namespaces: `rack
 identify Video Gaming.
 
 Video Gaming receives no library-calculated POWER, HR, pace, or MET TSS even when inputs or overrides are available.
-Previously calculated TSS and its method are removed during summary generation. A finite source-provided TSS remains
+Previously calculated TSS and its method are removed during summary generation. A valid nonnegative source-provided TSS remains
 available and is labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method
 retains the existing imported-score interpretation; its provenance cannot be recovered from the number alone.
 Pool Apnea and Mobility retain their groups' existing TSS eligibility. None of these types has stroke-rate semantics
@@ -829,8 +829,8 @@ recover their particular racket sport from that numeric pair alone. Suunto Padel
 
 These types retain their groups' metric families and ordinary TSS eligibility. HIIT formats remain indoor;
 Dynamic Apnea inherits Diving's terrain-summary exclusions. They add no stroke-rate conversion or durability adapter. Every sport
-preserves finite imported TSS, including zero, with `preserveImportedTss: true` or omission. False discards the score
-and method, recalculates where supported with sufficient inputs, and leaves both unset otherwise.
+preserves valid nonnegative imported TSS, including zero, for every legacy flag setting. Calculated scores refresh
+from eligible current inputs; remove an imported stat explicitly when a calculation-only result is required.
 
 Quantified Self's coordinated adoption PR maps Racket Sport to Racket Sports, Ultimate Disc to Team Sports, and
 Dynamic Apnea and Pool Apnea to Diving. Para Sport is explicitly approved for Other training, with recorded duration
@@ -883,9 +883,9 @@ alias also recognizes Polar's `E_BIKE` identifier without provider transport cha
 
 Each alias inherits its canonical type's group, indoor hint, metric families,
 stroke-rate semantics, terrain behavior, calculated-TSS eligibility, and applicable durability adapter. In particular,
-Pool Swim, Kayak, Row, and Row Indoor use existing stroke-rate semantics. Every type retains imported TSS exactly,
-including zero, with `preserveImportedTss: true` or omission; false discards it and calculates a replacement only when
-the existing sport policy and available inputs support one.
+Pool Swim, Kayak, Row, and Row Indoor use existing stroke-rate semantics. Every type retains valid nonnegative imported TSS exactly,
+including zero, for every legacy flag setting. The existing sport policy and available inputs determine
+replacement calculations for previously calculated scores.
 
 Quantified Self has a separate exact Training registry; newly distinct types require review during consumer adoption. Historical Generic classifications
 can enter a different existing context after a source-backed correction, so regenerate separately persisted event
@@ -978,9 +978,8 @@ sport name as Unknown Sport; FIT imports retain the recorded sport when the prof
 apnea sub-sport names preserve their specific diving classification across capitalization, spaces, hyphens and
 underscores, ahead of conflicting profile names.
 
-All distinct types preserve finite imported TSS, including zero and legacy scores without a method, by default or
-with `preserveImportedTss: true`. False discards the imported score and calculates a replacement only when supported
-inputs exist. Existing power-first selection, HR calibration requirements and MET fallback remain unchanged.
+All distinct types preserve valid nonnegative imported TSS, including zero and legacy scores without a method,
+for every legacy flag setting. Calculated scores refresh only from supported current inputs. Existing power-first selection, HR calibration requirements and MET fallback remain unchanged.
 
 Consumer adoption must upgrade application and Functions together. Quantified Self's MCP activity catalog dynamically
 accepts these names, groups and indoor hints under its existing strict output schema; numeric metric tokens, units,
@@ -1231,9 +1230,9 @@ these distinctions, followed by the ordinary consumer summary and Training rebui
 
 Virtual Rowing belongs to Indoor Sports and shares rowing stroke-rate and trainer semantics. Aqua Fitness, Adaptive
 Water Skiing, and Water Running follow the water-sport ascent/descent exclusions. New Motorized and Adaptive Mobility
-types share their groups' existing calculated-TSS exclusions. Every sport keeps finite provider TSS, including zero
-and legacy scores without a method, with `preserveImportedTss: true` or omission. With false, the score and method are
-discarded, and the existing policy calculates a replacement only where supported with sufficient inputs. This batch
+types share their groups' existing calculated-TSS exclusions. Every sport keeps valid nonnegative provider TSS, including zero
+and legacy scores without a method, for every legacy flag setting. The deprecated option does not discard
+imported scores. Existing calculated scores refresh from eligible current inputs. This batch
 adds no MET coefficients, numeric metric tokens, units, or formulas.
 
 Quantified Self's exact Training discipline registry remains independent of library groups. Its coordinated adoption
@@ -1273,7 +1272,7 @@ All 24 names added to QS's compatibility bridge for this final approval already 
 provider upload, route and planned-workout profiles retain their previously approved mappings. The detailed policies remain in
 [QS Training documentation](https://github.com/jimmykane/quantified-self/blob/codex/provider-sport-compatibility/docs/training-workspace.md#training-sport-registry-and-contexts).
 
-QS currently pins Sports Lib 21.5.0 in both dependency trees and tests the proposed catalog separately. Native JSON
+QS currently pins Sports Lib 22.0.0 in both dependency trees and tests the proposed catalog separately. Native JSON
 hydration and Sports Lib power fitting for unpublished names require a uniquely versioned release containing this
 PR, followed by matching application and Functions dependency updates. The branch's current package version is
 not a release reservation: check the registry before selecting the release version. The planned retained-source

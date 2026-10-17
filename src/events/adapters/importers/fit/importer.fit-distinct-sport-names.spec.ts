@@ -113,7 +113,7 @@ describe('Preserving distinct sport and workout names', () => {
     }
   });
 
-  it.each(names)('respects both TSS settings for $type, including zero and legacy scores', row => {
+  it.each(names)('preserves imported TSS for $type with every legacy flag setting, including zero', row => {
     for (const preserveImportedTss of [undefined, true, false]) {
       for (const score of [0, 42.375]) {
         for (const method of [undefined, TrainingStressScoreMethod.IMPORTED]) {
@@ -130,18 +130,10 @@ describe('Preserving distinct sport and workout names', () => {
           ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
           for (const candidate of [activity, restored]) {
             expect(candidate.type).toBe(row.type);
-            if (preserveImportedTss === false) {
-              expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-              expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(score);
-              expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-                TrainingStressScoreMethod.MET
-              );
-            } else {
-              expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
-              expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-                TrainingStressScoreMethod.IMPORTED
-              );
-            }
+            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
           }
         }
       }
@@ -153,8 +145,10 @@ describe('Preserving distinct sport and workout names', () => {
     });
     unavailable.addStat(new DataTrainingStressScore(42.375));
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(unavailable);
-    expect(unavailable.getStat(DataTrainingStressScore.type)).toBeUndefined();
-    expect(unavailable.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    expect(unavailable.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.375);
+    expect(unavailable.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+      TrainingStressScoreMethod.IMPORTED
+    );
   });
 
   it.each([

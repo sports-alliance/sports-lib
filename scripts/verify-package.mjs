@@ -385,7 +385,7 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
 
 function assertActivityMetadataBudget(initialOutputs) {
   // The expanded sport catalog and synchronous provider resolver are intentional startup metadata.
-  // Distinct disciplines/classes add catalog metadata; overall and decoder budgets remain unchanged.
+  // Distinct disciplines/classes add catalog metadata; decoder exclusions remain unchanged.
   // Bound their contributions separately so increasing the total does not hide an unrelated eager import.
   const inputBytes = suffix =>
     [...initialOutputs.values()].reduce(
@@ -428,7 +428,8 @@ async function verifyRepresentativeTreeShaking(temporaryDirectory) {
   assert.equal(initialOutputFiles.length, initialOutputs.size, 'Unable to inspect every initial bundle output');
   const initialOutputText = initialOutputFiles.map(outputFile => outputFile.text).join('\n');
 
-  assert.ok(initialBytes <= 60_000, `Representative startup bundle is ${initialBytes} bytes; expected at most 60000`);
+  assertActivityMetadataBudget(initialOutputs);
+  assert.ok(initialBytes <= 85_000, `Representative startup bundle is ${initialBytes} bytes; expected at most 85000`);
   assertInputsExcluded(initialOutputs, [
     '/node_modules/fit-file-parser/',
     '/node_modules/fit-parser/',
@@ -470,9 +471,10 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  // Pool timing validity, chronology, lap-ID preservation, and multisport clocks:
-  // measured 430,296 bytes. Keep a bounded budget for the public facade.
-  assert.ok(initialBytes <= 431_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 431000`);
+  // Main's timing/TSS compatibility plus the approved 284-sport catalog/provider classifiers.
+  // Keep catalog/provider contributions separately bounded and the decoder lazy.
+  assertActivityMetadataBudget(initialOutputs);
+  assert.ok(initialBytes <= 480_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 480000`);
   assert.ok(
     fitParserBytes <= 30_000,
     `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`

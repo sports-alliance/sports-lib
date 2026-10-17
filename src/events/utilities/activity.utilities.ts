@@ -976,7 +976,7 @@ export class ActivityUtilities {
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
    * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
    * and calculated TSS excluded for Motorized, Adaptive Mobility, and Video Gaming activities.
-   * Those activities retain finite source-imported TSS, including legacy scores without a method.
+   * Those activities retain valid nonnegative source-imported TSS, including legacy scores without a method.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.invalidateCalculatedPower(activity);
@@ -2854,8 +2854,14 @@ export class ActivityUtilities {
   }
 
   private static evaluateTrainingStressScoreFromCurrentInputs(activity: ActivityInterface, refreshCalculatedPower = false): TrainingStressScoreEvaluations {
-    const walking = [ActivityTypes.Walking, ActivityTypes.IndoorWalking, ActivityTypes.NordicWalking, ActivityTypes.SpeedWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
-      .includes(activity.type);
+    const walking = [
+      ActivityTypes.Walking,
+      ActivityTypes.IndoorWalking,
+      ActivityTypes.NordicWalking,
+      ActivityTypes.SpeedWalking,
+      ActivityTypes.Hiking,
+      ActivityTypes.Trekking
+    ].includes(activity.type);
     const existingScore = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
     const existingMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const imported = existingScore !== null && existingScore >= 0 &&

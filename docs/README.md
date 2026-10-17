@@ -20,7 +20,7 @@ Stored values and calculations retain full precision; existing stats need no rep
 Native event, activity, lap, route, and route-file JSON omit non-finite scalar summaries and tolerate legacy null
 summary values on restoration. Finite stats and stream null gaps are preserved. See [Export and persist data](guides/exporting.md).
 
-Every sport retains finite imported Training Stress Score, including zero and legacy scores without a method.
+Every sport retains valid nonnegative imported Training Stress Score, including zero and legacy scores without a method.
 The legacy `preserveImportedTss` flag is deprecated and does not discard imported scores. See
 [Metrics and calculations](guides/metrics-and-calculations.md).
 Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking prefer
@@ -32,20 +32,20 @@ Breathwork profile preserves Breathwork separately. Correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).
 
 Suunto Stretching (`training/flexibility_training`, `10/19`) imports as the existing Stretching type in Indoor Sports
-when the recorded creator manufacturer is Suunto. Provider TSS follows the preservation setting above. Correct older
+when the recorded creator manufacturer is Suunto. Provider TSS stays preserved. Correct older
 Flexibility Training classifications by reparsing retained sources and regenerating affected summaries and activity-type
 aggregates. See [Import activities](guides/importing-activities.md).
 
 Suunto's distinct FIT exports also retain Motorsports, Climbing, Ski Touring, Crosstrainer, Aerobics, Trekking,
 Paragliding and Calisthenics as existing canonical sports. Explicit Kettlebell and Telemark Skiing profiles refine
 their shared pairs; unnamed shared pairs keep their broad classifications. These rules use decoded FIT fields and
-recorded creator identity, with the existing TSS setting. Historical corrections require source reparsing and
+recorded creator identity, while retaining provider TSS. Historical corrections require source reparsing and
 regeneration of affected summaries and Training snapshots. See [Import activities](guides/importing-activities.md).
 
 The catalog now has 284 canonical types. Polar dance styles, mobility variants, classic skiing, road sports and
 Les Mills programs keep separate names. HIIT timer formats, Dynamic Apnea and Indoor Track Running also retain
 their recorded distinctions. Road Bike resolves to Road Cycling; XC Classic Ski resolves to Classic Crosscountry
-Skiing. Broad stored labels remain readable, and imported TSS follows the existing setting.
+Skiing. Broad stored labels remain readable, and valid imported TSS stays preserved.
 Parkour belongs to Performance, Vertical Running to Trail Running, and Spearfishing to Diving. Recognized source
 profiles preserve these names; unnamed shared Suunto exports retain their broader labels.
 Name lookup accepts string sport names; invalid native JSON names restore Unknown Sport. RPM, SPRINT and THE TRIP

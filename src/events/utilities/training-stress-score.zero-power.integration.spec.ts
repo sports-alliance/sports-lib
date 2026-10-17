@@ -148,8 +148,8 @@ describe('zero power TSS with recorded evidence', () => {
     expect(evaluate(await ride({ ftp: false, hr: true })).automatic).toMatchObject({ method: 'HR', score: 100 });
   });
 
-  it('keeps walking power ineligible even with complete zero power and FTP', async () => {
-    expect(evaluate(await ride({ sport: 11, hr: true })).automatic).toMatchObject({ method: 'HR', score: 100 });
+  it('prioritizes walking power with complete zero power evidence and independent FTP', async () => {
+    expect(evaluate(await ride({ sport: 11, hr: true })).automatic).toMatchObject({ method: 'POWER', score: 0 });
   });
 
   it.each([0, 42.5])('preserves an imported score of %s across repeated generation', async imported => {

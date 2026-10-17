@@ -645,14 +645,14 @@ they are never reinterpreted as imports. Unmarked legacy scores retain imported 
 `preserveImportedTss` option is deprecated: remove an imported stat explicitly for a calculation-only comparison.
 
 Regenerating summaries can update previously calculated walking or hiking TSS to POWER when the retained inputs
-support it. Provider TSS remains unchanged with preservation enabled. No metric token, unit or JSON schema changes;
+support it. Valid nonnegative provider TSS remains unchanged for every legacy flag setting. No metric token, unit or JSON schema changes;
 consumers without retained calculation inputs must reparse the source to recalculate.
 
 `DataTrainingStressScore.getDisplayValue(1)` opts into one-decimal load-editor display. Calling it without arguments
 retains the existing integer display; canonical values, JSON keys and numeric metric discovery are unchanged.
 
 Motorized and Adaptive Mobility activities, and the Video Gaming, Paramotoring, and RC Drone Flying types, do not
-receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A finite
+receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A valid nonnegative
 source-provided TSS remains available and is
 labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method retains the existing
 imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for

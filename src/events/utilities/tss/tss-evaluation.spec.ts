@@ -120,13 +120,21 @@ describe('file-only training stress evaluations', () => {
     const activity = walk();
     addHrInputs(activity);
     addMetInputs(activity, 7000); // 100 MET for one hour gives 10000 TSS before the existing range check.
-    expect(evaluate(activity).met).toMatchObject({ method: 'HR', score: 31.2, reasons: ['calculation-unavailable'] });
+    expect(evaluate(activity).met).toMatchObject({
+      method: 'HR',
+      score: 31.2,
+      reasons: ['calculation-unavailable', 'missing-power-inputs']
+    });
     activity.addStat(new DataEnergy(6999.3));
     expect(evaluate(activity).met).toMatchObject({ method: 'MET', score: 9998, reasons: [] });
     activity.addStat(new DataEnergy(1e308));
-    expect(evaluate(activity).met.reasons).toEqual(['calculation-unavailable']);
+    expect(evaluate(activity).met.reasons).toEqual(['calculation-unavailable', 'missing-power-inputs']);
     activity.removeStat(DataWeight.type);
-    expect(evaluate(activity).met).toMatchObject({ method: 'HR', score: 31.2, reasons: ['missing-met-inputs'] });
+    expect(evaluate(activity).met).toMatchObject({
+      method: 'HR',
+      score: 31.2,
+      reasons: ['missing-met-inputs', 'missing-power-inputs']
+    });
   });
 
   it('retains explicit MET overrides without requiring file energy or mass', () => {

@@ -7,8 +7,8 @@ interface ProviderActivityTypeMapping {
   source: ActivityTypeSource;
   names: readonly string[];
   type: ActivityTypes;
-  fitSport: string;
-  fitSubSport: string;
+  fitSport?: string;
+  fitSubSport?: string;
   additionalFitContexts?: readonly { sport: string; subSport: string }[];
 }
 
@@ -39,6 +39,7 @@ const sourceSpecificNames = new Set(
 
 // Polar FIT parents follow its AccessLink appendix. An unlisted profile exports GENERIC.
 // Other providers list compatible broad parents, not assumed device export codes.
+// Omitted FIT parent/subsport fields mean the existing generic context, shared once below.
 // Keep this independent of FIT numeric enums: decoding remains owned by fit-file-parser.
 const mappings: readonly ProviderActivityTypeMapping[] = [
   {
@@ -52,15 +53,12 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'garmin',
     names: ['Mixed Session'],
     type: 'Multisport' as ActivityTypes,
-    fitSport: 'multisport',
-    fitSubSport: 'generic'
+    fitSport: 'multisport'
   },
   {
     source: 'garmin',
     names: ['Expedition'],
-    type: 'Expedition' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Expedition' as ActivityTypes
   },
   {
     source: 'garmin',
@@ -73,157 +71,122 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'garmin',
     names: ['Ski'],
     type: 'Alpine Skiing' as ActivityTypes,
-    fitSport: 'alpine_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'alpine_skiing'
   },
   {
     source: 'garmin',
     names: ['Snowmobile'],
     type: 'Snowmobiling' as ActivityTypes,
-    fitSport: 'snowmobiling',
-    fitSubSport: 'generic'
+    fitSport: 'snowmobiling'
   },
-  { source: 'garmin', names: ['Sail'], type: 'Sailing' as ActivityTypes, fitSport: 'sailing', fitSubSport: 'generic' },
+  { source: 'garmin', names: ['Sail'], type: 'Sailing' as ActivityTypes, fitSport: 'sailing' },
   {
     source: 'garmin',
     names: ['Snorkel'],
     type: 'Snorkeling' as ActivityTypes,
-    fitSport: 'diving',
-    fitSubSport: 'generic'
+    fitSport: 'diving'
   },
   {
     source: 'garmin',
     names: ['SUP'],
     type: 'Stand Up Paddling' as ActivityTypes,
-    fitSport: 'stand_up_paddleboarding',
-    fitSubSport: 'generic'
+    fitSport: 'stand_up_paddleboarding'
   },
   {
     source: 'garmin',
     names: ['Soccer/Football'],
     type: 'Soccer' as ActivityTypes,
-    fitSport: 'soccer',
-    fitSubSport: 'generic'
+    fitSport: 'soccer'
   },
   {
     source: 'garmin',
     names: ['Motorcycle'],
     type: 'Motorcycling' as ActivityTypes,
-    fitSport: 'motorcycling',
-    fitSubSport: 'generic'
+    fitSport: 'motorcycling'
   },
   {
     source: 'garmin',
     names: ['Breathwork', 'Ex. respiration'],
     type: 'Breathwork' as ActivityTypes,
-    fitSport: 'generic',
     fitSubSport: 'breathing',
     additionalFitContexts: [{ sport: 'training', subSport: 'breathing' }]
   },
   {
     source: 'garmin',
     names: ['Track Me'],
-    type: 'Generic' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Generic' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['Australian football'],
-    type: 'Australian Football' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Australian Football' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['Korfball'],
-    type: 'Korfball' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Korfball' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['Netball'],
-    type: 'Netball' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Netball' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['AGILITY', 'Dog agility'],
-    type: 'Dog Agility' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Dog Agility' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['AQUATICS', 'Aqua fitness'],
-    type: 'Aqua Fitness' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Aqua Fitness' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BALLET_DANCING', 'Ballet'],
-    type: 'Ballet Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Ballet Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BALLROOM_DANCING', 'Ballroom'],
-    type: 'Ballroom Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Ballroom Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BEACH_TENNIS', 'Beach tennis'],
     type: 'Beach Tennis' as ActivityTypes,
-    fitSport: 'tennis',
-    fitSubSport: 'generic'
+    fitSport: 'tennis'
   },
   {
     source: 'polar',
     names: ['BEACH_VOLLEYBALL', 'Beach volley'],
-    type: 'Beach Volleyball' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Beach Volleyball' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BIATHLON', 'Biathlon'],
-    type: 'Biathlon' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Biathlon' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BODY_AND_MIND', 'Body&Mind'],
-    type: 'Mind-Body Training' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Mind-Body Training' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['BOOTCAMP', 'Bootcamp'],
-    type: 'Bootcamp' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Bootcamp' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['CALISTHENICS', 'Calisthenics'],
-    type: 'Calisthenics' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Calisthenics' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['CORE', 'Core'],
     type: 'Core Training' as ActivityTypes,
-    fitSport: 'training',
-    fitSubSport: 'generic'
+    fitSport: 'training'
   },
   {
     source: 'polar',
@@ -236,8 +199,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'polar',
     names: ['CROSS-COUNTRY_SKIING', 'Skiing'],
     type: 'Crosscountry Skiing' as ActivityTypes,
-    fitSport: 'cross_country_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'cross_country_skiing'
   },
   {
     source: 'polar',
@@ -250,106 +212,82 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'polar',
     names: ['STRETCHING', 'Stretching'],
     type: 'Stretching' as ActivityTypes,
-    fitSport: 'generic',
     fitSubSport: 'flexibility_training'
   },
   {
     source: 'polar',
     names: ['CURLING', 'Curling'],
-    type: 'Curling' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Curling' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['DUATHLON_CYCLING', 'Cycling', '(Duathlon) Cycling'],
     type: 'Cycling' as ActivityTypes,
-    fitSport: 'cycling',
-    fitSubSport: 'generic'
+    fitSport: 'cycling'
   },
   {
     source: 'polar',
     names: ['DUATHLON_RUNNING', 'Running', '(Duathlon) Running'],
     type: 'Running' as ActivityTypes,
-    fitSport: 'running',
-    fitSubSport: 'generic'
+    fitSport: 'running'
   },
   {
     source: 'polar',
     names: ['E_BIKE', 'Electric biking'],
     type: 'E-Biking' as ActivityTypes,
-    fitSport: 'e_biking',
-    fitSubSport: 'generic'
+    fitSport: 'e_biking'
   },
   {
     source: 'polar',
     names: ['ESPORTS', 'Esports'],
-    type: 'Video Gaming' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Video Gaming' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FINNISH_BASEBALL', 'Finnish baseball'],
-    type: 'Finnish Baseball' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Finnish Baseball' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FITNESS_BOXING', 'Fitness boxing'],
     type: 'Fitness Boxing' as ActivityTypes,
-    fitSport: 'boxing',
-    fitSubSport: 'generic'
+    fitSport: 'boxing'
   },
   {
     source: 'polar',
     names: ['FITNESS_DANCING', 'Fitness dancing'],
-    type: 'Fitness Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Fitness Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FITNESS_MARTIAL_ARTS', 'Fitness martial arts'],
-    type: 'Fitness Martial Arts' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Fitness Martial Arts' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FITNESS_RACING', 'Fitness Racing'],
-    type: 'Fitness Racing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Fitness Racing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FITNESS_STEP', 'Step workout'],
-    type: 'Step Training' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Step Training' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FREE_MULTISPORT', 'Multisport'],
-    type: 'Multisport' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Multisport' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['FUNCTIONAL_TRAINING', 'Functional training'],
     type: 'Functional Training' as ActivityTypes,
-    fitSport: 'training',
-    fitSubSport: 'generic'
+    fitSport: 'training'
   },
   {
     source: 'polar',
     names: ['FUTSAL', 'Futsal'],
-    type: 'Futsal' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Futsal' as ActivityTypes
   },
   {
     source: 'polar',
@@ -362,246 +300,188 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'polar',
     names: ['GROUP_EXERCISE', 'Group exercise'],
     type: 'Indoor Training' as ActivityTypes,
-    fitSport: 'training',
-    fitSubSport: 'generic'
+    fitSport: 'training'
   },
   {
     source: 'polar',
     names: ['GYMNASTICK', 'Gymnastics'],
-    type: 'Gymnastics' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Gymnastics' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['HIIT', 'High-intensity interval training'],
     type: 'HIIT' as ActivityTypes,
-    fitSport: 'training',
-    fitSubSport: 'generic'
+    fitSport: 'training'
   },
   {
     source: 'polar',
     names: ['JAZZ_DANCING', 'Jazz'],
-    type: 'Jazz Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Jazz Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['JOGGING', 'Jogging'],
     type: 'Running' as ActivityTypes,
-    fitSport: 'running',
-    fitSubSport: 'generic'
+    fitSport: 'running'
   },
   {
     source: 'polar',
     names: ['JUDO_MARTIAL_ARTS', 'Judo'],
-    type: 'Judo' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Judo' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['JUMP_ROPE', 'Rope skipping'],
     type: 'Jump Rope' as ActivityTypes,
-    fitSport: 'jump_rope',
-    fitSubSport: 'generic'
+    fitSport: 'jump_rope'
   },
   {
     source: 'polar',
     names: ['KICKBIKE', 'Kickbiking'],
     type: 'Kickbiking' as ActivityTypes,
-    fitSport: 'cycling',
-    fitSubSport: 'generic'
+    fitSport: 'cycling'
   },
   {
     source: 'polar',
     names: ['KICKBOXING_MARTIAL_ARTS', 'Kickboxing'],
-    type: 'Kickboxing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Kickboxing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LATIN_DANCING', 'Latin'],
-    type: 'Latin Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Latin Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BARRE', 'LES MILLS BARRE'],
-    type: 'LES MILLS BARRE' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BARRE' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYATTACK', 'LES MILLS BODYATTACK'],
-    type: 'LES MILLS BODYATTACK' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYATTACK' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYBALANCE', 'LES MILLS BODYBALANCE'],
-    type: 'LES MILLS BODYBALANCE' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYBALANCE' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYCOMBAT', 'LES MILLS BODYCOMBAT'],
-    type: 'LES MILLS BODYCOMBAT' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYCOMBAT' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYJAM', 'LES MILLS BODYJAM'],
-    type: 'LES MILLS BODYJAM' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYJAM' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYPUMP', 'LES MILLS BODYPUMP'],
-    type: 'LES MILLS BODYPUMP' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYPUMP' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_BODYSTEP', 'LES MILLS BODYSTEP'],
-    type: 'LES MILLS BODYSTEP' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS BODYSTEP' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_CXWORKS', 'LES MILLS CXWORX', 'LES MILLS CORE'],
-    type: 'LES MILLS CORE' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS CORE' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_ATHLETIC', 'LES MILLS GRIT Athletic'],
-    type: 'LES MILLS GRIT Athletic' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS GRIT Athletic' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_CARDIO', 'LES MILLS GRIT Cardio'],
-    type: 'LES MILLS GRIT Cardio' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS GRIT Cardio' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_GRIT_STRENGTH', 'LES MILLS GRIT Strength'],
-    type: 'LES MILLS GRIT Strength' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS GRIT Strength' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_RPM', 'LES MILLS RPM'],
-    type: 'LES MILLS RPM' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS RPM' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_SHBAM', "LES MILLS SH'BAM"],
-    type: "LES MILLS SH'BAM" as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: "LES MILLS SH'BAM" as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_SPRINT', 'LES MILLS SPRINT'],
-    type: 'LES MILLS SPRINT' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS SPRINT' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_TONE', 'LES MILLS TONE'],
-    type: 'LES MILLS TONE' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS TONE' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['LES_MILLS_TRIP', 'LES MILLS TRIP', 'LES MILLS THE TRIP'],
-    type: 'LES MILLS THE TRIP' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'LES MILLS THE TRIP' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['MOBILITY_DYNAMIC', 'Mobility (dynamic)'],
     type: 'Dynamic Mobility' as ActivityTypes,
-    fitSport: 'generic',
     fitSubSport: 'flexibility_training'
   },
   {
     source: 'polar',
     names: ['MOBILITY_STATIC', 'Mobility (static)'],
     type: 'Static Mobility' as ActivityTypes,
-    fitSport: 'generic',
     fitSubSport: 'flexibility_training'
   },
   {
     source: 'polar',
     names: ['MODERN_DANCING', 'Modern'],
-    type: 'Modern Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Modern Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_CAR_RACING', 'Car racing'],
     type: 'Car Racing' as ActivityTypes,
-    fitSport: 'driving',
-    fitSubSport: 'generic'
+    fitSport: 'driving'
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_ENDURO', 'Enduro'],
     type: 'Motorcycle Enduro' as ActivityTypes,
-    fitSport: 'motorcycling',
-    fitSubSport: 'generic'
+    fitSport: 'motorcycling'
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_HARD_ENDURO', 'Hard Enduro'],
     type: 'Hard Enduro' as ActivityTypes,
-    fitSport: 'motorcycling',
-    fitSubSport: 'generic'
+    fitSport: 'motorcycling'
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_MOTOCROSS', 'Motocorss'],
     type: 'Motocross' as ActivityTypes,
-    fitSport: 'motorcycling',
-    fitSubSport: 'generic'
+    fitSport: 'motorcycling'
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_ROADRACING', 'Road racing'],
     type: 'Car Racing' as ActivityTypes,
-    fitSport: 'driving',
-    fitSubSport: 'generic'
+    fitSport: 'driving'
   },
   {
     source: 'polar',
     names: ['MOTORSPORTS_SNOCROSS', 'Snocross'],
-    type: 'Snocross' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Snocross' as ActivityTypes
   },
   {
     source: 'polar',
@@ -613,9 +493,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['OFFROADDUATHLON', 'Off-road duathlon'],
-    type: 'Offroad Duathlon' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Offroad Duathlon' as ActivityTypes
   },
   {
     source: 'polar',
@@ -634,9 +512,7 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['OFFROADTRIATHLON', 'Off-road triathlon'],
-    type: 'Offroad Triathlon' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Offroad Triathlon' as ActivityTypes
   },
   {
     source: 'polar',
@@ -676,16 +552,12 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['OTHER_INDOOR', 'Other indoor'],
-    type: 'Indoor Training' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Indoor Training' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['OTHER_OUTDOOR', 'Other outdoor'],
-    type: 'Other' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Other' as ActivityTypes
   },
   {
     source: 'polar',
@@ -705,57 +577,48 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'polar',
     names: ['PARASPORTS_SLED_HOCKEY', 'Sled hockey'],
     type: 'Sled Hockey' as ActivityTypes,
-    fitSport: 'hockey',
-    fitSubSport: 'generic'
+    fitSport: 'hockey'
   },
   {
     source: 'polar',
     names: ['PARASPORTS_WATER_SKIING', 'Adaptive water skiing'],
     type: 'Adaptive Water Skiing' as ActivityTypes,
-    fitSport: 'water_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'water_skiing'
   },
   {
     source: 'polar',
     names: ['PARASPORTS_WHEELCHAIR', 'Wheelchair racing'],
-    type: 'Wheelchair Racing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Wheelchair Racing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['PARASPORTS_WHEELCHAIR_BASKETBALL', 'Wheelchair basketball'],
     type: 'Wheelchair Basketball' as ActivityTypes,
-    fitSport: 'basketball',
-    fitSubSport: 'generic'
+    fitSport: 'basketball'
   },
   {
     source: 'polar',
     names: ['PARASPORTS_WHEELCHAIR_TENNIS', 'Wheelchair tennis'],
     type: 'Wheelchair Tennis' as ActivityTypes,
-    fitSport: 'tennis',
-    fitSubSport: 'generic'
+    fitSport: 'tennis'
   },
   {
     source: 'polar',
     names: ['POOL_SWIMMING', 'Pool swimming'],
     type: 'Swimming' as ActivityTypes,
-    fitSport: 'swimming',
-    fitSubSport: 'generic'
+    fitSport: 'swimming'
   },
   {
     source: 'polar',
     names: ['RIDING', 'Riding'],
     type: 'Horseback Riding' as ActivityTypes,
-    fitSport: 'horseback_riding',
-    fitSubSport: 'generic'
+    fitSport: 'horseback_riding'
   },
   {
     source: 'polar',
     names: ['RINGETTE', 'Ringette'],
     type: 'Ringette' as ActivityTypes,
-    fitSport: 'ice_skating',
-    fitSubSport: 'generic'
+    fitSport: 'ice_skating'
   },
   {
     source: 'polar',
@@ -774,100 +637,75 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
   {
     source: 'polar',
     names: ['ROLLER_BLADING', 'Roller skating'],
-    type: 'Inline Skating' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Inline Skating' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['ROLLER_SKIING_CLASSIC', 'Classic roller skiing'],
-    type: 'Classic Roller Skiing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Classic Roller Skiing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['ROLLER_SKIING_FREESTYLE', 'Freestyle roller skiing'],
-    type: 'Skate Roller Skiing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Skate Roller Skiing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SHOW_DANCING', 'Show'],
-    type: 'Show Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Show Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SHOOTING_SPORT_INDOOR', 'Shooting (indoor)', 'Shooting sport (indoor)'],
-    type: 'Indoor Shooting' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Indoor Shooting' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SHOOTING_SPORT_OUTDOOR', 'Shooting (outdoor)', 'Shooting sport (outdoor)'],
-    type: 'Shooting' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Shooting' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SKATEBOARDING', 'Skateboarding'],
-    type: 'Skateboarding' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Skateboarding' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SKIERG', 'Ski machine'],
-    type: 'Indoor Skiing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Indoor Skiing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['SNOWSHOE_TREKKING', 'Snowshoe trekking'],
     type: 'Snowshoeing' as ActivityTypes,
-    fitSport: 'snowshoeing',
-    fitSubSport: 'generic'
+    fitSport: 'snowshoeing'
   },
   {
     source: 'polar',
     names: ['SPINNING', 'Spinning'],
     type: 'Indoor Cycling' as ActivityTypes,
-    fitSport: 'generic',
     fitSubSport: 'indoor_cycling'
   },
   {
     source: 'polar',
     names: ['SUP'],
     type: 'Stand Up Paddling' as ActivityTypes,
-    fitSport: 'stand_up_paddleboarding',
-    fitSubSport: 'generic'
+    fitSport: 'stand_up_paddleboarding'
   },
   {
     source: 'polar',
     names: ['STAIR_WORKOUT', 'Stair workout'],
-    type: 'Floor Climbing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Floor Climbing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['STREET_DANCING', 'Street'],
-    type: 'Street Dancing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Street Dancing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['TAEKWONDO_MARTIAL_ARTS', 'Taekwondo'],
-    type: 'Taekwondo' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Taekwondo' as ActivityTypes
   },
   {
     source: 'polar',
@@ -887,184 +725,147 @@ const mappings: readonly ProviderActivityTypeMapping[] = [
     source: 'polar',
     names: ['TRIATHLON_CYCLING', 'Cycling', '(Triathlon) Cycling'],
     type: 'Cycling' as ActivityTypes,
-    fitSport: 'cycling',
-    fitSubSport: 'generic'
+    fitSport: 'cycling'
   },
   {
     source: 'polar',
     names: ['TRIATHLON_RUNNING', 'Running', '(Triathlon) Running'],
     type: 'Running' as ActivityTypes,
-    fitSport: 'running',
-    fitSubSport: 'generic'
+    fitSport: 'running'
   },
   {
     source: 'polar',
     names: ['TRIATHLON_SWIMMING', 'Open water swimming', '(Triathlon) Open water swimming'],
     type: 'Open Water Swimming' as ActivityTypes,
-    fitSport: 'swimming',
-    fitSubSport: 'generic'
+    fitSport: 'swimming'
   },
   {
     source: 'polar',
     names: ['TROTTING', 'Trotting'],
-    type: 'Trotting' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Trotting' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['ULTIMATE', 'Ultimate'],
-    type: 'Ultimate Disc' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Ultimate Disc' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['ULTRARUNNING_RUNNING', 'Ultra running'],
     type: 'Ultra Running' as ActivityTypes,
-    fitSport: 'running',
-    fitSubSport: 'generic'
+    fitSport: 'running'
   },
   {
     source: 'polar',
     names: ['VERTICALSPORTS_WALLCLIMBING', 'Climbing (indoor)'],
-    type: 'Indoor Climbing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Indoor Climbing' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['VERTICALSPORTS_OUTCLIMBING', 'Climbing (outdoor)'],
     type: 'Rock Climbing' as ActivityTypes,
-    fitSport: 'rock_climbing',
-    fitSubSport: 'generic'
+    fitSport: 'rock_climbing'
   },
   {
     source: 'polar',
     names: ['WATER_EXERCISE', 'Water sports'],
-    type: 'Water Sport' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Water Sport' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['WATER_RUNNING', 'Water running'],
-    type: 'Water Running' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Water Running' as ActivityTypes
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_CANOEING', 'Canoeing'],
     type: 'Canoeing' as ActivityTypes,
-    fitSport: 'kayaking',
-    fitSubSport: 'generic'
+    fitSport: 'kayaking'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_KAYAKING', 'Kayaking'],
     type: 'Kayaking' as ActivityTypes,
-    fitSport: 'kayaking',
-    fitSubSport: 'generic'
+    fitSport: 'kayaking'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_KITESURFING', 'Kitesurfing'],
     type: 'Kitesurfing' as ActivityTypes,
-    fitSport: 'kitesurfing',
-    fitSubSport: 'generic'
+    fitSport: 'kitesurfing'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_SAILING', 'Sailing'],
     type: 'Sailing' as ActivityTypes,
-    fitSport: 'sailing',
-    fitSubSport: 'generic'
+    fitSport: 'sailing'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_SURFING', 'Surfing'],
     type: 'Surfing' as ActivityTypes,
-    fitSport: 'surfing',
-    fitSubSport: 'generic'
+    fitSport: 'surfing'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_WAKEBOARDING', 'Wakeboarding'],
     type: 'Wakeboarding' as ActivityTypes,
-    fitSport: 'wakeboarding',
-    fitSubSport: 'generic'
+    fitSport: 'wakeboarding'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_WATERSKI', 'Water skiing'],
     type: 'Water Skiing' as ActivityTypes,
-    fitSport: 'water_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'water_skiing'
   },
   {
     source: 'polar',
     names: ['WATERSPORTS_WINDSURFING', 'Windsurfing'],
     type: 'Windsurfing' as ActivityTypes,
-    fitSport: 'windsurfing',
-    fitSubSport: 'generic'
+    fitSport: 'windsurfing'
   },
   {
     source: 'polar',
     names: ['XC_SKIING_CLASSIC', 'Classic XC skiing'],
     type: 'Classic Crosscountry Skiing' as ActivityTypes,
-    fitSport: 'cross_country_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'cross_country_skiing'
   },
   {
     source: 'polar',
     names: ['XC_SKIING_FREESTYLE', 'Freestyle XC skiing'],
     type: 'Skate Skiing' as ActivityTypes,
-    fitSport: 'cross_country_skiing',
-    fitSubSport: 'generic'
+    fitSport: 'cross_country_skiing'
   },
   {
     source: 'strava',
     names: ['HighIntensityIntervalTraining'],
-    type: 'HIIT' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'HIIT' as ActivityTypes
   },
   {
     source: 'strava',
     names: ['MountainBikeRide'],
-    type: 'Mountain Biking' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Mountain Biking' as ActivityTypes
   },
   {
     source: 'strava',
     names: ['PhysicalTherapy'],
-    type: 'Physical Therapy' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Physical Therapy' as ActivityTypes
   },
-  { source: 'strava', names: ['Sail'], type: 'Sailing' as ActivityTypes, fitSport: 'sailing', fitSubSport: 'generic' },
+  { source: 'strava', names: ['Sail'], type: 'Sailing' as ActivityTypes, fitSport: 'sailing' },
   {
     source: 'strava',
     names: ['Skateboard'],
-    type: 'Skateboarding' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Skateboarding' as ActivityTypes
   },
   {
     source: 'strava',
     names: ['TrailRun'],
-    type: 'Trail Running' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Trail Running' as ActivityTypes
   },
   {
     source: 'strava',
     names: ['VirtualRow'],
-    type: 'Virtual Rowing' as ActivityTypes,
-    fitSport: 'generic',
-    fitSubSport: 'generic'
+    type: 'Virtual Rowing' as ActivityTypes
   }
 ];
 
@@ -1120,7 +921,7 @@ export function isCompatibleProviderFITParent(
     ?.get(normalize(value))
     ?.some(
       mapping =>
-        parent === normalize(mapping.fitSport) ||
+        parent === normalize(mapping.fitSport ?? 'generic') ||
         mapping.additionalFitContexts?.some(context => parent === normalize(context.sport))
     );
 }
@@ -1140,7 +941,8 @@ export function resolveProviderFITProfile(
   const mapping = nameMappings.find(
     candidate =>
       (parent === 'generic' && child === 'generic') ||
-      (parent === normalize(candidate.fitSport) && child === normalize(candidate.fitSubSport)) ||
+      (parent === normalize(candidate.fitSport ?? 'generic') &&
+        child === normalize(candidate.fitSubSport ?? 'generic')) ||
       candidate.additionalFitContexts?.some(
         context => parent === normalize(context.sport) && child === normalize(context.subSport)
       )

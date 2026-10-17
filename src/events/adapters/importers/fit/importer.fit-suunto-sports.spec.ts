@@ -104,29 +104,26 @@ describe('Suunto documented Stretching export', () => {
     );
   });
 
-  it.each([undefined, true, false])('respects preserveImportedTss=%j after classification', preserveImportedTss => {
-    for (const score of [0, 42.375]) {
-      const options = new ActivityParsingOptions({
-        generateUnitStreams: false,
-        tss: { preserveImportedTss, overrides: { metScore: 6, thresholdMet: 6 } }
-      });
-      const activity = importSession(
-        { file_ids: [{ manufacturer: 'suunto' }] },
-        { training_stress_score: score },
-        options
-      );
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
-      const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
-      restored.parseOptions = options;
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
+  it.each([undefined, true, false])(
+    'preserves imported TSS after classification with legacy flag %j',
+    preserveImportedTss => {
+      for (const score of [0, 42.375]) {
+        const options = new ActivityParsingOptions({
+          generateUnitStreams: false,
+          tss: { preserveImportedTss, overrides: { metScore: 6, thresholdMet: 6 } }
+        });
+        const activity = importSession(
+          { file_ids: [{ manufacturer: 'suunto' }] },
+          { training_stress_score: score },
+          options
+        );
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+        const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+        restored.parseOptions = options;
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
 
-      for (const candidate of [activity, restored]) {
-        expect(candidate.type).toBe(ActivityTypes.Stretching);
-        if (preserveImportedTss === false) {
-          expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-          expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(score);
-          expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
-        } else {
+        for (const candidate of [activity, restored]) {
+          expect(candidate.type).toBe(ActivityTypes.Stretching);
           expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
           expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
             TrainingStressScoreMethod.IMPORTED
@@ -134,9 +131,9 @@ describe('Suunto documented Stretching export', () => {
         }
       }
     }
-  });
+  );
 
-  it('clears imported TSS when preservation is off and calculation inputs are unavailable', () => {
+  it('preserves imported TSS with the legacy flag off and calculation inputs unavailable', () => {
     const activity = importSession(
       { file_ids: [{ manufacturer: 'suunto' }] },
       { training_stress_score: 42.375 },
@@ -147,8 +144,8 @@ describe('Suunto documented Stretching export', () => {
     );
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     expect(activity.type).toBe(ActivityTypes.Stretching);
-    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
-    expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.375);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 });
 
@@ -260,7 +257,7 @@ describe('Suunto distinct documented FIT pairs', () => {
     }
   );
 
-  it.each(distinctMappings)('round-trips $type and respects both TSS settings', row => {
+  it.each(distinctMappings)('round-trips $type and preserves imported TSS for every legacy flag setting', row => {
     for (const preserveImportedTss of [undefined, true, false]) {
       for (const score of [0, 42.375]) {
         const options = new ActivityParsingOptions({
@@ -278,21 +275,10 @@ describe('Suunto distinct documented FIT pairs', () => {
         ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
         for (const candidate of [activity, restored]) {
           expect(candidate.type).toBe(row.type);
-          if (preserveImportedTss !== false) {
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
-            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-              TrainingStressScoreMethod.IMPORTED
-            );
-          } else if (row.type === ActivityTypes.Motorsports) {
-            expect(candidate.getStat(DataTrainingStressScore.type)).toBeUndefined();
-            expect(candidate.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
-          } else {
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(score);
-            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-              TrainingStressScoreMethod.MET
-            );
-          }
+          expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+          expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+            TrainingStressScoreMethod.IMPORTED
+          );
         }
       }
     }
@@ -452,7 +438,7 @@ describe('Suunto distinct names on shared exports', () => {
     expect(activity.type).toBe(ActivityTypes.TrailRunning);
   });
 
-  it.each(newlyDistinctProfiles)('round-trips imported $type with both TSS settings', row => {
+  it.each(newlyDistinctProfiles)('round-trips imported $type for every legacy TSS flag setting', row => {
     for (const preserveImportedTss of [undefined, true, false]) {
       for (const score of [0, 42.375]) {
         const options = new ActivityParsingOptions({
@@ -470,18 +456,10 @@ describe('Suunto distinct names on shared exports', () => {
         ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
         for (const candidate of [activity, restored]) {
           expect(candidate.type).toBe(row.type);
-          if (preserveImportedTss === false) {
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).not.toBe(score);
-            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-              TrainingStressScoreMethod.MET
-            );
-          } else {
-            expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
-            expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
-              TrainingStressScoreMethod.IMPORTED
-            );
-          }
+          expect(candidate.getStat(DataTrainingStressScore.type)?.getValue()).toBe(score);
+          expect(candidate.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+            TrainingStressScoreMethod.IMPORTED
+          );
         }
       }
     }

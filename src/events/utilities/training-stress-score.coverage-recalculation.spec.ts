@@ -86,10 +86,10 @@ describe('explicit calculated NP reevaluation', () => {
     const power = activity.createStream(DataPower.type); power.setData(Array(61).fill(200)); activity.addStream(power);
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(200);
-    expect(evaluate(activity).automatic.method).not.toBe('POWER');
+    expect(evaluate(activity).automatic.method === 'POWER').toBe(type === ActivityTypes.Walking);
     expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(200);
     power.getData().fill(100);
-    expect(evaluate(activity).automatic.method).not.toBe('POWER');
+    expect(evaluate(activity).automatic.method === 'POWER').toBe(type === ActivityTypes.Walking);
     expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(100);
     expect(activity.getStat(DataPowerIntensityFactor.type)?.getValue()).toBe(calibrated ? 0.4 : undefined);
     activity.removeStream(DataPower.type);

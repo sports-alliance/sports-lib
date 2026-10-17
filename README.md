@@ -24,6 +24,9 @@ The hosted documentation contains the supported API and all consumer guidance:
 - [Three-dimensional power and training-response model](https://sports-alliance.github.io/sports-lib/documents/Three-dimensional_power_and_training-response_model.html)
 - [Validation and compatibility](https://sports-alliance.github.io/sports-lib/documents/Validation_and_compatibility.html)
 
+Activity R–R analysis provides gap-aware RMSSD, SDNN, pNN50, recording-quality summaries and rolling DFA alpha1.
+See [activity R–R calculations](docs/guides/metrics-and-calculations.md#activity-rr-analysis) for units, quality gates and reparse requirements.
+
 ## Install
 
 ```sh

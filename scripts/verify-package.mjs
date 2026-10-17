@@ -443,9 +443,9 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  // Pool timing validity, chronology, lap-ID preservation, and multisport clocks:
-  // measured 430,296 bytes. Keep a bounded budget for the public facade.
-  assert.ok(initialBytes <= 431_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 431000`);
+  // Activity R-R statistics add about 9 KB to the complete parsing facade.
+  // Keep bounded headroom around 440 KB; focused imports retain their separate 60 KB budget.
+  assert.ok(initialBytes <= 441_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 441000`);
   assert.ok(
     fitParserBytes <= 30_000,
     `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`

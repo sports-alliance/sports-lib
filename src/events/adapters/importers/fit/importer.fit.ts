@@ -55,6 +55,7 @@ import { FITSampleMapper } from './importer.fit.mapper';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
 import { IBIStream } from '../../../../streams/ibi-stream';
+import { isRRIntervalInBounds } from '../../../utilities/rr-timing';
 import { DeviceInterface } from '../../../../activities/devices/device.interface';
 import { Device } from '../../../../activities/devices/device';
 import { ImporterFitAntPlusDeviceNames } from '../../../../fit/device-names/importer.fit.ant-plus.device.names';
@@ -732,11 +733,9 @@ export class EventImporterFIT {
           return;
         }
         // Get the HRV to IBI if exist
-        if (fitDataObject.hrv && fitDataObject.hrv.length) {
+        if (fitDataObject.hrv && fitDataObject.hrv.length && isStreamTypeAllowedForImport('IBI', streamSelection)) {
           activities.forEach((activity: ActivityInterface) => {
-            const ibiData = this.getIBIDataForActivity(fitDataObject.hrv, activities[0].startDate, activity);
-            // set the IBI
-            activity.addStream(new IBIStream(ibiData));
+            activity.addStream(this.getIBIStreamForActivity(fitDataObject.hrv, activities[0].startDate, activity));
           });
         }
 
@@ -959,21 +958,29 @@ export class EventImporterFIT {
   }
 
   private static getIBIDataForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): number[] {
-    let elapsedTime = 0;
-    return hrvRecords
-      .reduce((ibiArray: number[], hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
-      .map((ibi: any) => ibi * 1000)
-      .filter((ibi: number) => {
-        elapsedTime += ibi;
-        const ibiDataDate = new Date(eventStartDate.getTime() + elapsedTime);
+    return this.getIBIStreamForActivity(hrvRecords, eventStartDate, activity).getData() as number[];
+  }
 
-        // FIT uses 0xFFFF as the invalid uint16 sentinel. Some parsers surface it as 65.535s.
-        if (ibi === this.INVALID_FIT_HRV_INTERVAL_MS) {
-          return false;
+  private static getIBIStreamForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): IBIStream {
+    const intervals: (number | null)[] = [];
+    const times: number[] = [];
+    let elapsed = 0;
+    for (const record of hrvRecords) {
+      for (const raw of (Array.isArray(record.time) ? record.time : [record.time])) {
+        // Unused uint16 array slots decode as null (or 65.535 s in older decoders).
+        // They are padding, not observations or evidence of elapsed recording time.
+        if (raw === null || raw === undefined) continue;
+        const value = typeof raw === 'number' ? raw * 1000 : NaN;
+        if (value === this.INVALID_FIT_HRV_INTERVAL_MS) continue;
+        if (Number.isFinite(value) && value > 0) elapsed += value;
+        const absolute = eventStartDate.getTime() + elapsed;
+        if (isRRIntervalInBounds({ time: absolute, interval: value }, +activity.startDate, +activity.endDate)) {
+          intervals.push(Number.isFinite(value) ? value : null);
+          times.push(absolute - activity.startDate.getTime());
         }
-
-        return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
-      });
+      }
+    }
+    return new IBIStream(intervals, times);
   }
 
   /**

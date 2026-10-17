@@ -254,22 +254,22 @@ describe('EventImporterFIT', () => {
   });
 
   describe('HRV handling', () => {
-    it('should preserve elapsed time after invalid HRV sentinel values', () => {
+    it('does not advance elapsed time for unused HRV slots', () => {
       const ibiData = (EventImporterFIT as any).getIBIDataForActivity([{ time: [1, 65.535, 1] }], new Date(0), {
-        startDate: new Date(50000),
-        endDate: new Date(70000)
+        startDate: new Date(1000),
+        endDate: new Date(2000)
       });
 
       expect(ibiData).toEqual([1000]);
     });
 
-    it('should preserve elapsed time across consecutive invalid HRV sentinel values from multiple records', () => {
+    it('ignores consecutive unused HRV slots across multiple records', () => {
       const ibiData = (EventImporterFIT as any).getIBIDataForActivity(
         [{ time: [1, 65.535] }, { time: [65.535, 1] }],
         new Date(0),
         {
-          startDate: new Date(130000),
-          endDate: new Date(140000)
+          startDate: new Date(1000),
+          endDate: new Date(2000)
         }
       );
 

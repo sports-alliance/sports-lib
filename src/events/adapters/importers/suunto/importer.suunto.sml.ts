@@ -36,10 +36,12 @@ export class EventImporterSuuntoSML {
     // and normalize repeated XML event elements without introducing nested arrays.
     json.DeviceLog.Samples.filter((sample: any) => !!sample.Events).forEach((sample: any) => {
       const events = Array.isArray(sample.Events) ? sample.Events : [sample.Events];
-      sample.Events = events.map((event: any) => {
-        const { Activity: _activity, ...remaining } = event;
-        return remaining;
-      }).filter((event: any) => Object.keys(event).length > 0);
+      sample.Events = events
+        .map((event: any) => {
+          const { Activity: _activity, ...remaining } = event;
+          return remaining;
+        })
+        .filter((event: any) => Object.keys(event).length > 0);
     });
 
     // Inject start and end sample with event
@@ -109,28 +111,21 @@ export class EventImporterSuuntoSML {
       });
     }
 
-    let rr;
-    try {
-      rr = {
-        Data: json.Samples.filter((sample: any) => !!JSON.parse(sample.Attributes)['suunto/sml']['R-R'])
-          .map((sample: any) => {
-            return JSON.parse(sample.Attributes)['suunto/sml']['R-R'];
-          })
-          .reduce((accu: [], rrSample: any) => {
-            return accu.concat(rrSample.Data.split(',').map((dataString: string) => Number(dataString)));
-          }, [])
-      };
-    } catch (_e) {
-      rr = {
-        Data: json.Samples.filter((sample: any) => !!sample.Attributes['suunto/sml']['R-R'])
-          .map((sample: any) => {
-            return sample.Attributes['suunto/sml']['R-R'];
-          })
-          .reduce((accu: [], rrSample: any) => {
-            return accu.concat(rrSample.IBI);
-          }, [])
-      };
-    }
+    const batches = json.Samples.flatMap((sample: any) => {
+      const attributes = typeof sample.Attributes === 'string' ? JSON.parse(sample.Attributes) : sample.Attributes;
+      const rr = attributes?.['suunto/sml']?.['R-R'];
+      if (!rr) return [];
+      const intervals = Array.isArray(rr.IBI)
+        ? rr.IBI
+        : typeof rr.Data === 'string'
+          ? rr.Data.split(',').map(Number)
+          : Array.isArray(rr.Data)
+            ? rr.Data
+            : [];
+      const time = new Date(sample.TimeISO8601 ?? sample.UTC).getTime();
+      return [{ time: Number.isFinite(time) ? time : null, intervals }];
+    });
+    const rr = { Data: [], Batches: batches };
 
     // debugger;
     const suuntoJSON = {

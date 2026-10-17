@@ -22,6 +22,7 @@ import { DataNumberOfSatellites } from '../../../../data/data.number-of-satellit
 import { DataSatellite5BestSNR } from '../../../../data/data.satellite-5-best-snr';
 import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
 import { IBIData } from '../../../../data/ibi/data.ibi';
+import { collectRRIntervals, isRRIntervalInBounds } from '../../../utilities/rr-timing';
 import { ImporterSuuntoActivityIds } from './importer.suunto.activity.ids';
 import { ImporterSuuntoDeviceNames } from './importer.suunto.device.names';
 import { ActivityInterface } from '../../../../activities/activity.interface';
@@ -449,16 +450,21 @@ export class EventImporterSuuntoJSON {
         (isStreamTypeAllowedForImport('IBI', streamSelection) ||
           isStreamTypeAllowedForImport(DataHeartRate.type, streamSelection))
       ) {
-        // prepare the data array per activity removing the offset
+        const source = eventJSONObject.DeviceLog['R-R'];
+        const headerStart = new Date(eventJSONObject.DeviceLog.Header?.DateTime).getTime();
+        const sourceStart = Number.isFinite(headerStart) ? headerStart : activities[0].startDate.getTime();
+        const recorded = collectRRIntervals(
+          Array.isArray(source.Batches) ? source.Batches : [{ time: sourceStart, intervals: source.Data }],
+          sourceStart
+        );
         activities.forEach((activity: ActivityInterface) => {
-          let timeSum = 0;
-          const ibiData = eventJSONObject.DeviceLog['R-R'].Data.filter((ibi: number) => {
-            timeSum += ibi;
-            const ibiDataDate = new Date(activities[0].startDate.getTime() + timeSum);
-            return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
-          });
+          const selected = recorded.filter(
+            sample => isRRIntervalInBounds(sample, +activity.startDate, +activity.endDate)
+          );
+          const ibiData = selected.map(sample => sample.interval);
+          const sampleTimes = selected.map(sample => sample.time - activity.startDate.getTime());
           // Override HR from RR only if we get enough plausible samples after filtering.
-          const hrSamplesFromIBI = this.getHRSamplesFromIBIData(activity, ibiData);
+          const hrSamplesFromIBI = this.getHRSamplesFromIBIData(activity, ibiData, sampleTimes);
           if (hrSamplesFromIBI.length > this.MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE) {
             const existingHRStream = activity.getAllStreams().find(stream => stream.type === DataHeartRate.type);
             if (existingHRStream) {
@@ -466,7 +472,13 @@ export class EventImporterSuuntoJSON {
             }
             this.setStreamsForActivity(activity, hrSamplesFromIBI, streamSelection);
           }
-          if (isStreamTypeAllowedForImport('IBI', streamSelection)) activity.addStream(new IBIStream(ibiData));
+          if (isStreamTypeAllowedForImport('IBI', streamSelection))
+            activity.addStream(
+              new IBIStream(
+                ibiData.map(value => (Number.isFinite(value) ? value : null)),
+                sampleTimes
+              )
+            );
         });
       }
 
@@ -649,18 +661,19 @@ export class EventImporterSuuntoJSON {
     });
   }
 
-  private static getHRSamplesFromIBIData(activity: ActivityInterface, ibiData: number[]) {
+  private static getHRSamplesFromIBIData(activity: ActivityInterface, ibiData: number[], sampleTimes?: number[]) {
     // activity.ibiData = new IBIData(ibiData);
     // @todo optimize
     // Create a second IBIData so we can have filtering on those with keeping the original
     const samples: any[] = [];
-    new IBIData(ibiData)
+    new IBIData(sampleTimes ? ibiData.map((ibi, i) => ({ time: sampleTimes[i], ibi })) : ibiData)
       .lowLimitBPMFilter()
       .highLimitBPMFilter()
       .movingMedianFilter()
       .lowPassFilter()
       .getAsBPM()
       .forEach((value, key, _map) => {
+        if (key > +activity.endDate - +activity.startDate) return;
         samples.push({
           TimeISO8601: new Date(activity.startDate.getTime() + key).toISOString(),
           HR: value / 60

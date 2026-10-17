@@ -96,6 +96,8 @@ export class Stream implements StreamInterface {
 }
 
 export interface StreamJSONInterface {
+  /** IBI only: interval end times in milliseconds relative to activity start. */
+  sampleTimes?: number[];
   type: string;
   data: (number | null)[];
 }

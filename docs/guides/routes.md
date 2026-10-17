@@ -40,6 +40,19 @@ const gpxRoute = await SportsLib.exportRoutesToGPX(routeFile);
 const restoredRouteFile = SportsLib.importRoutesFromJSON(routeFile.toJSON());
 ```
 
+FIT Course export uses these broader sport labels for the following canonical route types:
+
+| Saved route type | Exported FIT sport |
+| --- | --- |
+| Road Running | Running |
+| Road Cycling, Track Cycling, Gravel Cycling, Cyclocross | Cycling |
+| Indoor Walking | Walking |
+| Skate Skiing | Crosscountry Skiing |
+
+Their existing aliases use the same labels. Export leaves the saved route and its native JSON sport name unchanged;
+reimporting the FIT course restores the broader FIT sport label. Cyclocross exports as Cycling rather than the former
+Mountain Biking alias. Other route mappings retain their existing behavior.
+
 Route and route-file JSON omit non-finite scalar summary stats, and restoration skips legacy null/non-finite summary
 values. Finite zero/negative values, metadata, geometry, and stream null gaps are preserved. If a route file has no valid
 summaries, existing aggregation regenerates them from its child routes. This read correction needs no source reparse;

@@ -28,9 +28,14 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   treadmill: { sport: fitSport('running'), subSport: fitSubSport('treadmill') },
   virtualrunning: { sport: fitSport('running'), subSport: fitSubSport('virtualactivity') },
   running: { sport: fitSport('running') },
+  roadrunning: { sport: fitSport('running') },
   trailrunning: { sport: fitSport('running'), subSport: fitSubSport('trail') },
   indoorrunning: { sport: fitSport('running'), subSport: fitSubSport('indoorrunning') },
   cycling: { sport: fitSport('cycling') },
+  roadcycling: { sport: fitSport('cycling') },
+  trackcycling: { sport: fitSport('cycling') },
+  gravelcycling: { sport: fitSport('cycling') },
+  cyclocross: { sport: fitSport('cycling') },
   indoorcycling: { sport: fitSport('cycling'), subSport: fitSubSport('indoorcycling') },
   virtualcycling: { sport: fitSport('cycling'), subSport: fitSubSport('virtualactivity') },
   ebiking: { sport: fitSport('ebiking') },
@@ -52,6 +57,7 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   pilates: { sport: fitSport('fitnessequipment'), subSport: fitSubSport('pilates') },
   trekking: { sport: fitSport('hiking') },
   walking: { sport: fitSport('walking') },
+  indoorwalking: { sport: fitSport('walking') },
   sailing: { sport: fitSport('sailing') },
   kayaking: { sport: fitSport('kayaking') },
   canoeing: { sport: fitSport('paddling') },
@@ -61,6 +67,7 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   climbing: { sport: fitSport('rockclimbing') },
   alpineskiing: { sport: fitSport('alpineskiing') },
   crosscountryskiing: { sport: fitSport('crosscountryskiing') },
+  skateskiing: { sport: fitSport('crosscountryskiing') },
   nordicskiing: { sport: fitSport('crosscountryskiing') },
   backcountryskiing: { sport: fitSport('crosscountryskiing'), subSport: fitSubSport('backcountry') },
   skitouring: { sport: fitSport('crosscountryskiing') },
@@ -220,6 +227,7 @@ function getFitEnumValue(value: unknown, resolver: (name: string) => number | nu
 }
 
 export class FITRouteSportMapper {
+  /** Uses the existing broad FIT label for supported refined names without changing the source route. */
   static toFIT(activityType: unknown): FITRouteSport {
     const resolved = ActivityTypesHelper.resolveActivityType(activityType);
     return ACTIVITY_MAPPINGS[normalize(resolved || activityType)] || { sport: fitSport('generic') };

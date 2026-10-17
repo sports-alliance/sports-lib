@@ -974,7 +974,9 @@ export class ActivityUtilities {
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
-   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities.
+   * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
+   * and calculated TSS excluded for Motorized, Adaptive Mobility, and Video Gaming activities.
+   * Those activities retain valid nonnegative source-imported TSS, including legacy scores without a method.
    */
   public static generateMissingStreamsAndStatsForActivity(activity: ActivityInterface): void {
     this.invalidateCalculatedPower(activity);
@@ -2825,7 +2827,11 @@ export class ActivityUtilities {
   private static supportsCalculatedTrainingStressScore(activity: ActivityInterface): boolean {
     const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     return (
-      activityGroup !== ActivityTypeGroups.MotorizedGroup && activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup
+      activityGroup !== ActivityTypeGroups.MotorizedGroup &&
+      activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup &&
+      activity.type !== ActivityTypes.VideoGaming &&
+      activity.type !== ActivityTypes.Paramotoring &&
+      activity.type !== ActivityTypes.RCDroneFlying
     );
   }
 
@@ -2833,6 +2839,7 @@ export class ActivityUtilities {
    * Compute all requested policies once from currently available parsed inputs.
    * Explicit recalculation replaces the cached evaluation; known calculated scores
    * are never promoted to imported scores. Results contain no raw HR calibration.
+   * Automatic prefers usable power over HR, including for walking and hiking.
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    * HR integration excludes explicit timer pauses and invalid readings, and requires observed interval coverage.
@@ -2847,8 +2854,14 @@ export class ActivityUtilities {
   }
 
   private static evaluateTrainingStressScoreFromCurrentInputs(activity: ActivityInterface, refreshCalculatedPower = false): TrainingStressScoreEvaluations {
-    const walking = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking]
-      .includes(activity.type);
+    const walking = [
+      ActivityTypes.Walking,
+      ActivityTypes.IndoorWalking,
+      ActivityTypes.NordicWalking,
+      ActivityTypes.SpeedWalking,
+      ActivityTypes.Hiking,
+      ActivityTypes.Trekking
+    ].includes(activity.type);
     const existingScore = this.getFiniteStatValue(activity, DataTrainingStressScore.type);
     const existingMethod = activity.getStat(DataTrainingStressScoreMethod.type)?.getValue();
     const imported = existingScore !== null && existingScore >= 0 &&
@@ -2887,7 +2900,7 @@ export class ActivityUtilities {
         : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
     const hrSamples = hrReason ? [] : this.getHrTssSamples(activity);
     if (!hrReason && !hrSamples.length) hrReason = 'missing-hr-samples';
-    const powerCandidate = eligible && !walking ? this.calculatePowerTss(activity) : null;
+    const powerCandidate = eligible ? this.calculatePowerTss(activity) : null;
     const power = powerCandidate?.result ?? null;
     const hr = eligible && !hrReason ? this.calculateHrTss(activity, hrSamples) : null;
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
@@ -2904,7 +2917,7 @@ export class ActivityUtilities {
     const automaticReasons: TrainingStressScoreReason[] = [];
     if (!eligible) automaticReasons.push('unsupported-sport');
     else {
-      if (!walking && !power) automaticReasons.push(powerCandidate?.reason ?? 'missing-power-inputs');
+      if (!power) automaticReasons.push(powerCandidate?.reason ?? 'missing-power-inputs');
       if (!power && !hr) automaticReasons.push(hrReason ?? 'calculation-unavailable');
       if (!power && !hr && !walking && !pace &&
         (swimming || this.supportsPaceTss(activity))) {

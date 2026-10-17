@@ -38,7 +38,7 @@ describe('RouteImporterFIT', () => {
     expect(routeFile.srcFileType).toBe(FileType.FIT);
     expect(routeFile.createdAt?.toISOString()).toBe('2025-05-06T15:56:24.000Z');
     expect(routeFile.getRoutes()).toHaveLength(1);
-    expect(route.activityType).toBe(ActivityTypes.Cycling);
+    expect(route.activityType).toBe(ActivityTypes.RoadCycling);
     expect(route.getPointCount()).toBe(666);
     expect(route.hasStreamData(DataLatitudeDegrees.type)).toBe(true);
     expect(route.hasStreamData(DataLongitudeDegrees.type)).toBe(true);

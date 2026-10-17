@@ -48,7 +48,7 @@ Validation included:
 - Preservation of recorded values, zeros and missing data.
 - Timing, distance, multisport ownership, swimming lengths and rests.
 - Training-load calculations, eligibility and fallback behavior.
-- Native JSON restoration and repeated regeneration in Quantified Self.
+- Native JSON restoration and repeated summary regeneration.
 - File-type rejection of explicitly non-activity FIT inputs.
 
 Checks vary by format and scenario. Intentional changes were reviewed against source evidence; the completed

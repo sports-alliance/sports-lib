@@ -48,6 +48,18 @@ require original-file reparse for historical records; retained JSON/SML can hydr
 FIT-only records cannot recover omitted source fields. Downstream regeneration must preserve freshly parsed endurance
 summary values before deriving missing stats, and numeric discovery must require actual persisted availability.
 
+## Numeric summary persistence
+
+Runtime pace at zero speed remains infinite, preserving the existing calculation and display behavior.
+Event, activity, lap, route, and route-file summary JSON omits non-finite scalar numbers instead of persisting null-valued
+metrics. Native event/activity/lap/route/route-file JSON restoration ignores legacy null/non-finite scalar stats while preserving finite
+zero/negative values, structured data, and stream null gaps. Canonical metric names, aliases, units, formulas and the
+imported TSS policy remain unchanged. See [native JSON round trips](exporting.md#native-json-round-trips).
+
+The public numeric catalog remains enumerable/loadable through `DataStore`/`DynamicDataLoader`; finite values retain
+their canonical JSON keys and units. This correction adds no catalog entry. Consumers can read older invalid pace JSON
+without a source reparse; rewriting persisted data remains a separate consumer operation.
+
 ## Swim distance display
 
 `DataSwimDistance` keeps the canonical `Distance` token, meter value and JSON representation. Its optional
@@ -56,7 +68,7 @@ those units instead of switching to kilometers or miles. For example,
 `new DataSwimDistance(91.44, SwimDistanceUnits.Yards)` displays `100 yd`, while `getValue()` remains `91.44` and
 `toJSON()` remains `{ Distance: 91.44 }`. `DynamicDataLoader` preserves this explicit display choice. Consumers can
 choose it from the first swim-pace preference without changing general distance preferences or stored values.
-This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. MCP numeric
+This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. Numeric
 discovery and canonical wire values remain unchanged; the display unit is not a new metric or persisted unit.
 
 ## Position error display
@@ -71,12 +83,9 @@ Only display formatting and the formerly empty unit metadata change. `getValue()
 type tokens and JSON numeric values retain full precision. Existing persisted stats gain the corrected display when
 loaded with this version, without activity/route reparsing, summary regeneration or a persisted-data migration.
 
-Quantified Self MCP consumer review: all eight existing classes remain package-root exports, enumerable through
-`DataStore` and loadable through `DynamicDataLoader` using their existing canonical tokens. The numeric catalog's unit
-metadata changes from empty to `m`; numeric query values and persisted stat keys do not change. Quantified Self must
-adopt the same package version in its frontend and Functions and verify catalog/persistence tests under its
-MCP metric-surface workflow. This correction introduces no metric, tool, output field, scope, consent, provider action
-or additional exposure; downstream package adoption and release remain separate work.
+All eight existing classes remain package-root exports, enumerable through `DataStore` and loadable through
+`DynamicDataLoader` using their existing canonical tokens. The numeric catalog's unit metadata changes from empty
+to `m`; numeric query values and persisted stat keys do not change.
 
 Data Coverage & Calculation Reference
 ---
@@ -621,20 +630,61 @@ Priority order:
 
 - Valid nonnegative imported TSS always wins, including zero.
   Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
-- Walking, Nordic Walking, Hiking and Trekking: IMPORTED -> calibrated HR -> calorie-derived MET -> unavailable.
+- Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking:
+  IMPORTED -> POWER -> calibrated HR -> calorie-derived MET -> unavailable.
 - Other eligible sports: IMPORTED -> POWER -> calibrated HR -> PACE/SWIM_PACE -> MET -> unavailable.
 
-Walking-family activities never use calculated power or running pace. HR and MET preferences fall back through the
+Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
+HR and MET preferences select their available method first, then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
 `preserveImportedTss` option is deprecated: remove an imported stat explicitly for a calculation-only comparison.
 
+Regenerating summaries can update previously calculated walking or hiking TSS to POWER when the retained inputs
+support it. Valid nonnegative provider TSS remains unchanged for every legacy flag setting. No metric token, unit or JSON schema changes;
+consumers without retained calculation inputs must reparse the source to recalculate.
+
 `DataTrainingStressScore.getDisplayValue(1)` opts into one-decimal load-editor display. Calling it without arguments
 retains the existing integer display; canonical values, JSON keys and numeric metric discovery are unchanged.
 
-Motorized and Adaptive Mobility activities do not receive library-calculated TSS, even when calculation inputs are
-available. A source-provided TSS remains available and is labeled `IMPORTED`; no durability evidence is generated for
-either group.
+Motorized and Adaptive Mobility activities, and the Video Gaming, Paramotoring, and RC Drone Flying types, do not
+receive library-calculated TSS, even when calculation inputs or explicit overrides are available. A valid nonnegative
+source-provided TSS remains available and is
+labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy score without a method retains the existing
+imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for
+these activities. Other Unspecified and Aerial Sports activities remain eligible for calculated TSS. These excluded
+groups and three types have no durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
+units, JSON representation and numeric metric discovery remain unchanged.
+
+Walking, Indoor Walking, and Nordic Walking share `WalkingGroup` while preserving the existing walking pace/speed,
+average pace/speed, vertical-speed, and default movement threshold. Only Indoor Walking has the indoor hint. Walking
+has no grade-adjusted running derivation or durability adapter. Obstacle Racing and Ultra Running use Running's
+existing grade-adjusted metrics, TSS selection, and durability protocol, with its usual eligibility checks. Enduro MTB
+continues to emit unsupported-context gravity-MTB durability evidence and keeps its existing TSS eligibility. Rally
+inherits the Motorized calculated-TSS exclusion and imported-score policy above. These classifications add no metric
+token, unit, formula, or durability protocol; see [Import activities](importing-activities.md) for source and adoption requirements.
+
+BMX inherits Cycling's existing calculations and power/heart-rate durability eligibility checks. Indoor Skiing and
+Pool Triathlon retain Indoor Sports' and Performance's existing TSS selection, respectively; neither has a durability
+adapter. Pool Triathlon is not treated as a standalone swimming type. ATV and Motocross inherit Motorized's
+calculated-TSS exclusion, stale-score removal, and finite imported-score preservation. These classifications add no
+numeric metric token, unit, formula, or durability protocol.
+
+E-Enduro MTB retains Enduro MTB's unsupported-context gravity-MTB durability policy and ordinary TSS eligibility.
+Track Cycling and Recumbent Cycling retain Cycling's power/heart-rate durability eligibility checks; their names
+do not imply indoor activities. Speed Walking retains Walking's pace/speed and vertical-speed behavior. Whitewater
+Kayaking retains Kayaking's stroke-rate semantics, and Whitewater Rafting retains Rafting's cadence semantics. Wingsuit
+Flying, Brick Training, and Hunting with Dogs retain the existing Aerial Sports, Performance, and Outdoor Adventures
+metric families, respectively. These six types have no durability adapter. Explicit Indoor Track names reuse Indoor
+Running and its existing running durability policy. No metric token, unit, formula, or durability protocol changes.
+
+FIT Spin reuses Indoor Cycling's indoor hint and cycling calculations. E-bike Mountain reuses E-Mountain Biking's
+cycling calculations. Both use the existing cycling durability protocol. Adventure Race and Fly Paraglide reuse
+Adventure Racing and Paragliding with their existing Performance and Aerial Sports calculations. Broad Hockey,
+Winter Sport, Team Sport, and Water Sport use their respective groups without inferring a specific sport, indoor venue,
+or stroke-rate semantics. Water Sport retains Water Sports' speed/swim-pace display families. Paramotoring remains
+in Aerial Sports and RC Drone Flying in Unspecified, with the type-specific TSS exclusion above; neither has a
+durability adapter. No metric token, unit, numeric formula, persisted field, or durability protocol changes.
 
 POWER TSS:
 
@@ -734,8 +784,7 @@ threshold is inferred, and no score is capped or replaced with an assumed physio
 physiological overrides retain their existing precedence. Recorded samples and calibration fields are not rewritten.
 Existing persisted scores require an original-file reparse to apply the check, followed by refreshed derived Training
 summaries. Ordinary JSON restoration cannot recover this private calibration evidence. Canonical metric tokens, units,
-JSON schemas, evaluation fields and reason codes remain unchanged, so existing QS/MCP projections need no additional
-fields, permissions or private calibration exposure.
+JSON schemas, evaluation fields and reason codes remain unchanged.
 
 PACE TSS (running/trail groups):
 

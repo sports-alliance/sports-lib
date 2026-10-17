@@ -92,6 +92,69 @@ describe('RouteExporterFIT', () => {
     expect(FITRouteSportMapper.fromFIT(73)).toBe('Ice Hockey');
   });
 
+  it.each([
+    ['Road Running', { sport: 1, subSport: 2 }, 'running', 'street', ['running_road']],
+    ['Road Cycling', { sport: 2, subSport: 7 }, 'cycling', 'road', ['cycling_road', 'road_biking']],
+    ['Track Cycling', { sport: 2, subSport: 13 }, 'cycling', 'track_cycling', ['cycling_track_cycling']],
+    ['Gravel Cycling', { sport: 2, subSport: 46 }, 'cycling', 'gravel_cycling', ['cycling_gravel_cycling']],
+    ['Cyclocross', { sport: 2, subSport: 11 }, 'cycling', 'cyclocross', ['cycling_cyclocross']],
+    [
+      'Indoor Walking',
+      { sport: 11, subSport: 27 },
+      'walking',
+      'indoor_walking',
+      ['walking_indoor', 'walking_indoor_walking']
+    ],
+    [
+      'Skate Skiing',
+      { sport: 12, subSport: 42 },
+      'cross_country_skiing',
+      'skate_skiing',
+      ['cross_country_skiing_skate_skiing']
+    ]
+  ])(
+    'preserves %s through FIT route export and reimport',
+    async (specificSport, expected, sport, subSport, legacyAliases) => {
+      for (const name of [specificSport, ...legacyAliases]) {
+        expect(FITRouteSportMapper.toFIT(name)).toEqual(expected);
+      }
+      expect(FITRouteSportMapper.fromFIT(sport, subSport)).toBe(specificSport);
+      expect(FITRouteSportMapper.fromFIT(expected.sport, expected.subSport)).toBe(specificSport);
+      expect(FITRouteSportMapper.fromFIT(String(expected.sport), String(expected.subSport))).toBe(specificSport);
+      const source = await SportsLib.importRoutesFromGPX(
+        GPX_ROUTE.replace('<type>Cycling</type>', `<type>${specificSport}</type>`),
+        DOMParser
+      );
+      expect(source.getFirstRoute().activityType).toBe(specificSport);
+
+      const restored = await SportsLib.importRoutesFromFit(RouteExporterFIT.export(source));
+
+      expect(restored.getFirstRoute().activityType).toBe(specificSport);
+      expect(restored.getFirstRoute().getPointCount()).toBe(2);
+      expect(await SportsLib.exportRoutesToGPX(restored)).toContain(`<type>${specificSport}</type>`);
+      expect(restored.toJSON().routes[0].activityType).toBe(specificSport);
+      expect(source.getFirstRoute().activityType).toBe(specificSport);
+      expect(source.toJSON().routes[0].activityType).toBe(specificSport);
+    }
+  );
+
+  it.each([
+    ['Running', 1],
+    ['Cycling', 2],
+    ['Walking', 11],
+    ['Crosscountry Skiing', 12]
+  ])('keeps %s broad when the FIT subtype is absent or generic', (activityType, sport) => {
+    expect(FITRouteSportMapper.toFIT(activityType)).toEqual({ sport });
+    expect(FITRouteSportMapper.fromFIT(sport)).toBe(activityType);
+    expect(FITRouteSportMapper.fromFIT(sport, 0)).toBe(activityType);
+  });
+
+  it('requires the matching parent sport before applying a FIT subtype', () => {
+    expect(FITRouteSportMapper.fromFIT('walking', 'road')).toBe('Walking');
+    expect(FITRouteSportMapper.fromFIT('running', 'track_cycling')).toBe('Running');
+    expect(FITRouteSportMapper.fromFIT('cycling', 'skate_skiing')).toBe('Cycling');
+  });
+
   it('rejects coordinates outside FIT geographic bounds', () => {
     const creator = new Creator('Test');
     const route = new Route(creator, undefined, 'Invalid coordinates', null, [

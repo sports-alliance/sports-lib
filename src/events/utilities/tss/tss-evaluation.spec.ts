@@ -22,6 +22,22 @@ import { TssCalculator } from './tss-calculator';
 
 const walk = (type = ActivityTypes.Walking) => new Activity(new Date(0), new Date(3600000), type, new Creator('Test'));
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
+const walkingTypes = [
+  ActivityTypes.Walking,
+  ActivityTypes.IndoorWalking,
+  ActivityTypes.NordicWalking,
+  ActivityTypes.SpeedWalking,
+  ActivityTypes.Hiking,
+  ActivityTypes.Trekking
+];
+
+const addCalibratedHeartRate = (activity: Activity) => {
+  fileHeartRateCalibration.set(activity, { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165 });
+  const stream = activity.createStream(DataHeartRate.type);
+  stream.setData(Array.from({ length: 3601 }, (_, index) => (index < 1830 ? 78 : index < 3600 ? 86 : 100)));
+  activity.addStream(stream);
+};
+
 const addConstantStream = (activity: Activity, type: string, value: number) => {
   const stream = activity.createStream(type);
   stream.setData(Array(3601).fill(value));
@@ -104,13 +120,21 @@ describe('file-only training stress evaluations', () => {
     const activity = walk();
     addHrInputs(activity);
     addMetInputs(activity, 7000); // 100 MET for one hour gives 10000 TSS before the existing range check.
-    expect(evaluate(activity).met).toMatchObject({ method: 'HR', score: 31.2, reasons: ['calculation-unavailable'] });
+    expect(evaluate(activity).met).toMatchObject({
+      method: 'HR',
+      score: 31.2,
+      reasons: ['calculation-unavailable', 'missing-power-inputs']
+    });
     activity.addStat(new DataEnergy(6999.3));
     expect(evaluate(activity).met).toMatchObject({ method: 'MET', score: 9998, reasons: [] });
     activity.addStat(new DataEnergy(1e308));
-    expect(evaluate(activity).met.reasons).toEqual(['calculation-unavailable']);
+    expect(evaluate(activity).met.reasons).toEqual(['calculation-unavailable', 'missing-power-inputs']);
     activity.removeStat(DataWeight.type);
-    expect(evaluate(activity).met).toMatchObject({ method: 'HR', score: 31.2, reasons: ['missing-met-inputs'] });
+    expect(evaluate(activity).met).toMatchObject({
+      method: 'HR',
+      score: 31.2,
+      reasons: ['missing-met-inputs', 'missing-power-inputs']
+    });
   });
 
   it('retains explicit MET overrides without requiring file energy or mass', () => {
@@ -160,17 +184,70 @@ describe('file-only training stress evaluations', () => {
     activity.parseOptions = new ActivityParsingOptions();
     expect(evaluate(activity).automatic.reasons).toContain('missing-swim-threshold');
   });
-  it.each([ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking])(
-    '%s rejects power and observed peak HR, falling back to the calorie MET estimate', type => {
+  it.each(walkingTypes)('%s prefers power in Automatic while retaining explicit HR and MET preferences', type => {
+    const activity = walk(type);
+    fileFunctionalThresholdPower.set(activity, 200);
+    activity.addStat(new DataPowerNormalized(200));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    addCalibratedHeartRate(activity);
+    const result = evaluate(activity);
+    expect(result.automatic).toMatchObject({
+      method: 'POWER',
+      estimated: false,
+      provenance: 'calculated',
+      reasons: []
+    });
+    expect(result.automatic.score).toBeGreaterThan(0);
+    expect(result.hr).toMatchObject({ score: 7.6, method: 'HR', reasons: [] });
+    expect(result.met).toMatchObject({ score: 9, method: 'MET', reasons: [] });
+
+    for (const preserveImportedTss of [undefined, true, false]) {
+      activity.parseOptions = new ActivityParsingOptions({ tss: { preserveImportedTss } });
+      for (const score of [0, 42.5]) {
+        activity.addStat(new DataTrainingStressScore(score));
+        const evaluations = evaluate(activity);
+        for (const policy of ['automatic', 'hr', 'met'] as const) {
+          expect(evaluations[policy]).toMatchObject(
+            { score, method: 'IMPORTED', provenance: 'imported' }
+          );
+        }
+      }
+    }
+  });
+
+  it.each(walkingTypes)('%s falls back to calibrated HR when power lacks a valid threshold', type => {
+    const activity = walk(type);
+    activity.addStat(new DataPowerNormalized(200));
+    activity.addStat(new DataEnergy(210));
+    activity.addStat(new DataWeight(70));
+    addCalibratedHeartRate(activity);
+    expect(evaluate(activity).automatic).toMatchObject({
+      score: 7.6,
+      method: 'HR',
+      reasons: ['missing-power-inputs']
+    });
+  });
+
+  it.each(walkingTypes)(
+    '%s rejects observed peak HR as calibration, falling back to the calorie MET estimate',
+    type => {
       const activity = walk(type);
-      activity.addStat(new DataFTP(200));
-      activity.addStat(new DataPowerNormalized(200));
+      // Even valid running-pace inputs must not outrank MET for walking or hiking.
+      activity.parseOptions = new ActivityParsingOptions({ tss: { overrides: { functionalThresholdPace: 2 } } });
+      const speed = activity.createStream(DataSpeed.type);
+      speed.setData(new Array(3601).fill(2));
+      activity.addStream(speed);
       activity.addStat(new DataHeartRateMax(100));
       activity.addStat(new DataEnergy(210));
       activity.addStat(new DataWeight(70));
       const result = evaluate(activity);
       expect(result.automatic).toMatchObject({ score: 9, method: 'MET', estimated: true, provenance: 'calculated' });
-      expect(result.hr).toMatchObject({ score: 9, method: 'MET', reasons: ['missing-hr-calibration'] });
+      expect(result.hr).toMatchObject({
+        score: 9,
+        method: 'MET',
+        reasons: ['missing-hr-calibration', 'missing-power-inputs']
+      });
       expect(result.met.reasons).toEqual([]);
       activity.removeStat(DataWeight.type);
       expect(evaluate(activity).automatic.score).toBeNull();
@@ -199,7 +276,11 @@ describe('file-only training stress evaluations', () => {
     activity.addStream(stream);
     const results = evaluate(activity);
     expect(results.hr).toMatchObject({ score: 7.6, method: 'HR', estimated: false });
-    expect(results.met).toMatchObject({ score: 7.6, method: 'HR', reasons: ['missing-met-inputs'] });
+    expect(results.met).toMatchObject({
+      score: 7.6,
+      method: 'HR',
+      reasons: ['missing-met-inputs', 'missing-power-inputs']
+    });
     activity.removeStream(DataHeartRate.type);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity)).toEqual(results);
     expect(evaluate(activity).hr.score).toBeNull();

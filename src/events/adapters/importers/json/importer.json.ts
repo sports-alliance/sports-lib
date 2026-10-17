@@ -20,7 +20,8 @@ import { LapInterface } from '../../../../laps/lap.interface';
 import { LapTypes } from '../../../../laps/lap.types';
 import { ActivityJSONInterface } from '../../../../activities/activity.json.interface';
 import { deserializeDiveSourceRecords } from '../../../../activities/dive-source-records';
-import { ActivityTypes } from '../../../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../../../../activities/activity.types';
+import { getActivityTypeSourceFromManufacturer } from '../../../../activities/activity-types.provider';
 import {
   normalizeActivityMetricSemanticsForStats,
   normalizeActivityMetricSemanticsForActivity,
@@ -320,13 +321,17 @@ export class EventImporterJSON {
 
   /**
    * Restores a native JSON activity including its name, normalizes activity-aware summary semantics, and hydrates
-   * missing speed-derived pace summaries on it and its laps.
+   * missing speed-derived pace summaries on it and its laps. Canonical sport names and aliases are restored;
+   * invalid or unrecognized sport names become Unknown Sport.
    */
   static getActivityFromJSON(json: ActivityJSONInterface): ActivityInterface {
     const activity = new Activity(
       new Date(json.startDate),
       new Date(json.endDate),
-      ActivityTypes[<keyof typeof ActivityTypes>json.type],
+      ActivityTypesHelper.resolveActivityType(
+        json.type,
+        getActivityTypeSourceFromManufacturer(json.creator?.manufacturer)
+      ) ?? ActivityTypes.unknown,
       EventImporterJSON.getCreatorFromJSON(json.creator),
       undefined,
       json.name ?? ''

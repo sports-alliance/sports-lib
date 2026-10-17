@@ -1,7 +1,7 @@
 import { Activity } from '../../activities/activity';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { ActivityParsingOptions } from '../../activities/activity-parsing-options';
-import { ActivityTypes } from '../../activities/activity.types';
+import { ActivityTypes, ActivityTypesHelper } from '../../activities/activity.types';
 import { Creator } from '../../creators/creator';
 import { DataEnergy } from '../../data/data.energy';
 import { DataFTP } from '../../data/data.ftp';
@@ -29,6 +29,7 @@ import { TssCalculator, type TssSample } from './tss/tss-calculator';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventImporterFIT } from '../adapters/importers/fit/importer.fit';
+import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 
 const creator = new Creator('test');
 
@@ -212,6 +213,48 @@ function recomputeFixtureWithPaceTss(activity: ActivityInterface, thresholdSpeed
 }
 
 describe('Training Stress Score integration', () => {
+  it.each(ActivityTypesHelper.getActivityTypesAsUniqueArray())(
+    'preserves imported TSS for %s for every legacy flag setting despite calculation inputs',
+    type => {
+      for (const preserveImportedTss of [undefined, true, false]) {
+        for (const importedMethod of [undefined, TrainingStressScoreMethod.IMPORTED]) {
+          for (const importedTss of [0, 42.375]) {
+            const options = new ActivityParsingOptions({
+              generateUnitStreams: false,
+              tss: {
+                preserveImportedTss,
+                overrides: { functionalThresholdPower: 200, lactateThresholdHR: 160, metScore: 6, thresholdMet: 6 }
+              }
+            });
+            const activity = createActivity(type as ActivityTypes, 60, options);
+            activity.addStat(new DataTrainingStressScore(importedTss));
+            if (importedMethod !== undefined) {
+              activity.addStat(new DataTrainingStressScoreMethod(importedMethod));
+            }
+            addNumericStream(activity, DataPower.type, new Array(60).fill(200));
+            addNumericStream(activity, DataHeartRate.type, new Array(60).fill(160));
+            activity.addStat(new DataEnergy(120));
+            activity.addStat(new DataWeight(70));
+            ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+            expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(importedTss);
+            expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
+
+            const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+            restored.parseOptions = options;
+            ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
+            expect(restored.type).toBe(type);
+            expect(restored.getStat(DataTrainingStressScore.type)?.getValue()).toBe(importedTss);
+            expect(restored.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(
+              TrainingStressScoreMethod.IMPORTED
+            );
+          }
+        }
+      }
+    }
+  );
+
   it('preserves imported TSS by default and sets method to IMPORTED', () => {
     const activity = createActivity(ActivityTypes.Cycling, 1200);
     activity.addStat(new DataTrainingStressScore(42.5));
@@ -222,22 +265,183 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
   });
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
-    'does not calculate TSS for %s even when power inputs are available',
-    activityType => {
-      const activity = createActivity(
-        activityType,
-        1200,
-        new ActivityParsingOptions({
-          tss: {
-            preserveImportedTss: false,
-            overrides: {
-              functionalThresholdPower: 250
-            }
+  it.each([
+    ActivityTypes.Driving,
+    ActivityTypes.Wheelchair,
+    ActivityTypes.WheelchairPushWalk,
+    ActivityTypes.WheelchairPushRun,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.Rally,
+    ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
+    ActivityTypes.VideoGaming
+  ])('does not calculate TSS for %s even when power inputs are available', activityType => {
+    const activity = createActivity(
+      activityType,
+      1200,
+      new ActivityParsingOptions({
+        tss: {
+          preserveImportedTss: false,
+          overrides: {
+            functionalThresholdPower: 250
           }
-        })
-      );
-      addNumericStream(activity, DataPower.type, new Array(1200).fill(250));
+        }
+      })
+    );
+    addNumericStream(activity, DataPower.type, new Array(1200).fill(250));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+  });
+
+  it.each([
+    ActivityTypes.Driving,
+    ActivityTypes.Wheelchair,
+    ActivityTypes.WheelchairPushWalk,
+    ActivityTypes.WheelchairPushRun,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.Rally,
+    ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
+    ActivityTypes.VideoGaming
+  ])('preserves imported TSS for %s even when imported-TSS preservation is disabled', activityType => {
+    const activity = createActivity(
+      activityType,
+      1200,
+      new ActivityParsingOptions({ tss: { preserveImportedTss: false } })
+    );
+    activity.addStat(new DataTrainingStressScore(42.5));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
+  });
+
+  it.each([
+    ActivityTypes.Driving,
+    ActivityTypes.Wheelchair,
+    ActivityTypes.WheelchairPushWalk,
+    ActivityTypes.WheelchairPushRun,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.Rally,
+    ActivityTypes.Overlanding,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying,
+    ActivityTypes.VideoGaming
+  ])('removes stale calculated TSS for unsupported activity %s', activityType => {
+    const activity = createActivity(activityType, 1200);
+    activity.addStat(new DataTrainingStressScore(42.5));
+    activity.addStat(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.POWER));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+  });
+
+  describe.each([
+    ActivityTypes.ATV,
+    ActivityTypes.Motocross,
+    ActivityTypes.Rally,
+    ActivityTypes.Overlanding,
+    ActivityTypes.IndoorWheelchairPushWalk,
+    ActivityTypes.IndoorWheelchairPushRun,
+    ActivityTypes.Paramotoring,
+    ActivityTypes.RCDroneFlying
+  ])('TSS exclusion policy for %s', type => {
+    it.each([TrainingStressScoreMethod.HR, TrainingStressScoreMethod.MET])(
+      'suppresses %s calculation and stale scores',
+      method => {
+        const activity = createActivity(
+          type,
+          600,
+          new ActivityParsingOptions({
+            tss: { overrides: { lactateThresholdHR: 160, metScore: 6, thresholdMet: 6 } }
+          })
+        );
+        if (method === TrainingStressScoreMethod.HR) {
+          addNumericStream(activity, DataHeartRate.type, new Array(600).fill(160));
+        }
+        activity.addStat(new DataEnergy(120));
+        activity.addStat(new DataWeight(70));
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+        expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+        expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+        activity.addStat(new DataTrainingStressScore(42.5));
+        activity.addStat(new DataTrainingStressScoreMethod(method));
+        ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+        expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+        expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+      }
+    );
+
+    it.each([true, false])('preserves explicitly imported scores with preserveImportedTss=%s', preserveImportedTss => {
+      const activity = createActivity(type, 600, new ActivityParsingOptions({ tss: { preserveImportedTss } }));
+      activity.addStat(new DataTrainingStressScore(42.5));
+      activity.addStat(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.IMPORTED));
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+      const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+      expect(restored.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
+      expect(restored.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
+    });
+  });
+
+  it.each(['HR', 'MET'] as const)('suppresses calculated %s TSS for Video Gaming', method => {
+    const activity = createActivity(
+      ActivityTypes.VideoGaming,
+      600,
+      new ActivityParsingOptions({
+        tss: { overrides: { lactateThresholdHR: 160, metScore: 6, thresholdMet: 6 } }
+      })
+    );
+    if (method === 'HR') {
+      addNumericStream(activity, DataHeartRate.type, new Array(600).fill(160));
+    }
+    activity.addStat(new DataEnergy(120));
+    activity.addStat(new DataWeight(70));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    expect(activity.getStat(DataEnergy.type)?.getValue()).toBe(120);
+  });
+
+  it.each([true, false])('retains explicitly imported Video Gaming TSS with preservation %s', preserveImportedTss => {
+    const activity = createActivity(
+      ActivityTypes.VideoGaming,
+      600,
+      new ActivityParsingOptions({ tss: { preserveImportedTss } })
+    );
+    activity.addStat(new DataTrainingStressScore(42.5));
+    activity.addStat(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.IMPORTED));
+
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
+  });
+
+  it.each([TrainingStressScoreMethod.HR, TrainingStressScoreMethod.MET])(
+    'removes previously calculated Video Gaming %s TSS',
+    method => {
+      const activity = createActivity(ActivityTypes.VideoGaming, 600);
+      activity.addStat(new DataTrainingStressScore(42.5));
+      activity.addStat(new DataTrainingStressScoreMethod(method));
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
@@ -246,36 +450,71 @@ describe('Training Stress Score integration', () => {
     }
   );
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
-    'preserves imported TSS for %s even when imported-TSS preservation is disabled',
-    activityType => {
-      const activity = createActivity(
-        activityType,
-        1200,
-        new ActivityParsingOptions({ tss: { preserveImportedTss: false } })
-      );
-      activity.addStat(new DataTrainingStressScore(42.5));
+  it.each([
+    ActivityTypes.Hockey,
+    ActivityTypes.WinterSport,
+    ActivityTypes.TeamSport,
+    ActivityTypes.WaterSport,
+    ActivityTypes.IndoorCycling,
+    ActivityTypes.EMountainBiking,
+    ActivityTypes.AdventureRacing,
+    ActivityTypes.Paragliding,
+    ActivityTypes.Generic,
+    ActivityTypes.Chores,
+    ActivityTypes.Mobility,
+    ActivityTypes.PoolApnea
+  ])('retains calculated TSS eligibility for %s', type => {
+    const activity = createActivity(
+      type,
+      600,
+      new ActivityParsingOptions({ tss: { overrides: { metScore: 6, thresholdMet: 6 } } })
+    );
 
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-      expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(42.5);
-      expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.IMPORTED);
-    }
-  );
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.MET);
+  });
 
-  it.each([ActivityTypes.Driving, ActivityTypes.Wheelchair])(
-    'removes stale calculated TSS for %s after its group no longer supports calculation',
-    activityType => {
-      const activity = createActivity(activityType, 1200);
-      activity.addStat(new DataTrainingStressScore(42.5));
-      activity.addStat(new DataTrainingStressScoreMethod(TrainingStressScoreMethod.POWER));
+  it.each([
+    ActivityTypes.EEnduroMTB,
+    ActivityTypes.TrackCycling,
+    ActivityTypes.RecumbentCycling,
+    ActivityTypes.SpeedWalking,
+    ActivityTypes.WhitewaterKayaking,
+    ActivityTypes.WhitewaterRafting,
+    ActivityTypes.WingsuitFlying,
+    ActivityTypes.BrickTraining,
+    ActivityTypes.HuntingWithDogs,
+    ActivityTypes.IndoorRunning,
+    ActivityTypes.BMX,
+    ActivityTypes.IndoorSkiing,
+    ActivityTypes.PoolTriathlon,
+    ActivityTypes.ObstacleRacing,
+    ActivityTypes.UltraRunning,
+    ActivityTypes.IndoorWalking,
+    ActivityTypes.EnduroMTB,
+    ActivityTypes.Grinding,
+    ActivityTypes.IndoorGrinding,
+    ActivityTypes.SailRacing,
+    ActivityTypes.Rucking,
+    ActivityTypes.SailingExpedition,
+    ActivityTypes.CCRDiving,
+    ActivityTypes.IndoorHandCycle,
+    ActivityTypes.TruckerWorkout
+  ])('retains power TSS calculation for %s without adding a new formula', type => {
+    const activity = createActivity(
+      type,
+      600,
+      new ActivityParsingOptions({ tss: { overrides: { functionalThresholdPower: 200 } } })
+    );
+    addNumericStream(activity, DataPower.type, new Array(600).fill(200));
 
-      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
-      expect(activity.getStat(DataTrainingStressScore.type)).toBeUndefined();
-      expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
-    }
-  );
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
+    expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.POWER);
+  });
 
   it('retains authoritative imported TSS even with the legacy preservation flag disabled', () => {
     const activity = createActivity(

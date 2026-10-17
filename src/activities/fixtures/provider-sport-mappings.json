@@ -1,0 +1,1462 @@
+[
+  {
+    "source": "garmin",
+    "identifier": "Trail Run",
+    "name": "Trail Run",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "trail"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Mixed Session",
+    "name": "Mixed Session",
+    "type": "Multisport",
+    "group": "PerformanceGroup",
+    "newType": false,
+    "fitSport": "multisport",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Expedition",
+    "name": "Expedition",
+    "type": "Expedition",
+    "group": "OutdoorAdventuresGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Backcountry Snowboard",
+    "name": "Backcountry Snowboard",
+    "type": "Backcountry Snowboarding",
+    "group": "WinterSportsGroup",
+    "newType": true,
+    "fitSport": "snowboarding",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Ski",
+    "name": "Ski",
+    "type": "Alpine Skiing",
+    "group": "WinterSportsGroup",
+    "newType": false,
+    "fitSport": "alpine_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Snowmobile",
+    "name": "Snowmobile",
+    "type": "Snowmobiling",
+    "group": "MotorizedGroup",
+    "newType": false,
+    "fitSport": "snowmobiling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Sail",
+    "name": "Sail",
+    "type": "Sailing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "sailing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Snorkel",
+    "name": "Snorkel",
+    "type": "Snorkeling",
+    "group": "DivingGroup",
+    "newType": false,
+    "fitSport": "diving",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "SUP",
+    "name": "SUP",
+    "type": "Stand Up Paddling",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "stand_up_paddleboarding",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Soccer/Football",
+    "name": "Soccer/Football",
+    "type": "Soccer",
+    "group": "TeamRacketGroup",
+    "newType": false,
+    "fitSport": "soccer",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Motorcycle",
+    "name": "Motorcycle",
+    "type": "Motorcycling",
+    "group": "MotorizedGroup",
+    "newType": false,
+    "fitSport": "motorcycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Breathwork",
+    "name": "Breathwork",
+    "type": "Breathwork",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "breathing"
+  },
+  {
+    "source": "garmin",
+    "identifier": "Track Me",
+    "name": "Track Me",
+    "type": "Generic",
+    "group": "UnspecifiedGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "AGILITY",
+    "name": "Dog agility",
+    "type": "Dog Agility",
+    "group": "OutdoorAdventuresGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "AQUATICS",
+    "name": "Aqua fitness",
+    "type": "Aqua Fitness",
+    "group": "WaterSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BALLET_DANCING",
+    "name": "Ballet",
+    "type": "Ballet Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BALLROOM_DANCING",
+    "name": "Ballroom",
+    "type": "Ballroom Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BEACH_TENNIS",
+    "name": "Beach tennis",
+    "type": "Beach Tennis",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "tennis",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BEACH_VOLLEYBALL",
+    "name": "Beach volley",
+    "type": "Beach Volleyball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BIATHLON",
+    "name": "Biathlon",
+    "type": "Biathlon",
+    "group": "WinterSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BODY_AND_MIND",
+    "name": "Body&Mind",
+    "type": "Mind-Body Training",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "BOOTCAMP",
+    "name": "Bootcamp",
+    "type": "Bootcamp",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "CALISTHENICS",
+    "name": "Calisthenics",
+    "type": "Calisthenics",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "CORE",
+    "name": "Core",
+    "type": "Core Training",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "training",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "CROSS_COUNTRY_RUNNING",
+    "name": "Cross-country running",
+    "type": "Crosscountry Running",
+    "group": "RunningGroup",
+    "newType": true,
+    "fitSport": "running",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "CROSS-COUNTRY_SKIING",
+    "name": "Skiing",
+    "type": "Crosscountry Skiing",
+    "group": "WinterSportsGroup",
+    "newType": false,
+    "fitSport": "cross_country_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "CURLING",
+    "name": "Curling",
+    "type": "Curling",
+    "group": "WinterSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "DUATHLON_CYCLING",
+    "name": "Cycling",
+    "type": "Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "DUATHLON_RUNNING",
+    "name": "Running",
+    "type": "Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "E_BIKE",
+    "name": "Electric biking",
+    "type": "E-Biking",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "e_biking",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ESPORTS",
+    "name": "Esports",
+    "type": "Video Gaming",
+    "group": "UnspecifiedGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FINNISH_BASEBALL",
+    "name": "Finnish baseball",
+    "type": "Finnish Baseball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FITNESS_BOXING",
+    "name": "Fitness boxing",
+    "type": "Fitness Boxing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "boxing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FITNESS_DANCING",
+    "name": "Fitness dancing",
+    "type": "Fitness Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FITNESS_MARTIAL_ARTS",
+    "name": "Fitness martial arts",
+    "type": "Fitness Martial Arts",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FITNESS_RACING",
+    "name": "Fitness Racing",
+    "type": "Fitness Racing",
+    "group": "PerformanceGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FITNESS_STEP",
+    "name": "Step workout",
+    "type": "Step Training",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FREE_MULTISPORT",
+    "name": "Multisport",
+    "type": "Multisport",
+    "group": "PerformanceGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FUNCTIONAL_TRAINING",
+    "name": "Functional training",
+    "type": "Functional Training",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "training",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "FUTSAL",
+    "name": "Futsal",
+    "type": "Futsal",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "GRAVEL",
+    "name": "Gravel cycling",
+    "type": "Gravel Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "gravel_cycling"
+  },
+  {
+    "source": "polar",
+    "identifier": "GROUP_EXERCISE",
+    "name": "Group exercise",
+    "type": "Indoor Training",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "training",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "GYMNASTICK",
+    "name": "Gymnastics",
+    "type": "Gymnastics",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "HIIT",
+    "name": "High-intensity interval training",
+    "type": "HIIT",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "training",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "JAZZ_DANCING",
+    "name": "Jazz",
+    "type": "Jazz Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "JOGGING",
+    "name": "Jogging",
+    "type": "Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "JUDO_MARTIAL_ARTS",
+    "name": "Judo",
+    "type": "Judo",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "JUMP_ROPE",
+    "name": "Rope skipping",
+    "type": "Jump Rope",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "jump_rope",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "KICKBIKE",
+    "name": "Kickbiking",
+    "type": "Kickbiking",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "cycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "KICKBOXING_MARTIAL_ARTS",
+    "name": "Kickboxing",
+    "type": "Kickboxing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LATIN_DANCING",
+    "name": "Latin",
+    "type": "Latin Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BARRE",
+    "name": "LES MILLS BARRE",
+    "type": "LES MILLS BARRE",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYATTACK",
+    "name": "LES MILLS BODYATTACK",
+    "type": "LES MILLS BODYATTACK",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYBALANCE",
+    "name": "LES MILLS BODYBALANCE",
+    "type": "LES MILLS BODYBALANCE",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYCOMBAT",
+    "name": "LES MILLS BODYCOMBAT",
+    "type": "LES MILLS BODYCOMBAT",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYJAM",
+    "name": "LES MILLS BODYJAM",
+    "type": "LES MILLS BODYJAM",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYPUMP",
+    "name": "LES MILLS BODYPUMP",
+    "type": "LES MILLS BODYPUMP",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_BODYSTEP",
+    "name": "LES MILLS BODYSTEP",
+    "type": "LES MILLS BODYSTEP",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_CXWORKS",
+    "name": "LES MILLS CXWORX",
+    "type": "LES MILLS CORE",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_GRIT_ATHLETIC",
+    "name": "LES MILLS GRIT Athletic",
+    "type": "LES MILLS GRIT Athletic",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_GRIT_CARDIO",
+    "name": "LES MILLS GRIT Cardio",
+    "type": "LES MILLS GRIT Cardio",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_GRIT_STRENGTH",
+    "name": "LES MILLS GRIT Strength",
+    "type": "LES MILLS GRIT Strength",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_RPM",
+    "name": "LES MILLS RPM",
+    "type": "LES MILLS RPM",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_SHBAM",
+    "name": "LES MILLS SH'BAM",
+    "type": "LES MILLS SH'BAM",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_SPRINT",
+    "name": "LES MILLS SPRINT",
+    "type": "LES MILLS SPRINT",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_TONE",
+    "name": "LES MILLS TONE",
+    "type": "LES MILLS TONE",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "LES_MILLS_TRIP",
+    "name": "LES MILLS TRIP",
+    "type": "LES MILLS THE TRIP",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOBILITY_DYNAMIC",
+    "name": "Mobility (dynamic)",
+    "type": "Dynamic Mobility",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "flexibility_training"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOBILITY_STATIC",
+    "name": "Mobility (static)",
+    "type": "Static Mobility",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "flexibility_training"
+  },
+  {
+    "source": "polar",
+    "identifier": "MODERN_DANCING",
+    "name": "Modern",
+    "type": "Modern Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_CAR_RACING",
+    "name": "Car racing",
+    "type": "Car Racing",
+    "group": "MotorizedGroup",
+    "newType": true,
+    "fitSport": "driving",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_ENDURO",
+    "name": "Enduro",
+    "type": "Motorcycle Enduro",
+    "group": "MotorizedGroup",
+    "newType": true,
+    "fitSport": "motorcycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_HARD_ENDURO",
+    "name": "Hard Enduro",
+    "type": "Hard Enduro",
+    "group": "MotorizedGroup",
+    "newType": true,
+    "fitSport": "motorcycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_MOTOCROSS",
+    "name": "Motocorss",
+    "type": "Motocross",
+    "group": "MotorizedGroup",
+    "newType": false,
+    "fitSport": "motorcycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_ROADRACING",
+    "name": "Road racing",
+    "type": "Car Racing",
+    "group": "MotorizedGroup",
+    "newType": true,
+    "fitSport": "driving",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "MOTORSPORTS_SNOCROSS",
+    "name": "Snocross",
+    "type": "Snocross",
+    "group": "MotorizedGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "OBSTACLE_COURSE_RACING",
+    "name": "Obstacle course racing",
+    "type": "Obstacle Racing",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "obstacle"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADDUATHLON",
+    "name": "Off-road duathlon",
+    "type": "Offroad Duathlon",
+    "group": "PerformanceGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADDUATHLON_CYCLING",
+    "name": "Mountain biking",
+    "type": "Mountain Biking",
+    "group": "MountainBikingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADDUATHLON_RUNNING",
+    "name": "Trail running",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADTRIATHLON",
+    "name": "Off-road triathlon",
+    "type": "Offroad Triathlon",
+    "group": "PerformanceGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADTRIATHLON_CYCLING",
+    "name": "Mountain biking",
+    "type": "Mountain Biking",
+    "group": "MountainBikingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADTRIATHLON_RUNNING",
+    "name": "Trail running",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "OFFROADTRIATHLON_SWIMMING",
+    "name": "Open water swimming",
+    "type": "Open Water Swimming",
+    "group": "SwimmingGroup",
+    "newType": false,
+    "fitSport": "swimming",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "ORIENTEERING_MTB",
+    "name": "Mountain bike orienteering",
+    "type": "Mountain Bike Orienteering",
+    "group": "MountainBikingGroup",
+    "newType": true,
+    "fitSport": "cycling",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "ORIENTEERING_SKI",
+    "name": "Ski orienteering",
+    "type": "Ski Orienteering",
+    "group": "WinterSportsGroup",
+    "newType": true,
+    "fitSport": "cross_country_skiing",
+    "fitSubSport": "backcountry"
+  },
+  {
+    "source": "polar",
+    "identifier": "OTHER_INDOOR",
+    "name": "Other indoor",
+    "type": "Indoor Training",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "OTHER_OUTDOOR",
+    "name": "Other outdoor",
+    "type": "Other",
+    "group": "UnspecifiedGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "PADEL",
+    "name": "Padel racing",
+    "type": "Padel",
+    "group": "TeamRacketGroup",
+    "newType": false,
+    "fitSport": "racket",
+    "fitSubSport": "padel"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_HAND_CYCLING",
+    "name": "Handcycling",
+    "type": "Hand Cycle",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "hand_cycling"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_SLED_HOCKEY",
+    "name": "Sled hockey",
+    "type": "Sled Hockey",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "hockey",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_WATER_SKIING",
+    "name": "Adaptive water skiing",
+    "type": "Adaptive Water Skiing",
+    "group": "WaterSportsGroup",
+    "newType": true,
+    "fitSport": "water_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_WHEELCHAIR",
+    "name": "Wheelchair racing",
+    "type": "Wheelchair Racing",
+    "group": "AdaptiveMobilityGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_WHEELCHAIR_BASKETBALL",
+    "name": "Wheelchair basketball",
+    "type": "Wheelchair Basketball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "basketball",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "PARASPORTS_WHEELCHAIR_TENNIS",
+    "name": "Wheelchair tennis",
+    "type": "Wheelchair Tennis",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "tennis",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "POOL_SWIMMING",
+    "name": "Pool swimming",
+    "type": "Swimming",
+    "group": "SwimmingGroup",
+    "newType": false,
+    "fitSport": "swimming",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "RIDING",
+    "name": "Riding",
+    "type": "Horseback Riding",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "horseback_riding",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "RINGETTE",
+    "name": "Ringette",
+    "type": "Ringette",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "ice_skating",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ROAD_BIKING",
+    "name": "Road cycling",
+    "type": "Road Cycling",
+    "group": "CyclingGroup",
+    "newType": true,
+    "fitSport": "cycling",
+    "fitSubSport": "road"
+  },
+  {
+    "source": "polar",
+    "identifier": "ROAD_RUNNING",
+    "name": "Road running",
+    "type": "Road Running",
+    "group": "RunningGroup",
+    "newType": true,
+    "fitSport": "running",
+    "fitSubSport": "street"
+  },
+  {
+    "source": "polar",
+    "identifier": "ROLLER_BLADING",
+    "name": "Roller skating",
+    "type": "Inline Skating",
+    "group": "SkatingGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ROLLER_SKIING_CLASSIC",
+    "name": "Classic roller skiing",
+    "type": "Classic Roller Skiing",
+    "group": "PerformanceGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ROLLER_SKIING_FREESTYLE",
+    "name": "Freestyle roller skiing",
+    "type": "Skate Roller Skiing",
+    "group": "PerformanceGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SHOW_DANCING",
+    "name": "Show",
+    "type": "Show Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SHOOTING_SPORT_INDOOR",
+    "name": "Shooting (indoor)",
+    "type": "Indoor Shooting",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SHOOTING_SPORT_OUTDOOR",
+    "name": "Shooting (outdoor)",
+    "type": "Shooting",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SKATEBOARDING",
+    "name": "Skateboarding",
+    "type": "Skateboarding",
+    "group": "SkatingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SKIERG",
+    "name": "Ski machine",
+    "type": "Indoor Skiing",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SNOWSHOE_TREKKING",
+    "name": "Snowshoe trekking",
+    "type": "Snowshoeing",
+    "group": "WinterSportsGroup",
+    "newType": false,
+    "fitSport": "snowshoeing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "SPINNING",
+    "name": "Spinning",
+    "type": "Indoor Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "indoor_cycling"
+  },
+  {
+    "source": "polar",
+    "identifier": "SUP",
+    "name": "SUP",
+    "type": "Stand Up Paddling",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "stand_up_paddleboarding",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "STAIR_WORKOUT",
+    "name": "Stair workout",
+    "type": "Floor Climbing",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "STREET_DANCING",
+    "name": "Street",
+    "type": "Street Dancing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "TAEKWONDO_MARTIAL_ARTS",
+    "name": "Taekwondo",
+    "type": "Taekwondo",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "TRACK_AND_FIELD_RUNNING",
+    "name": "Track&field running",
+    "type": "Track Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "track"
+  },
+  {
+    "source": "polar",
+    "identifier": "TREADMILL_RUNNING",
+    "name": "Treadmill running",
+    "type": "Treadmill",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "treadmill"
+  },
+  {
+    "source": "polar",
+    "identifier": "TRIATHLON_CYCLING",
+    "name": "Cycling",
+    "type": "Cycling",
+    "group": "CyclingGroup",
+    "newType": false,
+    "fitSport": "cycling",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "TRIATHLON_RUNNING",
+    "name": "Running",
+    "type": "Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "TRIATHLON_SWIMMING",
+    "name": "Open water swimming",
+    "type": "Open Water Swimming",
+    "group": "SwimmingGroup",
+    "newType": false,
+    "fitSport": "swimming",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "TROTTING",
+    "name": "Trotting",
+    "type": "Trotting",
+    "group": "OutdoorAdventuresGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ULTIMATE",
+    "name": "Ultimate",
+    "type": "Ultimate Disc",
+    "group": "TeamRacketGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "ULTRARUNNING_RUNNING",
+    "name": "Ultra running",
+    "type": "Ultra Running",
+    "group": "RunningGroup",
+    "newType": false,
+    "fitSport": "running",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "VERTICALSPORTS_WALLCLIMBING",
+    "name": "Climbing (indoor)",
+    "type": "Indoor Climbing",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "VERTICALSPORTS_OUTCLIMBING",
+    "name": "Climbing (outdoor)",
+    "type": "Rock Climbing",
+    "group": "OutdoorAdventuresGroup",
+    "newType": false,
+    "fitSport": "rock_climbing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATER_EXERCISE",
+    "name": "Water sports",
+    "type": "Water Sport",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATER_RUNNING",
+    "name": "Water running",
+    "type": "Water Running",
+    "group": "WaterSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_CANOEING",
+    "name": "Canoeing",
+    "type": "Canoeing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "kayaking",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_KAYAKING",
+    "name": "Kayaking",
+    "type": "Kayaking",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "kayaking",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_KITESURFING",
+    "name": "Kitesurfing",
+    "type": "Kitesurfing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "kitesurfing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_SAILING",
+    "name": "Sailing",
+    "type": "Sailing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "sailing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_SURFING",
+    "name": "Surfing",
+    "type": "Surfing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "surfing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_WAKEBOARDING",
+    "name": "Wakeboarding",
+    "type": "Wakeboarding",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "wakeboarding",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_WATERSKI",
+    "name": "Water skiing",
+    "type": "Water Skiing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "water_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "WATERSPORTS_WINDSURFING",
+    "name": "Windsurfing",
+    "type": "Windsurfing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "windsurfing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "XC_SKIING_CLASSIC",
+    "name": "Classic XC skiing",
+    "type": "Classic Crosscountry Skiing",
+    "group": "WinterSportsGroup",
+    "newType": true,
+    "fitSport": "cross_country_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "XC_SKIING_FREESTYLE",
+    "name": "Freestyle XC skiing",
+    "type": "Skate Skiing",
+    "group": "WinterSportsGroup",
+    "newType": false,
+    "fitSport": "cross_country_skiing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "HighIntensityIntervalTraining",
+    "name": "HighIntensityIntervalTraining",
+    "type": "HIIT",
+    "group": "IndoorSportsGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "MountainBikeRide",
+    "name": "MountainBikeRide",
+    "type": "Mountain Biking",
+    "group": "MountainBikingGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "PhysicalTherapy",
+    "name": "PhysicalTherapy",
+    "type": "Physical Therapy",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "Sail",
+    "name": "Sail",
+    "type": "Sailing",
+    "group": "WaterSportsGroup",
+    "newType": false,
+    "fitSport": "sailing",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "Skateboard",
+    "name": "Skateboard",
+    "type": "Skateboarding",
+    "group": "SkatingGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "TrailRun",
+    "name": "TrailRun",
+    "type": "Trail Running",
+    "group": "TrailRunningGroup",
+    "newType": false,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "strava",
+    "identifier": "VirtualRow",
+    "name": "VirtualRow",
+    "type": "Virtual Rowing",
+    "group": "IndoorSportsGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Australian football",
+    "name": "Australian football",
+    "type": "Australian Football",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Korfball",
+    "name": "Korfball",
+    "type": "Korfball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  },
+  {
+    "source": "polar",
+    "identifier": "Netball",
+    "name": "Netball",
+    "type": "Netball",
+    "group": "TeamRacketGroup",
+    "newType": true,
+    "fitSport": "generic",
+    "fitSubSport": "generic"
+  }
+]

@@ -28,9 +28,14 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   treadmill: { sport: fitSport('running'), subSport: fitSubSport('treadmill') },
   virtualrunning: { sport: fitSport('running'), subSport: fitSubSport('virtualactivity') },
   running: { sport: fitSport('running') },
+  roadrunning: { sport: fitSport('running'), subSport: fitSubSport('street') },
   trailrunning: { sport: fitSport('running'), subSport: fitSubSport('trail') },
   indoorrunning: { sport: fitSport('running'), subSport: fitSubSport('indoorrunning') },
   cycling: { sport: fitSport('cycling') },
+  roadcycling: { sport: fitSport('cycling'), subSport: fitSubSport('road') },
+  trackcycling: { sport: fitSport('cycling'), subSport: fitSubSport('trackcycling') },
+  gravelcycling: { sport: fitSport('cycling'), subSport: fitSubSport('gravelcycling') },
+  cyclocross: { sport: fitSport('cycling'), subSport: fitSubSport('cyclocross') },
   indoorcycling: { sport: fitSport('cycling'), subSport: fitSubSport('indoorcycling') },
   virtualcycling: { sport: fitSport('cycling'), subSport: fitSubSport('virtualactivity') },
   ebiking: { sport: fitSport('ebiking') },
@@ -52,6 +57,7 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   pilates: { sport: fitSport('fitnessequipment'), subSport: fitSubSport('pilates') },
   trekking: { sport: fitSport('hiking') },
   walking: { sport: fitSport('walking') },
+  indoorwalking: { sport: fitSport('walking'), subSport: fitSubSport('indoorwalking') },
   sailing: { sport: fitSport('sailing') },
   kayaking: { sport: fitSport('kayaking') },
   canoeing: { sport: fitSport('paddling') },
@@ -61,6 +67,7 @@ const ACTIVITY_MAPPINGS: Record<string, FITRouteSport> = {
   climbing: { sport: fitSport('rockclimbing') },
   alpineskiing: { sport: fitSport('alpineskiing') },
   crosscountryskiing: { sport: fitSport('crosscountryskiing') },
+  skateskiing: { sport: fitSport('crosscountryskiing'), subSport: fitSubSport('skateskiing') },
   nordicskiing: { sport: fitSport('crosscountryskiing') },
   backcountryskiing: { sport: fitSport('crosscountryskiing'), subSport: fitSubSport('backcountry') },
   skitouring: { sport: fitSport('crosscountryskiing') },
@@ -183,10 +190,15 @@ const FIT_DEFAULT_ACTIVITIES: Record<number, string> = {
 
 const FIT_SUB_SPORT_ACTIVITIES: Record<string, string> = {
   [`${fitSport('running')}:${fitSubSport('treadmill')}`]: 'treadmill',
+  [`${fitSport('running')}:${fitSubSport('street')}`]: 'roadrunning',
   [`${fitSport('running')}:${fitSubSport('trail')}`]: 'trailrunning',
   [`${fitSport('running')}:${fitSubSport('indoorrunning')}`]: 'indoorrunning',
   [`${fitSport('running')}:${fitSubSport('virtualactivity')}`]: 'virtualrunning',
   [`${fitSport('cycling')}:${fitSubSport('indoorcycling')}`]: 'indoorcycling',
+  [`${fitSport('cycling')}:${fitSubSport('road')}`]: 'roadcycling',
+  [`${fitSport('cycling')}:${fitSubSport('trackcycling')}`]: 'trackcycling',
+  [`${fitSport('cycling')}:${fitSubSport('gravelcycling')}`]: 'gravelcycling',
+  [`${fitSport('cycling')}:${fitSubSport('cyclocross')}`]: 'cyclocross',
   [`${fitSport('cycling')}:${fitSubSport('mountain')}`]: 'mountainbiking',
   [`${fitSport('cycling')}:${fitSubSport('downhill')}`]: 'downhillcycling',
   [`${fitSport('cycling')}:${fitSubSport('virtualactivity')}`]: 'virtualcycling',
@@ -199,6 +211,8 @@ const FIT_SUB_SPORT_ACTIVITIES: Record<string, string> = {
   [`${fitSport('swimming')}:${fitSubSport('lapswimming')}`]: 'swimming',
   [`${fitSport('swimming')}:${fitSubSport('openwater')}`]: 'openwaterswimming',
   [`${fitSport('rowing')}:${fitSubSport('indoorrowing')}`]: 'indoorrowing',
+  [`${fitSport('walking')}:${fitSubSport('indoorwalking')}`]: 'indoorwalking',
+  [`${fitSport('crosscountryskiing')}:${fitSubSport('skateskiing')}`]: 'skateskiing',
   [`${fitSport('crosscountryskiing')}:${fitSubSport('backcountry')}`]: 'backcountryskiing'
 };
 
@@ -220,11 +234,13 @@ function getFitEnumValue(value: unknown, resolver: (name: string) => number | nu
 }
 
 export class FITRouteSportMapper {
+  /** Preserves supported route sports using their FIT sport and subtype without changing the source route. */
   static toFIT(activityType: unknown): FITRouteSport {
     const resolved = ActivityTypesHelper.resolveActivityType(activityType);
     return ACTIVITY_MAPPINGS[normalize(resolved || activityType)] || { sport: fitSport('generic') };
   }
 
+  /** Restores a specific sport for recognized sport/subtype pairs, otherwise the parent sport. */
   static fromFIT(sport: unknown, subSport?: unknown): ActivityTypes | null {
     const sportValue = getFitEnumValue(sport, getFitSportId);
     const subSportValue = getFitEnumValue(subSport, getFitSubSportId);

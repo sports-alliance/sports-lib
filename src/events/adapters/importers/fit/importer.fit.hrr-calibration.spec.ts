@@ -135,15 +135,15 @@ describe('FIT HRR threshold consistency and TSS fallback', () => {
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(custom).automatic.method).toBe('HR');
   });
 
-  it('preserves eligible power priority while walking still skips calculated power', async () => {
+  it('prioritizes calibrated power for cycling and walking', async () => {
     const cycling = (await workout({ sport: 2, power: true })).getFirstActivity();
     const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(cycling);
     expect(evaluations.automatic).toMatchObject({ method: 'POWER', score: 100 });
     expect(evaluations.hr).toMatchObject({ method: 'POWER', score: 100, reasons: ['invalid-hr-calibration'] });
     const walking = (await workout({ sport: 11, power: true })).getFirstActivity();
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(walking).automatic).toMatchObject({
-      method: 'MET',
-      score: 9
+      method: 'POWER',
+      score: 100
     });
   });
 

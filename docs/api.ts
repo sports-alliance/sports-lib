@@ -19,6 +19,8 @@
  * Whole-workout timing recovery and pool timing rejection require any explicit session count to agree;
  * missing sessions or multiple activity summaries cannot supply sole-session ownership. Absent legacy counts remain compatible.
  * FIT activity imports reject explicit non-activity file types; FIT courses use the route importer.
+ * FIT route import/export retains Road Running, Road/Track/Gravel Cycling, Cyclocross, Indoor Walking and
+ * Skate Skiing through standard sport/sub-sport pairs. Courses without a recognized subtype retain the parent sport.
  * Completed activity_summary files retain their recorded sessions without sessionless synthesis.
  * A single declared missing final FIT session becomes Unknown Sport only with corroborated timer, record and
  * distance bounds. Earlier legs retain their samples and calibration; ambiguous laps are not reassigned.

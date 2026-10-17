@@ -40,18 +40,26 @@ const gpxRoute = await SportsLib.exportRoutesToGPX(routeFile);
 const restoredRouteFile = SportsLib.importRoutesFromJSON(routeFile.toJSON());
 ```
 
-FIT Course export uses these broader sport labels for the following canonical route types:
+FIT Course export and import preserve these specific route sports using the standard sport/sub-sport pairs:
 
-| Saved route type | Exported FIT sport |
-| --- | --- |
-| Road Running | Running |
-| Road Cycling, Track Cycling, Gravel Cycling, Cyclocross | Cycling |
-| Indoor Walking | Walking |
-| Skate Skiing | Crosscountry Skiing |
+| Route type | FIT sport | FIT sub-sport |
+| --- | --- | --- |
+| Road Running | Running | Street |
+| Road Cycling | Cycling | Road |
+| Track Cycling | Cycling | Track Cycling |
+| Gravel Cycling | Cycling | Gravel Cycling |
+| Cyclocross | Cycling | Cyclocross |
+| Indoor Walking | Walking | Indoor Walking |
+| Skate Skiing | Crosscountry Skiing | Skate Skiing |
 
-Their existing aliases use the same labels. Export leaves the saved route and its native JSON sport name unchanged;
-reimporting the FIT course restores the broader FIT sport label. Cyclocross exports as Cycling rather than the former
-Mountain Biking alias. Other route mappings retain their existing behavior.
+Their existing aliases export the same pairs. Reimporting a FIT course restores the specific canonical sport, which
+also survives subsequent GPX and native JSON export. Export leaves the source route unchanged. These pairs are defined
+in [Garmin's FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
+
+Courses with an absent, generic, or unrecognized sub-sport retain their parent sport. A sub-sport only refines its
+matching parent sport. Other route mappings retain their existing behavior. Previously exported FIT courses that
+omitted these sub-sports need re-export from a retained specific route; the broader FIT label alone cannot recover
+the original detail. Existing FIT courses containing these sub-sports can be reimported to recover their specific names.
 
 Route and route-file JSON omit non-finite scalar summary stats, and restoration skips legacy null/non-finite summary
 values. Finite zero/negative values, metadata, geometry, and stream null gaps are preserved. If a route file has no valid

@@ -113,6 +113,7 @@ export class SportsLib {
 
   /**
    * Parses and returns first-class routes using FIT course format.
+   * Recognized sport/sub-sport pairs restore specific route sports; other pairs retain the parent sport.
    * @param arrayBuffer
    * @param options
    */
@@ -143,6 +144,7 @@ export class SportsLib {
 
   /**
    * Exports a single first-class route as a FIT course file.
+   * Preserves supported specific route sports through standard FIT sport/sub-sport pairs.
    * @param routeFile
    */
   public static exportRoutesToFit(routeFile: RouteFileInterface): Promise<ArrayBuffer> {

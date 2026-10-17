@@ -14,8 +14,14 @@ beats/rolling windows. `{ includeDetails: false }` omits detailed output while r
 `calculateDFAAlpha1(intervals)` accepts an already quality-controlled continuous sequence.
 
 FIT HRV and Suunto JSON/SML imports generate the available numeric summaries before serialization. Timestamped Suunto
-batches preserve gaps; FIT HRV invalid sentinels preserve the existing elapsed-time advancement without becoming real
-intervals. Later multisport legs use their own elapsed clock. Stream selection still controls IBI inclusion.
+batches preserve gaps. FIT HRV uses cumulative timing because decoded HRV records have no independent timestamps;
+internal disconnect locations cannot be recovered from that array. Unused FIT uint16 slots (`null`, or `65.535` seconds
+from older decoders) are ignored without advancing time or breaking beat adjacency, following
+[Garmin's HRV array explanation](https://forums.garmin.com/developer/fit-sdk/f/discussion/255690/fit-file-hrv-data-array-interpretation).
+Later multisport legs use their own elapsed clock. Intervals crossing a leg boundary retain their original
+end timestamp for clipped coverage; they do not contribute partial beats to HRV or extend derived HR samples past the
+leg end. Untimestamped Suunto batches retain cumulative timing anchored to the source/activity start.
+Stream selection still controls IBI inclusion.
 
 Recording-quality rules use 300–2,000 ms inclusive, then compare each interval to the median of up to five in-range
 neighbors on each side within the same continuous segment. Values strictly below 80% or above 120% of that reference
@@ -37,7 +43,9 @@ that an untimed interval array contains independently verified gap evidence. Leg
 replacing stream data invalidates that timing. Consumers that regenerate stats from explicit IBI timing must preserve
 this optional field. Original-file reparse is needed to recover timestamps discarded by earlier imports.
 
-Rolling estimates use a five-second grid that never extends beyond activity end. RMSSD and artifact percentage require
+Rolling estimates use a five-second grid that never extends beyond activity end. Heart rate requires a complete
+ten-second lookback with at least 90% recorded coverage; its available windows define the summary minimum/maximum.
+RMSSD and artifact percentage require
 a complete one-minute lookback with at least 90% recorded coverage. DFA requires a complete two-minute window,
 at least 90% coverage, at least 50 accepted intervals, one continuous segment and at most 5% excluded intervals,
 including suspected-pair members. Isolated internal exclusions are linearly interpolated against accepted neighbors
@@ -59,6 +67,8 @@ signals have no finite scaling estimate. No intensity thresholds or recovery cla
 | `DataRRLongestGap` | `R-R Longest Gap` | s |
 | `DataRRMeanInterval` | `R-R Mean Interval` | ms |
 | `DataRRHeartRateAvg` | `R-R Average Heart Rate` | bpm |
+| `DataRRHeartRateMin` | `R-R Minimum Heart Rate` | bpm |
+| `DataRRHeartRateMax` | `R-R Maximum Heart Rate` | bpm |
 | `DataRRRMSSD` | `R-R RMSSD` | ms |
 | `DataRRSDNN` | `R-R SDNN` | ms |
 | `DataRRPNN50` | `R-R pNN50` | % |

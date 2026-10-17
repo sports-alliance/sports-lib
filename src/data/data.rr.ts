@@ -98,6 +98,18 @@ export class DataRRHeartRateAvg extends RRNumber {
   static override unit = 'bpm';
 }
 
+/** Minimum of available complete, coverage-gated ten-second R–R-derived HR windows. */
+export class DataRRHeartRateMin extends RRNumber {
+  static type = 'R-R Minimum Heart Rate';
+  static override unit = 'bpm';
+}
+
+/** Maximum of available complete, coverage-gated ten-second R–R-derived HR windows. */
+export class DataRRHeartRateMax extends RRNumber {
+  static type = 'R-R Maximum Heart Rate';
+  static override unit = 'bpm';
+}
+
 /** Activity HRV: root mean square of adjacent accepted differences, in milliseconds. */
 export class DataRRRMSSD extends RRMilliseconds {
   static type = 'R-R RMSSD';

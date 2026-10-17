@@ -28,6 +28,8 @@ const RR_SUMMARY_CLASSES: readonly [keyof RRSummary, new (value: number) => Data
   ['longestGap', RRData.DataRRLongestGap],
   ['meanInterval', RRData.DataRRMeanInterval],
   ['averageHeartRate', RRData.DataRRHeartRateAvg],
+  ['minimumHeartRate', RRData.DataRRHeartRateMin],
+  ['maximumHeartRate', RRData.DataRRHeartRateMax],
   ['rmssd', RRData.DataRRRMSSD],
   ['sdnn', RRData.DataRRSDNN],
   ['pnn50', RRData.DataRRPNN50],

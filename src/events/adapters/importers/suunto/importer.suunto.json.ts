@@ -22,7 +22,7 @@ import { DataNumberOfSatellites } from '../../../../data/data.number-of-satellit
 import { DataSatellite5BestSNR } from '../../../../data/data.satellite-5-best-snr';
 import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
 import { IBIData } from '../../../../data/ibi/data.ibi';
-import { collectRRIntervals } from '../../../utilities/rr-timing';
+import { collectRRIntervals, isRRIntervalInBounds } from '../../../utilities/rr-timing';
 import { ImporterSuuntoActivityIds } from './importer.suunto.activity.ids';
 import { ImporterSuuntoDeviceNames } from './importer.suunto.device.names';
 import { ActivityInterface } from '../../../../activities/activity.interface';
@@ -454,14 +454,12 @@ export class EventImporterSuuntoJSON {
         const headerStart = new Date(eventJSONObject.DeviceLog.Header?.DateTime).getTime();
         const sourceStart = Number.isFinite(headerStart) ? headerStart : activities[0].startDate.getTime();
         const recorded = collectRRIntervals(
-          Array.isArray(source.Batches) ? source.Batches : [{ time: sourceStart, intervals: source.Data }]
+          Array.isArray(source.Batches) ? source.Batches : [{ time: sourceStart, intervals: source.Data }],
+          sourceStart
         );
         activities.forEach((activity: ActivityInterface) => {
           const selected = recorded.filter(
-            sample =>
-              (sample.time > activity.startDate.getTime() ||
-                (sample.time === activity.startDate.getTime() && (!Number.isFinite(sample.interval) || sample.interval <= 0))) &&
-              sample.time <= activity.endDate.getTime()
+            sample => isRRIntervalInBounds(sample, +activity.startDate, +activity.endDate)
           );
           const ibiData = selected.map(sample => sample.interval);
           const sampleTimes = selected.map(sample => sample.time - activity.startDate.getTime());
@@ -675,6 +673,7 @@ export class EventImporterSuuntoJSON {
       .lowPassFilter()
       .getAsBPM()
       .forEach((value, key, _map) => {
+        if (key > +activity.endDate - +activity.startDate) return;
         samples.push({
           TimeISO8601: new Date(activity.startDate.getTime() + key).toISOString(),
           HR: value / 60

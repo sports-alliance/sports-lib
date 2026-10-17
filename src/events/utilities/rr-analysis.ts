@@ -38,6 +38,9 @@ export interface RRSummary {
   longestGap: number;
   meanInterval: number | null;
   averageHeartRate: number | null;
+  /** Range of available complete ten-second trailing HR windows. */
+  minimumHeartRate: number | null;
+  maximumHeartRate: number | null;
   sdnn: number | null;
   rmssd: number | null;
   pnn50: number | null;
@@ -78,10 +81,15 @@ const inRange = (value: number) => value >= 300 && value <= 2000;
 export function calculateDFAAlpha1(intervals: readonly number[]): number | null {
   const length = intervals.length;
   if (length < 32 || intervals.some(value => !Number.isFinite(value) || value <= 0)) return null;
-  const mean = intervals.reduce((sum, value) => sum + value, 0) / length;
+  // Offset before centering so constant fractional signals stay exactly zero. Scaling the
+  // differences also avoids overflow; neither translation nor scale changes the DFA slope.
+  const differences = intervals.map(value => value - intervals[0]);
+  const extent = differences.reduce((max, value) => Math.max(max, Math.abs(value)), 0);
+  if (extent === 0) return null;
+  const mean = differences.reduce((sum, value) => sum + value / extent, 0) / length;
   const integrated = new Float64Array(length);
   let cumulative = 0;
-  for (let i = 0; i < length; i++) integrated[i] = cumulative += intervals[i] - mean;
+  for (let i = 0; i < length; i++) integrated[i] = cumulative += differences[i] / extent - mean;
   const points: { x: number; y: number }[] = [];
   for (let scale = 4; scale <= 16; scale++) {
     const segments = Math.floor(length / scale);
@@ -275,6 +283,8 @@ export function analyzeRRIntervals(
   const windows: RRWindow[] = [];
   const alphas: number[] = [];
   const positions = { hr: 0, rmssd: 0, dfa: 0 };
+  let minimumHeartRate: number | null = null;
+  let maximumHeartRate: number | null = null;
   let end = 0;
   for (let time = 5000; time <= durationMs; time += 5000) {
     while (end < beats.length && beats[end].time <= time + EPSILON_MS) end++;
@@ -288,7 +298,13 @@ export function analyzeRRIntervals(
       );
       return { selected, full: start >= 0 && covered >= span * 0.9 };
     };
-    const hr = timeDomain(window('hr', 10000).selected);
+    const hr = window('hr', 10000);
+    const meanInterval = hr.full ? timeDomain(hr.selected).meanInterval : null;
+    const heartRate = meanInterval === null ? null : 60000 / meanInterval;
+    if (heartRate !== null) {
+      minimumHeartRate = Math.min(minimumHeartRate ?? heartRate, heartRate);
+      maximumHeartRate = Math.max(maximumHeartRate ?? heartRate, heartRate);
+    }
     const rm = window('rmssd', 60000);
     const dfa = window('dfa', 120000);
     const alpha = dfa.full ? correctedDFA(dfa.selected) : null;
@@ -296,7 +312,7 @@ export function analyzeRRIntervals(
     if (options.includeDetails !== false)
       windows.push({
         time,
-        heartRate: hr.meanInterval === null ? null : 60000 / hr.meanInterval,
+        heartRate,
         rmssd: rm.full ? timeDomain(rm.selected).rmssd : null,
         artifactPercentage:
           rm.full && rm.selected.length
@@ -323,6 +339,8 @@ export function analyzeRRIntervals(
       longestGap: longestGapMs / 1000,
       ...td,
       averageHeartRate: td.meanInterval === null ? null : 60000 / td.meanInterval,
+      minimumHeartRate,
+      maximumHeartRate,
       dfaAlpha1Median: median(alphas),
       dfaAlpha1Min: alphas.length ? alphas.reduce((min, value) => Math.min(min, value)) : null,
       dfaAlpha1Max: alphas.length ? alphas.reduce((max, value) => Math.max(max, value)) : null,

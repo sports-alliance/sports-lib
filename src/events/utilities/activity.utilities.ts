@@ -207,6 +207,7 @@ import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-av
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
 import { DataIBI } from '../../data/data.ibi';
+import { addMissingRRStats } from './activity-rr';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
@@ -3867,6 +3868,7 @@ export class ActivityUtilities {
         activity.addStat(new DataPowerWork(c.observedWorkKilojoules));
       }
     }
+    addMissingRRStats(activity);
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,

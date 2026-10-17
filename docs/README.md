@@ -346,6 +346,9 @@ from non-diving activities. Suunto DeviceLog JSON also applies the exclusion aft
 all-diving event summaries consistent with native JSON restoration. Their vertical movement is represented by depth;
 raw altitude and grade streams remain available when provided by the source.
 
+Activity R–R analysis provides gap-aware RMSSD, SDNN, pNN50, recording-quality summaries and rolling DFA alpha1.
+See [activity R–R calculations](guides/metrics-and-calculations.md#activity-rr-analysis) for units, quality gates and reparse requirements.
+
 ## Start here
 
 Swim distances support optional meter or yard display while preserving canonical meter values; see

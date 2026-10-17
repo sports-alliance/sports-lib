@@ -257,7 +257,7 @@ export class EventImporterJSON {
     const streamType = this.getCanonicalDataType(json.type);
 
     if (streamType === DataIBI.type) {
-      return new IBIStream(<number[]>json.data);
+      return new IBIStream(json.data, json.sampleTimes);
     }
     return new Stream(streamType, json.data, json.intervalSupport);
   }
@@ -269,7 +269,8 @@ export class EventImporterJSON {
     const addStream = (
       sourceType: string,
       data: StreamJSONInterface['data'],
-      intervalSupport?: StreamJSONInterface['intervalSupport']
+      intervalSupport?: StreamJSONInterface['intervalSupport'],
+      sampleTimes?: number[]
     ) => {
       const canonicalType = this.getCanonicalDataType(sourceType);
       if (canonicalType === DataTime.type) {
@@ -282,14 +283,17 @@ export class EventImporterJSON {
           value: {
             type: canonicalType,
             data,
-            ...(intervalSupport ? { intervalSupport } : {})
+            ...(intervalSupport ? { intervalSupport } : {}),
+            ...(canonicalType === DataIBI.type && sampleTimes ? { sampleTimes } : {})
           }
         });
       }
     };
 
     if (Array.isArray(streams)) {
-      streams.forEach(streamJson => addStream(streamJson.type, streamJson.data, streamJson.intervalSupport));
+      streams.forEach(streamJson =>
+        addStream(streamJson.type, streamJson.data, streamJson.intervalSupport, streamJson.sampleTimes)
+      );
     } else {
       Object.keys(streams || {}).forEach(streamKey => {
         addStream(streamKey, streams[streamKey]);

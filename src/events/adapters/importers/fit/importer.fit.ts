@@ -731,11 +731,9 @@ export class EventImporterFIT {
           return;
         }
         // Get the HRV to IBI if exist
-        if (fitDataObject.hrv && fitDataObject.hrv.length) {
+        if (fitDataObject.hrv && fitDataObject.hrv.length && isStreamTypeAllowedForImport('IBI', streamSelection)) {
           activities.forEach((activity: ActivityInterface) => {
-            const ibiData = this.getIBIDataForActivity(fitDataObject.hrv, activities[0].startDate, activity);
-            // set the IBI
-            activity.addStream(new IBIStream(ibiData));
+            activity.addStream(this.getIBIStreamForActivity(fitDataObject.hrv, activities[0].startDate, activity));
           });
         }
 
@@ -958,21 +956,27 @@ export class EventImporterFIT {
   }
 
   private static getIBIDataForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): number[] {
-    let elapsedTime = 0;
-    return hrvRecords
-      .reduce((ibiArray: number[], hrvRecord: any) => ibiArray.concat(hrvRecord.time), [])
-      .map((ibi: any) => ibi * 1000)
-      .filter((ibi: number) => {
-        elapsedTime += ibi;
-        const ibiDataDate = new Date(eventStartDate.getTime() + elapsedTime);
+    return this.getIBIStreamForActivity(hrvRecords, eventStartDate, activity).getData() as number[];
+  }
 
-        // FIT uses 0xFFFF as the invalid uint16 sentinel. Some parsers surface it as 65.535s.
-        if (ibi === this.INVALID_FIT_HRV_INTERVAL_MS) {
-          return false;
+  private static getIBIStreamForActivity(hrvRecords: any[], eventStartDate: Date, activity: ActivityInterface): IBIStream {
+    const intervals: (number | null)[] = [];
+    const times: number[] = [];
+    let elapsed = 0;
+    for (const record of hrvRecords) {
+      for (const raw of (Array.isArray(record.time) ? record.time : [record.time])) {
+        const value = typeof raw === 'number' ? raw * 1000 : NaN;
+        if (Number.isFinite(value) && value > 0) elapsed += value;
+        const absolute = eventStartDate.getTime() + elapsed;
+        if (value === this.INVALID_FIT_HRV_INTERVAL_MS) continue;
+        const invalidAtStart = absolute === activity.startDate.getTime() && (!Number.isFinite(value) || value <= 0);
+        if ((absolute > activity.startDate.getTime() || invalidAtStart) && absolute <= activity.endDate.getTime()) {
+          intervals.push(Number.isFinite(value) ? value : null);
+          times.push(absolute - activity.startDate.getTime());
         }
-
-        return ibiDataDate >= activity.startDate && ibiDataDate <= activity.endDate;
-      });
+      }
+    }
+    return new IBIStream(intervals, times);
   }
 
   /**

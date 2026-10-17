@@ -57,9 +57,8 @@ zero/negative values, structured data, and stream null gaps. Canonical metric na
 imported TSS policy remain unchanged. See [native JSON round trips](exporting.md#native-json-round-trips).
 
 The public numeric catalog remains enumerable/loadable through `DataStore`/`DynamicDataLoader`; finite values retain
-their canonical JSON keys and units. Quantified Self's MCP metric boundary already accepts only persisted finite
-numeric values. This correction adds no catalog entry, output field, scope, or planning capability. Consumers can read
-older invalid pace JSON without a source reparse; any persistence rewrite must use their normal sanitized writer.
+their canonical JSON keys and units. This correction adds no catalog entry. Consumers can read older invalid pace JSON
+without a source reparse; rewriting persisted data remains a separate consumer operation.
 
 ## Swim distance display
 
@@ -69,7 +68,7 @@ those units instead of switching to kilometers or miles. For example,
 `new DataSwimDistance(91.44, SwimDistanceUnits.Yards)` displays `100 yd`, while `getValue()` remains `91.44` and
 `toJSON()` remains `{ Distance: 91.44 }`. `DynamicDataLoader` preserves this explicit display choice. Consumers can
 choose it from the first swim-pace preference without changing general distance preferences or stored values.
-This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. MCP numeric
+This display option requires no activity/route reparse, derived recalculation, or persisted-data migration. Numeric
 discovery and canonical wire values remain unchanged; the display unit is not a new metric or persisted unit.
 
 ## Position error display
@@ -84,12 +83,9 @@ Only display formatting and the formerly empty unit metadata change. `getValue()
 type tokens and JSON numeric values retain full precision. Existing persisted stats gain the corrected display when
 loaded with this version, without activity/route reparsing, summary regeneration or a persisted-data migration.
 
-Quantified Self MCP consumer review: all eight existing classes remain package-root exports, enumerable through
-`DataStore` and loadable through `DynamicDataLoader` using their existing canonical tokens. The numeric catalog's unit
-metadata changes from empty to `m`; numeric query values and persisted stat keys do not change. Quantified Self must
-adopt the same package version in its frontend and Functions and verify catalog/persistence tests under its
-MCP metric-surface workflow. This correction introduces no metric, tool, output field, scope, consent, provider action
-or additional exposure; downstream package adoption and release remain separate work.
+All eight existing classes remain package-root exports, enumerable through `DataStore` and loadable through
+`DynamicDataLoader` using their existing canonical tokens. The numeric catalog's unit metadata changes from empty
+to `m`; numeric query values and persisted stat keys do not change.
 
 Data Coverage & Calculation Reference
 ---
@@ -658,7 +654,7 @@ labeled `IMPORTED`, including when `preserveImportedTss` is false. A legacy scor
 imported-score interpretation. Previously calculated TSS and its method are removed during summary generation for
 these activities. Other Unspecified and Aerial Sports activities remain eligible for calculated TSS. These excluded
 groups and three types have no durability adapter. Existing canonical `Training Stress Score` and `Training Stress Score Method` tokens, numeric
-units, JSON representation, and MCP metric discovery remain unchanged.
+units, JSON representation and numeric metric discovery remain unchanged.
 
 Walking, Indoor Walking, and Nordic Walking share `WalkingGroup` while preserving the existing walking pace/speed,
 average pace/speed, vertical-speed, and default movement threshold. Only Indoor Walking has the indoor hint. Walking
@@ -788,8 +784,7 @@ threshold is inferred, and no score is capped or replaced with an assumed physio
 physiological overrides retain their existing precedence. Recorded samples and calibration fields are not rewritten.
 Existing persisted scores require an original-file reparse to apply the check, followed by refreshed derived Training
 summaries. Ordinary JSON restoration cannot recover this private calibration evidence. Canonical metric tokens, units,
-JSON schemas, evaluation fields and reason codes remain unchanged, so existing QS/MCP projections need no additional
-fields, permissions or private calibration exposure.
+JSON schemas, evaluation fields and reason codes remain unchanged.
 
 PACE TSS (running/trail groups):
 

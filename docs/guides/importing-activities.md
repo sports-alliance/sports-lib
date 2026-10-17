@@ -34,11 +34,10 @@ Suunto App activity ID `112`.
 Suunto's documented Stretching export, App activity ID `58`, uses FIT `training/flexibility_training` (`10/19`).
 When the recording's creator manufacturer is Suunto, this pair imports as the existing `ActivityTypes.Stretching`
 in Indoor Sports. Other manufacturers and recordings without Suunto creator identity retain Flexibility Training.
-A Suunto accessory or product name alone does not establish that identity. Both types already share the same
-Quantified Self Mobility & movement Training context. The catalog, numeric metrics, units, JSON schema, and MCP
-contract are unchanged. Valid nonnegative imported TSS stays exact, including zero. The legacy
-`preserveImportedTss` flag is deprecated and does not discard imported scores. Reparse retained Suunto `10/19` sources to correct older
-Flexibility Training classifications, then regenerate persisted event summaries and activity-type aggregates.
+A Suunto accessory or product name alone does not establish that identity. The catalog, numeric metrics, units and
+JSON schema are unchanged. Valid nonnegative imported TSS stays exact, including zero. The legacy
+`preserveImportedTss` flag is deprecated and does not discard imported scores. Reparse retained Suunto `10/19` sources
+to correct older Flexibility Training classifications, then regenerate persisted event summaries and activity-type aggregates.
 
 The same Suunto creator guard preserves these distinct documented exports using existing canonical sports:
 
@@ -98,17 +97,11 @@ Pickleball. The mappings apply across manufacturers without adding provider tran
 Dancing and Jump Rope inherit Indoor Sports' existing speed metric family, movement threshold, indoor hint, and TSS
 selection; Pickleball inherits the corresponding Team/Racket behavior and has a false indoor hint. These catalog hints
 do not establish where an individual session was recorded. None has stroke-rate semantics or a durability adapter.
-The library adds no numeric metric, Training formula or planning mutation. QS's approved context mappings are
-documented in [coordinated adoption](#quantified-self-coordinated-adoption); usable power curves stay isolated by
-exact canonical type.
+The library adds no numeric metric or TSS formula. Usable power curves stay isolated by exact canonical type.
 
 Stored Generic, Unknown Sport, and Racquet Ball labels cannot recover these distinctions on their own. Reparse retained
 FIT `83`, `84`, and `64/84` sources, or restore specific source names/profiles when available, then regenerate separately
-persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
-Adopt the release in both the Quantified Self application and Functions before persisting Jump Rope or Pickleball.
-The existing strict MCP activity-type catalog discovers the new canonical names, groups, and indoor hints; Dancing's
-canonical entry is reused. No fields, scopes, tools, or mutations are added. Queue lifecycle, write paths, and monitoring
-remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
+persisted event summaries, activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 `ActivityTypes.Rucking` has canonical stored value `Rucking` in `ActivityTypeGroups.OutdoorAdventuresGroup`. FIT
 `hiking/rucking` (`17/124`) preserves the type separately from Hiking and Walking before profile fallbacks, across
@@ -140,16 +133,11 @@ Sailing Expedition inherits Water Sports' speed/swim-pace families and Sailing's
 while retaining raw altitude data, altitude summaries, and explicit source ascent/descent. CCR Diving inherits Diving's
 speed family and excludes terrain summaries (altitude, grade, ascent, and descent) on activities and laps while
 retaining source streams and dive data. All retain their groups' existing TSS selection. No numeric token, unit,
-provider transport, delivery support, or Training formula is added by the library. QS's approved contexts are tracked
-in [coordinated adoption](#quantified-self-coordinated-adoption). Usable power curves remain isolated by exact canonical type.
+provider transport, delivery support, or Training formula is added by the library. Usable power curves remain isolated by exact canonical type.
 
 Stored Hiking, Sailing, Diving, Generic, or Unknown Sport labels cannot establish the more specific activities. Reparse
 retained FIT `17/124`, `32/66`, or `53/63` sources, or restore specific source names/profiles, then regenerate separately
-persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
-Adopt the release in both the Quantified Self application and Functions before persisting these types. Existing strict
-MCP catalog discovery exposes their names, groups, and indoor hints without new fields, scopes, tools, or planning
-mutations. Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
-Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+persisted event summaries, activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 **Running, walking, Enduro MTB, and Rally.**
 
@@ -199,18 +187,7 @@ formula, durability protocol, workout delivery capability, provider transport, o
 Historical Running, Walking, Fitness Equipment, Cycling, or Motorsports labels need specific retained FIT sources or
 explicit names to recover the more specific activity type. After correction, regenerate separately persisted event
 summaries, activity-type aggregates, affected durability evidence, and Training snapshots. Saved routes need no reparse.
-Adopt the release in both Quantified Self packages before storing the four new canonical values. At adoption, add
-WalkingGroup to exhaustive group label/alias, color, gradient, icon, and group-chart maps, and register Indoor Walking
-with the Walking chart profile. Review the dynamic Supported activity types Help page against those group labels.
-The application remains pinned to its current library until that coordinated upgrade.
-
-Quantified Self's separate exact Training registry keeps Walking/Nordic Walking and the cycling Enduro MTB context
-(`mixed-gravity`, saved load, volume-only intensity, recorded distance). Its approved additional context mappings
-are tracked in [coordinated adoption](#quantified-self-coordinated-adoption); group membership alone does not widen
-Training or provider delivery support.
-The strict MCP activity catalog can discover the new values and Walking group using its existing fields and scopes.
-No tools, schema fields, permissions, mutations, queue lifecycle, write paths, or monitoring change. The 121-pair Suunto
-protocol audit remains unchanged; these mappings are covered separately with synthetic FIT files across manufacturers.
+Review exhaustive group mappings for the new Walking group before persisting corrected classifications.
 
 **Spin, E-bike Mountain, Adventure Race, flying variants, and broad sport categories.**
 
@@ -252,15 +229,9 @@ and swim-pace display families without implying swimming or paddling. Indoor Cyc
 the existing cycling durability protocol; the other eight types have no durability adapter. No numeric metric,
 unit, formula, durability protocol, or stored field is added.
 
-In Quantified Self's exact Training registry, Indoor Cycling reuses modeled indoor-cycling. The completed approved
-classifications are tracked in [coordinated adoption](#quantified-self-coordinated-adoption); the nine broad labels
-explicitly assigned to Other training retain its duration/saved-load policy. Library groups do not establish Training
-contexts or provider delivery support. Adopt the library in the application and Functions together
-and review the dynamic supported-activities catalog. Correct historical broad labels only from retained specific
-sources or explicit aliases, then regenerate event summaries, activity-type aggregates, applicable durability evidence,
-and Training snapshots through the existing source-backed reparse and derived ingress. Broad stored Generic, Cycling,
-Running, or Flying values alone cannot recover missing distinctions. Queue lifecycle, monitoring, saved routes,
-write paths, MCP fields/scopes/mutations, and Training planning capabilities are unchanged.
+Correct historical broad labels only from retained specific sources or explicit aliases, then regenerate
+event summaries, activity-type aggregates and applicable durability evidence. Broad stored Generic, Cycling,
+Running or Flying values alone cannot recover missing distinctions. Saved routes need no reparse.
 
 **Electric enduro, cycling variants, speed walking, whitewater, wingsuit, brick, and hunting with dogs.**
 
@@ -298,15 +269,10 @@ checks. E-Enduro MTB emits unsupported-context gravity-MTB durability evidence, 
 ordinary TSS eligibility. The six other new types have no durability adapter. Indoor Track Running inherits the
 existing Indoor Running durability behavior. No numeric metric token, unit, formula, or durability protocol is added.
 
-Quantified Self's prepared mappings, including Indoor Track Running, are tracked in
-[coordinated adoption](#quantified-self-coordinated-adoption); library group membership does not create a modeled
-context or provider delivery capability. Adopt the changes in the application and Functions together, review the
-dynamic supported-activities catalog and exhaustive mappings, and correct historical labels only where a retained
-source or explicit name provides the distinction. Then regenerate affected event summaries, activity-type aggregates,
-durability evidence, and Training snapshots through the existing source-backed reparse and derived ingress.
-Native JSON hydration can recover explicit aliases such as cycling_track_cycling, but cannot recover detail lost in
-a stored broad Cycling or Running value. Saved routes, queue lifecycle, write paths, monitoring, and MCP wire fields,
-scopes, and mutations are unchanged.
+Correct historical labels only where a retained source or explicit name provides the distinction, then regenerate
+affected event summaries, activity-type aggregates and durability evidence. Native JSON hydration can recover explicit
+aliases such as cycling_track_cycling, but cannot recover detail lost in a stored broad Cycling or Running value.
+Saved routes need no reparse.
 
 **BMX, Indoor Skiing, ATV, Motocross, and Pool Triathlon.**
 
@@ -343,17 +309,10 @@ calculated power/HR/MET TSS exclusion, remove stale calculated TSS, and preserve
 legacy flag setting. The four non-BMX types have no durability adapter. No numeric metric token, unit, formula,
 new durability protocol, workout leg, provider transport, or delivery capability is introduced.
 
-Historical Cycling, Fitness Equipment, Crosscountry Skiing, Motorcycling, or Multisport labels cannot establish these
+Historical Cycling, Fitness Equipment, Crosscountry Skiing, Motorcycling or Multisport labels cannot establish these
 more specific types by themselves. Correct them from specific retained FIT classifications or explicit source names,
-then regenerate separately persisted event summaries, activity-type aggregates, applicable durability evidence, and
-affected Training snapshots. Saved routes need no reparse. Adopt the release in both Quantified Self packages before
-persisting the new values. Its approved exact contexts and combined-sport exclusions are tracked in
-[coordinated adoption](#quantified-self-coordinated-adoption); a Cycling or Performance library group alone does not
-grant a modeled Training context or provider delivery support. The
-strict MCP activity catalog discovers their canonical names, groups, and indoor hints within its existing read schema
-and scopes. No tool fields, permissions, mutations, queue lifecycle, persistence write path, or monitoring changes.
-Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption. All 121 existing
-Suunto numeric and named protocol pairs remain unchanged; these new pairs have separate synthetic FIT coverage.
+then regenerate separately persisted event summaries, activity-type aggregates and applicable durability evidence.
+Saved routes need no reparse.
 
 `ActivityTypes.IndoorHandCycle` has canonical stored value `Indoor Hand Cycle` in `ActivityTypeGroups.CyclingGroup`.
 FIT `cycling/indoor_hand_cycling` (`2/88`) preserves it before custom profile fallback. Specific `Indoor Hand Cycle`,
@@ -402,14 +361,8 @@ protocol, provider transport, workout delivery capability, or modeled Training f
 Correcting historical Cycling, Hand Cycle, Wheelchair Push Walk/Run, Driving, Motorcycling, Motorsports, Generic,
 Fitness Equipment, or Training labels requires retained FIT sources with these specific pairs or explicit names;
 stored broad labels alone cannot establish the more specific type. Regenerate separately persisted event summaries,
-activity-type aggregates, durability evidence where applicable, and affected Training snapshots after reparsing.
-Saved routes need no reparse. Adopt the release in both the Quantified Self application and Functions before persisting
-these new values. Quantified Self's approved exact contexts are tracked in
-[coordinated adoption](#quantified-self-coordinated-adoption); Cycling library group membership alone does not add
-Indoor Hand Cycle to a modeled Training or delivery profile. Power curves
-stay isolated by exact canonical type. The strict MCP activity catalog discovers their names, groups, and indoor hints
-without new fields, scopes, tools, or planning mutations. Queue lifecycle, write paths, and monitoring are unchanged.
-Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+activity-type aggregates, durability evidence where applicable, and dependent training summaries after reparsing.
+Saved routes need no reparse. Power curves stay isolated by exact canonical type.
 
 `ActivityTypes.Grinding` has canonical stored value `Grinding` in `ActivityTypeGroups.WaterSportsGroup`. Explicit FIT
 sport `grinding` (`59`) identifies operating sailing winches and preserves this type before profile or unrelated
@@ -439,17 +392,11 @@ Indoor Grinding inherits Indoor Sports' speed family, true indoor hint, and exis
 is a catalog hint; Grind Onshore does not establish a recording's physical location. All three retain the standard
 movement threshold and TSS selection, including power TSS when the required inputs exist. Cadence remains cadence;
 there is no stroke-rate conversion or durability adapter. No numeric token, unit, provider transport, workout delivery,
-Training formula, or modeled family is added by the library. QS's coordinated adoption PR maps Grinding and Sail
-Racing to Water Sports and Indoor Grinding to Fitness & Gym. Usable power curves remain isolated by exact canonical
-activity type.
+Training formula, or modeled family is added by the library. Usable power curves remain isolated by exact canonical activity type.
 
 Stored Generic, Unknown Sport, or Sailing labels cannot identify these activities on their own. Reparse retained FIT
 `59`, `59/71`, or `32/65` sources, or restore specific source names/profiles, then regenerate separately persisted event
-summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse. Adopt the release
-in both the Quantified Self application and Functions before persisting the new types. Existing strict MCP catalog
-discovery exposes their names, groups, and indoor hints without new fields, scopes, tools, or planning mutations.
-Queue lifecycle, write paths, and monitoring are unchanged because only normalized classifications change.
-Supported-activities Help uses the dynamic catalog and needs no enumerated entry before adoption.
+summaries, activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 `ActivityTypes.PoolApnea` has canonical stored value `Pool Apnea` in `ActivityTypeGroups.DivingGroup`. Explicit FIT
 sport `pool_apnea` (`85`) preserves this type before sub-sport and profile fallbacks across manufacturers. `PoolApnea`,
@@ -484,18 +431,12 @@ available and is labeled `IMPORTED`, including when `preserveImportedTss` is fal
 retains the existing imported-score interpretation; its provenance cannot be recovered from the number alone.
 Pool Apnea and Mobility retain their groups' existing TSS eligibility. None of these types has stroke-rate semantics
 or a durability adapter. No numeric metric token, unit, schema, provider transport, delivery support, or Training formula
-is added. QS's coordinated adoption PR maps Pool Apnea to Diving and Mobility to Fitness & Gym. Video Gaming is
-explicitly approved for Other training, with recorded duration and saved TSS including zero. Usable power curves
-remain isolated by exact canonical activity type.
+is added. Usable power curves remain isolated by exact canonical activity type.
 
 Stored Generic or Unknown Sport labels cannot identify these activities. Reparse retained FIT `85`, `86`, or `63`
 sources, or restore specific source names/profiles, then regenerate separately persisted event summaries, activity-type
-aggregates, and affected Training snapshots. Recalculation is needed to clear identified calculated Video Gaming TSS;
-the source-imported score policy is unchanged. Saved routes need no reparse. Adopt the release in both the Quantified
-Self application and Functions before persisting these types. Existing strict MCP activity-type discovery exposes
-their names, groups, and indoor hints without new fields, scopes, tools, or planning mutations. Queue lifecycle, write
-paths, and monitoring remain unchanged. Supported-activities Help uses the dynamic catalog and needs no enumerated
-entry before adoption.
+aggregates, and dependent training summaries. Recalculation is needed to clear identified calculated Video Gaming TSS;
+the source-imported score policy is unchanged. Saved routes need no reparse.
 
 `ActivityTypes.Shooting` has canonical stored value `Shooting`, and `ActivityTypes.Geocaching` has canonical stored value
 `Geocaching`, both in `ActivityTypeGroups.OutdoorAdventuresGroup`. Explicit FIT sports `shooting` (`56`) and `geocaching`
@@ -517,18 +458,11 @@ families, terrain behavior, and TSS selection; Platform Tennis inherits the corr
 without vertical-speed or grade-adjusted derivation. All three have a false indoor hint, which is a catalog grouping
 and does not establish where an individual session was recorded. None has stroke-rate semantics or a durability
 adapter. This adds no numeric metric, provider transport, workout-delivery support, Training formula, or modeled
-Training family in the library. QS's coordinated adoption PR maps Shooting to Precision Sports, Platform Tennis
-to Racket Sports and Geocaching to its own Outdoor Adventures context. Geocaching uses recorded elapsed time and
-saved TSS including zero, with omitted zones, distance and durability. Usable power curves stay isolated by exact
-canonical activity type.
+Training family in the library. Usable power curves stay isolated by exact canonical activity type.
 
 Stored Generic, Unknown Sport, and Racquet Ball labels cannot identify these sports on their own. Reparse retained FIT
 `56`, `87`, and `64/93` sources, or restore specific source names/profiles when available, then regenerate separately
-persisted event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse.
-Adopt the release in both the Quantified Self application and Functions before persisting the new types. The existing
-strict MCP activity-type catalog discovers their names, groups, and indoor hints without new fields, scopes, tools, or
-planning mutations. Queue lifecycle, write paths, and monitoring remain unchanged. Supported-activities Help links to
-the dynamic catalog and needs no enumerated entry before adoption.
+persisted event summaries, activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 `ActivityTypes.DiscGolf` has the canonical stored value `Disc Golf` in `ActivityTypeGroups.TeamRacketGroup`, alongside
 the separate Golf and Frisbee types. FIT `sport=disc_golf` (`69`) imports as Disc Golf across manufacturers, using
@@ -545,9 +479,7 @@ indoor-status, and TSS behavior; it adds no durability adapter, numeric metric, 
 Native JSON preserves the canonical Disc Golf type and its explicit aliases. Stored Generic, Unknown Sport, Golf, or
 Frisbee labels cannot identify a historical Disc Golf activity on their own. Reparse retained FIT sport `69` or restore
 a specific source name/profile when available, then regenerate separately persisted summaries or activity-type
-aggregates. Saved routes need no reparse. Quantified Self must upgrade the application and Functions together before
-persisting Disc Golf; its existing MCP catalog can discover the canonical name, group, and indoor hint without new
-fields, scopes, or tools. Queue lifecycle, write paths, monitoring, and Training algorithms remain unchanged.
+aggregates. Saved routes need no reparse.
 
 `ActivityTypes.Lacrosse` has the canonical stored value `Lacrosse` in `ActivityTypeGroups.TeamRacketGroup`, alongside
 Field Hockey and Rugby. FIT `sport=lacrosse` (`74`) imports as Lacrosse across manufacturers, using Garmin's activity
@@ -560,10 +492,7 @@ generic sessions, Field Hockey, Ice Hockey, and Volleyball retain their existing
 Lacrosse inherits Team/Racket's speed, movement, indoor-status, and TSS behavior without adding a numeric metric,
 durability adapter, or provider transport. Stored Generic or Unknown Sport labels cannot identify Lacrosse on their
 own. Reparse retained FIT sport `74` or restore an explicit source name/profile when available, then regenerate
-separately persisted summaries or activity-type aggregates. Saved routes need no reparse. Adopt the release in both
-the Quantified Self application and Functions before persisting Lacrosse. Existing MCP activity-type discovery can
-expose its name, group, and indoor hint through the current output schema; no new fields, scopes, or tools are added.
-Queue lifecycle, writes, monitoring, and Training algorithms remain unchanged.
+separately persisted summaries or activity-type aggregates. Saved routes need no reparse.
 
 `ActivityTypes.WaterTubing` has the canonical stored value `Water Tubing` in `ActivityTypeGroups.WaterSportsGroup`,
 distinct from Water Skiing, Wakeboarding, and Rafting. FIT `sport=water_tubing` (`76`) imports as Water Tubing across
@@ -575,17 +504,11 @@ ambiguous and do not establish this classification.
 Water Tubing inherits Water Sports' speed/swim-pace metric family, movement threshold, and TSS selection. Like Water
 Skiing and Wakeboarding, it does not derive ascent or descent from altitude streams; explicit source totals and raw
 altitude streams remain available. It has no stroke-rate semantics or durability adapter. This adds no numeric metric,
-provider transport, or workout-delivery support. Quantified Self's coordinated adoption PR gives Water Tubing its own
-Water Sports context using recorded elapsed time and saved TSS, with omitted distance and durability. The library
-adds no Training formula, and usable power curves remain isolated by exact canonical activity type.
+provider transport, or workout-delivery support. The library adds no TSS formula, and usable power curves remain isolated by exact canonical activity type.
 
 Stored Generic or Unknown Sport labels cannot identify historical Water Tubing on their own. Reparse retained FIT sport
 `76` or restore an explicit source name/profile when available, then regenerate separately persisted event summaries,
-activity-type aggregates, and affected Training snapshots. Saved routes need no reparse. Adopt the release in both the
-Quantified Self application and Functions before persisting Water Tubing. Existing MCP activity-type discovery can
-expose its name, group, and indoor hint through the current strict output schema; no new fields, scopes, tools, or
-planning mutations are added. Queue lifecycle, write paths, and monitoring remain unchanged. The app's supported-
-activities help links to the dynamic catalog and needs no enumerated entry before adoption.
+activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 The following explicit FIT sports also preserve separate canonical activity types across manufacturers. The protocol
 identifiers appear in [Garmin's official FIT profile](https://github.com/garmin/fit-javascript-sdk/blob/main/src/profile.js).
@@ -611,14 +534,7 @@ semantics or durability adapter. No numeric metric, provider transport, or worko
 
 Existing Generic and Unknown Sport labels cannot identify these activities on their own. Reparse retained FIT sports
 `77`, `79`, and `80`, or restore specific source names/profiles when available, then regenerate separately persisted
-event summaries, activity-type aggregates, and affected Training snapshots. Saved routes need no reparse. Adopt the
-release in both the Quantified Self application and Functions before persisting the new types. Quantified Self's
-coordinated adoption PR gives Wakesurfing, Archery and Mixed Martial Arts separate Water Sports, Precision Sports
-and Combat & Martial Arts contexts, respectively. These use recorded elapsed time and saved TSS; the library adds no
-Training formula, and usable power curves remain isolated by exact canonical activity type. Existing MCP catalog
-discovery exposes each name, group, and indoor hint through its current
-strict schema, without adding fields, scopes, tools, or planning mutations. Queue lifecycle, write paths, and monitoring
-remain unchanged. Supported-activities Help links to the dynamic catalog and needs no enumerated entry before adoption.
+event summaries, activity-type aggregates, and dependent training summaries. Saved routes need no reparse.
 
 `Field Hockey` belongs to `ActivityTypeGroups.TeamRacketGroup`, distinct from Ice Hockey. Suunto App activity ID
 `113` uses FIT `generic/match` (`0/22`); this pair imports as `ActivityTypes.FieldHockey` only when the recording's
@@ -632,7 +548,7 @@ FIT `sport=hockey` (`73`) with `sub_sport=field` (`90`) also imports as the exis
 manufacturers. These identifiers appear in [Garmin's activity reference](https://developer.garmin.com/connect-iq/api-docs/Toybox/Activity.html).
 The composite alias `hockey_field` resolves to the same canonical value. Standalone `hockey` or `field` does not establish
 Field Hockey, and unrelated sports with the Field sub-sport retain their previous fallback behavior. This correction
-reuses the existing Team/Racket group and canonical stored value; it adds no provider transport, metrics, or MCP contract.
+reuses the existing Team/Racket group and canonical stored value without adding numeric metrics.
 Previously stored `Unknown Sport` values remain unchanged when restoring native JSON; reparse retained FIT sources to
 recover the specific activity type and regenerate any separately persisted event summaries or activity-type aggregates.
 
@@ -640,7 +556,7 @@ FIT `sport=hockey` (`73`) with `sub_sport=ice` (`91`) imports as the existing `A
 using the identifiers in Garmin's reference linked above. `Ice Hockey` remains in `ActivityTypeGroups.TeamRacketGroup`,
 distinct from Field Hockey and Ice Skating. The composite alias `hockey_ice` resolves to its existing canonical stored
 value. Standalone `hockey` or `ice` does not establish Ice Hockey; unrelated sports with the Ice sub-sport retain their
-previous fallback behavior. This correction adds no provider transport, metrics, or MCP contract. As with Field Hockey,
+previous fallback behavior. As with Field Hockey,
 restoring native JSON does not reclassify historical `Unknown Sport` values; reparse retained FIT sources and regenerate
 separately persisted summaries or activity-type aggregates to correct those imports.
 
@@ -671,18 +587,13 @@ or the other wheelchair push mode. Their indoor wheelchair sub-sports (`86` and 
 canonical push mode. Both types retain Adaptive Mobility's speed display, moving-speed threshold, and indoor-status
 behavior.
 Calculated TSS and durability remain excluded while source-reported TSS is preserved. Ordinary Walking, Running,
-Hand Cycle, and the creator-qualified Suunto mapping keep their existing classification rules. No new numeric metric,
-provider transport, or MCP schema or scope is added.
+Hand Cycle, and the creator-qualified Suunto mapping keep their existing classification rules.
 
 Stored `Unknown Sport`, `Generic`, `Walking`, or general `Wheel Chair` labels cannot establish the specific push mode
 by themselves. Canonical native JSON `Wheel Chair` and `Wheelchair` remain general; JSON retaining the explicit
 `wheelchair_push_walk` or `wheelchair_push_run` alias restores the respective push mode. Reparse retained FIT sources to
 recover sports `65` and `66` from older general imports, then regenerate separately persisted summaries or activity-type
-aggregates. Saved routes need no reparse. Quantified Self must adopt the release in both the application and Functions
-before persisting these new
-canonical values; use its existing source-backed, version-checked reparse lifecycle for any separately authorized
-historical correction. Queue scheduling, retry, monitoring coverage, writes, and Training/durability algorithms are
-unchanged by this library classification correction.
+aggregates. Saved routes need no reparse.
 
 `Chores` is an explicit member of `ActivityTypeGroups.UnspecifiedGroup` and does not establish an indoor context.
 Suunto App activity ID `119` uses FIT `generic/exercise` (`0/23`); the importer resolves this to `ActivityTypes.Chores`
@@ -766,21 +677,10 @@ separately persisted event summaries and activity-type
 aggregates. Saved routes need no reparse, and no new fields, numeric metrics, Training planning capabilities, or
 durability adapters are added.
 
-Quantified Self consumers must upgrade the application and Functions together before persisting `Meditation`, `Padel`, `Field Hockey`, `Chores`,
-`Cyclocross`, `Gravel Cycling`, `E-Mountain Biking`, `Splitboarding`, `Ski Mountaineering`, `Skate Skiing`, `Track Running`,
-`Wheelchair Push Walk`, `Wheelchair Push Run`, `Disc Golf`, `Lacrosse`, `Water Tubing`, `Wakesurfing`, `Archery`,
-`Mixed Martial Arts`, `Jump Rope`, `Pickleball`, `Shooting`, `Geocaching`, `Platform Tennis`, `Pool Apnea`, `Mobility`,
-`Video Gaming`, `Grinding`, `Indoor Grinding`, `Sail Racing`, `Rucking`, `Sailing Expedition`, `CCR Diving`,
-`Indoor Hand Cycle`, `Overlanding`, `Trucker Workout`, `Indoor Wheelchair Push Walk`, `Indoor Wheelchair Push Run`,
-`Obstacle Racing`, `Ultra Running`, `Indoor Walking`, `Rally`, `BMX`, `Indoor Skiing`, `ATV`, `Motocross`, `Pool Triathlon`,
-`E-Enduro MTB`, `Track Cycling`, `Recumbent Cycling`, `Speed Walking`, `Whitewater Kayaking`, `Whitewater Rafting`,
-`Wingsuit Flying`, `Brick Training`, `Hunting with Dogs`, `Hockey`, `Winter Sport`, `Team Sport`, `Water Sport`,
-`Paramotoring`, or `RC Drone Flying`.
-Its existing MCP activity-type discovery derives names, groups, and indoor status from Sports Lib, so the new values
-fit the current read schemas and scopes without adding tools, permissions, or mutations. Review exhaustive catalog
-and provider-mapping expectations during that upgrade; classification alone does not establish provider delivery support.
-The Hand Cycle, Wheel Chair, and explicit Track and Field corrections reuse existing canonical activity types and groups
-in that catalog, with no new MCP schemas or scopes.
+Upgrade every component that reads stored activities before persisting new canonical names. Review exhaustive
+catalog and provider-mapping expectations during that upgrade; classification alone does not establish provider
+delivery support. The Hand Cycle, Wheel Chair and explicit Track and Field corrections reuse existing canonical
+activity types and groups.
 
 ```sh
 npm install @sports-alliance/sports-lib @xmldom/xmldom
@@ -832,20 +732,10 @@ Dynamic Apnea inherits Diving's terrain-summary exclusions. They add no stroke-r
 preserves valid nonnegative imported TSS, including zero, for every legacy flag setting. Calculated scores refresh
 from eligible current inputs; remove an imported stat explicitly when a calculation-only result is required.
 
-Quantified Self's coordinated adoption PR maps Racket Sport to Racket Sports, Ultimate Disc to Team Sports, and
-Dynamic Apnea and Pool Apnea to Diving. Para Sport is explicitly approved for Other training, with recorded duration
-and saved TSS including zero.
-HIIT aliases reuse Fitness/Gym conditioning, E-Biking and Cycling reuse Cycling, and Casual Walking reuses Walking.
-The latter aliases retain existing recorded-load policies and applicable library durability adapters. Adopt the
-library in the application and Functions together. Correct historical Generic, Racquet Ball, or Diving labels only
-from retained source classifications or explicit names, then regenerate event summaries, activity-type aggregates,
-applicable durability evidence, and Training snapshots through the existing source-backed reparse ingress. Stored
-canonical Racquet Ball remains Racquet Ball; only the broad `racket` alias changes to Racket Sport. Saved routes need
-no reparse, and no global reparse follows from these mappings.
-
-The existing strict MCP activity catalog accepts the expanded catalog without new fields, scopes, consent, or mutations.
-No numeric metric, unit, Training formula, derived schema, planning or delivery capability, provider transport, write
-path, queue lifecycle, or monitoring changes. Supported-activities Help continues to use the installed dynamic catalog.
+Correct historical Generic, Racquet Ball or Diving labels only from retained source classifications or explicit
+names, then regenerate event summaries, activity-type aggregates and applicable durability evidence. Stored canonical
+Racquet Ball remains Racquet Ball; only the broad `racket` alias changes to Racket Sport. Saved routes need no reparse,
+and these mappings do not initiate a global reparse.
 
 ## Garmin activity-profile names
 
@@ -887,14 +777,10 @@ Pool Swim, Kayak, Row, and Row Indoor use existing stroke-rate semantics. Every 
 including zero, for every legacy flag setting. The existing sport policy and available inputs determine
 replacement calculations for previously calculated scores.
 
-Quantified Self has a separate exact Training registry; newly distinct types require review during consumer adoption. Historical Generic classifications
-can enter a different existing context after a source-backed correction, so regenerate separately persisted event
-summaries, activity-type aggregates, applicable durability evidence, and Training snapshots. Native JSON can recover
-an explicit alias but cannot identify a sport from an already collapsed Generic value. Adopt the library in application
-and Functions together before persisting the corrections; a separately approved targeted reparse needs a retained
-source name/profile. Saved routes need no reparse. No new numeric metric, unit, formula, derived
-schema, MCP field/scope/consent/mutation, planning or delivery capability, provider transport, write path, queue
-lifecycle, or monitoring change is introduced. The dynamic supported-activities Help remains accurate.
+Correcting historical Generic classifications requires retained source names or profiles, followed by regeneration
+of separately persisted event summaries, activity-type aggregates and applicable durability evidence. Native JSON can
+recover an explicit alias but cannot identify a sport from an already collapsed Generic value. Upgrade all readers
+before persisting new canonical names. Saved routes need no reparse.
 
 ## Distinct sport and workout names
 
@@ -981,15 +867,10 @@ underscores, ahead of conflicting profile names.
 All distinct types preserve valid nonnegative imported TSS, including zero and legacy scores without a method,
 for every legacy flag setting. Calculated scores refresh only from supported current inputs. Existing power-first selection, HR calibration requirements and MET fallback remain unchanged.
 
-Consumer adoption must upgrade application and Functions together. Quantified Self's MCP activity catalog dynamically
-accepts these names, groups and indoor hints under its existing strict output schema; numeric metric tokens, units,
-scopes, consent and mutations are unchanged. Its independent exact Training registry has completed classifications
-for all 284 canonical types in the [coordinated adoption PR](#quantified-self-coordinated-adoption), including nine
-explicit Other training labels and 11 aggregate/route exclusions. Sports Lib group membership does not establish a
-Training context, planning or provider delivery capability.
-Supported-activities Help uses the installed dynamic catalog. Existing collapsed labels require a retained explicit
-source name or original file, then regeneration of event summaries, activity-type aggregates, applicable durability
-evidence and Training snapshots. No source reparse or production write is performed by the library update.
+Review exhaustive sport and group mappings when adopting the new canonical values. Existing collapsed labels
+require a retained explicit source name or original file, followed by regeneration of event summaries,
+activity-type aggregates and applicable durability evidence. Installing the library does not reparse stored sources
+or rewrite persisted activities.
 
 ## Garmin, Polar and Strava provider names
 
@@ -1069,9 +950,7 @@ Polar's FIT appendix lists these display names with Generic/Generic exports; no 
 AccessLink API identifier is assigned. An unnamed Generic recording retains Generic. Australian Football remains
 distinct from American Football and Soccer; Korfball and Netball remain distinct from Basketball. Explicit names
 also restore the same canonical types from native JSON. They retain the group's existing metric and TSS policies,
-a false indoor hint, ordinary cadence semantics, and no durability adapter. Quantified Self's coordinated adoption PR
-gives each its own Team Sports context using recorded elapsed time and saved TSS, with omitted distance and
-durability. The local catalog now contains 284 types.
+a false indoor hint, ordinary cadence semantics, and no durability adapter. The catalog contains 284 canonical types.
 
 The compatibility fixtures contain documented names and synthetic FIT bytes. Temporary public FIT samples stay
 outside the repository because redistribution rights were not established. The downloaded Polar and Suunto files
@@ -1235,49 +1114,20 @@ and legacy scores without a method, for every legacy flag setting. The deprecate
 imported scores. Existing calculated scores refresh from eligible current inputs. This batch
 adds no MET coefficients, numeric metric tokens, units, or formulas.
 
-Quantified Self's exact Training discipline registry remains independent of library groups. Its coordinated adoption
-PR completes the approved classifications for all 284 canonical types; the nine broad labels explicitly assigned to
-Other training use recorded duration and saved TSS, with omitted zones, distance and durability. Library group
-membership does not add a Training discipline, planning capability or provider delivery support. Within Sports Lib,
 Crosscountry Running inherits the running-speed durability adapter, while Kickbiking and Mountain Bike Orienteering
-inherit cycling-power; the other 43 types added by this provider batch have no library durability adapter. Training's
-approved context and capability policies independently determine whether that evidence is used. The existing strict
-MCP activity catalog accepts the new canonical values without new fields, scopes, consent or mutations.
+inherit cycling-power. The other 43 types added by this provider batch have no library durability adapter. Consumers
+can apply their own eligibility policies independently of these library adapters.
 
-Adopt the package in the application and Functions together before persisting corrections. A separately approved
-targeted source-backed reparse can correct historical broad/Generic classifications only where the original file or
-explicit source identifier/profile retains enough detail. Regenerate affected event summaries, activity-type aggregates,
-applicable durability evidence, and Training snapshots through the existing ingress. Saved routes need no reparse.
-This classification batch does not add provider transport, persisted write paths, queue lifecycle, or monitoring changes.
+Reparse historical broad/Generic classifications only where the original file or explicit source identifier/profile
+retains enough detail. Regenerate affected event summaries, activity-type aggregates and applicable durability evidence.
+Saved routes need no reparse.
 
-### Quantified Self coordinated adoption
+### Consumer compatibility
 
-The sport-name changes are in [Sports Lib PR #144](https://github.com/sports-alliance/sports-lib/pull/144).
-[Quantified Self PR #862](https://github.com/jimmykane/quantified-self/pull/862) prepares the consumer classifications,
-presentation, saved filters, JSON compatibility, derived Training metrics and separately approved provider mappings.
-Neither PR's preparation publishes a package or changes production activities.
-
-QS has completed the approved Training classifications for all 284 canonical types. The preceding 50-sport batch
-keeps separate team, precision, water and diving contexts; Rafting and Whitewater Rafting use recorded paddling
-metrics and power-first zones. The final 46-sport approval assigns 37 remaining names to exact contexts and explicitly
-retains Chores, Match, Other, Para Sport, RC Drone Flying, Tactical, Unknown Sport, Video Gaming and Winter Sport
-in Other training. Breathwork and Meditation join Fitness & Gym; Cheerleading, Curling and Frisbee join Team Sports.
-Performance Sports, Outdoor Adventures, Aerial Sports and Motorized Activities add four recorded-discovery groups.
-
-Each of the 37 newly classified names keeps saved finite nonnegative TSS including zero and recording elapsed time,
-with omitted intensity zones, distance and durability. Exact power histories remain independent. The QS registry
-now has 25 groups and 23 benchmark-capable families; Fitness & Gym and Other training retain Training Mix only.
-Eleven aggregate/route types retain their individual-leg/exclusion rules, with no unreviewed classifications left.
-All 24 names added to QS's compatibility bridge for this final approval already exist in this library's catalog;
-provider upload, route and planned-workout profiles retain their previously approved mappings. The detailed policies remain in
-[QS Training documentation](https://github.com/jimmykane/quantified-self/blob/codex/provider-sport-compatibility/docs/training-workspace.md#training-sport-registry-and-contexts).
-
-QS currently pins Sports Lib 22.0.0 in both dependency trees and tests the proposed catalog separately. Native JSON
-hydration and Sports Lib power fitting for unpublished names require a uniquely versioned release containing this
-PR, followed by matching application and Functions dependency updates. The branch's current package version is
-not a release reservation: check the registry before selecting the release version. The planned retained-source
-reparse and affected summary/Training rebuild happen after coordinated adoption. These classifications keep the
-frozen public MCP Running/Cycling/Swimming-plus-Other projections, metric tokens, scopes and strict schemas unchanged.
+New canonical names require a released library version that recognizes them in every component that reads or writes
+stored activities. Older library versions do not recognize the added names. Review exhaustive sport/group maps and
+provider export mappings before persisting corrected classifications. Historical corrections require retained source
+evidence; installing a new library version does not rewrite stored activities.
 
 ## GPX
 
@@ -1293,7 +1143,7 @@ and related summaries. HR observations alone do not provide the calibration requ
 Recorded `trkpt/extensions/TrackPointExtension/speed` uses canonical `Speed` in m/s when the block and field
 belong to Garmin's `http://www.garmin.com/xmlschemas/TrackPointExtension/v2` namespace. The v1 schema never
 defined speed; compatibility is limited to the evidenced Amazfit/Zepp (`Amazfit ` creator prefix or `Zepp App`),
-`Intervals.icu`, and older QS exports identified by their direct GPX metadata link to `https://quantified-self.io/`.
+`Intervals.icu`, and explicitly allowlisted legacy exports identified by their direct GPX metadata link.
 An unknown v1 exporter does not inherit a unit assumption. Prefix spelling is irrelevant; namespace and direct
 ownership are required. One extension, one recognized block and one finite nonnegative scalar speed are required.
 Zero is retained; blank, non-finite, negative, nested, attributed or duplicate/conflicting fallback values are ignored
@@ -1366,7 +1216,7 @@ Both fallback paths reject blank, non-finite, nested-value, attributed and dupli
 standard container/field keeps its precedence even if empty or malformed. Recorded duration, timestamps and
 distance remain independent; recovered speed can change moving time and speed summaries, and recovered altitude
 can change terrain-derived metrics. No TSS calibration is invented. Canonical metric tokens, units and JSON
-schemas remain unchanged, including the existing numeric metrics used by Quantified Self MCP. Reparse original
+schemas remain unchanged. Reparse original
 TCX files and refresh dependent summaries to recover historical omissions; no token migration is required.
 
 `Trackpoint/Extensions/TPX/Cadence` is **not** treated as an alias for standard Cadence/RunCadence. Its exporter
@@ -1426,10 +1276,8 @@ so appending a tail without resolving that ownership could duplicate events and 
 
 Consumers must reparse the original file to recover a missing leg, keep the existing event identity and reconcile child
 identities and user controls before persistence. Repeated reparses must reuse the recovered leg instead of adding another
-copy. In Quantified Self the existing Other training policy applies to Unknown Sport; manual overrides and exclusions
-remain attached to their original legs. Adopt a released library version in both app and Functions before any production
-reparse, then refresh affected derived summaries. No new metric tokens, fields, MCP scopes or public schemas are required;
-existing stored activities remain unchanged until reparse. Route import behavior is unaffected.
+copy. Preserve manual overrides and exclusions on their original legs, then refresh affected derived summaries.
+Existing stored activities remain unchanged until reparse. Route import behavior is unaffected.
 
 A sole explicit FIT session can also retain chronology omitted by an inconsistent elapsed summary. If the activity
 message supplies a session count, it must be exactly one: a decoded list with one session does not establish whole-workout
@@ -1492,7 +1340,7 @@ and contradictory timelines do not gain this recovery.
 Existing affected imports need original-file reparsing and derived-summary refreshes; saved JSON cannot reconstruct
 omitted samples. Imported TSS remains authoritative. Calculated metrics can change when valid recorded samples are
 restored. These corrections add no metric tokens, units, options, exports or serialized fields, and do not change route
-parsing or MCP schemas, scopes, projections or mutation capabilities.
+parsing.
 
 Pool length end dates use credible ending timestamps, retaining fractional elapsed precision when it agrees with
 the FIT timestamp's whole-second resolution. Positive elapsed duration, then positive timer duration, can recover a
@@ -1732,11 +1580,9 @@ Training API workout ID or schedule ID; embedded names are not identity proof. R
 or Guide usage but do not prove all prescribed targets or steps were completed.
 
 No existing activity/route migration, derived-summary regeneration or global reparse is required. Consumers can read
-selected retained originals for historical evidence without rewriting activity data. Quantified Self adoption and
-completion matching are separate consumer work; its numeric MCP catalog must continue excluding these structured
-classes (numeric construction with `0` is rejected) and plain Wahoo metadata. Existing consumers can ignore the
-additive `wahooWorkouts` result field. No QS private source references are automatically exposed, and this library
-change alone does not complete or relink a planned workout.
+selected retained originals for historical evidence without rewriting activity data. Numeric catalogs must distinguish
+these structured classes (numeric construction with `0` is rejected) from numeric metrics and plain Wahoo metadata.
+Existing consumers can ignore the additive `wahooWorkouts` result field. The library does not complete or relink a planned workout.
 
 Regression fixtures reproduce the metadata topology of an inspected Guide-bearing Suunto export using synthetic
 values: standard metrics on one developer index and Guide pairs on a separate `SuuntoplusFitExt` index. A renumbered

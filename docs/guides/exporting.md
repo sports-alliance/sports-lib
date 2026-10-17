@@ -24,7 +24,7 @@ Activity exports declare Garmin TrackPointExtension/v2, whose schema defines spe
 finite, nonnegative canonical `Speed` readings, including zero, and omit missing or invalid readings. Sensor fields
 follow the v2 schema sequence; independent power/distance extensions retain their existing behavior. Importing the
 result restores recorded speed rather than deriving a replacement from coordinates. Native JSON names and units
-are unchanged. Older QS GPX exports used v1 and omitted zero speeds: the importer recognizes their metadata for
+are unchanged. Some recognized legacy GPX exports used v1 and omitted zero speeds: the importer recognizes their metadata for
 legacy m/s compatibility, but cannot invent observations absent from the exported file. Re-export from a source that
 retains those readings to recover them. See [recorded GPX speed](importing-activities.md#gpx).
 

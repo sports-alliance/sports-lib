@@ -924,7 +924,7 @@ TSS = 100 * (duration/3600) * IF^2
 
 The default MET reference is 10. File calories, body mass and duration must be positive and finite; no default mass,
 resting-calorie adjustment or sport MET table is supplied. This is explicitly an estimate: 210 kcal / (70 kg × 1 hour)
-is MET 3 and 9 TSS. STT's compatible calorie-to-MET conversion does not imply its different linear scoring formula.
+is MET 3 and 9 TSS.
 
 `ActivityUtilities.getTrainingStressScoreEvaluations(activity)` returns the cached parse-time Automatic/HR/MET results
 with actual method, score (null when unavailable), provenance, estimate flag and stable fallback reason codes.

@@ -27,6 +27,11 @@ Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walkin
 usable power with a valid threshold, then calibrated HR, then MET. Regenerating summaries applies this priority to
 previously calculated scores; preserved provider TSS stays unchanged. Metric tokens, units and JSON schemas are unchanged.
 
+Running and cycling families use Banister with full valid HR calibration, or an estimated threshold-HR fallback when
+resting or maximum HR is missing but the file supplies a valid threshold. Optional evaluation metadata identifies the
+formula; ordinary Activity JSON and the existing `HR` preference remain compatible. Reparse retained original files
+to refresh historical calculated candidates. See [HR calculations](guides/metrics-and-calculations.md).
+
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
 Breathwork profile preserves Breathwork separately. Correcting older
 `Generic` imports requires reparsing their retained FIT sources. See [Import activities](guides/importing-activities.md).

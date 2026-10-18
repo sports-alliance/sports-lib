@@ -726,13 +726,49 @@ summary. Only complete, contiguous lap timer coverage can supply a synthesized t
 HR TSS:
 
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
-One hour at threshold is 100. There is no observed-peak maximum, assumed threshold ratio, or weighted-zone fallback.
+One hour at threshold is 100. Full valid calibration continues to use Banister, including a valid zero score.
+
+Running, Trail Running, Cycling and Mountain Biking groups can instead use the sports-lib threshold-HR estimate
+when resting or maximum HR is missing and an explicit, unambiguous threshold remains valid. It occupies the existing
+HR position in Automatic selection, after imported TSS and eligible power; it also supplies the preferred HR
+candidate. Other sports retain the full-calibration requirement. Missing threshold, conflicting selected settings,
+rejected complete calibration and absent observed HR coverage cannot be rescued by this fallback.
+
+The threshold estimate integrates each observed active interval using the following established rates. A boundary
+belongs to the lower band: exactly 100% of threshold earns 80 TSS/hour, while a value just above it earns 100.
+
+| HR as a fraction of threshold | TSS per observed hour |
+| --- | ---: |
+| >0–0.27 | 20 |
+| >0.27–0.54 | 30 |
+| >0.54–0.82 | 40 |
+| >0.82–0.855 | 50 |
+| >0.855–0.89 | 60 |
+| >0.89–0.94 | 70 |
+| >0.94–1.00 | 80 |
+| >1.00–1.03 | 100 |
+| >1.03–1.06 | 120 |
+| >1.06 | 140 |
+
+This banded estimate is not normalized Banister. Its positive low-intensity floor is one reason it is not enabled for
+walking/recovery or other sport families. The formulas are not interchangeable physiological measurements. No
+observed peak, assumed threshold ratio, inferred zone boundary, or default resting HR supplies calibration.
+The public evaluation adds optional `hrAlgorithm: 'BANISTER' | 'THRESHOLD'`; threshold results set `estimated: true`
+and include `threshold-hr-fallback`. Existing `HR` method/preferences and evaluation version 1 remain compatible.
+Older saved evaluations can omit the algorithm: consumers must not infer one from the score. Imported and non-HR
+results have no HR algorithm. This metadata and raw calibration remain absent from ordinary Activity JSON.
+
+For this fallback only, numeric zero in an otherwise selected FIT resting/maximum setting means unused/missing.
+Threshold zero remains invalid, and negative, nonnumeric, nonfinite or conflicting selected settings remain rejected.
+Session matching and sport-specific maximum selection are unchanged. This exception never enables Banister from a
+previously rejected tuple. Existing physiological override interfaces remain supported; consumers may continue to
+supply no athlete settings. Source formats without a mapped explicit threshold remain ineligible.
 
 HR integration uses a timer-active clock: explicit start/stop events remove paused time, including gaps spanning a
 pause. HR readings inside a pause are excluded; a reading exactly at a stop may close the preceding active interval.
 FIT `stop`, `stop_all`, `stop_disable` and `stop_disable_all` are supported. Forty active minutes at threshold plus
-a twenty-minute pause produce 66.7 TSS, whether recording continues during the pause or resumes afterward. This applies
-to HR calculations for every eligible sport. If every HR reading is inside a pause, HR is unavailable and the normal
+a twenty-minute pause produce 66.7 Banister TSS, whether recording continues during the pause or resumes afterward.
+Both HR algorithms use the same observed timer-active intervals. If every HR reading is inside a pause, HR is unavailable and the normal
 fallback order applies. Imported scores remain authoritative.
 HR also requires a positive-duration interval between usable observations. The first observation starts coverage;
 it does not supply HR for the preceding portion of the workout. Explicit invalid/zero HR readings break integration,
@@ -761,7 +797,8 @@ supported; absent settings cannot be inferred from activity samples or zone boun
 A uniquely matched session supplies the authoritative calibration for its leg. Lower-priority global/profile fields
 are read only to fill missing values, so unrelated sport defaults cannot invalidate a complete session calibration.
 Any field needed from a lower-priority source must still be valid and unambiguous, and the completed HR tuple must
-satisfy the ordering above. An invalid explicit session value is never replaced with a global default.
+satisfy the ordering above for Banister. Invalid selected values are never rescued by global defaults, apart from
+the threshold fallback's explicit treatment of unused zero resting/maximum settings described above.
 
 For a session using percent-maximum-HR zones, an explicit threshold below the lowest boundary of a valid, strictly
 increasing zone set bounded by the calibrated maximum is rejected as `invalid-hr-calibration`. This is a consistency

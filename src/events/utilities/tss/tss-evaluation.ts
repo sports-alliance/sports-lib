@@ -4,6 +4,9 @@ import type { ActivityInterface } from '../../../activities/activity.interface';
 /** A requested calculation policy. Imported scores always take precedence. */
 export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET';
 
+/** HR formula used by a calculated HR evaluation; absent on legacy evaluations. */
+export type TrainingStressScoreHrAlgorithm = 'BANISTER' | 'THRESHOLD';
+
 /**
  * Stable machine-readable diagnostics, suitable for a consumer's localized explanation.
  * `invalid-hr-calibration` includes inconsistent file settings, such as a scoped threshold
@@ -13,6 +16,7 @@ export type TrainingStressScoreReason =
   | 'imported-score'
   | 'unsupported-sport'
   | 'missing-hr-calibration'
+  | 'threshold-hr-fallback'
   | 'invalid-hr-calibration'
   | 'ambiguous-hr-calibration'
   | 'missing-hr-samples'
@@ -28,6 +32,8 @@ export interface TrainingStressScoreEvaluation {
   score: number | null;
   method: TrainingStressScoreMethodType | null;
   estimated: boolean;
+  /** Present only for calculated HR. THRESHOLD is an estimate without full Banister calibration. */
+  hrAlgorithm?: TrainingStressScoreHrAlgorithm;
   provenance: 'imported' | 'calculated' | null;
   reasons: TrainingStressScoreReason[];
 }
@@ -45,6 +51,8 @@ export interface FileHeartRateCalibration {
   restingHeartRate?: number;
   lactateThresholdHR?: number;
   reason?: 'ambiguous-hr-calibration' | 'invalid-hr-calibration';
+  /** Independently checked threshold with missing/zero unused rest or max settings. Parser-only evidence. */
+  thresholdFallbackHR?: number;
 }
 
 // Parser-only evidence must never enter ordinary Activity JSON or DataStore discovery.

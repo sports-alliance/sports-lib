@@ -612,7 +612,7 @@ describe('Training Stress Score integration', () => {
     expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBeGreaterThan(0);
   });
 
-  it('uses Banister with complete calibration and withholds HR when resting HR is missing', () => {
+  it('uses Banister with complete calibration and threshold HR when resting HR is missing', () => {
     const banisterActivity = createActivity(
       ActivityTypes.Running,
       3600,
@@ -629,7 +629,7 @@ describe('Training Stress Score integration', () => {
     addNumericStream(banisterActivity, DataHeartRate.type, new Array(3600).fill(160));
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(banisterActivity);
 
-    const edwardsActivity = createActivity(
+    const thresholdActivity = createActivity(
       ActivityTypes.Running,
       3600,
       new ActivityParsingOptions({
@@ -641,17 +641,18 @@ describe('Training Stress Score integration', () => {
         }
       })
     );
-    addNumericStream(edwardsActivity, DataHeartRate.type, new Array(3600).fill(160));
-    ActivityUtilities.generateMissingStreamsAndStatsForActivity(edwardsActivity);
+    addNumericStream(thresholdActivity, DataHeartRate.type, new Array(3600).fill(160));
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(thresholdActivity);
 
     const banisterTss = banisterActivity.getStat(DataTrainingStressScore.type)?.getValue();
-    const edwardsTss = edwardsActivity.getStat(DataTrainingStressScore.type)?.getValue();
+    const thresholdTss = thresholdActivity.getStat(DataTrainingStressScore.type)?.getValue();
 
     expect(banisterActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
-    expect(edwardsActivity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+    expect(thresholdActivity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.HR);
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(thresholdActivity).hr).toMatchObject({ hrAlgorithm: 'THRESHOLD', estimated: true });
     expect(banisterTss).toBeDefined();
-    expect(edwardsTss).toBeUndefined();
-    expect(banisterTss).not.toBe(edwardsTss);
+    expect(thresholdTss).toBeCloseTo(80 * 3599 / 3600, 1);
+    expect(banisterTss).not.toBe(thresholdTss);
   });
 
   it('falls back to PACE for pace-enabled activities when HR is unavailable', () => {

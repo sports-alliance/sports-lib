@@ -2,7 +2,7 @@ import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
 import { EventImporterFIT } from '../../adapters/importers/fit/importer.fit';
 import { SportsLib } from '../../../index';
 import { Activity } from '../../../activities/activity';
-import { ActivityParsingOptions } from '../../../activities/activity-parsing-options';
+import { ActivityParsingOptions, type ActivityParsingTssOverridesOptions } from '../../../activities/activity-parsing-options';
 import { ActivityTypes } from '../../../activities/activity.types';
 import { Creator } from '../../../creators/creator';
 import { DataHeartRate } from '../../../data/data.heart-rate';
@@ -166,6 +166,37 @@ describe('threshold-HR fallback', () => {
     fileHeartRateCalibration.set(a, { lactateThresholdHR: 160 });
     a.parseOptions.tss!.overrides = { restingHeartRate: -1 };
     expect(evaluate(a).hr).toMatchObject({ method: 'MET' });
+  });
+  it.each(['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'] as const)(
+    'rejects invalid explicit %s overrides for both HR algorithms instead of borrowing file values', key => {
+      for (const completeFile of [false, true]) {
+        for (const completeOverride of [false, true]) {
+          for (const value of [0, -1, NaN, Infinity, null, '160']) {
+            const a = activity();
+            fileHeartRateCalibration.set(a, { lactateThresholdHR: 160, maxHeartRate: 190,
+              ...(completeFile ? { restingHeartRate: 55 } : {}) });
+            a.parseOptions.tss!.overrides = {
+              ...(completeOverride ? { maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 160 } : {}),
+              [key]: value
+            } as ActivityParsingTssOverridesOptions;
+            const result = evaluate(a).hr;
+            expect(result).toMatchObject({ method: 'MET', score: 9 });
+            expect(result.reasons).toContain('invalid-hr-calibration');
+            expect(result.hrAlgorithm).toBeUndefined();
+          }
+        }
+      }
+    }
+  );
+  it('retains valid partial overrides and complete replacements of rejected file calibration', () => {
+    const a = activity();
+    a.parseOptions.tss!.overrides = { maxHeartRate: 190 };
+    expect(evaluate(a).hr).toMatchObject({ score: 70, hrAlgorithm: 'THRESHOLD' });
+    a.parseOptions.tss!.overrides.restingHeartRate = 55;
+    expect(evaluate(a).hr).toMatchObject({ score: 78.5, hrAlgorithm: 'BANISTER' });
+    fileHeartRateCalibration.set(a, { reason: 'ambiguous-hr-calibration' });
+    a.parseOptions.tss!.overrides.lactateThresholdHR = 160;
+    expect(evaluate(a).hr).toMatchObject({ score: 78.5, hrAlgorithm: 'BANISTER' });
   });
   it('decodes session-specific FIT thresholds and keeps evaluation metadata out of ordinary JSON', async () => {
     const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({

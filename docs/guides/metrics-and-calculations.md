@@ -762,7 +762,9 @@ For this fallback only, numeric zero in an otherwise selected FIT resting/maximu
 Threshold zero remains invalid, and negative, nonnumeric, nonfinite or conflicting selected settings remain rejected.
 Session matching and sport-specific maximum selection are unchanged. This exception never enables Banister from a
 previously rejected tuple. Existing physiological override interfaces remain supported; consumers may continue to
-supply no athlete settings. Source formats without a mapped explicit threshold remain ineligible.
+supply no athlete settings. An explicitly supplied invalid HR override rejects both HR candidates rather than silently
+borrowing its file value; a complete valid override can still replace rejected file calibration. Source formats without
+a mapped explicit threshold remain ineligible.
 
 HR integration uses a timer-active clock: explicit start/stop events remove paused time, including gaps spanning a
 pause. HR readings inside a pause are excluded; a reading exactly at a stop may close the preceding active interval.

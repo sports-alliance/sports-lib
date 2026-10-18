@@ -2890,19 +2890,20 @@ export class ActivityUtilities {
     const eligible = this.supportsCalculatedTrainingStressScore(activity);
     const fileCalibration = fileHeartRateCalibration.get(activity);
     const overrides = activity.parseOptions?.tss?.overrides;
-    const completeOverride = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'].every(key =>
-      overrides?.[key as keyof ActivityParsingTssOverridesOptions] !== undefined);
-    const max = this.resolveMaxHeartRate(activity);
-    const rest = this.resolveRestingHeartRate(activity);
-    const threshold = this.resolveLactateThresholdHr(activity);
-    let hrReason: TrainingStressScoreReason | null = !completeOverride && fileCalibration?.reason
-      ? fileCalibration.reason
-      : max === null || rest === null || threshold === null ? 'missing-hr-calibration'
-        : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
     const calibrationKeys = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'] as const;
     const hasCalibrationOverride = calibrationKeys.some(key => overrides?.[key] !== undefined);
     const validOverrides = calibrationKeys.every(key => overrides?.[key] === undefined ||
       this.toPositiveFiniteNumber(overrides[key]) !== null);
+    const completeOverride = validOverrides && calibrationKeys.every(key => overrides?.[key] !== undefined);
+    const max = this.resolveMaxHeartRate(activity);
+    const rest = this.resolveRestingHeartRate(activity);
+    const threshold = this.resolveLactateThresholdHr(activity);
+    // Invalid explicit overrides must not silently fall back to file values for
+    // either HR algorithm. Only a complete valid override can replace rejected file calibration.
+    let hrReason: TrainingStressScoreReason | null = !validOverrides ? 'invalid-hr-calibration'
+      : !completeOverride && fileCalibration?.reason ? fileCalibration.reason
+        : max === null || rest === null || threshold === null ? 'missing-hr-calibration'
+          : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
     const partialCalibrationValid = validOverrides && (!fileCalibration?.reason || completeOverride) &&
       threshold !== null && threshold > 0 && (max === null || threshold < max) && (rest === null || rest < threshold);
     let fallbackThreshold: number | null = null;

@@ -631,10 +631,11 @@ Priority order:
 - Valid nonnegative imported TSS always wins, including zero.
   Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
 - Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking:
-  IMPORTED -> POWER -> calibrated HR -> calorie-derived MET -> unavailable.
-- Other eligible sports: IMPORTED -> POWER -> calibrated HR -> PACE/SWIM_PACE -> MET -> unavailable.
+  IMPORTED -> POWER -> HR -> calorie-derived MET -> unavailable.
+- Other eligible sports: IMPORTED -> POWER -> HR -> PACE/SWIM_PACE -> MET -> unavailable.
 
 Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
+HR uses Banister with complete calibration, or the threshold-only estimate for the eligible sports described below.
 HR and MET preferences select their available method first, then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
@@ -728,10 +729,12 @@ HR TSS:
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
 One hour at threshold is 100. Full valid calibration continues to use Banister, including a valid zero score.
 
-Running, Trail Running, Cycling and Mountain Biking groups can instead use the sports-lib threshold-HR estimate
-when resting or maximum HR is missing and an explicit, unambiguous threshold remains valid. It occupies the existing
+Running, Trail Running, Cycling and Mountain Biking groups, plus Walking, Nordic Walking, Hiking and Trekking,
+can instead use the sports-lib threshold-HR estimate when resting or maximum HR is missing and an explicit,
+unambiguous threshold remains valid. It occupies the existing
 HR position in Automatic selection, after imported TSS and eligible power; it also supplies the preferred HR
-candidate. Other sports retain the full-calibration requirement. Missing threshold, conflicting selected settings,
+candidate. The four walking/hiking types use the general maximum-HR profile setting, never running/cycling-specific
+settings. Indoor Walking, Speed Walking and other sports retain the full-calibration requirement. Missing threshold, conflicting selected settings,
 rejected complete calibration and absent observed HR coverage cannot be rescued by this fallback.
 
 The threshold estimate integrates each observed active interval using the following rates. Exactly 100% of threshold
@@ -752,8 +755,11 @@ TrainingPeaks hrTSS results; they do not establish equivalence across all bands,
 | 1.03 < r ≤ 1.06 | 120 |
 | r > 1.06 | 140 |
 
-This banded estimate is not normalized Banister. Its positive low-intensity floor is one reason it is not enabled for
-walking/recovery or other sport families. The formulas are not interchangeable physiological measurements. No
+This banded estimate is not normalized Banister and retains a positive low-intensity floor. One observed hour at
+100 bpm with threshold 165 produces 40 TSS, including for the four eligible walking/hiking types. Controlled Walking
+and Hiking FIT uploads both produced 40 hrTSS in TrainingPeaks, which classified both as Walk; these observations
+do not establish separate Nordic Walking or Trekking algorithms or physiological accuracy for recovery workouts.
+The formulas are not interchangeable physiological measurements. No
 observed peak, assumed threshold ratio, inferred zone boundary, or default resting HR supplies calibration.
 The public evaluation adds optional `hrAlgorithm: 'BANISTER' | 'THRESHOLD'`; threshold results set `estimated: true`
 and include `threshold-hr-fallback`. Existing `HR` method/preferences and evaluation version 1 remain compatible.
@@ -767,6 +773,11 @@ previously rejected tuple. Existing physiological override interfaces remain sup
 supply no athlete settings. An explicitly supplied invalid HR override rejects both HR candidates rather than silently
 borrowing its file value; a complete valid override can still replace rejected file calibration. Source formats without
 a mapped explicit threshold remain ineligible.
+
+Previously saved walking/hiking evaluations require original-file reparse and the consuming application's normal
+derived-load refresh to gain the fallback. Native JSON cannot recover discarded file calibration. Imported TSS
+remains authoritative. Consumers retain their saved modeled-load controls and method policy when refreshing candidates;
+no statistic names, units or serialized fields change.
 
 HR integration uses a timer-active clock: explicit start/stop events remove paused time, including gaps spanning a
 pause. HR readings inside a pause are excluded; a reading exactly at a stop may close the preceding active interval.

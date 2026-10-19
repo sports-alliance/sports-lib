@@ -8,16 +8,18 @@ import { Creator } from '../../../creators/creator';
 import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataEnergy } from '../../../data/data.energy';
 import { DataWeight } from '../../../data/data.weight';
+import { DataPowerNormalized } from '../../../data/data.power-normalized';
 import { DataTrainingStressScore } from '../../../data/data.training-stress-score';
 import { DataTrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 import { ActivityUtilities } from '../activity.utilities';
 import { TssCalculator } from './tss-calculator';
-import { fileHeartRateCalibration } from './tss-evaluation';
+import { fileFunctionalThresholdPower, fileHeartRateCalibration } from './tss-evaluation';
 import { resolveFitHeartRateCalibration } from '../../adapters/importers/fit/fit-hr-calibration';
 import { DataStopEvent } from '../../../data/data.stop-event';
 import { DataStartEvent } from '../../../data/data.start-event';
 
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
+const walkingAndHikingTypes = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking];
 const activity = (type = ActivityTypes.Running) => {
   const a = new Activity(new Date(0), new Date(3600000), type, new Creator('Synthetic'), new ActivityParsingOptions());
   const stream = a.createStream(DataHeartRate.type);
@@ -39,7 +41,7 @@ const fit = (settings: Record<string, unknown>, type = ActivityTypes.Running) =>
 };
 
 describe('threshold-HR fallback', () => {
-  it.each([ActivityTypes.Running, ActivityTypes.TrailRunning, ActivityTypes.Cycling, ActivityTypes.MountainBiking])(
+  it.each([ActivityTypes.Running, ActivityTypes.TrailRunning, ActivityTypes.Cycling, ActivityTypes.MountainBiking, ...walkingAndHikingTypes])(
     'uses the existing threshold bands for %s when Banister inputs are missing',
     type => {
       const result = evaluate(activity(type));
@@ -50,15 +52,103 @@ describe('threshold-HR fallback', () => {
     }
   );
   it.each([
-    ActivityTypes.Walking,
     ActivityTypes.IndoorWalking,
-    ActivityTypes.NordicWalking,
-    ActivityTypes.Hiking,
-    ActivityTypes.Trekking,
+    ActivityTypes.SpeedWalking,
+    ActivityTypes.Rucking,
+    ActivityTypes.Mountaineering,
+    ActivityTypes.Geocaching,
     ActivityTypes.Swimming,
     ActivityTypes.StrengthTraining
   ])('retains the previous HR eligibility for %s', type => {
     expect(evaluate(activity(type)).automatic).toMatchObject({ method: 'MET', score: 9 });
+  });
+  describe.each(walkingAndHikingTypes)('%s threshold-HR safeguards', type => {
+    it('uses the threshold estimate for one hour at 100 bpm with threshold 165', () => {
+      const a = activity(type);
+      a.getStream(DataHeartRate.type).setData(Array(3601).fill(100));
+      fileHeartRateCalibration.set(a, { lactateThresholdHR: 165 });
+      expect(evaluate(a).automatic).toMatchObject({ score: 40, method: 'HR', hrAlgorithm: 'THRESHOLD', estimated: true });
+    });
+    it('keeps Automatic power priority and the explicit HR and MET candidates', () => {
+      const a = activity(type);
+      fileFunctionalThresholdPower.set(a, 200);
+      a.addStat(new DataPowerNormalized(200));
+      const result = evaluate(a);
+      expect(result.automatic).toMatchObject({ score: 100, method: 'POWER' });
+      expect(result.hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+      expect(result.met).toMatchObject({ score: 9, method: 'MET' });
+    });
+    it.each([0, 42.5])('preserves imported TSS %s for every preference', score => {
+      const a = activity(type);
+      a.addStat(new DataTrainingStressScore(score));
+      for (const preference of ['automatic', 'hr', 'met'] as const) {
+        expect(evaluate(a)[preference]).toMatchObject({ score, method: 'IMPORTED', reasons: ['imported-score'] });
+      }
+    });
+    it('keeps complete Banister calibration and rejects a contradictory complete tuple', () => {
+      const a = activity(type);
+      fileHeartRateCalibration.set(a, fit({ threshold_heart_rate: 160, max_heart_rate: 190, resting_heart_rate: 55 }, type));
+      expect(evaluate(a).hr).toMatchObject({ score: 78.5, method: 'HR', hrAlgorithm: 'BANISTER', estimated: false });
+      fileHeartRateCalibration.set(a, fit({ threshold_heart_rate: 200, max_heart_rate: 190, resting_heart_rate: 55 }, type));
+      expect(evaluate(a).hr).toMatchObject({ score: 9, method: 'MET' });
+      expect(evaluate(a).hr.reasons).toContain('invalid-hr-calibration');
+    });
+    it('accepts unused zero rest/max fields only for the independent threshold candidate', () => {
+      const a = activity(type);
+      fileHeartRateCalibration.set(a, fit({ threshold_heart_rate: 160, max_heart_rate: 0, resting_heart_rate: 0 }, type));
+      expect(evaluate(a).hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+      a.parseOptions.tss!.overrides = { restingHeartRate: -1 };
+      expect(evaluate(a).hr).toMatchObject({ score: 9, method: 'MET' });
+    });
+    it.each([
+      { samples: [], reason: 'missing-hr-samples' },
+      { samples: [150], reason: 'calculation-unavailable' }
+    ])('retains MET with $reason when partial calibration has no observed HR interval', ({ samples, reason }) => {
+      const a = activity(type);
+      fileHeartRateCalibration.set(a, fit({ threshold_heart_rate: 160, max_heart_rate: 0, resting_heart_rate: 0 }, type));
+      a.getStream(DataHeartRate.type).setData(samples);
+      const result = evaluate(a);
+      for (const candidate of [result.automatic, result.hr]) {
+        expect(candidate).toMatchObject({ score: 9, method: 'MET', estimated: true });
+        expect(candidate.reasons).toContain(reason);
+        expect(candidate.reasons).not.toContain('invalid-hr-calibration');
+        expect(candidate.hrAlgorithm).toBeUndefined();
+      }
+    });
+    it('uses general maximum HR rather than running or cycling profile settings', () => {
+      const a = activity(type), session = { message_index: 0 };
+      for (const maximum of [190, 150]) {
+        const calibration = resolveFitHeartRateCalibration({
+          sessions: [session], zones_target: { threshold_heart_rate: 160 },
+          user_profile: { default_max_heart_rate: maximum, default_max_running_heart_rate: 155, default_max_biking_heart_rate: 200 }
+        }, session, 0, type);
+        expect(calibration.maxHeartRate).toBe(maximum);
+        fileHeartRateCalibration.set(a, calibration);
+        expect(evaluate(a).hr).toMatchObject(maximum === 190
+          ? { score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' } : { score: 9, method: 'MET' });
+      }
+    });
+    it('rejects ambiguous selected FIT thresholds', () => {
+      const a = activity(type), session = { message_index: 0 };
+      fileHeartRateCalibration.set(a, resolveFitHeartRateCalibration({
+        sessions: [session], messages: { zones_target: [{ threshold_heart_rate: 160 }, { threshold_heart_rate: 165 }] }
+      }, session, 0, type));
+      expect(evaluate(a).hr).toMatchObject({ method: 'MET', score: 9 });
+      expect(evaluate(a).hr.reasons).toContain('ambiguous-hr-calibration');
+    });
+    it('excludes paused intervals and requires observed HR and an explicit threshold', () => {
+      const a = activity(type);
+      a.addEvent(new DataStopEvent(1200));
+      a.addEvent(new DataStartEvent(2400));
+      expect(evaluate(a).hr).toMatchObject({ score: 46.7, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+      a.getStream(DataHeartRate.type).setData([]);
+      expect(evaluate(a).hr.method).toBe('MET');
+      a.getStream(DataHeartRate.type).setData(Array(3601).fill(150));
+      fileHeartRateCalibration.delete(a);
+      expect(evaluate(a).hr.method).toBe('MET');
+      a.removeStat(DataEnergy.type);
+      expect(evaluate(a).hr.score).toBeNull();
+    });
   });
   it('preserves Banister, including observed zero, when calibration is complete', () => {
     const a = activity();
@@ -252,7 +342,7 @@ describe('threshold-HR fallback', () => {
     // Shared terminal records belong to the next leg; do not extrapolate the last minute.
     expect(candidates[0].hr).toMatchObject({ score: 68.8, hrAlgorithm: 'THRESHOLD' });
     expect(candidates[1].hr).toMatchObject({ score: 59, hrAlgorithm: 'THRESHOLD' });
-    expect(candidates[2].hr).toMatchObject({ score: 9, method: 'MET' });
+    expect(candidates[2].hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
     const serialized = JSON.stringify(event.toJSON());
     expect(serialized).not.toMatch(/hrAlgorithm|thresholdFallbackHR|threshold-hr-fallback/);
     expect(SportsLib.importFromJSON(JSON.parse(serialized)).getActivities()).toHaveLength(3);

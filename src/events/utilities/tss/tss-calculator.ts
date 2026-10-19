@@ -160,7 +160,8 @@ export class TssCalculator {
 
   /** Existing sports-lib threshold bands, integrated only over observed HR intervals.
    * Sport eligibility and file-calibration validation belong to the activity evaluator.
-   * Exact boundaries retain the lower band; no rest/max or threshold is inferred.
+   * Exactly 100% of threshold earns 100 TSS/hour; other exact boundaries retain the lower band.
+   * No rest/max or threshold is inferred.
    */
   public static calculateThresholdHrTss(input: TssInput): TssCalculationResult | null {
     const threshold = this.positive(input.lactateThresholdHR);
@@ -171,8 +172,9 @@ export class TssCalculator {
       .sort((left, right) => left.duration - right.duration);
     const score = this.accumulateSampleLoad(samples, sample => {
       let band = 0;
+      const hr = sample.hr as number;
       for (let index = 1; index < limits.length; index++) {
-        if ((sample.hr as number) > limits[index] * threshold) band = index;
+        if (hr > limits[index] * threshold || (limits[index] === 1 && hr === threshold)) band = index;
       }
       return rates[band] / 60;
     });

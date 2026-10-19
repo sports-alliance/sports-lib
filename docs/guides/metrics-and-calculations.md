@@ -734,21 +734,23 @@ HR position in Automatic selection, after imported TSS and eligible power; it al
 candidate. Other sports retain the full-calibration requirement. Missing threshold, conflicting selected settings,
 rejected complete calibration and absent observed HR coverage cannot be rescued by this fallback.
 
-The threshold estimate integrates each observed active interval using the following established rates. A boundary
-belongs to the lower band: exactly 100% of threshold earns 80 TSS/hour, while a value just above it earns 100.
+The threshold estimate integrates each observed active interval using the following rates. Exactly 100% of threshold
+earns 100 TSS/hour; all other exact boundaries retain the lower band. For a threshold of 165 bpm, one observed hour
+at a constant 164, 165 or 166 bpm earns 80, 100 or 100 TSS respectively. These three cycling test cases match observed
+TrainingPeaks hrTSS results; they do not establish equivalence across all bands, settings or workout types.
 
-| HR as a fraction of threshold | TSS per observed hour |
+| HR as a fraction of threshold (`r`) | TSS per observed hour |
 | --- | ---: |
-| >0–0.27 | 20 |
-| >0.27–0.54 | 30 |
-| >0.54–0.82 | 40 |
-| >0.82–0.855 | 50 |
-| >0.855–0.89 | 60 |
-| >0.89–0.94 | 70 |
-| >0.94–1.00 | 80 |
-| >1.00–1.03 | 100 |
-| >1.03–1.06 | 120 |
-| >1.06 | 140 |
+| 0 < r ≤ 0.27 | 20 |
+| 0.27 < r ≤ 0.54 | 30 |
+| 0.54 < r ≤ 0.82 | 40 |
+| 0.82 < r ≤ 0.855 | 50 |
+| 0.855 < r ≤ 0.89 | 60 |
+| 0.89 < r ≤ 0.94 | 70 |
+| 0.94 < r < 1.00 | 80 |
+| 1.00 ≤ r ≤ 1.03 | 100 |
+| 1.03 < r ≤ 1.06 | 120 |
+| r > 1.06 | 140 |
 
 This banded estimate is not normalized Banister. Its positive low-intensity floor is one reason it is not enabled for
 walking/recovery or other sport families. The formulas are not interchangeable physiological measurements. No

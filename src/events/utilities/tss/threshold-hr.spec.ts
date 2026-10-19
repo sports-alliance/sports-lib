@@ -257,7 +257,49 @@ describe('threshold-HR fallback', () => {
     expect(serialized).not.toMatch(/hrAlgorithm|thresholdFallbackHR|threshold-hr-fallback/);
     expect(SportsLib.importFromJSON(JSON.parse(serialized)).getActivities()).toHaveLength(3);
   });
-  it('retains strict threshold boundaries and does not extrapolate first samples', () => {
+  it.each([
+    [164, 80],
+    [165, 100],
+    [166, 100]
+  ])('scores one hour of cycling at %i bpm with threshold 165 as %i TSS', (hr, expected) => {
+    // Controlled constant-HR FIT uploads produced these TrainingPeaks hrTSS results.
+    // This validates this threshold transition, not equivalence across all bands.
+    expect(TssCalculator.calculateThresholdHrTss({
+      totalDurationWithoutPauses: 3600,
+      lactateThresholdHR: 165,
+      samples: [{ duration: 0, hr }, { duration: 3600, hr }]
+    })?.trainingStressScore).toBeCloseTo(expected, 8);
+
+    const a = activity(ActivityTypes.Cycling);
+    a.getStream(DataHeartRate.type).setData(Array(3601).fill(hr));
+    fileHeartRateCalibration.set(a, { lactateThresholdHR: 165 });
+    const result = evaluate(a);
+    for (const candidate of [result.automatic, result.hr]) {
+      expect(candidate).toMatchObject({ score: expected, method: 'HR', hrAlgorithm: 'THRESHOLD', estimated: true });
+      expect(candidate.reasons).toContain('threshold-hr-fallback');
+    }
+    expect(result.met).toMatchObject({ score: 9, method: 'MET' });
+  });
+  it.each([
+    [54, 20, 30],
+    [108, 30, 40],
+    [164, 40, 50],
+    [171, 50, 60],
+    [178, 60, 70],
+    [188, 70, 80],
+    [206, 100, 120],
+    [212, 120, 140]
+  ])('keeps equality in the lower band at the other boundary %i bpm with threshold 200', (boundary, lower, upper) => {
+    const score = (hr: number) => TssCalculator.calculateThresholdHrTss({
+      totalDurationWithoutPauses: 3600,
+      lactateThresholdHR: 200,
+      samples: [{ duration: 0, hr }, { duration: 3600, hr }]
+    })?.trainingStressScore;
+    expect(score(boundary - 0.01)).toBeCloseTo(lower, 8);
+    expect(score(boundary)).toBeCloseTo(lower, 8);
+    expect(score(boundary + 0.01)).toBeCloseTo(upper, 8);
+  });
+  it('includes exact threshold without rounding nearby HR or extrapolating first samples', () => {
     const score = (hr: number) =>
       TssCalculator.calculateThresholdHrTss({
         totalDurationWithoutPauses: 3600,
@@ -267,7 +309,8 @@ describe('threshold-HR fallback', () => {
           { duration: 3600, hr }
         ]
       })?.trainingStressScore;
-    expect(score(100)).toBeCloseTo((80 * 5) / 6, 8);
+    expect(score(99.99)).toBeCloseTo((80 * 5) / 6, 8);
+    expect(score(100)).toBeCloseTo((100 * 5) / 6, 8);
     expect(score(100.01)).toBeCloseTo((100 * 5) / 6, 8);
   });
   it('keeps missing, invalid and isolated HR coverage unavailable', () => {

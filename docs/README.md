@@ -30,7 +30,8 @@ previously calculated scores; preserved provider TSS stays unchanged. Metric tok
 Running and cycling families use Banister with full valid HR calibration, or an estimated threshold-HR fallback when
 resting or maximum HR is missing but the file supplies a valid threshold. Optional evaluation metadata identifies the
 formula; ordinary Activity JSON and the existing `HR` preference remain compatible. Reparse retained original files
-to refresh historical calculated candidates. See [HR calculations](guides/metrics-and-calculations.md).
+to refresh historical calculated candidates. Exactly threshold HR earns 100 TSS per observed hour in this fallback;
+other exact band boundaries retain their lower rate. See [HR calculations](guides/metrics-and-calculations.md).
 
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
 Breathwork profile preserves Breathwork separately. Correcting older

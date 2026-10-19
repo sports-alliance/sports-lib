@@ -2,7 +2,7 @@ import { ActivityTypes } from '../../../../activities/activity.types';
 import { ActivityTypesHelper } from '../../../../activities/activity.types';
 import { ActivityTypeGroups } from '../../../../activities/activity.types';
 import type { FileHeartRateCalibration } from '../../../utilities/tss/tss-evaluation';
-import { supportsThresholdHeartRateTss } from '../../../utilities/tss/threshold-hr-eligibility';
+import { supportsCalculatedTrainingStressScore } from '../../../utilities/tss/tss-eligibility';
 
 type RecordValue = Record<string, unknown>;
 const indexValue = (value: unknown): unknown =>
@@ -20,7 +20,7 @@ export function resolveFitHeartRateCalibration(
   type: ActivityTypes
 ): FileHeartRateCalibration {
   const calibration = resolveCalibration(file, session, sessionIndex, type, false);
-  if (!supportsThresholdHeartRateTss(type) || (!calibration.reason && calibration.maxHeartRate !== undefined &&
+  if (!supportsCalculatedTrainingStressScore(type) || (!calibration.reason && calibration.maxHeartRate !== undefined &&
       calibration.restingHeartRate !== undefined && calibration.lactateThresholdHR !== undefined)) return calibration;
   // Keep existing Banister eligibility exact. Only the independent threshold
   // candidate may interpret zero unused rest/max settings as missing.

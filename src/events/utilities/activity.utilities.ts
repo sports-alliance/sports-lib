@@ -344,7 +344,7 @@ import {
 } from '../../data/data.durability-evidence';
 import { DataThreeDimensionalStrainEvidence } from '../../data/data.three-dimensional-strain-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
-import { supportsThresholdHeartRateTss } from './tss/threshold-hr-eligibility';
+import { supportsCalculatedTrainingStressScore } from './tss/tss-eligibility';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
@@ -2825,22 +2825,12 @@ export class ActivityUtilities {
     return activity.type === ActivityTypes.TrackAndField;
   }
 
-  private static supportsCalculatedTrainingStressScore(activity: ActivityInterface): boolean {
-    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    return (
-      activityGroup !== ActivityTypeGroups.MotorizedGroup &&
-      activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup &&
-      activity.type !== ActivityTypes.VideoGaming &&
-      activity.type !== ActivityTypes.Paramotoring &&
-      activity.type !== ActivityTypes.RCDroneFlying
-    );
-  }
-
   /**
    * Compute all requested policies once from currently available parsed inputs.
    * Explicit recalculation replaces the cached evaluation; known calculated scores
    * are never promoted to imported scores. Results contain no raw HR calibration.
    * Automatic prefers usable power over HR, including for walking and hiking.
+   * Every sport eligible for calculated load can use threshold-HR when resting or maximum HR is missing.
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    * HR integration excludes explicit timer pauses and invalid readings, and requires observed interval coverage.
@@ -2887,7 +2877,7 @@ export class ActivityUtilities {
         if (factor) activity.addStat(factor);
       }
     }
-    const eligible = this.supportsCalculatedTrainingStressScore(activity);
+    const eligible = supportsCalculatedTrainingStressScore(activity.type);
     const fileCalibration = fileHeartRateCalibration.get(activity);
     const overrides = activity.parseOptions?.tss?.overrides;
     const calibrationKeys = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'] as const;
@@ -2907,7 +2897,7 @@ export class ActivityUtilities {
     const partialCalibrationValid = validOverrides && (!fileCalibration?.reason || completeOverride) &&
       threshold !== null && threshold > 0 && (max === null || threshold < max) && (rest === null || rest < threshold);
     let fallbackThreshold: number | null = null;
-    if (eligible && supportsThresholdHeartRateTss(activity.type) && (max === null || rest === null)) {
+    if (eligible && (max === null || rest === null)) {
       if (partialCalibrationValid) fallbackThreshold = threshold;
       else if (!hasCalibrationOverride) fallbackThreshold = fileCalibration?.thresholdFallbackHR ?? null;
     }

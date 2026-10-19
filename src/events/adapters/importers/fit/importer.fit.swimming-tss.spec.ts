@@ -9,7 +9,7 @@ import { DataTrainingStressScoreMethod } from '../../../../data/data.training-st
 const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({ number, value, baseType,
   size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
 
-async function swim(subsport: number, options: { calibrated?: boolean; rest?: number; samples?: boolean;
+async function swim(subsport: number, options: { calibrated?: boolean; rest?: number; max?: number; samples?: boolean; pause?: boolean;
   met?: boolean; weight?: boolean; calories?: boolean; imported?: number; heuristics?: boolean; zeroGlobal?: boolean; globalConflicts?: boolean } = {}) {
   const encoder = new FitEncoder();
   const start = FitEncoder.toFitTimestamp(new Date('2026-01-01T10:00:00Z'));
@@ -19,15 +19,21 @@ async function swim(subsport: number, options: { calibrated?: boolean; rest?: nu
   if (options.globalConflicts) for (const threshold of [0, 140, 145, 150, 160, 170, 180]) {
     encoder.writeMessage(7, [field(2, threshold)], 5);
   }
-  for (let second = 0; second <= 3600; second++) encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32),
-    field(6, 1000, FitBaseType.Uint16), ...(options.samples === false ? [] : [field(3, second < 1830 ? 78 : second < 3600 ? 86 : 100)])], 1);
+  for (let second = 0; second <= 3600; second++) {
+    if (options.pause && [0, 1200, 2400, 3600].includes(second)) encoder.writeMessage(21, [
+      field(253, start + second, FitBaseType.Uint32), field(0, 0, FitBaseType.Enum),
+      field(1, second === 1200 || second === 3600 ? 1 : 0, FitBaseType.Enum)
+    ], 6);
+    encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32),
+      field(6, 1000, FitBaseType.Uint16), ...(options.samples === false ? [] : [field(3, second < 1830 ? 78 : second < 3600 ? 86 : 100)])], 1);
+  }
   encoder.writeMessage(18, [field(254, 0, FitBaseType.Uint16), field(253, start + 3600, FitBaseType.Uint32),
     field(2, start, FitBaseType.Uint32), field(5, 5, FitBaseType.Enum), field(6, subsport, FitBaseType.Enum),
-    field(7, 3600000, FitBaseType.Uint32), field(8, 3600000, FitBaseType.Uint32), field(9, 360000, FitBaseType.Uint32),
+    field(7, 3600000, FitBaseType.Uint32), field(8, options.pause ? 2400000 : 3600000, FitBaseType.Uint32), field(9, 360000, FitBaseType.Uint32),
     field(14, 1000, FitBaseType.Uint16), ...(options.met && options.calories !== false ? [field(11, 210, FitBaseType.Uint16)] : []),
     ...(options.imported === undefined ? [] : [field(35, Math.round(options.imported * 10), FitBaseType.Uint16)])], 2);
   if (options.calibrated) encoder.writeMessage(216, [field(0, 18, FitBaseType.Uint16), field(1, 0, FitBaseType.Uint16),
-    field(11, 190), field(12, options.rest ?? 55), field(13, 165)], 3);
+    field(11, options.max ?? 190), field(12, options.rest ?? 55), field(13, 165)], 3);
   const bytes = encoder.close();
   const event = await EventImporterFIT.getFromArrayBuffer(
     bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
@@ -65,7 +71,25 @@ describe.each([17, 18])('FIT swimming TSS (subsport %s)', subsport => {
     }
   });
 
-  it.each([{ calibrated: false }, { calibrated: true, rest: 0 }, { calibrated: true, samples: false }])(
+  it.each([{ rest: 0 }, { max: 0 }, { rest: 0, max: 0 }])('uses the threshold estimate with unused FIT rest/max: %j', async missing => {
+    const activity = await swim(subsport, { calibrated: true, ...missing, met: true });
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const result = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
+      for (const candidate of [result.automatic, result.hr]) expect(candidate).toMatchObject({
+        score: 30, method: 'HR', hrAlgorithm: 'THRESHOLD', estimated: true
+      });
+      expect(result.met).toMatchObject({ score: 9, method: 'MET', estimated: true });
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    }
+  });
+
+  it('excludes recorded timer pauses from threshold HR even when HR is recorded throughout', async () => {
+    const result = ActivityUtilities.getTrainingStressScoreEvaluations(await swim(subsport, { calibrated: true, rest: 0, pause: true }));
+    expect(result.automatic).toMatchObject({ score: 20, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+  });
+
+  it.each([{ calibrated: false }, { calibrated: true, rest: 170 }, { calibrated: true, samples: false },
+    { calibrated: true, rest: 0, samples: false }])(
     'falls back to calorie MET when HR is unavailable: %j', async options => {
       const result = ActivityUtilities.getTrainingStressScoreEvaluations(await swim(subsport, { ...options, met: true }));
       expect(result.automatic).toMatchObject({ score: 9, method: 'MET', estimated: true });

@@ -635,7 +635,7 @@ Priority order:
 - Other eligible sports: IMPORTED -> POWER -> HR -> PACE/SWIM_PACE -> MET -> unavailable.
 
 Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
-HR uses Banister with complete calibration, or the threshold-only estimate for the eligible sports described below.
+HR uses Banister with complete calibration, or the threshold-only estimate for every sport eligible for calculated TSS.
 HR and MET preferences select their available method first, then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
@@ -729,13 +729,22 @@ HR TSS:
 Continuous, threshold-normalized Banister TRIMP requires explicit `0 < resting HR < threshold HR < maximum HR`.
 One hour at threshold is 100. Full valid calibration continues to use Banister, including a valid zero score.
 
-Running, Trail Running, Cycling and Mountain Biking groups, plus Walking, Nordic Walking, Hiking and Trekking,
-can instead use the sports-lib threshold-HR estimate when resting or maximum HR is missing and an explicit,
-unambiguous threshold remains valid. It occupies the existing
-HR position in Automatic selection, after imported TSS and eligible power; it also supplies the preferred HR
-candidate. The four walking/hiking types use the general maximum-HR profile setting, never running/cycling-specific
-settings. Indoor Walking, Speed Walking and other sports retain the full-calibration requirement. Missing threshold, conflicting selected settings,
-rejected complete calibration and absent observed HR coverage cannot be rescued by this fallback.
+Every sport eligible for calculated TSS can instead use the sports-lib threshold-HR estimate when resting or maximum
+HR is missing and an explicit, unambiguous threshold remains valid. This includes pool/open-water swimming, strength
+training, rowing, skiing, walking/hiking, and generic or unknown activity types. There is no additional sport allowlist
+for HR. The existing calculated-load exclusions remain: Motorized and Adaptive Mobility groups, Video Gaming,
+Paramotoring and RC Drone Flying. Their valid imported TSS is still preserved.
+
+The estimate occupies the existing HR position in Automatic selection, after imported TSS and eligible power and
+before pace/swim pace and MET; it also supplies the preferred HR candidate. Sport-specific FIT maximum-HR selection
+is unchanged. Missing threshold, conflicting selected settings, rejected complete calibration and absent observed HR
+coverage cannot be rescued by this fallback.
+
+[TrainingPeaks describes hrTSS as applicable to all workout types](https://help.trainingpeaks.com/hc/en-us/articles/204071944-Training-Stress-Scores-TSS-Explained)
+and explicitly supports it for swimming. This supports broad eligibility, not a claim that sports-lib reproduces its
+complete calculation or selection policy: TrainingPeaks normally prefers available pace-based scores over hrTSS,
+whereas sports-lib retains its existing HR-before-pace order. Only retained file calibration or explicit caller
+overrides supply our threshold; no account defaults are invented or borrowed from another activity.
 
 The threshold estimate integrates each observed active interval using the following rates. Exactly 100% of threshold
 earns 100 TSS/hour; all other exact boundaries retain the lower band. For a threshold of 165 bpm, one observed hour
@@ -756,7 +765,7 @@ TrainingPeaks hrTSS results; they do not establish equivalence across all bands,
 | r > 1.06 | 140 |
 
 This banded estimate is not normalized Banister and retains a positive low-intensity floor. One observed hour at
-100 bpm with threshold 165 produces 40 TSS, including for the four eligible walking/hiking types. Controlled Walking
+100 bpm with threshold 165 produces 40 TSS across eligible sports. Controlled Walking
 and Hiking FIT uploads both produced 40 hrTSS in TrainingPeaks, which classified both as Walk; these observations
 do not establish separate Nordic Walking or Trekking algorithms or physiological accuracy for recovery workouts.
 The formulas are not interchangeable physiological measurements. No
@@ -774,7 +783,7 @@ supply no athlete settings. An explicitly supplied invalid HR override rejects b
 borrowing its file value; a complete valid override can still replace rejected file calibration. Source formats without
 a mapped explicit threshold remain ineligible.
 
-Previously saved walking/hiking evaluations require original-file reparse and the consuming application's normal
+Previously saved evaluations require original-file reparse and the consuming application's normal
 derived-load refresh to gain the fallback. Native JSON cannot recover discarded file calibration. Imported TSS
 remains authoritative. Consumers retain their saved modeled-load controls and method policy when refreshing candidates;
 no statistic names, units or serialized fields change.
@@ -867,6 +876,11 @@ existing swim-pace/speed zone threshold. The activity's observed average speed i
 when `enableHeuristicFallbacks` is true. Without a threshold, swim pace is skipped and the evaluation reports
 `missing-swim-threshold`; eligible HR/MET candidates can still provide a score. A supplied threshold with missing speed
 or duration instead reports `missing-pace-inputs`. Imported scores, including zero, always retain priority.
+
+Pool and open-water swimming also support the threshold-HR fallback described above. In Automatic mode, a usable HR
+candidate retains priority over swim pace; absent or rejected HR continues through swim pace to MET. HR uses the same
+observed timer-active intervals for swimming as for other sports. A pool rest is not treated as a timer pause unless
+recorded timing evidence marks it as one; this change does not infer pauses from laps or remove valid rest records.
 
 Suunto header speed zones are shared only within a file containing one resolved sport type. Mixed-sport legs retain
 applicable local boundaries and durations without copying unscoped header boundaries; a running threshold cannot serve

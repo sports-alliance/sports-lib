@@ -9,6 +9,7 @@ import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataEnergy } from '../../../data/data.energy';
 import { DataWeight } from '../../../data/data.weight';
 import { DataPowerNormalized } from '../../../data/data.power-normalized';
+import { DataSpeedAvg } from '../../../data/data.speed-avg';
 import { DataTrainingStressScore } from '../../../data/data.training-stress-score';
 import { DataTrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 import { ActivityUtilities } from '../activity.utilities';
@@ -20,6 +21,18 @@ import { DataStartEvent } from '../../../data/data.start-event';
 
 const evaluate = ActivityUtilities.evaluateTrainingStressScore.bind(ActivityUtilities);
 const walkingAndHikingTypes = [ActivityTypes.Walking, ActivityTypes.NordicWalking, ActivityTypes.Hiking, ActivityTypes.Trekking];
+const excludedTypes = new Set([
+  ActivityTypes.CarRacing, ActivityTypes.MotorcycleEnduro, ActivityTypes.HardEnduro, ActivityTypes.Snocross,
+  ActivityTypes.Boating, ActivityTypes.Driving, ActivityTypes.Motorcycling, ActivityTypes.ATV,
+  ActivityTypes.Motocross, ActivityTypes.Motorsports, ActivityTypes.Overlanding, ActivityTypes.Rally,
+  ActivityTypes.Snowmobiling, ActivityTypes.WheelchairRacing, ActivityTypes.Wheelchair,
+  ActivityTypes.WheelchairPushWalk, ActivityTypes.WheelchairPushRun, ActivityTypes.IndoorWheelchairPushWalk,
+  ActivityTypes.IndoorWheelchairPushRun, ActivityTypes.VideoGaming, ActivityTypes.Paramotoring, ActivityTypes.RCDroneFlying
+]);
+const generalProfileTypes = [...walkingAndHikingTypes, ActivityTypes.IndoorWalking, ActivityTypes.SpeedWalking,
+  ActivityTypes.Rucking, ActivityTypes.Mountaineering, ActivityTypes.Geocaching, ActivityTypes.Swimming,
+  ActivityTypes.OpenWaterSwimming, ActivityTypes.StrengthTraining, ActivityTypes.Rowing, ActivityTypes.Yoga,
+  ActivityTypes.AlpineSkiing, ActivityTypes.UnknownSport];
 const activity = (type = ActivityTypes.Running) => {
   const a = new Activity(new Date(0), new Date(3600000), type, new Creator('Synthetic'), new ActivityParsingOptions());
   const stream = a.createStream(DataHeartRate.type);
@@ -51,18 +64,23 @@ describe('threshold-HR fallback', () => {
       expect(result.met.hrAlgorithm).toBeUndefined();
     }
   );
-  it.each([
-    ActivityTypes.IndoorWalking,
-    ActivityTypes.SpeedWalking,
-    ActivityTypes.Rucking,
-    ActivityTypes.Mountaineering,
-    ActivityTypes.Geocaching,
-    ActivityTypes.Swimming,
-    ActivityTypes.StrengthTraining
-  ])('retains the previous HR eligibility for %s', type => {
-    expect(evaluate(activity(type)).automatic).toMatchObject({ method: 'MET', score: 9 });
+  it.each([...new Set(Object.values(ActivityTypes))])('shares calculated-load eligibility with FIT threshold calibration for %s', type => {
+    const a = activity(type);
+    const calibration = fit({ threshold_heart_rate: 160, max_heart_rate: 0, resting_heart_rate: 0 }, type);
+    fileHeartRateCalibration.set(a, calibration);
+    if (excludedTypes.has(type)) {
+      expect(calibration.thresholdFallbackHR).toBeUndefined();
+      expect(evaluate(a).automatic).toMatchObject({ score: null, method: null, reasons: ['unsupported-sport'] });
+    } else {
+      expect(calibration.thresholdFallbackHR).toBe(160);
+      expect(evaluate(a).automatic).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD', estimated: true });
+    }
+    a.addStat(new DataTrainingStressScore(0));
+    for (const candidate of Object.values(evaluate(a)).filter(value => typeof value === 'object')) {
+      expect(candidate).toMatchObject({ score: 0, method: 'IMPORTED' });
+    }
   });
-  describe.each(walkingAndHikingTypes)('%s threshold-HR safeguards', type => {
+  describe.each(generalProfileTypes)('%s threshold-HR safeguards', type => {
     it('uses the threshold estimate for one hour at 100 bpm with threshold 165', () => {
       const a = activity(type);
       a.getStream(DataHeartRate.type).setData(Array(3601).fill(100));
@@ -149,6 +167,16 @@ describe('threshold-HR fallback', () => {
       a.removeStat(DataEnergy.type);
       expect(evaluate(a).hr.score).toBeNull();
     });
+  });
+  it.each([ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming])('keeps the existing HR-before-swim-pace order and falls back to pace for %s', type => {
+    const a = activity(type);
+    a.addStat(new DataSpeedAvg(1));
+    a.parseOptions.tss!.overrides = { thresholdSwimSpeed: 1.25 };
+    expect(evaluate(a).automatic).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+    expect(evaluate(a).met).toMatchObject({ score: 9, method: 'MET' });
+    fileHeartRateCalibration.delete(a);
+    expect(evaluate(a).automatic).toMatchObject({ score: 51.2, method: 'SWIM_PACE' });
+    expect(evaluate(a).hr).toMatchObject({ score: 51.2, method: 'SWIM_PACE' });
   });
   it('preserves Banister, including observed zero, when calibration is complete', () => {
     const a = activity();
@@ -303,10 +331,11 @@ describe('threshold-HR fallback', () => {
       field(4, start, FitBaseType.Uint32)
     ]);
     encoder.writeMessage(3, [field(4, 700, FitBaseType.Uint16)], 4);
-    for (let second = 0; second <= 10800; second += 60)
+    const sports = [2, 1, 11, 5, 10]; // Cycling, running, walking, swimming, training.
+    const ids = [7, 2, 9, 4, 12];
+    for (let second = 0; second <= sports.length * 3600; second += 60)
       encoder.writeMessage(20, [field(253, start + second, FitBaseType.Uint32), field(3, 150)], 1);
-    const ids = [7, 2, 9];
-    [2, 1, 11].forEach((sport, index) =>
+    sports.forEach((sport, index) =>
       encoder.writeMessage(
         18,
         [
@@ -321,7 +350,7 @@ describe('threshold-HR fallback', () => {
         2
       )
     );
-    [2, 1, 0].forEach(index =>
+    [4, 2, 3, 1, 0].forEach(index =>
       encoder.writeMessage(
         216,
         [
@@ -342,10 +371,12 @@ describe('threshold-HR fallback', () => {
     // Shared terminal records belong to the next leg; do not extrapolate the last minute.
     expect(candidates[0].hr).toMatchObject({ score: 68.8, hrAlgorithm: 'THRESHOLD' });
     expect(candidates[1].hr).toMatchObject({ score: 59, hrAlgorithm: 'THRESHOLD' });
-    expect(candidates[2].hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+    expect(candidates[2].hr).toMatchObject({ score: 68.8, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+    expect(candidates[3].hr).toMatchObject({ score: 68.8, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+    expect(candidates[4].hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
     const serialized = JSON.stringify(event.toJSON());
     expect(serialized).not.toMatch(/hrAlgorithm|thresholdFallbackHR|threshold-hr-fallback/);
-    expect(SportsLib.importFromJSON(JSON.parse(serialized)).getActivities()).toHaveLength(3);
+    expect(SportsLib.importFromJSON(JSON.parse(serialized)).getActivities()).toHaveLength(5);
   });
   it.each([
     [164, 80],

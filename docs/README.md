@@ -27,10 +27,11 @@ Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walkin
 usable power with a valid threshold, then an eligible HR calculation, then MET. Regenerating summaries applies this priority to
 previously calculated scores; preserved provider TSS stays unchanged. Metric tokens, units and JSON schemas are unchanged.
 
-Running and cycling families, plus Walking, Nordic Walking, Hiking and Trekking, use Banister with full valid HR
-calibration, or an estimated threshold-HR fallback when resting or maximum HR is missing but the file supplies a valid
-threshold. The four walking/hiking types keep imported-score and Automatic power priority and use general maximum-HR
-settings. Other sport eligibility is unchanged. Optional evaluation metadata identifies the
+Every sport eligible for calculated TSS uses Banister with full valid HR calibration, or an estimated threshold-HR
+fallback when resting or maximum HR is missing but the file supplies a valid threshold and observed HR intervals.
+This includes pool/open-water swimming, strength training, rowing, skiing, and walking/hiking. Existing calculated-load
+exclusions, imported-score priority, Automatic method order and sport-specific calibration selection remain unchanged.
+Optional evaluation metadata identifies the
 formula; ordinary Activity JSON and the existing `HR` preference remain compatible. Reparse retained original files
 to refresh historical calculated candidates. Exactly threshold HR earns 100 TSS per observed hour in this fallback;
 other exact band boundaries retain their lower rate. See [HR calculations](guides/metrics-and-calculations.md).

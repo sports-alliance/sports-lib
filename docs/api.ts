@@ -684,6 +684,9 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * Positive calculated NP also requires complete recorded windows; padded gaps cannot establish a power candidate.
  * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
  * HR integration excludes explicit timer pauses, including gaps spanning a pause; imported scores remain authoritative.
+ * The eligible threshold-HR fallback includes equality at 100% of threshold in its 100 TSS/hour band;
+ * other exact band boundaries retain their lower rate. Every sport eligible for calculated TSS can use the fallback;
+ * complete valid calibration continues to use Banister, with existing method priority and load exclusions unchanged.
  * FIT rejects a complete scoped HRR threshold below its exact six-boundary 50–100% reserve pattern with
  * `invalid-hr-calibration`; custom patterns remain eligible under existing rules and fallbacks are unchanged.
  * Running pace uses grade cost, full eligible duration and complete rolling windows retaining recorded zeros.
@@ -699,6 +702,7 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  */
 export type {
   TrainingStressScorePreference,
+  TrainingStressScoreHrAlgorithm,
   TrainingStressScoreReason,
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations

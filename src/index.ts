@@ -260,6 +260,6 @@ export * from './users/user';
 export * from './users/user.export-to-csv.settings.interface';
 export * from './users/user.service.meta.interface';
 
-export type { TrainingStressScorePreference, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from './events/utilities/tss/tss-evaluation';
+export type { TrainingStressScorePreference, TrainingStressScoreHrAlgorithm, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from './events/utilities/tss/tss-evaluation';
 
 export * from './duration/timing-validity';

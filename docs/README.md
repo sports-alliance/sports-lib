@@ -24,8 +24,17 @@ Every sport retains valid nonnegative imported Training Stress Score, including 
 The legacy `preserveImportedTss` flag is deprecated and does not discard imported scores. See
 [Metrics and calculations](guides/metrics-and-calculations.md).
 Automatic calculations for Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking prefer
-usable power with a valid threshold, then calibrated HR, then MET. Regenerating summaries applies this priority to
+usable power with a valid threshold, then an eligible HR calculation, then MET. Regenerating summaries applies this priority to
 previously calculated scores; preserved provider TSS stays unchanged. Metric tokens, units and JSON schemas are unchanged.
+
+Every sport eligible for calculated TSS uses Banister with full valid HR calibration, or an estimated threshold-HR
+fallback when resting or maximum HR is missing but the file supplies a valid threshold and observed HR intervals.
+This includes pool/open-water swimming, strength training, rowing, skiing, and walking/hiking. Existing calculated-load
+exclusions, imported-score priority, Automatic method order and sport-specific calibration selection remain unchanged.
+Optional evaluation metadata identifies the
+formula; ordinary Activity JSON and the existing `HR` preference remain compatible. Reparse retained original files
+to refresh historical calculated candidates. Exactly threshold HR earns 100 TSS per observed hour in this fallback;
+other exact band boundaries retain their lower rate. See [HR calculations](guides/metrics-and-calculations.md).
 
 Meditation belongs to Indoor Sports. FIT `generic/breathing` imports default to that classification; an explicit Garmin
 Breathwork profile preserves Breathwork separately. Correcting older

@@ -2,6 +2,7 @@ import { ActivityTypes } from '../../../../activities/activity.types';
 import { ActivityTypesHelper } from '../../../../activities/activity.types';
 import { ActivityTypeGroups } from '../../../../activities/activity.types';
 import type { FileHeartRateCalibration } from '../../../utilities/tss/tss-evaluation';
+import { supportsCalculatedTrainingStressScore } from '../../../utilities/tss/tss-eligibility';
 
 type RecordValue = Record<string, unknown>;
 const indexValue = (value: unknown): unknown =>
@@ -17,6 +18,26 @@ export function resolveFitHeartRateCalibration(
   session: any,
   sessionIndex: number,
   type: ActivityTypes
+): FileHeartRateCalibration {
+  const calibration = resolveCalibration(file, session, sessionIndex, type, false);
+  if (!supportsCalculatedTrainingStressScore(type) || (!calibration.reason && calibration.maxHeartRate !== undefined &&
+      calibration.restingHeartRate !== undefined && calibration.lactateThresholdHR !== undefined)) return calibration;
+  // Keep existing Banister eligibility exact. Only the independent threshold
+  // candidate may interpret zero unused rest/max settings as missing.
+  const partial = resolveCalibration(file, session, sessionIndex, type, true);
+  if (!partial.reason && partial.lactateThresholdHR !== undefined &&
+      (partial.maxHeartRate === undefined || partial.restingHeartRate === undefined)) {
+    calibration.thresholdFallbackHR = partial.lactateThresholdHR;
+  }
+  return calibration;
+}
+
+function resolveCalibration(
+  file: any,
+  session: any,
+  sessionIndex: number,
+  type: ActivityTypes,
+  allowMissingRestMax: boolean
 ): FileHeartRateCalibration {
   const sessionId = indexValue(session.message_index) ?? sessionIndex;
   const sessions = file.sessions ?? [];
@@ -52,6 +73,7 @@ export function resolveFitHeartRateCalibration(
       return undefined;
     }
     const value = values[0];
+    if (allowMissingRestMax && value === 0 && key !== 'threshold_heart_rate') return undefined;
     if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
       reason = reason ?? 'invalid-hr-calibration';
       return undefined;
@@ -76,6 +98,10 @@ export function resolveFitHeartRateCalibration(
     lactateThresholdHR: sessionThreshold ?? unique(zones, 'threshold_heart_rate')
   };
   const { maxHeartRate: max, restingHeartRate: rest, lactateThresholdHR: threshold } = calibration;
+  if (allowMissingRestMax && threshold !== undefined &&
+      ((rest !== undefined && rest >= threshold) || (max !== undefined && threshold >= max))) {
+    reason = reason ?? 'invalid-hr-calibration';
+  }
   if (rest !== undefined && threshold !== undefined && max !== undefined && !(rest < threshold && threshold < max)) {
     reason = reason ?? 'invalid-hr-calibration';
   }

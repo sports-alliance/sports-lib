@@ -1,6 +1,7 @@
 import { TrainingStressScoreMethod } from '../../../data/data.training-stress-score-method';
 import type { DataEvent } from '../../../data/data.event';
 import { calculateNormalizedPower } from '../normalized-power';
+import type { TrainingStressScoreHrAlgorithm } from './tss-evaluation';
 
 export interface TssSample {
   duration: number;
@@ -40,6 +41,7 @@ export interface TssCalculationResult {
   intensityFactor?: number;
   normalizedPower?: number;
   averageGradeAdjustedPace?: number;
+  hrAlgorithm?: TrainingStressScoreHrAlgorithm;
 }
 
 const BANISTER_A = 0.64;
@@ -156,6 +158,30 @@ export class TssCalculator {
     }
   }
 
+  /** Existing sports-lib threshold bands, integrated only over observed HR intervals.
+   * Sport eligibility and file-calibration validation belong to the activity evaluator.
+   * Exactly 100% of threshold earns 100 TSS/hour; other exact boundaries retain the lower band.
+   * No rest/max or threshold is inferred.
+   */
+  public static calculateThresholdHrTss(input: TssInput): TssCalculationResult | null {
+    const threshold = this.positive(input.lactateThresholdHR);
+    if (threshold === null || this.positive(input.totalDurationWithoutPauses) === null) return null;
+    const limits = [0, 0.27, 0.54, 0.82, 0.855, 0.89, 0.94, 1, 1.03, 1.06];
+    const rates = [20, 30, 40, 50, 60, 70, 80, 100, 120, 140];
+    const samples = input.samples.filter(sample => Number.isFinite(sample.duration) && sample.duration >= 0)
+      .sort((left, right) => left.duration - right.duration);
+    const score = this.accumulateSampleLoad(samples, sample => {
+      let band = 0;
+      const hr = sample.hr as number;
+      for (let index = 1; index < limits.length; index++) {
+        if (hr > limits[index] * threshold || (limits[index] === 1 && hr === threshold)) band = index;
+      }
+      return rates[band] / 60;
+    });
+    return this.applyRangeCheck({ calculationMethod: TrainingStressScoreMethod.HR,
+      trainingStressScore: score, hrAlgorithm: 'THRESHOLD' });
+  }
+
   public static calculateMetTss(input: TssInput): TssCalculationResult | null {
     const metScore = this.positive(input.metScore);
     const duration = this.positive(input.totalDurationWithoutPauses);
@@ -204,6 +230,7 @@ export class TssCalculator {
 
     return this.applyRangeCheck({
       calculationMethod: TrainingStressScoreMethod.HR,
+      hrAlgorithm: 'BANISTER',
       trainingStressScore: (100 * sessionLoad) / thresholdHourLoad
     });
   }

@@ -344,6 +344,7 @@ import {
 } from '../../data/data.durability-evidence';
 import { DataThreeDimensionalStrainEvidence } from '../../data/data.three-dimensional-strain-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
+import { supportsCalculatedTrainingStressScore } from './tss/tss-eligibility';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
@@ -2824,22 +2825,12 @@ export class ActivityUtilities {
     return activity.type === ActivityTypes.TrackAndField;
   }
 
-  private static supportsCalculatedTrainingStressScore(activity: ActivityInterface): boolean {
-    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    return (
-      activityGroup !== ActivityTypeGroups.MotorizedGroup &&
-      activityGroup !== ActivityTypeGroups.AdaptiveMobilityGroup &&
-      activity.type !== ActivityTypes.VideoGaming &&
-      activity.type !== ActivityTypes.Paramotoring &&
-      activity.type !== ActivityTypes.RCDroneFlying
-    );
-  }
-
   /**
    * Compute all requested policies once from currently available parsed inputs.
    * Explicit recalculation replaces the cached evaluation; known calculated scores
    * are never promoted to imported scores. Results contain no raw HR calibration.
    * Automatic prefers usable power over HR, including for walking and hiking.
+   * Every sport eligible for calculated load can use threshold-HR when resting or maximum HR is missing.
    * Swimming without an independent threshold skips swim pace, even when heuristic
    * fallbacks are enabled, and reports `missing-swim-threshold` when needed.
    * HR integration excludes explicit timer pauses and invalid readings, and requires observed interval coverage.
@@ -2886,23 +2877,42 @@ export class ActivityUtilities {
         if (factor) activity.addStat(factor);
       }
     }
-    const eligible = this.supportsCalculatedTrainingStressScore(activity);
+    const eligible = supportsCalculatedTrainingStressScore(activity.type);
     const fileCalibration = fileHeartRateCalibration.get(activity);
     const overrides = activity.parseOptions?.tss?.overrides;
-    const completeOverride = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'].every(key =>
-      overrides?.[key as keyof ActivityParsingTssOverridesOptions] !== undefined);
+    const calibrationKeys = ['maxHeartRate', 'restingHeartRate', 'lactateThresholdHR'] as const;
+    const hasCalibrationOverride = calibrationKeys.some(key => overrides?.[key] !== undefined);
+    const validOverrides = calibrationKeys.every(key => overrides?.[key] === undefined ||
+      this.toPositiveFiniteNumber(overrides[key]) !== null);
+    const completeOverride = validOverrides && calibrationKeys.every(key => overrides?.[key] !== undefined);
     const max = this.resolveMaxHeartRate(activity);
     const rest = this.resolveRestingHeartRate(activity);
     const threshold = this.resolveLactateThresholdHr(activity);
-    let hrReason: TrainingStressScoreReason | null = !completeOverride && fileCalibration?.reason
-      ? fileCalibration.reason
-      : max === null || rest === null || threshold === null ? 'missing-hr-calibration'
-        : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
+    // Invalid explicit overrides must not silently fall back to file values for
+    // either HR algorithm. Only a complete valid override can replace rejected file calibration.
+    let hrReason: TrainingStressScoreReason | null = !validOverrides ? 'invalid-hr-calibration'
+      : !completeOverride && fileCalibration?.reason ? fileCalibration.reason
+        : max === null || rest === null || threshold === null ? 'missing-hr-calibration'
+          : !(0 < rest && rest < threshold && threshold < max) ? 'invalid-hr-calibration' : null;
+    const partialCalibrationValid = validOverrides && (!fileCalibration?.reason || completeOverride) &&
+      threshold !== null && threshold > 0 && (max === null || threshold < max) && (rest === null || rest < threshold);
+    let fallbackThreshold: number | null = null;
+    if (eligible && (max === null || rest === null)) {
+      if (partialCalibrationValid) fallbackThreshold = threshold;
+      else if (!hasCalibrationOverride) fallbackThreshold = fileCalibration?.thresholdFallbackHR ?? null;
+    }
+    if (fallbackThreshold !== null) hrReason = null;
     const hrSamples = hrReason ? [] : this.getHrTssSamples(activity);
     if (!hrReason && !hrSamples.length) hrReason = 'missing-hr-samples';
     const powerCandidate = eligible ? this.calculatePowerTss(activity) : null;
     const power = powerCandidate?.result ?? null;
-    const hr = eligible && !hrReason ? this.calculateHrTss(activity, hrSamples) : null;
+    let hr: TssCalculationResult | null = null;
+    if (eligible && !hrReason) {
+      hr = fallbackThreshold !== null
+        ? TssCalculator.calculateThresholdHrTss({ totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+          lactateThresholdHR: fallbackThreshold, samples: hrSamples })
+        : this.calculateHrTss(activity, hrSamples);
+    }
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
     // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
     const needsPace = eligible && !walking && !power && !hr;
@@ -2933,8 +2943,11 @@ export class ActivityUtilities {
           preference === 'HR' ? hrReason ?? 'calculation-unavailable' : metCandidate?.reason ?? 'missing-met-inputs', ...automaticReasons
         ])];
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
-        method: result?.calculationMethod ?? null, estimated: result?.calculationMethod === TrainingStressScoreMethod.MET,
-        provenance: result ? 'calculated' : null, reasons };
+        method: result?.calculationMethod ?? null,
+        ...(result?.hrAlgorithm ? { hrAlgorithm: result.hrAlgorithm } : {}),
+        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD',
+        provenance: result ? 'calculated' : null,
+        reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
     const result: TrainingStressScoreEvaluations = { version: 1,
       automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET') };

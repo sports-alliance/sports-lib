@@ -53,6 +53,11 @@ FIT activity imports reject files explicitly declared as monitoring, settings, c
 Use `SportsLib.importRoutesFromFit` for FIT courses. Completed `activity_summary` files retain their recorded sessions;
 legacy activity files without a declared file type retain recovery.
 
+Sports Lib 23.2 requires FIT Parser `^6.2.3`, recovering supported numeric fields from FIT producers that omit the
+endian flag in their type definitions. Correct historical imports by reparsing retained originals and refreshing
+affected derived summaries; installing the release does not rewrite saved data. See the
+[FIT compatibility guide](docs/guides/importing-activities.md#numeric-fit-types-without-endian-flags).
+
 ## Package formats
 
 Sports Lib 21 publishes module-preserving ESM for `import` consumers and per-module CommonJS for `require` consumers.

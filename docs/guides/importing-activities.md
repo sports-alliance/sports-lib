@@ -1467,6 +1467,20 @@ previous lap; its earliest point supplies the start instead. `TotalTimeSeconds` 
 tracks do not create moving-time intervals across their gaps. Reparse original files to apply these corrections to
 saved activities, then refresh derived summaries. Canonical metric names, units and JSON schemas are unchanged.
 
+### Numeric FIT types without endian flags
+
+Sports Lib 23.2 requires FIT Parser `^6.2.3`. Supported numeric fields are decoded when a producer omits the endian
+flag from a FIT base-type byte; each message definition's architecture still determines byte order. This recovers
+affected timestamps, durations and measurements without adding parser options or changing raw source bytes.
+Reserved or unknown type codes, incompatible field types, bounds and checksum policy keep their existing validation.
+
+Reparse retained original FIT files to recover missing or incorrectly decoded values, or retry imports that failed
+with missing start/end dates. Then regenerate affected persisted summaries, activity-type aggregates and dependent
+Training snapshots through the consuming application's existing workflow. Native JSON alone cannot recover values
+discarded during the original parse. Installing the package does not automatically reparse files or rewrite data;
+correctly decoded imports need no migration. Public signatures, canonical metric tokens, units and JSON schemas are
+unchanged.
+
 ### FIT reserved-header compatibility
 
 Ordinary FIT activity imports recover existing device files whose normal record headers set reserved bit 4.

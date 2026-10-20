@@ -13,6 +13,11 @@ evidence in the file. See
 [Validation and compatibility](guides/validation.md) for examples, the dated corpus snapshot, activity and route
 coverage, methodology and known limitations.
 
+Sports Lib 23.2 adopts FIT Parser `^6.2.3` to recover timestamps and other supported numeric fields when producers
+omit the endian flag from FIT type definitions. Historical corrections require retained-source reparsing and refresh
+of affected derived summaries; public APIs, metric tokens and JSON schemas remain unchanged. See
+[FIT compatibility](guides/importing-activities.md#numeric-fit-types-without-endian-flags).
+
 EHPE and EVPE position-error metrics, including Average/Minimum/Maximum, display one decimal place in meters.
 Stored values and calculations retain full precision; existing stats need no reparse or migration. See
 [Position error display](guides/metrics-and-calculations.md#position-error-display).

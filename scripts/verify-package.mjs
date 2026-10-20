@@ -169,6 +169,20 @@ async function verifyModuleFormats() {
   const fitSemanticProfilePath = path.join(path.dirname(fitParserEntryPath), 'profile.js');
   const fitRawEntryPath = require.resolve('fit-file-parser/raw');
   const cjsExports = require(packageJson.name);
+  const esmMetrics = await import(`${packageJson.name}/metrics`);
+  const cjsMetrics = require(`${packageJson.name}/metrics`);
+  assert.deepEqual(Object.keys(esmMetrics).sort(), Object.keys(cjsMetrics).sort(), 'Metrics module formats differ');
+  for (const [metrics, root] of [
+    [esmMetrics, esmExports],
+    [cjsMetrics, cjsExports]
+  ]) {
+    for (const name of Object.keys(metrics)) {
+      assert.equal(metrics[name], root[name], `Metrics export ${name} differs from the package root`);
+    }
+    assert.equal(metrics.SportsLib, undefined);
+    assert.equal(metrics.EventImporterFIT, undefined);
+    assert.equal(metrics.RouteExporterFIT, undefined);
+  }
 
   assert.equal(
     require.cache[fitParserEntryPath],
@@ -354,7 +368,7 @@ async function verifyBuildLayout() {
   await assert.rejects(access(path.join(packageRoot, 'out-tsc/esm')), { code: 'ENOENT' });
 }
 
-async function bundleFixture(temporaryDirectory, fixtureName) {
+async function bundleFixture(temporaryDirectory, fixtureName, overrides = {}) {
   const fixturePath = path.join(temporaryDirectory, fixtureName);
   const outputDirectory = path.join(temporaryDirectory, 'startup');
   await copyFile(path.join(packageRoot, 'scripts/fixtures', fixtureName), fixturePath);
@@ -379,8 +393,21 @@ async function bundleFixture(temporaryDirectory, fixtureName) {
     splitting: true,
     target: 'es2020',
     treeShaking: true,
-    write: false
+    write: false,
+    ...overrides
   });
+}
+
+async function verifyMetricsWorker(temporaryDirectory) {
+  const result = await bundleFixture(temporaryDirectory, 'metrics-worker.mjs', { external: [] });
+  // Inspect every emitted chunk: unused dynamic chunks also count against consumer budgets.
+  const outputs = new Map(Object.entries(result.metafile.outputs));
+  assertInputsExcluded(outputs, ['/node_modules/fit-file-parser/', '/events/adapters/', '/routes/adapters/']);
+  assert.equal(result.outputFiles.length, 1, 'Metrics worker emitted unexpected asynchronous chunks');
+  const context = {};
+  runInNewContext(result.outputFiles[0].text, context, { timeout: 5000 });
+  assert.deepEqual(Array.from(context.metricsWorkerSmoke), [0, null, 7.2, 1000]);
+  return result.outputFiles[0].contents.byteLength;
 }
 
 function assertActivityMetadataBudget(initialOutputs) {
@@ -550,13 +577,18 @@ function verifyPackContents() {
 assert.equal(packageLock.version, packageJson.version);
 assert.equal(packageLock.packages[''].version, packageJson.version);
 assert.equal(packageJson.sideEffects, false);
-assert.deepEqual(Object.keys(packageJson.exports), ['.']);
+assert.deepEqual(Object.keys(packageJson.exports), ['.', './metrics']);
 assert.equal(packageJson.main, 'lib/cjs/index.js');
 assert.equal(packageJson.module, 'lib/esm/index.js');
 assert.equal(packageJson.types, 'lib/esm/index.d.ts');
 assert.equal(packageJson.exports['.'].types, './lib/esm/index.d.ts');
 assert.equal(packageJson.exports['.'].import, './lib/esm/index.js');
 assert.equal(packageJson.exports['.'].require, './lib/cjs/index.js');
+assert.deepEqual(packageJson.exports['./metrics'], {
+  types: './lib/esm/metrics.d.ts',
+  import: './lib/esm/metrics.js',
+  require: './lib/cjs/metrics.js'
+});
 
 const temporaryDirectory = await mkdtemp(path.join(tmpdir(), 'sports-lib-package-verification-'));
 try {
@@ -572,6 +604,7 @@ try {
   await verifySpecifierRewriter(temporaryDirectory);
   await verifyTypeDeclarations(temporaryDirectory);
   await verifyWorkoutReferenceBrowser(temporaryDirectory);
+  const metricsWorkerBytes = await verifyMetricsWorker(temporaryDirectory);
   const representativeBundleBytes = await verifyRepresentativeTreeShaking(temporaryDirectory);
   const facadeStartup = await verifySportsLibFacadeStartup(temporaryDirectory);
   const pack = verifyPackContents();
@@ -579,7 +612,8 @@ try {
   console.log(
     `Verified ${rootExportCount} exports, ${representativeBundleBytes} startup bytes, ` +
       `${facadeStartup.initialBytes} SportsLib facade bytes ` +
-      `(${facadeStartup.fitParserBytes} from fit-file-parser), and ${pack.entryCount} packed files.`
+      `(${facadeStartup.fitParserBytes} from fit-file-parser), ${metricsWorkerBytes} metrics worker bytes, ` +
+      `and ${pack.entryCount} packed files.`
   );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });

@@ -60,6 +60,13 @@ affected derived summaries; installing the release does not rewrite saved data. 
 
 ## Package formats
 
+Browser charts and workers can import canonical data classes, unit settings, activity types and stream utilities from
+`@sports-alliance/sports-lib/metrics`. This public entry reuses the root API's implementations while excluding file
+import/export facades. It prevents unused asynchronous parser chunks from being emitted in worker builds. ESM,
+CommonJS and TypeScript consumers are supported; the package-root API stays compatible. No values, metric tokens,
+units or JSON representations change, and no reparse or migration is required. See the
+[metrics entry guide](docs/guides/metrics-and-calculations.md#browser-and-worker-imports).
+
 Sports Lib 21 publishes module-preserving ESM for `import` consumers and per-module CommonJS for `require` consumers.
 The package-root API remains supported; bundlers can discard unrelated parser, exporter, geodesy, and filtering modules
 when an application imports focused root exports such as `User`, settings, or data classes. Importing the `SportsLib`

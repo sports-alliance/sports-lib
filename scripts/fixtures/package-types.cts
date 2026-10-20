@@ -1,5 +1,13 @@
 import { DataDistance, SportsLib, User } from '@sports-alliance/sports-lib';
 import type { EventInterface, EventJSONInterface } from '@sports-alliance/sports-lib';
+import { DataDistance as MetricsDistance, DynamicDataLoader } from '@sports-alliance/sports-lib/metrics';
+import type { ActivityInterface as MetricsActivity } from '@sports-alliance/sports-lib/metrics';
+
+export const metricsDistance: DataDistance = new MetricsDistance(1);
+export const metricsLoader: typeof import('@sports-alliance/sports-lib').DynamicDataLoader = DynamicDataLoader;
+export type MetricsActivityCompatibility =
+  MetricsActivity extends import('@sports-alliance/sports-lib').ActivityInterface ? true : never;
+export const metricsActivityCompatibility: MetricsActivityCompatibility = true;
 import {
   readFITWorkoutReferences,
   DataFITTrainingFileReferences,

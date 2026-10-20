@@ -6,6 +6,10 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Browser charts and workers can use the public `@sports-alliance/sports-lib/metrics` entry to keep file importers and
+their asynchronous chunks out of their bundle graph. It shares the root API's canonical implementations and data
+catalog; no metric, JSON, persistence or migration behavior changes. See [browser and worker imports](guides/metrics-and-calculations.md#browser-and-worker-imports).
+
 **Regression-tested against 191,548 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on

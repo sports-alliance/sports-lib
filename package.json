@@ -1,6 +1,6 @@
 {
   "name": "@sports-alliance/sports-lib",
-  "version": "23.2.0",
+  "version": "23.3.0",
   "description": "TypeScript library for importing, exporting, and analyzing sports activities and routes from FIT, GPX, TCX, and JSON, with standardized activity, health, and sleep metrics.",
   "keywords": [
     "typescript",
@@ -39,6 +39,11 @@
       "types": "./lib/esm/index.d.ts",
       "import": "./lib/esm/index.js",
       "require": "./lib/cjs/index.js"
+    },
+    "./metrics": {
+      "types": "./lib/esm/metrics.d.ts",
+      "import": "./lib/esm/metrics.js",
+      "require": "./lib/cjs/metrics.js"
     }
   },
   "scripts": {
@@ -52,7 +57,7 @@
     "generate:docs": "npm run docs:build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:package": "eslint rollup.config.mjs scripts/fixtures/representative-startup.mjs scripts/fixtures/sportslib-facade-startup.mjs scripts/rewrite-esm-specifiers.mjs scripts/verify-package.mjs scripts/write-build-package-metadata.mjs",
+    "lint:package": "eslint rollup.config.mjs scripts/fixtures/metrics-worker.mjs scripts/fixtures/representative-startup.mjs scripts/fixtures/sportslib-facade-startup.mjs scripts/rewrite-esm-specifiers.mjs scripts/verify-package.mjs scripts/write-build-package-metadata.mjs",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test:package": "node scripts/verify-package.mjs",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
@@ -109,6 +114,13 @@
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "metrics": [
+        "lib/esm/metrics.d.ts"
+      ]
     }
   }
 }

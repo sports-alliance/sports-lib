@@ -3,6 +3,24 @@ title: Metrics and calculations
 summary: Canonical metric tokens, units, and derivation behavior.
 ---
 
+## Browser and worker imports
+
+```ts
+import { DataDistance, DynamicDataLoader, ActivityUtilities } from '@sports-alliance/sports-lib/metrics';
+import type { ActivityInterface, UserUnitSettingsInterface } from '@sports-alliance/sports-lib/metrics';
+```
+
+The public `metrics` entry includes the existing data catalog, canonical data classes and loaders, activity types,
+stream conversion utilities, lap types and unit/chart settings. Its values are the exact same exports as the package
+root, including `DataStore` and `DynamicDataLoader`. Existing metric validation, conversion, display and JSON behavior
+remain unchanged. TypeScript declarations support NodeNext, Bundler and legacy Node module resolution.
+
+File importers, route exporters and the `SportsLib` facade remain on the root entry. Keep runtime root imports out
+of the entire worker dependency graph: even a root import in a transitive helper can make a splitting bundler emit
+unused parser chunks. Inspect all emitted chunks, not only the worker's initial imports. The package verification
+checks every metrics-worker output and verifies runtime/format/type compatibility. No source reparse, derived-summary
+regeneration or persisted-data migration is needed. This entry exposes no new metric or MCP consumer contract.
+
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
 ## Regenerated multisport timing

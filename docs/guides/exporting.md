@@ -131,7 +131,9 @@ those gaps. Generated Time is the union of sensor values and stays consistent af
 Original record timestamps are used only during import to retain the existing fill behavior of other sensors.
 The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
 `ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
-changing the activity. GPX exports retain genuine zero watts and omit missing power. Supplied summaries and imported TSS retain priority.
+changing the activity. Derived left/right power also retains explicit nulls where total power or balance is missing.
+GPX exports retain genuine zero watts and omit missing power, without adding or removing activity streams.
+Supplied summaries and imported TSS retain priority.
 
 Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
 retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need

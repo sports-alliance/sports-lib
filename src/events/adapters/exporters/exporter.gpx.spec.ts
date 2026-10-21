@@ -13,6 +13,7 @@ import { DataSpeed } from '../../../data/data.speed';
 import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataCadence } from '../../../data/data.cadence';
 import { DataTemperature } from '../../../data/data.temperature';
+import { DataTime } from '../../../data/data.time';
 import { DataPower } from '../../../data/data.power';
 import { EventImporterGPX } from '../importers/gpx/importer.gpx';
 import { EventImporterJSON } from '../importers/json/importer.json';
@@ -113,6 +114,21 @@ describe('EventExporterGPX', () => {
       expect(ActivityUtilities.getPowerCoverage(native.getFirstActivity())).toEqual(support);
       expect(event.toJSON()).toEqual(before);
     });
+
+  it('leaves an existing Time stream untouched while exporting positional timestamps', async () => {
+    const event = speedEvent([2, 3, 4]);
+    const a = event.getFirstActivity();
+    const originalTime = new Stream(DataTime.type, [90, 91, 92]);
+    a.addStream(originalTime);
+    const originalStreams = a.getAllStreams().slice();
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const xml = await new EventExporterGPX().getAsString(event);
+      expect(xml).toContain('<time>1970-01-01T00:00:01.000Z</time>');
+      expect(a.getAllStreams()).toEqual(originalStreams);
+      expect(a.getStream(DataTime.type)).toBe(originalTime);
+      expect(originalTime.getData()).toEqual([90, 91, 92]);
+    }
+  });
 
   it('keeps independent extensions and emits sensor fields in v2 schema sequence', async () => {
     const event = speedEvent([0, 3]);

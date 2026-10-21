@@ -511,7 +511,9 @@ IF = NP / independently supplied FTP
 ```
 
 FIT, TCX and GPX retain absent, blank, invalid and negative power as `null`; an explicit **0 W** remains a
-recorded observation. No interpolation or cadence-based filling is applied. Each observed power sample supports
+recorded observation. Derived left/right power requires both total power and balance at the same timestamp;
+missing pairs remain explicit nulls, including trailing gaps and after JSON restoration. Recorded left/right streams
+retain priority. No interpolation or cadence-based filling is applied. Each observed power sample supports
 its own one-second interval, clipped to the activity end and located timer/lap boundaries. The endpoint itself has no
 additional duration. Explicit pauses are excluded; summary-only pause durations do not establish where a pause occurred.
 

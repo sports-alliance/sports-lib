@@ -3509,38 +3509,21 @@ export class ActivityUtilities {
       if (grade) activity.addStream(adjustedSpeedFromGrade(speed, grade));
     }
 
-    if (!activity.hasStreamData(DataPowerRight.type) && this.canGenerateDerivedStream(activity, DataPowerRight.type)) {
-      const rightPowerStream = activity.createStream(DataPowerRight.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData = activity.getStreamData(DataPowerBalanceRight.type);
-      rightPowerStream.setData(
-        rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(rightPowerStream);
-    }
-
-    if (!activity.hasStreamData(DataPowerLeft.type) && this.canGenerateDerivedStream(activity, DataPowerLeft.type)) {
-      const leftPowerStream = activity.createStream(DataPowerLeft.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData = activity.getStreamData(DataPowerBalanceLeft.type);
-      leftPowerStream.setData(
-        leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(leftPowerStream);
+    // Derive each side from paired observations only. Keep every time slot explicit,
+    // including trailing gaps, so in-memory reads and JSON restoration agree.
+    for (const [powerType, balanceType] of [
+      [DataPowerRight.type, DataPowerBalanceRight.type],
+      [DataPowerLeft.type, DataPowerBalanceLeft.type]
+    ]) {
+      if (activity.hasStreamData(powerType) || !this.canGenerateDerivedStream(activity, powerType)) continue;
+      const power = activity.getStreamData(DataPower.type);
+      const balance = activity.getStreamData(balanceType);
+      const data = Array.from({ length: Math.max(power.length, balance.length) }, (_, index) => {
+        const watts = power[index], percent = balance[index];
+        return typeof watts === 'number' && Number.isFinite(watts) &&
+          typeof percent === 'number' && Number.isFinite(percent) ? watts * (percent / 100) : null;
+      });
+      activity.addStream(new Stream(powerType, data));
     }
 
     // If left stance time stream available, then add the right balance stream too

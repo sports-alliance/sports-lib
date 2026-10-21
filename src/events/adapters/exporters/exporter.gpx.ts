@@ -1,3 +1,4 @@
+import { ActivityUtilities } from '../../utilities/activity.utilities';
 import { EventInterface } from '../../event.interface';
 import { EventExporter } from './exporter.interface';
 import { DataLatitudeDegrees } from '../../../data/data.latitude-degrees';
@@ -22,7 +23,8 @@ export class EventExporterGPX implements EventExporter {
   fileType = 'application/gpx+xml';
   fileExtension = 'gpx';
 
-  /** Exports positional activities with TrackPointExtension/v2 speed in m/s, retaining recorded zero speed and power. */
+  /** Exports positional activities with TrackPointExtension/v2 speed in m/s, retaining recorded zero speed and power.
+   * Builds its positional time grid locally without adding or removing activity streams. */
   async getAsString(event: EventInterface): Promise<string> {
     const { setGPXPointSpeed, useGPXTrackPointV2 } = await import('../gpx-speed');
     return new Promise<string>((resolve, _reject) => {
@@ -33,22 +35,22 @@ export class EventExporterGPX implements EventExporter {
           return;
         }
         const timeStream = activity.generateTimeStream([DataLatitudeDegrees.type, DataLongitudeDegrees.type]);
-        // @todo it should make an activity copy
-        activity.addStream(timeStream);
+        const exportedTypes = [
+          DataLongitudeDegrees.type,
+          DataDistance.type,
+          DataHeartRate.type,
+          DataCadence.type,
+          DataStrokeRate.type,
+          DataTemperature.type,
+          DataPower.type,
+          DataAltitude.type,
+          DataSpeed.type
+        ];
         const segment = new Segment(
-          activity
-            .getStreamDataTypesBasedOnDataType(DataLatitudeDegrees.type, [
-              DataLongitudeDegrees.type,
-              DataTime.type,
-              DataDistance.type,
-              DataHeartRate.type,
-              DataCadence.type,
-              DataStrokeRate.type,
-              DataTemperature.type,
-              DataPower.type,
-              DataAltitude.type,
-              DataSpeed.type
-            ])
+          ActivityUtilities.getStreamDataTypesBasedOnDataType(
+            activity.getStream(DataLatitudeDegrees.type),
+            [timeStream, ...activity.getAllStreams().filter(stream => exportedTypes.includes(stream.type))]
+          )
             .reduce((pointsArray: (typeof Point)[], data, _index, _array) => {
               const point = new Point(<number>data[DataLatitudeDegrees.type], <number>data[DataLongitudeDegrees.type], {
                 ele: data[DataAltitude.type] || undefined,
@@ -68,8 +70,6 @@ export class EventExporterGPX implements EventExporter {
             }, [])
         );
         tracks.push(new Track([segment], { name: activity.type, type: activity.type }));
-        // @todo it should make an activity copy
-        activity.removeStream(timeStream);
       });
 
       const builder = new GarminBuilder();

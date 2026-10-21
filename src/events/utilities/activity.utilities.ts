@@ -578,7 +578,8 @@ export class ActivityUtilities {
   private static addLeftRightBalanceStatsFromStreams(
     activity: ActivityInterface,
     LeftDataClass: { type: string; new (value: number): DataInterface },
-    RightDataClass: { type: string; new (value: number): DataInterface }
+    RightDataClass: { type: string; new (value: number): DataInterface },
+    readAverage: (streamType: string) => number = streamType => this.getDataTypeAvg(activity, streamType)
   ): void {
     const leftStat = activity.getStat(LeftDataClass.type);
     const rightStat = activity.getStat(RightDataClass.type);
@@ -599,14 +600,14 @@ export class ActivityUtilities {
     }
 
     if (activity.hasStreamData(LeftDataClass.type)) {
-      const avgLeftBalance = this.round(this.getDataTypeAvg(activity, LeftDataClass.type), 2);
+      const avgLeftBalance = this.round(readAverage(LeftDataClass.type), 2);
       activity.addStat(new LeftDataClass(avgLeftBalance));
       activity.addStat(new RightDataClass(this.round(100 - avgLeftBalance, 2)));
       return;
     }
 
     if (activity.hasStreamData(RightDataClass.type)) {
-      const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
+      const avgRightBalance = this.round(readAverage(RightDataClass.type), 2);
       activity.addStat(new RightDataClass(avgRightBalance));
       activity.addStat(new LeftDataClass(this.round(100 - avgRightBalance, 2)));
     }
@@ -1055,6 +1056,7 @@ export class ActivityUtilities {
    * Fills missing activity streams and summary stats, then derives canonical min/max/average and
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
+   * Power summaries and paired left/right calculations use original samples, ignoring attached stream filters.
    * Calculated interval streams instead use wholly contained intervals for averages and extrema.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
    * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
@@ -1105,6 +1107,7 @@ export class ActivityUtilities {
             return undefined;
           }
           const stream = activity.getStream(streamType);
+          if (streamType === DataPower.type) return stream.toJSON().data.slice(startIndex, endIndex);
           return intervalValues(stream, (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000)
             ?? stream.getData().slice(startIndex, endIndex);
         }
@@ -3511,8 +3514,8 @@ export class ActivityUtilities {
       [DataPowerLeft.type, DataPowerBalanceLeft.type]
     ]) {
       if (activity.hasStreamData(powerType) || !this.canGenerateDerivedStream(activity, powerType)) continue;
-      const power = activity.getStreamData(DataPower.type);
-      const balance = activity.getStreamData(balanceType);
+      const power = activity.getStream(DataPower.type).toJSON().data;
+      const balance = activity.getStream(balanceType).toJSON().data;
       const data = Array.from({ length: Math.max(power.length, balance.length) }, (_, index) => {
         const watts = power[index], percent = balance[index];
         return typeof watts === 'number' && Number.isFinite(watts) &&
@@ -3849,7 +3852,10 @@ export class ActivityUtilities {
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,
-      readStream: streamType => (activity.hasStreamData(streamType) ? activity.getStreamData(streamType) : undefined),
+      readStream: streamType => {
+        const stream = activity.getAllStreams().find(item => item.type === streamType);
+        return streamType === DataPower.type ? stream?.toJSON().data : stream?.getData();
+      },
       readAverage: streamType => {
         if (streamType === DataPower.type) return power?.coverage.observedAveragePowerWatts ?? null;
         const stream = activity.getAllStreams().find(item => item.type === streamType);
@@ -4020,7 +4026,11 @@ export class ActivityUtilities {
       }
     }
 
-    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight);
+    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight, streamType =>
+      this.getAverage(activity.getStream(streamType).toJSON().data.filter(
+        (value): value is number => typeof value === 'number' && Number.isFinite(value)
+      ))
+    );
 
     this.addLeftRightBalanceStatsFromStreams(
       activity,

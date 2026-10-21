@@ -3,6 +3,10 @@ import { ActivityTypes } from '../../activities/activity.types';
 import { Creator } from '../../creators/creator';
 import { Stream } from '../../streams/stream';
 import { DataPower } from '../../data/data.power';
+import { DataPowerMin } from '../../data/data.power-min';
+import { DataPowerMax } from '../../data/data.power-max';
+import { Lap } from '../../laps/lap';
+import { LapTypes } from '../../laps/lap.types';
 import { DataPowerAvg } from '../../data/data.power-avg';
 import { DataPowerWork } from '../../data/data.power-work';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
@@ -202,6 +206,30 @@ it('does not let filtered gap filling create power work, long efforts or eligibl
   expect(a.getStat(DataFTP.type)?.getValue()).toBe(250); // Independent calibration remains valid.
   expect(ActivityUtilities.calculateMeanMaxPower(a, [1200]).getValue()).toEqual([]);
   expect(evaluate(a).automatic.method).not.toBe('POWER');
+  expect(stream.toJSON().data).toEqual(values);
+  expect(stream.hasFilter()).toBe(true);
+});
+
+it.each([
+  (data: (number | null)[]) => data.map(value => value ?? 1000),
+  (data: (number | null)[]) => data.filter(value => value !== null),
+  (data: (number | null)[]) => data.map(value => value === null ? null : value / 10)
+])('uses original power for activity and lap extrema consistently with their averages', filterData => {
+  const values = [200, null, 0, 400, 100, 900];
+  const a = create(values, 5);
+  a.addLap(new Lap(new Date(0), new Date(3000), 1, LapTypes.Manual));
+  a.addLap(new Lap(new Date(3000), new Date(5000), 2, LapTypes.Manual));
+  const stream = a.getStream(DataPower.type);
+  stream.useFilter({ filterData });
+  generate(a);
+  const summaries = (activity: Activity) => [activity, ...activity.getLaps()].map(target =>
+    [DataPowerMin.type, DataPowerMax.type, DataPowerAvg.type].map(type => target.getStat(type)?.getValue()));
+  // The shared boundary belongs to the second lap; the endpoint affects extrema, not duration.
+  const expected = [[0, 900, 175], [0, 200, 100], [100, 900, 250]];
+  expect(summaries(a)).toEqual(expected);
+  const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON()))) as Activity;
+  generate(restored);
+  expect(summaries(restored)).toEqual(expected);
   expect(stream.toJSON().data).toEqual(values);
   expect(stream.hasFilter()).toBe(true);
 });

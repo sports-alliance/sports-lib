@@ -39,10 +39,49 @@ describe('left/right power derived from nullable readings', () => {
     expect(balance).toStrictEqual(originalBalance);
   });
 
+  it.each([
+    (data: (number | null)[]) => data.map(value => value ?? 50),
+    (data: (number | null)[]) => data.filter(value => value !== null),
+    (data: (number | null)[]) => data.map(value => value === null ? null : value / 2)
+  ])('derives side power from original pairs even when both inputs have filters', filterData => {
+    const a = make([200, null, 0, 400, null], [50, 40, 50, null, 60]);
+    const sources = a.getAllStreams().slice();
+    const before = JSON.parse(JSON.stringify(sources.map(stream => stream.toJSON())));
+    sources.forEach(stream => stream.useFilter({ filterData }));
+    for (let repeat = 0; repeat < 2; repeat++) {
+      ActivityUtilities.generateMissingStreamsForActivity(a);
+      for (const type of [DataPowerLeft.type, DataPowerRight.type]) {
+        expect(a.getStreamData(type)).toEqual([100, null, 0, null, null]);
+      }
+    }
+    const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON())));
+    for (const type of [DataPowerLeft.type, DataPowerRight.type]) {
+      expect(restored.getStreamData(type)).toEqual([100, null, 0, null, null]);
+    }
+    expect(sources.map(stream => stream.toJSON())).toEqual(before);
+    expect(sources.every(stream => stream.hasFilter())).toBe(true);
+  });
+
+  it.each([DataPowerBalanceLeft, DataPowerBalanceRight])(
+    'derives missing balance summaries from original observations on either side', Balance => {
+      const a = make([200, null, 0, 400, null], [0, null, 100, null, null]);
+      a.removeStream(Balance === DataPowerBalanceLeft ? DataPowerBalanceRight.type : DataPowerBalanceLeft.type);
+      const stream = a.getStream(Balance.type);
+      stream.useFilter({ filterData: data => data.map(value => value ?? 80) });
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(a);
+      for (const type of [DataPowerBalanceLeft.type, DataPowerBalanceRight.type]) {
+        expect(a.getStat(type)?.getValue()).toBe(50);
+      }
+      expect(stream.toJSON().data).toEqual([0, null, 100, null, null]);
+      expect(stream.hasFilter()).toBe(true);
+    }
+  );
+
   it('preserves recorded left/right streams during repeated generation', () => {
     const a = make([200, null, 0], [50, 50, 50]);
     const recorded = [new Stream(DataPowerLeft.type, [99, null, 0]), new Stream(DataPowerRight.type, [101, null, 0])];
     recorded.forEach(stream => a.addStream(stream));
+    a.getStream(DataPower.type).useFilter({ filterData: data => data.map(value => value ?? 200) });
     for (let repeat = 0; repeat < 2; repeat++) {
       ActivityUtilities.generateMissingStreamsForActivity(a);
       for (const stream of recorded) expect(a.getStream(stream.type)).toBe(stream);

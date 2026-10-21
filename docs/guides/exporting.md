@@ -133,7 +133,10 @@ The JSON format, metric names and units are unchanged; no coverage or provenance
 `ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
 changing the activity. Derived left/right power also retains explicit nulls where total power or balance is missing.
 GPX exports retain genuine zero watts and omit missing power, without adding or removing activity streams.
-Supplied summaries and imported TSS retain priority.
+Supplied summaries and imported TSS retain priority. Missing power extrema, side watts and balance summaries are
+calculated from original samples rather than attached stream-filter views. If older code persisted summaries or side
+streams calculated from filtered inputs, a native JSON parse preserves those saved values; reparse the original file to
+rebuild them. Ordinary imports without attached filters need no extra migration for this correction.
 
 Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
 retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need

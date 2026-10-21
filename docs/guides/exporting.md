@@ -76,3 +76,42 @@ const restoredRouteFile = SportsLib.importRoutesFromJSON(routeJson);
 ```
 
 The `EventJSONInterface` and `RouteFileJSONInterface` API pages describe the JSON shapes. Use native route JSON when route metadata must be retained beyond FIT Course capabilities.
+
+## Sparse distance and calculated intervals
+
+Activity Distance streams preserve missing readings as `null`; zero and repeated distances are retained. Other sensors
+keep their own timestamps. `Activity.toJSON()` exports exactly one Time stream based on the union of regular stream
+timestamps, so a sparse Distance stream cannot remove HR or power readings from the exported clock. IBI-only exports
+retain their existing projected time behavior.
+
+Consumers must check for finite numeric readings before converting values: `Number(null)` produces zero and loses
+the distinction between missing and stationary distance. Distance cursors should match only finite distance/time
+pairs and return unavailable when no such pair exists.
+
+Generated interval-rate streams may include the additive `StreamJSONInterface.intervalSupport` field:
+
+```json
+{
+  "type": "Speed",
+  "data": [null, null, 2],
+  "intervalSupport": { "direction": "ending", "durations": [null, null, 2] }
+}
+```
+
+This example represents 2 m/s over the two-second interval ending at index 2. `starting` is used for calculated grade.
+The duration array is parallel to `data`; null means no supported interval at that sample. Values are positive integer
+seconds, bounded by the stream and nonoverlapping. Malformed evidence is ignored during hydration. Legacy streams
+without the field remain readable, with their existing summary policy. Retain the complete stream object when storing
+JSON to preserve duration-weighted recalculation. Older consumers can read the ordinary values but may discard the
+additional field when writing JSON again.
+
+`Stream.setData()` invalidates interval evidence. A stream filter disables it for filtered reads, while serialization
+still exports the original unfiltered data and evidence. Time cropping retains weights only for intervals wholly inside
+the crop; a retained boundary sample does not imply that the full interval belongs to the crop. Consumers editing
+arrays in place must replace the data through `setData()` to invalidate old weights.
+
+Existing persisted summaries are not automatically overwritten on JSON hydration. Historical filled distance streams
+require an original-file reparse: neither JSON hydration nor summary regeneration can reconstruct their missing-value
+mask. After adopting this version, regenerate affected summaries/Training snapshots from corrected imports as needed.
+Canonical metric names, units, recorded statistics, swim lengths/rests, and route JSON contracts remain unchanged.
+The optional interval evidence is calculation metadata, not a new numeric metric or an MCP response field.

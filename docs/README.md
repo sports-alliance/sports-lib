@@ -6,6 +6,12 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Activity Distance keeps its original null gaps. Generated distance-based rates use supported elapsed intervals,
+and native JSON retains their optional interval weights plus every independent sensor timestamp. Historical filled
+streams need an original-file reparse; recorded values and route behavior remain unchanged. See
+[distance calculations](guides/metrics-and-calculations.md) and
+[persistence and migration](guides/exporting.md#sparse-distance-and-calculated-intervals).
+
 Browser charts and workers can use the public `@sports-alliance/sports-lib/metrics` entry to keep file importers and
 their asynchronous chunks out of their bundle graph. It shares the root API's canonical implementations and data
 catalog; no metric, JSON, persistence or migration behavior changes. See [browser and worker imports](guides/metrics-and-calculations.md#browser-and-worker-imports).

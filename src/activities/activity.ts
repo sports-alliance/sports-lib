@@ -25,7 +25,6 @@ import { DataTime } from '../data/data.time';
 import { DataIBI } from '../data/data.ibi';
 import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import { LapJSONInterface } from '../laps/lap.json.interface';
-import { DataDistance } from '../data/data.distance';
 import { DataDuration } from '../data/data.duration';
 import { DataRiderPositionChangeEvent } from '../data/data.rider-position-change-event';
 import { ActivityParsingOptions } from './activity-parsing-options';
@@ -345,13 +344,16 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return this;
   }
 
+  /** Generates elapsed timestamps from the selected streams, or the union of regular sensor streams.
+   * Existing Time and irregular IBI streams do not define the default occupancy grid.
+   */
   generateTimeStream(streamTypes: string[] = []): StreamInterface {
     let streams = this.getAllStreams();
     if (streamTypes.length) {
       streams = streams.filter(stream => streamTypes.indexOf(stream.type) !== -1);
     } else {
       // Irregular event streams should not define the default 1 Hz occupancy grid.
-      streams = streams.filter(stream => stream.type !== DataIBI.type);
+      streams = streams.filter(stream => stream.type !== DataIBI.type && stream.type !== DataTime.type);
     }
     const timeStream = new Stream(DataTime.type, Array(this.getTimeGridLength(streams)).fill(null));
     const timeStreamData = timeStream.getData();
@@ -410,7 +412,7 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     }, activityLength);
   }
 
-  /** Exports native activity JSON, omitting non-finite scalar summaries and retaining stream gaps. */
+  /** Exports native activity JSON, retaining gaps and interval evidence, with one union-of-sensors Time stream. */
   toJSON(): ActivityJSONInterface {
     const intensityZones: IntensityZonesJSONInterface[] = [];
     this.intensityZones.forEach((value: IntensityZonesInterface) => {
@@ -420,14 +422,14 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
 
     // Fetch streams from activity
     const streams = this.getAllStreams().reduce((streams: StreamJSONInterface[], stream) => {
-      streams.push(stream.toJSON());
+      if (stream.type !== DataTime.type) streams.push(stream.toJSON());
       return streams;
     }, []);
 
     // Now append missing time stream to JSON export
     if (streams?.length) {
-      const stream = streams.find(s => s.type === DataDistance.type) || streams[0];
-      const timeStream = this.generateTimeStream([stream.type]).toJSON();
+      const hasRegularStream = streams.some(stream => stream.type !== DataIBI.type);
+      const timeStream = this.generateTimeStream(hasRegularStream ? [] : [DataIBI.type]).toJSON();
       streams.push(timeStream);
     }
     const hasDiveSourceRecords =

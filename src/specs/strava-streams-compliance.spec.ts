@@ -37,6 +37,14 @@ describe('Strava stream compliance', () => {
     return deltaSum / actualStream.length;
   };
 
+  // Compare the same elapsed timestamps. Independent sensor gaps must not shift later samples.
+  const averageDeltaAtTimes = (actual: (number | null)[], expected: number[], times: number[]) => {
+    const pairs = times.map((time, i) => [actual[time], expected[i]])
+      .filter((pair): pair is [number, number] => pair.every(value => typeof value === 'number' && Number.isFinite(value)));
+    expect(pairs.length).toBeGreaterThan(0);
+    return pairs.reduce((sum, [left, right]) => sum + Math.abs(left - right), 0) / pairs.length;
+  };
+
   describe('Compliance with garmin edge export (hilly activity)', () => {
     // Given https://connect.garmin.com/modern/activity/7432332116 OR https://www.strava.com/activities/5910143591 (FTP 201 w @ Weight 78.3 kg)
     const path = __dirname + '/fixtures/rides/fit/7432332116.fit';
@@ -55,14 +63,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_5910143591.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -84,14 +91,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_2451375851.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -112,14 +118,14 @@ describe('Strava stream compliance', () => {
 
       // Then
       eventInterfacePromise.then((event: EventInterface) => {
-        const streamData = <number[]>event.getFirstActivity().getSquashedStreamData(DataGrade.type);
+        const streamData = <number[]>event.getFirstActivity().getStreamData(DataGrade.type);
         // .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        // expect(stravaGradeStream.length).toEqual(streamData.length);
+        //
         const deltaBetweenStreams = averageDeltaBetweenStreams(stravaGradeStream, streamData);
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 */
@@ -145,7 +151,7 @@ describe('Strava stream compliance', () => {
           event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match altitude`, done => {
@@ -165,7 +171,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match heart rate`, done => {
@@ -185,7 +191,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match cadence`, done => {
@@ -205,7 +211,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match temperature`, done => {
@@ -227,7 +233,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     /**
@@ -250,7 +256,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match distance with x% error max`, done => {
@@ -277,7 +283,7 @@ describe('Strava stream compliance', () => {
         );
         // expect(stravaDistanceStream).toEqual(streamData);
         done();
-      });
+      }).catch(done);
     });
 
     it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -295,12 +301,11 @@ describe('Strava stream compliance', () => {
           .getFirstActivity()
           .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3156040843.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -325,7 +330,7 @@ describe('Strava stream compliance', () => {
           event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match altitude`, done => {
@@ -347,7 +352,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match heart rate`, done => {
@@ -369,7 +374,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match cadence`, done => {
@@ -391,7 +396,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match distance with x% error max`, done => {
@@ -407,18 +412,20 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = event
           .getFirstActivity()
-          .getSquashedStreamData(DataDistance.type)
+          .getStreamData(DataDistance.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaDistanceStream.length).toEqual(streamData.length);
-        const commonCount = stravaDistanceStream.filter(
+        const observedReference = stravaDistanceStream.filter((_value: number, index: number) =>
+          Number.isFinite(streamData[strava_3182900697.time[index]]));
+        expect(observedReference.length).toBeGreaterThan(0);
+        const commonCount = observedReference.filter(
           (value: number | null) => streamData.indexOf(value) !== -1
         ).length;
-        expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(
-          stravaDistanceStream.length
+        expect(commonCount + Math.ceil((observedReference.length * tolerance) / 100)).toBeGreaterThanOrEqual(
+          observedReference.length
         );
         // expect(stravaDistanceStream).toEqual(streamData);
         done();
-      });
+      }).catch(done);
     });
 
     it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -434,14 +441,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3182900697.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -464,7 +470,7 @@ describe('Strava stream compliance', () => {
           event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match altitude`, done => {
@@ -486,7 +492,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match heart rate`, done => {
@@ -508,7 +514,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match cadence`, done => {
@@ -530,7 +536,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it.skip(`should match distance with x% error max`, done => {
@@ -555,7 +561,7 @@ describe('Strava stream compliance', () => {
         // expect(commonCount + Math.ceil((stravaDistanceStream.length * tolerance) / 100)).toBeGreaterThanOrEqual(stravaDistanceStream.length);
         expect(stravaDistanceStream).toEqual(streamData);
         done();
-      });
+      }).catch(done);
     });
 
     it.skip(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -571,14 +577,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3182900697.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -603,7 +608,7 @@ describe('Strava stream compliance', () => {
           event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match altitude`, done => {
@@ -625,7 +630,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match heart rate`, done => {
@@ -647,7 +652,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match cadence`, done => {
@@ -669,7 +674,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match distance`, done => {
@@ -690,7 +695,7 @@ describe('Strava stream compliance', () => {
         expect(stravaDistanceStream.length).toEqual(streamData.length);
         expect(stravaDistanceStream).toEqual(streamData);
         done();
-      });
+      }).catch(done);
     });
 
     it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -706,14 +711,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3183465494.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -738,7 +742,7 @@ describe('Strava stream compliance', () => {
           event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match altitude`, done => {
@@ -760,7 +764,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match heart rate`, done => {
@@ -782,7 +786,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it(`should match cadence`, done => {
@@ -805,7 +809,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10))
         );
         done();
-      });
+      }).catch(done);
     });
 
     it.skip(`should match distance`, done => {
@@ -826,7 +830,7 @@ describe('Strava stream compliance', () => {
         expect(stravaDistanceStream.length).toEqual(streamData.length);
         expect(stravaDistanceStream).toEqual(streamData);
         done();
-      });
+      }).catch(done);
     });
 
     it.skip(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -842,14 +846,13 @@ describe('Strava stream compliance', () => {
       eventInterfacePromise.then((event: EventInterface) => {
         const streamData = <number[]>event
           .getFirstActivity()
-          .getSquashedStreamData(DataGrade.type)
+          .getStreamData(DataGrade.type)
           .map(value => (value === null ? null : Math.round(value * 10) / 10));
-        expect(stravaGradeStream.length).toEqual(streamData.length);
-        const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+        const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3183490558.time));
         console.log(`Delta is ${deltaBetweenStreams}`);
         expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
         done();
-      });
+      }).catch(done);
     });
   });
 
@@ -875,7 +878,7 @@ describe('Strava stream compliance', () => {
             event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match altitude`, done => {
@@ -897,7 +900,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match heart rate`, done => {
@@ -919,7 +922,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match cadence`, done => {
@@ -941,7 +944,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match distance with x% error max`, done => {
@@ -964,7 +967,7 @@ describe('Strava stream compliance', () => {
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
           expect(stravaDistanceStream).toEqual(streamData);
           done();
-        });
+        }).catch(done);
       });
 
       it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -979,14 +982,13 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
-          expect(stravaGradeStream.length).toEqual(streamData.length);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_343080886.time));
           console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
-        });
+        }).catch(done);
       });
     });
 
@@ -1011,7 +1013,7 @@ describe('Strava stream compliance', () => {
             event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match altitude`, done => {
@@ -1033,7 +1035,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match heart rate`, done => {
@@ -1055,7 +1057,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match cadence`, done => {
@@ -1077,7 +1079,7 @@ describe('Strava stream compliance', () => {
               .map(value => (value === null ? null : Math.round(value * 10) / 10))
           );
           done();
-        });
+        }).catch(done);
       });
 
       it(`should match distance with x% error max`, done => {
@@ -1105,7 +1107,7 @@ describe('Strava stream compliance', () => {
           // const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaDistanceStream);
           // expect(deltaBetweenStreams).toBeLessThan(toleranceDelta);
           done();
-        });
+        }).catch(done);
       });
 
       it(`should have an average grade diff lower than ${GRADE_TOLERANCE}%`, done => {
@@ -1120,14 +1122,13 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
-          expect(stravaGradeStream.length).toEqual(streamData.length);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_343080886.time));
           console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
-        });
+        }).catch(done);
       });
     });
 
@@ -1153,7 +1154,7 @@ describe('Strava stream compliance', () => {
             event.getFirstActivity().generateTimeStream([DataDistance.type, DataAltitude.type]).getData(true)
           );
           done();
-        });
+        }).catch(done);
       });
 
       // Strava adds their own altitude so no go from here
@@ -1222,13 +1223,12 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataDistance.type)
+            .getStreamData(DataDistance.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
-          expect(stravaDistanceStream.length).toEqual(streamData.length);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaDistanceStream);
+          const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaDistanceStream, clone(strava_3171438371_gpx.time));
           expect(deltaBetweenStreams).toBeLessThan(deltaTolerance);
           done();
-        });
+        }).catch(done);
       });
 
       // Tolerance is higher since distance is different unfortunately (see above test)
@@ -1244,14 +1244,13 @@ describe('Strava stream compliance', () => {
         eventInterfacePromise.then((event: EventInterface) => {
           const streamData = <number[]>event
             .getFirstActivity()
-            .getSquashedStreamData(DataGrade.type)
+            .getStreamData(DataGrade.type)
             .map(value => (value === null ? null : Math.round(value * 10) / 10));
-          expect(stravaGradeStream.length).toEqual(streamData.length);
-          const deltaBetweenStreams = averageDeltaBetweenStreams(streamData, stravaGradeStream);
+          const deltaBetweenStreams = averageDeltaAtTimes(streamData, stravaGradeStream, clone(strava_3171438371_gpx.time));
           console.log(`Delta is ${deltaBetweenStreams}`);
           expect(deltaBetweenStreams).toBeLessThan(toleranceAvgGradeDelta);
           done();
-        });
+        }).catch(done);
       });
     });
   });

@@ -1,5 +1,5 @@
 import { SerializableClassInterface } from '../serializable/serializable.class.interface';
-import { StreamJSONInterface } from './stream';
+import { StreamIntervalSupport, StreamJSONInterface } from './stream';
 import { StreamFilterInterface } from './stream.filter.interface';
 
 /**
@@ -43,6 +43,9 @@ export interface StreamInterface extends SerializableClassInterface {
    * @param data
    */
   setData(data: (number | null)[]): this;
+
+  /** Optional interval weights for calculated rates; absent on legacy or recorded streams. */
+  getIntervalSupport?(): StreamIntervalSupport | undefined;
 
   /**
    * Gets the data based / offset on a startDate

@@ -259,14 +259,18 @@ export class EventImporterJSON {
     if (streamType === DataIBI.type) {
       return new IBIStream(<number[]>json.data);
     }
-    return new Stream(streamType, json.data);
+    return new Stream(streamType, json.data, json.intervalSupport);
   }
 
   private static getCanonicalStreamsFromJSON(
     streams: StreamJSONInterface[] | { [key: string]: (number | null)[] }
   ): StreamJSONInterface[] {
     const canonicalMap = new Map<string, { sourceType: string; value: StreamJSONInterface }>();
-    const addStream = (sourceType: string, data: StreamJSONInterface['data']) => {
+    const addStream = (
+      sourceType: string,
+      data: StreamJSONInterface['data'],
+      intervalSupport?: StreamJSONInterface['intervalSupport']
+    ) => {
       const canonicalType = this.getCanonicalDataType(sourceType);
       if (canonicalType === DataTime.type) {
         return;
@@ -277,14 +281,15 @@ export class EventImporterJSON {
           sourceType,
           value: {
             type: canonicalType,
-            data
+            data,
+            ...(intervalSupport ? { intervalSupport } : {})
           }
         });
       }
     };
 
     if (Array.isArray(streams)) {
-      streams.forEach(streamJson => addStream(streamJson.type, streamJson.data));
+      streams.forEach(streamJson => addStream(streamJson.type, streamJson.data, streamJson.intervalSupport));
     } else {
       Object.keys(streams || {}).forEach(streamKey => {
         addStream(streamKey, streams[streamKey]);

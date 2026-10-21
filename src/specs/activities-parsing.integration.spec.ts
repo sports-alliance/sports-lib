@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { SportsLib } from '../index';
 import { EventInterface } from '../events/event.interface';
+import { ActivityInterface } from '../activities/activity.interface';
 import { DataHeartRate } from '../data/data.heart-rate';
 import { DataLongitudeDegrees } from '../data/data.longitude-degrees';
 import { DataLatitudeDegrees } from '../data/data.latitude-degrees';
@@ -64,6 +65,17 @@ import { DataAltitudeSmooth } from '../data/data.altitude-smooth';
 import { DataGrade } from '../data/data.grade';
 import { ActivityParsingOptions } from '../activities/activity-parsing-options';
 import { standardDeviation } from '../events/utilities/helpers';
+
+// Unequal GPS sampling must use elapsed seconds, rather than equally weighting every record.
+function assertDistanceWeightedSpeed(activity: ActivityInterface) {
+  const observations = activity.getStreamData(DataDistance.type)
+    .map((value, index) => ({ value, index }))
+    .filter((item): item is { value: number; index: number } => typeof item.value === 'number' && Number.isFinite(item.value));
+  const first = observations[0], last = observations[observations.length - 1];
+  expect(observations.every((item, i) => i === 0 || item.value >= observations[i - 1].value)).toBe(true);
+  expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue())
+    .toBeCloseTo((last.value - first.value) / (last.index - first.index), 3);
+}
 
 describe('FIT/TCX/GPX activity parsing compliance', () => {
   const domParser = new xmldom.DOMParser();
@@ -435,6 +447,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           .then((event: EventInterface) => {
             // Swim
             const swimActivity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(swimActivity);
             expect(swimActivity.type).toEqual(ActivityTypes.Swimming);
             expect(swimActivity.getStreamData(DataSpeed.type).length).toEqual(3689);
             expect(swimActivity.startDate.toISOString()).toEqual('2018-10-13T17:05:01.000Z');
@@ -449,7 +462,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             SpecUtils.assertNearEqualTime(
               <number>SpecUtils.speedToSwimPace((swimActivity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
-              '01:31',
+              '01:35',
               2
             );
 
@@ -482,6 +495,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const swimActivity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(swimActivity);
             // expect(swimActivity.type).toEqual(ActivityTypes.OpenWaterSwimming);  // TODO To be auto-detected by sports-data-science library (work in progress)
             expect(swimActivity.startDate.toISOString()).toEqual('2021-01-04T16:22:18.000Z');
             expect(swimActivity.endDate.toISOString()).toEqual('2021-01-04T17:37:05.000Z');
@@ -491,7 +505,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
 
             SpecUtils.assertNearEqualTime(
               <number>SpecUtils.speedToSwimPace((swimActivity.getStat(DataSpeedAvg.type) as DataNumber).getValue()),
-              '02:29'
+              '02:57'
             );
 
             // Verifying time data
@@ -1099,7 +1113,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:19');
             SpecUtils.assertNearEqualTime(
               (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-              '05:58'
+              '06:19'
             );
 
             const laps = activity.getLaps();
@@ -1174,12 +1188,13 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
           .then((event: EventInterface) => {
             // Swim
             const activity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(activity);
             expect(activity.type).toEqual(ActivityTypes.Running);
 
-            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '09:18', 1);
+            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '10:40', 1);
             SpecUtils.assertNearEqualTime(
               (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-              '09:18',
+              '10:35',
               1
             );
 
@@ -1265,14 +1280,15 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const activity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(activity);
             expect(activity.type).toEqual(ActivityTypes.run);
             expect(activity.hasPowerMeter()).toBeFalsy();
             expect(activity.isTrainer()).toBeFalsy();
 
-            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '06:27', 1);
+            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '07:06', 1);
             SpecUtils.assertNearEqualTime(
               (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-              '06:23',
+              '07:00',
               1
             );
 
@@ -1346,6 +1362,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const activity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(activity);
             expect(activity.type).toEqual(ActivityTypes.run);
             expect(activity.hasPowerMeter()).toBeFalsy();
             expect(activity.isTrainer()).toBeFalsy();
@@ -1355,10 +1372,10 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataCadenceAvg.type) as DataNumber).getValue()).toEqual(86);
             expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(123);
 
-            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:48', 1);
+            SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:56', 1);
             SpecUtils.assertNearEqualTime(
               (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-              '04:17',
+              '04:31',
               1
             );
 
@@ -1367,7 +1384,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             );
 
             expect(activity.getSquashedStreamData('Distance').length).toEqual(
-              activity.getSquashedStreamData('Speed').length
+              activity.getSquashedStreamData('Speed').length + 1
             );
 
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -1397,6 +1414,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
         eventInterfacePromise
           .then((event: EventInterface) => {
             const activity = event.getFirstActivity();
+            assertDistanceWeightedSpeed(activity);
             expect(activity.type).toEqual(ActivityTypes.run);
             expect(activity.hasPowerMeter()).toBeFalsy();
             expect(activity.isTrainer()).toBeFalsy();
@@ -1412,7 +1430,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '13:10', 1);
             SpecUtils.assertNearEqualTime(
               (activity.getStat(DataGradeAdjustedPaceAvg.type) as DataNumber).getValue(),
-              '09:07',
+              '09:20',
               1
             );
 
@@ -1463,7 +1481,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
+            // A zero-distance look-ahead or terminal reading cannot establish a grade.
+            expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(2536);
 
             const missingStreamCall = () => {
               activity.getSquashedStreamData(DataPower.type);
@@ -2015,7 +2034,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(108);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(153);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(186);
-            expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(6.479); // Or 23.32 kph
+            assertDistanceWeightedSpeed(activity);
 
             // Verifying time data
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
@@ -2055,7 +2074,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(118);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(148);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(174);
-            expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(7.329); // Or 26.3 kph
+            assertDistanceWeightedSpeed(activity);
 
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -2094,7 +2113,7 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataCadenceMax.type) as DataNumber).getValue()).toEqual(117);
             expect((activity.getStat(DataHeartRateAvg.type) as DataNumber).getValue()).toEqual(165);
             expect((activity.getStat(DataHeartRateMax.type) as DataNumber).getValue()).toEqual(186);
-            expect((activity.getStat(DataSpeedAvg.type) as DataNumber).getValue()).toBeCloseTo(7.903); // Or 28.4 kph
+            assertDistanceWeightedSpeed(activity);
 
             const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
             const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type)).getValue();
@@ -2135,7 +2154,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.getSquashedStreamData(DataLatitudeDegrees.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataDistance.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataAltitude.type).length).toEqual(expectedSamplesLength);
-            expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
+            // A calculated speed needs two positions; the first is not a zero-speed observation.
+            expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength - 1);
             expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
@@ -2232,7 +2252,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             let pauseTime = (<DataPause>swimActivity.getStat(DataPause.type)).getValue();
             let elapsedTime = (<DataElapsedTime>swimActivity.getStat(DataElapsedTime.type)).getValue();
 
-            SpecUtils.assertNearEqualTime(movingTime, '01:01:16', 1);
+            // Count only supported, timer-active speed intervals; do not bridge explicit pauses.
+            expect(movingTime).toBe(3624);
             SpecUtils.assertNearEqualTime(timerTime, '01:01:29');
             SpecUtils.assertNearEqualTime(elapsedTime, '01:01:29');
             SpecUtils.assertEqual(pauseTime, elapsedTime - timerTime, 1);
@@ -2432,7 +2453,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
       expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
       expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
       expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-      expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(expectedSamplesLength);
+      // A zero-distance look-ahead or terminal reading cannot establish a grade.
+      expect(activity.getSquashedStreamData(DataGrade.type).length).toEqual(3678);
     });
 
     it('should handle and detect an activity with broken speed data', async () => {

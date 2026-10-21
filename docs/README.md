@@ -17,7 +17,7 @@ observed interval coverage, while supplied summaries keep priority. `ActivityUti
 observed duration and work on demand, without adding stored metadata. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
 and [migration guidance](guides/exporting.md#missing-power).
 Valid FIT session/lap balance summaries retain their hundredths precision, while record balance and side watts remain
-independent. Multisport average power weights leg summaries by active duration and retains zero; see
+independent. Multisport average power and W/kg weight leg summaries by active duration and retain zero; see
 [balance and multisport power](guides/metrics-and-calculations.md#fit-balance-summaries-and-multisport-power).
 
 Browser charts and workers can use the public `@sports-alliance/sports-lib/metrics` entry to keep file importers and

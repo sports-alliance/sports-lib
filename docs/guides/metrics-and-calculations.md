@@ -566,13 +566,15 @@ the library treats it as ambiguous and keeps the stream fallback. It never guess
 balances and 0%/100% remain supported. This distinction follows
 [Garmin's explanation of summary versus record balance](https://forums.garmin.com/developer/fit-sdk/f/discussion/426542/questions-about-left-right-balance-and-its-decodification).
 
-For multiple legs, event `Average Power` is the duration-weighted mean of valid nonnegative leg summaries:
+For multiple legs, event `Average Power` and `PowerWattsPerKg` are duration-weighted means of their valid nonnegative leg summaries:
 `sum(leg average × leg timer seconds) / sum(leg timer seconds)`. This summarizes the leg means; it does not rescan
 samples or extrapolate their missing values. It is not an observed-sample mean across the entire event when leg
 coverage differs. Legs without power do not contribute zeros. Zero-duration legs contribute no weight; an unknown or
 invalid duration on a power-bearing leg makes the event average unavailable. Legacy active `Duration` is used only
 when no explicit timer statistic exists, never elapsed time or dates. Event maximum power retains genuine zero.
-Equal-duration legs at 100, 200 and 300 W produce 200 W in any order. Individual leg summaries and streams stay intact.
+Equal-duration legs at 100, 200 and 300 W produce 200 W in any order. W/kg uses each leg’s supplied W/kg, including zero,
+or its average watts divided by its own positive body mass (rounded to the existing two decimal places). A leg with no
+available W/kg is omitted from that mean, even if it has watts. Individual leg summaries and streams stay intact.
 
 The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
 athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file

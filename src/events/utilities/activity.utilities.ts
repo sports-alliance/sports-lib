@@ -1186,7 +1186,7 @@ export class ActivityUtilities {
   }
 
   /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg.
-   * Average power weights valid leg means by timer duration (legacy Duration when no timer exists).
+   * Average power and W/kg weight valid leg means by timer duration (legacy Duration when no timer exists).
    * A power-bearing leg with unknown timing makes that average unavailable; absent power is never zero.
    */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
@@ -1212,8 +1212,6 @@ export class ActivityUtilities {
     let distance = 0;
     let pauseTime = 0;
     let averageHeartRate = 0;
-    let averagePowerWattsPerKg = 0;
-    let hasAveragePowerWattsPerKg = false;
     let averagePowerNormalized = 0;
     let hasAveragePowerNormalized = false;
     let averageCadence = 0;
@@ -1339,39 +1337,13 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateAvg(averageHeartRate));
     }
 
-    // Aggregate leg summaries, weighted by their active durations. Missing power is not zero.
-    let weightedPower = 0;
-    let powerDuration = 0;
-    let completePowerTiming = true;
-    activities.forEach(activity => {
-      const value = activity.getStat(DataPowerAvg.type)?.getValue();
-      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return;
-      // Duration is the legacy active clock; an explicit invalid timer must not fall back to it.
-      const seconds = (activity.getStat(DataTimerTime.type) ?? activity.getDuration())?.getValue();
-      if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) {
-        completePowerTiming = false;
-        return;
-      }
-      weightedPower += value * seconds;
-      powerDuration += seconds;
-    });
-    if (completePowerTiming && powerDuration > 0 && Number.isFinite(powerDuration) && Number.isFinite(weightedPower)) {
-      stats.push(new DataPowerAvg(weightedPower / powerDuration));
-    }
-
-    // Avg Avg Power-to-Weight ratio (W/kg)
-    activities.forEach(activity => {
-      const activityPowerWattsPerKg = this.resolvePowerWattsPerKg(activity);
-      if (activityPowerWattsPerKg !== null) {
-        averagePowerWattsPerKg = hasAveragePowerWattsPerKg
-          ? (averagePowerWattsPerKg + activityPowerWattsPerKg) / 2
-          : activityPowerWattsPerKg;
-        hasAveragePowerWattsPerKg = true;
-      }
-    });
-    if (hasAveragePowerWattsPerKg) {
-      stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
-    }
+    // Both power units use the same timing policy; absent values are never zero.
+    const averagePower = this.getDurationWeightedPowerMean(activities, activity =>
+      this.getFiniteStatValue(activity, DataPowerAvg.type));
+    if (averagePower !== null) stats.push(new DataPowerAvg(averagePower));
+    const averagePowerWattsPerKg = this.getDurationWeightedPowerMean(activities, activity =>
+      this.resolvePowerWattsPerKg(activity));
+    if (averagePowerWattsPerKg !== null) stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
 
     // Avg Normalized Power
     activities.forEach(activity => {
@@ -2497,17 +2469,32 @@ export class ActivityUtilities {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
   }
 
+  /** Weight available nonnegative power summaries by active duration, without reading or filling streams. */
+  private static getDurationWeightedPowerMean(
+    activities: ActivityInterface[], readValue: (activity: ActivityInterface) => number | null
+  ): number | null {
+    let weighted = 0, duration = 0;
+    for (const activity of activities) {
+      const value = readValue(activity);
+      if (value === null || !Number.isFinite(value) || value < 0) continue;
+      // An explicit invalid timer must not fall back to the legacy active Duration.
+      const seconds = (activity.getStat(DataTimerTime.type) ?? activity.getDuration())?.getValue();
+      if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return null;
+      weighted += value * seconds;
+      duration += seconds;
+    }
+    return duration > 0 && Number.isFinite(duration) && Number.isFinite(weighted) ? weighted / duration : null;
+  }
+
   private static resolvePowerWattsPerKg(activity: ActivityInterface): number | null {
-    const existingPowerWattsPerKg = this.toPositiveFiniteNumber(
-      this.getFiniteStatValue(activity, DataPowerWattsPerKg.type)
-    );
-    if (existingPowerWattsPerKg !== null) {
+    const existingPowerWattsPerKg = this.getFiniteStatValue(activity, DataPowerWattsPerKg.type);
+    if (existingPowerWattsPerKg !== null && existingPowerWattsPerKg >= 0) {
       return existingPowerWattsPerKg;
     }
 
-    const averagePower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerAvg.type));
+    const averagePower = this.getFiniteStatValue(activity, DataPowerAvg.type);
     const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
-    if (averagePower === null || weight === null) {
+    if (averagePower === null || averagePower < 0 || weight === null) {
       return null;
     }
 

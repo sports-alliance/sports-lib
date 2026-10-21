@@ -142,7 +142,7 @@ capacity snapshots through the application's normal workflow. No automatic migra
 
 FIT session/lap balance corrections require an original-file reparse: older native JSON did not retain those source
 summaries. Stored balance statistics remain readable and are not overwritten during JSON restoration. To correct a
-multisport event's average/maximum power, call `EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
+multisport event's average/maximum power and W/kg, call `EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
 statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
 There are no new metric names, units, serialized fields or MCP schemas.
 

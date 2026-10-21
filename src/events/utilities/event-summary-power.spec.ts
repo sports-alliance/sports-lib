@@ -6,6 +6,8 @@ import { DataDuration } from '../../data/data.duration';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataPowerAvg } from '../../data/data.power-avg';
 import { DataPowerMax } from '../../data/data.power-max';
+import { DataPowerWattsPerKg } from '../../data/data.power-watts-per-kg';
+import { DataWeight } from '../../data/data.weight';
 import { ActivityUtilities } from './activity.utilities';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { Event } from '../event';
@@ -76,5 +78,51 @@ describe('multisport power summaries', () => {
       expect(event.getStat(DataPowerMax.type)?.getValue()).toBe(300);
       expect(JSON.stringify(event.getActivities().map(a => a.toJSON()))).toBe(legs);
     }
+  });
+
+  it('weights W/kg by the same active durations as watts through repeated JSON restoration', () => {
+    let legs = [leg(100, 10), leg(200, 20), leg(300, 30)];
+    legs.forEach(a => a.addStat(new DataWeight(50)));
+    const before = JSON.stringify(legs.map(a => a.toJSON()));
+    for (let pass = 0; pass < 3; pass++) {
+      for (const ordered of [legs, [...legs].reverse()]) {
+        const stats = summary(ordered);
+        expect(stats[DataPowerWattsPerKg.type]).toBeCloseTo(stats[DataPowerAvg.type] / 50, 10);
+      }
+      expect(JSON.stringify(legs.map(a => a.toJSON()))).toBe(before);
+      legs = legs.map(a => EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON()))) as Activity);
+    }
+  });
+
+  it('preserves supplied zero W/kg and includes measured zero power when deriving W/kg', () => {
+    const suppliedZero = leg(100, 30);
+    suppliedZero.addStat(new DataWeight(50));
+    suppliedZero.addStat(new DataPowerWattsPerKg(0));
+    const supplied = leg(null, 10);
+    supplied.addStat(new DataPowerWattsPerKg(4));
+    expect(summary([suppliedZero, supplied])[DataPowerWattsPerKg.type]).toBe(1);
+    const zero = leg(0, 30);
+    zero.addStat(new DataWeight(50));
+    expect(summary([zero, supplied])[DataPowerWattsPerKg.type]).toBe(1);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(zero);
+    expect(zero.getStat(DataPowerWattsPerKg.type)?.getValue()).toBe(0);
+  });
+
+  it('keeps unavailable W/kg distinct from zero and respects missing or invalid timing', () => {
+    const known = leg(200, 10);
+    known.addStat(new DataWeight(50));
+    const unavailable = leg(200, 30); // No body mass or supplied W/kg.
+    expect(summary([known, unavailable])[DataPowerWattsPerKg.type]).toBe(4);
+    unavailable.addStat(new DataPowerWattsPerKg(2));
+    unavailable.removeStat(DataTimerTime.type);
+    unavailable.addStat(new DataDuration(30));
+    expect(summary([known, unavailable])[DataPowerWattsPerKg.type]).toBe(2.5);
+    unavailable.removeStat(DataDuration.type);
+    expect(summary([known, unavailable])[DataPowerWattsPerKg.type]).toBeUndefined();
+    unavailable.addStat(new DataDuration(30));
+    unavailable.addStat(new DataTimerTime(-1));
+    expect(summary([known, unavailable])[DataPowerWattsPerKg.type]).toBeUndefined();
+    unavailable.addStat(new DataTimerTime(0));
+    expect(summary([known, unavailable])[DataPowerWattsPerKg.type]).toBe(4);
   });
 });

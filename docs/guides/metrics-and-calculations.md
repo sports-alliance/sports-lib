@@ -518,11 +518,12 @@ its own one-second interval, clipped to the activity end and located timer/lap b
 additional duration. Explicit pauses are excluded; summary-only pause durations do not establish where a pause occurred.
 
 NP and power-curve points require complete contiguous windows. Gaps and timer boundaries break windows instead of
-contributing zero. A curve duration with no complete window is omitted, so an unsupported 20-minute effort cannot
+contributing zero, including a stop and resume at the same timestamp. A repeated start while already running does
+not split an effort. A curve duration with no complete window is omitted, so an unsupported 20-minute effort cannot
 supply the same-activity FTP estimate. NP retains real coasting zeroes and requires a full 30-second window. Positive
 device NP keeps priority even with sparse samples. Unavailable calculations are omitted from serialized statistics.
-The existing curve-only rule for a solitary positive spike bounded by **recorded** zeroes is unchanged; missing
-neighbors no longer act as zeroes for that rule.
+The existing curve-only rule for a solitary positive spike bounded by **recorded** zeroes applies within each active
+segment; missing neighbors or readings across a timer boundary do not qualify as its two neighbors.
 
 ### Power coverage and observed work
 

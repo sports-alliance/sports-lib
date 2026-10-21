@@ -147,7 +147,9 @@ FIT session/lap balance corrections require an original-file reparse: older nati
 summaries. Stored balance statistics remain readable and are not overwritten during JSON restoration. To correct a
 multisport event's average/maximum power and W/kg, call `EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
 statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
-There are no new metric names, units, serialized fields or MCP schemas.
+Saved power curves and FTP summaries are not replaced by JSON hydration. To apply the timer-boundary correction,
+refresh affected calculated snapshots from original files or retained power streams and timer events; keep supplied
+summaries authoritative. There are no new metric names, units, serialized fields or MCP schemas.
 
 See [Power coverage and observed work](metrics-and-calculations.md#power-coverage-and-observed-work) for formulas,
 partial-result handling and the computed-power TSS coverage gate. Routes are unchanged.

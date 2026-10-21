@@ -11,6 +11,7 @@ import { DataPowerAvg } from '../../data/data.power-avg';
 import { DataPowerWork } from '../../data/data.power-work';
 import { DataPowerNormalized } from '../../data/data.power-normalized';
 import { DataStopEvent } from '../../data/data.stop-event';
+import { DataStopAllEvent } from '../../data/data.stop-all-event';
 import { DataStartEvent } from '../../data/data.start-event';
 import { DataTimerTime } from '../../data/data.timer-time';
 import { DataFTP } from '../../data/data.ftp';
@@ -232,4 +233,45 @@ it.each([
   expect(summaries(restored)).toEqual(expected);
   expect(stream.toJSON().data).toEqual(values);
   expect(stream.hasFilter()).toBe(true);
+});
+
+it.each([DataStopEvent, DataStopAllEvent])('does not join efforts across a stop/resume at the same timestamp', Stop => {
+  let a = create(Array(40).fill(200), 40);
+  a.addEvent(new Stop(20));
+  a.addEvent(new DataStartEvent(20));
+  const before = JSON.stringify(a.toJSON());
+  for (let pass = 0; pass < 2; pass++) {
+    expect(ActivityUtilities.calculateMeanMaxPower(a, [20, 30, 40]).toJSON()).toEqual({
+      PowerCurve: [{ duration: 20, power: 200 }]
+    });
+    expect(coverage(a)).toMatchObject({ coveredDurationSeconds: 40, observedWorkKilojoules: 8, coverageRatio: 1 });
+    expect(JSON.stringify(a.toJSON())).toBe(before);
+    a = EventImporterJSON.getActivityFromJSON(JSON.parse(before)) as Activity;
+  }
+});
+
+it('does not infer FTP by joining two shorter efforts separated by a same-timestamp restart', () => {
+  const a = create(Array(1200).fill(200), 1200);
+  fileFunctionalThresholdPower.delete(a);
+  a.addEvent(new DataStopEvent(600));
+  a.addEvent(new DataStartEvent(600));
+  generate(a);
+  expect(a.getStat(DataFTP.type)).toBeUndefined();
+  expect(a.getStat(DataPowerNormalized.type)?.getValue()).toBe(200);
+});
+
+it('keeps the existing spike rule within each active segment', () => {
+  const a = create([0, 200, 0], 3);
+  expect(ActivityUtilities.calculateMeanMaxPower(a, [1]).toJSON()).toEqual({ PowerCurve: [{ duration: 1, power: 0 }] });
+  a.addEvent(new DataStopEvent(1));
+  a.addEvent(new DataStartEvent(1));
+  expect(ActivityUtilities.calculateMeanMaxPower(a, [1]).toJSON()).toEqual({ PowerCurve: [{ duration: 1, power: 200 }] });
+  expect(a.getStreamData(DataPower.type)).toEqual([0, 200, 0]);
+});
+
+it.each([0, 20, 40])('does not split efforts on a repeated start or an endpoint restart at %s', second => {
+  const a = create(Array(40).fill(200), 40);
+  if (second !== 20) a.addEvent(new DataStopEvent(second));
+  a.addEvent(new DataStartEvent(second));
+  expect(ActivityUtilities.calculateMeanMaxPower(a, [40]).toJSON()).toEqual({ PowerCurve: [{ duration: 40, power: 200 }] });
 });

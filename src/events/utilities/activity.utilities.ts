@@ -317,6 +317,7 @@ import {
 } from '../../data/data.training-stress-score-method';
 import { DataPowerWork } from '../../data/data.power-work';
 import {
+  activeDistanceSegments,
   speedFromDistance,
   gradeFromDistance,
   gradeSamplesForSpeed,
@@ -2366,7 +2367,8 @@ export class ActivityUtilities {
   }
 
   /**
-   * Calculate Mean Max Power for specified durations
+   * Calculate Mean Max Power for specified durations within individual active timer segments.
+   * Stop/resume boundaries split efforts even when their timestamps are equal.
    * @param activity The activity to analyze
    * @param durations Array of durations in seconds. If not provided, a "Best-in-Class" high-granularity set is used.
    */
@@ -2392,9 +2394,13 @@ export class ActivityUtilities {
     }
 
     const supportedPower = powerIntervals(activity).watts;
-    const powerData = supportedPower.map((value, index) =>
-      value > 0 && index > 0 && index < supportedPower.length - 1 &&
-      supportedPower[index - 1] === 0 && supportedPower[index + 1] === 0 ? 0 : value);
+    // A stop/resume can share a timestamp and leave no missing bin. Keep the
+    // existing timer segments separate so rolling efforts never join across it.
+    const powerRuns = activeDistanceSegments(activity)
+      .map(({ start, end }) => supportedPower.slice(Math.ceil(start), Math.floor(end)))
+      .map(values => values.map((value, index) =>
+        value > 0 && index > 0 && index < values.length - 1 &&
+        values[index - 1] === 0 && values[index + 1] === 0 ? 0 : value));
     const curvePoints: DataPowerCurvePoint[] = [];
 
     // Get user weight for W/kg calculation
@@ -2405,7 +2411,11 @@ export class ActivityUtilities {
     const sortedDurations = [...durations].sort((a, b) => a - b);
 
     for (const duration of sortedDurations) {
-      const maxAvgPower = meanMaxPower(powerData, duration);
+      let maxAvgPower: number | null = null;
+      for (const powerData of powerRuns) {
+        const candidate = meanMaxPower(powerData, duration);
+        if (candidate !== null) maxAvgPower = Math.max(maxAvgPower ?? 0, candidate);
+      }
       if (maxAvgPower === null) continue;
 
       const point: DataPowerCurvePoint = {

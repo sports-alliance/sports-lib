@@ -391,6 +391,11 @@ does not fill the stored streams. Missing terrain support leaves positive adjust
 stationary zero remains zero.
 The separate point-indexed route-grade algorithm is unchanged.
 
+Strava compatibility is measured separately for raw grade, smoothed grade and the GAP adjustment factor. The existing
+GAP polynomial approximates a published Strava curve; it is not an exact implementation of Strava's service. See
+[reference coverage and remaining discrepancies](validation.md#strava-reference-comparisons) before interpreting a
+passing regression suite as numerical equivalence.
+
 Generated Speed, Grade/Grade Smooth and interval-derived Grade Adjusted Speed retain optional `intervalSupport`
 evidence. Their averages use `sum(value × supportedSeconds) / sum(supportedSeconds)`, including stationary zeros.
 Lap averages include only supported intervals wholly inside that lap, without guessing a position at a cropped

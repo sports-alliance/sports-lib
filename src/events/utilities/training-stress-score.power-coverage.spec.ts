@@ -73,7 +73,8 @@ describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power covera
     'does not promote missing power fields into complete NP windows: %s', async coverage => {
       const activity = await parse(format, coverage);
       const displayPower = activity.getStreamData(DataPower.type).slice();
-      expect(displayPower.some(value => value === 0)).toBe(true); // Keep compatibility display padding.
+      expect(displayPower.some(value => value === null)).toBe(true);
+      expect(displayPower.some(value => value === 0)).toBe(false);
       for (let repeat = 0; repeat < 2; repeat++) {
         expect(evaluate(activity).automatic).toMatchObject({ method: 'HR', score: coverage === 'single' ? 100 : 1.7 });
         expect(activity.getStat(DataPowerNormalized.type)).toBeUndefined();
@@ -87,7 +88,7 @@ describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power covera
     'calculates NP only from complete recorded windows: %s', async coverage => {
       const activity = await parse(format, coverage);
       for (let repeat = 0; repeat < 2; repeat++) {
-        expect(evaluate(activity).automatic).toMatchObject({ method: 'POWER', score: coverage === 'zero' ? 0 : 1.7 });
+        expect(evaluate(activity).automatic).toMatchObject({ method: ['thirty', 'duplicate-missing'].includes(coverage) ? 'HR' : 'POWER', score: coverage === 'zero' ? 0 : 1.7 });
         expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBeCloseTo(coverage === 'zero' ? 0 : 250, 8);
         clearDerivedPower(activity);
       }
@@ -95,7 +96,7 @@ describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power covera
 
   it('retains real recorded coasting zeros in the rolling workload', async () => {
     const activity = await parse(format, 'coasting');
-    const values = [...Array(30).fill(250), ...Array(31).fill(0)];
+    const values = [...Array(30).fill(250), ...Array(30).fill(0)];
     const means = values.slice(29).map((_, index) => values.slice(index, index + 30).reduce((sum, value) => sum + value, 0) / 30);
     const expectedNP = (means.reduce((sum, value) => sum + value ** 4, 0) / means.length) ** 0.25;
     expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBeCloseTo(expectedNP, 8);

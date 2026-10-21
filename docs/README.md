@@ -12,6 +12,11 @@ streams need an original-file reparse; recorded values and route behavior remain
 [distance calculations](guides/metrics-and-calculations.md) and
 [persistence and migration](guides/exporting.md#sparse-distance-and-calculated-intervals).
 
+Power imports retain unknown watts as null and real coasting as zero. Calculated work, curves and power TSS use
+observed interval coverage, while supplied summaries keep priority. `ActivityUtilities.getPowerCoverage` exposes
+observed duration and work on demand, without adding stored metadata. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
+and [migration guidance](guides/exporting.md#missing-power).
+
 Browser charts and workers can use the public `@sports-alliance/sports-lib/metrics` entry to keep file importers and
 their asynchronous chunks out of their bundle graph. It shares the root API's canonical implementations and data
 catalog; no metric, JSON, persistence or migration behavior changes. See [browser and worker imports](guides/metrics-and-calculations.md#browser-and-worker-imports).

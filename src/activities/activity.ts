@@ -1,3 +1,4 @@
+import { getRecordedPowerClock } from '../events/utilities/tss/recorded-power-evidence';
 import { StatsUtilities } from '../stats/stats.utilities';
 import { ActivityInterface } from './activity.interface';
 import { LapInterface } from '../laps/lap.interface';
@@ -380,6 +381,11 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
         }
       }
     });
+    if (!streamTypes.length) {
+      for (const index of getRecordedPowerClock(this)) {
+        if (index < timeStreamData.length) timeStreamData[index] = index;
+      }
+    }
     return timeStream;
   }
 

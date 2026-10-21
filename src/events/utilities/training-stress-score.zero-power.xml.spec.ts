@@ -92,8 +92,8 @@ describe.each(['TCX', 'GPX'] as const)('%s zero-power source evidence', format =
       const activity = await parse(format, coverage);
       for (let repeat = 0; repeat < 2; repeat++) {
         expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({
-          method: 'POWER',
-          score: coverage === 'positive' ? 1.1 : 0
+          method: ['thirty', 'delayed'].includes(coverage) ? 'HR' : 'POWER',
+          score: ['thirty', 'delayed'].includes(coverage) ? 1.7 : coverage === 'positive' ? 1.1 : 0
         });
         activity.removeStat(DataPowerNormalized.type);
         activity.removeStat(DataPowerIntensityFactor.type);
@@ -107,7 +107,7 @@ describe.each(['TCX', 'GPX'] as const)('%s zero-power source evidence', format =
     async coverage => {
       const activity = await parse(format, coverage);
       if (coverage === 'single')
-        expect(activity.getStreamData(DataPower.type).filter(value => value === 0)).toHaveLength(61);
+        expect(activity.getStreamData(DataPower.type).filter(value => value === 0)).toHaveLength(1);
       for (let repeat = 0; repeat < 2; repeat++) {
         expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({
           method: 'HR',

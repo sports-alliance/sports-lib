@@ -510,12 +510,47 @@ Estimated FTP stat = round(0.95 * best_20min_power)
 IF = NP / independently supplied FTP
 ```
 
-Normalized power retains recorded zeroes. Gaps, invalid/negative samples, nonconsecutive timestamps and explicit
-start/stop timer boundaries restart the window; stopped samples do not contribute. FIT `stop_disable` and
-`stop_disable_all` have the same stopped-state behavior as `stop` and `stop_all`. No interpolation, zero-fill or
-carry-forward is applied to missing seconds. Sparse recordings without a complete window retain valid device NP on
-normal import; a missing calculated NP remains unavailable instead of becoming NaN in serialized statistics.
-The first complete 30-sample window contributes, and longer recordings contribute overlapping windows every second.
+FIT, TCX and GPX retain absent, blank, invalid and negative power as `null`; an explicit **0 W** remains a
+recorded observation. No interpolation or cadence-based filling is applied. Each observed power sample supports
+its own one-second interval, clipped to the activity end and located timer/lap boundaries. The endpoint itself has no
+additional duration. Explicit pauses are excluded; summary-only pause durations do not establish where a pause occurred.
+
+NP and power-curve points require complete contiguous windows. Gaps and timer boundaries break windows instead of
+contributing zero. A curve duration with no complete window is omitted, so an unsupported 20-minute effort cannot
+supply the same-activity FTP estimate. NP retains real coasting zeroes and requires a full 30-second window. Positive
+device NP keeps priority even with sparse samples. Unavailable calculations are omitted from serialized statistics.
+The existing curve-only rule for a solitary positive spike bounded by **recorded** zeroes is unchanged; missing
+neighbors no longer act as zeroes for that rule.
+
+### Power coverage and observed work
+
+`ActivityUtilities.getPowerCoverage(activity)` returns observed support without changing the activity or storing metadata:
+
+- `durationSeconds`: located active interval duration, or the larger explicit activity timer duration when supplied.
+- `coveredDurationSeconds` and `coverageRatio`: time supported by observed power, including recorded zeroes.
+- `observedAveragePowerWatts`: duration-weighted mean over supported intervals, or `null` without support.
+- `observedWorkKilojoules`: sum of observed watts multiplied by supported seconds, divided by 1000.
+
+Calculated `Average Power` is the observed-period mean, not an estimate of missing seconds. Partial observed work is
+available from the coverage helper; it is **not** stored as a complete `Power Work` total. Calculated `Power Work` requires
+complete coverage and consistent active timing; file-supplied work and average power remain authoritative. Supported
+work retains precision; display rounding does not change the value. Stationary activities can produce work, so positional
+moving time is not used as a substitute for power support. A summary timer with finer precision than the located
+intervals can leave a small unsupported remainder; the library does not invent its power.
+
+For example, 800 observed seconds at 200 W in a 1,200-second activity gives 66.7% coverage, a 200 W observed average
+and 160 kJ of observed work, with no complete work total. If the remaining 400 seconds explicitly record 0 W, coverage
+is complete: average power is 133.33 W and total work is 160 kJ.
+
+```ts
+const coverage = ActivityUtilities.getPowerCoverage(activity);
+// Only describe observedWorkKilojoules as supported work when coverage is partial.
+// Use the ordinary Power Work stat for a supplied or complete calculated total.
+```
+
+For multisport workouts, inspect each leg separately. Laps that start before their containing leg retain source
+summaries; an ending leg cannot supply a whole-lap average. No metric is added to DataStore or Quantified Self's MCP
+catalog, and there are no new MCP fields, scopes or mutations. Existing numeric metrics keep their names and units.
 
 The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
 athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file
@@ -766,24 +801,26 @@ Power uses the full eligible duration, without subtracting the NP window warm-up
 unambiguous `zones_target` FTP. Conflicting same-session values, duplicate session references and invalid scoped values
 are rejected. Valid scoped FTP takes precedence over unrelated global settings, including conflicting sport defaults.
 Global FTP must be valid and unambiguous when no scoped FTP exists.
-Source provenance stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
+File FTP calibration stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
 serialized into ordinary Activity JSON. Missing calibration reports `missing-power-inputs` and falls through to eligible
 HR, pace or MET candidates; no threshold is inferred from the ride or its intensity factor.
 
-Complete eligible recorded zero-power windows can establish NP 0 and POWER TSS 0 with valid independent FTP and
-duration. A zero NP summary alone cannot establish this: missing, gappy, short or paused-only recordings still need
-an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX importers are not recorded evidence.
-All computed NP paths use actual recorded power coverage, including when positive readings occur among missing
-fields. A single positive reading cannot create a complete window by padding the rest with zeros. If no complete
-recorded window remains, power is unavailable and the normal eligible fallback applies. Genuine recorded coasting
-zeros remain valid. FIT records at the same absolute timestamp are combined before padding: an HR-only record cannot
-erase power from a complementary record. The last explicitly supplied value for each field wins, including zero and
-invalid values; distinct timestamps remain separate. This private evidence survives regeneration on the
-parsed instance and does not add fields to Activity JSON. Positive device NP keeps its existing precedence;
-imported TSS, including zero, remains authoritative.
-Explicit TSS reevaluation refreshes library-calculated NP and intensity factor from the current streams and timer
-events. It preserves genuine device NP and an explicitly replaced NP statistic. The cached evaluation getter remains
-unchanged; calculation provenance is private and is not serialized.
+Calculated NP can supply power TSS only when observed power covers at least **80%** of the larger located active
+or eligible TSS duration. The full eligible duration remains the multiplier. Partial computed-power TSS is marked
+`estimated: true`; 80% is an eligibility safeguard, not a guarantee of accuracy when hard efforts are missing.
+Below that coverage, the candidate reports `calculation-unavailable` and uses the existing eligible fallback.
+No complete NP window reports `missing-power-inputs`. Independent FTP is still required in both cases.
+
+Complete recorded zero-power coverage can establish NP 0 and POWER TSS 0. A zero summary alone or a short zero-power
+fragment cannot establish zero whole-workout load. Positive device-supplied NP is not subject to the computed-NP gate;
+valid imported TSS, including zero, remains authoritative. FIT complementary same-timestamp records retain their
+field-merging rules before mapping; missing power fields do not erase another record's explicit power value.
+
+Explicit TSS reevaluation refreshes calculated NP and intensity factor from current streams and timers on the parsed
+instance. It preserves supplied or explicitly replaced summaries. The cached getter is unchanged. Existing NP/IF
+calculation provenance and original-file FTP calibration remain private and are not serialized. Native JSON hydration
+preserves saved summaries; it does not identify their original source or automatically regenerate them. Use an
+original-file reparse to refresh historical power summaries and evaluations.
 
 When a FIT session has a missing or zero timer summary, unambiguous recorded timer intervals can supply its active
 duration instead of treating all elapsed time as active. Explicit all-paused timing retains zero active duration.
@@ -1058,7 +1095,7 @@ where:
   secondsPerMeter = (secondsPer100m / 100)
   strokesPerMeter = ((strokesPerMinute * (secondsPer100m / 60)) / 100)
 
-PowerWork(kJ) = round((AveragePower * MovingTimeSeconds) / 1000)
+ObservedPowerWork(kJ) = sum(observedWatts * supportedActiveSeconds) / 1000
 BatteryConsumption = max(BatteryCharge) - min(BatteryCharge)
 BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
 ```
@@ -1067,8 +1104,8 @@ SWOLF uses `Average Stroke Rate`; the naming change does not alter the calculati
 
 - Moving time fallback order: complete contiguous lap moving times -> supported speed intervals -> unavailable.
   Explicit stationary zero remains valid; Timer time is not substituted for missing movement evidence.
-- The existing Power Work fallback requires usable moving time. Positive power with zero movement leaves this
-  fallback unavailable: a stationary bike can still produce work. File-supplied work values remain authoritative.
+- Calculated Power Work requires complete power coverage and consistent active timing. Partial work remains in
+  the coverage helper; unknown watts are never zero or an extrapolated average. File-supplied work values stay authoritative.
 - Jump families (height, distance, speed, rotations, score, hang time) compute min/max/avg from jump events when available.
 
 8) Event-level aggregation behavior

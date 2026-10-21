@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -106,10 +107,10 @@ export class EventImporterGPX {
             return {
               timestamp: sample.time[0],
               // Match the mapper's first extension, retaining absent/blank fields as
-              // unknown rather than its compatibility zero padding.
+              // unknown; only an explicit finite nonnegative value is a reading.
               power: isNumberOrString(rawPower) && String(rawPower).trim() !== '' ? Number(rawPower) : undefined
             };
-          })
+          }), isStreamTypeAllowedForImport(DataPower.type, streamSelection)
         );
 
         // Match
@@ -117,7 +118,8 @@ export class EventImporterGPX {
           isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
         ).forEach(sampleMapping => {
           const subjectSamples = <any[]>(
-            samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
+            samples.filter((sample: any) => (sampleMapping.dataType === DataPower.type && hasPowerMeter) ||
+              isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
           );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));

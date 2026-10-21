@@ -82,3 +82,11 @@ Read the cached evaluations while retaining the parsed Activity instance. They s
 but are not serialized into ordinary activity JSON. Use `evaluateTrainingStressScore` only for an explicit recalculation.
 For complete method comparisons, omit `streams.includeTypes`: a restrictive allowlist can prevent calculation inputs
 from being imported, so evaluations reflect only the inputs that were loaded.
+
+### Missing power
+
+FIT/TCX/GPX imports keep absent power as `null` and genuine 0 W as zero. No cadence inference or filling option is
+applied. Calculated power TSS needs independent FTP, a complete NP window and at least 80% observed active-time
+coverage; partial eligible results are estimates. Supplied NP and imported TSS retain priority. Use `ActivityUtilities.getPowerCoverage(activity)`
+to distinguish an observed-period average/work from a complete total. See [power coverage](metrics-and-calculations.md#power-coverage-and-observed-work)
+and [JSON migration](exporting.md#missing-power).

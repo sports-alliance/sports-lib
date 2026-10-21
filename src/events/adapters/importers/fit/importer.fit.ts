@@ -621,7 +621,8 @@ export class EventImporterFIT {
           // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
           const recordedSamples = coalesceFitRecords(sessionRecords[sessionIndex]);
-          captureRecordedPowerEvidence(activity, recordedSamples);
+          captureRecordedPowerEvidence(activity, recordedSamples, !isLengthsBased &&
+            isStreamTypeAllowedForImport(DataPower.type, streamSelection));
           // Once a real HR stream exists, keep explicit zero/invalid observations
           // as coverage boundaries too. Dropping them bridges sensor dropouts.
           const hasRecordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) && recordedSamples.some((record: any) =>
@@ -678,9 +679,8 @@ export class EventImporterFIT {
             samplesInfo
           );
           if (recordedMappings.length) {
-            // Recorded pool power has its own coverage. The ordinary FIT mapper
-            // pads absent power at other sensor timestamps with zero; retain
-            // actual observations here so gaps also survive JSON restoration.
+            // Recorded pool power has its own coverage. Retain actual observations
+            // rather than deriving power samples from swim lengths.
             const poolMappings = recordedMappings.map(mapping =>
               mapping.dataType === DataPower.type
                 ? {

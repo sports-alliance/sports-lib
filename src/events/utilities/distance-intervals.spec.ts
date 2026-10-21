@@ -606,7 +606,7 @@ describe('sparse distance generation and persistence', () => {
 
   it.each([
     [0, 0],
-    [200, undefined]
+    [200, 0.4]
   ])('does not equate zero movement with zero work at %s watts', (power, expectedWork) => {
     const a = make([0, 0, 0]);
     a.addStream(new Stream('Power', Array(3).fill(power)));

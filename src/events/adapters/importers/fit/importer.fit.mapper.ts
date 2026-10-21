@@ -192,11 +192,9 @@ export const FITSampleMapper: {
   {
     dataType: DataPower.type,
     getSampleValue: (sample: any, sampleInfo?: SampleInfo) => {
-      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
-      // Just set watts to 0 when this happen
-      // Case example: ride file "7432332116.fit"  from integration tests
       const watts = isNumber(sample.power) ? sample.power : isNumber(sample.Power) ? sample.Power : sample.RP_Power;
-      return sampleInfo?.hasPowerMeter ? watts || 0 : null;
+      return sampleInfo?.hasPowerMeter && typeof watts === 'number' && Number.isFinite(watts) && watts >= 0
+        ? watts : null;
     }
   },
   {

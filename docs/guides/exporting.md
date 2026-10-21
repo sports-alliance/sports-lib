@@ -123,3 +123,18 @@ require an original-file reparse: neither JSON hydration nor summary regeneratio
 mask. After adopting this version, regenerate affected summaries/Training snapshots from corrected imports as needed.
 Canonical metric names, units, recorded statistics, swim lengths/rests, and route JSON contracts remain unchanged.
 The optional interval evidence is calculation metadata, not a new numeric metric or an MCP response field.
+
+## Missing power
+
+FIT, TCX and GPX power now preserves missing values as `null` and keeps recorded zero watts. Native JSON preserves
+those gaps. The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
+`ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
+changing the activity. Supplied summaries and imported TSS retain priority.
+
+Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
+retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need
+no separate stored-stream migration. Persist refreshed summaries/evaluations and rebuild affected power curves or
+capacity snapshots through the application's normal workflow. No automatic migration or reparse is triggered.
+
+See [Power coverage and observed work](metrics-and-calculations.md#power-coverage-and-observed-work) for formulas,
+partial-result handling and the computed-power TSS coverage gate. Routes are unchanged.

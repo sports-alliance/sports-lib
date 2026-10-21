@@ -8,12 +8,13 @@ interface RecordedPowerSample {
   RP_Power?: unknown;
 }
 
-// File compatibility mappers pad missing record power with zero. Keep their
-// actual observations privately so that padding cannot establish an NP window.
-// Generic caller-supplied streams have no such padding provenance and remain valid.
+// Legacy observation mask retained for direct helper consumers. Current calculations
+// use canonical null-preserving streams. Importers also preserve their record clock
+// independently, so removing zero padding does not alter other sensor streams.
+const recordedPowerClock = new WeakMap<ActivityInterface, number[]>();
 const recordedPowerValues = new WeakMap<ActivityInterface, Map<number, number>>();
 
-export function captureRecordedPowerEvidence(activity: ActivityInterface, samples: RecordedPowerSample[]): void {
+export function captureRecordedPowerEvidence(activity: ActivityInterface, samples: RecordedPowerSample[], preserveClock = false): void {
   const observations = new Map<number, number>();
   for (const sample of samples) {
     const time = activity.getDateIndex(
@@ -26,6 +27,21 @@ export function captureRecordedPowerEvidence(activity: ActivityInterface, sample
     else observations.delete(time); // The last record on the stream grid wins.
   }
   recordedPowerValues.set(activity, observations);
+  recordedPowerClock.delete(activity);
+  if (preserveClock && observations.size) {
+    const length = Math.max(0, Math.round((+activity.endDate - +activity.startDate) / 1000) + 1);
+    const clock = new Set<number>();
+    for (const sample of samples) {
+      const i = activity.getDateIndex(new Date(sample.timestamp));
+      if (Number.isSafeInteger(i) && i >= 0 && i < length) clock.add(i);
+    }
+    recordedPowerClock.set(activity, [...clock]);
+  }
+}
+
+/** Original parse clock only: keeps unrelated sensor filling independent of missing watts. */
+export function getRecordedPowerClock(activity: ActivityInterface): readonly number[] {
+  return recordedPowerClock.get(activity) ?? [];
 }
 
 /** Mask compatibility padding without changing the displayed/caller-owned stream.

@@ -263,3 +263,5 @@ export * from './users/user.service.meta.interface';
 export type { TrainingStressScorePreference, TrainingStressScoreHrAlgorithm, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from './events/utilities/tss/tss-evaluation';
 
 export * from './duration/timing-validity';
+
+export type { PowerCoverage } from './activities/power-coverage';

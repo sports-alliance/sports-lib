@@ -1,3 +1,4 @@
+import { ActivityUtilities } from '../events/utilities/activity.utilities';
 import * as fs from 'fs';
 import { SportsLib } from '../index';
 import { EventInterface } from '../events/event.interface';
@@ -932,7 +933,10 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect((activity.getStat(DataTotalCycles.type) as DataNumber).getValue()).toEqual(4242);
             expect((activity.getStat(DataAerobicTrainingEffect.type) as DataNumber).getValue()).toEqual(2.2);
             expect((activity.getStat(DataAnaerobicTrainingEffect.type) as DataNumber).getValue()).toEqual(1.8);
-            expect((activity.getStat(DataPowerWork.type) as DataNumber).getValue()).toEqual(692);
+            // Timer precision exceeds the located intervals; keep supported work without inventing the remainder.
+            expect(activity.getStat(DataPowerWork.type)).toBeUndefined();
+            expect(ActivityUtilities.getPowerCoverage(activity)
+              .observedWorkKilojoules).toBeCloseTo(735.735, 3);
 
             SpecUtils.assertNearEqualTime((activity.getStat(DataPaceAvg.type) as DataNumber).getValue(), '04:51', 1);
 
@@ -1712,7 +1716,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+            // Six absent power fields remain unknown; other sensor clocks are unchanged.
+            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength - 6);
 
             done();
           })
@@ -1955,7 +1960,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+            // Six absent power fields remain unknown; other sensor clocks are unchanged.
+            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength - 6);
 
             done();
           })
@@ -2158,7 +2164,8 @@ describe('FIT/TCX/GPX activity parsing compliance', () => {
             expect(activity.getSquashedStreamData(DataSpeed.type).length).toEqual(expectedSamplesLength - 1);
             expect(activity.getSquashedStreamData(DataCadence.type).length).toEqual(expectedSamplesLength);
             expect(activity.getSquashedStreamData(DataHeartRate.type).length).toEqual(expectedSamplesLength);
-            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength);
+            // Six absent power fields remain unknown; other sensor clocks are unchanged.
+            expect(activity.getSquashedStreamData(DataPower.type).length).toEqual(expectedSamplesLength - 6);
 
             done();
           })

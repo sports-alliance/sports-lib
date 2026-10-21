@@ -1,10 +1,11 @@
+import { powerIntervals, meanMaxPower } from './power-intervals';
+import type { PowerCoverage } from '../../activities/power-coverage';
 import { DataEvent } from '../../data/data.event';
 import { DataStartEvent } from '../../data/data.start-event';
 import { DataStopEvent } from '../../data/data.stop-event';
 import { DataStopAllEvent } from '../../data/data.stop-all-event';
 import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, getHeartRateSamplesWithCoverage } from './tss/hr-observation-coverage';
 import { calculateNormalizedPower } from './normalized-power';
-import { getRecordedPowerValues } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
@@ -417,7 +418,22 @@ export class ActivityUtilities {
     return stat;
   }
 
+  private static isCalculatedNormalizedPower(activity: ActivityInterface): boolean {
+    const calculated = this.calculatedNormalizedPower.get(activity);
+    return !!calculated && activity.getStat(DataPowerNormalized.type) === calculated.stat &&
+      calculated.stat.getValue() === calculated.value;
+  }
+
+  /** Measures observed active power support without changing streams or persisted statistics.
+   * Each reading supports at most one second. Missing watts remain unknown; recorded zeroes count as coverage.
+   * Observed work is partial when coverageRatio is below one, not an estimate of missing work.
+   */
+  public static getPowerCoverage(activity: ActivityInterface): PowerCoverage {
+    return powerIntervals(activity).coverage;
+  }
+
   private static geoLibAdapter = new GeoLibAdapter();
+  private static readonly MINIMUM_COMPUTED_POWER_TSS_COVERAGE = 0.8;
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
   private static readonly INTENSITY_FACTOR_DECIMALS = 3;
@@ -1072,10 +1088,13 @@ export class ActivityUtilities {
           : Math.ceil((lapEnd - activityStart) / 1000)
       );
 
+      const lapPower = activity.hasStreamData(DataPower.type) ? powerIntervals(activity,
+        (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : null;
       addMissingStreamSummaryStats({
         activityType: activity.type,
         target: lap,
         readAverage: streamType => {
+          if (streamType === DataPower.type) return lapPower?.coverage.observedAveragePowerWatts ?? null;
           const stream = activity.getAllStreams().find(item => item.type === streamType);
           return stream ? intervalAverage(stream, (lapStart - activityStart) / 1000,
             (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : undefined;
@@ -2388,22 +2407,10 @@ export class ActivityUtilities {
       ];
     }
 
-    const rawPowerData = activity.getStreamData(DataPower.type);
-    const finitePowerData = rawPowerData.map(value =>
-      typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
-    );
-    // A single positive sample bounded by zero-power samples is a common
-    // recording artifact. Exclude it from the derived curve while preserving
-    // the caller-owned activity stream unchanged.
-    const powerData = finitePowerData.map((value, index) =>
-      value > 0 &&
-      index > 0 &&
-      index < finitePowerData.length - 1 &&
-      finitePowerData[index - 1] === 0 &&
-      finitePowerData[index + 1] === 0
-        ? 0
-        : value
-    );
+    const supportedPower = powerIntervals(activity).watts;
+    const powerData = supportedPower.map((value, index) =>
+      value > 0 && index > 0 && index < supportedPower.length - 1 &&
+      supportedPower[index - 1] === 0 && supportedPower[index + 1] === 0 ? 0 : value);
     const curvePoints: DataPowerCurvePoint[] = [];
 
     // Get user weight for W/kg calculation
@@ -2414,27 +2421,8 @@ export class ActivityUtilities {
     const sortedDurations = [...durations].sort((a, b) => a - b);
 
     for (const duration of sortedDurations) {
-      if (duration <= 0 || duration > powerData.length) {
-        continue;
-      }
-
-      let maxAvgPower = 0;
-      let currentSum = 0;
-
-      // Initial window
-      for (let i = 0; i < duration; i++) {
-        currentSum += powerData[i];
-      }
-      maxAvgPower = currentSum / duration;
-
-      // Slide window
-      for (let i = duration; i < powerData.length; i++) {
-        currentSum = currentSum - powerData[i - duration] + powerData[i];
-        const currentAvg = currentSum / duration;
-        if (currentAvg > maxAvgPower) {
-          maxAvgPower = currentAvg;
-        }
-      }
+      const maxAvgPower = meanMaxPower(powerData, duration);
+      if (maxAvgPower === null) continue;
 
       const point: DataPowerCurvePoint = {
         duration: new DataDuration(duration),
@@ -2589,17 +2577,8 @@ export class ActivityUtilities {
       return null;
     }
 
-    const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-    const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-    const powerStream = powerDurationStream.map(item => item.value) as number[];
-    if (powerStream.length < 2 || timeStream.length < 2) {
-      return null;
-    }
-
-    // Unlike a zero summary placeholder, a complete recorded window can prove
-    // zero NP. The rolling calculation returns NaN when coverage is unavailable.
-    const computedNormalizedPower = calculateNormalizedPower(
-      getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
+    const power = powerIntervals(activity).watts;
+    const computedNormalizedPower = calculateNormalizedPower(power, power.map((_, i) => i), activity.getAllEvents());
     if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0) {
       return null;
     }
@@ -2729,6 +2708,14 @@ export class ActivityUtilities {
     const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
     if (normalizedPower === null || !(durationSeconds > 0)) {
       return { result: null, reason: 'missing-power-inputs' };
+    }
+
+    if (this.isCalculatedNormalizedPower(activity)) {
+      const coverage = powerIntervals(activity).coverage;
+      const denominator = Math.max(coverage.durationSeconds, durationSeconds);
+      if (!(denominator > 0) || coverage.coveredDurationSeconds / denominator < this.MINIMUM_COMPUTED_POWER_TSS_COVERAGE - 1e-9) {
+        return { result: null, reason: 'calculation-unavailable' };
+      }
     }
 
     return this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
@@ -3005,6 +2992,10 @@ export class ActivityUtilities {
       }
       if (!automatic) automaticReasons.push(metCandidate?.reason ?? 'missing-met-inputs');
     }
+    const powerCoverage = power && this.isCalculatedNormalizedPower(activity)
+      ? powerIntervals(activity).coverage : null;
+    const estimatedPower = !!powerCoverage && powerCoverage.coveredDurationSeconds <
+      Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
       const result = preferred ?? automatic;
@@ -3015,7 +3006,8 @@ export class ActivityUtilities {
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
         method: result?.calculationMethod ?? null,
         ...(result?.hrAlgorithm ? { hrAlgorithm: result.hrAlgorithm } : {}),
-        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD',
+        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD' ||
+          (result?.calculationMethod === TrainingStressScoreMethod.POWER && estimatedPower),
         provenance: result ? 'calculated' : null,
         reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
@@ -3855,11 +3847,22 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
+    const power = activity.hasStreamData(DataPower.type) ? powerIntervals(activity) : null;
+    if (power) {
+      const c = power.coverage;
+      const timer = this.getDurationSecondsWithoutPauses(activity);
+      if (!activity.getStat(DataPowerWork.type) && c.durationSeconds > 0 && timer > 0 &&
+        Math.abs(c.durationSeconds - timer) < 1e-6 &&
+        c.coveredDurationSeconds >= c.durationSeconds - 1e-6) {
+        activity.addStat(new DataPowerWork(c.observedWorkKilojoules));
+      }
+    }
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,
       readStream: streamType => (activity.hasStreamData(streamType) ? activity.getStreamData(streamType) : undefined),
       readAverage: streamType => {
+        if (streamType === DataPower.type) return power?.coverage.observedAveragePowerWatts ?? null;
         const stream = activity.getAllStreams().find(item => item.type === streamType);
         return stream ? intervalAverage(stream) : undefined;
       }
@@ -3961,15 +3964,8 @@ export class ActivityUtilities {
       }
     }
 
-    // Power Normalized
-    if (!activity.getStat(DataPowerNormalized.type) && activity.hasStreamData(DataPower.type)) {
-      const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-      const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-      const powerStream = powerDurationStream.map(item => item.value) as number[];
-      const normalizedPower = calculateNormalizedPower(
-        getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
-      if (Number.isFinite(normalizedPower)) this.setCalculatedNormalizedPower(activity, normalizedPower);
-    }
+    // A file-supplied summary wins; calculated NP uses only complete active windows.
+    if (!activity.getStat(DataPowerNormalized.type)) this.resolveNormalizedPower(activity);
 
     // Power Curve
     if (!activity.getStat(DataPowerCurve.type) && activity.hasStreamData(DataPower.type)) {
@@ -4748,22 +4744,6 @@ export class ActivityUtilities {
       // Zero is a valid stationary result. Unsupported movement is not timer time.
       if (movingTime !== null && Number.isFinite(movingTime) && movingTime <= timerTime) {
         activity.addStat(new DataMovingTime(movingTime));
-      }
-    }
-
-    // Add Power Work if missing when avg power and moving time are available
-    if (
-      !activity.getStat(DataPowerWork.type) &&
-      activity.getStat(DataPowerAvg.type) &&
-      activity.getStat(DataMovingTime.type)
-    ) {
-      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
-      const avgPower = (<DataPowerAvg>activity.getStat(DataPowerAvg.type)).getValue();
-      // Zero positional movement does not establish zero work (for example, an indoor bike).
-      // Keep this fallback unavailable rather than rewriting its energy model or inventing timer support.
-      if (movingTime > 0 || avgPower === 0) {
-        const powerWork = Math.round((avgPower * movingTime) / 1000);
-        activity.addStat(new DataPowerWork(powerWork));
       }
     }
 

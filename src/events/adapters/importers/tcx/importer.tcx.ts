@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Creator } from '../../../../creators/creator';
@@ -163,14 +164,15 @@ export class EventImporterTCX {
           const rawPower = watts?.firstChild?.nodeValue;
           return [{ timestamp: time.textContent || '',
             power: typeof rawPower === 'string' && rawPower.trim() !== '' ? Number(rawPower) : undefined }];
-        }));
+        }), isStreamTypeAllowedForImport(DataPower.type, streamSelection));
 
         TCXSampleMapper
           .filter(sampleMapping => isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection))
           .forEach(sampleMapping => {
           // Should check the children
           const subjectTrackPointElements = trackPointElements.filter((element: any) => {
-            return isNumber(sampleMapping.getSampleValue(element, samplesInfo));
+            return sampleMapping.dataType === DataPower.type && hasPowerMeter ||
+              isNumber(sampleMapping.getSampleValue(element, samplesInfo));
           });
           if (subjectTrackPointElements.length) {
             if (activity.hasStreamData(sampleMapping.dataType)) {

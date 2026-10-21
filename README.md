@@ -11,6 +11,9 @@ to recover valid observations while preserving zeros, pauses and sport boundarie
 [validation guide](https://sports-alliance.github.io/sports-lib/documents/Validation_and_compatibility.html)
 for supported recovery examples, activity and route coverage, methodology and known limitations.
 
+Power calculations distinguish missing readings from recorded zero watts and expose observed coverage alongside
+partial work. Device summaries retain priority. See [power coverage and migration](docs/guides/exporting.md#missing-power).
+
 ## Documentation
 
 The hosted documentation contains the supported API and all consumer guidance:

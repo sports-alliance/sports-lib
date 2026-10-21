@@ -5,7 +5,7 @@ import { DataPower } from '../../data/data.power';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { Stream } from '../../streams/stream';
 import { EventImporterJSON } from '../adapters/importers/json/importer.json';
-import { captureRecordedPowerEvidence } from './tss/recorded-power-evidence';
+import { captureImportedSensorFillTimes } from './imported-sensor-fill-times';
 import { ActivityUtilities } from './activity.utilities';
 
 it('keeps source timestamps for other sensor filling without storing clock metadata or padding watts', () => {
@@ -19,12 +19,8 @@ it('keeps source timestamps for other sensor filling without storing clock metad
   };
   const a = make(false);
   const previous = make(true);
-  captureRecordedPowerEvidence(
-    a,
-    [0, 1, 2, 4, 5, 6].map(i => ({ timestamp: new Date(i * 1000), ...(i === 0 ? { power: 200 } : {}) })),
-    true
-  );
-  expect(a.generateTimeStream().getData()).toEqual(previous.generateTimeStream().getData());
+  captureImportedSensorFillTimes(a, [0, 1, 2, 4, 5, 6].map(i => new Date(i * 1000)));
+  expect(a.generateTimeStream().getData()).toEqual([0, null, null, null, 4, null, null]);
   expect(a.generateTimeStream([DataPower.type]).getData()).toEqual([0, null, null, null, null, null, null]);
   ActivityUtilities.generateMissingStreamsAndStatsForActivity(a);
   ActivityUtilities.generateMissingStreamsAndStatsForActivity(previous);
@@ -36,4 +32,10 @@ it('keeps source timestamps for other sensor filling without storing clock metad
   const restored = EventImporterJSON.getActivityFromJSON(json);
   expect(restored.getStreamData(DataHeartRate.type)).toEqual(a.getStreamData(DataHeartRate.type));
   expect(restored.getStreamData(DataPower.type)).toEqual(a.getStreamData(DataPower.type));
+  expect(restored.generateTimeStream().getData()).toEqual(a.generateTimeStream().getData());
+
+  // Replacing streams must not revive timestamps captured during the original import.
+  a.getStream(DataHeartRate.type).setData([100, null, null, null, 110, null, null]);
+  ActivityUtilities.addMissingDataToStreams(a);
+  expect(a.getStreamData(DataHeartRate.type)).toEqual([100, null, null, null, 110, null, null]);
 });

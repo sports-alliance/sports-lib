@@ -140,6 +140,24 @@ it('rejects coverage below 80% and never counts paused readings or the endpoint 
   });
 });
 
+it('keeps pauses, missing readings and coasting distinct after repeated JSON restoration', () => {
+  let a = create([200, null, 0, 900, 900, 300, 300, 300], 7);
+  a.addEvent(new DataStopEvent(3));
+  a.addEvent(new DataStartEvent(5));
+  a.addStat(new DataTimerTime(5));
+  const expected = coverage(a);
+  expect(expected).toMatchObject({ coveredDurationSeconds: 4, coverageRatio: 0.8, observedWorkKilojoules: 0.8 });
+  for (let repeat = 0; repeat < 2; repeat++) {
+    a = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON()))) as Activity;
+    expect(coverage(a)).toEqual(expected);
+    expect(meanMaxPower(powerIntervals(a).watts, 3)).toBeNull();
+    expect(meanMaxPower(powerIntervals(a).watts, 2)).toBe(300);
+  }
+  // Coverage always uses current streams, including caller edits after restoration.
+  a.getStream(DataPower.type).setData([200, 200, 0, 900, 900, 300, 300, 300]);
+  expect(coverage(a)).toMatchObject({ coverageRatio: 1, observedWorkKilojoules: 1 });
+});
+
 it('keeps absent data unavailable and honors a larger supplied timer duration', () => {
   const a = create(Array(60).fill(null));
   generate(a);

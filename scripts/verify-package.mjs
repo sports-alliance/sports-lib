@@ -499,7 +499,7 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
   // Allow 2,000 additional bytes for observed-power interval calculations.
-  // Measured facade startup: 488,991 bytes, versus 486,768 before this change (previous ceiling: 488,000).
+  // Previous ceiling: 488,000 bytes. Measured bundle sizes are reported by this check.
   // Keep catalog/provider contributions separately bounded and the decoder lazy.
   assertActivityMetadataBudget(initialOutputs);
   assert.ok(initialBytes <= 490_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 490000`);

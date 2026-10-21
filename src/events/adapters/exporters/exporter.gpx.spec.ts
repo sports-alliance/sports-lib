@@ -100,6 +100,20 @@ describe('EventExporterGPX', () => {
     expect(points[1].getElementsByTagNameNS(trackPointNamespace, 'hr')[0].textContent).toBe('121');
   });
 
+  it.each([[200, null, 0, 250], [0, 0, 0, 0]])(
+    'round-trips missing power and actual coasting through GPX and native JSON: %j', async (...watts) => {
+      const event = speedEvent(watts.map(() => 3));
+      event.getFirstActivity().addStream(new Stream(DataPower.type, watts));
+      const before = event.toJSON();
+      const support = ActivityUtilities.getPowerCoverage(event.getFirstActivity());
+      const xml = await new EventExporterGPX().getAsString(event);
+      const restored = await EventImporterGPX.getFromString(xml, xmldom.DOMParser);
+      const native = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(restored.toJSON())));
+      expect(native.getFirstActivity().getStreamData(DataPower.type)).toEqual(watts);
+      expect(ActivityUtilities.getPowerCoverage(native.getFirstActivity())).toEqual(support);
+      expect(event.toJSON()).toEqual(before);
+    });
+
   it('keeps independent extensions and emits sensor fields in v2 schema sequence', async () => {
     const event = speedEvent([0, 3]);
     const a = event.getFirstActivity();

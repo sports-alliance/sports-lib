@@ -127,9 +127,11 @@ The optional interval evidence is calculation metadata, not a new numeric metric
 ## Missing power
 
 FIT, TCX and GPX power now preserves missing values as `null` and keeps recorded zero watts. Native JSON preserves
-those gaps. The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
+those gaps. Generated Time is the union of sensor values and stays consistent after JSON restoration.
+Original record timestamps are used only during import to retain the existing fill behavior of other sensors.
+The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
 `ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
-changing the activity. Supplied summaries and imported TSS retain priority.
+changing the activity. GPX exports retain genuine zero watts and omit missing power. Supplied summaries and imported TSS retain priority.
 
 Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
 retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need

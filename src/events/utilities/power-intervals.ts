@@ -21,7 +21,6 @@ export function powerIntervals(activity: ActivityInterface, start = 0, end = Inf
   const limit = Math.max(offset, Math.min(length, Math.ceil(end)));
   // Importers now retain unknown values as null. The canonical stream itself is
   // sufficient evidence, including after JSON restoration or explicit caller edits.
-  const recorded = raw.slice(offset, limit);
   const watts = Array(limit - offset).fill(NaN);
   let duration = 0,
     covered = 0,
@@ -32,7 +31,7 @@ export function powerIntervals(activity: ActivityInterface, start = 0, end = Inf
     if (!(to > from)) continue;
     duration += to - from;
     for (let i = Math.max(offset, Math.floor(from)); i < Math.min(limit, Math.ceil(to)); i++) {
-      const value = recorded[i - offset];
+      const value = raw[i];
       if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) continue;
       const support = Math.min(i + 1, to) - Math.max(i, from);
       if (!(support > 0)) continue;

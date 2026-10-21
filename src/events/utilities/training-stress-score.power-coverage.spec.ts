@@ -1,5 +1,6 @@
 import { FitBaseType, FitEncoder } from 'fit-file-parser/encoder';
 import xmldom from '@xmldom/xmldom';
+import { EventImporterJSON } from '../adapters/importers/json/importer.json';
 import { EventImporterFIT } from '../adapters/importers/fit/importer.fit';
 import { EventImporterGPX } from '../adapters/importers/gpx/importer.gpx';
 import { EventImporterTCX } from '../adapters/importers/tcx/importer.tcx';
@@ -14,7 +15,7 @@ type Coverage = 'complete' | 'single' | 'short' | 'thirty' | 'gappy' | 'one-gap'
 const field = (number: number, value: number, baseType = FitBaseType.Uint8) => ({ number, value, baseType,
   size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
 
-async function parse(format: Format, coverage: Coverage, extras: { np?: number; imported?: number } = {}) {
+async function parse(format: Format, coverage: Coverage, extras: { np?: number; imported?: number; powerOnly?: boolean } = {}) {
   const duration = coverage === 'single' ? 3600 : 60;
   const origin = new Date('2026-01-01T10:00:00Z');
   const time = (second: number) => new Date(+origin + second * 1000).toISOString();
@@ -24,7 +25,7 @@ async function parse(format: Format, coverage: Coverage, extras: { np?: number; 
       (coverage === 'thirty' || coverage === 'duplicate-missing') && second < 30 ||
       coverage === 'gappy' && second % 2 === 0 || coverage === 'one-gap' && second !== 30 ? 250 : undefined }));
   if (coverage === 'duplicate-missing') samples.splice(16, 0, { second: 15 });
-  const options = new ActivityParsingOptions({ generateUnitStreams: false, tss: format === 'FIT' ? undefined : {
+  const options = new ActivityParsingOptions({ generateUnitStreams: false, streams: extras.powerOnly ? { includeTypes: [DataPower.type] } : undefined, tss: format === 'FIT' ? undefined : {
     overrides: { functionalThresholdPower: 250, maxHeartRate: 190, restingHeartRate: 55, lactateThresholdHR: 165 }
   } });
   if (format === 'FIT') {
@@ -91,6 +92,22 @@ describe.each(['FIT', 'TCX', 'GPX'] as const)('%s recorded positive-power covera
         expect(evaluate(activity).automatic).toMatchObject({ method: ['thirty', 'duplicate-missing'].includes(coverage) ? 'HR' : 'POWER', score: coverage === 'zero' ? 0 : 1.7 });
         expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBeCloseTo(coverage === 'zero' ? 0 : 250, 8);
         clearDerivedPower(activity);
+      }
+    });
+
+  it.each(['gappy', 'coasting', 'zero'] as Coverage[])(
+    'preserves power, time, coverage and summaries across repeated JSON round-trips: %s', async coverage => {
+      let activity = await parse(format, coverage, { powerOnly: true });
+      const power = activity.getStreamData(DataPower.type).slice();
+      const time = activity.generateTimeStream().getData().slice();
+      const support = ActivityUtilities.getPowerCoverage(activity);
+      const stats = activity.toJSON().stats;
+      for (let repeat = 0; repeat < 2; repeat++) {
+        activity = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(activity.toJSON())));
+        expect(activity.getStreamData(DataPower.type)).toEqual(power);
+        expect(activity.generateTimeStream().getData()).toEqual(time);
+        expect(ActivityUtilities.getPowerCoverage(activity)).toEqual(support);
+        expect(activity.toJSON().stats).toEqual(stats);
       }
     });
 

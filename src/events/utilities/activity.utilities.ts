@@ -1,3 +1,4 @@
+import { takeImportedSensorFillTimes } from './imported-sensor-fill-times';
 import { powerIntervals, meanMaxPower } from './power-intervals';
 import type { PowerCoverage } from '../../activities/power-coverage';
 import { DataEvent } from '../../data/data.event';
@@ -3701,6 +3702,16 @@ export class ActivityUtilities {
             .map(stream => stream.type)
         : []
     );
+    // Original record timestamps preserve the existing fill behavior of other sensors
+    // when missing watts stop supplying artificial zeros. They are consumed here only;
+    // the public Time stream remains the union of actual sensor values.
+    const importedFillTimes = takeImportedSensorFillTimes(activity);
+    if (!hasPoolLengths && !recordedPoolHeartRate.has(activity)) {
+      const fillGrid = timeStream.getData();
+      for (const index of importedFillTimes) {
+        if (index < fillGrid.length) fillGrid[index] = index;
+      }
+    }
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:

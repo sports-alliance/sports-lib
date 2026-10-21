@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FITSampleMapper } from './importer.fit.mapper';
@@ -37,6 +38,24 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
+  it.each([
+    [{ power: 0, Power: 200 }, 0],
+    [{ power: null, Power: 0, RP_Power: 200 }, 0],
+    [{ power: NaN, Power: undefined, RP_Power: 0 }, 0],
+    [{ power: 250, Power: 300 }, 250],
+    [{ power: null, Power: 250, RP_Power: 300 }, 250],
+    [{ power: NaN, Power: undefined, RP_Power: 250 }, 250],
+    [{ power: Infinity, Power: 250 }, null],
+    [{ power: -1, Power: 250 }, null],
+    [{ Power: -1, RP_Power: 250 }, null],
+    [{ power: null, Power: null, RP_Power: null }, null],
+    [{ RP_Power: '250' }, null],
+    [{}, null]
+  ] as const)('preserves native/developer power precedence and missing values for %j', (sample, expected) => {
+    const mapper = FITSampleMapper.find(mapping => mapping.dataType === DataPower.type)!;
+    expect(mapper.getSampleValue(sample, { hasPowerMeter: true })).toBe(expected);
+  });
+
   it('retains profile-scaled FIT record depth in canonical meters', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
 

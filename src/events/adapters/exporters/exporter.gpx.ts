@@ -22,7 +22,7 @@ export class EventExporterGPX implements EventExporter {
   fileType = 'application/gpx+xml';
   fileExtension = 'gpx';
 
-  /** Exports positional activities with TrackPointExtension/v2 speed in m/s, retaining recorded zero. */
+  /** Exports positional activities with TrackPointExtension/v2 speed in m/s, retaining recorded zero speed and power. */
   async getAsString(event: EventInterface): Promise<string> {
     const { setGPXPointSpeed, useGPXTrackPointV2 } = await import('../gpx-speed');
     return new Promise<string>((resolve, _reject) => {
@@ -54,11 +54,11 @@ export class EventExporterGPX implements EventExporter {
                 ele: data[DataAltitude.type] || undefined,
                 time: new Date(activity.startDate.getTime() + <number>data[DataTime.type] * 1000),
                 hr: data[DataHeartRate.type],
-                power: data[DataPower.type] || undefined,
+                power: data[DataPower.type] ?? undefined,
                 atemp: data[DataTemperature.type] || undefined,
                 cad: data[DataStrokeRate.type] || data[DataCadence.type] || undefined,
                 extensions: {
-                  power: data[DataPower.type] || undefined,
+                  power: data[DataPower.type] ?? undefined,
                   distance: data[DataDistance.type] || undefined
                 }
               });

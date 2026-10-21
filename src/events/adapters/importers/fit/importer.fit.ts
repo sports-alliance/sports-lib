@@ -1,7 +1,7 @@
 import { rejectImpossiblePoolTiming, rejectedPoolTiming } from './fit-pool-timing';
 import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
-import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
+import { captureImportedSensorFillTimes } from '../../../utilities/imported-sensor-fill-times';
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
@@ -621,8 +621,7 @@ export class EventImporterFIT {
           // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
           const recordedSamples = coalesceFitRecords(sessionRecords[sessionIndex]);
-          captureRecordedPowerEvidence(activity, recordedSamples, !isLengthsBased &&
-            isStreamTypeAllowedForImport(DataPower.type, streamSelection));
+
           // Once a real HR stream exists, keep explicit zero/invalid observations
           // as coverage boundaries too. Dropping them bridges sensor dropouts.
           const hasRecordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) && recordedSamples.some((record: any) =>
@@ -681,22 +680,7 @@ export class EventImporterFIT {
           if (recordedMappings.length) {
             // Recorded pool power has its own coverage. Retain actual observations
             // rather than deriving power samples from swim lengths.
-            const poolMappings = recordedMappings.map(mapping =>
-              mapping.dataType === DataPower.type
-                ? {
-                    ...mapping,
-                    getSampleValue: (sample: { power?: unknown; Power?: unknown; RP_Power?: unknown }) => {
-                      const watts = isNumber(sample.power)
-                        ? sample.power
-                        : isNumber(sample.Power)
-                          ? sample.Power
-                          : sample.RP_Power;
-                      return typeof watts === 'number' && Number.isFinite(watts) && watts >= 0 ? watts : null;
-                    }
-                  }
-                : mapping
-            );
-            this.addSampleStreamsToActivity(activity, recordedSamples, poolMappings, {
+            this.addSampleStreamsToActivity(activity, recordedSamples, recordedMappings, {
               hasPowerMeter: recordedHasPower
             });
           }
@@ -704,6 +688,11 @@ export class EventImporterFIT {
             this.addSampleStreamsToActivity(activity, recordedHeartRate,
               allowedSampleMappings.filter(mapping => mapping.dataType === DataHeartRate.type), samplesInfo);
             recordedPoolHeartRate.add(activity);
+          }
+
+          if (!isLengthsBased && activity.hasStreamData(DataPower.type) &&
+              activity.getStreamData(DataPower.type).some(isNumber)) {
+            captureImportedSensorFillTimes(activity, recordedSamples.map((sample: any) => new Date(sample.timestamp)));
           }
 
           return activity;

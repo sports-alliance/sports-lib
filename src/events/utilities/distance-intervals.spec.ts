@@ -9,6 +9,7 @@ import { DataMovingTime } from '../../data/data.moving-time';
 import { DataStartEvent } from '../../data/data.start-event';
 import { DataStopEvent } from '../../data/data.stop-event';
 import { DataStopAllEvent } from '../../data/data.stop-all-event';
+import { DataJumpEvent } from '../../data/data.jump-event';
 import { DataTrainingStressScore } from '../../data/data.training-stress-score';
 import { DataPowerWork } from '../../data/data.power-work';
 import { DataSpeedAvg } from '../../data/data.speed-avg';
@@ -280,6 +281,146 @@ describe('distance interval evidence', () => {
     expect(movingSeconds(a, speedFromDistance(a, [null, 0, null]), 0.5)).toBeNull();
     a.setAllEvents([new DataStopEvent(-1)]);
     expect(movingSeconds(a, new Stream('Speed', [2, 2, 2]), 0.5)).toBeNull();
+  });
+
+  it('invalidates interval weights through the public sample setter and JSON roundtrip', () => {
+    const a = make(
+      sparse(10, [
+        [0, 0],
+        [1, 1],
+        [10, 19]
+      ])
+    );
+    a.addStream(speedFromDistance(a, a.getStreamData('Distance')));
+    a.addDataToStream('Speed', new Date(5000), 10);
+    expect(a.getStream('Speed').getIntervalSupport?.()).toBeUndefined();
+    expect(a.getStreamData('Speed')[5]).toBe(10);
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(a);
+    expect(value(a, 'Average Speed')).toBeCloseTo(13 / 3);
+    const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON())));
+    restored.removeStat('Average Speed');
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(restored);
+    expect(restored.getStat('Average Speed')?.getValue()).toBeCloseTo(13 / 3);
+    expect(restored.getStream('Speed').getIntervalSupport?.()).toBeUndefined();
+  });
+
+  it('edits original values without persisting a filtered view or reviving stale weights', () => {
+    const a = make([0, null, 4]);
+    const speed = speedFromDistance(a, a.getStreamData('Distance'));
+    a.addStream(speed);
+    speed.useFilter({ filterData: data => data.map(v => (v === null ? null : v * 2)) });
+    a.addDataToStream('Speed', new Date(1000), 5);
+    expect(speed.getData()).toEqual([null, 10, 4]);
+    expect(speed.toJSON().data).toEqual([null, 5, 2]);
+    speed.clearFilters();
+    expect(speed.getIntervalSupport()).toBeUndefined();
+  });
+
+  it.each([
+    {
+      start: 20,
+      end: 70,
+      moving: 30,
+      events: [
+        ['Stop ALL Event', 20],
+        ['Start Event', 40]
+      ]
+    },
+    {
+      start: 50,
+      end: 90,
+      moving: 30,
+      events: [
+        ['Stop ALL Event', 0],
+        ['Start Event', 10]
+      ]
+    },
+    { start: 60, end: 90, moving: 30, events: [['Start Event', 0]] },
+    { start: 0, end: 30, moving: 30, events: [['Start Event', 0]] }
+  ])('rebases crop $start–$end and retains the timer state at its start', ({ start, end, moving, events }) => {
+    const a = make(Array.from({ length: 101 }, (_, i) => i * 2));
+    a.addStream(new Stream('Speed', Array(101).fill(2)));
+    const sourceEvents = [
+      new DataStartEvent(60),
+      new DataStopAllEvent(40),
+      new DataStopEvent(100),
+      new DataStartEvent(0)
+    ];
+    const before = sourceEvents.map(event => event.toJSON());
+    a.setAllEvents(sourceEvents);
+    ActivityUtilities.cropTime(a, new Date(start * 1000), new Date(end * 1000));
+    expect(a.getAllEvents().map(event => [event.getType(), event.timestamp])).toEqual(events);
+    expect(sourceEvents.map(event => event.toJSON())).toEqual(before);
+    expect(a.getStreamData('Distance')[0]).toBe(start * 2);
+    expect(movingSeconds(a, a.getStream('Speed'), 0.5)).toBe(moving);
+    a.addStat(new DataDuration(moving));
+    a.addStat(new DataTimerTime(moving));
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(a);
+    expect(value(a, 'Moving time')).toBe(moving);
+    const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON())));
+    expect(movingSeconds(restored, restored.getStream('Speed'), 0.5)).toBe(moving);
+  });
+
+  it('keeps one-sided crops on the original clock and rebases repeated crops once', () => {
+    const a = make(Array.from({ length: 101 }, (_, i) => i));
+    a.addStream(new Stream('Speed', Array(101).fill(2)));
+    a.setAllEvents([new DataStartEvent(0), new DataStopEvent(40), new DataStartEvent(60), new DataStopEvent(100)]);
+    ActivityUtilities.cropTime(a, new Date(20000));
+    expect(a.getStreamData('Distance')[0]).toBe(20);
+    expect(a.getAllEvents().map(event => event.timestamp)).toEqual([20, 40, 80]);
+    ActivityUtilities.cropTime(a, undefined, new Date(70000));
+    expect(a.getStreamData('Distance').slice(-1)[0]).toBe(70);
+    expect(movingSeconds(a, a.getStream('Speed'), 0.5)).toBe(30);
+    ActivityUtilities.cropTime(a, new Date(50000), new Date(70000));
+    expect(a.getAllEvents().map(event => [event.getType(), event.timestamp])).toEqual([
+      [DataStopEvent.type, 0],
+      [DataStartEvent.type, 10]
+    ]);
+    expect(movingSeconds(a, a.getStream('Speed'), 0.5)).toBe(10);
+  });
+
+  it('keeps fractional crop requests on the source sample clock and validates before changing data', () => {
+    const a = make(Array.from({ length: 101 }, (_, i) => i));
+    a.startDate = new Date(456);
+    a.endDate = new Date(100456);
+    a.setAllEvents([new DataStartEvent(0), new DataStopEvent(40), new DataStartEvent(60)]);
+    ActivityUtilities.cropTime(a, new Date(20956), new Date(70956));
+    expect(+a.startDate).toBe(21456);
+    expect(+a.endDate).toBe(70956);
+    expect(a.getStreamData('Distance')[0]).toBe(21);
+    expect(a.getAllEvents().map(event => event.timestamp)).toEqual([19, 39]);
+    const before = JSON.stringify(a.toJSON());
+    expect(() => ActivityUtilities.cropTime(a, new Date(80000))).toThrow(RangeError);
+    expect(JSON.stringify(a.toJSON())).toBe(before);
+  });
+
+  it('leaves an omitted crop unchanged and does not extend a crop beyond the original activity', () => {
+    const a = make([0, 1, 2]);
+    const stream = a.getStream('Distance');
+    ActivityUtilities.cropTime(a);
+    expect(a.getStream('Distance')).toBe(stream);
+    ActivityUtilities.cropTime(a, new Date(-1000), new Date(4000));
+    expect(+a.startDate).toBe(0);
+    expect(+a.endDate).toBe(2000);
+    expect(a.getStreamData('Distance')).toEqual([0, 1, 2]);
+  });
+
+  it('crops other timed events without losing their payload or mutating shared event objects', () => {
+    const a = make(Array(101).fill(0));
+    const jump = new DataJumpEvent(30, { distance: 5, score: 8, height: 1 });
+    const outside = new DataJumpEvent(80, { distance: 7, score: 9 });
+    a.setAllEvents([jump, outside]);
+    ActivityUtilities.cropTime(a, new Date(20000), new Date(70000));
+    expect(a.getAllEvents()).toHaveLength(1);
+    expect(a.getAllEvents()[0]).toBeInstanceOf(DataJumpEvent);
+    expect(a.getAllEvents()[0].toJSON()).toEqual({
+      [DataJumpEvent.type]: {
+        timestamp: 10,
+        jumpData: { distance: 5, score: 8, height: 1 }
+      }
+    });
+    expect(jump.timestamp).toBe(30);
+    expect(outside.timestamp).toBe(80);
   });
 
   it('invalidates interval weights when a caller replaces stream data', () => {

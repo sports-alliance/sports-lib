@@ -1,3 +1,7 @@
+import { DataEvent } from '../../data/data.event';
+import { DataStartEvent } from '../../data/data.start-event';
+import { DataStopEvent } from '../../data/data.stop-event';
+import { DataStopAllEvent } from '../../data/data.stop-all-event';
 import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, getHeartRateSamplesWithCoverage } from './tss/hr-observation-coverage';
 import { calculateNormalizedPower } from './normalized-power';
 import { getRecordedPowerValues } from './tss/recorded-power-evidence';
@@ -153,7 +157,7 @@ import {
   standardDeviation
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
-import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
+import { StreamInterface } from '../../streams/stream.interface';
 import { canDeriveStreamType } from '../../streams/stream.derivation.registry';
 import { DataEnergy } from '../../data/data.energy';
 import { DataStartAltitude } from '../../data/data.start-altitude';
@@ -716,21 +720,60 @@ export class ActivityUtilities {
   }
 
   /**
-   * Crops left,right on time.
-   * Start and end date need to be relative to the activity start / end time
+   * Crops inclusively within the original activity, rebasing events and preserving the initial timer state.
+   * A fractional start advances to the first retained one-second sample. Invalid/empty ranges throw before mutation.
+   * Existing summary stats are unchanged; callers remain responsible for refreshing cropped summaries.
    * @param activity
    * @param startDate
    * @param endDate
    */
   public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
+    if (!startDate && !endDate) return activity;
+    // Streams use one-second slots relative to the original start. Keep the first
+    // retained sample on that clock instead of moving it to a fractional requested start.
+    const requestedStart = Math.max(+(startDate || activity.startDate), +activity.startDate);
+    const croppedStart = new Date(
+      +activity.startDate + Math.ceil((requestedStart - +activity.startDate) / 1000) * 1000
+    );
+    const croppedEnd = new Date(Math.min(+(endDate || activity.endDate), +activity.endDate));
+    if (!Number.isFinite(+croppedStart) || !Number.isFinite(+croppedEnd) || +croppedStart > +croppedEnd) {
+      throw new RangeError('Crop must retain at least one timestamp within the activity');
+    }
+    const startSeconds = (+croppedStart - +activity.startDate) / 1000;
+    const endSeconds = (+croppedEnd - +activity.startDate) / 1000;
+    const timerTypes = [DataStartEvent.type, DataStopEvent.type, DataStopAllEvent.type];
+    const events = activity
+      .getAllEvents()
+      .filter(event => Number.isFinite(event.timestamp))
+      .slice()
+      .sort((a, b) => a.timestamp - b.timestamp);
+    const cloneAt = (event: DataEvent, seconds: number): DataEvent =>
+      Object.assign(Object.create(Object.getPrototypeOf(event)), event).setValue(seconds);
+    const croppedEvents = events
+      .filter(event => event.timestamp >= startSeconds && event.timestamp <= endSeconds)
+      .map(event => cloneAt(event, event.timestamp - startSeconds));
+    const previousTimer = events
+      .filter(event => event.timestamp < startSeconds && timerTypes.includes(event.getType()))
+      .pop();
+    // A crop beginning inside a pause must not default to an active timer. Retain the
+    // existing stop kind, without changing shared source event objects or other payloads.
+    if (
+      previousTimer &&
+      previousTimer.getType() !== DataStartEvent.type &&
+      !croppedEvents.some(event => event.timestamp === 0 && timerTypes.includes(event.getType()))
+    ) {
+      croppedEvents.unshift(cloneAt(previousTimer, 0));
+    }
+
     activity.getAllStreams().forEach(stream => {
-      // Get the data for the range specified
-      const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
+      // Supply both bounds so one-sided crops retain the same inclusive sample clock.
+      const trimmedStreamData = activity.getStreamData(stream.type, croppedStart, croppedEnd);
       const evidence = stream.getIntervalSupport?.();
       let croppedEvidence;
       if (evidence) {
         // Apply exactly the existing crop's boundary convention to the parallel weights.
-        const durations = activity.getStreamData(new Stream(stream.type, evidence.durations), startDate, endDate)
+        const durations = activity
+          .getStreamData(new Stream(stream.type, evidence.durations), croppedStart, croppedEnd)
           .map((duration, index) => {
             if (duration === null) return null;
             const left = evidence.direction === 'ending' ? index - duration : index;
@@ -743,9 +786,9 @@ export class ActivityUtilities {
       activity.addStream(new Stream(stream.type, trimmedStreamData, croppedEvidence));
     });
 
-    activity.startDate = startDate || activity.startDate;
-    activity.endDate = endDate || activity.endDate;
-    // debugger
+    activity.setAllEvents(croppedEvents);
+    activity.startDate = croppedStart;
+    activity.endDate = croppedEnd;
     return activity;
   }
 

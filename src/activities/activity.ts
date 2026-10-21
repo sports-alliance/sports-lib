@@ -102,8 +102,12 @@ export class Activity extends DurationClassAbstract implements ActivityInterface
     return stream;
   }
 
+  /** Edits the original stream and invalidates calculation intervals, including while a read filter is active. */
   addDataToStream(type: string, date: Date, value: number): this {
-    this.getStreamData(type)[this.getDateIndex(date)] = value;
+    const stream = this.getStream(type);
+    const data = stream.hasFilter() ? stream.toJSON().data : stream.getData();
+    data[this.getDateIndex(date)] = value;
+    stream.setData(data);
     return this;
   }
 

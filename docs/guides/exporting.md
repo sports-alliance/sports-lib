@@ -105,10 +105,18 @@ without the field remain readable, with their existing summary policy. Retain th
 JSON to preserve duration-weighted recalculation. Older consumers can read the ordinary values but may discard the
 additional field when writing JSON again.
 
-`Stream.setData()` invalidates interval evidence. A stream filter disables it for filtered reads, while serialization
-still exports the original unfiltered data and evidence. Time cropping retains weights only for intervals wholly inside
-the crop; a retained boundary sample does not imply that the full interval belongs to the crop. Consumers editing
-arrays in place must replace the data through `setData()` to invalidate old weights.
+`Stream.setData()` and `Activity.addDataToStream()` invalidate interval evidence. The activity setter edits the
+original values even while a read filter is active; filtered display values are never persisted by that setter. A stream
+filter disables interval evidence for filtered reads, while serialization still exports the original unfiltered data and
+evidence. Consumers editing arrays in place must replace the data through `setData()` to invalidate old weights.
+
+Time cropping retains weights only for intervals wholly inside the crop; a retained boundary sample does not imply
+that the full interval belongs to the crop. Both boundaries are inclusive, including one-sided crops. The range is
+bounded by the original activity, and a fractional start advances to the first retained sample on the original
+one-second grid. Invalid ranges or ranges containing no sample slot throw before changing the activity; omitted
+bounds leave it unchanged. Cropping also rebases retained events and preserves a pause already active at the crop
+start, without mutating shared event objects or dropping retained event payloads. Existing summary statistics remain
+unchanged until callers explicitly refresh them.
 
 Existing persisted summaries are not automatically overwritten on JSON hydration. Historical filled distance streams
 require an original-file reparse: neither JSON hydration nor summary regeneration can reconstruct their missing-value

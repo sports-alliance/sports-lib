@@ -132,6 +132,7 @@ export type {
 /**
  * Duration, timer, moving-time and pause getters return their Data class or undefined when absent.
  * Keep measured zero distinct from missing timing; do not reconstruct rejected timing from elapsed dates.
+ * `addDataToStream()` edits the original values and invalidates calculated interval evidence, even with a read filter.
  * @category Activities and events
  */
 export type { ActivityInterface } from '../src/activities/activity.interface';

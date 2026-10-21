@@ -170,3 +170,38 @@ it('keeps absent data unavailable and honors a larger supplied timer duration', 
   expect(coverage(b).coverageRatio).toBeCloseTo(60 / 61);
   expect(b.getStat(DataPowerWork.type)).toBeUndefined();
 });
+
+it.each([
+  (data: (number | null)[]) => data.map(value => value ?? 200),
+  (data: (number | null)[]) => data.filter(value => value !== null),
+  (data: (number | null)[]) => data.map(value => value === null ? null : value * 2)
+])('measures original observations independently of a stream filter', filterData => {
+  const a = create([200, null, 0, 300], 4);
+  const stream = a.getStream(DataPower.type);
+  const expected = coverage(a);
+  const expectedWindows = powerIntervals(a).watts;
+  const before = JSON.stringify(stream.toJSON());
+  stream.useFilter({ filterData });
+  expect(coverage(a)).toEqual(expected);
+  expect(powerIntervals(a).watts).toEqual(expectedWindows);
+  expect(JSON.stringify(stream.toJSON())).toBe(before);
+  expect(stream.hasFilter()).toBe(true);
+  expect(stream.getData()).toEqual(filterData([200, null, 0, 300]));
+  const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON()))) as Activity;
+  expect(coverage(restored)).toEqual(coverage(a));
+});
+
+it('does not let filtered gap filling create power work, long efforts or eligible power TSS', () => {
+  const values = [...Array(30).fill(200), ...Array(1170).fill(null)];
+  const a = create(values);
+  const stream = a.getStream(DataPower.type);
+  stream.useFilter({ filterData: data => data.map(value => value ?? 200) });
+  generate(a);
+  expect(coverage(a).coverageRatio).toBe(0.025);
+  expect(a.getStat(DataPowerWork.type)).toBeUndefined();
+  expect(a.getStat(DataFTP.type)?.getValue()).toBe(250); // Independent calibration remains valid.
+  expect(ActivityUtilities.calculateMeanMaxPower(a, [1200]).getValue()).toEqual([]);
+  expect(evaluate(a).automatic.method).not.toBe('POWER');
+  expect(stream.toJSON().data).toEqual(values);
+  expect(stream.hasFilter()).toBe(true);
+});

@@ -14,7 +14,7 @@ streams need an original-file reparse; recorded values and route behavior remain
 
 Power imports retain unknown watts as null and real coasting as zero. Calculated work, curves and power TSS use
 observed interval coverage, while supplied summaries keep priority. `ActivityUtilities.getPowerCoverage` exposes
-observed duration and work on demand, without adding stored metadata. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
+observed duration and work from original, unfiltered samples on demand, without adding stored metadata. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
 and [migration guidance](guides/exporting.md#missing-power).
 Valid FIT session/lap balance summaries retain their hundredths precision, while record balance and side watts remain
 independent. Multisport average power and W/kg weight leg summaries by active duration and retain zero; see

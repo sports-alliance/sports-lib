@@ -526,7 +526,12 @@ neighbors no longer act as zeroes for that rule.
 
 ### Power coverage and observed work
 
-`ActivityUtilities.getPowerCoverage(activity)` returns observed support without changing the activity or storing metadata:
+`ActivityUtilities.getPowerCoverage(activity)` returns observed support without changing the activity or storing metadata.
+Coverage and power-window calculations read the original samples, independently of any attached `Stream.useFilter`
+view. A filter cannot fill gaps, move sample times or change watts for these calculations. Replacing the actual samples
+with `Stream.setData` still changes their inputs. Existing filters remain attached and source data stays intact.
+
+The coverage result contains:
 
 - `durationSeconds`: located active interval duration, or the larger explicit activity timer duration when supplied.
 - `coveredDurationSeconds` and `coverageRatio`: time supported by observed power, including recorded zeroes.

@@ -425,7 +425,7 @@ export class ActivityUtilities {
       calculated.stat.getValue() === calculated.value;
   }
 
-  /** Measures observed active power support without changing streams or persisted statistics.
+  /** Measures observed active power support from unfiltered samples without changing streams or persisted statistics.
    * Each reading supports at most one second. Missing watts remain unknown; recorded zeroes count as coverage.
    * Observed work is partial when coverageRatio is below one, not an estimate of missing work.
    */

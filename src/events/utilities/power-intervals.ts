@@ -15,7 +15,8 @@ export interface PowerIntervals {
  */
 export function powerIntervals(activity: ActivityInterface, start = 0, end = Infinity): PowerIntervals {
   const stream = activity.getAllStreams().find(stream => stream.type === DataPower.type);
-  const raw = stream?.getData() ?? [];
+  // A filtered view can fill gaps or shift indices; only the original samples prove support.
+  const raw = stream?.toJSON().data ?? [];
   const length = Math.min(raw.length, Math.max(0, Math.ceil((+activity.endDate - +activity.startDate) / 1000)));
   const offset = Math.max(0, Math.min(length, Math.floor(start)));
   const limit = Math.max(offset, Math.min(length, Math.ceil(end)));

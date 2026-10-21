@@ -725,4 +725,5 @@ export { DataTrainingStressScore } from '../src/data/data.training-stress-score'
 export { normalizeTimingValidity, resolveSwimTimingSeconds } from '../src/duration/timing-validity';
 export type { TimingValidity } from '../src/duration/timing-validity';
 
+/** Observed power support from original samples; attached stream filters cannot supply missing readings. */
 export type { PowerCoverage } from '../src/activities/power-coverage';

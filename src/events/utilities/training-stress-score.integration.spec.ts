@@ -124,12 +124,32 @@ function getFiniteStreamSamples(
 }
 
 function buildPaceTssSamplesFromActivity(activity: ActivityInterface): TssSample[] {
-  const gradeSmoothByDuration = new Map<number, number>(
-    getFiniteStreamSamples(activity, DataGradeSmooth.type).map(sample => [sample.duration, sample.value / 100])
-  );
-  const gradeByDuration = new Map<number, number>(
-    getFiniteStreamSamples(activity, DataGrade.type).map(sample => [sample.duration, sample.value / 100])
-  );
+  // Independent binary-search reference for terrain support, rather than filling the stored stream.
+  const terrain = (type: string) => {
+    const stream = activity.getAllStreams().find(stream => stream.type === type);
+    const evidence = stream?.getIntervalSupport?.();
+    const points = getFiniteStreamSamples(activity, type);
+    const exact = new Map(points.map(sample => [sample.duration, sample.value / 100]));
+    const intervals = evidence ? points.flatMap(sample => {
+      const seconds = evidence.durations[sample.duration];
+      if (seconds === null) return [];
+      const start = sample.duration - (evidence.direction === 'ending' ? seconds : 0);
+      return [{ start, end: start + seconds, grade: sample.value / 100 }];
+    }) : [];
+    return (time: number, start: number, end: number): number | undefined => {
+      if (!evidence) return exact.get(time);
+      let low = 0, high = intervals.length;
+      while (low < high) {
+        const mid = (low + high) >>> 1;
+        if (intervals[mid].start <= start) low = mid + 1;
+        else high = mid;
+      }
+      const interval = intervals[low - 1];
+      return interval && interval.start <= start && interval.end >= end ? interval.grade : undefined;
+    };
+  };
+  const smoothTerrain = terrain(DataGradeSmooth.type), rawTerrain = terrain(DataGrade.type);
+  const speedEvidence = activity.getStream(DataSpeed.type).getIntervalSupport?.();
   const verticalSpeedByDuration = new Map<number, number>(
     getFiniteStreamSamples(activity, DataVerticalSpeed.type).map(sample => [sample.duration, sample.value])
   );
@@ -137,9 +157,12 @@ function buildPaceTssSamplesFromActivity(activity: ActivityInterface): TssSample
 
   getFiniteStreamSamples(activity, DataSpeed.type).forEach(({ duration, value: speed }) => {
     const verticalSpeed = verticalSpeedByDuration.get(duration);
+    const seconds = speedEvidence?.durations[duration];
+    const start = speedEvidence ? (seconds == null ? NaN : duration - (speedEvidence.direction === 'ending' ? seconds : 0)) : duration;
+    const end = speedEvidence ? start + (seconds ?? NaN) : duration;
     const grade =
-      gradeSmoothByDuration.get(duration) ??
-      gradeByDuration.get(duration) ??
+      smoothTerrain(duration, start, end) ??
+      rawTerrain(duration, start, end) ??
       (speed === 0 ? 0 : verticalSpeed === undefined || speed < 0 ? undefined : verticalSpeed / speed);
 
     if (grade !== undefined) {
@@ -854,10 +877,10 @@ describe('Training Stress Score integration', () => {
   );
 
   it.each([
-    ['Suunto flat run', '6914538454.fit'],
-    ['Coros hilly 10 km run', '6916663933.fit'],
-    ['Coros hilly half-marathon run', '6916728382.fit']
-  ])('matches an independent energy-cost and complete-window reference for %s', async (_label, fixtureName) => {
+    ['Suunto flat run', '6914538454.fit', true],
+    ['Coros hilly 10 km run', '6916663933.fit', false],
+    ['Coros hilly half-marathon run', '6916728382.fit', false]
+  ] as const)('matches an independent energy-cost and complete-window reference for %s', async (_label, fixtureName, completeTerrain) => {
     const fixtureBuffer = fs.readFileSync(path.join(__dirname, '../../specs/fixtures/runs/fit', fixtureName));
     const activity = (await EventImporterFIT.getFromArrayBuffer(fixtureBuffer.buffer.slice(
       fixtureBuffer.byteOffset, fixtureBuffer.byteOffset + fixtureBuffer.byteLength), undefined, fixtureName)).getFirstActivity();
@@ -873,6 +896,15 @@ describe('Training Stress Score integration', () => {
     expect(expected).not.toBeNull();
     expect(current?.trainingStressScore).toBeCloseTo(expected as number, 8);
     const persisted = recomputeFixtureWithPaceTss(activity, thresholdSpeed);
+    if (!completeTerrain) {
+      // The strict integration policy requires terrain for every speed observation. Sparse grade
+      // no longer invents flat slope without supported terrain to satisfy that policy.
+      expect(samples.length).toBeLessThan(getFiniteStreamSamples(activity, DataSpeed.type).length);
+      expect(persisted).toBeUndefined();
+      expect(activity.getStat(DataTrainingStressScoreMethod.type)).toBeUndefined();
+      expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic.reasons).toContain('missing-pace-inputs');
+      return;
+    }
     expect(activity.getStat(DataTrainingStressScoreMethod.type)?.getValue()).toBe(TrainingStressScoreMethod.PACE);
     expect(persisted).toBeCloseTo(expected as number, 1);
   });

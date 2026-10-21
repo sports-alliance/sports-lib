@@ -67,6 +67,56 @@ supported format and manually reviewing every map were outside this audit.
 
 ## Known limitations
 
+### Strava reference comparisons
+
+The Strava suites use saved reference streams already in the repository. They are repeatable comparisons with those
+exports, not a claim of exact equivalence to today's Strava service. The larger regression corpus does not contain paired
+Strava results for every source, so corpus replay and Strava agreement answer different questions.
+
+Comparisons use the same elapsed timestamp, preserve missing observations, and validate the reference clock. They
+check sample coverage separately from error: one matching point cannot make an otherwise missing stream pass.
+Distance comparisons must not accept a value merely because it appears somewhere else in the stream. Grade errors
+are **percentage points of slope**, not relative percentage errors. No time shift is chosen to improve agreement.
+
+The October 2026 sparse-distance change retains the existing grade look-ahead and GAP formula. The eight active
+legacy Grade comparisons remain within their existing error limits, with 97.6–99.99% reference-point coverage.
+Separate checks now measure both `Grade` and `Grade Smooth` against Strava's `grade_smooth`, including these previously
+excluded comparisons:
+
+| Saved reference | Grade mean absolute difference | Grade Smooth mean absolute difference |
+|---|---:|---:|
+| Suunto uphill | 7.68 points | 5.68 points |
+| COROS trail | 2.66 points | 3.03 points |
+
+Both discrepancies predate the sparse-distance change. Their altitude and heart-rate observations match at the
+reference timestamps. Suunto's reference distance also differs from recorded distance (mean absolute difference
+0.68 m, maximum 11.7 m); COROS's distance differences beyond 0.051 m are limited to six startup observations.
+Correcting the uphill test's unrelated flat-activity reference does not eliminate its grade discrepancy.
+These observations locate remaining disagreement in derived terrain processing and reference-distance handling;
+they do not establish which smoothing model is more accurate. Applying a blanket time shift would misalign sensors
+that already agree.
+
+The saved hilly-running reference also contains pace and GAP. Its new check compares the unitless adjustment
+`GAP / pace` with `Speed / Grade Adjusted Speed`, requiring at least 4,811 matched observations out of 4,988.
+It accounts separately for 176 zero-speed observations and the remaining unsupported observation. Mean absolute
+adjustment-factor difference is about 0.0612, with a 95th-percentile difference of 0.2025; this is essentially unchanged
+by the distance fix. This isolates the grade adjustment from different speed smoothing and does not establish absolute
+GAP pace or whole-workout GAP equivalence. Coverage is one paired GAP reference, not all providers or sports.
+
+The new smoothed-grade and known-discrepancy bounds record existing behavior and catch worsening agreement. They are
+regression ceilings, not newly relaxed accuracy claims; the stricter legacy Grade expectations remain unchanged.
+Strava describes its [GAP model](https://medium.com/strava-engineering/an-improved-gap-model-8b07ae8886c3) as fitted to
+real-world running data. Sports Lib's polynomial approximation and terrain smoothing should be evaluated independently
+before changing either to chase reference numbers.
+
+Run the focused reference checks with:
+
+```bash
+npm test -- --runInBand src/specs/strava-streams-compliance.spec.ts src/specs/strava-derived-streams.spec.ts src/specs/helpers/stream-reference-comparison.spec.ts
+```
+
+### Other limitations
+
 A successful regression test establishes expected software behavior. It does not independently establish sensor
 accuracy or physiological validity.
 

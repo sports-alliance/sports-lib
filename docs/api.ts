@@ -132,6 +132,7 @@ export type {
 /**
  * Duration, timer, moving-time and pause getters return their Data class or undefined when absent.
  * Keep measured zero distinct from missing timing; do not reconstruct rejected timing from elapsed dates.
+ * `addDataToStream()` edits the original values and invalidates calculated interval evidence, even with a read filter.
  * @category Activities and events
  */
 export type { ActivityInterface } from '../src/activities/activity.interface';
@@ -319,10 +320,13 @@ export type {
 export { RouteFileUtilities } from '../src/routes/route-file.utilities';
 export { RouteUtilities } from '../src/routes/route.utilities';
 
-/** @category Streams, stats, and data */
+/** Sparse stream values with optional elapsed-interval evidence for calculated rates.
+ * Native JSON retains interval weights; replacing data invalidates them.
+ * @category Streams, stats, and data
+ */
 export { Stream } from '../src/streams/stream';
 export type { StreamDataItem, StreamInterface } from '../src/streams/stream.interface';
-export type { StreamJSONInterface } from '../src/streams/stream';
+export type { StreamJSONInterface, StreamIntervalSupport } from '../src/streams/stream';
 export type { StreamFilterInterface } from '../src/streams/stream.filter.interface';
 export type { StatsClassInterface } from '../src/stats/stats.class.interface';
 /** Shared summary serialization omits non-finite scalar numbers while preserving finite zero and structured stats. */
@@ -669,7 +673,7 @@ export type {
 /**
  * Event aggregation and regeneration. Generated homogeneous Diving-group event summaries omit
  * terrain ascent/descent, altitude min/max/avg, and grade min/max/avg; mixed event summaries
- * aggregate those metrics only from their non-diving activities. Timer/elapsed totals each require complete,
+ * aggregate those metrics only from their non-diving activities. Timer/elapsed/moving totals each require complete,
  * finite nonnegative child values; missing clocks remain unavailable.
  *
  * @category Activities and events

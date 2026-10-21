@@ -192,7 +192,9 @@ describe('FIT cumulative pool lap distance evidence', () => {
 
   it('accepts recorded timer fractions within the same encoded second for whole-second starts', async () => {
     const activity = await pool({ geometry: 'encoded-second-overlap' });
-    expect(activity.getStream(DataDistance.type).getData()[15]).toBe(0);
+    // The validated raw counter has observations every 30 seconds; intervening distance stays unknown.
+    expect(activity.getStream(DataDistance.type).getData()[15]).toBeNull();
+    expect(activity.getStream(DataDistance.type).getData(true, true)).toEqual([0, 25, 50, 75, 100]);
     expect(activity.getStream(DataDistance.type).getData(true, true).slice(-1)[0]).toBe(100);
   });
 

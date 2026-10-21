@@ -341,7 +341,14 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 ```
 
 - Distance/GNSS distance are generated from latitude/longitude when missing.
-- Speed is generated from distance deltas and time deltas.
+- Missing Distance readings remain `null` at their original elapsed timestamps. A recorded zero or repeated distance
+  stays a real observation. Unit conversion preserves the same mask. Generic sensor filling does not fill Distance.
+- Where GPS-derived speed is eligible, speed is generated between successive finite, nonnegative distance observations
+  within the same active timer segment: `deltaDistance / deltaTimeSeconds`. The rate is stored at the ending observation.
+  There is no speed before the second observation, across a counter reset, or across an explicit timer pause.
+  A zero distance delta gives a valid zero speed. No arbitrary sample-gap cutoff or stationary seconds are invented.
+- GPS distance begins at the first valid position, including time zero when a position exists there. No leading
+  distance zero is inserted before the first position. Existing recorded distance and speed streams remain authoritative.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
 - The FIT parser applies the profile's `1000` depth scale before import; Sports Lib stores record depth and next-stop
   depth directly in meters without another conversion. Canonical depth streams and maximum depth stats remain meters.
@@ -373,6 +380,44 @@ GradeAdjustedSpeed = Speed * (kA + kB*g + kC*g^2 + kD*g^3 + kE*g^4 + kF*g^5)
 GradeAdjustedPace = 1000 / GradeAdjustedSpeed
 ```
 
+Activity grade uses observations where both distance and altitude are available. Its look-ahead and smoothing reset
+at distance-counter resets and timer pauses. A look-ahead with zero distance change and terminal points cannot
+establish a slope. Genuine repeated distance readings retain the existing 10-metre look-ahead: they can occur while
+recorded speed is positive and must not automatically be classified as stationary. Calculated
+grade stays sparse. Adjusted speed and pace-based TSS use terrain only inside its supported interval. A recorded
+speed point may use the enclosing terrain interval; a calculated speed interval must fit wholly inside it. This also
+handles one-second speed with two-second altitude readings without inventing flat terrain between them. This lookup
+does not fill the stored streams. Missing terrain support leaves positive adjusted speed unavailable; a known
+stationary zero remains zero.
+The separate point-indexed route-grade algorithm is unchanged.
+
+Strava compatibility is measured separately for raw grade, smoothed grade and the GAP adjustment factor. The existing
+GAP polynomial approximates a published Strava curve; it is not an exact implementation of Strava's service. See
+[reference coverage and remaining discrepancies](validation.md#strava-reference-comparisons) before interpreting a
+passing regression suite as numerical equivalence.
+
+Generated Speed, Grade/Grade Smooth and interval-derived Grade Adjusted Speed retain optional `intervalSupport`
+evidence. Their averages use `sum(value × supportedSeconds) / sum(supportedSeconds)`, including stationary zeros.
+Lap averages include only supported intervals wholly inside that lap, without guessing a position at a cropped
+boundary. Recorded streams and legacy JSON without this evidence retain their existing summary policy.
+Native JSON retains these weights; see [persistence and migration](exporting.md#sparse-distance-and-calculated-intervals).
+
+Recorded Moving time remains authoritative. Otherwise, complete contiguous source laps can supply it; failing that,
+observed speed intervals above the existing sport-specific moving threshold supply a supported-time estimate. It is
+not extrapolated before the first reading, after the last reading or across explicit timer pauses. Zero is valid;
+no usable interval leaves Moving time unavailable rather than substituting Timer time. Distance endpoints establish an
+interval-average speed, not the exact location of movement within that interval. For recorded speed, the existing
+between-sample integration remains an estimate; it cannot resolve missing observations or conflicting source readings.
+Multisport moving-time totals require a value on every leg, including valid zeros; partial totals remain unavailable.
+
+These changes can affect generated speed/pace, grade/GAP, moving time, pace-based TSS, durability evidence, and the
+existing power-work fallback that uses moving time. Imported summaries and imported TSS are retained. HR, power and
+MET TSS formulas and eligibility are unchanged. Previously filled JSON cannot reveal which distance readings were
+invented: reparse retained original files and refresh affected derived summaries after consumer adoption.
+The existing strict running-pace policy (`enableHeuristicFallbacks: false`) still requires terrain for every speed
+observation; retaining unknown grade can therefore make that candidate unavailable. The optional flat-grade heuristic
+and complete-window TSS rules are unchanged.
+
 3) Left/right split and ground-contact balance
 
 ```text
@@ -393,6 +438,8 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
+The generic mean above applies to recorded streams. Calculated interval streams use the duration-weighted rule above.
+
 Activity and lap min/max/average derivation uses one explicit internal policy registry. It currently covers altitude,
 heart rate, cadence, stroke rate, speed, effort pace, grade-adjusted speed, grade, vertical speed, power, air power,
 absolute pressure, EVPE/EHPE, satellite SNR/count, temperature, ground contact time and its percentage, running flight
@@ -408,7 +455,9 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
 - Altitude and grade prefer their smoothed streams when present. Their summary families remain excluded for Diving
   activity types.
 - Existing laps use their activity's normalized 1 Hz streams. Lap windows are half-open (`[start, end)`), assigning an
-  exact shared boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint. Overlapping
+  exact recorded-sample boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint.
+  Calculated interval streams instead use wholly contained intervals for both extrema and averages: a rate ending
+  exactly at the lap end belongs to the interval that just finished. Overlapping
   laps are evaluated independently. A lap beginning before the containing activity keeps source summaries, but does
   not derive whole-lap averages from that leg's partial streams. Existing terminal clipping remains unchanged. Speed-derived pace can still use its own source speed.
 - Generated lap summaries store canonical stats only. Unit variants are resolved by consumers from the canonical stat
@@ -1016,7 +1065,10 @@ BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
 
 SWOLF uses `Average Stroke Rate`; the naming change does not alter the calculation.
 
-- Moving time fallback order: lap moving time -> speed-threshold integration -> timer time fallback.
+- Moving time fallback order: complete contiguous lap moving times -> supported speed intervals -> unavailable.
+  Explicit stationary zero remains valid; Timer time is not substituted for missing movement evidence.
+- The existing Power Work fallback requires usable moving time. Positive power with zero movement leaves this
+  fallback unavailable: a stationary bike can still produce work. File-supplied work values remain authoritative.
 - Jump families (height, distance, speed, rotations, score, hang time) compute min/max/avg from jump events when available.
 
 8) Event-level aggregation behavior

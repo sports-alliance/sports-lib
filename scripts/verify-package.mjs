@@ -498,10 +498,11 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  // Allow a 2,000-byte increase to the previous 480,000-byte ceiling for threshold-HR support.
+  // Allow 6,000 additional bytes for sparse-distance interval calculations and JSON evidence.
+  // Measured facade startup: 485,907 bytes (previous ceiling: 482,000).
   // Keep catalog/provider contributions separately bounded and the decoder lazy.
   assertActivityMetadataBudget(initialOutputs);
-  assert.ok(initialBytes <= 482_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 482000`);
+  assert.ok(initialBytes <= 488_000, `SportsLib facade startup is ${initialBytes} bytes; expected at most 488000`);
   assert.ok(
     fitParserBytes <= 30_000,
     `SportsLib facade includes ${fitParserBytes} initial fit-file-parser bytes; expected at most 30000`

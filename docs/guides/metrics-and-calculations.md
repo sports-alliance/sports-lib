@@ -554,6 +554,26 @@ For multisport workouts, inspect each leg separately. Laps that start before the
 summaries; an ending leg cannot supply a whole-lap average. No metric is added to DataStore or Quantified Self's MCP
 catalog, and there are no new MCP fields, scopes or mutations. Existing numeric metrics keep their names and units.
 
+### FIT balance summaries and multisport power
+
+FIT session and lap `left_right_balance100` summaries are decoded in hundredths of a percent, with the side flag
+selecting left or right. A valid summary supplies both canonical balance statistics and keeps its precision in JSON;
+it does not replace per-record balance or derived left/right watts. The existing display rounding is unchanged.
+Missing or invalid summaries retain the activity stream-based fallback; unsupported lap balance stays unavailable.
+If a small summary supports both a
+whole-percent record encoding (including its side bit) and hundredths interpretation, and scoped record bounds exclude only the canonical interpretation,
+the library treats it as ambiguous and keeps the stream fallback. It never guesses a new scale. Genuine fractional
+balances and 0%/100% remain supported. This distinction follows
+[Garmin's explanation of summary versus record balance](https://forums.garmin.com/developer/fit-sdk/f/discussion/426542/questions-about-left-right-balance-and-its-decodification).
+
+For multiple legs, event `Average Power` is the duration-weighted mean of valid nonnegative leg summaries:
+`sum(leg average × leg timer seconds) / sum(leg timer seconds)`. This summarizes the leg means; it does not rescan
+samples or extrapolate their missing values. It is not an observed-sample mean across the entire event when leg
+coverage differs. Legs without power do not contribute zeros. Zero-duration legs contribute no weight; an unknown or
+invalid duration on a power-bearing leg makes the event average unavailable. Legacy active `Duration` is used only
+when no explicit timer statistic exists, never elapsed time or dates. Event maximum power retains genuine zero.
+Equal-duration legs at 100, 200 and 300 W produce 200 W in any order. Individual leg summaries and streams stay intact.
+
 The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
 athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file
 calibration can do so. A restored `FTP` JSON stat is not promoted to calibration during recalculation. When IF is

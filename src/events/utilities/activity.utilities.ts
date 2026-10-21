@@ -1185,7 +1185,10 @@ export class ActivityUtilities {
     );
   }
 
-  /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg. */
+  /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg.
+   * Average power weights valid leg means by timer duration (legacy Duration when no timer exists).
+   * A power-bearing leg with unknown timing makes that average unavailable; absent power is never zero.
+   */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
     // If only one
@@ -1209,7 +1212,6 @@ export class ActivityUtilities {
     let distance = 0;
     let pauseTime = 0;
     let averageHeartRate = 0;
-    let averagePower = 0;
     let averagePowerWattsPerKg = 0;
     let hasAveragePowerWattsPerKg = false;
     let averagePowerNormalized = 0;
@@ -1337,18 +1339,24 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateAvg(averageHeartRate));
     }
 
-    // Avg Avg Power
+    // Aggregate leg summaries, weighted by their active durations. Missing power is not zero.
+    let weightedPower = 0;
+    let powerDuration = 0;
+    let completePowerTiming = true;
     activities.forEach(activity => {
-      const activityAvgPower = activity.getStat(DataPowerAvg.type);
-      if (activityAvgPower) {
-        // The below will fallback for 0
-        averagePower = averagePower
-          ? (averagePower + <number>activityAvgPower.getValue()) / 2
-          : <number>activityAvgPower.getValue();
+      const value = activity.getStat(DataPowerAvg.type)?.getValue();
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return;
+      // Duration is the legacy active clock; an explicit invalid timer must not fall back to it.
+      const seconds = (activity.getStat(DataTimerTime.type) ?? activity.getDuration())?.getValue();
+      if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) {
+        completePowerTiming = false;
+        return;
       }
+      weightedPower += value * seconds;
+      powerDuration += seconds;
     });
-    if (averagePower) {
-      stats.push(new DataPowerAvg(averagePower));
+    if (completePowerTiming && powerDuration > 0 && Number.isFinite(powerDuration) && Number.isFinite(weightedPower)) {
+      stats.push(new DataPowerAvg(weightedPower / powerDuration));
     }
 
     // Avg Avg Power-to-Weight ratio (W/kg)
@@ -1765,15 +1773,15 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateMin(minHeartRate));
     }
 
-    // Max Power
-    let maxPower = 0;
+    // Max Power, including a measured zero.
+    let maxPower: number | null = null;
     activities.forEach(activity => {
-      const activityMaxPower = activity.getStat(DataPowerMax.type);
-      if (activityMaxPower) {
-        maxPower = Math.max(maxPower, <number>activityMaxPower.getValue());
+      const value = activity.getStat(DataPowerMax.type)?.getValue();
+      if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        maxPower = maxPower === null ? value : Math.max(maxPower, value);
       }
     });
-    if (maxPower) {
+    if (maxPower !== null) {
       stats.push(new DataPowerMax(maxPower));
     }
 

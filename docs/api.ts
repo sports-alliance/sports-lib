@@ -29,6 +29,9 @@
  * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
+ * FIT session/lap balance summaries retain hundredths precision independently of record balance streams.
+ * Multisport Average Power weights leg means by timer duration; missing power is not zero and unknown timing
+ * makes that aggregate unavailable. Regenerate event summaries to apply this rule to existing leg statistics.
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
  * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
  * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.

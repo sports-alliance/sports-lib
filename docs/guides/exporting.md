@@ -140,5 +140,11 @@ retained original FIT/TCX/GPX file, not simply another native JSON parse. System
 no separate stored-stream migration. Persist refreshed summaries/evaluations and rebuild affected power curves or
 capacity snapshots through the application's normal workflow. No automatic migration or reparse is triggered.
 
+FIT session/lap balance corrections require an original-file reparse: older native JSON did not retain those source
+summaries. Stored balance statistics remain readable and are not overwritten during JSON restoration. To correct a
+multisport event's average/maximum power, call `EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
+statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
+There are no new metric names, units, serialized fields or MCP schemas.
+
 See [Power coverage and observed work](metrics-and-calculations.md#power-coverage-and-observed-work) for formulas,
 partial-result handling and the computed-power TSS coverage gate. Routes are unchanged.

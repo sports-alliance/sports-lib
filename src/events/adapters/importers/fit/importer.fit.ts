@@ -1,3 +1,6 @@
+import { getFitSummaryPowerBalance } from './fit-power-balance';
+import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { rejectImpossiblePoolTiming, rejectedPoolTiming } from './fit-pool-timing';
 import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
@@ -3826,6 +3829,12 @@ export class EventImporterFIT {
     if (isNumberOrString(object.max_cadence)) {
       stats.push(new DataCadenceMax(object.max_cadence));
     }
+    // Summary balance uses hundredths; record balance remains an independent stream.
+    const balance = getFitSummaryPowerBalance(object);
+    if (balance) {
+      stats.push(new DataPowerBalanceLeft(balance.left), new DataPowerBalanceRight(balance.right));
+    }
+
     // Power
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));

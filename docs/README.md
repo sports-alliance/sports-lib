@@ -18,6 +18,7 @@ observed duration and work from original, unfiltered samples on demand, without 
 side watts and missing balance summaries also use original samples. Power curves never join efforts across a stop/resume,
 even at the same timestamp. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
 and [migration guidance](guides/exporting.md#missing-power).
+Lap power extrema include actively supported partial readings at fractional starts, consistently with their averages.
 Valid FIT session/lap balance summaries retain their hundredths precision, while record balance and side watts remain
 independent. Multisport average power and W/kg weight leg summaries by active duration and retain zero; see
 [balance and multisport power](guides/metrics-and-calculations.md#fit-balance-summaries-and-multisport-power).

@@ -137,6 +137,9 @@ Supplied summaries and imported TSS retain priority. Missing power extrema, side
 calculated from original samples rather than attached stream-filter views. If older code persisted summaries or side
 streams calculated from filtered inputs, a native JSON parse preserves those saved values; reparse the original file to
 rebuild them. Ordinary imports without attached filters need no extra migration for this correction.
+Calculated lap power extrema also include a leading reading with active support across a fractional lap start,
+consistent with the lap's power average. Native JSON keeps saved lap statistics; reparse originals to replace
+earlier calculated extrema. Original readings, activity summaries and supplied lap summaries remain unchanged.
 
 Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
 retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need

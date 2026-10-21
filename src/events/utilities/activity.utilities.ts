@@ -1058,6 +1058,7 @@ export class ActivityUtilities {
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
    * Power summaries and paired left/right calculations use original samples, ignoring attached stream filters.
+   * Lap power extrema also include a leading partial reading when it supports active time inside the lap.
    * Calculated interval streams instead use wholly contained intervals for averages and extrema.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
    * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
@@ -1108,7 +1109,14 @@ export class ActivityUtilities {
             return undefined;
           }
           const stream = activity.getStream(streamType);
-          if (streamType === DataPower.type) return stream.toJSON().data.slice(startIndex, endIndex);
+          if (streamType === DataPower.type) {
+            const start = (lapStart - activityStart) / 1000;
+            // Match the average's clipped support at a fractional start. Do not
+            // carry the preceding reading across missing power or a timer pause.
+            const leadingSupport = start < startIndex && powerIntervals(activity, start,
+              Math.min(startIndex, (lapEnd - activityStart) / 1000)).coverage.coveredDurationSeconds > 0;
+            return stream.toJSON().data.slice(startIndex - (leadingSupport ? 1 : 0), endIndex);
+          }
           return intervalValues(stream, (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000)
             ?? stream.getData().slice(startIndex, endIndex);
         }

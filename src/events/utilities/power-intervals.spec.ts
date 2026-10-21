@@ -129,6 +129,58 @@ it('measures coverage without changing streams, stats or the JSON format', () =>
   expect(coverage(restored)).toEqual(coverage(a));
 });
 
+describe('power summaries at fractional lap boundaries', () => {
+  it.each([
+    { start: 0.5, end: 1.5, first: 300, expected: [100, 300, 200] },
+    { start: 0.5, end: 1, first: 300, expected: [300, 300, 300] },
+    { start: 0.5, end: 0.75, first: 300, expected: [300, 300, 300] },
+    { start: 0.5, end: 1.5, first: 0, expected: [0, 100, 50] },
+    { start: 0.5, end: 1.5, first: null, expected: [100, 100, 100] },
+    { start: 0, end: 1, first: 300, expected: [300, 300, 300] },
+    { start: 1, end: 2, first: 300, expected: [100, 100, 100] },
+    { start: 0.5, end: 0.5, first: 300, expected: [undefined, undefined, undefined] },
+    { start: 0.5, end: 3, first: 300, expected: [0, 300, 120] },
+    { start: -0.5, end: 1.5, first: 300, expected: [undefined, undefined, undefined] }
+  ])('keeps extrema consistent with supported power: $start–$end s, first=$first', ({ start, end, first, expected }) => {
+    const values = [first, 100, 50, 0];
+    let a = create(values, 3);
+    a.addLap(new Lap(new Date(start * 1000), new Date(end * 1000), 1, LapTypes.Manual));
+    a.getStream(DataPower.type).useFilter({ filterData: data => data.map(value => value === null ? 999 : value * 2) });
+    for (let cycle = 0; cycle < 3; cycle++) {
+      generate(a);
+      expect([DataPowerMin.type, DataPowerMax.type, DataPowerAvg.type]
+        .map(type => a.getLaps()[0].getStat(type)?.getValue())).toEqual(expected);
+      expect(a.getStream(DataPower.type).toJSON().data).toEqual(values);
+      a = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(a.toJSON()))) as Activity;
+    }
+  });
+
+  it('preserves supplied lap power statistics at a fractional boundary', () => {
+    const a = create([300, 100, 50, 0], 3);
+    const lap = new Lap(new Date(500), new Date(1500), 1, LapTypes.Manual);
+    lap.addStat(new DataPowerMin(20));
+    lap.addStat(new DataPowerMax(400));
+    lap.addStat(new DataPowerAvg(250));
+    a.addLap(lap);
+    generate(a);
+    expect([DataPowerMin.type, DataPowerMax.type, DataPowerAvg.type]
+      .map(type => lap.getStat(type)?.getValue())).toEqual([20, 400, 250]);
+  });
+
+  it.each([
+    { resume: 1, expected: [100, 100, 100] },
+    { resume: 0.75, expected: [100, 300, 500 / 3] }
+  ])('counts the leading reading only when it supports active lap time, resume=$resume', ({ resume, expected }) => {
+    const a = create([300, 100, 50, 0], 3);
+    a.addEvent(new DataStopEvent(0.25));
+    a.addEvent(new DataStartEvent(resume));
+    a.addLap(new Lap(new Date(500), new Date(1500), 1, LapTypes.Manual));
+    generate(a);
+    expect([DataPowerMin.type, DataPowerMax.type, DataPowerAvg.type]
+      .map(type => a.getLaps()[0].getStat(type)?.getValue())).toEqual(expected);
+  });
+});
+
 it('rejects coverage below 80% and never counts paused readings or the endpoint as active work', () => {
   const low = create([...Array(959).fill(200), ...Array(241).fill(null)]);
   generate(low);

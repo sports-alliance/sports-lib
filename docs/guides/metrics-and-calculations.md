@@ -533,6 +533,12 @@ read the original samples, independently of any attached `Stream.useFilter` view
 times or change watts or balance for these calculations. Replacing the actual samples
 with `Stream.setData` still changes their inputs. Existing filters remain attached and source data stays intact.
 
+At a fractional lap start, power extrema also include the preceding reading when part of its one-second interval
+supports active time inside that lap. For example, 300 W followed by 100 W gives a 200 W average over 0.5–1.5 seconds,
+with a 100 W minimum and 300 W maximum. Missing readings and a timer pause cannot provide that leading support.
+Exact boundaries keep their half-open ownership, and a terminal lap retains the endpoint for extrema only.
+Supplied lap summaries keep priority; other sensors retain their existing sample-boundary rules.
+
 The coverage result contains:
 
 - `durationSeconds`: located active interval duration, or the larger explicit activity timer duration when supplied.

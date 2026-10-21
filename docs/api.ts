@@ -30,6 +30,7 @@
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
  * Power summaries, coverage/windows and derived side watts read original samples, ignoring attached stream filters.
+ * Lap power extrema include a leading partial reading only when it supports active time inside the lap.
  * Power curves keep active timer segments separate, including a stop/resume at the same timestamp.
  * FIT session/lap balance summaries retain hundredths precision independently of record balance streams.
  * Multisport Average Power and W/kg weight leg means by timer duration; missing power is not zero and unknown timing

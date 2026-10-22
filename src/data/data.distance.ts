@@ -1,6 +1,7 @@
 import { DataNumber } from './data.number';
 import { DataJSONInterface } from './data.json.interface';
 import { scalarDataFromJSON } from './data.scalar-json';
+import { UnitSystem } from './data.interface';
 
 export class DataDistance extends DataNumber {
   static type = 'Distance';
@@ -30,6 +31,7 @@ export class DataDistance extends DataNumber {
 export class DataDistanceMiles extends DataDistance {
   static type = 'Distance in miles';
   static unit = 'mi';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayValue(): string {
     return this.getValue().toFixed(2);
@@ -43,6 +45,7 @@ export class DataDistanceMiles extends DataDistance {
 export class DataDistanceFeet extends DataDistance {
   static type = 'Distance in feet';
   static unit = 'ft';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayValue(): string {
     return this.getValue().toFixed(1);

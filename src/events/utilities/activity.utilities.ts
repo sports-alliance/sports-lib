@@ -4194,7 +4194,7 @@ export class ActivityUtilities {
       }
     }
     if (!activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)) {
-      const swimPaceAvg = activity.getStat(DataPaceAvg.type);
+      const swimPaceAvg = activity.getStat(DataSwimPaceAvg.type);
       if (swimPaceAvg) {
         activity.addStat(
           new DataSwimPaceAvgMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceAvg.getValue()))

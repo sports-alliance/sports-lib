@@ -10,6 +10,7 @@ import {
 } from '../events/utilities/helpers';
 import { DataGradeAdjustedPace, DataGradeAdjustedPaceMinutesPerMile } from './data.grade-adjusted-pace';
 import { DataSpeed } from './data.speed';
+import { UnitSystem } from './data.interface';
 
 export class DataGradeAdjustedSpeed extends DataSpeed {
   static type = 'Grade Adjusted Speed';
@@ -54,6 +55,7 @@ export class DataGradeAdjustedSpeedMilesPerHour extends DataGradeAdjustedSpeed {
   static type = 'Grade Adjusted Speed in miles per hour';
   static displayType = DataGradeAdjustedSpeed.type;
   static unit = 'mph';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayType(): string {
     return super.getDisplayType();
@@ -64,6 +66,7 @@ export class DataGradeAdjustedSpeedFeetPerSecond extends DataGradeAdjustedSpeed 
   static type = 'Grade Adjusted Speed in feet per second';
   static displayType = DataGradeAdjustedSpeed.type;
   static unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
   getDisplayType(): string {
     return super.getDisplayType();
   }
@@ -82,6 +85,7 @@ export class DataGradeAdjustedSpeedFeetPerMinute extends DataGradeAdjustedSpeed 
   static type = 'Grade Adjusted Speed in feet per minute';
   static displayType = DataGradeAdjustedSpeed.type;
   static unit = 'ft/min';
+  static override unitSystem = UnitSystem.Imperial;
   getDisplayType(): string {
     return super.getDisplayType();
   }

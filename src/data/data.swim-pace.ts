@@ -1,5 +1,6 @@
 import { convertSwimPaceToSwimPacePer100Yard } from '../events/utilities/helpers';
 import { DataPace } from './data.pace';
+import { UnitSystem } from './data.interface';
 
 export class DataSwimPace extends DataPace {
   static type = 'Swim Pace';
@@ -19,4 +20,5 @@ export class DataSwimPaceMinutesPer100Yard extends DataSwimPace {
   static type = 'Swim Pace in minutes per 100 yard';
   static displayType = DataSwimPace.type;
   static unit = 'min/100yd';
+  static override unitSystem = UnitSystem.Imperial;
 }

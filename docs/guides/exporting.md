@@ -123,3 +123,39 @@ require an original-file reparse: neither JSON hydration nor summary regeneratio
 mask. After adopting this version, regenerate affected summaries/Training snapshots from corrected imports as needed.
 Canonical metric names, units, recorded statistics, swim lengths/rests, and route JSON contracts remain unchanged.
 The optional interval evidence is calculation metadata, not a new numeric metric or an MCP response field.
+
+## Missing power
+
+FIT, TCX and GPX power now preserves missing values as `null` and keeps recorded zero watts. Native JSON preserves
+those gaps. Generated Time is the union of sensor values and stays consistent after JSON restoration.
+Original record timestamps are used only during import to retain the existing fill behavior of other sensors.
+The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
+`ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
+changing the activity. Derived left/right power also retains explicit nulls where total power or balance is missing.
+GPX exports retain genuine zero watts and omit missing power, without adding or removing activity streams.
+Supplied summaries and imported TSS retain priority. Missing power extrema, side watts and balance summaries are
+calculated from original samples rather than attached stream-filter views. If older code persisted summaries or side
+streams calculated from filtered inputs, a native JSON parse preserves those saved values; reparse the original file to
+rebuild them. Ordinary imports without attached filters need no extra migration for this correction.
+Calculated lap power extrema also include a leading reading with active support across a fractional lap start,
+consistent with the lap's power average. Native JSON keeps saved lap statistics; reparse originals to replace
+earlier calculated extrema. Original readings, activity summaries and supplied lap summaries remain unchanged.
+
+Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
+retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need
+no separate stored-stream migration. Persist refreshed summaries/evaluations and rebuild affected power curves or
+capacity snapshots through the application's normal workflow. No automatic migration or reparse is triggered.
+
+FIT session/lap balance corrections require an original-file reparse: older native JSON did not retain those source
+summaries. Invalid FIT record balance also requires source reparsing to replace impossible percentages and derived
+side watts with missing observations while retaining total recorded power. Valid 0–100% balances are preserved. These
+corrections do not add serialized fields or alter metric keys or units. Stored balance statistics remain readable and
+are not overwritten during JSON restoration. To correct a multisport event's average/maximum power and W/kg, call
+`EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
+statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
+Saved power curves and FTP summaries are not replaced by JSON hydration. To apply the timer-boundary correction,
+refresh affected calculated snapshots from original files or retained power streams and timer events; keep supplied
+summaries authoritative. There are no new metric names, units, serialized fields or MCP schemas.
+
+See [Power coverage and observed work](metrics-and-calculations.md#power-coverage-and-observed-work) for formulas,
+partial-result handling and the computed-power TSS coverage gate. Routes are unchanged.

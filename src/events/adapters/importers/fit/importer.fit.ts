@@ -1,7 +1,10 @@
+import { getFitSummaryPowerBalance } from './fit-power-balance';
+import { DataPowerBalanceLeft } from '../../../../data/data.power-balance-left';
+import { DataPowerBalanceRight } from '../../../../data/data.power-balance-right';
 import { rejectImpossiblePoolTiming, rejectedPoolTiming } from './fit-pool-timing';
 import { coalesceFitRecords } from './fit-records';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration } from '../../../utilities/tss/tss-evaluation';
-import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
+import { captureImportedSensorFillTimes } from '../../../utilities/imported-sensor-fill-times';
 import { resolveFitFunctionalThresholdPower } from './fit-power-calibration';
 import { resolveFitHeartRateCalibration } from './fit-hr-calibration';
 import { DataTrainingStressScoreMethod, TrainingStressScoreMethod } from '../../../../data/data.training-stress-score-method';
@@ -302,7 +305,8 @@ export class EventImporterFIT {
    * A corroborated missing final session is retained as Unknown Sport without
    * moving earlier records or laps, or inferring sport-specific calibration.
    * Recovered legs do not inherit sport-only activity metrics; user metrics
-   * require a unique explicit start matching the recovered leg. */
+   * require a unique explicit start matching the recovered leg. Invalid record power
+   * balance is missing on both sides; total recorded power and valid 0–100% balance remain intact. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
@@ -621,7 +625,7 @@ export class EventImporterFIT {
           // with lap averages or use those averages to fill a partial HR stream.
           const isLengthsBased = this.isLengthsBased(sessionObject);
           const recordedSamples = coalesceFitRecords(sessionRecords[sessionIndex]);
-          captureRecordedPowerEvidence(activity, recordedSamples);
+
           // Once a real HR stream exists, keep explicit zero/invalid observations
           // as coverage boundaries too. Dropping them bridges sensor dropouts.
           const hasRecordedHeartRate = (isLengthsBased || sessionObject.lengths?.length) && recordedSamples.some((record: any) =>
@@ -678,25 +682,9 @@ export class EventImporterFIT {
             samplesInfo
           );
           if (recordedMappings.length) {
-            // Recorded pool power has its own coverage. The ordinary FIT mapper
-            // pads absent power at other sensor timestamps with zero; retain
-            // actual observations here so gaps also survive JSON restoration.
-            const poolMappings = recordedMappings.map(mapping =>
-              mapping.dataType === DataPower.type
-                ? {
-                    ...mapping,
-                    getSampleValue: (sample: { power?: unknown; Power?: unknown; RP_Power?: unknown }) => {
-                      const watts = isNumber(sample.power)
-                        ? sample.power
-                        : isNumber(sample.Power)
-                          ? sample.Power
-                          : sample.RP_Power;
-                      return typeof watts === 'number' && Number.isFinite(watts) && watts >= 0 ? watts : null;
-                    }
-                  }
-                : mapping
-            );
-            this.addSampleStreamsToActivity(activity, recordedSamples, poolMappings, {
+            // Recorded pool power has its own coverage. Retain actual observations
+            // rather than deriving power samples from swim lengths.
+            this.addSampleStreamsToActivity(activity, recordedSamples, recordedMappings, {
               hasPowerMeter: recordedHasPower
             });
           }
@@ -704,6 +692,11 @@ export class EventImporterFIT {
             this.addSampleStreamsToActivity(activity, recordedHeartRate,
               allowedSampleMappings.filter(mapping => mapping.dataType === DataHeartRate.type), samplesInfo);
             recordedPoolHeartRate.add(activity);
+          }
+
+          if (!isLengthsBased && activity.hasStreamData(DataPower.type) &&
+              activity.getStreamData(DataPower.type).some(isNumber)) {
+            captureImportedSensorFillTimes(activity, recordedSamples.map((sample: any) => new Date(sample.timestamp)));
           }
 
           return activity;
@@ -3837,6 +3830,12 @@ export class EventImporterFIT {
     if (isNumberOrString(object.max_cadence)) {
       stats.push(new DataCadenceMax(object.max_cadence));
     }
+    // Summary balance uses hundredths; record balance remains an independent stream.
+    const balance = getFitSummaryPowerBalance(object);
+    if (balance) {
+      stats.push(new DataPowerBalanceLeft(balance.left), new DataPowerBalanceRight(balance.right));
+    }
+
     // Power
     if (isNumberOrString(object.avg_power)) {
       stats.push(new DataPowerAvg(object.avg_power));

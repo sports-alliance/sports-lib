@@ -1,3 +1,4 @@
+import { DataWeight } from '../../data/data.weight';
 // import { describe, it, expect, beforeEach } from 'vitest';
 import { ActivityUtilities } from './activity.utilities';
 import { Activity } from '../../activities/activity';
@@ -69,20 +70,13 @@ describe('ActivityUtilities Power Curve', () => {
   });
 
   it('should handle gaps (nulls) in power stream conservatively', () => {
-    // Current implementation treats nulls as whatever arithmetic logic does (likely 0 or NaN depending on impl, let's verify)
-    // TypeScript usually enforces number or null. Our impl uses `currentSum += powerData[i]`.
-    // If powerData[i] is null, in JS `number + null = number`.
-    // So nulls are effectively 0.
     const powerValues = [100, null, 100] as any[];
-    // If null treated as 0: 100, 0, 100.
-    // 3s avg = (100+0+100)/3 = 66.66
     activity = createActivity(powerValues);
 
     const curve = ActivityUtilities.calculateMeanMaxPower(activity, [3]);
     const values = curve.getValue();
 
-    expect(values).toHaveLength(1);
-    expect(Math.round(values[0].power.getValue())).toBe(67);
+    expect(values).toHaveLength(0);
   });
 
   it('should correctly serialize toJSON', () => {
@@ -108,12 +102,7 @@ describe('ActivityUtilities Power Curve', () => {
 
   it('should use default "Best-in-Class" granularity when no durations are provided', () => {
     // Create a mock activity with enough data for all default durations (max 18000s)
-    const longActivity = {
-      hasStreamData: jest.fn().mockReturnValue(true),
-      getStreamData: jest.fn().mockReturnValue(new Array(20000).fill(200)), // 20000s of data
-      getStat: jest.fn().mockReturnValue(null) // Mock getStat to return null (no weight)
-      // Add other necessary properties if type checking involves them
-    } as unknown as Activity;
+    const longActivity = createActivity(new Array(20000).fill(200));
 
     const powerCurve = ActivityUtilities.calculateMeanMaxPower(longActivity);
     const points = powerCurve.getValue();
@@ -150,18 +139,8 @@ describe('ActivityUtilities Power Curve', () => {
     const powerValue = 300; // 300W
     const expectedWKg = 4; // 300 / 75 = 4.0 W/kg
 
-    const weightedActivity = {
-      hasStreamData: jest.fn().mockReturnValue(true),
-      getStreamData: jest.fn().mockReturnValue(new Array(100).fill(powerValue)),
-      getStat: jest.fn().mockImplementation(type => {
-        if (type === 'Weight') {
-          // Start of Mock DataWeight
-          return { getValue: () => weightValue };
-        }
-        return null;
-      })
-      // Add other necessary properties
-    } as unknown as Activity;
+    const weightedActivity = createActivity(new Array(100).fill(powerValue));
+    weightedActivity.addStat(new DataWeight(weightValue));
 
     const powerCurve = ActivityUtilities.calculateMeanMaxPower(weightedActivity, [10]);
     const points = powerCurve.getValue();

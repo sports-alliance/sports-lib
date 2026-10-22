@@ -34,15 +34,15 @@ describe('three-dimensional impulse-response fixture integration', () => {
     return powerStream?.getData() ?? [];
   }
 
-  it('scores a real, continuous cycling-power FIT fixture deterministically', async () => {
+  it('scores a real, nearly continuous cycling-power FIT fixture deterministically', async () => {
     const event = await importFixture('2025-12-24_13-50.fit');
     const power = getPowerData(event);
     const analysis = calculateThreeDimensionalStrain(power, CONTINUOUS_FIXTURE_MODEL);
 
     expect(power).toHaveLength(4_078);
-    expect(power.every(value => typeof value === 'number' && Number.isFinite(value))).toBe(true);
+    expect(power.filter(value => value === null)).toHaveLength(8);
     expect(analysis.status).toBe('ready');
-    expect(analysis.coverageRatio).toBe(1);
+    expect(analysis.coverageRatio).toBe(4070 / 4078);
     expect(analysis.scores!.total).toBeCloseTo(180.6279565833839, 8);
     expect(analysis.scores!.criticalPower).toBeCloseTo(169.37491000030383, 8);
     expect(analysis.scores!.wPrime).toBeCloseTo(9.576052971676436, 8);
@@ -56,15 +56,15 @@ describe('three-dimensional impulse-response fixture integration', () => {
     const analysis = calculateThreeDimensionalStrain(power, GAPPED_FIXTURE_MODEL);
 
     expect(power).toHaveLength(5_305);
-    expect(power.filter(value => value === null)).toHaveLength(559);
+    expect(power.filter(value => value === null)).toHaveLength(565);
     expect(analysis).toMatchObject({
       status: 'insufficient-evidence',
       reason: 'insufficient-coverage',
       sampleCount: 5_305,
-      validSampleCount: 4_746,
+      validSampleCount: 4_740,
       candidateDurationSeconds: 5_305,
-      recordedDurationSeconds: 4_746,
-      coverageRatio: 4_746 / 5_305,
+      recordedDurationSeconds: 4_740,
+      coverageRatio: 4_740 / 5_305,
       scores: null,
       endingWPrimeBalanceJoules: null,
       minimumWPrimeBalanceJoules: null

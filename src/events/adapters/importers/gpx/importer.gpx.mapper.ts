@@ -149,15 +149,9 @@ export const GPXSampleMapper: {
   {
     dataType: DataPower.type,
     getSampleValue: (sample: any, sampleInfo?: SampleInfo) => {
-      let watts = null;
-      if (sample.extensions?.length && sample.extensions[0].power && isNumberOrString(sample.extensions[0].power[0])) {
-        watts = Number(sample.extensions[0].power[0]);
-      }
-
-      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
-      // Just set watts to 0 when this happen
-      // Case example: ride file "7555261629.gpx"  from integration tests
-      return sampleInfo?.hasPowerMeter ? watts || 0 : null;
+      const raw = sample.extensions?.[0]?.power?.[0];
+      const watts = isNumberOrString(raw) && String(raw).trim() !== '' ? Number(raw) : NaN;
+      return sampleInfo?.hasPowerMeter && Number.isFinite(watts) && watts >= 0 ? watts : null;
     }
   }
 ];

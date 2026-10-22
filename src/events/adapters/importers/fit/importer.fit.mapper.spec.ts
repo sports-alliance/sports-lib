@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FITSampleMapper } from './importer.fit.mapper';
@@ -37,6 +38,24 @@ import {
 } from '../../../../data/data.running-dynamics-balance';
 
 describe('FITSampleMapper', () => {
+  it.each([
+    [{ power: 0, Power: 200 }, 0],
+    [{ power: null, Power: 0, RP_Power: 200 }, 0],
+    [{ power: NaN, Power: undefined, RP_Power: 0 }, 0],
+    [{ power: 250, Power: 300 }, 250],
+    [{ power: null, Power: 250, RP_Power: 300 }, 250],
+    [{ power: NaN, Power: undefined, RP_Power: 250 }, 250],
+    [{ power: Infinity, Power: 250 }, null],
+    [{ power: -1, Power: 250 }, null],
+    [{ Power: -1, RP_Power: 250 }, null],
+    [{ power: null, Power: null, RP_Power: null }, null],
+    [{ RP_Power: '250' }, null],
+    [{}, null]
+  ] as const)('preserves native/developer power precedence and missing values for %j', (sample, expected) => {
+    const mapper = FITSampleMapper.find(mapping => mapping.dataType === DataPower.type)!;
+    expect(mapper.getSampleValue(sample, { hasPowerMeter: true })).toBe(expected);
+  });
+
   it('retains profile-scaled FIT record depth in canonical meters', () => {
     const mapper = FITSampleMapper.find(m => m.dataType === DataDepth.type);
 
@@ -164,6 +183,39 @@ describe('FITSampleMapper', () => {
     expect(rightMapper!.getSampleValue({ left_right_balance: { right: false, value: 51.25 } })).toBe(48.75);
     expect(leftMapper!.getSampleValue({ left_right_balance: { right: true, value: 48.75 } })).toBe(51.25);
     expect(rightMapper!.getSampleValue({ left_right_balance: { right: true, value: 48.75 } })).toBe(48.75);
+  });
+
+  it.each([
+    undefined,
+    null,
+    {},
+    { value: -1, right: true },
+    { value: 101, right: true },
+    { value: 103, right: true },
+    { value: 127, right: false },
+    { value: NaN, right: false },
+    { value: Infinity, right: true },
+    { value: '50', right: true },
+    { value: null, right: true },
+    { value: 50 },
+    { value: 50, right: 0 }
+  ])('treats invalid record balance %j as missing on both sides', left_right_balance => {
+    for (const type of [DataPowerBalanceLeft.type, DataPowerBalanceRight.type]) {
+      expect(FITSampleMapper.find(m => m.dataType === type)!.getSampleValue({ left_right_balance })).toBeNull();
+    }
+  });
+
+  it.each([
+    [0, false, 0, 100],
+    [100, false, 100, 0],
+    [0, true, 100, 0],
+    [100, true, 0, 100]
+  ])('preserves valid record balance endpoints %s, right=%s', (value, right, left, expectedRight) => {
+    const sample = { left_right_balance: { value, right } };
+    expect(FITSampleMapper.find(m => m.dataType === DataPowerBalanceLeft.type)!.getSampleValue(sample)).toBe(left);
+    expect(FITSampleMapper.find(m => m.dataType === DataPowerBalanceRight.type)!.getSampleValue(sample)).toBe(
+      expectedRight
+    );
   });
 
   it('should map Stryd Duo balance fields as left/right pairs', () => {

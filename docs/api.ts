@@ -29,6 +29,12 @@
  * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
+ * Power summaries, coverage/windows and derived side watts read original samples, ignoring attached stream filters.
+ * Lap power extrema include a leading partial reading only when it supports active time inside the lap.
+ * Power curves keep active timer segments separate, including a stop/resume at the same timestamp.
+ * FIT session/lap balance summaries retain hundredths precision independently of record balance streams.
+ * Multisport Average Power and W/kg weight leg means by timer duration; missing power is not zero and unknown timing
+ * makes that aggregate unavailable. Regenerate event summaries to apply this rule to existing leg statistics.
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
  * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
  * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.
@@ -721,3 +727,6 @@ export { DataTrainingStressScore } from '../src/data/data.training-stress-score'
 
 export { normalizeTimingValidity, resolveSwimTimingSeconds } from '../src/duration/timing-validity';
 export type { TimingValidity } from '../src/duration/timing-validity';
+
+/** Observed power support from original samples; attached stream filters cannot supply missing readings. */
+export type { PowerCoverage } from '../src/activities/power-coverage';

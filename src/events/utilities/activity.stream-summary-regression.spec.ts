@@ -341,7 +341,7 @@ describe('lap stream-summary derivation', () => {
     expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataSpeed.type])?.getValue()).toBe(4);
   });
 
-  it('includes a fractional activity endpoint projected onto the terminal 1 Hz slot', () => {
+  it('retains endpoint extrema but weights power averages by supported duration', () => {
     const activity = new Activity(
       new Date(0),
       new Date(4500),
@@ -357,7 +357,7 @@ describe('lap stream-summary derivation', () => {
 
     expect(lap.getStat(DynamicDataLoader.dataTypeMinDataType[DataPower.type])?.getValue()).toBe(3);
     expect(lap.getStat(DynamicDataLoader.dataTypeMaxDataType[DataPower.type])?.getValue()).toBe(100);
-    expect(lap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(28);
+    expect(lap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3.8);
   });
 
   it('calculates overlapping laps independently', () => {
@@ -376,7 +376,7 @@ describe('lap stream-summary derivation', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(firstLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(2);
-    expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3.5);
+    expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3);
   });
 
   it('hydrates pace extrema from the derived lap speed summaries', () => {

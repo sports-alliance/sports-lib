@@ -226,13 +226,10 @@ describe('Strava stream compliance', () => {
         .catch(done);
     });
 
-    // The saved Strava reference has null power samples. Normalize this comparison to the existing
-    // Sports Lib zero-power read policy without shifting or dropping those timestamps.
-    it(`should match power including the reference's null-as-zero samples`, done => {
+    // Both representations retain missing watts as null without shifting or dropping timestamps.
+    it(`should match power while preserving the reference's missing samples`, done => {
       // Given
-      const stravaPowerStream = clone(strava_3156040843.watts).map((value: number | null) =>
-        value === null ? 0 : value
-      );
+      const stravaPowerStream = clone(strava_3156040843.watts);
 
       // When
       const eventInterfacePromise = SportsLib.importFromFit(buffer);

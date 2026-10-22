@@ -12,11 +12,24 @@ streams need an original-file reparse; recorded values and route behavior remain
 [distance calculations](guides/metrics-and-calculations.md) and
 [persistence and migration](guides/exporting.md#sparse-distance-and-calculated-intervals).
 
+Power imports retain unknown watts as null and real coasting as zero. Calculated work, curves and power TSS use
+observed interval coverage, while supplied summaries keep priority. `ActivityUtilities.getPowerCoverage` exposes
+observed duration and work from original, unfiltered samples on demand, without adding stored metadata. Power extrema,
+side watts and missing balance summaries also use original samples. Power curves never join efforts across a stop/resume,
+even at the same timestamp. See [power coverage](guides/metrics-and-calculations.md#power-coverage-and-observed-work)
+and [migration guidance](guides/exporting.md#missing-power).
+Lap power extrema include actively supported partial readings at fractional starts, consistently with their averages.
+Valid FIT session/lap balance summaries retain their hundredths precision, while record balance and side watts remain
+independent. Invalid FIT record balance percentages become missing on both sides, preserving recorded total power
+and valid 0–100% observations. Multisport average power and W/kg weight leg summaries by active duration and retain
+zero; see
+[balance and multisport power](guides/metrics-and-calculations.md#fit-balance-summaries-and-multisport-power).
+
 Browser charts and workers can use the public `@sports-alliance/sports-lib/metrics` entry to keep file importers and
 their asynchronous chunks out of their bundle graph. It shares the root API's canonical implementations and data
 catalog; no metric, JSON, persistence or migration behavior changes. See [browser and worker imports](guides/metrics-and-calculations.md#browser-and-worker-imports).
 
-**Regression-tested against 191,548 real-world source files.** Coverage includes activity and route imports
+**Regression-tested against 195,562 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on
 evidence in the file. See
@@ -329,8 +342,9 @@ Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apn
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
 retain or derive terrain ascent, descent, altitude min/max/avg, or grade min/max/avg summaries, including when older
 native JSON is restored or an all-diving event summary is regenerated. Mixed event summaries use terrain values only
-from non-diving activities. Their vertical movement is represented by depth; raw altitude and grade streams remain
-available when provided by the source.
+from non-diving activities. Suunto DeviceLog JSON also applies the exclusion after its final header merge, keeping
+all-diving event summaries consistent with native JSON restoration. Their vertical movement is represented by depth;
+raw altitude and grade streams remain available when provided by the source.
 
 ## Start here
 

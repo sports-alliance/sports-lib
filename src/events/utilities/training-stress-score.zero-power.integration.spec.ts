@@ -124,8 +124,10 @@ describe('zero power TSS with recorded evidence', () => {
     }
   });
 
-  it('accepts the first complete 30-second zero window', async () => {
-    expect(evaluate(await ride({ coverage: 'thirty' })).automatic).toMatchObject({ method: 'POWER', score: 0 });
+  it('does not extrapolate a 30-second zero window to the full hour', async () => {
+    const activity = await ride({ coverage: 'thirty', hr: true });
+    expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(0);
+    expect(evaluate(activity).automatic).toMatchObject({ method: 'HR', score: 100 });
   });
 
   it.each(['short', 'gappy', 'missing', 'paused'] as const)(

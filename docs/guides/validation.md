@@ -22,6 +22,8 @@ irregularities as well as standard-format imports.
 | Missing final multisport session | Recover a final `Unknown Sport` leg only when the file explicitly establishes a missing session and independently supports its boundaries. |
 | Pool and multisport export quirks | Preserve supported length/rest records, canonical pool units and valid cross-sport laps; guard against incomplete generated distance and source-proven impossible length durations. |
 | Invalid values in older native JSON | Restore activity and route data without promoting non-finite or null scalar summaries into valid measurements; preserve valid zeros and independently usable data. |
+| Impossible FIT power-balance percentages | Treat invalid balance as missing on both sides, preserving total recorded power and valid 0–100% values instead of manufacturing negative side watts. |
+| Suunto diving header summaries | Apply the existing terrain-summary exclusion after the header merge, preserving raw altitude/depth streams and consistent native JSON roundtrips. |
 
 These are scoped compatibility rules backed by source evidence and regression tests. Recovery preserves meaningful
 zeros, missing readings, pauses and sport boundaries. Unproven values are not invented to make a file pass, and
@@ -32,13 +34,26 @@ conditions and historical reparse requirements. The known limitations below rema
 
 ## Verified corpus
 
-As of **16 October 2026**, the validation covers **191,548 distinct source files**, including activity and route
+As of **22 October 2026**, the validation covers **195,562 distinct source files**, including activity and route
 imports and file-type validation.
 
 Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
 count does not represent unique workouts or athletes.
 
-The corpus includes FIT, GPX, TCX and provider JSON, with exports from Garmin, Suunto, COROS, Polar and other sources.
+The corpus includes FIT, GPX, TCX, provider JSON and SML, with exports from Garmin, Suunto, COROS, Polar and other sources.
+
+The complete snapshot includes these successfully imported activity and route cases:
+
+| Coverage | Count |
+|---|---:|
+| Activity source files | 188,277 |
+| Activity legs | 189,455 |
+| Multisport source files | 429 |
+| Laps | 814,607 |
+| Swimming lengths, including rests | 341,872 |
+| Route source files | 1,288 |
+
+Legs, laps and lengths are nested in activity files; these counts must not be added together as unique activities.
 
 ## What was checked
 
@@ -54,9 +69,15 @@ Validation included:
 Checks vary by format and scenario. Intentional changes were reviewed against source evidence; the completed
 comparisons found no unexpected differences or newly introduced rejections.
 
+Focused follow-up replays checked all **2,629 JSON/SML originals** for the Suunto diving-summary correction and
+**2,337 balance-related FIT originals** for record-balance validation. The latter corrected 100 invalid balance
+readings in nine files, eliminating 60 negative left-side power samples; the other 2,328 files stayed unchanged.
+Total power and TSS were unchanged. Both follow-ups checked native JSON roundtrips and repeated generation.
+These focused runs supplement the complete snapshot above; they are not additional unique source files.
+
 ## Route coverage
 
-The route corpus contains **1,230 GPX files and one FIT file**.
+The validated route corpus contains **1,287 GPX files and one FIT file**.
 
 Each was imported through the route APIs, compared with the published implementation and restored from native JSON.
 Comparisons covered the complete serialized output, including geometry, metadata and statistics. No failures or

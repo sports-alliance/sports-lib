@@ -1,10 +1,12 @@
+import { takeImportedSensorFillTimes } from './imported-sensor-fill-times';
+import { powerIntervals, meanMaxPower } from './power-intervals';
+import type { PowerCoverage } from '../../activities/power-coverage';
 import { DataEvent } from '../../data/data.event';
 import { DataStartEvent } from '../../data/data.start-event';
 import { DataStopEvent } from '../../data/data.stop-event';
 import { DataStopAllEvent } from '../../data/data.stop-all-event';
 import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, getHeartRateSamplesWithCoverage } from './tss/hr-observation-coverage';
 import { calculateNormalizedPower } from './normalized-power';
-import { getRecordedPowerValues } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
@@ -315,6 +317,7 @@ import {
 } from '../../data/data.training-stress-score-method';
 import { DataPowerWork } from '../../data/data.power-work';
 import {
+  activeDistanceSegments,
   speedFromDistance,
   gradeFromDistance,
   gradeSamplesForSpeed,
@@ -417,7 +420,22 @@ export class ActivityUtilities {
     return stat;
   }
 
+  private static isCalculatedNormalizedPower(activity: ActivityInterface): boolean {
+    const calculated = this.calculatedNormalizedPower.get(activity);
+    return !!calculated && activity.getStat(DataPowerNormalized.type) === calculated.stat &&
+      calculated.stat.getValue() === calculated.value;
+  }
+
+  /** Measures observed active power support from unfiltered samples without changing streams or persisted statistics.
+   * Each reading supports at most one second. Missing watts remain unknown; recorded zeroes count as coverage.
+   * Observed work is partial when coverageRatio is below one, not an estimate of missing work.
+   */
+  public static getPowerCoverage(activity: ActivityInterface): PowerCoverage {
+    return powerIntervals(activity).coverage;
+  }
+
   private static geoLibAdapter = new GeoLibAdapter();
+  private static readonly MINIMUM_COMPUTED_POWER_TSS_COVERAGE = 0.8;
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
   private static readonly INTENSITY_FACTOR_DECIMALS = 3;
@@ -561,7 +579,8 @@ export class ActivityUtilities {
   private static addLeftRightBalanceStatsFromStreams(
     activity: ActivityInterface,
     LeftDataClass: { type: string; new (value: number): DataInterface },
-    RightDataClass: { type: string; new (value: number): DataInterface }
+    RightDataClass: { type: string; new (value: number): DataInterface },
+    readAverage: (streamType: string) => number = streamType => this.getDataTypeAvg(activity, streamType)
   ): void {
     const leftStat = activity.getStat(LeftDataClass.type);
     const rightStat = activity.getStat(RightDataClass.type);
@@ -582,14 +601,14 @@ export class ActivityUtilities {
     }
 
     if (activity.hasStreamData(LeftDataClass.type)) {
-      const avgLeftBalance = this.round(this.getDataTypeAvg(activity, LeftDataClass.type), 2);
+      const avgLeftBalance = this.round(readAverage(LeftDataClass.type), 2);
       activity.addStat(new LeftDataClass(avgLeftBalance));
       activity.addStat(new RightDataClass(this.round(100 - avgLeftBalance, 2)));
       return;
     }
 
     if (activity.hasStreamData(RightDataClass.type)) {
-      const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
+      const avgRightBalance = this.round(readAverage(RightDataClass.type), 2);
       activity.addStat(new RightDataClass(avgRightBalance));
       activity.addStat(new LeftDataClass(this.round(100 - avgRightBalance, 2)));
     }
@@ -1038,6 +1057,8 @@ export class ActivityUtilities {
    * Fills missing activity streams and summary stats, then derives canonical min/max/average and
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
+   * Power summaries and paired left/right calculations use original samples, ignoring attached stream filters.
+   * Lap power extrema also include a leading partial reading when it supports active time inside the lap.
    * Calculated interval streams instead use wholly contained intervals for averages and extrema.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
    * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
@@ -1072,10 +1093,13 @@ export class ActivityUtilities {
           : Math.ceil((lapEnd - activityStart) / 1000)
       );
 
+      const lapPower = activity.hasStreamData(DataPower.type) ? powerIntervals(activity,
+        (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : null;
       addMissingStreamSummaryStats({
         activityType: activity.type,
         target: lap,
         readAverage: streamType => {
+          if (streamType === DataPower.type) return lapPower?.coverage.observedAveragePowerWatts ?? null;
           const stream = activity.getAllStreams().find(item => item.type === streamType);
           return stream ? intervalAverage(stream, (lapStart - activityStart) / 1000,
             (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : undefined;
@@ -1085,6 +1109,14 @@ export class ActivityUtilities {
             return undefined;
           }
           const stream = activity.getStream(streamType);
+          if (streamType === DataPower.type) {
+            const start = (lapStart - activityStart) / 1000;
+            // Match the average's clipped support at a fractional start. Do not
+            // carry the preceding reading across missing power or a timer pause.
+            const leadingSupport = start < startIndex && powerIntervals(activity, start,
+              Math.min(startIndex, (lapEnd - activityStart) / 1000)).coverage.coveredDurationSeconds > 0;
+            return stream.toJSON().data.slice(startIndex - (leadingSupport ? 1 : 0), endIndex);
+          }
           return intervalValues(stream, (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000)
             ?? stream.getData().slice(startIndex, endIndex);
         }
@@ -1165,7 +1197,10 @@ export class ActivityUtilities {
     );
   }
 
-  /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg. */
+  /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg.
+   * Average power and W/kg weight valid leg means by timer duration (legacy Duration when no timer exists).
+   * A power-bearing leg with unknown timing makes that average unavailable; absent power is never zero.
+   */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
     // If only one
@@ -1189,9 +1224,6 @@ export class ActivityUtilities {
     let distance = 0;
     let pauseTime = 0;
     let averageHeartRate = 0;
-    let averagePower = 0;
-    let averagePowerWattsPerKg = 0;
-    let hasAveragePowerWattsPerKg = false;
     let averagePowerNormalized = 0;
     let hasAveragePowerNormalized = false;
     let averageCadence = 0;
@@ -1317,33 +1349,13 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateAvg(averageHeartRate));
     }
 
-    // Avg Avg Power
-    activities.forEach(activity => {
-      const activityAvgPower = activity.getStat(DataPowerAvg.type);
-      if (activityAvgPower) {
-        // The below will fallback for 0
-        averagePower = averagePower
-          ? (averagePower + <number>activityAvgPower.getValue()) / 2
-          : <number>activityAvgPower.getValue();
-      }
-    });
-    if (averagePower) {
-      stats.push(new DataPowerAvg(averagePower));
-    }
-
-    // Avg Avg Power-to-Weight ratio (W/kg)
-    activities.forEach(activity => {
-      const activityPowerWattsPerKg = this.resolvePowerWattsPerKg(activity);
-      if (activityPowerWattsPerKg !== null) {
-        averagePowerWattsPerKg = hasAveragePowerWattsPerKg
-          ? (averagePowerWattsPerKg + activityPowerWattsPerKg) / 2
-          : activityPowerWattsPerKg;
-        hasAveragePowerWattsPerKg = true;
-      }
-    });
-    if (hasAveragePowerWattsPerKg) {
-      stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
-    }
+    // Both power units use the same timing policy; absent values are never zero.
+    const averagePower = this.getDurationWeightedPowerMean(activities, activity =>
+      this.getFiniteStatValue(activity, DataPowerAvg.type));
+    if (averagePower !== null) stats.push(new DataPowerAvg(averagePower));
+    const averagePowerWattsPerKg = this.getDurationWeightedPowerMean(activities, activity =>
+      this.resolvePowerWattsPerKg(activity));
+    if (averagePowerWattsPerKg !== null) stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
 
     // Avg Normalized Power
     activities.forEach(activity => {
@@ -1745,15 +1757,15 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateMin(minHeartRate));
     }
 
-    // Max Power
-    let maxPower = 0;
+    // Max Power, including a measured zero.
+    let maxPower: number | null = null;
     activities.forEach(activity => {
-      const activityMaxPower = activity.getStat(DataPowerMax.type);
-      if (activityMaxPower) {
-        maxPower = Math.max(maxPower, <number>activityMaxPower.getValue());
+      const value = activity.getStat(DataPowerMax.type)?.getValue();
+      if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        maxPower = maxPower === null ? value : Math.max(maxPower, value);
       }
     });
-    if (maxPower) {
+    if (maxPower !== null) {
       stats.push(new DataPowerMax(maxPower));
     }
 
@@ -2363,7 +2375,8 @@ export class ActivityUtilities {
   }
 
   /**
-   * Calculate Mean Max Power for specified durations
+   * Calculate Mean Max Power for specified durations within individual active timer segments.
+   * Stop/resume boundaries split efforts even when their timestamps are equal.
    * @param activity The activity to analyze
    * @param durations Array of durations in seconds. If not provided, a "Best-in-Class" high-granularity set is used.
    */
@@ -2388,22 +2401,14 @@ export class ActivityUtilities {
       ];
     }
 
-    const rawPowerData = activity.getStreamData(DataPower.type);
-    const finitePowerData = rawPowerData.map(value =>
-      typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
-    );
-    // A single positive sample bounded by zero-power samples is a common
-    // recording artifact. Exclude it from the derived curve while preserving
-    // the caller-owned activity stream unchanged.
-    const powerData = finitePowerData.map((value, index) =>
-      value > 0 &&
-      index > 0 &&
-      index < finitePowerData.length - 1 &&
-      finitePowerData[index - 1] === 0 &&
-      finitePowerData[index + 1] === 0
-        ? 0
-        : value
-    );
+    const supportedPower = powerIntervals(activity).watts;
+    // A stop/resume can share a timestamp and leave no missing bin. Keep the
+    // existing timer segments separate so rolling efforts never join across it.
+    const powerRuns = activeDistanceSegments(activity)
+      .map(({ start, end }) => supportedPower.slice(Math.ceil(start), Math.floor(end)))
+      .map(values => values.map((value, index) =>
+        value > 0 && index > 0 && index < values.length - 1 &&
+        values[index - 1] === 0 && values[index + 1] === 0 ? 0 : value));
     const curvePoints: DataPowerCurvePoint[] = [];
 
     // Get user weight for W/kg calculation
@@ -2414,27 +2419,12 @@ export class ActivityUtilities {
     const sortedDurations = [...durations].sort((a, b) => a - b);
 
     for (const duration of sortedDurations) {
-      if (duration <= 0 || duration > powerData.length) {
-        continue;
+      let maxAvgPower: number | null = null;
+      for (const powerData of powerRuns) {
+        const candidate = meanMaxPower(powerData, duration);
+        if (candidate !== null) maxAvgPower = Math.max(maxAvgPower ?? 0, candidate);
       }
-
-      let maxAvgPower = 0;
-      let currentSum = 0;
-
-      // Initial window
-      for (let i = 0; i < duration; i++) {
-        currentSum += powerData[i];
-      }
-      maxAvgPower = currentSum / duration;
-
-      // Slide window
-      for (let i = duration; i < powerData.length; i++) {
-        currentSum = currentSum - powerData[i - duration] + powerData[i];
-        const currentAvg = currentSum / duration;
-        if (currentAvg > maxAvgPower) {
-          maxAvgPower = currentAvg;
-        }
-      }
+      if (maxAvgPower === null) continue;
 
       const point: DataPowerCurvePoint = {
         duration: new DataDuration(duration),
@@ -2500,17 +2490,32 @@ export class ActivityUtilities {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
   }
 
+  /** Weight available nonnegative power summaries by active duration, without reading or filling streams. */
+  private static getDurationWeightedPowerMean(
+    activities: ActivityInterface[], readValue: (activity: ActivityInterface) => number | null
+  ): number | null {
+    let weighted = 0, duration = 0;
+    for (const activity of activities) {
+      const value = readValue(activity);
+      if (value === null || !Number.isFinite(value) || value < 0) continue;
+      // An explicit invalid timer must not fall back to the legacy active Duration.
+      const seconds = (activity.getStat(DataTimerTime.type) ?? activity.getDuration())?.getValue();
+      if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return null;
+      weighted += value * seconds;
+      duration += seconds;
+    }
+    return duration > 0 && Number.isFinite(duration) && Number.isFinite(weighted) ? weighted / duration : null;
+  }
+
   private static resolvePowerWattsPerKg(activity: ActivityInterface): number | null {
-    const existingPowerWattsPerKg = this.toPositiveFiniteNumber(
-      this.getFiniteStatValue(activity, DataPowerWattsPerKg.type)
-    );
-    if (existingPowerWattsPerKg !== null) {
+    const existingPowerWattsPerKg = this.getFiniteStatValue(activity, DataPowerWattsPerKg.type);
+    if (existingPowerWattsPerKg !== null && existingPowerWattsPerKg >= 0) {
       return existingPowerWattsPerKg;
     }
 
-    const averagePower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerAvg.type));
+    const averagePower = this.getFiniteStatValue(activity, DataPowerAvg.type);
     const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
-    if (averagePower === null || weight === null) {
+    if (averagePower === null || averagePower < 0 || weight === null) {
       return null;
     }
 
@@ -2589,17 +2594,8 @@ export class ActivityUtilities {
       return null;
     }
 
-    const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-    const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-    const powerStream = powerDurationStream.map(item => item.value) as number[];
-    if (powerStream.length < 2 || timeStream.length < 2) {
-      return null;
-    }
-
-    // Unlike a zero summary placeholder, a complete recorded window can prove
-    // zero NP. The rolling calculation returns NaN when coverage is unavailable.
-    const computedNormalizedPower = calculateNormalizedPower(
-      getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
+    const power = powerIntervals(activity).watts;
+    const computedNormalizedPower = calculateNormalizedPower(power, power.map((_, i) => i), activity.getAllEvents());
     if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0) {
       return null;
     }
@@ -2729,6 +2725,14 @@ export class ActivityUtilities {
     const durationSeconds = this.getDurationSecondsWithoutPauses(activity);
     if (normalizedPower === null || !(durationSeconds > 0)) {
       return { result: null, reason: 'missing-power-inputs' };
+    }
+
+    if (this.isCalculatedNormalizedPower(activity)) {
+      const coverage = powerIntervals(activity).coverage;
+      const denominator = Math.max(coverage.durationSeconds, durationSeconds);
+      if (!(denominator > 0) || coverage.coveredDurationSeconds / denominator < this.MINIMUM_COMPUTED_POWER_TSS_COVERAGE - 1e-9) {
+        return { result: null, reason: 'calculation-unavailable' };
+      }
     }
 
     return this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
@@ -3005,6 +3009,10 @@ export class ActivityUtilities {
       }
       if (!automatic) automaticReasons.push(metCandidate?.reason ?? 'missing-met-inputs');
     }
+    const powerCoverage = power && this.isCalculatedNormalizedPower(activity)
+      ? powerIntervals(activity).coverage : null;
+    const estimatedPower = !!powerCoverage && powerCoverage.coveredDurationSeconds <
+      Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
       const result = preferred ?? automatic;
@@ -3015,7 +3023,8 @@ export class ActivityUtilities {
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
         method: result?.calculationMethod ?? null,
         ...(result?.hrAlgorithm ? { hrAlgorithm: result.hrAlgorithm } : {}),
-        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD',
+        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD' ||
+          (result?.calculationMethod === TrainingStressScoreMethod.POWER && estimatedPower),
         provenance: result ? 'calculated' : null,
         reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
@@ -3516,38 +3525,21 @@ export class ActivityUtilities {
       if (grade) activity.addStream(adjustedSpeedFromGrade(speed, grade));
     }
 
-    if (!activity.hasStreamData(DataPowerRight.type) && this.canGenerateDerivedStream(activity, DataPowerRight.type)) {
-      const rightPowerStream = activity.createStream(DataPowerRight.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData = activity.getStreamData(DataPowerBalanceRight.type);
-      rightPowerStream.setData(
-        rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(rightPowerStream);
-    }
-
-    if (!activity.hasStreamData(DataPowerLeft.type) && this.canGenerateDerivedStream(activity, DataPowerLeft.type)) {
-      const leftPowerStream = activity.createStream(DataPowerLeft.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData = activity.getStreamData(DataPowerBalanceLeft.type);
-      leftPowerStream.setData(
-        leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(leftPowerStream);
+    // Derive each side from paired observations only. Keep every time slot explicit,
+    // including trailing gaps, so in-memory reads and JSON restoration agree.
+    for (const [powerType, balanceType] of [
+      [DataPowerRight.type, DataPowerBalanceRight.type],
+      [DataPowerLeft.type, DataPowerBalanceLeft.type]
+    ]) {
+      if (activity.hasStreamData(powerType) || !this.canGenerateDerivedStream(activity, powerType)) continue;
+      const power = activity.getStream(DataPower.type).toJSON().data;
+      const balance = activity.getStream(balanceType).toJSON().data;
+      const data = Array.from({ length: Math.max(power.length, balance.length) }, (_, index) => {
+        const watts = power[index], percent = balance[index];
+        return typeof watts === 'number' && Number.isFinite(watts) &&
+          typeof percent === 'number' && Number.isFinite(percent) ? watts * (percent / 100) : null;
+      });
+      activity.addStream(new Stream(powerType, data));
     }
 
     // If left stance time stream available, then add the right balance stream too
@@ -3709,6 +3701,16 @@ export class ActivityUtilities {
             .map(stream => stream.type)
         : []
     );
+    // Original record timestamps preserve the existing fill behavior of other sensors
+    // when missing watts stop supplying artificial zeros. They are consumed here only;
+    // the public Time stream remains the union of actual sensor values.
+    const importedFillTimes = takeImportedSensorFillTimes(activity);
+    if (!hasPoolLengths && !recordedPoolHeartRate.has(activity)) {
+      const fillGrid = timeStream.getData();
+      for (const index of importedFillTimes) {
+        if (index < fillGrid.length) fillGrid[index] = index;
+      }
+    }
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:
@@ -3855,11 +3857,25 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
+    const power = activity.hasStreamData(DataPower.type) ? powerIntervals(activity) : null;
+    if (power) {
+      const c = power.coverage;
+      const timer = this.getDurationSecondsWithoutPauses(activity);
+      if (!activity.getStat(DataPowerWork.type) && c.durationSeconds > 0 && timer > 0 &&
+        Math.abs(c.durationSeconds - timer) < 1e-6 &&
+        c.coveredDurationSeconds >= c.durationSeconds - 1e-6) {
+        activity.addStat(new DataPowerWork(c.observedWorkKilojoules));
+      }
+    }
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,
-      readStream: streamType => (activity.hasStreamData(streamType) ? activity.getStreamData(streamType) : undefined),
+      readStream: streamType => {
+        const stream = activity.getAllStreams().find(item => item.type === streamType);
+        return streamType === DataPower.type ? stream?.toJSON().data : stream?.getData();
+      },
       readAverage: streamType => {
+        if (streamType === DataPower.type) return power?.coverage.observedAveragePowerWatts ?? null;
         const stream = activity.getAllStreams().find(item => item.type === streamType);
         return stream ? intervalAverage(stream) : undefined;
       }
@@ -3961,15 +3977,8 @@ export class ActivityUtilities {
       }
     }
 
-    // Power Normalized
-    if (!activity.getStat(DataPowerNormalized.type) && activity.hasStreamData(DataPower.type)) {
-      const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-      const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-      const powerStream = powerDurationStream.map(item => item.value) as number[];
-      const normalizedPower = calculateNormalizedPower(
-        getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
-      if (Number.isFinite(normalizedPower)) this.setCalculatedNormalizedPower(activity, normalizedPower);
-    }
+    // A file-supplied summary wins; calculated NP uses only complete active windows.
+    if (!activity.getStat(DataPowerNormalized.type)) this.resolveNormalizedPower(activity);
 
     // Power Curve
     if (!activity.getStat(DataPowerCurve.type) && activity.hasStreamData(DataPower.type)) {
@@ -4035,7 +4044,11 @@ export class ActivityUtilities {
       }
     }
 
-    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight);
+    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight, streamType =>
+      this.getAverage(activity.getStream(streamType).toJSON().data.filter(
+        (value): value is number => typeof value === 'number' && Number.isFinite(value)
+      ))
+    );
 
     this.addLeftRightBalanceStatsFromStreams(
       activity,
@@ -4748,22 +4761,6 @@ export class ActivityUtilities {
       // Zero is a valid stationary result. Unsupported movement is not timer time.
       if (movingTime !== null && Number.isFinite(movingTime) && movingTime <= timerTime) {
         activity.addStat(new DataMovingTime(movingTime));
-      }
-    }
-
-    // Add Power Work if missing when avg power and moving time are available
-    if (
-      !activity.getStat(DataPowerWork.type) &&
-      activity.getStat(DataPowerAvg.type) &&
-      activity.getStat(DataMovingTime.type)
-    ) {
-      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
-      const avgPower = (<DataPowerAvg>activity.getStat(DataPowerAvg.type)).getValue();
-      // Zero positional movement does not establish zero work (for example, an indoor bike).
-      // Keep this fallback unavailable rather than rewriting its energy model or inventing timer support.
-      if (movingTime > 0 || avgPower === 0) {
-        const powerWork = Math.round((avgPower * movingTime) / 1000);
-        activity.addStat(new DataPowerWork(powerWork));
       }
     }
 

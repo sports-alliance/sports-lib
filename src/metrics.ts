@@ -20,3 +20,5 @@ export type { StreamInterface } from './streams/stream.interface';
 export * from './users/settings/user.unit.settings.interface';
 export * from './users/settings/user.chart.settings.interface';
 export { ChartDataCategoryTypes } from './tiles/tile.settings.interface';
+
+export type { PowerCoverage } from './activities/power-coverage';

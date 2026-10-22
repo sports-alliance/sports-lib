@@ -32,8 +32,6 @@ See [activity R–R calculations](docs/guides/metrics-and-calculations.md#activi
 
 ## Install
 
-Node.js consumers need Node.js 20 or newer, as required by the GPX export dependency. Development and CI use Node.js 24.
-
 ```sh
 npm install @sports-alliance/sports-lib
 ```

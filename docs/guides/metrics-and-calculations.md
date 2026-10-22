@@ -39,6 +39,8 @@ from older decoders) are ignored without advancing time or breaking beat adjacen
 Later multisport legs use their own elapsed clock. Intervals crossing a leg boundary retain their original
 end timestamp for clipped coverage; they do not contribute partial beats to HRV or extend derived HR samples past the
 leg end. Untimestamped Suunto batches retain cumulative timing anchored to the source/activity start.
+Legacy SML XML interval arrays use the activity's first UTC sample as their anchor; a timezone-less header clock
+does not override it. When no UTC samples exist, the XML adapter retains its existing header-start fallback.
 Stream selection still controls IBI inclusion.
 
 Recording-quality rules use 300–2,000 ms inclusive, then compare each interval to the median of up to five in-range

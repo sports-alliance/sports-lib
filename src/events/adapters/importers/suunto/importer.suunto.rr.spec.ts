@@ -9,6 +9,8 @@ import {
   DataRRInvalidIntervalCount
 } from '../../../../data/data.rr';
 import { DataIBI } from '../../../../data/data.ibi';
+import { DataHeartRate } from '../../../../data/data.heart-rate';
+import { EventImporterJSON } from '../json/importer.json';
 
 const time = (ms: number) => new Date(Date.parse('2026-01-01T10:00:00Z') + ms).toISOString();
 const payload = () => ({
@@ -23,8 +25,61 @@ const payload = () => ({
     'R-R': { Data: [800, 850, 900] }
   }
 });
+const xmlPayload = (headerStart: string, withUTC = true) => `<sml><DeviceLog>
+  <Device><Name>Synthetic</Name><Info><HW>1</HW><SW>1</SW></Info></Device>
+  <Header><DateTime>${headerStart}</DateTime><Duration>10</Duration><ActivityType>3</ActivityType></Header>
+  <R-R><Data>${Array(20).fill(500).join(' ')}</Data></R-R>
+  <Samples>
+    <Sample>${withUTC ? `<UTC>${time(0)}</UTC>` : '<Time>0</Time>'}<HR>1</HR></Sample>
+    <Sample>${withUTC ? `<UTC>${time(10000)}</UTC>` : '<Time>10</Time>'}<HR>1</HR></Sample>
+  </Samples>
+</DeviceLog></sml>`;
 
 describe('Suunto R-R activity stats', () => {
+  it.each([time(0), '2026-01-01T12:00:00', '2025-12-31T22:00:00'])(
+    'anchors XML R-R intervals to UTC samples with header %s',
+    async headerStart => {
+      const event = await EventImporterSuuntoSML.getFromXML(xmlPayload(headerStart));
+      const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+      for (const parsed of [event, restored]) {
+        const activity = parsed.getFirstActivity();
+        expect(activity.startDate.toISOString()).toBe(time(0));
+        expect(activity.getStream(DataIBI.type).getData()).toEqual(Array(20).fill(500));
+        expect(activity.getStreamDataByDuration(DataIBI.type).map(sample => sample.time)).toEqual(
+          Array.from({ length: 20 }, (_, i) => (i + 1) * 500)
+        );
+        expect(parsed.getStat(DataRRIntervalCount.type)!.getValue()).toBe(20);
+        expect(parsed.getStat(DataRRCoverage.type)!.getValue()).toBe(100);
+        expect(parsed.getStat(DataRRRMSSD.type)!.getValue()).toBe(0);
+        expect(
+          activity
+            .getStream(DataHeartRate.type)
+            .getData()
+            .filter(value => value != null)
+        ).toEqual(Array(10).fill(120));
+      }
+    }
+  );
+
+  it('uses the XML header clock when no UTC samples exist', async () => {
+    const event = await EventImporterSuuntoSML.getFromXML(xmlPayload(time(0), false));
+    expect(event.getFirstActivity().startDate.toISOString()).toBe(time(0));
+    expect(event.getStat(DataRRIntervalCount.type)!.getValue()).toBe(20);
+    expect(event.getStat(DataRRCoverage.type)!.getValue()).toBe(100);
+  });
+
+  it('preserves the source header anchor for ordinary JSON interval arrays', async () => {
+    const data = payload();
+    data.DeviceLog.Header.DateTime = time(5000);
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data));
+    expect(
+      event
+        .getFirstActivity()
+        .getStreamDataByDuration(DataIBI.type)
+        .map(sample => sample.time)
+    ).toEqual([5800, 6650, 7550]);
+  });
+
   it('clips end-crossing intervals to activity coverage without including them as beats', async () => {
     const data = payload();
     data.DeviceLog.Header.Duration = 2;

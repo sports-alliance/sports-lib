@@ -77,6 +77,8 @@ export class EventImporterSuuntoSML {
       json.DeviceLog['R-R'].Data = json.DeviceLog['R-R'].Data.split(' ').map((dataString: string) =>
         Number(dataString)
       );
+      // XML intervals share the sample clock; the header can contain timezone-less local time.
+      json.DeviceLog['R-R'].Batches = [{ time: startDate.getTime(), intervals: json.DeviceLog['R-R'].Data }];
     }
 
     json.DeviceLog.Header.Altitude = json.DeviceLog.Header.Altitude ? [json.DeviceLog.Header.Altitude] : null;

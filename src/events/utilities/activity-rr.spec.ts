@@ -3,6 +3,8 @@ import { ActivityTypes } from '../../activities/activity.types';
 import { Creator } from '../../creators/creator';
 import { IBIStream } from '../../streams/ibi-stream';
 import { Stream } from '../../streams/stream';
+import { DataPower } from '../../data/data.power';
+import { DataSpeed } from '../../data/data.speed';
 import { analyzeActivityRR } from './activity-rr';
 import {
   DataRRRMSSD,
@@ -26,6 +28,31 @@ const activity = (rr: number[], times?: number[]) => {
 };
 
 describe('activity R-R stats', () => {
+  it('retains IBI timing, generated-rate support and missing power together through JSON regeneration', () => {
+    let child = activity([800, 900], [800, 5900]);
+    const speed = new Stream(DataSpeed.type, [null, null, 2, null, null, 3], {
+      direction: 'ending',
+      durations: [null, null, 2, null, null, 3]
+    });
+    const power = [200, null, 0, 300];
+    child.addStream(speed);
+    child.addStream(new Stream(DataPower.type, power));
+    const coverage = ActivityUtilities.getPowerCoverage(child);
+    for (let pass = 0; pass < 3; pass++) {
+      child = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(child.toJSON()))) as Activity;
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(child);
+      expect(child.getStream('IBI').toJSON()).toEqual({
+        type: 'IBI',
+        data: [800, 900],
+        sampleTimes: [800, 5900]
+      });
+      expect(child.getStream(DataSpeed.type).toJSON()).toEqual(speed.toJSON());
+      expect(child.getStream(DataPower.type).toJSON().data).toEqual(power);
+      expect(ActivityUtilities.getPowerCoverage(child)).toEqual(coverage);
+      expect(analyzeActivityRR(child)!.summary).toMatchObject({ gapCount: 1, rmssd: null });
+    }
+  });
+
   it('persists the available rolling HR range as canonical event stats', () => {
     const child = activity([...Array(20).fill(800), ...Array(20).fill(1000)]);
     child.endDate = new Date(36000);

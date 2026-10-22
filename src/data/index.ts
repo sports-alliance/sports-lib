@@ -142,6 +142,7 @@ export * from './data.heart-rate';
 export * from './data.health';
 export * from './data.height';
 export * from './data.ibi';
+export * from './data.rr';
 export * from './data.intensity';
 export * from './data.interface';
 export * from './data.json.interface';

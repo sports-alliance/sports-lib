@@ -92,10 +92,12 @@ export class Stream implements StreamInterface {
     );
   }
 
+  /** Export original samples; regular IBI charts retain their one-second clock instead of becoming beat arrays. */
   toJSON(): StreamJSONInterface {
     return {
       type: this.type,
       data: this.data, // Exporting does/ should not use a filter
+      ...(this.type === 'IBI' ? { sampling: '1Hz' as const } : {}),
       ...(this.intervalSupport ? { intervalSupport: this.intervalSupport } : {})
     };
   }
@@ -106,6 +108,10 @@ export class Stream implements StreamInterface {
 }
 
 export interface StreamJSONInterface {
+  /** IBI only: a one-second chart stream, ineligible for beat analysis. Omitted on raw/legacy beat arrays. */
+  sampling?: '1Hz';
+  /** IBI only: interval end times in milliseconds relative to activity start. */
+  sampleTimes?: number[];
   type: string;
   data: (number | null)[];
   /** Optional calculation evidence; retain it when persisting generated streams. */

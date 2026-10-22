@@ -207,6 +207,9 @@ import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-av
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
 import { DataIBI } from '../../data/data.ibi';
+import { IBIStream } from '../../streams/ibi-stream';
+import { addMissingRRStats } from './activity-rr';
+import { isRRIntervalInBounds } from './rr-timing';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
@@ -741,6 +744,7 @@ export class ActivityUtilities {
   /**
    * Crops inclusively within the original activity, rebasing events and preserving the initial timer state.
    * A fractional start advances to the first retained one-second sample. Invalid/empty ranges throw before mutation.
+   * Raw IBI uses beat timestamps; overlapping boundary intervals retain coverage evidence and rebased end times.
    * Existing summary stats are unchanged; callers remain responsible for refreshing cropped summaries.
    * @param activity
    * @param startDate
@@ -785,6 +789,23 @@ export class ActivityUtilities {
     }
 
     activity.getAllStreams().forEach(stream => {
+      if (stream instanceof IBIStream) {
+        const samples = stream.getStreamDataByDuration().filter(sample =>
+          isRRIntervalInBounds(
+            { time: sample.time, interval: sample.value ?? NaN },
+            startSeconds * 1000,
+            endSeconds * 1000
+          )
+        );
+        activity.removeStream(stream);
+        activity.addStream(
+          new IBIStream(
+            samples.map(sample => sample.value),
+            samples.map(sample => sample.time - startSeconds * 1000)
+          )
+        );
+        return;
+      }
       // Supply both bounds so one-sided crops retain the same inclusive sample clock.
       const trimmedStreamData = activity.getStreamData(stream.type, croppedStart, croppedEnd);
       const evidence = stream.getIntervalSupport?.();
@@ -3867,6 +3888,7 @@ export class ActivityUtilities {
         activity.addStat(new DataPowerWork(c.observedWorkKilojoules));
       }
     }
+    addMissingRRStats(activity);
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,

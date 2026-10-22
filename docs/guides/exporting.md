@@ -118,6 +118,13 @@ bounds leave it unchanged. Cropping also rebases retained events and preserves a
 start, without mutating shared event objects or dropping retained event payloads. Existing summary statistics remain
 unchanged until callers explicitly refresh them.
 
+Raw `IBIStream` arrays use irregular beat timing. Native JSON preserves optional elapsed end times as `sampleTimes`;
+time cropping selects overlapping intervals by these times (or legacy cumulative times), rebases them and retains
+boundary intervals for clipped coverage without treating them as full beats. A regular one-second IBI chart stream
+instead serializes `sampling: '1Hz'` and remains ineligible for HRV after reload. Preserve these fields when copying
+stream JSON. Legacy raw arrays remain readable; old resampled arrays without timing metadata require source reparse
+to recover the actual beats. See [activity R–R analysis](metrics-and-calculations.md#activity-rr-analysis).
+
 Existing persisted summaries are not automatically overwritten on JSON hydration. Historical filled distance streams
 require an original-file reparse: neither JSON hydration nor summary regeneration can reconstruct their missing-value
 mask. After adopting this version, regenerate affected summaries/Training snapshots from corrected imports as needed.

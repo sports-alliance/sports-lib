@@ -730,3 +730,28 @@ export type { TimingValidity } from '../src/duration/timing-validity';
 
 /** Observed power support from original samples; attached stream filters cannot supply missing readings. */
 export type { PowerCoverage } from '../src/activities/power-coverage';
+/** Activity-only unsmoothed R–R analysis with gap-safe adjacency and quality-gated DFA.
+ * @category Activity analysis
+ */
+export { analyzeRRIntervals, calculateDFAAlpha1, RR_ANALYSIS_VERSION } from '../src/events/utilities/rr-analysis';
+export type {
+  RRIntervalSample,
+  RRBeatClassification,
+  RRAnalyzedBeat,
+  RRWindow,
+  RRSummary,
+  RRAnalysis,
+  RRAnalysisOptions
+} from '../src/events/utilities/rr-analysis';
+/** Analyze raw IBI using the activity's elapsed bounds; regular one-second chart streams stay ineligible after JSON reload.
+ * @category Activity analysis
+ */
+export { analyzeActivityRR } from '../src/events/utilities/activity-rr';
+/** Irregular IBI stream supporting explicit elapsed end timestamps and timestamp-based activity cropping.
+ * @category Streams
+ */
+export { IBIStream } from '../src/streams/ibi-stream';
+/** Canonical activity R–R statistics, independent of Health and overnight HRV.
+ * @category Data
+ */
+export * from '../src/data/data.rr';

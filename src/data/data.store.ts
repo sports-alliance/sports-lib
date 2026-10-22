@@ -174,6 +174,7 @@ import { DataHeartRateUsed } from './data.heart-rate-used';
 import { DataPowerPodUsed } from './data.power-pod-used';
 import { DataAltiBaroProfile } from './data.alti-baro-profile';
 import { DataIBI } from './data.ibi';
+import * as RRData from './data.rr';
 import { DataIntensity } from './data.intensity';
 import { DataSteps } from './data.steps';
 import { DataPoolLength } from './data.pool-length';
@@ -594,6 +595,7 @@ export class DataTotalTrainingEffectLegacy extends DataAerobicTrainingEffect {
  * Only concrete classes no abstracts
  */
 export const DataStore: any = {
+  ...RRData,
   DataVerticalSpeed,
   DataTemperature,
   DataSpeed,

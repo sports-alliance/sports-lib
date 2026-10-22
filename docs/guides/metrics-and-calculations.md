@@ -23,6 +23,111 @@ regeneration or persisted-data migration is needed. This entry exposes no new me
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Activity R–R analysis
+
+`analyzeRRIntervals(samples, durationMs)` analyzes unsmoothed beat intervals with elapsed-millisecond end timestamps.
+`analyzeActivityRR(activity)` reads an activity's raw `IBIStream`; resampled one-second chart streams are ineligible.
+Both return versioned summaries and optional classified
+beats/rolling windows. `{ includeDetails: false }` omits detailed output while retaining summary DFA calculations.
+`calculateDFAAlpha1(intervals)` accepts an already quality-controlled continuous sequence.
+
+FIT HRV and Suunto JSON/SML imports generate the available numeric summaries before serialization. Timestamped Suunto
+batches preserve gaps. FIT HRV uses cumulative timing because decoded HRV records have no independent timestamps;
+internal disconnect locations cannot be recovered from that array. Unused FIT uint16 slots (`null`, or `65.535` seconds
+from older decoders) are ignored without advancing time or breaking beat adjacency, following
+[Garmin's HRV array explanation](https://forums.garmin.com/developer/fit-sdk/f/discussion/255690/fit-file-hrv-data-array-interpretation).
+Later multisport legs use their own elapsed clock. Intervals crossing a leg boundary retain their original
+end timestamp for clipped coverage; they do not contribute partial beats to HRV or extend derived HR samples past the
+leg end. Untimestamped Suunto batches retain cumulative timing anchored to the source/activity start.
+Legacy SML XML interval arrays use the activity's first UTC sample as their anchor; a timezone-less header clock
+does not override it. When no UTC samples exist, the XML adapter retains its existing header-start fallback.
+Stream selection still controls IBI inclusion.
+
+Recording-quality rules use 300–2,000 ms inclusive, then compare each interval to the median of up to five in-range
+neighbors on each side within the same continuous segment. Values strictly below 80% or above 120% of that reference
+are short/long artifacts. Suspected ectopic pairs require two otherwise accepted consecutive intervals, the first
+strictly below 90% of its reference, the second strictly above 105%, and a combined duration within ±10% of **one**
+reference interval around twice that reference. Pairs are counted separately and excluded from HRV. These are
+algorithmic descriptions, not diagnoses or proof of a sensor failure.
+
+SDNN uses sample standard deviation. RMSSD and pNN50 use only adjacent accepted observations within the same segment;
+pNN50 counts absolute differences strictly greater than 50 ms. Accepted zero variability is preserved. Mean HR is
+60,000 divided by accepted mean interval, distinct from source-recorded HR. Nonpositive/nonfinite observations are
+counted independently as invalid and break adjacency. Overlapping or backward timestamps are rejected. Clock rounding
+within 0.001 ms is tolerated; larger internal gaps break adjacency and contribute to gap count and longest gap.
+
+Recording coverage is the sum of clipped recorded interval durations divided by elapsed activity duration, including
+excluded positive intervals. Complete in-bounds beats alone contribute to beat statistics. Coverage is not a claim
+that an untimed interval array contains independently verified gap evidence. Legacy arrays keep cumulative timing.
+`IBIStream(data, sampleTimes)` optionally retains aligned elapsed end timestamps in additive native JSON `sampleTimes`;
+replacing stream data invalidates that timing. Consumers that regenerate stats from explicit IBI timing must preserve
+this optional field. Original-file reparse is needed to recover timestamps discarded by earlier imports.
+
+Regular `Stream('IBI', ...)` chart samples serialize with `sampling: '1Hz'`. Native JSON restoration keeps them on
+their one-second clock and ineligible for beat analysis. Raw `IBIStream` exports omit that field; existing raw arrays
+and legacy dictionaries retain their cumulative interpretation. Consumers must preserve both `sampling` and
+`sampleTimes` when present and adopt a reader that understands them. Older saved chart arrays without this distinction
+cannot reliably be distinguished from raw legacy beats; recover their raw intervals from the original file instead
+of guessing from sample values. This adds no metric name, unit or numeric MCP field.
+
+`ActivityUtilities.cropTime` retains raw IBI by interval timestamps and rebases their end times to the cropped start.
+Intervals crossing either boundary retain coverage evidence but remain excluded from full-beat HRV statistics.
+Internal gaps and invalid-observation barriers survive cropping and JSON reloads. Regular chart streams continue
+to use the existing inclusive one-second crop; the fractional-start rounding rule is unchanged. As with other
+cropped data, existing summaries are retained: callers must clear and regenerate affected summaries when desired.
+
+Rolling estimates use a five-second grid that never extends beyond activity end. Heart rate requires a complete
+ten-second lookback with at least 90% recorded coverage; its available windows define the summary minimum/maximum.
+RMSSD and artifact percentage require
+a complete one-minute lookback with at least 90% recorded coverage. DFA requires a complete two-minute window,
+at least 90% coverage, at least 50 accepted intervals, one continuous segment and at most 5% excluded intervals,
+including suspected-pair members. Isolated internal exclusions are linearly interpolated against accepted neighbors
+on the elapsed-time axis; windows with excluded endpoints are unavailable. No intervals are compacted across gaps.
+DFA centers and integrates the signal, linearly detrends forward and reverse non-overlapping segments at each integer
+scale 4–16, and fits log fluctuation versus log scale. The standalone function needs at least 32 intervals; constant
+signals have no finite scaling estimate. No intensity thresholds or recovery classifications are inferred.
+
+| Data class | Canonical token | Unit |
+| --- | --- | --- |
+| `DataRRIntervalCount` | `R-R Interval Count` | count |
+| `DataRRInvalidIntervalCount` | `R-R Invalid Interval Count` | count |
+| `DataRRArtifactCount` | `R-R Artifact Count` | count |
+| `DataRRArtifactPercentage` | `R-R Artifact Percentage` | % |
+| `DataRRSuspectedEctopicPairCount` | `R-R Suspected Ectopic Pair Count` | count |
+| `DataRRSuspectedEctopicPairRate` | `R-R Suspected Ectopic Pair Rate` | pairs/h |
+| `DataRRCoverage` | `R-R Coverage` | % |
+| `DataRRGapCount` | `R-R Gap Count` | count |
+| `DataRRLongestGap` | `R-R Longest Gap` | s |
+| `DataRRMeanInterval` | `R-R Mean Interval` | ms |
+| `DataRRHeartRateAvg` | `R-R Average Heart Rate` | bpm |
+| `DataRRHeartRateMin` | `R-R Minimum Heart Rate` | bpm |
+| `DataRRHeartRateMax` | `R-R Maximum Heart Rate` | bpm |
+| `DataRRRMSSD` | `R-R RMSSD` | ms |
+| `DataRRSDNN` | `R-R SDNN` | ms |
+| `DataRRPNN50` | `R-R pNN50` | % |
+| `DataRRDFAAlpha1Median` | `R-R DFA Alpha1 Median` | dimensionless |
+| `DataRRDFAAlpha1Min` | `R-R DFA Alpha1 Minimum` | dimensionless |
+| `DataRRDFAAlpha1Max` | `R-R DFA Alpha1 Maximum` | dimensionless |
+| `DataRRDFAWindowCount` | `R-R DFA Window Count` | count |
+
+Unavailable scalar estimates are omitted; zero counts and valid zero HRV remain numeric. Explicit persisted stats are
+preserved during missing-stat generation. A sole activity's summaries appear on its parent event. Multi-activity
+summaries omit these metrics rather than average HRV, percentages or DFA medians without sufficient evidence.
+Activity HRV is independent of Health and overnight HRV; their existing canonical tokens and semantics remain stable.
+
+All scalar classes are public, enumerated by `DataStore`, validated as finite numbers and restored through
+`DynamicDataLoader` and native event JSON. Quantified Self can discover their canonical names and units through its
+existing numeric catalog, and may expose only actually persisted stats through its existing permissions/projections.
+Detailed beats, timestamps and classifications are not new numeric metric classes or automatically authorized MCP
+output. No tool schema, scope, provider action or plugin change is implied by these exports.
+
+New imports gain the stats when their source includes IBI. Historical summary-only records require a controlled
+original-file reparse after consumers adopt the library version. Overnight HRV and saved routes are unchanged; no
+Training snapshot schema migration is needed. Corrected R–R-derived HR timestamps can change existing HR summaries
+or load on reparse, so consumers must use their normal activity/Training reconciliation lifecycle. A QS dependency
+adoption must align frontend/Functions versions and
+review Help and the safe numeric projection. No package publication, production reparse or deployment is automatic.
+
 ## Regenerated multisport timing
 
 `EventUtilities.reGenerateStatsForEvent` independently sums `Timer time` and `Elapsed time` when every leg supplies a

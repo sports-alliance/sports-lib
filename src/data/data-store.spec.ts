@@ -235,6 +235,64 @@ describe('DataStore', () => {
     );
   });
 
+  const summaryUnitFamilies: [keyof UserUnitSettingsInterface, string, { type: string }[]][] = [
+    ['speedUnits', DataSpeed.type, [_DataStore.DataSpeedAvg, _DataStore.DataSpeedMin, _DataStore.DataSpeedMax]],
+    [
+      'gradeAdjustedSpeedUnits',
+      _DataStore.DataGradeAdjustedSpeed.type,
+      [_DataStore.DataGradeAdjustedSpeedAvg, _DataStore.DataGradeAdjustedSpeedMin, _DataStore.DataGradeAdjustedSpeedMax]
+    ],
+    ['paceUnits', DataPace.type, [_DataStore.DataPaceAvg, _DataStore.DataPaceMin, _DataStore.DataPaceMax]],
+    [
+      'gradeAdjustedPaceUnits',
+      DataGradeAdjustedPace.type,
+      [_DataStore.DataGradeAdjustedPaceAvg, _DataStore.DataGradeAdjustedPaceMin, _DataStore.DataGradeAdjustedPaceMax]
+    ],
+    [
+      'swimPaceUnits',
+      DataSwimPace.type,
+      [_DataStore.DataSwimPaceAvg, _DataStore.DataSwimPaceMin, _DataStore.DataSwimPaceMax]
+    ],
+    [
+      'verticalSpeedUnits',
+      _DataStore.DataVerticalSpeed.type,
+      [_DataStore.DataVerticalSpeedAvg, _DataStore.DataVerticalSpeedMin, _DataStore.DataVerticalSpeedMax]
+    ]
+  ];
+
+  describe.each(summaryUnitFamilies)('%s summary preferences', (key, base, types) => {
+    const otherFamilies = summaryUnitFamilies.map(([, family]) => family).filter(family => family !== base);
+    const invalidUnits = ['Heart Rate', 'Power', 'Depth', 'toString', 'constructor', '__proto__', ...otherFamilies];
+
+    it.each(types.map(DataClass => DataClass.type))('does not relabel %s as a different metric family', type => {
+      const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+      const settings = { ...metricSettings, [key]: invalidUnits } as UserUnitSettingsInterface;
+      expect(DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings)).toEqual([]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, settings)).toEqual([]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings)).toEqual([]);
+      expect(stat.toJSON()).toEqual({ [type]: 5 });
+    });
+
+    it.each(types.map(DataClass => DataClass.type))(
+      'keeps valid conversions of %s alongside invalid family selections',
+      type => {
+        const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+        const validUnits = metricSettings[key] as string[];
+        const settings = { ...metricSettings, [key]: [...invalidUnits, ...validUnits] } as UserUnitSettingsInterface;
+        const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, metricSettings);
+        expect(DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings).map(value => value.toJSON())).toEqual(
+          expected.map(value => value.toJSON())
+        );
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, settings)).toEqual(
+          expected.map(value => value.getType())
+        );
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings)).toEqual(
+          expected.map(value => value.getType())
+        );
+      }
+    );
+  });
+
   describe.each(settingsCases)('unit-type/value parity with %s preferences', (_name, settings) => {
     it.each(summaryTypes)('resolves %s consistently through both lookup APIs and value conversion', type => {
       const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);

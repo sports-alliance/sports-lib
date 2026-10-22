@@ -31,8 +31,9 @@ catalog; no metric, JSON, persistence or migration behavior changes. See [browse
 
 Summary family lookups include feet-per-minute speed and grade-adjusted speed, base/per-100-yard swim pace, air power
 and the existing dive summaries. Unit-type lookups agree with value conversion for summary metrics and empty unit
-selections; feet-, mile- and yard-based classes report imperial metadata. These corrections require no reparse or
-migration. See [summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
+selections and exclude units from other summary families; feet-, mile- and yard-based classes report imperial metadata.
+These corrections require no reparse or migration. See
+[summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
 
 Missing per-yard average swim pace is derived from the canonical swim average rather than running pace. Existing
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.

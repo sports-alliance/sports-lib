@@ -42,6 +42,7 @@ including effort pace and jump speed. With no settings, the single lookup keeps 
 lookup retains its existing empty result. For effort pace and jump speed, a non-empty saved selection containing
 only unrecognized units retains the original metric through the single lookup and value-conversion APIs, as before;
 the bulk variant selector returns no supported choices. Mixed selections still convert the recognized units.
+Summary conversion ignores saved unit selections from other metric families rather than relabelling their values.
 
 Feet-, mile- and yard-based distance, speed and pace classes report `UnitSystem.Imperial` from `getUnitSystem()`.
 Their average/minimum/maximum and jump/effort variants inherit that metadata. This does not change their stored

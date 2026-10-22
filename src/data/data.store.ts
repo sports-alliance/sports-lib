@@ -2006,6 +2006,9 @@ export class DynamicDataLoader {
       if (summaryMap) {
         return (
           units?.flatMap(unit => {
+            if (unit !== base && !Object.prototype.hasOwnProperty.call(this.dataTypeUnitGroups[base], unit)) {
+              return [];
+            }
             const targetDataType = summaryMap[unit];
             return typeof targetDataType === 'string' ? [{ sourceUnitType: unit, targetDataType }] : [];
           }) ?? null
@@ -2033,7 +2036,7 @@ export class DynamicDataLoader {
 
   /**
    * Gets supported unit variants for explicitly requested base/summary types, with optional speed-derived types.
-   * Empty unit selections yield no variants; unrelated non-unit types remain excluded.
+   * Empty unit selections yield no variants; unrelated non-unit types and units from other summary families are excluded.
    * @param dataTypes
    * @param userUnitSettings
    */
@@ -2122,6 +2125,7 @@ export class DynamicDataLoader {
   /**
    * Gets the preferred unit types for a base metric or its available summary sibling.
    * Returns the canonical input when preferences are absent or the metric has no unit selection.
+   * Summary preferences ignore units belonging to a different metric family.
    * @param dataType
    * @param userUnitSettings
    */

@@ -446,6 +446,15 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 ```
 
 - Distance/GNSS distance are generated from latitude/longitude when missing.
+- Generated GPS distances use geolib 4's haversine calculation with a 6,378,137 metre Earth radius and round each
+  position interval to 0.1 metres by default. The distance adapter returns unrounded intervals when accuracy is zero;
+  its optional precise mode continues to use geolib's ellipsoidal calculation. Haversine can differ slightly from the
+  previous spherical cosine calculation near rounding boundaries and for very close points. The former formula could
+  produce a positive rounded distance for identical coordinates; haversine returns zero. Generated speed, pace,
+  grade-adjusted metrics and moving time can consequently change, with movement thresholds unchanged. Recorded distances
+  remain authoritative. Existing saved values are not rewritten; reparse retained sources and regenerate affected derived
+  summaries only when applying the new calculation to historical GPS-derived distances. Metric tokens, units and JSON
+  schemas are unchanged.
 - Missing Distance readings remain `null` at their original elapsed timestamps. A recorded zero or repeated distance
   stays a real observation. Unit conversion preserves the same mask. Generic sensor filling does not fill Distance.
 - Where GPS-derived speed is eligible, speed is generated between successive finite, nonnegative distance observations

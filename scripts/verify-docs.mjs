@@ -102,8 +102,8 @@ if (!metricsGuide.includes('Data Coverage &amp; Calculation Reference')) {
 }
 
 const apiModule = await readFile(resolve(siteDirectory, 'modules/API.html'), 'utf8');
-const healthAndSleepCategoryHeading = '<h2>Classes - Health and sleep</h2>';
-const healthAndSleepCategoryStart = apiModule.indexOf(healthAndSleepCategoryHeading);
+const healthAndSleepCategoryHeading = /<h2(?:\s[^>]*)?>Classes - Health and sleep(?:<a\s[^>]*>[\s\S]*?<\/a>)?<\/h2>/;
+const healthAndSleepCategoryStart = apiModule.search(healthAndSleepCategoryHeading);
 const healthAndSleepCategoryEnd = apiModule.indexOf('</details>', healthAndSleepCategoryStart);
 
 if (healthAndSleepCategoryStart === -1 || healthAndSleepCategoryEnd === -1) {

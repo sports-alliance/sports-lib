@@ -12,6 +12,10 @@ streams need an original-file reparse; recorded values and route behavior remain
 [distance calculations](guides/metrics-and-calculations.md) and
 [persistence and migration](guides/exporting.md#sparse-distance-and-calculated-intervals).
 
+Generated GPS distances use geolib 4's haversine calculation, retaining the default 0.1 metre interval rounding.
+The distance adapter also supports unrounded distances at zero accuracy. GPS-derived distance, speed, pace, grade and
+moving time can change when recalculated from retained sources; see [distance calculations](guides/metrics-and-calculations.md).
+
 Power imports retain unknown watts as null and real coasting as zero. Calculated work, curves and power TSS use
 observed interval coverage, while supplied summaries keep priority. `ActivityUtilities.getPowerCoverage` exposes
 observed duration and work from original, unfiltered samples on demand, without adding stored metadata. Power extrema,

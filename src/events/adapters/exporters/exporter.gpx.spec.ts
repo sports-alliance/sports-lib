@@ -81,7 +81,7 @@ describe('EventExporterGPX', () => {
     const doc = new xmldom.DOMParser().parseFromString(xml, 'text/xml');
     expect(doc.documentElement.getAttribute('xmlns:gpxtpx')).toBe(trackPointNamespace);
     const schema = doc.documentElement.getAttribute('xsi:schemaLocation');
-    expect(schema).toContain(`${trackPointNamespace} http://www.garmin.com/xmlschemas/TrackPointExtensionv2.xsd`);
+    expect(schema).toContain(`${trackPointNamespace} https://www8.garmin.com/xmlschemas/TrackPointExtensionv2.xsd`);
     expect(schema).not.toContain('TrackPointExtension/v1');
     const restored = await EventImporterGPX.getFromString(xml, xmldom.DOMParser);
     const native = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(restored.toJSON())));

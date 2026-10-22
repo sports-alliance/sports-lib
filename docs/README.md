@@ -347,6 +347,7 @@ all-diving event summaries consistent with native JSON restoration. Their vertic
 raw altitude and grade streams remain available when provided by the source.
 
 Activity R–R analysis provides gap-aware RMSSD, SDNN, pNN50, recording-quality summaries and rolling DFA alpha1.
+Native JSON keeps raw beats distinct from one-second IBI charts; cropping preserves irregular beat timing and gaps.
 See [activity R–R calculations](guides/metrics-and-calculations.md#activity-rr-analysis) for units, quality gates and reparse requirements.
 
 ## Start here

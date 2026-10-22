@@ -61,6 +61,19 @@ that an untimed interval array contains independently verified gap evidence. Leg
 replacing stream data invalidates that timing. Consumers that regenerate stats from explicit IBI timing must preserve
 this optional field. Original-file reparse is needed to recover timestamps discarded by earlier imports.
 
+Regular `Stream('IBI', ...)` chart samples serialize with `sampling: '1Hz'`. Native JSON restoration keeps them on
+their one-second clock and ineligible for beat analysis. Raw `IBIStream` exports omit that field; existing raw arrays
+and legacy dictionaries retain their cumulative interpretation. Consumers must preserve both `sampling` and
+`sampleTimes` when present and adopt a reader that understands them. Older saved chart arrays without this distinction
+cannot reliably be distinguished from raw legacy beats; recover their raw intervals from the original file instead
+of guessing from sample values. This adds no metric name, unit or numeric MCP field.
+
+`ActivityUtilities.cropTime` retains raw IBI by interval timestamps and rebases their end times to the cropped start.
+Intervals crossing either boundary retain coverage evidence but remain excluded from full-beat HRV statistics.
+Internal gaps and invalid-observation barriers survive cropping and JSON reloads. Regular chart streams continue
+to use the existing inclusive one-second crop; the fractional-start rounding rule is unchanged. As with other
+cropped data, existing summaries are retained: callers must clear and regenerate affected summaries when desired.
+
 Rolling estimates use a five-second grid that never extends beyond activity end. Heart rate requires a complete
 ten-second lookback with at least 90% recorded coverage; its available windows define the summary minimum/maximum.
 RMSSD and artifact percentage require

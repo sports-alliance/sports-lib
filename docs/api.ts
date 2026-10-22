@@ -743,11 +743,11 @@ export type {
   RRAnalysis,
   RRAnalysisOptions
 } from '../src/events/utilities/rr-analysis';
-/** Analyze the IBI stream using the activity's elapsed bounds.
+/** Analyze raw IBI using the activity's elapsed bounds; regular one-second chart streams stay ineligible after JSON reload.
  * @category Activity analysis
  */
 export { analyzeActivityRR } from '../src/events/utilities/activity-rr';
-/** Irregular IBI stream supporting explicit elapsed end timestamps.
+/** Irregular IBI stream supporting explicit elapsed end timestamps and timestamp-based activity cropping.
  * @category Streams
  */
 export { IBIStream } from '../src/streams/ibi-stream';

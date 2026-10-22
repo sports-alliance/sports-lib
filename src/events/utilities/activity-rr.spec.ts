@@ -28,6 +28,14 @@ const activity = (rr: number[], times?: number[]) => {
 };
 
 describe('activity R-R stats', () => {
+  it.each([false, true])('keeps legacy raw IBI readable with dictionary=%s', dictionary => {
+    const json = activity([800, 900]).toJSON();
+    if (dictionary) json.streams = { IBI: [800, 900] };
+    const restored = EventImporterJSON.getActivityFromJSON(JSON.parse(JSON.stringify(json)));
+    expect(restored.getStream('IBI')).toBeInstanceOf(IBIStream);
+    expect(analyzeActivityRR(restored)!.summary).toMatchObject({ intervalCount: 2, rmssd: 100 });
+  });
+
   it('retains IBI timing, generated-rate support and missing power together through JSON regeneration', () => {
     let child = activity([800, 900], [800, 5900]);
     const speed = new Stream(DataSpeed.type, [null, null, 2, null, null, 3], {
@@ -70,6 +78,23 @@ describe('activity R-R stats', () => {
     expect(analyzeActivityRR(child)).toBeNull();
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(child);
     expect(child.getStat(DataRRIntervalCount.type)).toBeUndefined();
+  });
+
+  it('keeps resampled chart IBI ineligible through repeated full event round trips', () => {
+    const child = activity([600, 600, 600, 600, 600]);
+    ActivityUtilities.shapeStream('IBI', child, values => values);
+    let event = new Event('Synthetic', child.startDate, child.endDate, FileType.SUUNTO);
+    event.addActivity(child);
+    const chart = child.getStream('IBI').getStreamDataByDuration();
+    for (let pass = 0; pass < 3; pass++) {
+      event = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON()))) as Event;
+      const restored = event.getFirstActivity();
+      expect(analyzeActivityRR(restored)).toBeNull();
+      expect(restored.getStream('IBI').getStreamDataByDuration()).toEqual(chart);
+      EventUtilities.generateStatsForAll(event);
+      expect(restored.getStat(DataRRIntervalCount.type)).toBeUndefined();
+      expect(event.getStat(DataRRIntervalCount.type)).toBeUndefined();
+    }
   });
   it('generates canonical summary stats before event serialization and retains zero values', () => {
     const child = activity([800, 800, 800]);

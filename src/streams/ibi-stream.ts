@@ -48,7 +48,8 @@ export class IBIStream extends Stream {
     }, []);
   }
 
+  /** Preserve raw/legacy beat-array JSON and optional elapsed end times, without a regular-sampling label. */
   override toJSON(): StreamJSONInterface {
-    return { ...super.toJSON(), ...(this.sampleTimes ? { sampleTimes: [...this.sampleTimes] } : {}) };
+    return { type: this.type, data: this.data, ...(this.sampleTimes ? { sampleTimes: [...this.sampleTimes] } : {}) };
   }
 }

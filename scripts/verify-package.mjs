@@ -498,7 +498,7 @@ async function verifySportsLibFacadeStartup(temporaryDirectory) {
   );
   const fitParserBytes = fitParserInputs.reduce((total, input) => total + input.bytes, 0);
 
-  // Activity R-R analysis adds 9,931 bytes to the current main facade (499,622 measured).
+  // Activity R-R analysis and timing add 10,264 bytes to the main facade (499,955 measured).
   // Previous ceiling: 490,000 bytes. Keep the allowance bounded to this added analysis.
   // Keep catalog/provider contributions separately bounded and the decoder lazy.
   assertActivityMetadataBudget(initialOutputs);

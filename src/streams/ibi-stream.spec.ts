@@ -1,7 +1,20 @@
 import { IBIStream } from './ibi-stream';
+import { Stream } from './stream';
 import { EventImporterJSON } from '../events/adapters/importers/json/importer.json';
 
 describe('IBI stream timing', () => {
+  it('serializes the one-second IBI clock explicitly without changing other regular stream JSON', () => {
+    const chart = new Stream('IBI', [800, null, 900]);
+    expect(chart.toJSON()).toEqual({ type: 'IBI', data: [800, null, 900], sampling: '1Hz' });
+    const restored = EventImporterJSON.getStreamFromJSON(JSON.parse(JSON.stringify(chart.toJSON())));
+    expect(restored).not.toBeInstanceOf(IBIStream);
+    expect(restored.getStreamDataByDuration()).toEqual(chart.getStreamDataByDuration());
+    expect(new Stream('Heart Rate', [100, null, 110]).toJSON()).toEqual({
+      type: 'Heart Rate',
+      data: [100, null, 110]
+    });
+  });
+
   it('preserves legacy cumulative timing and JSON shape', () => {
     const stream = new IBIStream([800, 900]);
     expect(stream.getStreamDataByDuration()).toEqual([

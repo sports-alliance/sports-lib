@@ -67,6 +67,12 @@
  * @category Import and export
  */
 export { SportsLib } from '../src/index';
+/**
+ * Suunto SML imports load the XML parser when getFromXML is called; failures reject its promise.
+ * JSON imports and ordinary package imports do not load the XML parser.
+ * @category Import and export
+ */
+export { EventImporterSuuntoSML } from '../src/events/adapters/importers/suunto/importer.suunto.sml';
 /** Positional activity GPX uses TrackPointExtension/v2, preserving finite nonnegative speed including zero.
  * @category Import and export
  */

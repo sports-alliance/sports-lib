@@ -3,14 +3,15 @@ import { EventImporterSuuntoJSON } from './importer.suunto.json';
 import { isNumber } from '../../../utilities/helpers';
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 
-import { XMLParser } from 'fast-xml-parser';
-
+/** Imports Suunto SML XML and JSON without loading the XML parser until XML is requested. */
 export class EventImporterSuuntoSML {
-  static getFromXML(
+  /** Parses SML XML on demand. Parser-loading and parsing failures reject the returned promise. */
+  static async getFromXML(
     contents: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,
     _name = 'New Event'
   ): Promise<EventInterface> {
+    const { XMLParser } = await import('fast-xml-parser');
     const parser = new XMLParser();
     const json = parser.parse(contents).sml;
 

@@ -39,6 +39,9 @@ selections and exclude units from other summary families; feet-, mile- and yard-
 These corrections require no reparse or migration. See
 [summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
 
+Suunto SML XML imports load their XML parser on demand. Package imports and JSON restoration avoid that parser's
+startup cost; parsed metrics and JSON formats are unchanged. See [Suunto SML](guides/importing-activities.md#suunto-sml).
+
 Missing per-yard average swim pace is derived from the canonical swim average rather than running pace. Existing
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.
 See [swim average unit summaries](guides/metrics-and-calculations.md#swim-average-unit-summaries).

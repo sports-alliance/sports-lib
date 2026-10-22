@@ -187,6 +187,54 @@ describe('DataStore', () => {
     _DataStore.DataJumpSpeedMax
   ].map(DataClass => DataClass.type);
 
+  const fallbackTypes = [
+    _DataStore.DataJumpSpeedAvg.type,
+    _DataStore.DataJumpSpeedMin.type,
+    _DataStore.DataJumpSpeedMax.type,
+    _DataStore.DataEffortPace.type,
+    _DataStore.DataEffortPaceAvg.type,
+    _DataStore.DataEffortPaceMin.type,
+    _DataStore.DataEffortPaceMax.type
+  ];
+  const unrecognizedSettings: UserUnitSettingsInterface = {
+    ...metricSettings,
+    speedUnits: ['Unrecognized saved speed unit', 'toString', 'constructor', '__proto__'] as unknown as SpeedUnits[],
+    paceUnits: ['Unrecognized saved pace unit', 'toString', 'constructor', '__proto__'] as unknown as PaceUnits[]
+  };
+
+  it.each(fallbackTypes)('preserves %s when a non-empty saved unit preference cannot be converted', type => {
+    const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+    const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, unrecognizedSettings);
+    expect(converted).toHaveLength(1);
+    expect(converted[0]).toBe(stat);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, unrecognizedSettings)).toEqual([type]);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], unrecognizedSettings)).toEqual([]);
+    expect(stat.toJSON()).toEqual({ [type]: 5 });
+  });
+
+  it.each(fallbackTypes)('still converts %s when saved preferences mix recognized and unrecognized units', type => {
+    const settings = {
+      ...metricSettings,
+      speedUnits: [SpeedUnits.MilesPerHour],
+      paceUnits: [PaceUnits.MinutesPerMile]
+    };
+    const mixed = {
+      ...settings,
+      speedUnits: [...unrecognizedSettings.speedUnits, ...settings.speedUnits],
+      paceUnits: [...unrecognizedSettings.paceUnits, ...settings.paceUnits]
+    };
+    const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+    const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings);
+    const actual = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, mixed);
+    expect(actual.map(value => value.toJSON())).toEqual(expected.map(value => value.toJSON()));
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, mixed)).toEqual(
+      expected.map(value => value.getType())
+    );
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], mixed)).toEqual(
+      expected.map(value => value.getType())
+    );
+  });
+
   describe.each(settingsCases)('unit-type/value parity with %s preferences', (_name, settings) => {
     it.each(summaryTypes)('resolves %s consistently through both lookup APIs and value conversion', type => {
       const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);

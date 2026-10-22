@@ -39,15 +39,33 @@ grade-adjusted speed/pace, swim pace and vertical-speed summary variants that
 grade-adjusted pace and swim pace without requiring a speed input. Existing speed-derived output ordering is retained;
 `includeDerivedTypes: false` still permits explicitly requested metrics. Empty unit selections return no variants,
 including effort pace and jump speed. With no settings, the single lookup keeps its canonical input and the bulk
-lookup retains its existing empty result.
+lookup retains its existing empty result. For effort pace and jump speed, a non-empty saved selection containing
+only unrecognized units retains the original metric through the single lookup and value-conversion APIs, as before;
+the bulk variant selector returns no supported choices. Mixed selections still convert the recognized units.
 
 Feet-, mile- and yard-based distance, speed and pace classes report `UnitSystem.Imperial` from `getUnitSystem()`.
 Their average/minimum/maximum and jump/effort variants inherit that metadata. This does not change their stored
 numeric values, unit strings or display conversions; metric class metadata stays metric.
 
 These corrections change lookup and unit-system metadata only. Canonical tokens, units, validation, calculations and
-JSON are unchanged. Existing activities need no reparse, summary regeneration or migration. Quantified Self's MCP
-numeric catalog and persisted-stat availability are unchanged; no new metric, sensitive field or consent scope is exposed.
+JSON are unchanged. Existing activities need no reparse, summary regeneration or migration for these metadata fixes.
+Quantified Self's MCP numeric catalog membership and persisted-stat availability are unchanged. Its existing
+`unitSystem` descriptor changes to `imperial` for the corrected variants when a consumer adopts this package;
+no metric identifier, unit string, schema field, sensitive field or consent scope is added.
+
+## Swim average unit summaries
+
+Generation of a missing `Average swim pace in minutes per 100 yard` now converts `Average Swim Pace`, independently
+of running `Average Pace`. A real zero swim average remains zero. Running pace alone cannot create this swim summary,
+and an existing per-yard summary remains authoritative.
+
+This calculation correction is separate from the metadata fixes above. Earlier imports can have an absent or
+incorrect derived per-yard swim average. Missing values can be regenerated from the retained canonical swim average.
+Existing saved per-yard values are not overwritten by JSON reloads: use a targeted original-source reparse to
+reconstruct affected derived summaries while preserving actual source-provided values. No JSON shape, metric token,
+unit, queue or permission changes are needed. Package adoption, deployment and any production reparse remain separate
+actions. In Quantified Self, keep frontend/Functions package versions aligned and use the existing sanitized,
+version-checked reparse lifecycle; this library fix does not start historical processing.
 
 ## Activity R–R analysis
 

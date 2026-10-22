@@ -98,6 +98,50 @@ import {
 } from './data.dive';
 
 describe('DataStore', () => {
+  const summaryFamilies = [
+    [
+      DataSpeedFeetPerMinute,
+      _DataStore.DataSpeedAvgFeetPerMinute,
+      _DataStore.DataSpeedMinFeetPerMinute,
+      _DataStore.DataSpeedMaxFeetPerMinute
+    ],
+    [
+      DataGradeAdjustedSpeedFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedAvgFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedMinFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedMaxFeetPerMinute
+    ],
+    [DataSwimPace, _DataStore.DataSwimPaceAvg, _DataStore.DataSwimPaceMin, _DataStore.DataSwimPaceMax],
+    [
+      DataSwimPaceMinutesPer100Yard,
+      _DataStore.DataSwimPaceAvgMinutesPer100Yard,
+      _DataStore.DataSwimPaceMinMinutesPer100Yard,
+      _DataStore.DataSwimPaceMaxMinutesPer100Yard
+    ]
+  ];
+
+  it.each(summaryFamilies)(
+    'resolves all summary siblings for %p without changing stored metrics',
+    (Base, Avg, Min, Max) => {
+      expect(DynamicDataLoader.dataTypeAvgDataType[Base.type]).toBe(Avg.type);
+      expect(DynamicDataLoader.dataTypeMinDataType[Base.type]).toBe(Min.type);
+      expect(DynamicDataLoader.dataTypeMaxDataType[Base.type]).toBe(Max.type);
+
+      for (const DataClass of [Base, Avg, Min, Max]) {
+        expect(Object.values(_DataStore)).toContain(DataClass);
+        expect(DynamicDataLoader.getDataClassFromDataType(DataClass.type)).toBe(DataClass);
+        const stat = DynamicDataLoader.getDataInstanceFromDataType(DataClass.type, 42);
+        expect(stat.getType()).toBe(DataClass.type);
+        expect(stat.getValue()).toBe(42);
+        expect(stat.isValueTypeValid(stat.getValue())).toBe(true);
+        const json = JSON.parse(JSON.stringify(stat.toJSON()));
+        expect(json).toEqual({ [DataClass.type]: 42 });
+        const restored = DynamicDataLoader.getDataInstanceFromDataType(DataClass.type, json[DataClass.type]);
+        expect(restored.toJSON()).toEqual(stat.toJSON());
+      }
+    }
+  );
+
   const unitDerivedDataTypes = [
     DataSpeedKilometersPerHour.type,
     DataSpeedMilesPerHour.type,

@@ -1487,6 +1487,7 @@ export class DynamicDataLoader {
   // @todo perhaps GAS?
   static speedDerivedDataTypes = [DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type];
 
+  /** Maps a canonical base or unit-variant type to its existing minimum summary type. */
   static dataTypeMinDataType: { [type: string]: string } = {
     [DataEstimatedSustainableDistance.type]: DataEstimatedSustainableDistanceMin.type,
     [DataEstimatedSustainableDistanceMiles.type]: DataEstimatedSustainableDistanceMinMiles.type,
@@ -1498,6 +1499,7 @@ export class DynamicDataLoader {
     [DataSpeedMilesPerHour.type]: DataSpeedMinMilesPerHour.type,
     [DataSpeedFeetPerSecond.type]: DataSpeedMinFeetPerSecond.type,
     [DataSpeedMetersPerMinute.type]: DataSpeedMinMetersPerMinute.type,
+    [DataSpeedFeetPerMinute.type]: DataSpeedMinFeetPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedMinKnots.type,
 
     [DataVerticalSpeed.type]: DataVerticalSpeedMin.type,
@@ -1514,10 +1516,13 @@ export class DynamicDataLoader {
     [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMinMilesPerHour.type,
     [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedMinFeetPerSecond.type,
     [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedMinMetersPerMinute.type,
+    [DataGradeAdjustedSpeedFeetPerMinute.type]: DataGradeAdjustedSpeedMinFeetPerMinute.type,
     [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedMinKnots.type,
 
     [DataPace.type]: DataPaceMin.type,
     [DataPaceMinutesPerMile.type]: DataPaceMinMinutesPerMile.type,
+    [DataSwimPace.type]: DataSwimPaceMin.type,
+    [DataSwimPaceMinutesPer100Yard.type]: DataSwimPaceMinMinutesPer100Yard.type,
     [DataEffortPace.type]: DataEffortPaceMin.type,
     [DataEffortPaceMinutesPerMile.type]: DataEffortPaceMinMinutesPerMile.type,
 
@@ -1553,6 +1558,7 @@ export class DynamicDataLoader {
     )
   };
 
+  /** Maps a canonical base or unit-variant type to its existing maximum summary type. */
   static dataTypeMaxDataType: { [type: string]: string } = {
     [DataAltitude.type]: DataAltitudeMax.type,
     [DataHeartRate.type]: DataHeartRateMax.type,
@@ -1562,6 +1568,7 @@ export class DynamicDataLoader {
     [DataSpeedMilesPerHour.type]: DataSpeedMaxMilesPerHour.type,
     [DataSpeedFeetPerSecond.type]: DataSpeedMaxFeetPerSecond.type,
     [DataSpeedMetersPerMinute.type]: DataSpeedMaxMetersPerMinute.type,
+    [DataSpeedFeetPerMinute.type]: DataSpeedMaxFeetPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedMaxKnots.type,
 
     [DataVerticalSpeed.type]: DataVerticalSpeedMax.type,
@@ -1578,10 +1585,13 @@ export class DynamicDataLoader {
     [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedMaxMilesPerHour.type,
     [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedMaxFeetPerSecond.type,
     [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedMaxMetersPerMinute.type,
+    [DataGradeAdjustedSpeedFeetPerMinute.type]: DataGradeAdjustedSpeedMaxFeetPerMinute.type,
     [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedMaxKnots.type,
 
     [DataPace.type]: DataPaceMax.type,
     [DataPaceMinutesPerMile.type]: DataPaceMaxMinutesPerMile.type,
+    [DataSwimPace.type]: DataSwimPaceMax.type,
+    [DataSwimPaceMinutesPer100Yard.type]: DataSwimPaceMaxMinutesPer100Yard.type,
     [DataEffortPace.type]: DataEffortPaceMax.type,
     [DataEffortPaceMinutesPerMile.type]: DataEffortPaceMaxMinutesPerMile.type,
 
@@ -1617,6 +1627,7 @@ export class DynamicDataLoader {
     )
   };
 
+  /** Maps a canonical base or unit-variant type to its existing average summary type. */
   static dataTypeAvgDataType: { [type: string]: string } = {
     [DataAltitude.type]: DataAltitudeAvg.type,
     [DataHeartRate.type]: DataHeartRateAvg.type,
@@ -1626,6 +1637,7 @@ export class DynamicDataLoader {
     [DataSpeedMilesPerHour.type]: DataSpeedAvgMilesPerHour.type,
     [DataSpeedFeetPerSecond.type]: DataSpeedAvgFeetPerSecond.type,
     [DataSpeedMetersPerMinute.type]: DataSpeedAvgMetersPerMinute.type,
+    [DataSpeedFeetPerMinute.type]: DataSpeedAvgFeetPerMinute.type,
     [DataSpeedKnots.type]: DataSpeedAvgKnots.type,
 
     [DataVerticalSpeed.type]: DataVerticalSpeedAvg.type,
@@ -1642,10 +1654,13 @@ export class DynamicDataLoader {
     [DataGradeAdjustedSpeedMilesPerHour.type]: DataGradeAdjustedSpeedAvgMilesPerHour.type,
     [DataGradeAdjustedSpeedFeetPerSecond.type]: DataGradeAdjustedSpeedAvgFeetPerSecond.type,
     [DataGradeAdjustedSpeedMetersPerMinute.type]: DataGradeAdjustedSpeedAvgMetersPerMinute.type,
+    [DataGradeAdjustedSpeedFeetPerMinute.type]: DataGradeAdjustedSpeedAvgFeetPerMinute.type,
     [DataGradeAdjustedSpeedKnots.type]: DataGradeAdjustedSpeedAvgKnots.type,
 
     [DataPace.type]: DataPaceAvg.type,
     [DataPaceMinutesPerMile.type]: DataPaceAvgMinutesPerMile.type,
+    [DataSwimPace.type]: DataSwimPaceAvg.type,
+    [DataSwimPaceMinutesPer100Yard.type]: DataSwimPaceAvgMinutesPer100Yard.type,
     [DataEffortPace.type]: DataEffortPaceAvg.type,
     [DataEffortPaceMinutesPerMile.type]: DataEffortPaceAvgMinutesPerMile.type,
 

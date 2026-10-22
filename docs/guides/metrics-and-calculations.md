@@ -23,6 +23,18 @@ regeneration or persisted-data migration is needed. This entry exposes no new me
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Summary family metadata
+
+`DynamicDataLoader.dataTypeAvgDataType`, `dataTypeMinDataType` and `dataTypeMaxDataType` map a base or converted
+metric type to its existing summary siblings. The maps include speed and grade-adjusted speed in feet per minute,
+plus swim pace in its base and per-100-yard units. Consumers can use these mappings to group available average,
+minimum and maximum summaries even when an average is absent. Missing observations remain unavailable; these maps
+do not calculate values or select UI icons.
+
+This correction changes lookup metadata only. Metric classes, canonical tokens, units, validation, calculations and
+JSON are unchanged. Existing activities need no reparse, summary regeneration or migration. Quantified Self's MCP
+numeric catalog and persisted-stat availability are unchanged; no new metric, sensitive field or consent scope is exposed.
+
 ## Activity R–R analysis
 
 `analyzeRRIntervals(samples, durationMs)` analyzes unsmoothed beat intervals with elapsed-millisecond end timestamps.

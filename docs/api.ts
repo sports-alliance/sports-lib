@@ -3,6 +3,8 @@
  *
  * This file is intentionally documentation-only. It does not replace the package entry point;
  * it defines the stable, consumer-oriented view that is published to GitHub Pages.
+ * DynamicDataLoader's summary-family lookup maps include feet-per-minute speed/grade-adjusted speed and
+ * base/per-100-yard swim pace. Existing exports, canonical metric tokens and JSON remain unchanged.
  *
  * @module API
  */

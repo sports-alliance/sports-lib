@@ -29,8 +29,10 @@ Browser charts and workers can use the public `@sports-alliance/sports-lib/metri
 their asynchronous chunks out of their bundle graph. It shares the root API's canonical implementations and data
 catalog; no metric, JSON, persistence or migration behavior changes. See [browser and worker imports](guides/metrics-and-calculations.md#browser-and-worker-imports).
 
-Summary family lookups include feet-per-minute speed and grade-adjusted speed, and base/per-100-yard swim pace.
-These metadata corrections require no reparse or migration. See [summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
+Summary family lookups include feet-per-minute speed and grade-adjusted speed, base/per-100-yard swim pace, air power
+and the existing dive summaries. Unit-type lookups agree with value conversion for summary metrics and empty unit
+selections; feet-, mile- and yard-based classes report imperial metadata. These corrections require no reparse or
+migration. See [summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
 
 **Regression-tested against 195,562 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations

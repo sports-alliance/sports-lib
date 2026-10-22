@@ -27,11 +27,25 @@ regeneration or persisted-data migration is needed. This entry exposes no new me
 
 `DynamicDataLoader.dataTypeAvgDataType`, `dataTypeMinDataType` and `dataTypeMaxDataType` map a base or converted
 metric type to its existing summary siblings. The maps include speed and grade-adjusted speed in feet per minute,
-plus swim pace in its base and per-100-yard units. Consumers can use these mappings to group available average,
-minimum and maximum summaries even when an average is absent. Missing observations remain unavailable; these maps
-do not calculate values or select UI icons.
+plus swim pace in its base and per-100-yard units, air power, depth and dive-rate summaries. Pressure SAC, Volume SAC
+and RMV expose their existing average siblings. Consumers can group available average, minimum and maximum
+summaries even when an average is absent. Partial families expose only recorded metric types: depth and dive rates
+have no minimum sibling, and dive descent has no standalone stream metric. Missing observations remain unavailable;
+these maps do not calculate values or select UI icons.
 
-This correction changes lookup metadata only. Metric classes, canonical tokens, units, validation, calculations and
+`getUnitBasedDataTypesFromDataType` and `getUnitBasedDataTypesFromDataTypes` return the selected speed, pace,
+grade-adjusted speed/pace, swim pace and vertical-speed summary variants that
+`getUnitBasedDataFromDataInstance` actually produces. The bulk lookup also retains explicitly requested pace,
+grade-adjusted pace and swim pace without requiring a speed input. Existing speed-derived output ordering is retained;
+`includeDerivedTypes: false` still permits explicitly requested metrics. Empty unit selections return no variants,
+including effort pace and jump speed. With no settings, the single lookup keeps its canonical input and the bulk
+lookup retains its existing empty result.
+
+Feet-, mile- and yard-based distance, speed and pace classes report `UnitSystem.Imperial` from `getUnitSystem()`.
+Their average/minimum/maximum and jump/effort variants inherit that metadata. This does not change their stored
+numeric values, unit strings or display conversions; metric class metadata stays metric.
+
+These corrections change lookup and unit-system metadata only. Canonical tokens, units, validation, calculations and
 JSON are unchanged. Existing activities need no reparse, summary regeneration or migration. Quantified Self's MCP
 numeric catalog and persisted-stat availability are unchanged; no new metric, sensitive field or consent scope is exposed.
 

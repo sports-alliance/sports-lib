@@ -573,6 +573,8 @@ const JUMP_SPEED_FEET_PER_SECOND_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpe
 const JUMP_SPEED_METERS_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgMetersPerMinute.type);
 const JUMP_SPEED_FEET_PER_MINUTE_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgFeetPerMinute.type);
 const JUMP_SPEED_KNOTS_BASE_TYPE = getBaseTypeFromStatType(DataJumpSpeedAvgKnots.type);
+const DIVE_DESCENT_RATE_BASE_TYPE = getBaseTypeFromStatType(DataDiveDescentRateAvg.type);
+const DIVE_DESCENT_RATE_FEET_PER_SECOND_BASE_TYPE = getBaseTypeFromStatType(DataDiveDescentRateAvgFeetPerSecond.type);
 
 const DIVE_IMPERIAL_DATA_TYPE_BY_CANONICAL_TYPE: Readonly<Record<string, string>> = {
   [DataDepth.type]: DataDepthFeet.type,
@@ -1135,6 +1137,11 @@ export class DynamicDataLoader {
   }
 
   private static readonly dataTypeFamilyTriplets: Record<string, { min: string; max: string; avg: string }> = {
+    [DataAirPower.type]: {
+      min: DataAirPowerMin.type,
+      max: DataAirPowerMax.type,
+      avg: DataAirPowerAvg.type
+    },
     [DataRespirationRate.type]: {
       min: DataMinRespirationRate.type,
       max: DataMaxRespirationRate.type,
@@ -1562,6 +1569,12 @@ export class DynamicDataLoader {
   static dataTypeMaxDataType: { [type: string]: string } = {
     [DataAltitude.type]: DataAltitudeMax.type,
     [DataHeartRate.type]: DataHeartRateMax.type,
+    [DataDepth.type]: DataDepthMax.type,
+    [DataDepthFeet.type]: DataDepthMaxFeet.type,
+    [DataDiveAscentRate.type]: DataDiveAscentRateMax.type,
+    [DataDiveAscentRateFeetPerSecond.type]: DataDiveAscentRateMaxFeetPerSecond.type,
+    [DIVE_DESCENT_RATE_BASE_TYPE]: DataDiveDescentRateMax.type,
+    [DIVE_DESCENT_RATE_FEET_PER_SECOND_BASE_TYPE]: DataDiveDescentRateMaxFeetPerSecond.type,
 
     [DataSpeed.type]: DataSpeedMax.type,
     [DataSpeedKilometersPerHour.type]: DataSpeedMaxKilometersPerHour.type,
@@ -1631,6 +1644,15 @@ export class DynamicDataLoader {
   static dataTypeAvgDataType: { [type: string]: string } = {
     [DataAltitude.type]: DataAltitudeAvg.type,
     [DataHeartRate.type]: DataHeartRateAvg.type,
+    [DataDepth.type]: DataDepthAvg.type,
+    [DataDepthFeet.type]: DataDepthAvgFeet.type,
+    [DataDiveAscentRate.type]: DataDiveAscentRateAvg.type,
+    [DataDiveAscentRateFeetPerSecond.type]: DataDiveAscentRateAvgFeetPerSecond.type,
+    [DIVE_DESCENT_RATE_BASE_TYPE]: DataDiveDescentRateAvg.type,
+    [DIVE_DESCENT_RATE_FEET_PER_SECOND_BASE_TYPE]: DataDiveDescentRateAvgFeetPerSecond.type,
+    [DataPressureSAC.type]: DataPressureSACAvg.type,
+    [DataVolumeSAC.type]: DataVolumeSACAvg.type,
+    [DataRMV.type]: DataRMVAvg.type,
 
     [DataSpeed.type]: DataSpeedAvg.type,
     [DataSpeedKilometersPerHour.type]: DataSpeedAvgKilometersPerHour.type,
@@ -1889,7 +1911,7 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface
   ): string[] | null {
     const mappings = this.getJumpSpeedUnitMappings(dataType, userUnitSettings);
-    if (!mappings.length) {
+    if (!userUnitSettings || !DynamicDataLoader.jumpSpeedUnitVariantTypes[dataType]) {
       return null;
     }
     return mappings.map(mapping => mapping.targetDataType);
@@ -1900,7 +1922,7 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface
   ): DataInterface[] | null {
     const mappings = this.getJumpSpeedUnitMappings(data.getType(), userUnitSettings);
-    if (!mappings.length) {
+    if (!userUnitSettings || !DynamicDataLoader.jumpSpeedUnitVariantTypes[data.getType()]) {
       return null;
     }
     return mappings.map(mapping =>
@@ -1934,7 +1956,7 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface
   ): string[] | null {
     const mappings = this.getEffortPaceUnitMappings(dataType, userUnitSettings);
-    if (!mappings.length) {
+    if (!userUnitSettings || !DynamicDataLoader.effortPaceUnitVariantTypes[dataType]) {
       return null;
     }
     return mappings.map(mapping => mapping.targetDataType);
@@ -1945,12 +1967,38 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface
   ): DataInterface[] | null {
     const mappings = this.getEffortPaceUnitMappings(data.getType(), userUnitSettings);
-    if (!mappings.length) {
+    if (!userUnitSettings || !DynamicDataLoader.effortPaceUnitVariantTypes[data.getType()]) {
       return null;
     }
     return mappings.map(mapping =>
       this.getDataInstanceFromDataType(mapping.targetDataType, data.getValue(mapping.sourceUnitType))
     );
+  }
+
+  private static getPreferredUnitDataTypes(
+    dataType: string,
+    userUnitSettings: UserUnitSettingsInterface
+  ): string[] | null {
+    const families: { base: string; units: string[] | undefined }[] = [
+      { base: DataSpeed.type, units: userUnitSettings.speedUnits },
+      { base: DataGradeAdjustedSpeed.type, units: userUnitSettings.gradeAdjustedSpeedUnits },
+      { base: DataPace.type, units: userUnitSettings.paceUnits },
+      { base: DataGradeAdjustedPace.type, units: userUnitSettings.gradeAdjustedPaceUnits },
+      { base: DataSwimPace.type, units: userUnitSettings.swimPaceUnits },
+      { base: DataVerticalSpeed.type, units: userUnitSettings.verticalSpeedUnits }
+    ];
+    for (const { base, units } of families) {
+      if (dataType === base) {
+        return units ?? null;
+      }
+      const summaryMap = [this.dataTypeAvgDataType, this.dataTypeMinDataType, this.dataTypeMaxDataType].find(
+        map => map[base] === dataType
+      );
+      if (summaryMap) {
+        return units?.map(unit => summaryMap[unit]).filter((type): type is string => typeof type === 'string') ?? null;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1970,7 +2018,8 @@ export class DynamicDataLoader {
   }
 
   /**
-   * This gets the base and extended unit datatypes from a datatype array depending on the user settings
+   * Gets supported unit variants for explicitly requested base/summary types, with optional speed-derived types.
+   * Empty unit selections yield no variants; unrelated non-unit types remain excluded.
    * @param dataTypes
    * @param userUnitSettings
    */
@@ -1979,7 +2028,7 @@ export class DynamicDataLoader {
     userUnitSettings?: UserUnitSettingsInterface,
     options: { includeDerivedTypes?: boolean } = { includeDerivedTypes: true }
   ): string[] {
-    let unitBasedDataTypes: any[] = [];
+    let unitBasedDataTypes: string[] = [];
     if (!userUnitSettings) {
       return unitBasedDataTypes;
     }
@@ -2046,11 +2095,19 @@ export class DynamicDataLoader {
         return accu;
       }, [])
     );
+    dataTypes.forEach(dataType => {
+      this.getPreferredUnitDataTypes(dataType, userUnitSettings)?.forEach(type => {
+        if (!unitBasedDataTypes.includes(type)) {
+          unitBasedDataTypes.push(type);
+        }
+      });
+    });
     return unitBasedDataTypes;
   }
 
   /**
-   * Gets the unitbased types
+   * Gets the preferred unit types for a base metric or its available summary sibling.
+   * Returns the canonical input when preferences are absent or the metric has no unit selection.
    * @param dataType
    * @param userUnitSettings
    */
@@ -2074,25 +2131,7 @@ export class DynamicDataLoader {
     if (effortPaceDataTypes) {
       return effortPaceDataTypes;
     }
-    if (dataType === DataSpeed.type) {
-      return userUnitSettings.speedUnits;
-    }
-    if (dataType === DataGradeAdjustedSpeed.type) {
-      return userUnitSettings.gradeAdjustedSpeedUnits;
-    }
-    if (dataType === DataPace.type) {
-      return userUnitSettings.paceUnits;
-    }
-    if (dataType === DataGradeAdjustedPace.type) {
-      return userUnitSettings.gradeAdjustedPaceUnits;
-    }
-    if (dataType === DataSwimPace.type) {
-      return userUnitSettings.swimPaceUnits;
-    }
-    if (dataType === DataVerticalSpeed.type) {
-      return userUnitSettings.verticalSpeedUnits;
-    }
-    return [dataType];
+    return this.getPreferredUnitDataTypes(dataType, userUnitSettings) ?? [dataType];
   }
 
   /**

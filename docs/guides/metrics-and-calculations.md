@@ -472,6 +472,11 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
   restored from native JSON, regenerated into an all-diving event summary, or otherwise derived from streams. Mixed
   event summaries aggregate these metrics only from non-diving activities. Their vertical movement is represented by
   depth, not terrain elevation.
+- Suunto DeviceLog JSON applies this same exclusion after merging the workout header, so all-diving event summaries
+  agree before and after a native JSON roundtrip. Raw altitude/depth streams and explicit header summaries for
+  non-diving or mixed events are preserved. There are no metric-key or JSON-schema changes. Existing native JSON
+  already removes these all-diving terrain summaries on restoration; refresh persisted summary projections through
+  the consumer's normal save/reparse workflow if needed.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 

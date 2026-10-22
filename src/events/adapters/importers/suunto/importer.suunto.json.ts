@@ -1,6 +1,7 @@
 import { resolveSuuntoMultisportLaps } from './suunto-laps';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
+import { removeExcludedTerrainSummaryMetricsForStats } from '../../../../activities/activity.metric-semantics';
 import { Creator } from '../../../../creators/creator';
 import { Lap } from '../../../../laps/lap';
 import { DataAltitude } from '../../../../data/data.altitude';
@@ -168,7 +169,8 @@ export class EventImporterSuuntoJSON {
    * only one counter flushes at Stop. Ambiguous automatic remainders cannot borrow
    * a counter from a concurrent manual summary. Stop alignment requires the last
    * timestamped Activity summary in the final leg and cannot move an explicit lap endpoint.
-   * Cross-leg laps stay on their ending activity. */
+   * Cross-leg laps stay on their ending activity. All-diving workout summaries
+   * exclude terrain metrics after the header merge, preserving source streams. */
   static getFromJSONString(
     jsonString: string,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT
@@ -515,6 +517,12 @@ export class EventImporterSuuntoJSON {
           event.addStat(new Constructor((values as number[]).reduce((sum, value) => sum + value, 0)));
         }
       }
+
+      // Header summaries must obey the same diving exclusions as generated and restored summaries.
+      removeExcludedTerrainSummaryMetricsForStats(
+        event,
+        activities.map(activity => activity.type)
+      );
 
       activities.forEach(activity => pruneActivityStreamsBySelection(activity, streamSelection));
       resolve(event);

@@ -340,8 +340,9 @@ Garmin single-gas, multi-gas, and gauge sub-sports import as `Scuba Diving`; apn
 FIT session and lap intensity enums are retained as the string-valued `Intensity` stat. Diving-group activities do not
 retain or derive terrain ascent, descent, altitude min/max/avg, or grade min/max/avg summaries, including when older
 native JSON is restored or an all-diving event summary is regenerated. Mixed event summaries use terrain values only
-from non-diving activities. Their vertical movement is represented by depth; raw altitude and grade streams remain
-available when provided by the source.
+from non-diving activities. Suunto DeviceLog JSON also applies the exclusion after its final header merge, keeping
+all-diving event summaries consistent with native JSON restoration. Their vertical movement is represented by depth;
+raw altitude and grade streams remain available when provided by the source.
 
 ## Start here
 

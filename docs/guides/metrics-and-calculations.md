@@ -574,6 +574,14 @@ catalog, and there are no new MCP fields, scopes or mutations. Existing numeric 
 
 ### FIT balance summaries and multisport power
 
+FIT record balance requires a finite percentage from 0 through 100 and an explicit boolean side flag. Invalid or
+incomplete balance becomes missing on both sides; it is never clamped to an endpoint. Valid zero, 100 and fractional
+percentages retain their meaning. Missing balance leaves derived side watts unavailable for that sample, even when
+total power is zero. The recorded total-power stream and its coverage, work, NP, power curve and TSS are unaffected.
+A balance of 101% therefore cannot produce a complementary −1% or negative side watts. This is validation of the
+decoded percentage in Sports Lib, not a change to FIT bit decoding. Existing invalid saved streams require an
+original-file reparse and refresh of affected summaries; native JSON restoration does not silently rewrite them.
+
 FIT session and lap `left_right_balance100` summaries are decoded in hundredths of a percent, with the side flag
 selecting left or right. A valid summary supplies both canonical balance statistics and keeps its precision in JSON;
 it does not replace per-record balance or derived left/right watts. The existing display rounding is unchanged.

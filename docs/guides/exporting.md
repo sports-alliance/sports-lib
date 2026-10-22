@@ -147,8 +147,11 @@ no separate stored-stream migration. Persist refreshed summaries/evaluations and
 capacity snapshots through the application's normal workflow. No automatic migration or reparse is triggered.
 
 FIT session/lap balance corrections require an original-file reparse: older native JSON did not retain those source
-summaries. Stored balance statistics remain readable and are not overwritten during JSON restoration. To correct a
-multisport event's average/maximum power and W/kg, call `EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
+summaries. Invalid FIT record balance also requires source reparsing to replace impossible percentages and derived
+side watts with missing observations while retaining total recorded power. Valid 0–100% balances are preserved. These
+corrections do not add serialized fields or alter metric keys or units. Stored balance statistics remain readable and
+are not overwritten during JSON restoration. To correct a multisport event's average/maximum power and W/kg, call
+`EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
 statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
 Saved power curves and FTP summaries are not replaced by JSON hydration. To apply the timer-boundary correction,
 refresh affected calculated snapshots from original files or retained power streams and timer events; keep supplied

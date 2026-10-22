@@ -305,7 +305,8 @@ export class EventImporterFIT {
    * A corroborated missing final session is retained as Unknown Sport without
    * moving earlier records or laps, or inferring sport-specific calibration.
    * Recovered legs do not inherit sport-only activity metrics; user metrics
-   * require a unique explicit start matching the recovered leg. */
+   * require a unique explicit start matching the recovered leg. Invalid record power
+   * balance is missing on both sides; total recorded power and valid 0–100% balance remain intact. */
   static async getFromArrayBuffer(
     arrayBuffer: ArrayBuffer | Buffer<ArrayBuffer>,
     options: ActivityParsingOptions = ActivityParsingOptions.DEFAULT,

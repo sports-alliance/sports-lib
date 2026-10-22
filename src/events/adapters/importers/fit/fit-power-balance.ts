@@ -1,3 +1,15 @@
+/** Decode a record's percentage split. Impossible or incomplete balances are missing, never clamped. */
+export function getFitRecordPowerBalance(record: any): { left: number; right: number } | null {
+  const balance = record?.left_right_balance;
+  if (
+    !balance || !Number.isFinite(balance.value) || balance.value < 0 || balance.value > 100 ||
+    typeof balance.right !== 'boolean'
+  ) return null;
+  return balance.right
+    ? { left: 100 - balance.value, right: balance.value }
+    : { left: balance.value, right: 100 - balance.value };
+}
+
 /** Decode the FIT session/lap balance100 summary, without changing record-level balance.
  * Some exports put record-format whole percentages in this hundredths field. If scoped records support
  * that alternative but exclude the canonical value, retain the existing stream fallback;

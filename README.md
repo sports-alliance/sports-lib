@@ -4,7 +4,7 @@ Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activ
 It also exposes provider-neutral Health and sleep scalar data classes with canonical units, display formatting, aliases,
 and JSON round-trip behavior.
 
-**Regression-tested against 191,548 real-world source files.** Coverage includes activity and route imports
+**Regression-tested against 195,562 real-world source files.** Coverage includes activity and route imports
 and file-type validation. This work has driven
 compatibility fixes for vendor quirks, incomplete recordings and malformed data. Importers use evidence in the file
 to recover valid observations while preserving zeros, pauses and sport boundaries. See our

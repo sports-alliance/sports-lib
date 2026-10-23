@@ -1,7 +1,5 @@
 # Sports Lib documentation
 
-Use [event summaries](guides/json-summaries.md) for dashboard and list reads that construct canonical metrics on demand.
-
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
 and native JSON hydration consistently fill missing speed-derived pace summaries on events, activities, and laps while
 preserving applicable explicit values except Diving-group terrain summaries. Supported activity aliases are normalized to
@@ -356,6 +354,7 @@ require reparsing activities or routes, regenerating summaries, or migrating nat
 - [Work with routes](guides/routes.md) — import, export, convert, and preview planned routes, including GPX 1.1 metadata ordering and specific FIT sport/sub-sport round trips.
 - [Configure parsing](guides/parsing-options.md) — control stream output and FIT device metadata.
 - [Export and persist data](guides/exporting.md) — create GPX or native JSON and restore it later.
+- [Read event summaries](guides/json-summaries.md) — read dashboard and list metadata with metrics constructed on demand.
 - [Metrics and calculations](guides/metrics-and-calculations.md) — canonical metric tokens, units, and derivation rules.
 - [Three-dimensional power and training-response model](guides/three-dimensional-training-model.md) — research
   provenance, implemented equations, capacity estimation, strain scoring, calibration, and limitations.

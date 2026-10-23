@@ -20,6 +20,7 @@ The hosted documentation contains the supported API and all consumer guidance:
 - [Work with routes](https://sports-alliance.github.io/sports-lib/documents/Work_with_routes.html)
 - [Configure parsing](https://sports-alliance.github.io/sports-lib/documents/Configure_parsing.html)
 - [Export and persist data](https://sports-alliance.github.io/sports-lib/documents/Export_and_persist_data.html)
+- [Read event summaries](https://sports-alliance.github.io/sports-lib/documents/Read_event_summaries.html)
 - [Metrics and calculations](https://sports-alliance.github.io/sports-lib/documents/Metrics_and_calculations.html)
 - [Three-dimensional power and training-response model](https://sports-alliance.github.io/sports-lib/documents/Three-dimensional_power_and_training-response_model.html)
 - [Validation and compatibility](https://sports-alliance.github.io/sports-lib/documents/Validation_and_compatibility.html)
@@ -59,10 +60,6 @@ affected derived summaries; installing the release does not rewrite saved data. 
 [FIT compatibility guide](docs/guides/importing-activities.md#numeric-fit-types-without-endian-flags).
 
 ## Package formats
-
-Dashboards and lists can use `EventSummary.fromJSON` for metadata and lazy canonical metric hydration, from either
-the package root or `/metrics`. Full JSON imports remain available for activity details and editing. See the
-[event summary guide and benchmark](docs/guides/json-summaries.md); existing persisted data needs no migration.
 
 Browser charts and workers can import canonical data classes, unit settings, activity types and stream utilities from
 `@sports-alliance/sports-lib/metrics`. This public entry reuses the root API's implementations while excluding file

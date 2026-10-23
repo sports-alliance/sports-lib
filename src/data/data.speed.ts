@@ -1,4 +1,5 @@
 import { DataNumber } from './data.number';
+import { UnitSystem } from './data.interface';
 import {
   convertPaceToPaceInMinutesPerMile,
   convertSpeedToPace,
@@ -67,6 +68,7 @@ export class DataSpeedMilesPerHour extends DataSpeed {
   static type = 'Speed in miles per hour';
   static displayType = DataSpeed.type;
   static unit = 'mph';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayType(): string {
     return super.getDisplayType();
@@ -77,6 +79,7 @@ export class DataSpeedFeetPerSecond extends DataSpeed {
   static type = 'Speed in feet per second';
   static displayType = DataSpeed.type;
   static unit = 'ft/s';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayType(): string {
     return super.getDisplayType();
@@ -97,6 +100,7 @@ export class DataSpeedFeetPerMinute extends DataSpeed {
   static type = 'Speed in feet per minute';
   static displayType = DataSpeed.type;
   static unit = 'ft/min';
+  static override unitSystem = UnitSystem.Imperial;
 
   getDisplayType(): string {
     return super.getDisplayType();

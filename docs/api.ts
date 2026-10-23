@@ -3,6 +3,12 @@
  *
  * This file is intentionally documentation-only. It does not replace the package entry point;
  * it defines the stable, consumer-oriented view that is published to GitHub Pages.
+ * DynamicDataLoader's summary-family maps include speed, swim pace, air power and partial dive families.
+ * Unit-type lookups agree with value conversion for summary metrics and empty unit selections; summary preferences
+ * exclude units from other metric families. Feet-, mile- and yard-based metric variants report imperial unit-system
+ * metadata. Existing exports, tokens and JSON are unchanged.
+ * Missing per-yard average swim pace derives from the canonical swim average; existing values retain priority.
+ * Older incorrect derived values need targeted source reparsing, independently of the metadata-only corrections.
  *
  * @module API
  */
@@ -29,6 +35,12 @@
  * Recovery requires original-file reparse and consumer reconciliation of child identities and user controls.
  * Suunto JSON/SML separates active and elapsed timing. Contradictory active duration needs independent
  * source evidence; unresolved duration-dependent load and durability stay unavailable without changing JSON schemas.
+ * Power summaries, coverage/windows and derived side watts read original samples, ignoring attached stream filters.
+ * Lap power extrema include a leading partial reading only when it supports active time inside the lap.
+ * Power curves keep active timer segments separate, including a stop/resume at the same timestamp.
+ * FIT session/lap balance summaries retain hundredths precision independently of record balance streams.
+ * Multisport Average Power and W/kg weight leg means by timer duration; missing power is not zero and unknown timing
+ * makes that aggregate unavailable. Regenerate event summaries to apply this rule to existing leg statistics.
  * Native Suunto multisport laps use timestamped, sport-owned windows; cross-leg laps stay on their ending leg
  * without deriving whole-lap averages or sport semantics from only that leg. Historical matching needs source reparse.
  * A final lap summary keeps its own manual/automatic counter even when only one counter flushes at Stop.
@@ -55,6 +67,12 @@
  * @category Import and export
  */
 export { SportsLib } from '../src/index';
+/**
+ * Suunto SML imports load the XML parser when getFromXML is called; failures reject its promise.
+ * JSON imports and ordinary package imports do not load the XML parser.
+ * @category Import and export
+ */
+export { EventImporterSuuntoSML } from '../src/events/adapters/importers/suunto/importer.suunto.sml';
 /** Positional activity GPX uses TrackPointExtension/v2, preserving finite nonnegative speed including zero.
  * @category Import and export
  */
@@ -137,6 +155,7 @@ export type {
 /**
  * Duration, timer, moving-time and pause getters return their Data class or undefined when absent.
  * Keep measured zero distinct from missing timing; do not reconstruct rejected timing from elapsed dates.
+ * `addDataToStream()` edits the original values and invalidates calculated interval evidence, even with a read filter.
  * @category Activities and events
  */
 export type { ActivityInterface } from '../src/activities/activity.interface';
@@ -324,10 +343,13 @@ export type {
 export { RouteFileUtilities } from '../src/routes/route-file.utilities';
 export { RouteUtilities } from '../src/routes/route.utilities';
 
-/** @category Streams, stats, and data */
+/** Sparse stream values with optional elapsed-interval evidence for calculated rates.
+ * Native JSON retains interval weights; replacing data invalidates them.
+ * @category Streams, stats, and data
+ */
 export { Stream } from '../src/streams/stream';
 export type { StreamDataItem, StreamInterface } from '../src/streams/stream.interface';
-export type { StreamJSONInterface } from '../src/streams/stream';
+export type { StreamJSONInterface, StreamIntervalSupport } from '../src/streams/stream';
 export type { StreamFilterInterface } from '../src/streams/stream.filter.interface';
 export type { StatsClassInterface } from '../src/stats/stats.class.interface';
 /** Shared summary serialization omits non-finite scalar numbers while preserving finite zero and structured stats. */
@@ -674,7 +696,7 @@ export type {
 /**
  * Event aggregation and regeneration. Generated homogeneous Diving-group event summaries omit
  * terrain ascent/descent, altitude min/max/avg, and grade min/max/avg; mixed event summaries
- * aggregate those metrics only from their non-diving activities. Timer/elapsed totals each require complete,
+ * aggregate those metrics only from their non-diving activities. Timer/elapsed/moving totals each require complete,
  * finite nonnegative child values; missing clocks remain unavailable.
  *
  * @category Activities and events
@@ -722,3 +744,31 @@ export { DataTrainingStressScore } from '../src/data/data.training-stress-score'
 
 export { normalizeTimingValidity, resolveSwimTimingSeconds } from '../src/duration/timing-validity';
 export type { TimingValidity } from '../src/duration/timing-validity';
+
+/** Observed power support from original samples; attached stream filters cannot supply missing readings. */
+export type { PowerCoverage } from '../src/activities/power-coverage';
+/** Activity-only unsmoothed R–R analysis with gap-safe adjacency and quality-gated DFA.
+ * @category Activity analysis
+ */
+export { analyzeRRIntervals, calculateDFAAlpha1, RR_ANALYSIS_VERSION } from '../src/events/utilities/rr-analysis';
+export type {
+  RRIntervalSample,
+  RRBeatClassification,
+  RRAnalyzedBeat,
+  RRWindow,
+  RRSummary,
+  RRAnalysis,
+  RRAnalysisOptions
+} from '../src/events/utilities/rr-analysis';
+/** Analyze raw IBI using the activity's elapsed bounds; regular one-second chart streams stay ineligible after JSON reload.
+ * @category Activity analysis
+ */
+export { analyzeActivityRR } from '../src/events/utilities/activity-rr';
+/** Irregular IBI stream supporting explicit elapsed end timestamps and timestamp-based activity cropping.
+ * @category Streams
+ */
+export { IBIStream } from '../src/streams/ibi-stream';
+/** Canonical activity R–R statistics, independent of Health and overnight HRV.
+ * @category Data
+ */
+export * from '../src/data/data.rr';

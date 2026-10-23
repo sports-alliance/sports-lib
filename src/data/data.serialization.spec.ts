@@ -46,6 +46,7 @@ import { DataStartPosition } from './data.start-position';
 import { DataEndPosition } from './data.end-position';
 import { DataJumpDistance } from './data.jump-distance';
 import { DataStressState } from './data.health';
+import { DataRRArtifactPercentage, DataRRCoverage, DataRRPNN50 } from './data.rr';
 import {
   DataFITTrainingFileReferences,
   DataFITWorkoutDefinitions,
@@ -177,6 +178,9 @@ describe('Data Serialization Safety', () => {
     [DataPosition, [{ latitudeDegrees: 0, longitudeDegrees: 0 }]],
     [DataActiveLap, [true]],
     [DataBalance, [50]],
+    [DataRRArtifactPercentage, [50]],
+    [DataRRCoverage, [50]],
+    [DataRRPNN50, [50]],
     [DataTargetPowerZone, ['Zone 1']],
     [DataTargetHeartRateZone, ['Zone 1']],
     [DataTargetSpeedZone, ['Zone 1']],

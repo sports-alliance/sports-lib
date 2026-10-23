@@ -1,4 +1,4 @@
-import { DynamicDataLoader } from './data.store';
+import { DataStore, DynamicDataLoader } from './data.store';
 import { DataFlow } from './data.flow';
 import { DataAvgFlow } from './data.avg-flow';
 import { DataGrit } from './data.grit';
@@ -93,6 +93,44 @@ import {
 const getBaseTypeFromStatType = (type: string): string => type.replace(/^(Average|Minimum|Maximum)\s+/i, '');
 
 describe('DynamicDataLoader family mappings', () => {
+  const storeEntries = Object.entries(DataStore as Record<string, { readonly type: string }>);
+  const summaryMaps = {
+    Avg: DynamicDataLoader.dataTypeAvgDataType,
+    Min: DynamicDataLoader.dataTypeMinDataType,
+    Max: DynamicDataLoader.dataTypeMaxDataType
+  };
+  const declaredSummaryPairs = storeEntries.flatMap(([name, Summary]) => {
+    const match = name.match(/^(Data.*?)(Avg|Min|Max)(.*)$/);
+    if (!match) return [];
+    const baseName = `${match[1]}${match[3]}`;
+    const Base = storeEntries.find(([candidate]) => candidate === baseName)?.[1];
+    if (!Base || Base.type === Summary.type) return [];
+    return [{ name, base: Base.type, summary: Summary.type, map: summaryMaps[match[2] as keyof typeof summaryMaps] }];
+  });
+
+  it.each(declaredSummaryPairs)('registers the existing $name sibling without losing its canonical token', pair => {
+    expect(pair.map[pair.base]).toBe(pair.summary);
+    const stat = DynamicDataLoader.getDataInstanceFromDataType(pair.summary, 5);
+    expect(stat.getType()).toBe(pair.summary);
+    expect(stat.getValue()).toBe(5);
+    expect(stat.toJSON()).toEqual({ [pair.summary]: 5 });
+  });
+
+  it('groups recorded dive descent summaries without inventing a minimum or a stream metric', () => {
+    for (const [avg, max] of [
+      [DataStore.DataDiveDescentRateAvg, DataStore.DataDiveDescentRateMax],
+      [DataStore.DataDiveDescentRateAvgFeetPerSecond, DataStore.DataDiveDescentRateMaxFeetPerSecond]
+    ]) {
+      const base = getBaseTypeFromStatType(avg.type);
+      expect(DynamicDataLoader.dataTypeAvgDataType[base]).toBe(avg.type);
+      expect(DynamicDataLoader.dataTypeMaxDataType[base]).toBe(max.type);
+      expect(DynamicDataLoader.dataTypeMinDataType[base]).toBeUndefined();
+      expect(() => DynamicDataLoader.getDataClassFromDataType(base)).toThrow();
+    }
+    expect(DynamicDataLoader.dataTypeMinDataType[DataStore.DataDepth.type]).toBeUndefined();
+    expect(DynamicDataLoader.dataTypeMinDataType[DataStore.DataDiveAscentRate.type]).toBeUndefined();
+  });
+
   it('maps Flow and Grit to average families', () => {
     expect(DynamicDataLoader.dataTypeAvgDataType[DataFlow.type]).toBe(DataAvgFlow.type);
     expect(DynamicDataLoader.dataTypeAvgDataType[DataGrit.type]).toBe(DataAvgGrit.type);
@@ -309,9 +347,8 @@ describe('DynamicDataLoader family mappings', () => {
 
     mappedDistanceTypes.forEach(distanceType => {
       expect(DynamicDataLoader.dataTypeUnitGroups[distanceType]).toBeDefined();
-      const expectedMilesDistanceType = distanceType === DataGNSSDistance.type
-        ? DataGNSSDistanceMiles.type
-        : DataDistanceMiles.type;
+      const expectedMilesDistanceType =
+        distanceType === DataGNSSDistance.type ? DataGNSSDistanceMiles.type : DataDistanceMiles.type;
       expect(DynamicDataLoader.dataTypeUnitGroups[distanceType][expectedMilesDistanceType]).toBeDefined();
     });
   });

@@ -778,7 +778,7 @@ describe('Activity Utilities', () => {
     });
 
     it('should generate PowerWattsPerKg when average power and weight are available', () => {
-      const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
+      const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Cycling, new Creator('test'));
       activity.addStream(new Stream(DataPower.type, [280, 280, 280]));
       activity.addStat(new DataWeight(70));
 
@@ -793,7 +793,7 @@ describe('Activity Utilities', () => {
     });
 
     it('should not generate PowerWattsPerKg when weight is missing', () => {
-      const activity = new Activity(new Date(), new Date(), ActivityTypes.Cycling, new Creator('test'));
+      const activity = new Activity(new Date(0), new Date(3000), ActivityTypes.Cycling, new Creator('test'));
       activity.addStream(new Stream(DataPower.type, [280, 280, 280]));
 
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);

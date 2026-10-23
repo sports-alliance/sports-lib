@@ -1,4 +1,5 @@
 import { DataDuration } from './data.duration';
+import { UnitSystem } from './data.interface';
 import { convertPaceToPaceInMinutesPerMile } from '../events/utilities/helpers';
 
 export class DataPace extends DataDuration {
@@ -40,6 +41,7 @@ export class DataPaceMinutesPerMile extends DataPace {
   static type = 'Pace in minutes per mile';
   static displayType = DataPace.type;
   static unit = 'min/m';
+  static override unitSystem = UnitSystem.Imperial;
 
   getValue(formatForDataType?: string): number {
     if (formatForDataType) {

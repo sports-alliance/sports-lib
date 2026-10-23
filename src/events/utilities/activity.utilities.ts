@@ -1,6 +1,12 @@
+import { takeImportedSensorFillTimes } from './imported-sensor-fill-times';
+import { powerIntervals, meanMaxPower } from './power-intervals';
+import type { PowerCoverage } from '../../activities/power-coverage';
+import { DataEvent } from '../../data/data.event';
+import { DataStartEvent } from '../../data/data.start-event';
+import { DataStopEvent } from '../../data/data.stop-event';
+import { DataStopAllEvent } from '../../data/data.stop-all-event';
 import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, getHeartRateSamplesWithCoverage } from './tss/hr-observation-coverage';
 import { calculateNormalizedPower } from './normalized-power';
-import { getRecordedPowerValues } from './tss/recorded-power-evidence';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
 import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason } from './tss/tss-evaluation';
@@ -153,7 +159,7 @@ import {
   standardDeviation
 } from './helpers';
 import { DataLongitudeDegrees } from '../../data/data.longitude-degrees';
-import { StreamDataItem, StreamInterface } from '../../streams/stream.interface';
+import { StreamInterface } from '../../streams/stream.interface';
 import { canDeriveStreamType } from '../../streams/stream.derivation.registry';
 import { DataEnergy } from '../../data/data.energy';
 import { DataStartAltitude } from '../../data/data.start-altitude';
@@ -201,6 +207,9 @@ import { DataGroundContactTimeAvg } from '../../data/data.ground-contact-time-av
 import { DataGroundContactTimeMax } from '../../data/data.ground-contact-time-max';
 import { DataGroundContactTimeMin } from '../../data/data.ground-contact-time-min';
 import { DataIBI } from '../../data/data.ibi';
+import { IBIStream } from '../../streams/ibi-stream';
+import { addMissingRRStats } from './activity-rr';
+import { isRRIntervalInBounds } from './rr-timing';
 import { DataGroundContactTimeBalanceLeft } from '../../data/data-ground-contact-time-balance-left';
 import { DataGroundContactTimeBalanceRight } from '../../data/data-ground-contact-time-balance-right';
 import {
@@ -310,7 +319,16 @@ import {
   type TrainingStressScoreMethodType
 } from '../../data/data.training-stress-score-method';
 import { DataPowerWork } from '../../data/data.power-work';
-import { GradeCalculator } from './grade-calculator/grade-calculator';
+import {
+  activeDistanceSegments,
+  speedFromDistance,
+  gradeFromDistance,
+  gradeSamplesForSpeed,
+  adjustedSpeedFromGrade,
+  intervalAverage,
+  intervalValues,
+  movingSeconds
+} from './distance-intervals';
 import { DataVO2Max } from '../../data/data.vo2-max';
 import { DataTotalGrit } from '../../data/data.total-grit';
 import { DataTotalFlow } from '../../data/data.total-flow';
@@ -405,7 +423,22 @@ export class ActivityUtilities {
     return stat;
   }
 
+  private static isCalculatedNormalizedPower(activity: ActivityInterface): boolean {
+    const calculated = this.calculatedNormalizedPower.get(activity);
+    return !!calculated && activity.getStat(DataPowerNormalized.type) === calculated.stat &&
+      calculated.stat.getValue() === calculated.value;
+  }
+
+  /** Measures observed active power support from unfiltered samples without changing streams or persisted statistics.
+   * Each reading supports at most one second. Missing watts remain unknown; recorded zeroes count as coverage.
+   * Observed work is partial when coverageRatio is below one, not an estimate of missing work.
+   */
+  public static getPowerCoverage(activity: ActivityInterface): PowerCoverage {
+    return powerIntervals(activity).coverage;
+  }
+
   private static geoLibAdapter = new GeoLibAdapter();
+  private static readonly MINIMUM_COMPUTED_POWER_TSS_COVERAGE = 0.8;
   private static readonly FTP_DURATION_SECONDS = 1200;
   private static readonly FTP_FACTOR = 0.95;
   private static readonly INTENSITY_FACTOR_DECIMALS = 3;
@@ -549,7 +582,8 @@ export class ActivityUtilities {
   private static addLeftRightBalanceStatsFromStreams(
     activity: ActivityInterface,
     LeftDataClass: { type: string; new (value: number): DataInterface },
-    RightDataClass: { type: string; new (value: number): DataInterface }
+    RightDataClass: { type: string; new (value: number): DataInterface },
+    readAverage: (streamType: string) => number = streamType => this.getDataTypeAvg(activity, streamType)
   ): void {
     const leftStat = activity.getStat(LeftDataClass.type);
     const rightStat = activity.getStat(RightDataClass.type);
@@ -570,14 +604,14 @@ export class ActivityUtilities {
     }
 
     if (activity.hasStreamData(LeftDataClass.type)) {
-      const avgLeftBalance = this.round(this.getDataTypeAvg(activity, LeftDataClass.type), 2);
+      const avgLeftBalance = this.round(readAverage(LeftDataClass.type), 2);
       activity.addStat(new LeftDataClass(avgLeftBalance));
       activity.addStat(new RightDataClass(this.round(100 - avgLeftBalance, 2)));
       return;
     }
 
     if (activity.hasStreamData(RightDataClass.type)) {
-      const avgRightBalance = this.round(this.getDataTypeAvg(activity, RightDataClass.type), 2);
+      const avgRightBalance = this.round(readAverage(RightDataClass.type), 2);
       activity.addStat(new RightDataClass(avgRightBalance));
       activity.addStat(new LeftDataClass(this.round(100 - avgRightBalance, 2)));
     }
@@ -708,23 +742,93 @@ export class ActivityUtilities {
   }
 
   /**
-   * Crops left,right on time.
-   * Start and end date need to be relative to the activity start / end time
+   * Crops inclusively within the original activity, rebasing events and preserving the initial timer state.
+   * A fractional start advances to the first retained one-second sample. Invalid/empty ranges throw before mutation.
+   * Raw IBI uses beat timestamps; overlapping boundary intervals retain coverage evidence and rebased end times.
+   * Existing summary stats are unchanged; callers remain responsible for refreshing cropped summaries.
    * @param activity
    * @param startDate
    * @param endDate
    */
   public static cropTime(activity: ActivityInterface, startDate?: Date, endDate?: Date): ActivityInterface {
+    if (!startDate && !endDate) return activity;
+    // Streams use one-second slots relative to the original start. Keep the first
+    // retained sample on that clock instead of moving it to a fractional requested start.
+    const requestedStart = Math.max(+(startDate || activity.startDate), +activity.startDate);
+    const croppedStart = new Date(
+      +activity.startDate + Math.ceil((requestedStart - +activity.startDate) / 1000) * 1000
+    );
+    const croppedEnd = new Date(Math.min(+(endDate || activity.endDate), +activity.endDate));
+    if (!Number.isFinite(+croppedStart) || !Number.isFinite(+croppedEnd) || +croppedStart > +croppedEnd) {
+      throw new RangeError('Crop must retain at least one timestamp within the activity');
+    }
+    const startSeconds = (+croppedStart - +activity.startDate) / 1000;
+    const endSeconds = (+croppedEnd - +activity.startDate) / 1000;
+    const timerTypes = [DataStartEvent.type, DataStopEvent.type, DataStopAllEvent.type];
+    const events = activity
+      .getAllEvents()
+      .filter(event => Number.isFinite(event.timestamp))
+      .slice()
+      .sort((a, b) => a.timestamp - b.timestamp);
+    const cloneAt = (event: DataEvent, seconds: number): DataEvent =>
+      Object.assign(Object.create(Object.getPrototypeOf(event)), event).setValue(seconds);
+    const croppedEvents = events
+      .filter(event => event.timestamp >= startSeconds && event.timestamp <= endSeconds)
+      .map(event => cloneAt(event, event.timestamp - startSeconds));
+    const previousTimer = events
+      .filter(event => event.timestamp < startSeconds && timerTypes.includes(event.getType()))
+      .pop();
+    // A crop beginning inside a pause must not default to an active timer. Retain the
+    // existing stop kind, without changing shared source event objects or other payloads.
+    if (
+      previousTimer &&
+      previousTimer.getType() !== DataStartEvent.type &&
+      !croppedEvents.some(event => event.timestamp === 0 && timerTypes.includes(event.getType()))
+    ) {
+      croppedEvents.unshift(cloneAt(previousTimer, 0));
+    }
+
     activity.getAllStreams().forEach(stream => {
-      // Get the data for the range specified
-      const trimmedStreamData = activity.getStreamData(stream.type, startDate, endDate);
+      if (stream instanceof IBIStream) {
+        const samples = stream.getStreamDataByDuration().filter(sample =>
+          isRRIntervalInBounds(
+            { time: sample.time, interval: sample.value ?? NaN },
+            startSeconds * 1000,
+            endSeconds * 1000
+          )
+        );
+        activity.removeStream(stream);
+        activity.addStream(
+          new IBIStream(
+            samples.map(sample => sample.value),
+            samples.map(sample => sample.time - startSeconds * 1000)
+          )
+        );
+        return;
+      }
+      // Supply both bounds so one-sided crops retain the same inclusive sample clock.
+      const trimmedStreamData = activity.getStreamData(stream.type, croppedStart, croppedEnd);
+      const evidence = stream.getIntervalSupport?.();
+      let croppedEvidence;
+      if (evidence) {
+        // Apply exactly the existing crop's boundary convention to the parallel weights.
+        const durations = activity
+          .getStreamData(new Stream(stream.type, evidence.durations), croppedStart, croppedEnd)
+          .map((duration, index) => {
+            if (duration === null) return null;
+            const left = evidence.direction === 'ending' ? index - duration : index;
+            const right = left + duration;
+            return left < 0 || right >= trimmedStreamData.length ? null : duration;
+          });
+        croppedEvidence = { direction: evidence.direction, durations };
+      }
       activity.removeStream(stream);
-      activity.addStream(new Stream(stream.type, trimmedStreamData));
+      activity.addStream(new Stream(stream.type, trimmedStreamData, croppedEvidence));
     });
 
-    activity.startDate = startDate || activity.startDate;
-    activity.endDate = endDate || activity.endDate;
-    // debugger
+    activity.setAllEvents(croppedEvents);
+    activity.startDate = croppedStart;
+    activity.endDate = croppedEnd;
     return activity;
   }
 
@@ -974,6 +1078,9 @@ export class ActivityUtilities {
    * Fills missing activity streams and summary stats, then derives canonical min/max/average and
    * speed-derived pace summaries for existing laps. Lap stream windows are half-open so an exact
    * shared boundary belongs to the next lap; a terminal lap includes the activity endpoint.
+   * Power summaries and paired left/right calculations use original samples, ignoring attached stream filters.
+   * Lap power extrema also include a leading partial reading when it supports active time inside the lap.
+   * Calculated interval streams instead use wholly contained intervals for averages and extrema.
    * Laps beginning before this activity retain source summaries without deriving from partial leg streams.
    * Explicit stats are preserved except terrain summaries excluded for locally scoped Diving laps/activities
    * and calculated TSS excluded for Motorized, Adaptive Mobility, and Video Gaming activities.
@@ -1007,14 +1114,32 @@ export class ActivityUtilities {
           : Math.ceil((lapEnd - activityStart) / 1000)
       );
 
+      const lapPower = activity.hasStreamData(DataPower.type) ? powerIntervals(activity,
+        (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : null;
       addMissingStreamSummaryStats({
         activityType: activity.type,
         target: lap,
+        readAverage: streamType => {
+          if (streamType === DataPower.type) return lapPower?.coverage.observedAveragePowerWatts ?? null;
+          const stream = activity.getAllStreams().find(item => item.type === streamType);
+          return stream ? intervalAverage(stream, (lapStart - activityStart) / 1000,
+            (Math.min(lapEnd, activityEnd) - activityStart) / 1000) : undefined;
+        },
         readStream: streamType => {
           if (!activity.hasStreamData(streamType)) {
             return undefined;
           }
-          return activity.getStreamData(streamType).slice(startIndex, endIndex);
+          const stream = activity.getStream(streamType);
+          if (streamType === DataPower.type) {
+            const start = (lapStart - activityStart) / 1000;
+            // Match the average's clipped support at a fractional start. Do not
+            // carry the preceding reading across missing power or a timer pause.
+            const leadingSupport = start < startIndex && powerIntervals(activity, start,
+              Math.min(startIndex, (lapEnd - activityStart) / 1000)).coverage.coveredDurationSeconds > 0;
+            return stream.toJSON().data.slice(startIndex - (leadingSupport ? 1 : 0), endIndex);
+          }
+          return intervalValues(stream, (lapStart - activityStart) / 1000, (Math.min(lapEnd, activityEnd) - activityStart) / 1000)
+            ?? stream.getData().slice(startIndex, endIndex);
         }
       });
       hydrateMissingSpeedDerivedStats(lap);
@@ -1093,7 +1218,10 @@ export class ActivityUtilities {
     );
   }
 
-  /** Aggregates child summaries; timer/elapsed totals require finite nonnegative values on every leg. */
+  /** Aggregates child summaries; timer/elapsed/moving totals require finite nonnegative values on every leg.
+   * Average power and W/kg weight valid leg means by timer duration (legacy Duration when no timer exists).
+   * A power-bearing leg with unknown timing makes that average unavailable; absent power is never zero.
+   */
   public static getSummaryStatsForActivities(activities: ActivityInterface[]): DataInterface[] {
     const stats: DataInterface[] = [];
     // If only one
@@ -1117,9 +1245,6 @@ export class ActivityUtilities {
     let distance = 0;
     let pauseTime = 0;
     let averageHeartRate = 0;
-    let averagePower = 0;
-    let averagePowerWattsPerKg = 0;
-    let hasAveragePowerWattsPerKg = false;
     let averagePowerNormalized = 0;
     let hasAveragePowerNormalized = false;
     let averageCadence = 0;
@@ -1245,33 +1370,13 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateAvg(averageHeartRate));
     }
 
-    // Avg Avg Power
-    activities.forEach(activity => {
-      const activityAvgPower = activity.getStat(DataPowerAvg.type);
-      if (activityAvgPower) {
-        // The below will fallback for 0
-        averagePower = averagePower
-          ? (averagePower + <number>activityAvgPower.getValue()) / 2
-          : <number>activityAvgPower.getValue();
-      }
-    });
-    if (averagePower) {
-      stats.push(new DataPowerAvg(averagePower));
-    }
-
-    // Avg Avg Power-to-Weight ratio (W/kg)
-    activities.forEach(activity => {
-      const activityPowerWattsPerKg = this.resolvePowerWattsPerKg(activity);
-      if (activityPowerWattsPerKg !== null) {
-        averagePowerWattsPerKg = hasAveragePowerWattsPerKg
-          ? (averagePowerWattsPerKg + activityPowerWattsPerKg) / 2
-          : activityPowerWattsPerKg;
-        hasAveragePowerWattsPerKg = true;
-      }
-    });
-    if (hasAveragePowerWattsPerKg) {
-      stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
-    }
+    // Both power units use the same timing policy; absent values are never zero.
+    const averagePower = this.getDurationWeightedPowerMean(activities, activity =>
+      this.getFiniteStatValue(activity, DataPowerAvg.type));
+    if (averagePower !== null) stats.push(new DataPowerAvg(averagePower));
+    const averagePowerWattsPerKg = this.getDurationWeightedPowerMean(activities, activity =>
+      this.resolvePowerWattsPerKg(activity));
+    if (averagePowerWattsPerKg !== null) stats.push(new DataPowerWattsPerKg(averagePowerWattsPerKg));
 
     // Avg Normalized Power
     activities.forEach(activity => {
@@ -1603,16 +1708,11 @@ export class ActivityUtilities {
       stats.push(new DataVO2Max(maxVO2Max));
     }
 
-    // Sum Moving Time
-    let movingTime = 0;
-    activities.forEach(activity => {
-      const activityMovingTime = activity.getStat(DataMovingTime.type);
-      if (activityMovingTime) {
-        movingTime += <number>activityMovingTime.getValue();
-      }
-    });
-    if (movingTime && activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
-      stats.push(new DataMovingTime(movingTime));
+    // A partial sum is not a whole-workout moving time. Explicit stationary zero is valid.
+    const movingTimes = activities.map(activity => activity.getStat(DataMovingTime.type)?.getValue());
+    if (activities.length > 0 && movingTimes.every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0) &&
+      activities.every(activity => Number.isFinite(activity.getDuration()?.getValue()))) {
+      stats.push(new DataMovingTime((movingTimes as number[]).reduce((sum, value) => sum + value, 0)));
     }
 
     // Sum Total Grit
@@ -1678,15 +1778,15 @@ export class ActivityUtilities {
       stats.push(new DataHeartRateMin(minHeartRate));
     }
 
-    // Max Power
-    let maxPower = 0;
+    // Max Power, including a measured zero.
+    let maxPower: number | null = null;
     activities.forEach(activity => {
-      const activityMaxPower = activity.getStat(DataPowerMax.type);
-      if (activityMaxPower) {
-        maxPower = Math.max(maxPower, <number>activityMaxPower.getValue());
+      const value = activity.getStat(DataPowerMax.type)?.getValue();
+      if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        maxPower = maxPower === null ? value : Math.max(maxPower, value);
       }
     });
-    if (maxPower) {
+    if (maxPower !== null) {
       stats.push(new DataPowerMax(maxPower));
     }
 
@@ -2296,7 +2396,8 @@ export class ActivityUtilities {
   }
 
   /**
-   * Calculate Mean Max Power for specified durations
+   * Calculate Mean Max Power for specified durations within individual active timer segments.
+   * Stop/resume boundaries split efforts even when their timestamps are equal.
    * @param activity The activity to analyze
    * @param durations Array of durations in seconds. If not provided, a "Best-in-Class" high-granularity set is used.
    */
@@ -2321,22 +2422,14 @@ export class ActivityUtilities {
       ];
     }
 
-    const rawPowerData = activity.getStreamData(DataPower.type);
-    const finitePowerData = rawPowerData.map(value =>
-      typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
-    );
-    // A single positive sample bounded by zero-power samples is a common
-    // recording artifact. Exclude it from the derived curve while preserving
-    // the caller-owned activity stream unchanged.
-    const powerData = finitePowerData.map((value, index) =>
-      value > 0 &&
-      index > 0 &&
-      index < finitePowerData.length - 1 &&
-      finitePowerData[index - 1] === 0 &&
-      finitePowerData[index + 1] === 0
-        ? 0
-        : value
-    );
+    const supportedPower = powerIntervals(activity).watts;
+    // A stop/resume can share a timestamp and leave no missing bin. Keep the
+    // existing timer segments separate so rolling efforts never join across it.
+    const powerRuns = activeDistanceSegments(activity)
+      .map(({ start, end }) => supportedPower.slice(Math.ceil(start), Math.floor(end)))
+      .map(values => values.map((value, index) =>
+        value > 0 && index > 0 && index < values.length - 1 &&
+        values[index - 1] === 0 && values[index + 1] === 0 ? 0 : value));
     const curvePoints: DataPowerCurvePoint[] = [];
 
     // Get user weight for W/kg calculation
@@ -2347,27 +2440,12 @@ export class ActivityUtilities {
     const sortedDurations = [...durations].sort((a, b) => a - b);
 
     for (const duration of sortedDurations) {
-      if (duration <= 0 || duration > powerData.length) {
-        continue;
+      let maxAvgPower: number | null = null;
+      for (const powerData of powerRuns) {
+        const candidate = meanMaxPower(powerData, duration);
+        if (candidate !== null) maxAvgPower = Math.max(maxAvgPower ?? 0, candidate);
       }
-
-      let maxAvgPower = 0;
-      let currentSum = 0;
-
-      // Initial window
-      for (let i = 0; i < duration; i++) {
-        currentSum += powerData[i];
-      }
-      maxAvgPower = currentSum / duration;
-
-      // Slide window
-      for (let i = duration; i < powerData.length; i++) {
-        currentSum = currentSum - powerData[i - duration] + powerData[i];
-        const currentAvg = currentSum / duration;
-        if (currentAvg > maxAvgPower) {
-          maxAvgPower = currentAvg;
-        }
-      }
+      if (maxAvgPower === null) continue;
 
       const point: DataPowerCurvePoint = {
         duration: new DataDuration(duration),
@@ -2433,17 +2511,32 @@ export class ActivityUtilities {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
   }
 
+  /** Weight available nonnegative power summaries by active duration, without reading or filling streams. */
+  private static getDurationWeightedPowerMean(
+    activities: ActivityInterface[], readValue: (activity: ActivityInterface) => number | null
+  ): number | null {
+    let weighted = 0, duration = 0;
+    for (const activity of activities) {
+      const value = readValue(activity);
+      if (value === null || !Number.isFinite(value) || value < 0) continue;
+      // An explicit invalid timer must not fall back to the legacy active Duration.
+      const seconds = (activity.getStat(DataTimerTime.type) ?? activity.getDuration())?.getValue();
+      if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return null;
+      weighted += value * seconds;
+      duration += seconds;
+    }
+    return duration > 0 && Number.isFinite(duration) && Number.isFinite(weighted) ? weighted / duration : null;
+  }
+
   private static resolvePowerWattsPerKg(activity: ActivityInterface): number | null {
-    const existingPowerWattsPerKg = this.toPositiveFiniteNumber(
-      this.getFiniteStatValue(activity, DataPowerWattsPerKg.type)
-    );
-    if (existingPowerWattsPerKg !== null) {
+    const existingPowerWattsPerKg = this.getFiniteStatValue(activity, DataPowerWattsPerKg.type);
+    if (existingPowerWattsPerKg !== null && existingPowerWattsPerKg >= 0) {
       return existingPowerWattsPerKg;
     }
 
-    const averagePower = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerAvg.type));
+    const averagePower = this.getFiniteStatValue(activity, DataPowerAvg.type);
     const weight = this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataWeight.type));
-    if (averagePower === null || weight === null) {
+    if (averagePower === null || averagePower < 0 || weight === null) {
       return null;
     }
 
@@ -2522,17 +2615,8 @@ export class ActivityUtilities {
       return null;
     }
 
-    const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-    const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-    const powerStream = powerDurationStream.map(item => item.value) as number[];
-    if (powerStream.length < 2 || timeStream.length < 2) {
-      return null;
-    }
-
-    // Unlike a zero summary placeholder, a complete recorded window can prove
-    // zero NP. The rolling calculation returns NaN when coverage is unavailable.
-    const computedNormalizedPower = calculateNormalizedPower(
-      getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
+    const power = powerIntervals(activity).watts;
+    const computedNormalizedPower = calculateNormalizedPower(power, power.map((_, i) => i), activity.getAllEvents());
     if (!Number.isFinite(computedNormalizedPower) || computedNormalizedPower < 0) {
       return null;
     }
@@ -2664,6 +2748,14 @@ export class ActivityUtilities {
       return { result: null, reason: 'missing-power-inputs' };
     }
 
+    if (this.isCalculatedNormalizedPower(activity)) {
+      const coverage = powerIntervals(activity).coverage;
+      const denominator = Math.max(coverage.durationSeconds, durationSeconds);
+      if (!(denominator > 0) || coverage.coveredDurationSeconds / denominator < this.MINIMUM_COMPUTED_POWER_TSS_COVERAGE - 1e-9) {
+        return { result: null, reason: 'calculation-unavailable' };
+      }
+    }
+
     return this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
       totalDurationWithoutPauses: durationSeconds,
       functionalThresholdPower: ftp,
@@ -2714,15 +2806,18 @@ export class ActivityUtilities {
     }
 
     const enableHeuristicFallbacks = activity.parseOptions?.tss?.enableHeuristicFallbacks ?? true;
-    const gradeSmoothByDuration = new Map<number, number>(
-      this.getStreamSamplesByDuration(activity, DataGradeSmooth.type).map(sample => [
-        sample.duration,
-        sample.value / 100
-      ])
-    );
-    const gradeByDuration = new Map<number, number>(
-      this.getStreamSamplesByDuration(activity, DataGrade.type).map(sample => [sample.duration, sample.value / 100])
-    );
+    const speedStream = activity.getStream(DataSpeed.type);
+    const gradesAtSpeedTimes = (type: string): Map<number, number> => {
+      const result = new Map<number, number>();
+      if (activity.hasStreamData(type)) {
+        gradeSamplesForSpeed(speedStream, activity.getStream(type)).forEach((grade, second) => {
+          if (typeof grade === 'number' && Number.isFinite(grade)) result.set(second, grade / 100);
+        });
+      }
+      return result;
+    };
+    const gradeSmoothByDuration = gradesAtSpeedTimes(DataGradeSmooth.type);
+    const gradeByDuration = gradesAtSpeedTimes(DataGrade.type);
     const verticalSamples = this.getStreamSamplesByDuration(activity, DataVerticalSpeed.type);
     const verticalByDuration = new Map<number, number>(verticalSamples.map(sample => [sample.duration, sample.value]));
 
@@ -2935,6 +3030,10 @@ export class ActivityUtilities {
       }
       if (!automatic) automaticReasons.push(metCandidate?.reason ?? 'missing-met-inputs');
     }
+    const powerCoverage = power && this.isCalculatedNormalizedPower(activity)
+      ? powerIntervals(activity).coverage : null;
+    const estimatedPower = !!powerCoverage && powerCoverage.coveredDurationSeconds <
+      Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
       const result = preferred ?? automatic;
@@ -2945,7 +3044,8 @@ export class ActivityUtilities {
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
         method: result?.calculationMethod ?? null,
         ...(result?.hrAlgorithm ? { hrAlgorithm: result.hrAlgorithm } : {}),
-        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD',
+        estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD' ||
+          (result?.calculationMethod === TrainingStressScoreMethod.POWER && estimatedPower),
         provenance: result ? 'calculated' : null,
         reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
@@ -3369,15 +3469,20 @@ export class ActivityUtilities {
   }
 
   /**
-   * Generates missing streams for an activity such as distance etc if they are missing
-   * This will always create a steam even if the distance is 0
+   * Generates eligible missing streams. Distance gaps remain null; calculated rates use
+   * paired observations within active timer segments and retain their interval evidence.
    * @param activity
    */
   public static generateMissingStreamsForActivity(activity: ActivityInterface): ActivityInterface {
     // Create derived primitive streams which will be needed for others streams & stats computations
     this.createDerivedStreams(activity);
 
-    // First add any missing data to the streams via interpolating and extrapolating
+    // Keep the original altitude support for distance/grade pairing. Generic display
+    // fill replaces its array below; it must not manufacture measured terrain pairs.
+    const gradeAltitudeType = activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type;
+    const gradeAltitude = activity.hasStreamData(gradeAltitudeType) ? activity.getStreamData(gradeAltitudeType) : [];
+
+    // Fill supported non-distance display streams.
     this.addMissingDataToStreams(activity);
 
     if (
@@ -3387,7 +3492,6 @@ export class ActivityUtilities {
     ) {
       const streamData = activity.createStream(DataDistance.type).getData(); // Creating does not add it to activity just presets the resolution to 1s
       let distance = 0;
-      streamData[0] = distance; // Force first distance sample to be equal to 0 instead of null
       activity
         .getPositionData()
         .reduce((prevPosition: DataPositionInterface | null, position: DataPositionInterface | null, index: number) => {
@@ -3399,7 +3503,7 @@ export class ActivityUtilities {
           }
           streamData[index] = this.round(distance, 2);
           return position;
-        });
+        }, null);
 
       if (!activity.hasStreamData(DataDistance.type)) {
         activity.addStream(new Stream(DataDistance.type, streamData));
@@ -3410,29 +3514,7 @@ export class ActivityUtilities {
       }
 
       if (!activity.hasStreamData(DataSpeed.type)) {
-        const speedStreamData = activity.createStream(DataSpeed.type).getData();
-        const distanceStream = activity.getStreamDataByDuration(DataDistance.type);
-        let previousDistanceItem: StreamDataItem;
-        distanceStream.forEach((distanceItem: StreamDataItem, index: number) => {
-          // Use the first distance item value if previous distance is unknown
-          if (!previousDistanceItem) {
-            previousDistanceItem = distanceItem;
-          }
-
-          // If know distance then compute speed from last known distance item
-          if (Number.isFinite(distanceItem.value)) {
-            const deltaTime = (distanceItem.time - previousDistanceItem.time) / 1000;
-            const deltaDistance = distanceItem?.value ? distanceItem.value - (previousDistanceItem?.value || 0) : 0;
-
-            speedStreamData[index] = this.round(deltaTime > 0 ? deltaDistance / deltaTime : 0, 3);
-
-            // Keep tracking of last know distance item
-            previousDistanceItem = distanceItem;
-          } else {
-            speedStreamData[index] = null;
-          }
-        });
-        activity.addStream(new Stream(DataSpeed.type, speedStreamData));
+        activity.addStream(speedFromDistance(activity, activity.getStreamData(DataDistance.type)));
       }
     }
 
@@ -3443,36 +3525,9 @@ export class ActivityUtilities {
       !activity.hasStreamData(DataGrade.type) &&
       this.canGenerateDerivedStream(activity, DataGrade.type)
     ) {
-      const distanceData = activity.getStreamData(DataDistance.type);
-      const altitudeData = activity.getStreamData(
-        activity.hasStreamData(DataAltitudeSmooth.type) ? DataAltitudeSmooth.type : DataAltitude.type
-      );
-
-      // Create the grade stream from time, distance and altitude non-squashed streams
-      const timeData = activity.generateTimeStream([DataDistance.type]);
-      const gradeStreamData = GradeCalculator.computeGradeStream(timeData.getData(), distanceData, altitudeData);
-
-      // Append new grade stream to activity
-      activity.addStream(new Stream(DataGrade.type, gradeStreamData));
-
-      if (activity.parseOptions?.streams?.smooth?.gradeSmooth) {
-        // Duplicate and create an altitude smooth stream (we want to keep original altitude stream available)
-        // Activity stats and grade adjusted speed will be computed on the smoothed altitude stream
-        this.cloneStream(activity, DataGrade.type, DataGradeSmooth.type);
-
-        // Smooth grade computed stream
-        this.shapeStream(DataGradeSmooth.type, activity, squashedGradeData => {
-          // Grade stream
-          const GRADE_KALMAN_SMOOTHING = {
-            R: 0.01, // Grade model is stable
-            Q: 0.5 // Grade measurement error which can be expected
-          };
-
-          // Predict proper grade values
-          const kf = new KalmanFilter(GRADE_KALMAN_SMOOTHING);
-          return squashedGradeData.map(v => (v === null ? null : kf.filter(v)));
-        });
-      }
+      gradeFromDistance(activity, activity.getStreamData(DataDistance.type), gradeAltitude,
+        !!activity.parseOptions?.streams?.smooth?.gradeSmooth && !activity.hasStreamData(DataGradeSmooth.type))
+        .forEach(stream => activity.addStream(stream));
     }
 
     // Get a grade adjusted speed (applies to running and cycling-like activity groups)
@@ -3485,53 +3540,27 @@ export class ActivityUtilities {
       !activity.hasStreamData(DataGradeAdjustedSpeed.type) &&
       this.canGenerateDerivedStream(activity, DataGradeAdjustedSpeed.type)
     ) {
-      const speedStreamData = activity.getStreamData(DataSpeed.type);
-      const gradeStreamData = activity.getStreamData(DataGradeSmooth.type);
-      const gradeAdjustedSpeedData = speedStreamData.map((value, index) =>
-        value === null ? null : this.round(GradeCalculator.estimateAdjustedSpeed(value, gradeStreamData[index] || 0), 2)
-      );
-
-      // Ensure first grade adjusted pace dont start with 0 (it's common) meaning infinity
-      if (!gradeAdjustedSpeedData[0]) {
-        const firstKnownValue = gradeAdjustedSpeedData.find(v => (v as number) > 0);
-        gradeAdjustedSpeedData[0] = firstKnownValue ? firstKnownValue : gradeAdjustedSpeedData[0];
-      }
-
-      activity.addStream(new Stream(DataGradeAdjustedSpeed.type, gradeAdjustedSpeedData));
+      const speed = activity.getAllStreams().find(stream => stream.type === DataSpeed.type)!;
+      const grade = activity.getAllStreams().find(stream => stream.type === DataGradeSmooth.type) ||
+        activity.getAllStreams().find(stream => stream.type === DataGrade.type);
+      if (grade) activity.addStream(adjustedSpeedFromGrade(speed, grade));
     }
 
-    if (!activity.hasStreamData(DataPowerRight.type) && this.canGenerateDerivedStream(activity, DataPowerRight.type)) {
-      const rightPowerStream = activity.createStream(DataPowerRight.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const rightBalanceStreamData = activity.getStreamData(DataPowerBalanceRight.type);
-      rightPowerStream.setData(
-        rightBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(rightPowerStream);
-    }
-
-    if (!activity.hasStreamData(DataPowerLeft.type) && this.canGenerateDerivedStream(activity, DataPowerLeft.type)) {
-      const leftPowerStream = activity.createStream(DataPowerLeft.type);
-      const powerStreamData = activity.getStreamData(DataPower.type);
-      const leftBalanceStreamData = activity.getStreamData(DataPowerBalanceLeft.type);
-      leftPowerStream.setData(
-        leftBalanceStreamData.reduce((accu: (number | null)[], streamData, index) => {
-          const powerStreamDataItem = powerStreamData[index];
-          if (streamData === null || !powerStreamData || powerStreamDataItem === null) {
-            return accu;
-          }
-          accu[index] = (streamData / 100) * powerStreamDataItem;
-          return accu;
-        }, [])
-      );
-      activity.addStream(leftPowerStream);
+    // Derive each side from paired observations only. Keep every time slot explicit,
+    // including trailing gaps, so in-memory reads and JSON restoration agree.
+    for (const [powerType, balanceType] of [
+      [DataPowerRight.type, DataPowerBalanceRight.type],
+      [DataPowerLeft.type, DataPowerBalanceLeft.type]
+    ]) {
+      if (activity.hasStreamData(powerType) || !this.canGenerateDerivedStream(activity, powerType)) continue;
+      const power = activity.getStream(DataPower.type).toJSON().data;
+      const balance = activity.getStream(balanceType).toJSON().data;
+      const data = Array.from({ length: Math.max(power.length, balance.length) }, (_, index) => {
+        const watts = power[index], percent = balance[index];
+        return typeof watts === 'number' && Number.isFinite(watts) &&
+          typeof percent === 'number' && Number.isFinite(percent) ? watts * (percent / 100) : null;
+      });
+      activity.addStream(new Stream(powerType, data));
     }
 
     // If left stance time stream available, then add the right balance stream too
@@ -3580,7 +3609,9 @@ export class ActivityUtilities {
       return;
     }
 
-    const sourceData = activity.getStreamData(streamType);
+    const sourceStream = activity.getStream(streamType);
+    const sourceData = sourceStream.getData();
+    const evidence = sourceStream.getIntervalSupport?.();
     const sourceIndexes: number[] = [];
     const sourceValues: number[] = [];
 
@@ -3594,19 +3625,20 @@ export class ActivityUtilities {
 
     const shapedValues = shapeStreamData(sourceValues);
     activity.removeStream(streamType);
-    const targetStream = activity.createStream(streamType);
-    activity.addStream(targetStream);
-    const targetData = targetStream.getData();
+    const targetData = activity.createStream(streamType).getData();
 
     for (let index = 0; index < sourceIndexes.length; index++) {
       targetData[sourceIndexes[index]] = shapedValues[index];
     }
+    activity.addStream(new Stream(streamType, targetData, evidence ? {
+      direction: evidence.direction,
+      durations: targetData.map((value, index) => Number.isFinite(value) ? evidence.durations[index] ?? null : null)
+    } : undefined));
   }
 
   public static cloneStream(activity: ActivityInterface, sourceStreamType: string, targetStreamType: string): void {
     const sourceStream = activity.getStream(sourceStreamType);
-    const targetStream = activity.createStream(targetStreamType);
-    targetStream.setData(Array.from(sourceStream.getData())); // Shallow copy data to new stream
+    const targetStream = new Stream(targetStreamType, Array.from(sourceStream.getData()), sourceStream.getIntervalSupport?.());
     activity.addStream(targetStream);
   }
 
@@ -3645,8 +3677,8 @@ export class ActivityUtilities {
    *  [DataAltitude.type,
    * DataHeartRate.type,
    * DataCadence.type,
-   * DataStrokeRate.type,
-   * DataDistance.type]
+   * DataStrokeRate.type]
+   * Distance is deliberately excluded: missing distance is not a stationary measurement.
    *
    * Example
    *
@@ -3670,8 +3702,7 @@ export class ActivityUtilities {
       DataAltitude.type,
       DataHeartRate.type,
       DataCadence.type,
-      DataStrokeRate.type,
-      DataDistance.type
+      DataStrokeRate.type
       // DataSpeed.type, @todo should we be backfilling speed?
     ];
     // Recorded pool sensors have independent coverage. Their timestamps must
@@ -3691,6 +3722,16 @@ export class ActivityUtilities {
             .map(stream => stream.type)
         : []
     );
+    // Original record timestamps preserve the existing fill behavior of other sensors
+    // when missing watts stop supplying artificial zeros. They are consumed here only;
+    // the public Time stream remains the union of actual sensor values.
+    const importedFillTimes = takeImportedSensorFillTimes(activity);
+    if (!hasPoolLengths && !recordedPoolHeartRate.has(activity)) {
+      const fillGrid = timeStream.getData();
+      for (const index of importedFillTimes) {
+        if (index < fillGrid.length) fillGrid[index] = index;
+      }
+    }
     /**
      * We do a second pass here and we add missing data on crossing time indexes
      * for example:
@@ -3837,10 +3878,29 @@ export class ActivityUtilities {
    * @param activity
    */
   private static generateMissingStatsForActivity(activity: ActivityInterface) {
+    const power = activity.hasStreamData(DataPower.type) ? powerIntervals(activity) : null;
+    if (power) {
+      const c = power.coverage;
+      const timer = this.getDurationSecondsWithoutPauses(activity);
+      if (!activity.getStat(DataPowerWork.type) && c.durationSeconds > 0 && timer > 0 &&
+        Math.abs(c.durationSeconds - timer) < 1e-6 &&
+        c.coveredDurationSeconds >= c.durationSeconds - 1e-6) {
+        activity.addStat(new DataPowerWork(c.observedWorkKilojoules));
+      }
+    }
+    addMissingRRStats(activity);
     addMissingStreamSummaryStats({
       activityType: activity.type,
       target: activity,
-      readStream: streamType => (activity.hasStreamData(streamType) ? activity.getStreamData(streamType) : undefined)
+      readStream: streamType => {
+        const stream = activity.getAllStreams().find(item => item.type === streamType);
+        return streamType === DataPower.type ? stream?.toJSON().data : stream?.getData();
+      },
+      readAverage: streamType => {
+        if (streamType === DataPower.type) return power?.coverage.observedAveragePowerWatts ?? null;
+        const stream = activity.getAllStreams().find(item => item.type === streamType);
+        return stream ? intervalAverage(stream) : undefined;
+      }
     });
     // If there is no distance or distance for some reason is 0
     const activityDistanceStat = activity.getStat(DataDistance.type);
@@ -3859,13 +3919,10 @@ export class ActivityUtilities {
     }
 
     if (!activity.getStat(DataGNSSDistance.type) && activity.hasStreamData(DataGNSSDistance.type)) {
-      activity.addStat(
-        new DataGNSSDistance(
-          activity.getSquashedStreamData(DataGNSSDistance.type)[
-            activity.getSquashedStreamData(DataGNSSDistance.type).length - 1
-          ]
-        )
+      const observations = activity.getStreamData(DataGNSSDistance.type).filter(
+        (value): value is number => typeof value === 'number' && Number.isFinite(value)
       );
+      if (observations.length) activity.addStat(new DataGNSSDistance(observations[observations.length - 1]));
     }
 
     // Ascent (altitude gain)
@@ -3942,15 +3999,8 @@ export class ActivityUtilities {
       }
     }
 
-    // Power Normalized
-    if (!activity.getStat(DataPowerNormalized.type) && activity.hasStreamData(DataPower.type)) {
-      const powerDurationStream = activity.getStreamDataByDuration(DataPower.type, true, true);
-      const timeStream = powerDurationStream.map(item => item.time / 1000) as number[];
-      const powerStream = powerDurationStream.map(item => item.value) as number[];
-      const normalizedPower = calculateNormalizedPower(
-        getRecordedPowerValues(activity, powerStream, timeStream), timeStream, activity.getAllEvents());
-      if (Number.isFinite(normalizedPower)) this.setCalculatedNormalizedPower(activity, normalizedPower);
-    }
+    // A file-supplied summary wins; calculated NP uses only complete active windows.
+    if (!activity.getStat(DataPowerNormalized.type)) this.resolveNormalizedPower(activity);
 
     // Power Curve
     if (!activity.getStat(DataPowerCurve.type) && activity.hasStreamData(DataPower.type)) {
@@ -4016,7 +4066,11 @@ export class ActivityUtilities {
       }
     }
 
-    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight);
+    this.addLeftRightBalanceStatsFromStreams(activity, DataPowerBalanceLeft, DataPowerBalanceRight, streamType =>
+      this.getAverage(activity.getStream(streamType).toJSON().data.filter(
+        (value): value is number => typeof value === 'number' && Number.isFinite(value)
+      ))
+    );
 
     this.addLeftRightBalanceStatsFromStreams(
       activity,
@@ -4140,7 +4194,7 @@ export class ActivityUtilities {
       }
     }
     if (!activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)) {
-      const swimPaceAvg = activity.getStat(DataPaceAvg.type);
+      const swimPaceAvg = activity.getStat(DataSwimPaceAvg.type);
       if (swimPaceAvg) {
         activity.addStat(
           new DataSwimPaceAvgMinutesPer100Yard(convertSwimPaceToSwimPacePer100Yard(<number>swimPaceAvg.getValue()))
@@ -4709,61 +4763,27 @@ export class ActivityUtilities {
       activity.addStat(new DataTimerTime(this.round(durationStat.getValue(), 2)));
     }
 
-    // If missing moving time
-    // Or moving time equals duration, then try to build real moving from laps if available
+    // Preserve recorded moving time; use complete nonoverlapping source laps or observed speed intervals.
     if (!activity.getStat(DataMovingTime.type)) {
-      let movingTime = 0;
-
-      // First try to compute moving time from laps
-      const laps = activity.getLaps();
-      if (laps && laps.length > 0) {
-        activity.getLaps().forEach(lap => {
-          const stat = <DataMovingTime>lap.getStat(DataMovingTime.type);
-          if (stat) {
-            movingTime += stat.getValue();
-          }
-        });
-      }
-
-      // Get timer time...
       const timerTime = (<DataTimerTime>activity.getStat(DataTimerTime.type))?.getValue();
-
-      // ... and compare with moving time and determine if moving time is like "moving time"
-      const isMovingTimeAlike = movingTime > 0 && movingTime < timerTime;
-
-      // If moving time from laps is not valid
-      if (!isMovingTimeAlike && activity.hasStreamData(DataSpeed.type)) {
-        // ...then re-compute moving time but using global records.
-        movingTime = 0;
-        const speedByDurationStream = activity.getStreamDataByDuration(DataSpeed.type, true, true);
-
-        const speedThreshold = ActivityTypesMoving.getSpeedThreshold(activity.type);
-        speedByDurationStream.forEach((speedItem: StreamDataItem, index: number) => {
-          if (speedItem.value !== null && speedItem.value > speedThreshold) {
-            movingTime += (speedByDurationStream[index].time - (speedByDurationStream[index - 1]?.time || 0)) / 1000;
-          }
-        });
+      const laps = activity.getLaps().slice().sort((a, b) => +a.startDate - +b.startDate);
+      const completeLaps = laps.length > 0 && +laps[0].startDate === +activity.startDate &&
+        +laps[laps.length - 1].endDate === +activity.endDate && laps.every((lap, index) => {
+        const value = lap.getStat(DataMovingTime.type)?.getValue();
+        return typeof value === 'number' && Number.isFinite(value) && value >= 0 &&
+          value <= (+lap.endDate - +lap.startDate) / 1000 &&
+          (index === 0 || +lap.startDate === +laps[index - 1].endDate);
+      });
+      let movingTime: number | null = completeLaps
+        ? laps.reduce((sum, lap) => sum + (lap.getStat(DataMovingTime.type)!.getValue() as number), 0) : null;
+      if (movingTime === null || movingTime > timerTime) {
+        const speed = activity.getAllStreams().find(stream => stream.type === DataSpeed.type);
+        movingTime = speed ? movingSeconds(activity, speed, ActivityTypesMoving.getSpeedThreshold(activity.type)) : null;
       }
-
-      // In case moving time would be invalid, set it to timer time "at max"
-      if (!movingTime || movingTime > timerTime) {
-        movingTime = timerTime;
+      // Zero is a valid stationary result. Unsupported movement is not timer time.
+      if (movingTime !== null && Number.isFinite(movingTime) && movingTime <= timerTime) {
+        activity.addStat(new DataMovingTime(movingTime));
       }
-
-      activity.addStat(new DataMovingTime(movingTime));
-    }
-
-    // Add Power Work if missing when avg power and moving time are available
-    if (
-      !activity.getStat(DataPowerWork.type) &&
-      activity.getStat(DataPowerAvg.type) &&
-      activity.getStat(DataMovingTime.type)
-    ) {
-      const movingTime = (<DataMovingTime>activity.getStat(DataMovingTime.type)).getValue();
-      const avgPower = (<DataPowerAvg>activity.getStat(DataPowerAvg.type)).getValue();
-      const powerWork = Math.round((avgPower * movingTime) / 1000);
-
-      activity.addStat(new DataPowerWork(powerWork));
     }
 
     // If there is no pause defined, derive it from explicit paused time semantics: elapsed - timer.

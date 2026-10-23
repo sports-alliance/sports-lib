@@ -137,6 +137,8 @@ export interface StreamSummaryPolicyContext {
   activityType: ActivityTypes;
   target: StatsClassInterface;
   readStream: (streamType: string) => readonly (number | null)[] | undefined;
+  /** Calculation-only interval mean. Undefined keeps recorded sample policy; null is unavailable. */
+  readAverage?: (streamType: string) => number | null | undefined;
 }
 
 const isPositive = (value: number) => value > 0;
@@ -294,9 +296,21 @@ function deriveAggregate(
   target: StatsClassInterface,
   values: readonly (number | null)[],
   policy: StreamSummaryAggregatePolicy | undefined,
-  aggregate: 'min' | 'max' | 'avg'
+  aggregate: 'min' | 'max' | 'avg',
+  intervalMean?: number | null
 ): void {
   if (!policy || target.getStat(policy.target.type)) {
+    return;
+  }
+
+  if (aggregate === 'avg' && intervalMean !== undefined) {
+    if (
+      typeof intervalMean === 'number' &&
+      Number.isFinite(intervalMean) &&
+      (!policy.isValueValid || policy.isValueValid(intervalMean))
+    ) {
+      target.addStat(new policy.target(policy.transform ? policy.transform(intervalMean) : intervalMean));
+    }
     return;
   }
 
@@ -327,16 +341,27 @@ export function addMissingStreamSummaryStats(context: StreamSummaryPolicyContext
       return;
     }
 
-    const values = policy.sourceTypes.reduce<readonly (number | null)[] | undefined>(
-      (selectedValues, sourceType) => selectedValues ?? context.readStream(sourceType),
-      undefined
-    );
+    let values: readonly (number | null)[] | undefined;
+    let selectedType: string | undefined;
+    for (const type of policy.sourceTypes) {
+      values = context.readStream(type);
+      if (values !== undefined) {
+        selectedType = type;
+        break;
+      }
+    }
     if (!values) {
       return;
     }
 
     deriveAggregate(context.target, values, policy.min, 'min');
     deriveAggregate(context.target, values, policy.max, 'max');
-    deriveAggregate(context.target, values, policy.avg, 'avg');
+    deriveAggregate(
+      context.target,
+      values,
+      policy.avg,
+      'avg',
+      selectedType ? context.readAverage?.(selectedType) : undefined
+    );
   });
 }

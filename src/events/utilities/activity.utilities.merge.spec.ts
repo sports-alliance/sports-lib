@@ -158,11 +158,11 @@ describe('ActivityUtilities', () => {
         expect((stats.find(s => s.getType() === DataJumpCount.type) as DataJumpCount).getValue()).toBe(8);
       });
 
-      it('should handle missing values in sum', () => {
+      it('does not report a partial moving-time sum as the whole workout', () => {
         const a1 = createMockActivity({ [DataMovingTime.type]: new DataMovingTime(100) });
         const a2 = createMockActivity({}); // Missing
         const stats = ActivityUtilities.getSummaryStatsForActivities([a1, a2]);
-        expect((stats.find(s => s.getType() === DataMovingTime.type) as DataMovingTime).getValue()).toBe(100);
+        expect(stats.find(s => s.getType() === DataMovingTime.type)).toBeUndefined();
       });
     });
 

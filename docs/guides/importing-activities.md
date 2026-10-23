@@ -1129,6 +1129,15 @@ stored activities. Older library versions do not recognize the added names. Revi
 provider export mappings before persisting corrected classifications. Historical corrections require retained source
 evidence; installing a new library version does not rewrite stored activities.
 
+## Suunto SML
+
+Use `await EventImporterSuuntoSML.getFromXML(xml, options)` for Suunto SML XML files. The XML parser is loaded
+when this method is called. Bundlers with code splitting can keep it out of the initial browser bundle when the
+package is imported or JSON is restored.
+Handle parser-loading and parsing errors through the returned promise, using `await` inside `try`/`catch`.
+SML JSON continues to use `EventImporterSuuntoSML.getFromJSONString(json, options)` without loading the XML parser.
+This loading change preserves parsed metrics and JSON formats; existing activities need no reparse or migration.
+
 ## GPX
 
 The GPX `creator` attribute supplies the exporter name. Its `version` attribute is the GPX schema version,

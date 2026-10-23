@@ -12,6 +12,34 @@ import { DataVerticalSpeed, DataVerticalSpeedFeetPerHour } from '../data/data.ve
 describe('Stream', () => {
   beforeEach(() => {});
 
+  it('retains interval evidence in JSON but invalidates it for filtered or replaced data', () => {
+    const evidence = { direction: 'ending' as const, durations: [null, null, 2] };
+    const stream = new Stream('Speed', [null, null, 3], evidence);
+    expect(stream.toJSON().intervalSupport).toEqual(evidence);
+    stream.useFilter({ filterData: data => data.slice() });
+    expect(stream.getIntervalSupport()).toBeUndefined();
+    expect(stream.toJSON().intervalSupport).toEqual(evidence);
+    stream.clearFilters();
+    expect(stream.getIntervalSupport()).toEqual(evidence);
+    stream.setData([1, 2, 3]);
+    expect(stream.toJSON()).toEqual({ type: 'Speed', data: [1, 2, 3] });
+  });
+
+  it.each([
+    { direction: 'ending', durations: [null, null, 3] },
+    { direction: 'ending', durations: [null, null, -1] },
+    { direction: 'ending', durations: [null, null, NaN] },
+    { direction: 'ending', durations: [null, null, 1.5] },
+    { direction: 'starting', durations: [null, null, 1] },
+    { direction: 'ending', durations: [null, 1, 1] },
+    { direction: 'ending', durations: [null] },
+    { direction: 'invalid', durations: [null, null, 2] }
+  ])('ignores malformed interval evidence %j', evidence => {
+    const stream = new Stream('Speed', [null, null, 3], evidence as any);
+    expect(stream.getIntervalSupport()).toBeUndefined();
+    expect(stream.toJSON()).toEqual({ type: 'Speed', data: [null, null, 3] });
+  });
+
   it('should get data', () => {
     const stream = new Stream(DataAltitude.type, [200, null, 502, Infinity, -Infinity, NaN, 0]);
     expect(stream.getData()).toEqual([200, null, 502, Infinity, -Infinity, NaN, 0]);

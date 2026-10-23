@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import { Event } from '../../../event';
 import { Activity } from '../../../../activities/activity';
 import { Creator } from '../../../../creators/creator';
@@ -24,8 +25,8 @@ import { EventUtilities } from '../../../utilities/event.utilities';
 import { convertSpeedToPace, convertSpeedToSwimPace, isNumber } from '../../../utilities/helpers';
 import { DataMovingTime } from '../../../../data/data.moving-time';
 import { DataTimerTime } from '../../../../data/data.timer-time';
-import { findChildNode, findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
-import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
+import { findLapExtensionValue, findTrackPointExtensionValue } from './utils.tcx';
+import { captureImportedSensorFillTimes } from '../../../utilities/imported-sensor-fill-times';
 import { DataTotalCycles } from '../../../../data/data-total-cycles';
 import { DataPaceAvg } from '../../../../data/data.pace-avg';
 import { ActivityUtilities } from '../../../utilities/activity.utilities';
@@ -152,25 +153,14 @@ export class EventImporterTCX {
             Number.isFinite(findTrackPointExtensionValue(trackPointElement.childNodes, 'Watts'))
           ) !== -1;
         const samplesInfo = { hasPowerMeter, corosDirectSpeed };
-        captureRecordedPowerEvidence(activity, trackPointElements.flatMap(point => {
-          const time = point.getElementsByTagName('Time')[0];
-          if (!time) return [];
-          // Follow the same extension selection as the mapper, without allowing
-          // an absent or blank Watts field to prove a recorded zero-power window.
-          const extensions = findChildNode(point.childNodes, 'Extensions');
-          const tpx = extensions && findChildNode(extensions.childNodes, /TPX$/gi);
-          const watts = tpx && findChildNode(tpx.childNodes, /Watts$/);
-          const rawPower = watts?.firstChild?.nodeValue;
-          return [{ timestamp: time.textContent || '',
-            power: typeof rawPower === 'string' && rawPower.trim() !== '' ? Number(rawPower) : undefined }];
-        }));
 
         TCXSampleMapper
           .filter(sampleMapping => isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection))
           .forEach(sampleMapping => {
           // Should check the children
           const subjectTrackPointElements = trackPointElements.filter((element: any) => {
-            return isNumber(sampleMapping.getSampleValue(element, samplesInfo));
+            return sampleMapping.dataType === DataPower.type && hasPowerMeter ||
+              isNumber(sampleMapping.getSampleValue(element, samplesInfo));
           });
           if (subjectTrackPointElements.length) {
             if (activity.hasStreamData(sampleMapping.dataType)) {
@@ -189,6 +179,12 @@ export class EventImporterTCX {
             });
           }
           });
+        if (activity.hasStreamData(DataPower.type) && activity.getStreamData(DataPower.type).some(isNumber)) {
+          captureImportedSensorFillTimes(activity, trackPointElements.flatMap(point => {
+            const time = point.getElementsByTagName('Time')[0];
+            return time ? [new Date(time.textContent || '')] : [];
+          }));
+        }
         return activity;
       });
 

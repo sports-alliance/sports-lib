@@ -92,12 +92,13 @@ export const TCXSampleMapper: {
   {
     dataType: DataPower.type,
     getSampleValue: (trackPointsElement: Element, sampleInfo?: SampleInfo) => {
-      // Ensure power stream compliance when in some cases power sample field could be missing even if others samples have it
-      // Just set watts to 0 when this happen
-      // Case example: ride file "7555170032.tcx"  from integration tests
-      return sampleInfo?.hasPowerMeter
-        ? findTrackPointExtensionValue(trackPointsElement.childNodes, 'Watts') || 0
-        : null;
+      const extensions = findChildNode(trackPointsElement.childNodes, 'Extensions');
+      const tpx = extensions && findChildNode(extensions.childNodes, /TPX$/gi);
+      const field = tpx && findChildNode(tpx.childNodes, /Watts$/);
+      const text = field?.firstChild?.nodeValue;
+      const watts = typeof text === 'string' && text.trim() !== '' ? Number(text) : null;
+      return sampleInfo?.hasPowerMeter && typeof watts === 'number' && Number.isFinite(watts) && watts >= 0
+        ? watts : null;
     }
   }
 ];

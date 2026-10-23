@@ -21,6 +21,8 @@ import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataLegStiffness } from '../../data/data.leg-stiffness';
 import { DataNumberOfSatellites } from '../../data/data.number-of-satellites';
 import { DataPower } from '../../data/data.power';
+import { DataPaceAvg } from '../../data/data.pace-avg';
+import { DataSwimPaceAvg, DataSwimPaceAvgMinutesPer100Yard } from '../../data/data.swim-pace-avg';
 import {
   DataContactTimeToFlightTimeRatio,
   DataGroundContactTimePercentage,
@@ -203,6 +205,43 @@ function createActivity(type = ActivityTypes.Running): Activity {
   return new Activity(new Date(0), new Date(5000), type, new Creator('test'), defaultOptions);
 }
 
+describe('Swim average unit summaries', () => {
+  it.each([false, true])(
+    'converts the swim average independently of a running-pace average (present: %s)',
+    withPace => {
+      const activity = createActivity(ActivityTypes.Swimming);
+      activity.addStat(new DataSwimPaceAvg(30));
+      if (withPace) activity.addStat(new DataPaceAvg(300));
+      ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+      expect(activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)?.getValue()).toBeCloseTo(27.432, 10);
+      expect(activity.getStat(DataSwimPaceAvg.type)?.getValue()).toBe(30);
+      if (withPace) expect(activity.getStat(DataPaceAvg.type)?.getValue()).toBe(300);
+    }
+  );
+
+  it('preserves a recorded per-yard average and a real zero swim average', () => {
+    const recorded = createActivity(ActivityTypes.Swimming);
+    recorded.addStat(new DataSwimPaceAvg(30));
+    recorded.addStat(new DataSwimPaceAvgMinutesPer100Yard(29));
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(recorded);
+    expect(recorded.getStat(DataSwimPaceAvgMinutesPer100Yard.type)?.getValue()).toBe(29);
+
+    const zero = createActivity(ActivityTypes.Swimming);
+    zero.addStat(new DataSwimPaceAvg(0));
+    zero.addStat(new DataPaceAvg(300));
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(zero);
+    expect(zero.getStat(DataSwimPaceAvgMinutesPer100Yard.type)?.getValue()).toBe(0);
+  });
+
+  it('does not create a swim unit summary from running pace alone', () => {
+    const activity = createActivity(ActivityTypes.Running);
+    activity.addStat(new DataPaceAvg(300));
+    ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
+    expect(activity.getStat(DataSwimPaceAvg.type)).toBeUndefined();
+    expect(activity.getStat(DataSwimPaceAvgMinutesPer100Yard.type)).toBeUndefined();
+  });
+});
+
 it('retains terminal clipping for a lap whose source end exceeds the activity end', () => {
   const activity = new Activity(
     new Date(0),
@@ -341,7 +380,7 @@ describe('lap stream-summary derivation', () => {
     expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataSpeed.type])?.getValue()).toBe(4);
   });
 
-  it('includes a fractional activity endpoint projected onto the terminal 1 Hz slot', () => {
+  it('retains endpoint extrema but weights power averages by supported duration', () => {
     const activity = new Activity(
       new Date(0),
       new Date(4500),
@@ -357,7 +396,7 @@ describe('lap stream-summary derivation', () => {
 
     expect(lap.getStat(DynamicDataLoader.dataTypeMinDataType[DataPower.type])?.getValue()).toBe(3);
     expect(lap.getStat(DynamicDataLoader.dataTypeMaxDataType[DataPower.type])?.getValue()).toBe(100);
-    expect(lap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(28);
+    expect(lap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3.8);
   });
 
   it('calculates overlapping laps independently', () => {
@@ -376,7 +415,7 @@ describe('lap stream-summary derivation', () => {
     ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
 
     expect(firstLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(2);
-    expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3.5);
+    expect(secondLap.getStat(DynamicDataLoader.dataTypeAvgDataType[DataPower.type])?.getValue()).toBe(3);
   });
 
   it('hydrates pace extrema from the derived lap speed summaries', () => {

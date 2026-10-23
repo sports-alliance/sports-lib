@@ -1,3 +1,4 @@
+import { DataPower } from '../../../../data/data.power';
 import { Activity } from '../../../../activities/activity';
 import { EventInterface } from '../../../event.interface';
 import { Creator } from '../../../../creators/creator';
@@ -5,9 +6,9 @@ import { Event } from '../../../event';
 import { ActivityTypes, ActivityTypesHelper, StravaGPXTypes } from '../../../../activities/activity.types';
 import { ActivityInterface } from '../../../../activities/activity.interface';
 import { GPXSampleMapper } from './importer.gpx.mapper';
-import { isNumberOrString } from '../../../utilities/helpers';
+import { isNumber, isNumberOrString } from '../../../utilities/helpers';
 import { EventUtilities } from '../../../utilities/event.utilities';
-import { captureRecordedPowerEvidence } from '../../../utilities/tss/recorded-power-evidence';
+import { captureImportedSensorFillTimes } from '../../../utilities/imported-sensor-fill-times';
 import { GXParser } from './gx-parser';
 import { DataDuration } from '../../../../data/data.duration';
 import { DataElapsedTime } from '../../../../data/data.elapsed-time';
@@ -99,25 +100,14 @@ export class EventImporterGPX {
         const hasPowerMeter =
           samples.findIndex(sample => sample.extensions?.find((ext: any) => ext.power?.length)) !== -1;
         const samplesInfo = { hasPowerMeter: hasPowerMeter };
-        captureRecordedPowerEvidence(
-          activity,
-          samples.map(sample => {
-            const rawPower = sample.extensions?.[0]?.power?.[0];
-            return {
-              timestamp: sample.time[0],
-              // Match the mapper's first extension, retaining absent/blank fields as
-              // unknown rather than its compatibility zero padding.
-              power: isNumberOrString(rawPower) && String(rawPower).trim() !== '' ? Number(rawPower) : undefined
-            };
-          })
-        );
 
         // Match
         GPXSampleMapper.filter(sampleMapping =>
           isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
         ).forEach(sampleMapping => {
           const subjectSamples = <any[]>(
-            samples.filter((sample: any) => isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
+            samples.filter((sample: any) => (sampleMapping.dataType === DataPower.type && hasPowerMeter) ||
+              isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
           );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
@@ -130,6 +120,10 @@ export class EventImporterGPX {
             });
           }
         });
+
+        if (activity.hasStreamData(DataPower.type) && activity.getStreamData(DataPower.type).some(isNumber)) {
+          captureImportedSensorFillTimes(activity, samples.map(sample => new Date(sample.time[0])));
+        }
 
         // Compute moving time, timer time and elapsed time
         const elapsedTime = (activity.endDate.getTime() - activity.startDate.getTime()) / 1000;

@@ -13,6 +13,7 @@ import { DataSpeed } from '../../../data/data.speed';
 import { DataHeartRate } from '../../../data/data.heart-rate';
 import { DataCadence } from '../../../data/data.cadence';
 import { DataTemperature } from '../../../data/data.temperature';
+import { DataTime } from '../../../data/data.time';
 import { DataPower } from '../../../data/data.power';
 import { EventImporterGPX } from '../importers/gpx/importer.gpx';
 import { EventImporterJSON } from '../importers/json/importer.json';
@@ -98,6 +99,35 @@ describe('EventExporterGPX', () => {
     const points = doc.getElementsByTagName('trkpt');
     expect(points[1].getElementsByTagNameNS(trackPointNamespace, 'speed').length).toBe(0);
     expect(points[1].getElementsByTagNameNS(trackPointNamespace, 'hr')[0].textContent).toBe('121');
+  });
+
+  it.each([[200, null, 0, 250], [0, 0, 0, 0]])(
+    'round-trips missing power and actual coasting through GPX and native JSON: %j', async (...watts) => {
+      const event = speedEvent(watts.map(() => 3));
+      event.getFirstActivity().addStream(new Stream(DataPower.type, watts));
+      const before = event.toJSON();
+      const support = ActivityUtilities.getPowerCoverage(event.getFirstActivity());
+      const xml = await new EventExporterGPX().getAsString(event);
+      const restored = await EventImporterGPX.getFromString(xml, xmldom.DOMParser);
+      const native = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(restored.toJSON())));
+      expect(native.getFirstActivity().getStreamData(DataPower.type)).toEqual(watts);
+      expect(ActivityUtilities.getPowerCoverage(native.getFirstActivity())).toEqual(support);
+      expect(event.toJSON()).toEqual(before);
+    });
+
+  it('leaves an existing Time stream untouched while exporting positional timestamps', async () => {
+    const event = speedEvent([2, 3, 4]);
+    const a = event.getFirstActivity();
+    const originalTime = new Stream(DataTime.type, [90, 91, 92]);
+    a.addStream(originalTime);
+    const originalStreams = a.getAllStreams().slice();
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const xml = await new EventExporterGPX().getAsString(event);
+      expect(xml).toContain('<time>1970-01-01T00:00:01.000Z</time>');
+      expect(a.getAllStreams()).toEqual(originalStreams);
+      expect(a.getStream(DataTime.type)).toBe(originalTime);
+      expect(originalTime.getData()).toEqual([90, 91, 92]);
+    }
   });
 
   it('keeps independent extensions and emits sensor fields in v2 schema sequence', async () => {

@@ -219,6 +219,8 @@ export * from './events/event.json.interface';
 export { EventSummary } from './events/event-summary';
 export type { EventSummaryJSONInterface } from './events/event-summary';
 export * from './events/utilities/activity.utilities';
+export { analyzeActivityRR } from './events/utilities/activity-rr';
+export * from './events/utilities/rr-analysis';
 export * from './events/utilities/activity-durability';
 export * from './events/utilities/event.utilities';
 export * from './events/utilities/power-curve-sampling';
@@ -245,6 +247,7 @@ export * from './stats/stats.utilities';
 export * from './streams/compressed.stream.interface';
 export * from './streams/stream.filter.interface';
 export * from './streams/stream';
+export { IBIStream } from './streams/ibi-stream';
 export * from './streams/stream.interface';
 export * from './swim-lengths/swim-length';
 export * from './swim-lengths/swim-length.interface';
@@ -271,3 +274,5 @@ export type {
 } from './events/utilities/tss/tss-evaluation';
 
 export * from './duration/timing-validity';
+
+export type { PowerCoverage } from './activities/power-coverage';

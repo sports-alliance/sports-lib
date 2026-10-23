@@ -158,8 +158,8 @@ export interface ActivityInterface
   clearStreams(): this;
 
   /**
-   * Adds a value to the streams data
-   * Floor is used so a date with > end date does not create and extra slug in the array
+   * Adds a value to the original stream on its elapsed one-second grid and invalidates calculated interval weights.
+   * Active read filters stay enabled; their display values are not persisted.
    * @param type
    * @param date
    * @param value

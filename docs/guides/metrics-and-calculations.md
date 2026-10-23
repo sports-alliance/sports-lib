@@ -23,6 +23,156 @@ regeneration or persisted-data migration is needed. This entry exposes no new me
 
 `Effort Pace` uses pace semantics (`min/km`), not speed semantics (`m/s`). Its average, minimum, maximum, and unit-variant metric types follow `paceUnits`.
 
+## Summary family metadata
+
+`DynamicDataLoader.dataTypeAvgDataType`, `dataTypeMinDataType` and `dataTypeMaxDataType` map a base or converted
+metric type to its existing summary siblings. The maps include speed and grade-adjusted speed in feet per minute,
+plus swim pace in its base and per-100-yard units, air power, depth and dive-rate summaries. Pressure SAC, Volume SAC
+and RMV expose their existing average siblings. Consumers can group available average, minimum and maximum
+summaries even when an average is absent. Partial families expose only recorded metric types: depth and dive rates
+have no minimum sibling, and dive descent has no standalone stream metric. Missing observations remain unavailable;
+these maps do not calculate values or select UI icons.
+
+`getUnitBasedDataTypesFromDataType` and `getUnitBasedDataTypesFromDataTypes` return the selected speed, pace,
+grade-adjusted speed/pace, swim pace and vertical-speed summary variants that
+`getUnitBasedDataFromDataInstance` actually produces. The bulk lookup also retains explicitly requested pace,
+grade-adjusted pace and swim pace without requiring a speed input. Existing speed-derived output ordering is retained;
+`includeDerivedTypes: false` still permits explicitly requested metrics. Empty unit selections return no variants,
+including effort pace and jump speed. With no settings, the single lookup keeps its canonical input and the bulk
+lookup retains its existing empty result. For effort pace and jump speed, a non-empty saved selection containing
+only unrecognized units retains the original metric through the single lookup and value-conversion APIs, as before;
+the bulk variant selector returns no supported choices. Mixed selections still convert the recognized units.
+Summary conversion ignores saved unit selections from other metric families rather than relabelling their values.
+
+Feet-, mile- and yard-based distance, speed and pace classes report `UnitSystem.Imperial` from `getUnitSystem()`.
+Their average/minimum/maximum and jump/effort variants inherit that metadata. This does not change their stored
+numeric values, unit strings or display conversions; metric class metadata stays metric.
+
+These corrections change lookup and unit-system metadata only. Canonical tokens, units, validation, calculations and
+JSON are unchanged. Existing activities need no reparse, summary regeneration or migration for these metadata fixes.
+Quantified Self's MCP numeric catalog membership and persisted-stat availability are unchanged. Its existing
+`unitSystem` descriptor changes to `imperial` for the corrected variants when a consumer adopts this package;
+no metric identifier, unit string, schema field, sensitive field or consent scope is added.
+
+## Swim average unit summaries
+
+Generation of a missing `Average swim pace in minutes per 100 yard` now converts `Average Swim Pace`, independently
+of running `Average Pace`. A real zero swim average remains zero. Running pace alone cannot create this swim summary,
+and an existing per-yard summary remains authoritative.
+
+This calculation correction is separate from the metadata fixes above. Earlier imports can have an absent or
+incorrect derived per-yard swim average. Missing values can be regenerated from the retained canonical swim average.
+Existing saved per-yard values are not overwritten by JSON reloads: use a targeted original-source reparse to
+reconstruct affected derived summaries while preserving actual source-provided values. No JSON shape, metric token,
+unit, queue or permission changes are needed. Package adoption, deployment and any production reparse remain separate
+actions. In Quantified Self, keep frontend/Functions package versions aligned and use the existing sanitized,
+version-checked reparse lifecycle; this library fix does not start historical processing.
+
+## Activity R–R analysis
+
+`analyzeRRIntervals(samples, durationMs)` analyzes unsmoothed beat intervals with elapsed-millisecond end timestamps.
+`analyzeActivityRR(activity)` reads an activity's raw `IBIStream`; resampled one-second chart streams are ineligible.
+Both return versioned summaries and optional classified
+beats/rolling windows. `{ includeDetails: false }` omits detailed output while retaining summary DFA calculations.
+`calculateDFAAlpha1(intervals)` accepts an already quality-controlled continuous sequence.
+
+FIT HRV and Suunto JSON/SML imports generate the available numeric summaries before serialization. Timestamped Suunto
+batches preserve gaps. FIT HRV uses cumulative timing because decoded HRV records have no independent timestamps;
+internal disconnect locations cannot be recovered from that array. Unused FIT uint16 slots (`null`, or `65.535` seconds
+from older decoders) are ignored without advancing time or breaking beat adjacency, following
+[Garmin's HRV array explanation](https://forums.garmin.com/developer/fit-sdk/f/discussion/255690/fit-file-hrv-data-array-interpretation).
+Later multisport legs use their own elapsed clock. Intervals crossing a leg boundary retain their original
+end timestamp for clipped coverage; they do not contribute partial beats to HRV or extend derived HR samples past the
+leg end. Untimestamped Suunto batches retain cumulative timing anchored to the source/activity start.
+Legacy SML XML interval arrays use the activity's first UTC sample as their anchor; a timezone-less header clock
+does not override it. When no UTC samples exist, the XML adapter retains its existing header-start fallback.
+Stream selection still controls IBI inclusion.
+
+Recording-quality rules use 300–2,000 ms inclusive, then compare each interval to the median of up to five in-range
+neighbors on each side within the same continuous segment. Values strictly below 80% or above 120% of that reference
+are short/long artifacts. Suspected ectopic pairs require two otherwise accepted consecutive intervals, the first
+strictly below 90% of its reference, the second strictly above 105%, and a combined duration within ±10% of **one**
+reference interval around twice that reference. Pairs are counted separately and excluded from HRV. These are
+algorithmic descriptions, not diagnoses or proof of a sensor failure.
+
+SDNN uses sample standard deviation. RMSSD and pNN50 use only adjacent accepted observations within the same segment;
+pNN50 counts absolute differences strictly greater than 50 ms. Accepted zero variability is preserved. Mean HR is
+60,000 divided by accepted mean interval, distinct from source-recorded HR. Nonpositive/nonfinite observations are
+counted independently as invalid and break adjacency. Overlapping or backward timestamps are rejected. Clock rounding
+within 0.001 ms is tolerated; larger internal gaps break adjacency and contribute to gap count and longest gap.
+
+Recording coverage is the sum of clipped recorded interval durations divided by elapsed activity duration, including
+excluded positive intervals. Complete in-bounds beats alone contribute to beat statistics. Coverage is not a claim
+that an untimed interval array contains independently verified gap evidence. Legacy arrays keep cumulative timing.
+`IBIStream(data, sampleTimes)` optionally retains aligned elapsed end timestamps in additive native JSON `sampleTimes`;
+replacing stream data invalidates that timing. Consumers that regenerate stats from explicit IBI timing must preserve
+this optional field. Original-file reparse is needed to recover timestamps discarded by earlier imports.
+
+Regular `Stream('IBI', ...)` chart samples serialize with `sampling: '1Hz'`. Native JSON restoration keeps them on
+their one-second clock and ineligible for beat analysis. Raw `IBIStream` exports omit that field; existing raw arrays
+and legacy dictionaries retain their cumulative interpretation. Consumers must preserve both `sampling` and
+`sampleTimes` when present and adopt a reader that understands them. Older saved chart arrays without this distinction
+cannot reliably be distinguished from raw legacy beats; recover their raw intervals from the original file instead
+of guessing from sample values. This adds no metric name, unit or numeric MCP field.
+
+`ActivityUtilities.cropTime` retains raw IBI by interval timestamps and rebases their end times to the cropped start.
+Intervals crossing either boundary retain coverage evidence but remain excluded from full-beat HRV statistics.
+Internal gaps and invalid-observation barriers survive cropping and JSON reloads. Regular chart streams continue
+to use the existing inclusive one-second crop; the fractional-start rounding rule is unchanged. As with other
+cropped data, existing summaries are retained: callers must clear and regenerate affected summaries when desired.
+
+Rolling estimates use a five-second grid that never extends beyond activity end. Heart rate requires a complete
+ten-second lookback with at least 90% recorded coverage; its available windows define the summary minimum/maximum.
+RMSSD and artifact percentage require
+a complete one-minute lookback with at least 90% recorded coverage. DFA requires a complete two-minute window,
+at least 90% coverage, at least 50 accepted intervals, one continuous segment and at most 5% excluded intervals,
+including suspected-pair members. Isolated internal exclusions are linearly interpolated against accepted neighbors
+on the elapsed-time axis; windows with excluded endpoints are unavailable. No intervals are compacted across gaps.
+DFA centers and integrates the signal, linearly detrends forward and reverse non-overlapping segments at each integer
+scale 4–16, and fits log fluctuation versus log scale. The standalone function needs at least 32 intervals; constant
+signals have no finite scaling estimate. No intensity thresholds or recovery classifications are inferred.
+
+| Data class | Canonical token | Unit |
+| --- | --- | --- |
+| `DataRRIntervalCount` | `R-R Interval Count` | count |
+| `DataRRInvalidIntervalCount` | `R-R Invalid Interval Count` | count |
+| `DataRRArtifactCount` | `R-R Artifact Count` | count |
+| `DataRRArtifactPercentage` | `R-R Artifact Percentage` | % |
+| `DataRRSuspectedEctopicPairCount` | `R-R Suspected Ectopic Pair Count` | count |
+| `DataRRSuspectedEctopicPairRate` | `R-R Suspected Ectopic Pair Rate` | pairs/h |
+| `DataRRCoverage` | `R-R Coverage` | % |
+| `DataRRGapCount` | `R-R Gap Count` | count |
+| `DataRRLongestGap` | `R-R Longest Gap` | s |
+| `DataRRMeanInterval` | `R-R Mean Interval` | ms |
+| `DataRRHeartRateAvg` | `R-R Average Heart Rate` | bpm |
+| `DataRRHeartRateMin` | `R-R Minimum Heart Rate` | bpm |
+| `DataRRHeartRateMax` | `R-R Maximum Heart Rate` | bpm |
+| `DataRRRMSSD` | `R-R RMSSD` | ms |
+| `DataRRSDNN` | `R-R SDNN` | ms |
+| `DataRRPNN50` | `R-R pNN50` | % |
+| `DataRRDFAAlpha1Median` | `R-R DFA Alpha1 Median` | dimensionless |
+| `DataRRDFAAlpha1Min` | `R-R DFA Alpha1 Minimum` | dimensionless |
+| `DataRRDFAAlpha1Max` | `R-R DFA Alpha1 Maximum` | dimensionless |
+| `DataRRDFAWindowCount` | `R-R DFA Window Count` | count |
+
+Unavailable scalar estimates are omitted; zero counts and valid zero HRV remain numeric. Explicit persisted stats are
+preserved during missing-stat generation. A sole activity's summaries appear on its parent event. Multi-activity
+summaries omit these metrics rather than average HRV, percentages or DFA medians without sufficient evidence.
+Activity HRV is independent of Health and overnight HRV; their existing canonical tokens and semantics remain stable.
+
+All scalar classes are public, enumerated by `DataStore`, validated as finite numbers and restored through
+`DynamicDataLoader` and native event JSON. Quantified Self can discover their canonical names and units through its
+existing numeric catalog, and may expose only actually persisted stats through its existing permissions/projections.
+Detailed beats, timestamps and classifications are not new numeric metric classes or automatically authorized MCP
+output. No tool schema, scope, provider action or plugin change is implied by these exports.
+
+New imports gain the stats when their source includes IBI. Historical summary-only records require a controlled
+original-file reparse after consumers adopt the library version. Overnight HRV and saved routes are unchanged; no
+Training snapshot schema migration is needed. Corrected R–R-derived HR timestamps can change existing HR summaries
+or load on reparse, so consumers must use their normal activity/Training reconciliation lifecycle. A QS dependency
+adoption must align frontend/Functions versions and
+review Help and the safe numeric projection. No package publication, production reparse or deployment is automatic.
+
 ## Regenerated multisport timing
 
 `EventUtilities.reGenerateStatsForEvent` independently sums `Timer time` and `Elapsed time` when every leg supplies a
@@ -341,7 +491,23 @@ Swim Pace (sec/100m) = 100 / Speed(m/s)
 ```
 
 - Distance/GNSS distance are generated from latitude/longitude when missing.
-- Speed is generated from distance deltas and time deltas.
+- Generated GPS distances use geolib 4's haversine calculation with a 6,378,137 metre Earth radius and round each
+  position interval to 0.1 metres by default. The distance adapter returns unrounded intervals when accuracy is zero;
+  its optional precise mode continues to use geolib's ellipsoidal calculation. Haversine can differ slightly from the
+  previous spherical cosine calculation near rounding boundaries and for very close points. The former formula could
+  produce a positive rounded distance for identical coordinates; haversine returns zero. Generated speed, pace,
+  grade-adjusted metrics and moving time can consequently change, with movement thresholds unchanged. Recorded distances
+  remain authoritative. Existing saved values are not rewritten; reparse retained sources and regenerate affected derived
+  summaries only when applying the new calculation to historical GPS-derived distances. Metric tokens, units and JSON
+  schemas are unchanged.
+- Missing Distance readings remain `null` at their original elapsed timestamps. A recorded zero or repeated distance
+  stays a real observation. Unit conversion preserves the same mask. Generic sensor filling does not fill Distance.
+- Where GPS-derived speed is eligible, speed is generated between successive finite, nonnegative distance observations
+  within the same active timer segment: `deltaDistance / deltaTimeSeconds`. The rate is stored at the ending observation.
+  There is no speed before the second observation, across a counter reset, or across an explicit timer pause.
+  A zero distance delta gives a valid zero speed. No arbitrary sample-gap cutoff or stationary seconds are invented.
+- GPS distance begins at the first valid position, including time zero when a position exists there. No leading
+  distance zero is inserted before the first position. Existing recorded distance and speed streams remain authoritative.
 - Unit stream variants are derived via helper conversion factors (km/h, mph, ft/s, m/min, knots, min/mi, min/100yd, miles).
 - The FIT parser applies the profile's `1000` depth scale before import; Sports Lib stores record depth and next-stop
   depth directly in meters without another conversion. Canonical depth streams and maximum depth stats remain meters.
@@ -373,6 +539,44 @@ GradeAdjustedSpeed = Speed * (kA + kB*g + kC*g^2 + kD*g^3 + kE*g^4 + kF*g^5)
 GradeAdjustedPace = 1000 / GradeAdjustedSpeed
 ```
 
+Activity grade uses observations where both distance and altitude are available. Its look-ahead and smoothing reset
+at distance-counter resets and timer pauses. A look-ahead with zero distance change and terminal points cannot
+establish a slope. Genuine repeated distance readings retain the existing 10-metre look-ahead: they can occur while
+recorded speed is positive and must not automatically be classified as stationary. Calculated
+grade stays sparse. Adjusted speed and pace-based TSS use terrain only inside its supported interval. A recorded
+speed point may use the enclosing terrain interval; a calculated speed interval must fit wholly inside it. This also
+handles one-second speed with two-second altitude readings without inventing flat terrain between them. This lookup
+does not fill the stored streams. Missing terrain support leaves positive adjusted speed unavailable; a known
+stationary zero remains zero.
+The separate point-indexed route-grade algorithm is unchanged.
+
+Strava compatibility is measured separately for raw grade, smoothed grade and the GAP adjustment factor. The existing
+GAP polynomial approximates a published Strava curve; it is not an exact implementation of Strava's service. See
+[reference coverage and remaining discrepancies](validation.md#strava-reference-comparisons) before interpreting a
+passing regression suite as numerical equivalence.
+
+Generated Speed, Grade/Grade Smooth and interval-derived Grade Adjusted Speed retain optional `intervalSupport`
+evidence. Their averages use `sum(value × supportedSeconds) / sum(supportedSeconds)`, including stationary zeros.
+Lap averages include only supported intervals wholly inside that lap, without guessing a position at a cropped
+boundary. Recorded streams and legacy JSON without this evidence retain their existing summary policy.
+Native JSON retains these weights; see [persistence and migration](exporting.md#sparse-distance-and-calculated-intervals).
+
+Recorded Moving time remains authoritative. Otherwise, complete contiguous source laps can supply it; failing that,
+observed speed intervals above the existing sport-specific moving threshold supply a supported-time estimate. It is
+not extrapolated before the first reading, after the last reading or across explicit timer pauses. Zero is valid;
+no usable interval leaves Moving time unavailable rather than substituting Timer time. Distance endpoints establish an
+interval-average speed, not the exact location of movement within that interval. For recorded speed, the existing
+between-sample integration remains an estimate; it cannot resolve missing observations or conflicting source readings.
+Multisport moving-time totals require a value on every leg, including valid zeros; partial totals remain unavailable.
+
+These changes can affect generated speed/pace, grade/GAP, moving time, pace-based TSS, durability evidence, and the
+existing power-work fallback that uses moving time. Imported summaries and imported TSS are retained. HR, power and
+MET TSS formulas and eligibility are unchanged. Previously filled JSON cannot reveal which distance readings were
+invented: reparse retained original files and refresh affected derived summaries after consumer adoption.
+The existing strict running-pace policy (`enableHeuristicFallbacks: false`) still requires terrain for every speed
+observation; retaining unknown grade can therefore make that candidate unavailable. The optional flat-grade heuristic
+and complete-window TSS rules are unchanged.
+
 3) Left/right split and ground-contact balance
 
 ```text
@@ -393,6 +597,8 @@ Ascent/Loss uses thresholded step accumulation (default minDiff = 2):
 - Loss: accumulate negative deltas when previous - minDiff >= next
 ```
 
+The generic mean above applies to recorded streams. Calculated interval streams use the duration-weighted rule above.
+
 Activity and lap min/max/average derivation uses one explicit internal policy registry. It currently covers altitude,
 heart rate, cadence, stroke rate, speed, effort pace, grade-adjusted speed, grade, vertical speed, power, air power,
 absolute pressure, EVPE/EHPE, satellite SNR/count, temperature, ground contact time and its percentage, running flight
@@ -408,7 +614,9 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
 - Altitude and grade prefer their smoothed streams when present. Their summary families remain excluded for Diving
   activity types.
 - Existing laps use their activity's normalized 1 Hz streams. Lap windows are half-open (`[start, end)`), assigning an
-  exact shared boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint. Overlapping
+  exact recorded-sample boundary to the next lap; a lap ending at the activity endpoint includes that final endpoint.
+  Calculated interval streams instead use wholly contained intervals for both extrema and averages: a rate ending
+  exactly at the lap end belongs to the interval that just finished. Overlapping
   laps are evaluated independently. A lap beginning before the containing activity keeps source summaries, but does
   not derive whole-lap averages from that leg's partial streams. Existing terminal clipping remains unchanged. Speed-derived pace can still use its own source speed.
 - Generated lap summaries store canonical stats only. Unit variants are resolved by consumers from the canonical stat
@@ -423,6 +631,11 @@ Registering a metric relationship in `DataStore` alone does not opt a new family
   restored from native JSON, regenerated into an all-diving event summary, or otherwise derived from streams. Mixed
   event summaries aggregate these metrics only from non-diving activities. Their vertical movement is represented by
   depth, not terrain elevation.
+- Suunto DeviceLog JSON applies this same exclusion after merging the workout header, so all-diving event summaries
+  agree before and after a native JSON roundtrip. Raw altitude/depth streams and explicit header summaries for
+  non-diving or mixed events are preserved. There are no metric-key or JSON-schema changes. Existing native JSON
+  already removes these all-diving terrain summaries on restoration; refresh persisted summary projections through
+  the consumer's normal save/reparse workflow if needed.
 - Cadence and stroke-rate minimum/average values exclude zero values.
 - Grade max/min/avg prefers `Grade Smooth` when present.
 
@@ -461,12 +674,92 @@ Estimated FTP stat = round(0.95 * best_20min_power)
 IF = NP / independently supplied FTP
 ```
 
-Normalized power retains recorded zeroes. Gaps, invalid/negative samples, nonconsecutive timestamps and explicit
-start/stop timer boundaries restart the window; stopped samples do not contribute. FIT `stop_disable` and
-`stop_disable_all` have the same stopped-state behavior as `stop` and `stop_all`. No interpolation, zero-fill or
-carry-forward is applied to missing seconds. Sparse recordings without a complete window retain valid device NP on
-normal import; a missing calculated NP remains unavailable instead of becoming NaN in serialized statistics.
-The first complete 30-sample window contributes, and longer recordings contribute overlapping windows every second.
+FIT, TCX and GPX retain absent, blank, invalid and negative power as `null`; an explicit **0 W** remains a
+recorded observation. Derived left/right power requires both total power and balance at the same timestamp;
+missing pairs remain explicit nulls, including trailing gaps and after JSON restoration. Recorded left/right streams
+retain priority. No interpolation or cadence-based filling is applied. Each observed power sample supports
+its own one-second interval, clipped to the activity end and located timer/lap boundaries. The endpoint itself has no
+additional duration. Explicit pauses are excluded; summary-only pause durations do not establish where a pause occurred.
+
+NP and power-curve points require complete contiguous windows. Gaps and timer boundaries break windows instead of
+contributing zero, including a stop and resume at the same timestamp. A repeated start while already running does
+not split an effort. A curve duration with no complete window is omitted, so an unsupported 20-minute effort cannot
+supply the same-activity FTP estimate. NP retains real coasting zeroes and requires a full 30-second window. Positive
+device NP keeps priority even with sparse samples. Unavailable calculations are omitted from serialized statistics.
+The existing curve-only rule for a solitary positive spike bounded by **recorded** zeroes applies within each active
+segment; missing neighbors or readings across a timer boundary do not qualify as its two neighbors.
+
+### Power coverage and observed work
+
+`ActivityUtilities.getPowerCoverage(activity)` returns observed support without changing the activity or storing metadata.
+Coverage, power-window calculations, activity/lap power extrema, derived left/right watts and missing balance summaries
+read the original samples, independently of any attached `Stream.useFilter` view. A filter cannot fill gaps, move sample
+times or change watts or balance for these calculations. Replacing the actual samples
+with `Stream.setData` still changes their inputs. Existing filters remain attached and source data stays intact.
+
+At a fractional lap start, power extrema also include the preceding reading when part of its one-second interval
+supports active time inside that lap. For example, 300 W followed by 100 W gives a 200 W average over 0.5–1.5 seconds,
+with a 100 W minimum and 300 W maximum. Missing readings and a timer pause cannot provide that leading support.
+Exact boundaries keep their half-open ownership, and a terminal lap retains the endpoint for extrema only.
+Supplied lap summaries keep priority; other sensors retain their existing sample-boundary rules.
+
+The coverage result contains:
+
+- `durationSeconds`: located active interval duration, or the larger explicit activity timer duration when supplied.
+- `coveredDurationSeconds` and `coverageRatio`: time supported by observed power, including recorded zeroes.
+- `observedAveragePowerWatts`: duration-weighted mean over supported intervals, or `null` without support.
+- `observedWorkKilojoules`: sum of observed watts multiplied by supported seconds, divided by 1000.
+
+Calculated `Average Power` is the observed-period mean, not an estimate of missing seconds. Partial observed work is
+available from the coverage helper; it is **not** stored as a complete `Power Work` total. Calculated `Power Work` requires
+complete coverage and consistent active timing; file-supplied work and average power remain authoritative. Supported
+work retains precision; display rounding does not change the value. Stationary activities can produce work, so positional
+moving time is not used as a substitute for power support. A summary timer with finer precision than the located
+intervals can leave a small unsupported remainder; the library does not invent its power.
+
+For example, 800 observed seconds at 200 W in a 1,200-second activity gives 66.7% coverage, a 200 W observed average
+and 160 kJ of observed work, with no complete work total. If the remaining 400 seconds explicitly record 0 W, coverage
+is complete: average power is 133.33 W and total work is 160 kJ.
+
+```ts
+const coverage = ActivityUtilities.getPowerCoverage(activity);
+// Only describe observedWorkKilojoules as supported work when coverage is partial.
+// Use the ordinary Power Work stat for a supplied or complete calculated total.
+```
+
+For multisport workouts, inspect each leg separately. Laps that start before their containing leg retain source
+summaries; an ending leg cannot supply a whole-lap average. No metric is added to DataStore or Quantified Self's MCP
+catalog, and there are no new MCP fields, scopes or mutations. Existing numeric metrics keep their names and units.
+
+### FIT balance summaries and multisport power
+
+FIT record balance requires a finite percentage from 0 through 100 and an explicit boolean side flag. Invalid or
+incomplete balance becomes missing on both sides; it is never clamped to an endpoint. Valid zero, 100 and fractional
+percentages retain their meaning. Missing balance leaves derived side watts unavailable for that sample, even when
+total power is zero. The recorded total-power stream and its coverage, work, NP, power curve and TSS are unaffected.
+A balance of 101% therefore cannot produce a complementary −1% or negative side watts. This is validation of the
+decoded percentage in Sports Lib, not a change to FIT bit decoding. Existing invalid saved streams require an
+original-file reparse and refresh of affected summaries; native JSON restoration does not silently rewrite them.
+
+FIT session and lap `left_right_balance100` summaries are decoded in hundredths of a percent, with the side flag
+selecting left or right. A valid summary supplies both canonical balance statistics and keeps its precision in JSON;
+it does not replace per-record balance or derived left/right watts. The existing display rounding is unchanged.
+Missing or invalid summaries retain the activity stream-based fallback; unsupported lap balance stays unavailable.
+If a small summary supports both a
+whole-percent record encoding (including its side bit) and hundredths interpretation, and scoped record bounds exclude only the canonical interpretation,
+the library treats it as ambiguous and keeps the stream fallback. It never guesses a new scale. Genuine fractional
+balances and 0%/100% remain supported. This distinction follows
+[Garmin's explanation of summary versus record balance](https://forums.garmin.com/developer/fit-sdk/f/discussion/426542/questions-about-left-right-balance-and-its-decodification).
+
+For multiple legs, event `Average Power` and `PowerWattsPerKg` are duration-weighted means of their valid nonnegative leg summaries:
+`sum(leg average × leg timer seconds) / sum(leg timer seconds)`. This summarizes the leg means; it does not rescan
+samples or extrapolate their missing values. It is not an observed-sample mean across the entire event when leg
+coverage differs. Legs without power do not contribute zeros. Zero-duration legs contribute no weight; an unknown or
+invalid duration on a power-bearing leg makes the event average unavailable. Legacy active `Duration` is used only
+when no explicit timer statistic exists, never elapsed time or dates. Event maximum power retains genuine zero.
+Equal-duration legs at 100, 200 and 300 W produce 200 W in any order. W/kg uses each leg’s supplied W/kg, including zero,
+or its average watts divided by its own positive body mass (rounded to the existing two decimal places). A leg with no
+available W/kg is omitted from that mean, even if it has watts. Individual leg summaries and streams stay intact.
 
 The legacy `FTP` statistic can still contain a same-activity 20-minute estimate. That estimate is not evidence of an
 athlete threshold and cannot supply IF or power TSS. Only an explicit `functionalThresholdPower` override or original-file
@@ -717,24 +1010,26 @@ Power uses the full eligible duration, without subtracting the NP window warm-up
 unambiguous `zones_target` FTP. Conflicting same-session values, duplicate session references and invalid scoped values
 are rejected. Valid scoped FTP takes precedence over unrelated global settings, including conflicting sport defaults.
 Global FTP must be valid and unambiguous when no scoped FTP exists.
-Source provenance stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
+File FTP calibration stays private on the parsed instance, survives clearing/regenerating its statistics, and is not
 serialized into ordinary Activity JSON. Missing calibration reports `missing-power-inputs` and falls through to eligible
 HR, pace or MET candidates; no threshold is inferred from the ride or its intensity factor.
 
-Complete eligible recorded zero-power windows can establish NP 0 and POWER TSS 0 with valid independent FTP and
-duration. A zero NP summary alone cannot establish this: missing, gappy, short or paused-only recordings still need
-an eligible window. Zeros inserted for missing sensor fields by FIT, TCX or GPX importers are not recorded evidence.
-All computed NP paths use actual recorded power coverage, including when positive readings occur among missing
-fields. A single positive reading cannot create a complete window by padding the rest with zeros. If no complete
-recorded window remains, power is unavailable and the normal eligible fallback applies. Genuine recorded coasting
-zeros remain valid. FIT records at the same absolute timestamp are combined before padding: an HR-only record cannot
-erase power from a complementary record. The last explicitly supplied value for each field wins, including zero and
-invalid values; distinct timestamps remain separate. This private evidence survives regeneration on the
-parsed instance and does not add fields to Activity JSON. Positive device NP keeps its existing precedence;
-imported TSS, including zero, remains authoritative.
-Explicit TSS reevaluation refreshes library-calculated NP and intensity factor from the current streams and timer
-events. It preserves genuine device NP and an explicitly replaced NP statistic. The cached evaluation getter remains
-unchanged; calculation provenance is private and is not serialized.
+Calculated NP can supply power TSS only when observed power covers at least **80%** of the larger located active
+or eligible TSS duration. The full eligible duration remains the multiplier. Partial computed-power TSS is marked
+`estimated: true`; 80% is an eligibility safeguard, not a guarantee of accuracy when hard efforts are missing.
+Below that coverage, the candidate reports `calculation-unavailable` and uses the existing eligible fallback.
+No complete NP window reports `missing-power-inputs`. Independent FTP is still required in both cases.
+
+Complete recorded zero-power coverage can establish NP 0 and POWER TSS 0. A zero summary alone or a short zero-power
+fragment cannot establish zero whole-workout load. Positive device-supplied NP is not subject to the computed-NP gate;
+valid imported TSS, including zero, remains authoritative. FIT complementary same-timestamp records retain their
+field-merging rules before mapping; missing power fields do not erase another record's explicit power value.
+
+Explicit TSS reevaluation refreshes calculated NP and intensity factor from current streams and timers on the parsed
+instance. It preserves supplied or explicitly replaced summaries. The cached getter is unchanged. Existing NP/IF
+calculation provenance and original-file FTP calibration remain private and are not serialized. Native JSON hydration
+preserves saved summaries; it does not identify their original source or automatically regenerate them. Use an
+original-file reparse to refresh historical power summaries and evaluations.
 
 When a FIT session has a missing or zero timer summary, unambiguous recorded timer intervals can supply its active
 duration instead of treating all elapsed time as active. Explicit all-paused timing retains zero active duration.
@@ -1009,14 +1304,17 @@ where:
   secondsPerMeter = (secondsPer100m / 100)
   strokesPerMeter = ((strokesPerMinute * (secondsPer100m / 60)) / 100)
 
-PowerWork(kJ) = round((AveragePower * MovingTimeSeconds) / 1000)
+ObservedPowerWork(kJ) = sum(observedWatts * supportedActiveSeconds) / 1000
 BatteryConsumption = max(BatteryCharge) - min(BatteryCharge)
 BatteryLifeEstimation = ((activityDurationSeconds * 100) / BatteryConsumption)
 ```
 
 SWOLF uses `Average Stroke Rate`; the naming change does not alter the calculation.
 
-- Moving time fallback order: lap moving time -> speed-threshold integration -> timer time fallback.
+- Moving time fallback order: complete contiguous lap moving times -> supported speed intervals -> unavailable.
+  Explicit stationary zero remains valid; Timer time is not substituted for missing movement evidence.
+- Calculated Power Work requires complete power coverage and consistent active timing. Partial work remains in
+  the coverage helper; unknown watts are never zero or an extrapolated average. File-supplied work values stay authoritative.
 - Jump families (height, distance, speed, rotations, score, hang time) compute min/max/avg from jump events when available.
 
 8) Event-level aggregation behavior

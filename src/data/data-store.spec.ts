@@ -75,7 +75,18 @@ import {
   convertMetersToMiles,
   convertSpeedToSpeedInMilesPerHour
 } from '../events/utilities/helpers';
-import { DistanceUnits, UserUnitSettingsInterface, WeightUnits } from '../users/settings/user.unit.settings.interface';
+import {
+  DaysOfTheWeek,
+  DistanceUnits,
+  GradeAdjustedPaceUnits,
+  GradeAdjustedSpeedUnits,
+  PaceUnits,
+  SpeedUnits,
+  SwimPaceUnits,
+  UserUnitSettingsInterface,
+  VerticalSpeedUnits,
+  WeightUnits
+} from '../users/settings/user.unit.settings.interface';
 import { DataWeight } from './data.weight';
 import { DataSpeedAvg, DataSpeedAvgMilesPerHour } from './data.speed-avg';
 import { DataDepth, DataDepthFeet } from './data.depth';
@@ -98,6 +109,266 @@ import {
 } from './data.dive';
 
 describe('DataStore', () => {
+  const metricSettings: UserUnitSettingsInterface = {
+    speedUnits: [SpeedUnits.KilometersPerHour],
+    gradeAdjustedSpeedUnits: [GradeAdjustedSpeedUnits.KilometersPerHour],
+    paceUnits: [PaceUnits.MinutesPerKilometer],
+    gradeAdjustedPaceUnits: [GradeAdjustedPaceUnits.MinutesPerKilometer],
+    swimPaceUnits: [SwimPaceUnits.MinutesPer100Meter],
+    verticalSpeedUnits: [VerticalSpeedUnits.MetersPerSecond],
+    distanceUnits: DistanceUnits.Kilometers,
+    startOfTheWeek: DaysOfTheWeek.Monday
+  };
+  const settingsCases: [string, UserUnitSettingsInterface][] = [
+    ['metric', metricSettings],
+    [
+      'imperial',
+      {
+        ...metricSettings,
+        speedUnits: [SpeedUnits.MilesPerHour],
+        gradeAdjustedSpeedUnits: [GradeAdjustedSpeedUnits.MilesPerHour],
+        paceUnits: [PaceUnits.MinutesPerMile],
+        gradeAdjustedPaceUnits: [GradeAdjustedPaceUnits.MinutesPerMile],
+        swimPaceUnits: [SwimPaceUnits.MinutesPer100Yard],
+        verticalSpeedUnits: [VerticalSpeedUnits.FeetPerHour],
+        distanceUnits: DistanceUnits.Miles
+      }
+    ],
+    [
+      'all supported units',
+      {
+        ...metricSettings,
+        speedUnits: Object.values(SpeedUnits),
+        gradeAdjustedSpeedUnits: Object.values(GradeAdjustedSpeedUnits),
+        paceUnits: Object.values(PaceUnits),
+        gradeAdjustedPaceUnits: Object.values(GradeAdjustedPaceUnits),
+        swimPaceUnits: Object.values(SwimPaceUnits),
+        verticalSpeedUnits: Object.values(VerticalSpeedUnits)
+      }
+    ],
+    [
+      'no selected units',
+      {
+        ...metricSettings,
+        speedUnits: [],
+        gradeAdjustedSpeedUnits: [],
+        paceUnits: [],
+        gradeAdjustedPaceUnits: [],
+        swimPaceUnits: [],
+        verticalSpeedUnits: []
+      }
+    ]
+  ];
+  const summaryTypes = [
+    _DataStore.DataSpeedAvg,
+    _DataStore.DataSpeedMin,
+    _DataStore.DataSpeedMax,
+    _DataStore.DataGradeAdjustedSpeedAvg,
+    _DataStore.DataGradeAdjustedSpeedMin,
+    _DataStore.DataGradeAdjustedSpeedMax,
+    _DataStore.DataPaceAvg,
+    _DataStore.DataPaceMin,
+    _DataStore.DataPaceMax,
+    _DataStore.DataGradeAdjustedPaceAvg,
+    _DataStore.DataGradeAdjustedPaceMin,
+    _DataStore.DataGradeAdjustedPaceMax,
+    _DataStore.DataSwimPaceAvg,
+    _DataStore.DataSwimPaceMin,
+    _DataStore.DataSwimPaceMax,
+    _DataStore.DataVerticalSpeedAvg,
+    _DataStore.DataVerticalSpeedMin,
+    _DataStore.DataVerticalSpeedMax,
+    _DataStore.DataEffortPace,
+    _DataStore.DataEffortPaceAvg,
+    _DataStore.DataEffortPaceMin,
+    _DataStore.DataEffortPaceMax,
+    _DataStore.DataJumpSpeedAvg,
+    _DataStore.DataJumpSpeedMin,
+    _DataStore.DataJumpSpeedMax
+  ].map(DataClass => DataClass.type);
+
+  const fallbackTypes = [
+    _DataStore.DataJumpSpeedAvg.type,
+    _DataStore.DataJumpSpeedMin.type,
+    _DataStore.DataJumpSpeedMax.type,
+    _DataStore.DataEffortPace.type,
+    _DataStore.DataEffortPaceAvg.type,
+    _DataStore.DataEffortPaceMin.type,
+    _DataStore.DataEffortPaceMax.type
+  ];
+  const unrecognizedSettings: UserUnitSettingsInterface = {
+    ...metricSettings,
+    speedUnits: ['Unrecognized saved speed unit', 'toString', 'constructor', '__proto__'] as unknown as SpeedUnits[],
+    paceUnits: ['Unrecognized saved pace unit', 'toString', 'constructor', '__proto__'] as unknown as PaceUnits[]
+  };
+
+  it.each(fallbackTypes)('preserves %s when a non-empty saved unit preference cannot be converted', type => {
+    const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+    const converted = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, unrecognizedSettings);
+    expect(converted).toHaveLength(1);
+    expect(converted[0]).toBe(stat);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, unrecognizedSettings)).toEqual([type]);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], unrecognizedSettings)).toEqual([]);
+    expect(stat.toJSON()).toEqual({ [type]: 5 });
+  });
+
+  it.each(fallbackTypes)('still converts %s when saved preferences mix recognized and unrecognized units', type => {
+    const settings = {
+      ...metricSettings,
+      speedUnits: [SpeedUnits.MilesPerHour],
+      paceUnits: [PaceUnits.MinutesPerMile]
+    };
+    const mixed = {
+      ...settings,
+      speedUnits: [...unrecognizedSettings.speedUnits, ...settings.speedUnits],
+      paceUnits: [...unrecognizedSettings.paceUnits, ...settings.paceUnits]
+    };
+    const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+    const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings);
+    const actual = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, mixed);
+    expect(actual.map(value => value.toJSON())).toEqual(expected.map(value => value.toJSON()));
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, mixed)).toEqual(
+      expected.map(value => value.getType())
+    );
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], mixed)).toEqual(
+      expected.map(value => value.getType())
+    );
+  });
+
+  const summaryUnitFamilies: [keyof UserUnitSettingsInterface, string, { type: string }[]][] = [
+    ['speedUnits', DataSpeed.type, [_DataStore.DataSpeedAvg, _DataStore.DataSpeedMin, _DataStore.DataSpeedMax]],
+    [
+      'gradeAdjustedSpeedUnits',
+      _DataStore.DataGradeAdjustedSpeed.type,
+      [_DataStore.DataGradeAdjustedSpeedAvg, _DataStore.DataGradeAdjustedSpeedMin, _DataStore.DataGradeAdjustedSpeedMax]
+    ],
+    ['paceUnits', DataPace.type, [_DataStore.DataPaceAvg, _DataStore.DataPaceMin, _DataStore.DataPaceMax]],
+    [
+      'gradeAdjustedPaceUnits',
+      DataGradeAdjustedPace.type,
+      [_DataStore.DataGradeAdjustedPaceAvg, _DataStore.DataGradeAdjustedPaceMin, _DataStore.DataGradeAdjustedPaceMax]
+    ],
+    [
+      'swimPaceUnits',
+      DataSwimPace.type,
+      [_DataStore.DataSwimPaceAvg, _DataStore.DataSwimPaceMin, _DataStore.DataSwimPaceMax]
+    ],
+    [
+      'verticalSpeedUnits',
+      _DataStore.DataVerticalSpeed.type,
+      [_DataStore.DataVerticalSpeedAvg, _DataStore.DataVerticalSpeedMin, _DataStore.DataVerticalSpeedMax]
+    ]
+  ];
+
+  describe.each(summaryUnitFamilies)('%s summary preferences', (key, base, types) => {
+    const otherFamilies = summaryUnitFamilies.map(([, family]) => family).filter(family => family !== base);
+    const invalidUnits = ['Heart Rate', 'Power', 'Depth', 'toString', 'constructor', '__proto__', ...otherFamilies];
+
+    it.each(types.map(DataClass => DataClass.type))('does not relabel %s as a different metric family', type => {
+      const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+      const settings = { ...metricSettings, [key]: invalidUnits } as UserUnitSettingsInterface;
+      expect(DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings)).toEqual([]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, settings)).toEqual([]);
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings)).toEqual([]);
+      expect(stat.toJSON()).toEqual({ [type]: 5 });
+    });
+
+    it.each(types.map(DataClass => DataClass.type))(
+      'keeps valid conversions of %s alongside invalid family selections',
+      type => {
+        const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+        const validUnits = metricSettings[key] as string[];
+        const settings = { ...metricSettings, [key]: [...invalidUnits, ...validUnits] } as UserUnitSettingsInterface;
+        const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, metricSettings);
+        expect(DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings).map(value => value.toJSON())).toEqual(
+          expected.map(value => value.toJSON())
+        );
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, settings)).toEqual(
+          expected.map(value => value.getType())
+        );
+        expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings)).toEqual(
+          expected.map(value => value.getType())
+        );
+      }
+    );
+  });
+
+  describe.each(settingsCases)('unit-type/value parity with %s preferences', (_name, settings) => {
+    it.each(summaryTypes)('resolves %s consistently through both lookup APIs and value conversion', type => {
+      const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+      const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings).map(value => value.getType());
+      expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(type, settings)).toEqual(expected);
+      expect(
+        DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings, { includeDerivedTypes: false })
+      ).toEqual(expected);
+      expect(stat.toJSON()).toEqual({ [type]: 5 });
+    });
+
+    it.each([DataPace.type, DataGradeAdjustedPace.type, DataSwimPace.type])(
+      'retains explicitly requested %s units',
+      type => {
+        const stat = DynamicDataLoader.getDataInstanceFromDataType(type, 5);
+        const expected = DynamicDataLoader.getUnitBasedDataFromDataInstance(stat, settings).map(value =>
+          value.getType()
+        );
+        expect(
+          DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([type], settings, { includeDerivedTypes: false })
+        ).toEqual(expected);
+      }
+    );
+  });
+
+  it('retains the canonical summary type when no preferences were supplied', () => {
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataType(_DataStore.DataSpeedAvg.type)).toEqual([
+      _DataStore.DataSpeedAvg.type
+    ]);
+    expect(DynamicDataLoader.getUnitBasedDataTypesFromDataTypes([_DataStore.DataSpeedAvg.type])).toEqual([]);
+  });
+
+  const summaryFamilies = [
+    [
+      DataSpeedFeetPerMinute,
+      _DataStore.DataSpeedAvgFeetPerMinute,
+      _DataStore.DataSpeedMinFeetPerMinute,
+      _DataStore.DataSpeedMaxFeetPerMinute
+    ],
+    [
+      DataGradeAdjustedSpeedFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedAvgFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedMinFeetPerMinute,
+      _DataStore.DataGradeAdjustedSpeedMaxFeetPerMinute
+    ],
+    [DataSwimPace, _DataStore.DataSwimPaceAvg, _DataStore.DataSwimPaceMin, _DataStore.DataSwimPaceMax],
+    [
+      DataSwimPaceMinutesPer100Yard,
+      _DataStore.DataSwimPaceAvgMinutesPer100Yard,
+      _DataStore.DataSwimPaceMinMinutesPer100Yard,
+      _DataStore.DataSwimPaceMaxMinutesPer100Yard
+    ]
+  ];
+
+  it.each(summaryFamilies)(
+    'resolves all summary siblings for %p without changing stored metrics',
+    (Base, Avg, Min, Max) => {
+      expect(DynamicDataLoader.dataTypeAvgDataType[Base.type]).toBe(Avg.type);
+      expect(DynamicDataLoader.dataTypeMinDataType[Base.type]).toBe(Min.type);
+      expect(DynamicDataLoader.dataTypeMaxDataType[Base.type]).toBe(Max.type);
+
+      for (const DataClass of [Base, Avg, Min, Max]) {
+        expect(Object.values(_DataStore)).toContain(DataClass);
+        expect(DynamicDataLoader.getDataClassFromDataType(DataClass.type)).toBe(DataClass);
+        const stat = DynamicDataLoader.getDataInstanceFromDataType(DataClass.type, 42);
+        expect(stat.getType()).toBe(DataClass.type);
+        expect(stat.getValue()).toBe(42);
+        expect(stat.isValueTypeValid(stat.getValue())).toBe(true);
+        const json = JSON.parse(JSON.stringify(stat.toJSON()));
+        expect(json).toEqual({ [DataClass.type]: 42 });
+        const restored = DynamicDataLoader.getDataInstanceFromDataType(DataClass.type, json[DataClass.type]);
+        expect(restored.toJSON()).toEqual(stat.toJSON());
+      }
+    }
+  );
+
   const unitDerivedDataTypes = [
     DataSpeedKilometersPerHour.type,
     DataSpeedMilesPerHour.type,

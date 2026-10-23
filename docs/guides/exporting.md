@@ -76,3 +76,93 @@ const restoredRouteFile = SportsLib.importRoutesFromJSON(routeJson);
 ```
 
 The `EventJSONInterface` and `RouteFileJSONInterface` API pages describe the JSON shapes. Use native route JSON when route metadata must be retained beyond FIT Course capabilities.
+
+## Sparse distance and calculated intervals
+
+Activity Distance streams preserve missing readings as `null`; zero and repeated distances are retained. Other sensors
+keep their own timestamps. `Activity.toJSON()` exports exactly one Time stream based on the union of regular stream
+timestamps, so a sparse Distance stream cannot remove HR or power readings from the exported clock. IBI-only exports
+retain their existing projected time behavior.
+
+Consumers must check for finite numeric readings before converting values: `Number(null)` produces zero and loses
+the distinction between missing and stationary distance. Distance cursors should match only finite distance/time
+pairs and return unavailable when no such pair exists.
+
+Generated interval-rate streams may include the additive `StreamJSONInterface.intervalSupport` field:
+
+```json
+{
+  "type": "Speed",
+  "data": [null, null, 2],
+  "intervalSupport": { "direction": "ending", "durations": [null, null, 2] }
+}
+```
+
+This example represents 2 m/s over the two-second interval ending at index 2. `starting` is used for calculated grade.
+The duration array is parallel to `data`; null means no supported interval at that sample. Values are positive integer
+seconds, bounded by the stream and nonoverlapping. Malformed evidence is ignored during hydration. Legacy streams
+without the field remain readable, with their existing summary policy. Retain the complete stream object when storing
+JSON to preserve duration-weighted recalculation. Older consumers can read the ordinary values but may discard the
+additional field when writing JSON again.
+
+`Stream.setData()` and `Activity.addDataToStream()` invalidate interval evidence. The activity setter edits the
+original values even while a read filter is active; filtered display values are never persisted by that setter. A stream
+filter disables interval evidence for filtered reads, while serialization still exports the original unfiltered data and
+evidence. Consumers editing arrays in place must replace the data through `setData()` to invalidate old weights.
+
+Time cropping retains weights only for intervals wholly inside the crop; a retained boundary sample does not imply
+that the full interval belongs to the crop. Both boundaries are inclusive, including one-sided crops. The range is
+bounded by the original activity, and a fractional start advances to the first retained sample on the original
+one-second grid. Invalid ranges or ranges containing no sample slot throw before changing the activity; omitted
+bounds leave it unchanged. Cropping also rebases retained events and preserves a pause already active at the crop
+start, without mutating shared event objects or dropping retained event payloads. Existing summary statistics remain
+unchanged until callers explicitly refresh them.
+
+Raw `IBIStream` arrays use irregular beat timing. Native JSON preserves optional elapsed end times as `sampleTimes`;
+time cropping selects overlapping intervals by these times (or legacy cumulative times), rebases them and retains
+boundary intervals for clipped coverage without treating them as full beats. A regular one-second IBI chart stream
+instead serializes `sampling: '1Hz'` and remains ineligible for HRV after reload. Preserve these fields when copying
+stream JSON. Legacy raw arrays remain readable; old resampled arrays without timing metadata require source reparse
+to recover the actual beats. See [activity R–R analysis](metrics-and-calculations.md#activity-rr-analysis).
+
+Existing persisted summaries are not automatically overwritten on JSON hydration. Historical filled distance streams
+require an original-file reparse: neither JSON hydration nor summary regeneration can reconstruct their missing-value
+mask. After adopting this version, regenerate affected summaries/Training snapshots from corrected imports as needed.
+Canonical metric names, units, recorded statistics, swim lengths/rests, and route JSON contracts remain unchanged.
+The optional interval evidence is calculation metadata, not a new numeric metric or an MCP response field.
+
+## Missing power
+
+FIT, TCX and GPX power now preserves missing values as `null` and keeps recorded zero watts. Native JSON preserves
+those gaps. Generated Time is the union of sensor values and stays consistent after JSON restoration.
+Original record timestamps are used only during import to retain the existing fill behavior of other sensors.
+The JSON format, metric names and units are unchanged; no coverage or provenance fields are added.
+`ActivityUtilities.getPowerCoverage(activity)` calculates observed duration, average and work on demand without
+changing the activity. Derived left/right power also retains explicit nulls where total power or balance is missing.
+GPX exports retain genuine zero watts and omit missing power, without adding or removing activity streams.
+Supplied summaries and imported TSS retain priority. Missing power extrema, side watts and balance summaries are
+calculated from original samples rather than attached stream-filter views. If older code persisted summaries or side
+streams calculated from filtered inputs, a native JSON parse preserves those saved values; reparse the original file to
+rebuild them. Ordinary imports without attached filters need no extra migration for this correction.
+Calculated lap power extrema also include a leading reading with active support across a fractional lap start,
+consistent with the lap's power average. Native JSON keeps saved lap statistics; reparse originals to replace
+earlier calculated extrema. Original readings, activity summaries and supplied lap summaries remain unchanged.
+
+Old zero-filled power streams cannot distinguish missing readings from real coasting. Correcting them requires the
+retained original FIT/TCX/GPX file, not simply another native JSON parse. Systems that reparse originals on demand need
+no separate stored-stream migration. Persist refreshed summaries/evaluations and rebuild affected power curves or
+capacity snapshots through the application's normal workflow. No automatic migration or reparse is triggered.
+
+FIT session/lap balance corrections require an original-file reparse: older native JSON did not retain those source
+summaries. Invalid FIT record balance also requires source reparsing to replace impossible percentages and derived
+side watts with missing observations while retaining total recorded power. Valid 0–100% balances are preserved. These
+corrections do not add serialized fields or alter metric keys or units. Stored balance statistics remain readable and
+are not overwritten during JSON restoration. To correct a multisport event's average/maximum power and W/kg, call
+`EventUtilities.reGenerateStatsForEvent(event)` with its existing leg
+statistics, then persist the refreshed event summary. This does not need an original-file reparse or change leg data.
+Saved power curves and FTP summaries are not replaced by JSON hydration. To apply the timer-boundary correction,
+refresh affected calculated snapshots from original files or retained power streams and timer events; keep supplied
+summaries authoritative. There are no new metric names, units, serialized fields or MCP schemas.
+
+See [Power coverage and observed work](metrics-and-calculations.md#power-coverage-and-observed-work) for formulas,
+partial-result handling and the computed-power TSS coverage gate. Routes are unchanged.

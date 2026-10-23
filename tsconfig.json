@@ -12,6 +12,11 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "resolveJsonModule": true,
+    "types": [
+      "node",
+      "jest"
+    ],
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true

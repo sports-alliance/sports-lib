@@ -12,6 +12,10 @@ streams need an original-file reparse; recorded values and route behavior remain
 [distance calculations](guides/metrics-and-calculations.md) and
 [persistence and migration](guides/exporting.md#sparse-distance-and-calculated-intervals).
 
+Generated GPS distances use geolib 4's haversine calculation, retaining the default 0.1 metre interval rounding.
+The distance adapter also supports unrounded distances at zero accuracy. GPS-derived distance, speed, pace, grade and
+moving time can change when recalculated from retained sources; see [distance calculations](guides/metrics-and-calculations.md).
+
 Power imports retain unknown watts as null and real coasting as zero. Calculated work, curves and power TSS use
 observed interval coverage, while supplied summaries keep priority. `ActivityUtilities.getPowerCoverage` exposes
 observed duration and work from original, unfiltered samples on demand, without adding stored metadata. Power extrema,
@@ -34,6 +38,9 @@ and the existing dive summaries. Unit-type lookups agree with value conversion f
 selections and exclude units from other summary families; feet-, mile- and yard-based classes report imperial metadata.
 These corrections require no reparse or migration. See
 [summary family metadata](guides/metrics-and-calculations.md#summary-family-metadata).
+
+Suunto SML XML imports load their XML parser on demand. Package imports and JSON restoration avoid that parser's
+startup cost; parsed metrics and JSON formats are unchanged. See [Suunto SML](guides/importing-activities.md#suunto-sml).
 
 Missing per-yard average swim pace is derived from the canonical swim average rather than running pace. Existing
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.

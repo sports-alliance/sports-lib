@@ -275,6 +275,8 @@ async function verifyTypeDeclarations(temporaryDirectory) {
         module,
         '--moduleResolution',
         moduleResolution,
+        '--ignoreDeprecations',
+        '6.0',
         '--noEmit',
         '--skipLibCheck',
         '--strict',

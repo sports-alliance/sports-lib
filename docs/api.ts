@@ -60,7 +60,7 @@ export { SportsLib } from '../src/index';
  */
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
-/** Lazy event summaries for dashboards and lists, with canonical metric construction on demand.
+/** Lazy event summaries for dashboards and lists, with canonical metric construction on demand and stable enumeration.
  * @category Activities and events
  */
 export { EventSummary } from '../src/events/event-summary';

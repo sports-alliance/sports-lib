@@ -157,10 +157,17 @@ export class EventSummary {
     return this.getStat<number>(DataDuration.type) as DataDuration | undefined;
   }
 
-  /** Materializes all available stored and speed-derived stats; the returned map is a copy. */
+  /**
+   * Materializes stats in canonical raw-snapshot order, followed by missing speed-derived stats.
+   * The returned map is a copy; enumeration order does not depend on earlier lazy reads.
+   */
   getStats<TValue = DefaultDataValue>(): Map<string, DataInterface<TValue>> {
-    [...this.rawStats.keys(), ...SPEED_DERIVED_STAT_TYPES].forEach(type => this.getStat(type));
-    return new Map(this.stats) as Map<string, DataInterface<TValue>>;
+    const stats = new Map<string, DataInterface<TValue>>();
+    [...this.rawStats.keys(), ...SPEED_DERIVED_STAT_TYPES].forEach(type => {
+      const stat = this.getStat<TValue>(type);
+      if (stat) stats.set(stat.getType(), stat);
+    });
+    return stats;
   }
 
   /** Materializes all available stats, as an array. */

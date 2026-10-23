@@ -43,8 +43,9 @@ Unknown metric keys remain in the raw snapshot. Unknown-type and invalid-value c
 affected metric is requested, including during full enumeration. Unrelated metadata and metric reads remain usable.
 The summary reader does not replace a payload sanitizer for applications that need to report or remove unknown fields.
 
-`getStats` and `getStatsAsArray` explicitly materialize all available metrics. Their containers are copies; metric
-instances remain cached and mutable like other Sports Lib data instances. `getRawStats` returns a deep copy of the
+`getStats` and `getStatsAsArray` explicitly materialize all available metrics in canonical raw-stat order, followed
+by missing speed-derived metrics in rule order. Earlier lazy reads do not change that order. Their containers are
+copies; metric instances remain cached and mutable like other Sports Lib data instances. `getRawStats` returns a deep copy of the
 canonical raw snapshot, after sport semantics and before additive pace derivation. It is not a native event export.
 Metric mutations do not change that raw snapshot. Apply user-unit preferences through `DynamicDataLoader` before
 reading display values and units, as with the full event model.

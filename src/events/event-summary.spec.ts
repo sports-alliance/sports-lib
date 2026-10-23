@@ -190,4 +190,39 @@ describe('EventSummary', () => {
     expect(summary).not.toHaveProperty('toJSON');
     expect(summary).not.toHaveProperty('addStat');
   });
+
+  it('keeps native running enumeration order after lazy reads of derived metrics and their dependencies', () => {
+    const json = fixture({ [DataDistance.type]: 1000, [DataSpeedAvg.type]: 4 });
+    const expectedTypes = [
+      ...EventImporterJSON.getEventFromJSON({ ...json, activities: [] })
+        .getStats()
+        .keys()
+    ];
+    const summary = EventSummary.fromJSON(json);
+    const pace = summary.getStat(DataPaceAvg.type);
+
+    expect([...summary.getStats().keys()]).toEqual(expectedTypes);
+    expect(summary.getStatsAsArray().map(stat => stat.getType())).toEqual(expectedTypes);
+    expect(summary.getStat(DataPaceAvg.type)).toBe(pace);
+  });
+
+  it.each([ActivityTypes.Swimming, ActivityTypes.Diving])(
+    'keeps %s enumeration stable after sport normalization and lazy reads',
+    sport => {
+      const json = fixture({
+        [DataActivityTypes.type]: [sport],
+        [DataDistance.type]: 1000,
+        [DataSpeedAvg.type]: 4,
+        [DataCadenceAvg.type]: 80,
+        [DataAscent.type]: 20
+      });
+      const freshTypes = [...EventSummary.fromJSON(json).getStats().keys()];
+      const summary = EventSummary.fromJSON(json);
+      summary.getStat(DataPaceAvg.type);
+      summary.getDistance();
+
+      expect([...summary.getStats().keys()]).toEqual(freshTypes);
+      expect(summary.getStatsAsArray().map(stat => stat.getType())).toEqual(freshTypes);
+    }
+  );
 });

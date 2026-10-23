@@ -1120,6 +1120,27 @@ export const DataStore: any = {
 };
 
 export class DynamicDataLoader {
+  private static dataConstructors?: Map<string, typeof Data>;
+
+  private static getDataConstructor(dataType: string): typeof Data {
+    if (!this.dataConstructors) {
+      this.dataConstructors = new Map();
+      // Preserve the catalog's first-match precedence, including aliases that precede
+      // another class's canonical token. The built-in catalog is indexed only once.
+      Object.keys(DataStore).forEach(key => {
+        const constructor = DataStore[key];
+        if (!constructor?.type) return;
+        const types = [constructor.type, ...(Array.isArray(constructor.aliases) ? constructor.aliases : [])];
+        types.forEach(type => {
+          if (!this.dataConstructors!.has(type)) this.dataConstructors!.set(type, constructor);
+        });
+      });
+    }
+    const constructor = this.dataConstructors.get(dataType);
+    if (!constructor) throw new Error(`Class type of '${dataType}' is not in the store`);
+    return constructor;
+  }
+
   // @todo Convert to enums please and use them on Stream types
 
   private static readonly canonicalHealthTypeAliases: Readonly<Record<string, string>> = {
@@ -1747,19 +1768,10 @@ export class DynamicDataLoader {
       dataType = DataGroundContactTimeMax.type;
     }
 
-    const className = Object.keys(DataStore).find(dataClass => {
-      if (!DataStore[dataClass] || !DataStore[dataClass].type) {
-        return false;
-      }
-      if (DataStore[dataClass].type === dataType) {
-        return true;
-      }
-      return Array.isArray(DataStore[dataClass].aliases) && DataStore[dataClass].aliases.indexOf(dataType) !== -1;
-    });
-    if (!className || !DataStore[className]) {
-      throw new Error(`Class type of '${dataType}' is not in the store`);
-    }
-    return new DataStore[className](opts);
+    const constructor = DynamicDataLoader.getDataConstructor(dataType) as unknown as new (
+      value: unknown
+    ) => DataInterface;
+    return new constructor(opts);
   }
 
   static getDataClassFromDataType(dataType: string): typeof Data {
@@ -1773,19 +1785,7 @@ export class DynamicDataLoader {
       dataType = DataGroundContactTimeMax.type;
     }
 
-    const className = Object.keys(DataStore).find(dataClass => {
-      if (!DataStore[dataClass] || !DataStore[dataClass].type) {
-        return false;
-      }
-      if (DataStore[dataClass].type === dataType) {
-        return true;
-      }
-      return Array.isArray(DataStore[dataClass].aliases) && DataStore[dataClass].aliases.indexOf(dataType) !== -1;
-    });
-    if (!className || !DataStore[className]) {
-      throw new Error(`Class type of '${dataType}' is not in the store`);
-    }
-    return DataStore[className];
+    return DynamicDataLoader.getDataConstructor(dataType);
   }
 
   static isUnitDerivedDataType(dataType: string): boolean {

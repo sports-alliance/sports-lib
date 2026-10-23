@@ -60,6 +60,11 @@ export { SportsLib } from '../src/index';
  */
 export { EventExporterGPX } from '../src/events/adapters/exporters/exporter.gpx';
 export { EventExporterJSON } from '../src/events/adapters/exporters/exporter.json';
+/** Lazy event summaries for dashboards and lists, with canonical metric construction on demand.
+ * @category Activities and events
+ */
+export { EventSummary } from '../src/events/event-summary';
+export type { EventSummaryJSONInterface } from '../src/events/event-summary';
 /**
  * Recorded sustainable-distance estimates, distinct from travelled or target distance.
  * Canonical metres and minimum; miles variants are presentation only. Suunto source values

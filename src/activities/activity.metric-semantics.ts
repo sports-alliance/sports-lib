@@ -11,6 +11,7 @@ import { DataGradeAvg } from '../data/data.grade-avg';
 import { DataGradeMax } from '../data/data.grade-max';
 import { DataGradeMin } from '../data/data.grade-min';
 import { DataInterface } from '../data/data.interface';
+import type { DataJSONValue } from '../data/data.json.interface';
 import { DataStrokeRate } from '../data/data.stroke-rate';
 import { DataStrokeRateAvg } from '../data/data.stroke-rate-avg';
 import { DataStrokeRateMax } from '../data/data.stroke-rate-max';
@@ -47,6 +48,25 @@ const DIVING_TERRAIN_SUMMARY_DATA_TYPES = [
   DataGradeMax.type,
   DataGradeAvg.type
 ] as const;
+
+/** Package-internal raw-stat counterpart for summary readers; constructs no metric instances. */
+export function normalizeActivityMetricSemanticsForJSONStats(
+  stats: Map<string, DataJSONValue>,
+  activityTypes: readonly unknown[]
+): void {
+  const resolved = resolveActivityTypes(activityTypes);
+  if (resolved.length === 0 || resolved.length !== activityTypes.length) return;
+  if (resolved.every(type => ActivityTypesHelper.usesStrokeRate(type))) {
+    CADENCE_TO_STROKE_RATE_STATS.forEach(({ source, target }) => {
+      if (!stats.has(source.type)) return;
+      if (!stats.has(target.type)) stats.set(target.type, stats.get(source.type)!);
+      stats.delete(source.type);
+    });
+  }
+  if (resolved.every(type => ActivityTypesHelper.shouldExcludeTerrainSummaryMetrics(type))) {
+    DIVING_TERRAIN_SUMMARY_DATA_TYPES.forEach(type => stats.delete(type));
+  }
+}
 
 /**
  * Re-labels cadence-shaped stats as stroke rate while preferring an explicitly supplied

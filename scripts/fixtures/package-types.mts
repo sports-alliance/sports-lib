@@ -2,6 +2,17 @@ import { DataDistance, SportsLib, User } from '@sports-alliance/sports-lib';
 import type { EventInterface, EventJSONInterface } from '@sports-alliance/sports-lib';
 import { DataDistance as MetricsDistance, DynamicDataLoader } from '@sports-alliance/sports-lib/metrics';
 import type { ActivityInterface as MetricsActivity } from '@sports-alliance/sports-lib/metrics';
+import { EventSummary as MetricsSummary } from '@sports-alliance/sports-lib/metrics';
+import type { EventSummary, EventSummaryJSONInterface } from '@sports-alliance/sports-lib';
+
+export function readSummary(json: EventSummaryJSONInterface): number | undefined {
+  const summary: EventSummary = MetricsSummary.fromJSON(json);
+  const value: number | undefined = summary.getStat<number>(DataDistance.type)?.getValue();
+  // @ts-expect-error Summaries must not masquerade as editable/exportable full events.
+  const event: EventInterface = summary;
+  void event;
+  return value;
+}
 
 export const metricsDistance: DataDistance = new MetricsDistance(1);
 export const metricsLoader: typeof import('@sports-alliance/sports-lib').DynamicDataLoader = DynamicDataLoader;

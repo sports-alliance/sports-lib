@@ -87,6 +87,29 @@ const SPEED_DERIVED_STAT_RULES: readonly SpeedDerivedStatRule[] = [
   }
 ];
 
+/** Package-internal targets available to lazy summary hydration. */
+export const SPEED_DERIVED_STAT_TYPES: readonly string[] = SPEED_DERIVED_STAT_RULES.map(rule => rule.target.type);
+const speedDerivedRulesByType = new Map(SPEED_DERIVED_STAT_RULES.map(rule => [rule.target.type, rule]));
+
+/** Creates one missing derived summary using the same rules as eager JSON hydration. */
+export function createSpeedDerivedStat(
+  target: Pick<StatsClassInterface, 'getStat'>,
+  dataType: string
+): DataInterface<number> | undefined {
+  const rule = speedDerivedRulesByType.get(dataType);
+  if (!rule) return undefined;
+  const sourceValue = StatsUtilities.getFiniteStatValue(target, rule.sourceType);
+  if (sourceValue === null) return undefined;
+  const relatedValue = rule.relatedSourceType
+    ? StatsUtilities.getFiniteStatValue(target, rule.relatedSourceType)
+    : null;
+  const valueToConvert =
+    relatedValue !== null && rule.combineSourceValues
+      ? rule.combineSourceValues(sourceValue, relatedValue)
+      : sourceValue;
+  return new rule.target(rule.convert(valueToConvert));
+}
+
 /**
  * Fills missing pace-family summary stats from canonical speed-family stats.
  *
@@ -99,19 +122,7 @@ export function hydrateMissingSpeedDerivedStats(target: SpeedDerivedStatsTarget)
       return;
     }
 
-    const sourceValue = StatsUtilities.getFiniteStatValue(target, rule.sourceType);
-    if (sourceValue === null) {
-      return;
-    }
-
-    const relatedValue = rule.relatedSourceType
-      ? StatsUtilities.getFiniteStatValue(target, rule.relatedSourceType)
-      : null;
-    const valueToConvert =
-      relatedValue !== null && rule.combineSourceValues
-        ? rule.combineSourceValues(sourceValue, relatedValue)
-        : sourceValue;
-
-    target.addStat(new rule.target(rule.convert(valueToConvert)));
+    const stat = createSpeedDerivedStat(target, rule.target.type);
+    if (stat) target.addStat(stat);
   });
 }

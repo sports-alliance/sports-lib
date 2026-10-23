@@ -1,5 +1,7 @@
 # Sports Lib documentation
 
+Use [event summaries](guides/json-summaries.md) for dashboard and list reads that construct canonical metrics on demand.
+
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
 and native JSON hydration consistently fill missing speed-derived pace summaries on events, activities, and laps while
 preserving applicable explicit values except Diving-group terrain summaries. Supported activity aliases are normalized to

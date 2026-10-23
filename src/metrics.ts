@@ -9,6 +9,8 @@
  * @module Metrics
  */
 export * from './data';
+export { EventSummary } from './events/event-summary';
+export type { EventSummaryJSONInterface } from './events/event-summary';
 export * from './activities/activity.types';
 export type { ActivityInterface } from './activities/activity.interface';
 export { ActivityUtilities } from './events/utilities/activity.utilities';

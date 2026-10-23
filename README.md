@@ -60,6 +60,10 @@ affected derived summaries; installing the release does not rewrite saved data. 
 
 ## Package formats
 
+Dashboards and lists can use `EventSummary.fromJSON` for metadata and lazy canonical metric hydration, from either
+the package root or `/metrics`. Full JSON imports remain available for activity details and editing. See the
+[event summary guide and benchmark](docs/guides/json-summaries.md); existing persisted data needs no migration.
+
 Browser charts and workers can import canonical data classes, unit settings, activity types and stream utilities from
 `@sports-alliance/sports-lib/metrics`. This public entry reuses the root API's implementations while excluding file
 import/export facades. It prevents unused asynchronous parser chunks from being emitted in worker builds. ESM,

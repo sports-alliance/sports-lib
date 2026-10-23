@@ -216,6 +216,8 @@ export * from './events/adapters/importers/suunto/importer.suunto.sml';
 export * from './events/adapters/importers/tcx/importer.tcx';
 export * from './events/event.interface';
 export * from './events/event.json.interface';
+export { EventSummary } from './events/event-summary';
+export type { EventSummaryJSONInterface } from './events/event-summary';
 export * from './events/utilities/activity.utilities';
 export * from './events/utilities/activity-durability';
 export * from './events/utilities/event.utilities';
@@ -260,6 +262,12 @@ export * from './users/user';
 export * from './users/user.export-to-csv.settings.interface';
 export * from './users/user.service.meta.interface';
 
-export type { TrainingStressScorePreference, TrainingStressScoreHrAlgorithm, TrainingStressScoreReason, TrainingStressScoreEvaluation, TrainingStressScoreEvaluations } from './events/utilities/tss/tss-evaluation';
+export type {
+  TrainingStressScorePreference,
+  TrainingStressScoreHrAlgorithm,
+  TrainingStressScoreReason,
+  TrainingStressScoreEvaluation,
+  TrainingStressScoreEvaluations
+} from './events/utilities/tss/tss-evaluation';
 
 export * from './duration/timing-validity';

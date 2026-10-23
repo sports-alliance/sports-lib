@@ -250,6 +250,16 @@ async function verifyModuleFormats() {
   });
   assert.equal(esmExports.SportsLib.importFromJSON(createNativeEventJson()).name, 'package-smoke-test');
   assert.equal(cjsExports.SportsLib.importFromJSON(createNativeEventJson()).name, 'package-smoke-test');
+  for (const exports of [esmExports, cjsExports]) {
+    const summary = exports.EventSummary.fromJSON({
+      ...createNativeEventJson(),
+      id: 'summary-smoke',
+      stats: { Distance: 1000 }
+    });
+    assert.equal(summary.getID(), 'summary-smoke');
+    assert.equal(summary.getDistance().getValue(), 1000);
+    assert.equal(summary.toJSON, undefined);
+  }
 
   return Object.keys(esmExports).length;
 }
@@ -406,7 +416,7 @@ async function verifyMetricsWorker(temporaryDirectory) {
   assert.equal(result.outputFiles.length, 1, 'Metrics worker emitted unexpected asynchronous chunks');
   const context = {};
   runInNewContext(result.outputFiles[0].text, context, { timeout: 5000 });
-  assert.deepEqual(Array.from(context.metricsWorkerSmoke), [0, null, 7.2, 1000]);
+  assert.deepEqual(Array.from(context.metricsWorkerSmoke), [0, null, 7.2, 1000, 250]);
   return result.outputFiles[0].contents.byteLength;
 }
 

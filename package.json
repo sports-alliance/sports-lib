@@ -60,6 +60,7 @@
     "lint:package": "eslint rollup.config.mjs scripts/fixtures/metrics-worker.mjs scripts/fixtures/representative-startup.mjs scripts/fixtures/sportslib-facade-startup.mjs scripts/rewrite-esm-specifiers.mjs scripts/verify-package.mjs scripts/write-build-package-metadata.mjs",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
     "test:package": "node scripts/verify-package.mjs",
+    "bench:json": "node --expose-gc scripts/benchmark-json-hydration.mjs",
     "test-coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "prepack": "npm run build",
     "report:tss": "npx --yes tsx scripts/generate-tss-validation-report.ts",

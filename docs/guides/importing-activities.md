@@ -1140,6 +1140,13 @@ This loading change preserves parsed metrics and JSON formats; existing activiti
 
 ## GPX
 
+Recorded track points normally use GPX date-time text. For compatibility, the activity importer also accepts exactly
+13 decimal digits as Unix milliseconds; it does not guess Unix seconds or other numeric units. Both forms retain
+their absolute instants and subsecond precision before sorting. Invalid, empty or structured point times fail with
+`ParsingEventLibError` before stream allocation instead of an array-length error. Existing duration limits still apply.
+Tracks without point times remain route-only inputs. Saved-route parsing is unchanged. Previously rejected files can
+be imported again after upgrading; already successful imports need no reparse, summary regeneration or data migration.
+
 The GPX `creator` attribute supplies the exporter name. Its `version` attribute is the GPX schema version,
 not the manufacturer or device software version; neither is inferred from the exporter name. Reparse original GPX
 to correct manufacturer values persisted by older importers.

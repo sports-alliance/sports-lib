@@ -25,7 +25,8 @@ import {
 
 export class EventImporterGPX {
   /** Imports timed GPX tracks, including directly owned v2 recorded speed and corroborated legacy
-   * v1 exporter conventions in m/s. Historical recovery requires original-file reparse. */
+   * v1 exporter conventions in m/s. Also accepts 13-digit Unix-millisecond point times.
+   * Invalid point times fail before stream allocation. Historical recovery requires original-file reparse. */
   static async getFromString(
     gpx: string,
     domParser?: any,
@@ -69,6 +70,17 @@ export class EventImporterGPX {
           return activities;
         }
 
+        // Some exporters write Unix milliseconds instead of GPX date-time text. Keep this
+        // compatibility format explicit; never guess seconds or allocate streams from invalid dates.
+        samples.forEach(sample => {
+          const value = Array.isArray(sample.time) ? sample.time[0] : undefined;
+          const time = typeof value === 'string' ? (/^\d{13}$/.test(value) ? Number(value) : Date.parse(value)) : NaN;
+          if (!Number.isFinite(time)) {
+            throw new ParsingEventLibError('GPX track points contain invalid timestamps');
+          }
+          sample.time[0] = new Date(time).toISOString();
+        });
+
         // Sort samples
         samples.sort((sampleA: any, sampleB: any) => {
           return +new Date(sampleA.time[0]) - +new Date(sampleB.time[0]);
@@ -106,8 +118,11 @@ export class EventImporterGPX {
           isStreamTypeAllowedForImport(sampleMapping.dataType, streamSelection)
         ).forEach(sampleMapping => {
           const subjectSamples = <any[]>(
-            samples.filter((sample: any) => (sampleMapping.dataType === DataPower.type && hasPowerMeter) ||
-              isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo)))
+            samples.filter(
+              (sample: any) =>
+                (sampleMapping.dataType === DataPower.type && hasPowerMeter) ||
+                isNumberOrString(sampleMapping.getSampleValue(sample, samplesInfo))
+            )
           );
           if (subjectSamples.length) {
             activity.addStream(activity.createStream(sampleMapping.dataType));
@@ -122,7 +137,10 @@ export class EventImporterGPX {
         });
 
         if (activity.hasStreamData(DataPower.type) && activity.getStreamData(DataPower.type).some(isNumber)) {
-          captureImportedSensorFillTimes(activity, samples.map(sample => new Date(sample.time[0])));
+          captureImportedSensorFillTimes(
+            activity,
+            samples.map(sample => new Date(sample.time[0]))
+          );
         }
 
         // Compute moving time, timer time and elapsed time

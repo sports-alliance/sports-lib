@@ -49,6 +49,8 @@
  * Suunto mixed-sport legs require leg-owned speed-zone thresholds. GPX imports recognize namespace-qualified
  * ClueTrust GPXDATA HR observations without changing canonical metric tokens or JSON schemas.
  * Native JSON retains child activity names. GPX schema versions do not populate creator manufacturer metadata.
+ * GPX point times accept date-time text or exactly 13-digit Unix milliseconds; invalid times fail before streams
+ * are allocated. Successful historical imports need no reparse for this compatibility change.
  * GPX retains directly owned v2 speed in m/s, with narrow evidenced v1 exporter compatibility and existing
  * direct-field precedence. Historical recovery requires original-file reparse; metric names and JSON stay stable.
  * TCX sport aliases resolve to canonical types; unrecognized or absent sport labels remain Unknown Sport.

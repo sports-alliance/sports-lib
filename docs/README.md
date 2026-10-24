@@ -290,6 +290,8 @@ refreshes for affected activities; existing non-activity imports need separate c
 
 Native activity JSON restores child names independently of event titles. GPX activity and route imports retain the
 exporter name without assigning the schema version as a manufacturer; unknown TCX sports use `Unknown Sport`.
+GPX activity imports also accept 13-digit Unix-millisecond point times and reject invalid times before allocating
+streams. Re-upload previously rejected files after upgrading; successful imports and saved routes need no migration.
 GPX activity imports retain recorded m/s speed from standard TrackPointExtension/v2 and evidenced legacy v1
 exporters, preserving zero, gaps and canonical Speed/Pace identities. Activity exports use v2 and keep zero speeds.
 Historical recovery requires original-file reparse and dependent-summary refresh; see the

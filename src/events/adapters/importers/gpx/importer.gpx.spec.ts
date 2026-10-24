@@ -1,10 +1,85 @@
 import { EventImporterGPX } from './importer.gpx';
 import xmldom from '@xmldom/xmldom';
 import { EventImporterJSON } from '../json/importer.json';
+import { Activity } from '../../../../activities/activity';
+import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
+import { DataLatitudeDegrees } from '../../../../data/data.latitude-degrees';
+import { ParsingEventLibError } from '../../../../errors/parsing-event-lib.error';
 
 describe('importer.gpx', () => {
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  const timedTrack = (times: string[]) => `<gpx version="1.1" creator="Synthetic exporter"
+    xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>
+    ${times.map((time, index) => `<trkpt lat="${1 + index * 0.001}" lon="2"><time>${time}</time></trkpt>`).join('')}
+    </trkseg></trk></gpx>`;
+
+  it('imports Unix-millisecond point times without changing their instants or sample placement', async () => {
+    const start = Date.UTC(2026, 0, 1, 10, 0, 0, 250);
+    const event = await EventImporterGPX.getFromString(
+      timedTrack([start, start + 3000, start + 6000].map(String)),
+      xmldom.DOMParser
+    );
+    const activity = event.getFirstActivity();
+
+    expect(event.getActivities()).toHaveLength(1);
+    expect(activity.startDate.getTime()).toBe(start);
+    expect(activity.endDate.getTime()).toBe(start + 6000);
+    expect(activity.getDuration()?.getValue()).toBe(6);
+    expect(activity.getStreamData(DataLatitudeDegrees.type)).toEqual([1, null, null, 1.001, null, null, 1.002]);
+    const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
+    expect(restored.getFirstActivity().startDate.getTime()).toBe(start);
+    expect(restored.getFirstActivity().endDate.getTime()).toBe(start + 6000);
+  });
+
+  it('sorts mixed ISO and Unix-millisecond timestamps by their actual instants', async () => {
+    const start = Date.UTC(2026, 0, 1, 10);
+    const event = await EventImporterGPX.getFromString(
+      timedTrack([String(start + 6000), '2026-01-01T12:00:00+02:00', String(start + 3000)]),
+      xmldom.DOMParser
+    );
+    const activity = event.getFirstActivity();
+
+    expect(activity.startDate.getTime()).toBe(start);
+    expect(activity.endDate.getTime()).toBe(start + 6000);
+    expect(activity.getStreamData(DataLatitudeDegrees.type)).toEqual([1.001, null, null, 1.002, null, null, 1]);
+  });
+
+  it.each(['', 'not-a-time', 'NaN', 'Infinity', '1767261600', '99999999999999', '<value>1767261600000</value>'])(
+    'rejects an invalid point time before allocating any streams: %s',
+    async time => {
+      const createStream = jest.spyOn(Activity.prototype, 'createStream');
+      const result = EventImporterGPX.getFromString(timedTrack(['2026-01-01T10:00:00Z', time]), xmldom.DOMParser);
+
+      await expect(result).rejects.toBeInstanceOf(ParsingEventLibError);
+      await expect(result).rejects.toThrow('GPX track points contain invalid timestamps');
+      expect(createStream).not.toHaveBeenCalled();
+    }
+  );
+
+  it('retains the configured maximum duration for Unix-millisecond tracks', async () => {
+    const start = Date.UTC(2026, 0, 1, 10);
+    const createStream = jest.spyOn(Activity.prototype, 'createStream');
+    await expect(
+      EventImporterGPX.getFromString(
+        timedTrack([start, start + 2 * 86400_000].map(String)),
+        xmldom.DOMParser,
+        new ActivityParsingOptions({ maxActivityDurationDays: 1 })
+      )
+    ).rejects.toThrow('Activity duration exceeds 1 days');
+    expect(createStream).not.toHaveBeenCalled();
+  });
+
+  it('rejects a time attribute instead of treating its first character as a timestamp', async () => {
+    await expect(
+      EventImporterGPX.getFromString(
+        '<gpx version="1.1"><trk><trkseg><trkpt lat="1" lon="2" time="1767261600000"/></trkseg></trk></gpx>',
+        xmldom.DOMParser
+      )
+    ).rejects.toThrow('GPX track points contain invalid timestamps');
   });
 
   it.each(['1.0', '1.1'])('keeps the GPX %s exporter without inventing device metadata', async version => {

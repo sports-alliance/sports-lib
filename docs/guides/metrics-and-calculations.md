@@ -947,7 +947,7 @@ Priority order:
 
 Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
 HR uses Banister with complete calibration, or the threshold-only estimate for every sport eligible for calculated TSS.
-HR and MET preferences select their available method first, then fall back through the
+HR, MET and (for swimming) SWIM_PACE preferences select their available method first, then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
 `preserveImportedTss` option is deprecated: remove an imported stat explicitly for a calculation-only comparison.
@@ -1190,6 +1190,12 @@ when `enableHeuristicFallbacks` is true. Without a threshold, swim pace is skipp
 `missing-swim-threshold`; eligible HR/MET candidates can still provide a score. A supplied threshold with missing speed
 or duration instead reports `missing-pace-inputs`. Imported scores, including zero, always retain priority.
 
+The explicit `SWIM_PACE` preference selects available swim pace ahead of calculated power/HR; imported scores still
+win. `ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, speed)` can apply a consumer's dated,
+independent CSS in metres/second after the ordinary evaluations have been initialized. It returns modeled evaluations
+without changing activity JSON, recorded statistics, parse options or cached file-only evaluations. See
+[consumer CSS](parsing-options.md#independent-css-for-modeled-swimming-load) for usage and compatibility.
+
 Pool and open-water swimming also support the threshold-HR fallback described above. In Automatic mode, a usable HR
 candidate retains priority over swim pace; absent or rejected HR continues through swim pace to MET. HR uses the same
 observed timer-active intervals for swimming as for other sports. A pool rest is not treated as a timer pause unless
@@ -1266,7 +1272,7 @@ The default MET reference is 10. File calories, body mass and duration must be p
 resting-calorie adjustment or sport MET table is supplied. This is explicitly an estimate: 210 kcal / (70 kg × 1 hour)
 is MET 3 and 9 TSS.
 
-`ActivityUtilities.getTrainingStressScoreEvaluations(activity)` returns the cached parse-time Automatic/HR/MET results
+`ActivityUtilities.getTrainingStressScoreEvaluations(activity)` returns the cached parse-time Automatic/HR/MET/Swim pace results
 with actual method, score (null when unavailable), provenance, estimate flag and stable fallback reason codes.
 Missing or unusable required inputs retain their method-specific missing-input reasons. When an eligible calculation
 receives its inputs but cannot return a valid result (including the existing calculated-score range guard), it reports

@@ -2958,7 +2958,7 @@ export class ActivityUtilities {
         estimated: false, provenance: 'imported', reasons: ['imported-score']
       });
       const result: TrainingStressScoreEvaluations = { version: 1, automatic: importedResult('AUTOMATIC'),
-        hr: importedResult('HR'), met: importedResult('MET') };
+        hr: importedResult('HR'), met: importedResult('MET'), swimPace: importedResult('SWIM_PACE') };
       trainingStressScoreEvaluations.set(activity, result);
       return result;
     }
@@ -3009,9 +3009,9 @@ export class ActivityUtilities {
         : this.calculateHrTss(activity, hrSamples);
     }
     const group = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    // Pace is only an Automatic fallback; no preference can select it ahead of power or HR.
-    const needsPace = eligible && !walking && !power && !hr;
     const swimming = group === ActivityTypeGroups.SwimmingGroup;
+    // Swimming also exposes an explicit pace preference; running pace remains Automatic-only.
+    const needsPace = eligible && !walking && (swimming || (!power && !hr));
     const swimThreshold = needsPace && swimming ? this.resolveThresholdSwimSpeed(activity) : null;
     const paceCandidate = needsPace ? swimming
       ? this.calculateSwimPaceTss(activity, swimThreshold) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
@@ -3035,11 +3035,14 @@ export class ActivityUtilities {
     const estimatedPower = !!powerCoverage && powerCoverage.coveredDurationSeconds <
       Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
-      const preferred = preference === 'HR' ? hr : preference === 'MET' ? met : automatic;
+      const preferred = preference === 'HR' ? hr : preference === 'MET' ? met
+        : preference === 'SWIM_PACE' ? swimming ? pace : null : automatic;
       const result = preferred ?? automatic;
       const reasons = preference === 'AUTOMATIC' ? automaticReasons : preferred ? [] :
         [...new Set<TrainingStressScoreReason>([
-          preference === 'HR' ? hrReason ?? 'calculation-unavailable' : metCandidate?.reason ?? 'missing-met-inputs', ...automaticReasons
+          preference === 'HR' ? hrReason ?? 'calculation-unavailable'
+            : preference === 'SWIM_PACE' ? swimming ? paceCandidate?.reason ?? 'calculation-unavailable' : 'unsupported-sport'
+              : metCandidate?.reason ?? 'missing-met-inputs', ...automaticReasons
         ])];
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
         method: result?.calculationMethod ?? null,
@@ -3050,7 +3053,7 @@ export class ActivityUtilities {
         reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
     const result: TrainingStressScoreEvaluations = { version: 1,
-      automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET') };
+      automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET'), swimPace: resolve('SWIM_PACE') };
     if (automatic?.calculationMethod === TrainingStressScoreMethod.POWER) {
       this.persistCalibratedFunctionalThresholdPower(activity);
       this.updatePowerOutputsFromPowerTss(activity, automatic);
@@ -3063,6 +3066,48 @@ export class ActivityUtilities {
    * per-activity FTP estimates and JSON-restored FTP stats are not calibration. */
   public static getTrainingStressScoreEvaluations(activity: ActivityInterface): TrainingStressScoreEvaluations {
     return trainingStressScoreEvaluations.get(activity) ?? this.evaluateTrainingStressScore(activity);
+  }
+
+  /** Evaluate a consumer's independent CSS (metres/second) using cached parse-time
+   * candidates. Does not change activity statistics, parse options or cached evaluations.
+   * Call the ordinary getter first, while parsed inputs are available, to initialize its cache.
+   * Automatic keeps power/HR priority; explicit swim pace selects CSS before those fallbacks.
+   */
+  public static evaluateTrainingStressScoreWithSwimThreshold(
+    activity: ActivityInterface, thresholdSwimSpeed: number,
+  ): TrainingStressScoreEvaluations {
+    if (!Number.isFinite(thresholdSwimSpeed) || thresholdSwimSpeed <= 0 ||
+      ActivityTypesHelper.getActivityGroupForActivityType(activity.type) !== ActivityTypeGroups.SwimmingGroup) {
+      throw new Error('CSS requires a swimming activity and a positive finite speed in metres/second.');
+    }
+    const cached = trainingStressScoreEvaluations.get(activity);
+    if (!cached) throw new Error('Initialize Training stress evaluations before applying CSS.');
+    if (cached.automatic.provenance === 'imported') return cached;
+    const candidate = this.calculateSwimPaceTss(activity, thresholdSwimSpeed);
+    const pace: TrainingStressScoreEvaluation | null = candidate.result ? {
+      preference: 'SWIM_PACE', score: this.round(candidate.result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS),
+      method: TrainingStressScoreMethod.SWIM_PACE, estimated: false, provenance: 'calculated', reasons: [],
+    } : null;
+    const power = cached.automatic.method === TrainingStressScoreMethod.POWER ? cached.automatic : null;
+    const hr = cached.hr.method === TrainingStressScoreMethod.HR ? cached.hr : null;
+    const met = cached.met.method === TrainingStressScoreMethod.MET ? cached.met : null;
+    const reasons: TrainingStressScoreReason[] = [];
+    if (!power) reasons.push(cached.automatic.reasons[0] ?? 'missing-power-inputs');
+    if (!power && !hr) reasons.push(cached.hr.reasons[0] ?? 'calculation-unavailable');
+    if (!power && !hr && !pace) reasons.push(candidate.reason ?? 'calculation-unavailable');
+    if (!power && !hr && !pace && !met) reasons.push(cached.met.reasons[0] ?? 'missing-met-inputs');
+    const automatic: TrainingStressScoreEvaluation = {
+      ...(power ?? hr ?? pace ?? met ?? { score: null, method: null, estimated: false, provenance: null }),
+      preference: 'AUTOMATIC', reasons: [...new Set([...reasons, ...(hr && !power ? hr.reasons : [])])],
+    };
+    const preferred = (preference: TrainingStressScorePreference, result: TrainingStressScoreEvaluation | null,
+      reason: TrainingStressScoreReason): TrainingStressScoreEvaluation => result
+      ? { ...result, preference }
+      : { ...automatic, preference, reasons: [...new Set([reason, ...automatic.reasons])] };
+    return { version: 1, automatic,
+      hr: preferred('HR', hr, cached.hr.reasons[0] ?? 'calculation-unavailable'),
+      met: preferred('MET', met, cached.met.reasons[0] ?? 'missing-met-inputs'),
+      swimPace: preferred('SWIM_PACE', pace, candidate.reason ?? 'calculation-unavailable') };
   }
 
   private static updatePowerOutputsFromPowerTss(

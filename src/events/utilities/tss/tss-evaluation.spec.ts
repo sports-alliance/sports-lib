@@ -314,3 +314,67 @@ describe('file-only training stress evaluations', () => {
     expect(resolveFitHeartRateCalibration(file, {}, 0, ActivityTypes.Walking).maxHeartRate).toBeUndefined();
   });
 });
+
+
+describe('explicit swim pace and consumer CSS', () => {
+  it.each([ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming])('selects CSS ahead of HR only when requested (%s)', type => {
+    const activity = walk(type);
+    addHrInputs(activity);
+    activity.addStat(new DataSpeedAvg(1));
+    activity.addStat(new DataTimerTime(3600));
+    activity.parseOptions = new ActivityParsingOptions({ tss: { overrides: { thresholdSwimSpeed: 1 } } });
+    const cached = evaluate(activity);
+    expect(cached.automatic.method).toBe('HR');
+    expect(cached.swimPace).toMatchObject({ score: 100, method: 'SWIM_PACE' });
+    const before = JSON.stringify(activity.toJSON());
+    const result = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1.25);
+    expect(result.automatic).toEqual(cached.automatic);
+    expect(result.swimPace).toMatchObject({ score: 51.2, method: 'SWIM_PACE' });
+    expect(JSON.stringify(activity.toJSON())).toBe(before);
+    expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity)).toBe(cached);
+    expect(activity.parseOptions.tss?.overrides?.thresholdSwimSpeed).toBe(1);
+  });
+  it('keeps Automatic power priority and respects the active duration without changing the parse cache', () => {
+    const activity = walk(ActivityTypes.Swimming);
+    activity.addStat(new DataSpeedAvg(1)); activity.addStat(new DataTimerTime(1800));
+    fileFunctionalThresholdPower.set(activity, 200); activity.addStat(new DataPowerNormalized(200));
+    const cached = evaluate(activity);
+    const result = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1);
+    expect(result.automatic).toEqual(cached.automatic);
+    expect(result.automatic).toMatchObject({ score: 50, method: 'POWER' });
+    expect(result.swimPace).toMatchObject({ score: 50, method: 'SWIM_PACE' });
+    expect(() => ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(walk(ActivityTypes.Swimming), 1)).toThrow('Initialize');
+  });
+  it('uses CSS before MET when HR is unavailable and does not retain a stale file pace candidate', () => {
+    const activity = walk(ActivityTypes.Swimming);
+    activity.addStat(new DataSpeedAvg(1)); addMetInputs(activity);
+    const original = evaluate(activity);
+    expect(original.automatic.method).toBe('MET');
+    const result = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1);
+    expect(result.automatic).toMatchObject({ score: 100, method: 'SWIM_PACE' });
+    expect(result.hr).toMatchObject({ score: 100, method: 'SWIM_PACE' });
+    expect(result.met).toMatchObject({ score: 9, method: 'MET' });
+    expect(result.automatic.reasons).not.toContain('missing-swim-threshold');
+    activity.parseOptions = new ActivityParsingOptions({ tss: { overrides: { thresholdSwimSpeed: 1 } } });
+    evaluate(activity);
+    const invalidScore = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 0.001);
+    expect(invalidScore.automatic).toMatchObject({ score: 9, method: 'MET' });
+    expect(invalidScore.swimPace?.reasons).toContain('calculation-unavailable');
+  });
+  it('preserves imported zero and falls back for missing swim speed, timer and unsupported sports', () => {
+    const activity = walk(ActivityTypes.Swimming);
+    activity.addStat(new DataTrainingStressScore(0));
+    const imported = evaluate(activity);
+    expect(imported.swimPace).toMatchObject({ score: 0, method: 'IMPORTED' });
+    expect(ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1)).toBe(imported);
+    activity.removeStat(DataTrainingStressScore.type); addHrInputs(activity); evaluate(activity);
+    expect(ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1).swimPace)
+      .toMatchObject({ method: 'HR', reasons: expect.arrayContaining(['missing-pace-inputs']) });
+    activity.addStat(new DataSpeedAvg(1)); activity.addStat(new DataTimerTime(0)); fileActiveDuration.set(activity, 0); evaluate(activity);
+    expect(ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 1).swimPace?.score).toBeNull();
+    expect(evaluate(walk()).swimPace?.reasons).toContain('unsupported-sport');
+    for (const css of [0, -1, NaN, Infinity])
+      expect(() => ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, css)).toThrow();
+    expect(() => ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(walk(), 1)).toThrow();
+  });
+});

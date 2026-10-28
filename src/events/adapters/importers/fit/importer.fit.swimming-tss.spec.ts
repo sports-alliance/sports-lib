@@ -10,7 +10,8 @@ const field = (number: number, value: number, baseType = FitBaseType.Uint8) => (
   size: baseType === FitBaseType.Uint32 ? 4 : baseType === FitBaseType.Uint16 ? 2 : 1 });
 
 async function swim(subsport: number, options: { calibrated?: boolean; rest?: number; max?: number; samples?: boolean; pause?: boolean;
-  met?: boolean; weight?: boolean; calories?: boolean; imported?: number; heuristics?: boolean; zeroGlobal?: boolean; globalConflicts?: boolean } = {}) {
+  met?: boolean; weight?: boolean; calories?: boolean; imported?: number; heuristics?: boolean; zeroGlobal?: boolean; globalConflicts?: boolean;
+  css?: number } = {}) {
   const encoder = new FitEncoder();
   const start = FitEncoder.toFitTimestamp(new Date('2026-01-01T10:00:00Z'));
   encoder.writeMessage(0, [field(0, 4, FitBaseType.Enum), field(1, 1, FitBaseType.Uint16), field(4, start, FitBaseType.Uint32)]);
@@ -37,13 +38,26 @@ async function swim(subsport: number, options: { calibrated?: boolean; rest?: nu
   const bytes = encoder.close();
   const event = await EventImporterFIT.getFromArrayBuffer(
     bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
-    new ActivityParsingOptions({ generateUnitStreams: false, tss: { enableHeuristicFallbacks: options.heuristics } }));
+    new ActivityParsingOptions({ generateUnitStreams: false, tss: { enableHeuristicFallbacks: options.heuristics,
+      overrides: { thresholdSwimSpeed: options.css } } }));
   const activity = event.getFirstActivity();
   expect(activity.type).toBe(subsport === 17 ? ActivityTypes.Swimming : ActivityTypes.OpenWaterSwimming);
   return activity;
 }
 
 describe.each([17, 18])('FIT swimming TSS (subsport %s)', subsport => {
+  it.each([false, true])('prefers CSS over recorded HR calibration while preserving explicit HR/MET (pause=%s)', async pause => {
+    const activity = await swim(subsport, { css: 1, calibrated: true, met: true, pause });
+    const result = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
+    expect(result.automatic).toMatchObject({ score: pause ? 66.7 : 100, method: 'SWIM_PACE', reasons: [] });
+    expect(result.hr.method).toBe('HR');
+    expect(result.met.method).toBe('MET');
+    expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(result.automatic.score);
+    const before = JSON.stringify(activity.toJSON());
+    const modeled = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 0.001);
+    expect(modeled.automatic).toMatchObject({ score: result.hr.score, method: 'HR', reasons: ['calculation-unavailable'] });
+    expect(JSON.stringify(activity.toJSON())).toBe(before);
+  });
   it.each([undefined, true, false])('never assumes average speed is threshold (heuristics=%s)', async heuristics => {
     const activity = await swim(subsport, { heuristics });
     const result = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
@@ -104,11 +118,11 @@ describe.each([17, 18])('FIT swimming TSS (subsport %s)', subsport => {
   });
 
   it.each([0, 42.5])('preserves native TSS %s for every preference and repeated recalculation', async imported => {
-    const activity = await swim(subsport, { imported, calibrated: true, zeroGlobal: true, met: true });
+    const activity = await swim(subsport, { imported, css: 1, calibrated: true, zeroGlobal: true, met: true });
     for (let repeat = 0; repeat < 2; repeat++) {
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
       const result = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
-      for (const preference of ['automatic', 'hr', 'met'] as const) expect(result[preference]).toMatchObject({
+      for (const preference of ['automatic', 'hr', 'met', 'swimPace'] as const) expect(result[preference]).toMatchObject({
         score: imported, method: 'IMPORTED', provenance: 'imported', reasons: ['imported-score'] });
       expect(activity.getStat(DataTrainingStressScore.type)?.getValue()).toBe(imported);
     }

@@ -87,12 +87,13 @@ describe('threshold-HR fallback', () => {
       fileHeartRateCalibration.set(a, { lactateThresholdHR: 165 });
       expect(evaluate(a).automatic).toMatchObject({ score: 40, method: 'HR', hrAlgorithm: 'THRESHOLD', estimated: true });
     });
-    it('keeps Automatic power priority and the explicit HR and MET candidates', () => {
+    it('keeps sport-specific Automatic eligibility and explicit HR and MET candidates', () => {
       const a = activity(type);
       fileFunctionalThresholdPower.set(a, 200);
       a.addStat(new DataPowerNormalized(200));
       const result = evaluate(a);
-      expect(result.automatic).toMatchObject({ score: 100, method: 'POWER' });
+      expect(result.automatic).toMatchObject([ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming].includes(type)
+        ? { score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' } : { score: 100, method: 'POWER' });
       expect(result.hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
       expect(result.met).toMatchObject({ score: 9, method: 'MET' });
     });
@@ -168,11 +169,12 @@ describe('threshold-HR fallback', () => {
       expect(evaluate(a).hr.score).toBeNull();
     });
   });
-  it.each([ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming])('keeps the existing HR-before-swim-pace order and falls back to pace for %s', type => {
+  it.each([ActivityTypes.Swimming, ActivityTypes.OpenWaterSwimming])('prefers CSS while retaining threshold-HR fallback for %s', type => {
     const a = activity(type);
     a.addStat(new DataSpeedAvg(1));
     a.parseOptions.tss!.overrides = { thresholdSwimSpeed: 1.25 };
-    expect(evaluate(a).automatic).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
+    expect(evaluate(a).automatic).toMatchObject({ score: 51.2, method: 'SWIM_PACE', reasons: [] });
+    expect(evaluate(a).hr).toMatchObject({ score: 70, method: 'HR', hrAlgorithm: 'THRESHOLD' });
     expect(evaluate(a).met).toMatchObject({ score: 9, method: 'MET' });
     fileHeartRateCalibration.delete(a);
     expect(evaluate(a).automatic).toMatchObject({ score: 51.2, method: 'SWIM_PACE' });

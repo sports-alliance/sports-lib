@@ -419,9 +419,14 @@ retained envelope anchors, so consumers can disclose concentrated evidence witho
 
 `calculateThreeDimensionalImpulseResponse` applies independently calibrated fitness-fatigue responses to the three daily load series. `fitThreeDimensionalImpulseResponseParameters` adds bounded, chronologically validated calibration when callers provide dated daily strain loads and independent CP/W′/Pmax observations; it deliberately returns no generic athlete model when evidence or held-out fit quality is inadequate. Follow the [practical response-calibration recipe](guides/metrics-and-calculations.md#practical-response-calibration-recipe) before integrating it.
 
-[Training stress evaluations](guides/metrics-and-calculations.md) distinguish imported scores, calibrated HR, MET
-estimates and unavailable results. The public ActivityUtilities API returns all three requested policies from the
-parsed file without requiring athlete settings. Load editors can request one-decimal display through
+[Training stress evaluations](guides/metrics-and-calculations.md) distinguish imported scores, calibrated HR, swim
+pace, MET estimates and unavailable results. The public ActivityUtilities API evaluates Automatic, HR, MET and
+Swim pace preferences from the parsed file without requiring athlete settings. Consumers with an independently
+measured CSS can also evaluate a swimming activity with `evaluateTrainingStressScoreWithSwimThreshold` after
+initializing its ordinary evaluations. This optional API takes metres/second and leaves recorded statistics,
+serialized activity data and cached file-only evaluations unchanged. Imported scores retain priority; swimming
+Automatic prefers independent CSS pace, then calibrated HR and MET, excluding calculated power TSS. Other sports
+retain their existing order. Load editors can request one-decimal display through
 `DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.
 
 Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with

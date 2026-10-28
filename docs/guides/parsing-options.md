@@ -58,7 +58,7 @@ GPX tracks with timestamps normally represent recorded activities. Set `gpx.impo
 Power TSS and IF require independent file FTP or `tss.overrides.functionalThresholdPower`; the same-ride FTP
 estimate and an ordinary JSON-restored FTP statistic are ineligible. HR calculations require explicit calibration; calorie-derived MET estimates require energy, body mass and duration.
 Walking and hiking use imported TSS, then usable power with a valid threshold, calibrated HR, then MET in Automatic.
-Explicit HR and MET preferences select their available method first. Other eligible sports retain power and pace methods
+Explicit HR, MET and swimming SWIM_PACE preferences select their available method first. Other eligible sports retain power and pace methods
 in their Automatic order. See [TSS methods](metrics-and-calculations.md) for sport eligibility, validation, fallback
 reasons and existing optional physiological overrides.
 
@@ -75,7 +75,7 @@ remain supported.
 ```ts
 import { ActivityUtilities } from '@sports-alliance/sports-lib';
 const evaluations = ActivityUtilities.getTrainingStressScoreEvaluations(event.getFirstActivity());
-// evaluations.automatic / .hr / .met: score, actual method, provenance, estimated, reasons
+// evaluations.automatic / .hr / .met / .swimPace: score, actual method, provenance, estimated, reasons
 ```
 
 Read the cached evaluations while retaining the parsed Activity instance. They survive stream disposal on that instance,
@@ -90,3 +90,29 @@ applied. Calculated power TSS needs independent FTP, a complete NP window and at
 coverage; partial eligible results are estimates. Supplied NP and imported TSS retain priority. Use `ActivityUtilities.getPowerCoverage(activity)`
 to distinguish an observed-period average/work from a complete total. See [power coverage](metrics-and-calculations.md#power-coverage-and-observed-work)
 and [JSON migration](exporting.md#missing-power).
+
+
+### Independent CSS for modeled swimming load
+
+`evaluations.swimPace` selects the independent swim-pace candidate ahead of HR and MET. Imported scores
+(including zero) still win; unavailable swim pace falls back through Automatic with a reason. Non-swimming activities
+report `unsupported-sport` for this preference. Swimming Automatic uses imported → CSS pace → HR → MET → unavailable;
+calculated power TSS is ineligible for swimming. Other sports keep their existing Automatic order.
+The additive `swimPace` member is optional in the public type for compatibility with evaluations saved by older versions.
+
+A consumer can apply separately stored CSS without changing recorded statistics or parse options:
+
+```ts
+const activity = event.getFirstActivity();
+const recorded = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
+const modeled = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 100 / 113);
+// CSS = 1:53 / 100 m. Both modeled.swimPace and modeled.automatic prefer the eligible CSS pace candidate.
+// recorded and the activity's JSON/statistics remain unchanged.
+```
+
+Call the ordinary getter first to initialize its parse-time cache. The CSS API requires a swimming activity and a
+positive finite speed in metres/second; invalid arguments or an absent cache throw. Call it while swim inputs remain
+available. It uses the existing formula `100 × activeHours × (averageSwimSpeed / thresholdSwimSpeed)^3`, with the
+same duration, availability and calculated-score guards. It does not infer CSS or modify cached file-only results.
+Consumers own calibration dates and persistence; applying today's CSS to historical swims is an explicit consumer
+policy decision, not an automatic library migration. No provider field is newly interpreted as CSS.

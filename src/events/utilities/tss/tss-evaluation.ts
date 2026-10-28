@@ -2,7 +2,7 @@ import type { TrainingStressScoreMethodType } from '../../../data/data.training-
 import type { ActivityInterface } from '../../../activities/activity.interface';
 
 /** A requested calculation policy. Imported scores always take precedence. */
-export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET';
+export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET' | 'SWIM_PACE';
 
 /** HR formula used by a calculated HR evaluation; absent on legacy evaluations. */
 export type TrainingStressScoreHrAlgorithm = 'BANISTER' | 'THRESHOLD';
@@ -44,6 +44,8 @@ export interface TrainingStressScoreEvaluations {
   automatic: TrainingStressScoreEvaluation;
   hr: TrainingStressScoreEvaluation;
   met: TrainingStressScoreEvaluation;
+  /** Absent in evaluations saved by older versions. */
+  swimPace?: TrainingStressScoreEvaluation;
 }
 
 export interface FileHeartRateCalibration {

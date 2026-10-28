@@ -943,7 +943,9 @@ Priority order:
   Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
 - Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking:
   IMPORTED -> POWER -> HR -> calorie-derived MET -> unavailable.
-- Other eligible sports: IMPORTED -> POWER -> HR -> PACE/SWIM_PACE -> MET -> unavailable.
+- Pool and open-water swimming: IMPORTED -> SWIM_PACE with independent CSS -> HR -> MET -> unavailable.
+  Calculated power TSS is ineligible for swimming, even if power and FTP are present.
+- Other eligible sports: IMPORTED -> POWER -> HR -> PACE -> MET -> unavailable.
 
 Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
 HR uses Banister with complete calibration, or the threshold-only estimate for every sport eligible for calculated TSS.
@@ -1048,15 +1050,16 @@ training, rowing, skiing, walking/hiking, and generic or unknown activity types.
 for HR. The existing calculated-load exclusions remain: Motorized and Adaptive Mobility groups, Video Gaming,
 Paramotoring and RC Drone Flying. Their valid imported TSS is still preserved.
 
-The estimate occupies the existing HR position in Automatic selection, after imported TSS and eligible power and
-before pace/swim pace and MET; it also supplies the preferred HR candidate. Sport-specific FIT maximum-HR selection
-is unchanged. Missing threshold, conflicting selected settings, rejected complete calibration and absent observed HR
-coverage cannot be rescued by this fallback.
+The estimate occupies the HR position in each sport's Automatic order and supplies the preferred HR candidate.
+Swimming tries independent CSS pace before HR; other sports try eligible power before HR, then eligible running pace
+and MET. Imported TSS always wins. Sport-specific FIT maximum-HR selection is unchanged. Missing threshold,
+conflicting selected settings, rejected complete calibration and absent observed HR coverage cannot be rescued by
+this fallback.
 
 [TrainingPeaks describes hrTSS as applicable to all workout types](https://help.trainingpeaks.com/hc/en-us/articles/204071944-Training-Stress-Scores-TSS-Explained)
 and explicitly supports it for swimming. This supports broad eligibility, not a claim that sports-lib reproduces its
-complete calculation or selection policy: TrainingPeaks normally prefers available pace-based scores over hrTSS,
-whereas sports-lib retains its existing HR-before-pace order. Only retained file calibration or explicit caller
+complete calculation or selection policy: TrainingPeaks normally prefers available pace-based scores over hrTSS.
+Sports-lib prefers independent CSS pace for swimming and retains HR before running pace. Only retained file calibration or explicit caller
 overrides supply our threshold; no account defaults are invented or borrowed from another activity.
 
 The threshold estimate integrates each observed active interval using the following rates. Exactly 100% of threshold
@@ -1190,15 +1193,15 @@ when `enableHeuristicFallbacks` is true. Without a threshold, swim pace is skipp
 `missing-swim-threshold`; eligible HR/MET candidates can still provide a score. A supplied threshold with missing speed
 or duration instead reports `missing-pace-inputs`. Imported scores, including zero, always retain priority.
 
-The explicit `SWIM_PACE` preference selects available swim pace ahead of calculated power/HR; imported scores still
+Automatic and the explicit `SWIM_PACE` preference select available swim pace ahead of HR and MET; imported scores still
 win. `ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, speed)` can apply a consumer's dated,
 independent CSS in metres/second after the ordinary evaluations have been initialized. It returns modeled evaluations
 without changing activity JSON, recorded statistics, parse options or cached file-only evaluations. See
 [consumer CSS](parsing-options.md#independent-css-for-modeled-swimming-load) for usage and compatibility.
 
-Pool and open-water swimming also support the threshold-HR fallback described above. In Automatic mode, a usable HR
-candidate retains priority over swim pace; absent or rejected HR continues through swim pace to MET. HR uses the same
-observed timer-active intervals for swimming as for other sports. A pool rest is not treated as a timer pause unless
+Pool and open-water swimming also support the threshold-HR fallback described above. When CSS or its calculation is
+unavailable, Automatic falls back to calibrated HR, then MET. Explicit HR and MET retain their available candidates.
+HR uses the same observed timer-active intervals for swimming as for other sports. A pool rest is not treated as a timer pause unless
 recorded timing evidence marks it as one; this change does not infer pauses from laps or remove valid rest records.
 
 Suunto header speed zones are shared only within a file containing one resolved sport type. Mixed-sport legs retain
@@ -1242,10 +1245,14 @@ nonnegative observations are retained, including recorded zeros; missing/invalid
 being padded at other sensors' timestamps. Those gaps survive Activity JSON and regeneration. Power samples cannot
 extend length-derived distance or other filled swim streams into rests or missing length intervals. Recorded power
 can supply existing power summaries and calculations; NP still requires complete recorded windows and respects timer
-stops, and power TSS still requires independent FTP. No swimming-specific eligibility or threshold is inferred.
+stops. These recorded power statistics remain available, but calculated power TSS is ineligible for swimming.
 Valid imported TSS and device-supplied summaries keep their existing precedence. Reparse original files to recover
 previously omitted power, then regenerate consuming summaries as appropriate. Existing metric tokens, units, public
 APIs and JSON structure remain compatible; an old saved JSON cannot recover omitted observations on its own.
+
+The swim Automatic priority change applies on calculation/recalculation. To refresh historical calculated swim TSS,
+reparse original files with the original independent threshold inputs and rebuild consuming load summaries. Existing
+saved results are not rewritten on read. Imported TSS is preserved; missing CSS is never filled from today's settings.
 
 FIT multisport imports retain a stopped initial timer state from before a leg when its session timer duration
 unambiguously supports that state. This prevents paused HR/power from counting as active load across a sport change.

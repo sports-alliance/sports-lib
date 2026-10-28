@@ -5,6 +5,8 @@ import { ActivityParsingOptions, ActivityParsingOptionsInput } from '../../../..
 import { ActivityUtilities } from '../../../utilities/activity.utilities';
 import { DataPower } from '../../../../data/data.power';
 import { DataPowerNormalized } from '../../../../data/data.power-normalized';
+import { DataFTP } from '../../../../data/data.ftp';
+import { DataPowerIntensityFactor } from '../../../../data/data.power-intensity-factor';
 import { DataDistance } from '../../../../data/data.distance';
 import { DataSpeed } from '../../../../data/data.speed';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
@@ -211,7 +213,7 @@ describe('FIT recorded pool power', () => {
     expect(activity.getStreamData(DataHeartRate.type)[5]).toBe(100);
   });
 
-  it.each([undefined, 0, 42.5])('keeps existing threshold/imported-score eligibility, imported=%s', async imported => {
+  it.each([undefined, 0, 42.5])('preserves power metrics and imported scores without calculating swim power TSS, imported=%s', async imported => {
     const records = Array.from({ length: 121 }, (_, second) => ({ second, power: 200 }));
     const uncalibrated = (await pool(records, { imported })).getFirstActivity();
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(uncalibrated).automatic).toMatchObject(
@@ -220,8 +222,12 @@ describe('FIT recorded pool power', () => {
     const calibrated = (await pool(records, { imported, ftp: 200 })).getFirstActivity();
     for (let repeat = 0; repeat < 2; repeat++) {
       expect(ActivityUtilities.getTrainingStressScoreEvaluations(calibrated).automatic).toMatchObject(
-        imported === undefined ? { method: 'POWER', score: 3.3 } : { method: 'IMPORTED', score: imported }
+        imported === undefined ? { method: null, score: null } : { method: 'IMPORTED', score: imported }
       );
+      expect(calibrated.getStat(DataPowerNormalized.type)?.getValue()).toBe(200);
+      expect(calibrated.getStat(DataFTP.type)?.getValue()).toBe(200);
+      expect(calibrated.getStat(DataPowerIntensityFactor.type)?.getValue()).toBe(1);
+      expect(calibrated.getStream(DataPower.type).getData(true, true)).toEqual(Array(121).fill(200));
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(calibrated);
     }
   });
@@ -239,7 +245,7 @@ describe('FIT recorded pool power', () => {
     expect(powerOnly.getStreamData(DataPower.type)[5]).toBe(120);
   });
 
-  it('retains paused power as recorded while excluding it from calculated NP and TSS', async () => {
+  it('retains paused power as recorded while excluding it from calculated NP and disabling swim power TSS', async () => {
     const records = Array.from({ length: 121 }, (_, second) => ({
       second,
       power: second >= 40 && second < 60 ? 900 : 200
@@ -249,8 +255,8 @@ describe('FIT recorded pool power', () => {
       expect(activity.getStreamData(DataPower.type)[50]).toBe(900);
       expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(200);
       expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({
-        method: 'POWER',
-        score: 2.8
+        method: null,
+        score: null
       });
       ActivityUtilities.generateMissingStreamsAndStatsForActivity(activity);
     }
@@ -260,8 +266,8 @@ describe('FIT recorded pool power', () => {
     const activity = (await pool([{ second: 10, power: 200 }], { normalizedPower: 220, ftp: 200 })).getFirstActivity();
     expect(activity.getStat(DataPowerNormalized.type)?.getValue()).toBe(220);
     expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({
-      method: 'POWER',
-      score: 4
+      method: null,
+      score: null
     });
   });
 
@@ -277,8 +283,8 @@ describe('FIT recorded pool power', () => {
       if (power === 0) {
         expect(activity.getStream(DataPower.type).getData(true, true)).toEqual(Array(121).fill(0));
         expect(ActivityUtilities.getTrainingStressScoreEvaluations(activity).automatic).toMatchObject({
-          method: 'POWER',
-          score: 0
+          method: null,
+          score: null
         });
       } else {
         expect(activity.hasStreamData(DataPower.type)).toBe(false);

@@ -424,8 +424,9 @@ pace, MET estimates and unavailable results. The public ActivityUtilities API ev
 Swim pace preferences from the parsed file without requiring athlete settings. Consumers with an independently
 measured CSS can also evaluate a swimming activity with `evaluateTrainingStressScoreWithSwimThreshold` after
 initializing its ordinary evaluations. This optional API takes metres/second and leaves recorded statistics,
-serialized activity data and cached file-only evaluations unchanged. Imported scores retain priority; Automatic
-still prefers eligible power and HR before swim pace. Load editors can request one-decimal display through
+serialized activity data and cached file-only evaluations unchanged. Imported scores retain priority; swimming
+Automatic prefers independent CSS pace, then calibrated HR and MET, excluding calculated power TSS. Other sports
+retain their existing order. Load editors can request one-decimal display through
 `DataTrainingStressScore.getDisplayValue(1)` while existing metric displays retain their integer default.
 
 Power TSS now requires independent FTP, uses the full eligible duration, and computes missing normalized power with

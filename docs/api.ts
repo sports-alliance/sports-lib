@@ -712,7 +712,7 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
  * power fields cannot. Recorded-power evidence remains private to the parsed instance.
  * Positive calculated NP also requires complete recorded windows; padded gaps cannot establish a power candidate.
  * Swimming never assumes its workout speed is threshold speed; consumers can explain `missing-swim-threshold`.
- * `SWIM_PACE` explicitly prefers the swim candidate, while Automatic retains power/HR priority.
+ * Swimming Automatic and `SWIM_PACE` prefer independent swim pace, then calibrated HR and MET; calculated power is ineligible.
  * Evaluations include optional `swimPace` for compatibility with older saved results. After initializing ordinary
  * evaluations, ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold accepts independently measured CSS
  * in metres/second and returns modeled evaluations without changing recorded statistics, JSON or cached results.

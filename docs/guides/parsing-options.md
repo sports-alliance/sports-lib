@@ -94,9 +94,10 @@ and [JSON migration](exporting.md#missing-power).
 
 ### Independent CSS for modeled swimming load
 
-`evaluations.swimPace` selects the independent swim-pace candidate ahead of calculated power/HR. Imported scores
+`evaluations.swimPace` selects the independent swim-pace candidate ahead of HR and MET. Imported scores
 (including zero) still win; unavailable swim pace falls back through Automatic with a reason. Non-swimming activities
-report `unsupported-sport` for this preference. Automatic's power → HR → pace → MET order is unchanged.
+report `unsupported-sport` for this preference. Swimming Automatic uses imported → CSS pace → HR → MET → unavailable;
+calculated power TSS is ineligible for swimming. Other sports keep their existing Automatic order.
 The additive `swimPace` member is optional in the public type for compatibility with evaluations saved by older versions.
 
 A consumer can apply separately stored CSS without changing recorded statistics or parse options:
@@ -105,7 +106,7 @@ A consumer can apply separately stored CSS without changing recorded statistics 
 const activity = event.getFirstActivity();
 const recorded = ActivityUtilities.getTrainingStressScoreEvaluations(activity);
 const modeled = ActivityUtilities.evaluateTrainingStressScoreWithSwimThreshold(activity, 100 / 113);
-// CSS = 1:53 / 100 m. modeled.swimPace selects pace; modeled.automatic still prefers power/HR.
+// CSS = 1:53 / 100 m. Both modeled.swimPace and modeled.automatic prefer the eligible CSS pace candidate.
 // recorded and the activity's JSON/statistics remain unchanged.
 ```
 

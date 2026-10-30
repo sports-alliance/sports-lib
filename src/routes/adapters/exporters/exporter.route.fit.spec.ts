@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { DOMParser } from '@xmldom/xmldom';
+import { readFitMessages } from 'fit-file-parser/raw';
 import { Creator } from '../../../creators/creator';
 import { DataDistance } from '../../../data/data.distance';
 import { ParsingEventLibError } from '../../../errors/parsing-event-lib.error';
@@ -25,8 +26,18 @@ describe('RouteExporterFIT', () => {
     const source = await SportsLib.importRoutesFromGPX(GPX_ROUTE, DOMParser);
     const fit = RouteExporterFIT.export(source);
 
+    expect(new Uint8Array(fit)[1]).toBe(0x10);
+    const parsed = readFitMessages(fit);
+    expect(parsed).toMatchObject({ protocolVersion: 0x10, issues: [] });
+    // Developer fields and 64-bit integers would require a FIT 2.0 header.
+    for (const message of parsed.messages) {
+      expect(message.developerFields).toHaveLength(0);
+      for (const field of message.fields) {
+        expect(field.baseType & 0x1f).toBeLessThan(14);
+      }
+    }
     expect(createHash('sha256').update(new Uint8Array(fit)).digest('hex')).toBe(
-      '9646fd0cf24b1d2afd5c7bec01e0d1215568fd3440928c46b80808a2aa981b0f'
+      'b73e49f5a8d4aeb1736179bca783325f26c8811000276377ece1677072f094fa'
     );
   });
 

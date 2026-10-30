@@ -9,6 +9,7 @@ import { DataRRIntervalCount, DataRRRMSSD, DataRRCoverage, DataRRInvalidInterval
 import { ActivityParsingOptions } from '../../../../activities/activity-parsing-options';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { EventImporterJSON } from '../json/importer.json';
+import { filterRRHeartRate } from '../../../utilities/rr-heart-rate';
 
 const importer = EventImporterFIT as unknown as {
   getIBIStreamForActivity(records: { time: number[] }[], start: Date, activity: Activity): IBIStream;
@@ -75,6 +76,14 @@ describe('FIT R-R timing', () => {
           .getStreamData(DataHeartRate.type)
           .filter(value => value !== null)
       ).toEqual([100, 100]);
+      // Consumers can independently filter FIT intervals without replacing recorded HR or changing HRV stats.
+      const activity = event.getFirstActivity();
+      const intervals = activity
+        .getStreamDataByDuration('IBI')
+        .map(sample => ({ time: sample.time, interval: sample.value! }));
+      expect(
+        filterRRHeartRate(intervals, +activity.endDate - +activity.startDate).map(sample => sample.heartRate)
+      ).toEqual([75, 74, 72]);
       const restored = EventImporterJSON.getEventFromJSON(JSON.parse(JSON.stringify(event.toJSON())));
       expect(restored.getStat(DataRRRMSSD.type)!.getValue()).toBe(50);
     }

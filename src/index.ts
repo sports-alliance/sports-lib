@@ -221,6 +221,8 @@ export type { EventSummaryJSONInterface } from './events/event-summary';
 export * from './events/utilities/activity.utilities';
 export { analyzeActivityRR } from './events/utilities/activity-rr';
 export * from './events/utilities/rr-analysis';
+export { RRHeartRateFilter, filterRRHeartRate } from './events/utilities/rr-heart-rate';
+export type { RRHeartRateSample } from './events/utilities/rr-heart-rate';
 export * from './events/utilities/activity-durability';
 export * from './events/utilities/event.utilities';
 export * from './events/utilities/power-curve-sampling';

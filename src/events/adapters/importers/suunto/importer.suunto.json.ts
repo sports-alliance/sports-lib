@@ -22,7 +22,7 @@ import { DataEVPE } from '../../../../data/data.evpe';
 import { DataNumberOfSatellites } from '../../../../data/data.number-of-satellites';
 import { DataSatellite5BestSNR } from '../../../../data/data.satellite-5-best-snr';
 import { IntensityZones } from '../../../../intensity-zones/intensity-zones';
-import { IBIData } from '../../../../data/ibi/data.ibi';
+import { filterRRHeartRate } from '../../../utilities/rr-heart-rate';
 import { collectRRIntervals, isRRIntervalInBounds } from '../../../utilities/rr-timing';
 import { ImporterSuuntoActivityIds } from './importer.suunto.activity.ids';
 import { ImporterSuuntoDeviceNames } from './importer.suunto.device.names';
@@ -466,7 +466,9 @@ export class EventImporterSuuntoJSON {
           const ibiData = selected.map(sample => sample.interval);
           const sampleTimes = selected.map(sample => sample.time - activity.startDate.getTime());
           // Override HR from RR only if we get enough plausible samples after filtering.
-          const hrSamplesFromIBI = this.getHRSamplesFromIBIData(activity, ibiData, sampleTimes);
+          const hrSamplesFromIBI = isStreamTypeAllowedForImport(DataHeartRate.type, streamSelection)
+            ? this.getHRSamplesFromIBIData(activity, ibiData, sampleTimes)
+            : [];
           if (hrSamplesFromIBI.length > this.MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE) {
             const existingHRStream = activity.getAllStreams().find(stream => stream.type === DataHeartRate.type);
             if (existingHRStream) {
@@ -670,24 +672,26 @@ export class EventImporterSuuntoJSON {
   }
 
   private static getHRSamplesFromIBIData(activity: ActivityInterface, ibiData: number[], sampleTimes?: number[]) {
-    // activity.ibiData = new IBIData(ibiData);
-    // @todo optimize
-    // Create a second IBIData so we can have filtering on those with keeping the original
-    const samples: any[] = [];
-    new IBIData(sampleTimes ? ibiData.map((ibi, i) => ({ time: sampleTimes[i], ibi })) : ibiData)
-      .lowLimitBPMFilter()
-      .highLimitBPMFilter()
-      .movingMedianFilter()
-      .lowPassFilter()
-      .getAsBPM()
-      .forEach((value, key, _map) => {
-        if (key > +activity.endDate - +activity.startDate) return;
-        samples.push({
-          TimeISO8601: new Date(activity.startDate.getTime() + key).toISOString(),
-          HR: value / 60
-        });
+    const duration = +activity.endDate - +activity.startDate;
+    if (!Number.isFinite(duration) || duration <= 0) return [];
+    let elapsed = 0;
+    const intervals = ibiData.map((interval, index) => {
+      if (Number.isFinite(interval) && interval > 0) elapsed += interval;
+      return { time: sampleTimes?.[index] ?? elapsed, interval };
+    });
+    const samples: { TimeISO8601: string; HR: number }[] = [];
+    let plausible = 0;
+    for (const sample of filterRRHeartRate(intervals, duration)) {
+      if (sample.heartRate === null) continue;
+      const interval = Math.round(sample.interval);
+      if (interval >= 250 && interval <= 2000) plausible++;
+      samples.push({
+        TimeISO8601: new Date(+activity.startDate + sample.time).toISOString(),
+        HR: sample.heartRate / 60
       });
-    return samples;
+    }
+    // Held outputs on out-of-range inputs cannot by themselves justify replacing source HR.
+    return plausible > this.MIN_VALID_RR_SAMPLES_FOR_HR_OVERRIDE ? samples : [];
   }
 
   private static setStreamsForActivity(

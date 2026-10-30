@@ -11,6 +11,7 @@ import {
 import { DataIBI } from '../../../../data/data.ibi';
 import { DataHeartRate } from '../../../../data/data.heart-rate';
 import { EventImporterJSON } from '../json/importer.json';
+import * as RRFiltering from '../../../utilities/rr-heart-rate';
 
 const time = (ms: number) => new Date(Date.parse('2026-01-01T10:00:00Z') + ms).toISOString();
 const payload = () => ({
@@ -36,6 +37,82 @@ const xmlPayload = (headerStart: string, withUTC = true) => `<sml><DeviceLog>
 </DeviceLog></sml>`;
 
 describe('Suunto R-R activity stats', () => {
+  it('uses the 40-interval HR filter while preserving raw intervals and independent HRV quality rules', async () => {
+    const data = payload();
+    data.DeviceLog['R-R'].Data = Array(20).fill(250);
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data));
+    const activity = event.getFirstActivity();
+    expect(activity.getStreamData(DataHeartRate.type).filter(value => value != null)).toEqual(Array(5).fill(240));
+    expect(activity.getStream(DataIBI.type).getData()).toEqual(Array(20).fill(250));
+    // 250ms is accepted for filtered HR but remains out of range for the independent HRV quality rules.
+    expect(event.getStat(DataRRIntervalCount.type)!.getValue()).toBe(20);
+    expect(event.getStat(DataRRRMSSD.type)).toBeUndefined();
+  });
+
+  it('keeps direct HR when held out-of-range outputs would otherwise inflate the override count', async () => {
+    const data = payload();
+    data.DeviceLog.Header.Duration = 40;
+    data.DeviceLog.Samples[1].TimeISO8601 = time(40000);
+    data.DeviceLog.Samples = data.DeviceLog.Samples.map(sample => ({ ...sample, HR: 1 }));
+    data.DeviceLog['R-R'].Data = [500, 500, ...Array(12).fill(2500)];
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data));
+    expect(
+      event
+        .getFirstActivity()
+        .getStreamData(DataHeartRate.type)
+        .filter(value => value != null)
+    ).toEqual([60, 60]);
+  });
+
+  it('derives selected HR without returning raw intervals or adding unrequested HRV summaries', async () => {
+    const data = payload();
+    data.DeviceLog['R-R'].Data = Array(20).fill(500);
+    const options = new ActivityParsingOptions({ streams: { includeTypes: [DataHeartRate.type] } });
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(data), options);
+    expect(
+      event
+        .getFirstActivity()
+        .getStreamData(DataHeartRate.type)
+        .filter(value => value != null)
+    ).toEqual(Array(10).fill(120));
+    expect(event.getFirstActivity().hasStreamData(DataIBI.type)).toBe(false);
+    expect(event.getStat(DataRRIntervalCount.type)).toBeUndefined();
+  });
+
+  it('skips HR filtering completely for an IBI-only request', async () => {
+    const filter = jest.spyOn(RRFiltering, 'filterRRHeartRate');
+    try {
+      const options = new ActivityParsingOptions({ streams: { includeTypes: [DataIBI.type] } });
+      const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(payload()), options);
+      expect(filter).not.toHaveBeenCalled();
+      expect(event.getFirstActivity().hasStreamData(DataHeartRate.type)).toBe(false);
+      expect(event.getStat(DataRRIntervalCount.type)!.getValue()).toBe(3);
+    } finally {
+      filter.mockRestore();
+    }
+  });
+
+  it('reinitializes derived HR after a disconnected Suunto interval batch', async () => {
+    const data = payload();
+    const source = {
+      DeviceLog: {
+        ...data.DeviceLog,
+        Header: { ...data.DeviceLog.Header, Duration: 40 },
+        Samples: [data.DeviceLog.Samples[0], { TimeISO8601: time(40000), Events: [{ Lap: { Type: 'Stop' } }] }],
+        'R-R': {
+          Data: [],
+          Batches: [
+            { time: Date.parse(time(0)), intervals: Array(20).fill(500) },
+            { time: Date.parse(time(20000)), intervals: Array(20).fill(1000) }
+          ]
+        }
+      }
+    };
+    const event = await EventImporterSuuntoJSON.getFromJSONString(JSON.stringify(source));
+    expect(event.getFirstActivity().getStreamData(DataHeartRate.type)[22]).toBe(60);
+    expect(event.getStat(DataRRGapCount.type)!.getValue()).toBe(1);
+  });
+
   it.each([time(0), '2026-01-01T12:00:00', '2025-12-31T22:00:00'])(
     'anchors XML R-R intervals to UTC samples with header %s',
     async headerStart => {

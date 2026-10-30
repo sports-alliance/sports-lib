@@ -771,6 +771,11 @@ export type {
  * @category Activity analysis
  */
 export { analyzeActivityRR } from '../src/events/utilities/activity-rr';
+/** Causal HR estimation from raw R–R, with 40-interval consistency and gap-safe timed filtering.
+ * @category Activity analysis
+ */
+export { RRHeartRateFilter, filterRRHeartRate } from '../src/events/utilities/rr-heart-rate';
+export type { RRHeartRateSample } from '../src/events/utilities/rr-heart-rate';
 /** Irregular IBI stream supporting explicit elapsed end timestamps and timestamp-based activity cropping.
  * @category Streams
  */

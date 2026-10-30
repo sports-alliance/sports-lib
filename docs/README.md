@@ -6,6 +6,12 @@ preserving applicable explicit values except Diving-group terrain summaries. Sup
 canonical types, including Diving-group Snorkeling and Mermaiding. The API reference documents the supported consumer
 API; implementation adapters and parsers remain available for compatibility but are intentionally outside this reference.
 
+Suunto JSON/SML R–R-derived heart rate uses a causal 40-interval consistency filter with missed-beat protection and
+two-stage smoothing. The public `RRHeartRateFilter` and gap-safe `filterRRHeartRate` helper also accept raw intervals
+from other formats. FIT recorded HR and unsmoothed HRV/quality summaries keep their existing behavior. Historical
+Suunto-derived HR corrections need authorized original-file reparsing and normal derived-summary/load reconciliation;
+see [R–R heart-rate filtering](guides/metrics-and-calculations.md#filtered-heart-rate-from-raw-intervals).
+
 Activity Distance keeps its original null gaps. Generated distance-based rates use supported elapsed intervals,
 and native JSON retains their optional interval weights plus every independent sensor timestamp. Historical filled
 streams need an original-file reparse; recorded values and route behavior remain unchanged. See

@@ -70,6 +70,68 @@ version-checked reparse lifecycle; this library fix does not start historical pr
 
 ## Activity R–R analysis
 
+### Filtered heart rate from raw intervals
+
+`RRHeartRateFilter` estimates integer heart rate from a continuous sequence of raw R–R intervals in milliseconds.
+`filterRRHeartRate(samples, durationMs)` adds elapsed end timestamps, resets at gaps and invalid observations, and
+excludes intervals crossing the activity bounds. It uses the same 0.001 ms clock-rounding tolerance as R–R analysis;
+sub-microsecond rounding at the activity end is clamped to that end. The timed helper returns original intervals,
+their elapsed end times and nullable `heartRate`, without changing its input or joining disconnected recordings.
+
+```ts
+import { RRHeartRateFilter, filterRRHeartRate } from '@sports-alliance/sports-lib';
+
+const filter = new RRHeartRateFilter();
+filter.update(500); // null: no consistent estimate yet
+filter.update(500); // 120 bpm
+filter.update(2500); // 120 bpm: out-of-range input holds the previous output
+filter.reset(); // start a new continuous recording
+
+const filtered = filterRRHeartRate([
+  { time: 500, interval: 500 },
+  { time: 1000, interval: 500 }
+], 1000);
+// [{ time: 500, interval: 500, heartRate: null }, { time: 1000, interval: 500, heartRate: 120 }]
+```
+
+The filter implements a supplied engineering description; it is not a verified reproduction of device firmware.
+It rounds positive inputs to integer milliseconds, accepts 250–2,000 ms inclusively and inserts positive out-of-range
+intervals into history before holding the output. Nonpositive/nonfinite values, or values that cannot round to a
+positive safe integer, reset the filter instead of entering arithmetic. Missing estimates are `null`, never a numeric
+0 or 255 sentinel. Call `reset()` on a streaming instance after a disconnect; the timed helper handles recorded gaps.
+
+The circular history starts with forty 771 ms entries; its observed count saturates at 39. A reliable previous interval
+requires one match among the latest two intervals; otherwise the whole history is scanned and requires
+`1 + floor(count / 3)` matches. Rounded integer HR comparisons must differ by strictly less than 7 bpm, and every match
+becomes the next comparison reference. Above 120 bpm, an estimate within strictly 10 bpm of half the previous candidate
+is held until 60 seconds of interval time have elapsed without an accepted update. The half-rate comparison truncates
+the previous candidate in 0.1 bpm units divided by 20. A change strictly below 10 bpm follows directly. Both smoothing
+stages apply 30% integer corrections with half-way values rounded away from zero; the second stage targets the
+candidate directly when its difference from the first stage is strictly below 5 bpm. The first established target
+initializes both smoothing states.
+
+Suunto JSON/SML imports use this filter for their existing R–R-derived HR replacement path, requiring more than ten
+in-range intervals with available estimates before replacing source HR. Held out-of-range outputs do not satisfy that
+count. The raw IBI stream stays intact and HR-only stream selection still works without returning IBI. FIT continues
+to preserve recorded HR; callers can pass its raw IBI samples to the same helper to calculate a separate estimate.
+This does not add an automatic FIT HR fallback, a new stream type or a new canonical numeric stat.
+
+This causal HR filter is separate from the unsmoothed HRV/quality analysis below. Artifact flags do not pre-filter its
+input; its 250 ms lower bound does not change the HRV quality classifier's 300 ms bound. R–R mean HR and rolling-window
+HR summaries retain their existing definitions. A filtered trace is an estimate, not independent reference evidence
+for device accuracy or rhythm diagnosis.
+
+Existing persisted streams and summaries are not rewritten on load. To update older Suunto-derived HR, consumers need
+an authorized original-file reparse and regeneration of affected derived HR summaries and calculated load through their
+normal reconciliation lifecycle; imported summaries retain existing precedence. Quantified Self adoption must align
+frontend/Functions package versions and review Help, on-demand HR chart/sample reads and any historical reparse.
+The existing numeric `Heart Rate` catalog/projection can carry normally persisted values; this adds no MCP metric,
+scope, tool, consent or automatic exposure of the detailed filter output. Health/Sleep, saved routes, HRV summaries and
+their persisted schemas are unchanged. Package publication, dependency adoption, reparses and deployments are separate
+actions.
+
+### HRV and recording quality
+
 `analyzeRRIntervals(samples, durationMs)` analyzes unsmoothed beat intervals with elapsed-millisecond end timestamps.
 `analyzeActivityRR(activity)` reads an activity's raw `IBIStream`; resampled one-second chart streams are ineligible.
 Both return versioned summaries and optional classified

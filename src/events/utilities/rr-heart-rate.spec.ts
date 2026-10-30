@@ -8,6 +8,12 @@ const samples = (intervals: number[], offset = 0): RRIntervalSample[] => {
   return intervals.map(interval => ({ time: (time += interval), interval }));
 };
 
+const settledFilter = (interval: number) => {
+  const filter = new RRHeartRateFilter();
+  for (let i = 0; i < 40; i++) filter.update(interval);
+  return filter;
+};
+
 describe('RRHeartRateFilter', () => {
   // Synthetic vectors from the independently exercised integer reference implementation.
   it.each(goldenCases)('matches the engineering reference: $name', ({ intervals, expected }) => {
@@ -40,6 +46,43 @@ describe('RRHeartRateFilter', () => {
   it('uses the padded 771 ms history at startup', () => {
     expect(new RRHeartRateFilter().update(771)).toBe(78);
     expect(new RRHeartRateFilter().update(500)).toBeNull();
+  });
+
+  it('requires history matches to differ by strictly less than 7 bpm', () => {
+    // The padded history rounds to 78 bpm. These inputs round to 84 and 85 bpm.
+    expect(new RRHeartRateFilter().update(714)).toBe(84);
+    expect(new RRHeartRateFilter().update(706)).toBeNull();
+  });
+
+  it('follows a small change below 10 bpm but holds a change of exactly 10 bpm without history support', () => {
+    // At a settled 60 bpm, 858/857 ms round to 69.9/70.0 bpm internally.
+    expect(settledFilter(1000).update(858)).toBe(61);
+    expect(settledFilter(1000).update(857)).toBe(60);
+  });
+
+  it('uses the direct second-stage target only below a 5 bpm first-stage difference', () => {
+    // The new targets are 67.0/67.1 bpm; both first-stage estimates round to 62.1 bpm.
+    expect(settledFilter(1000).update(896)).toBe(62);
+    expect(settledFilter(1000).update(894)).toBe(61);
+  });
+
+  it('enables the half-rate latch strictly above 120 bpm, using the internal estimate', () => {
+    const atBoundary = settledFilter(500),
+      aboveBoundary = settledFilter(499);
+    // Both display 120 bpm, but their internal states are 120.0 and 120.2 bpm.
+    expect(Array.from({ length: 14 }, () => atBoundary.update(1000))).toEqual(Array(14).fill(120));
+    expect(atBoundary.update(1000)).toBe(115);
+    expect(Array.from({ length: 59 }, () => aboveBoundary.update(1000))).toEqual(Array(59).fill(120));
+    expect(aboveBoundary.update(1000)).toBe(115);
+  });
+
+  it('does not latch an estimate exactly 10 bpm from half the previous candidate', () => {
+    const atBoundary = settledFilter(400),
+      insideBoundary = settledFilter(400);
+    // Half of 150 bpm is 75. Rounded inputs at 85/84 bpm differ by 10/9 bpm.
+    expect(Array.from({ length: 14 }, () => atBoundary.update(706))).toEqual(Array(14).fill(150));
+    expect(atBoundary.update(706)).toBe(144);
+    expect(Array.from({ length: 15 }, () => insideBoundary.update(714))).toEqual(Array(15).fill(150));
   });
 
   it('holds a missed-beat halving until exactly 60 seconds of interval time have elapsed', () => {
@@ -94,6 +137,16 @@ describe('filterRRHeartRate', () => {
   it('resets after a real source gap instead of carrying HR into a disconnected recording', () => {
     const input = [...samples([500, 500]), ...samples([1000, 1000], 10000)];
     expect(filterRRHeartRate(input, 12000).map(s => s.heartRate)).toEqual([null, 120, null, 60]);
+  });
+
+  it('tolerates sub-microsecond clock noise but resets for a gap above the stated tolerance', () => {
+    const input = [500, 1000, 1500.0002, 2000.0022].map(time => ({ time, interval: 500 }));
+    expect(filterRRHeartRate(input, 2500).map(sample => sample.heartRate)).toEqual([null, 120, 120, null]);
+  });
+
+  it.each([NaN, Infinity, -Infinity])('resets after an invalid source timestamp %s', time => {
+    const input = [...samples([500, 500]), { time, interval: 500 }, ...samples([500, 500], 1000)];
+    expect(filterRRHeartRate(input, 2000).map(sample => sample.heartRate)).toEqual([null, 120, null, 120]);
   });
 
   it.each([0, -1, NaN, Infinity])('treats invalid interval %s as a recording barrier', interval => {

@@ -1,6 +1,6 @@
 {
   "name": "@sports-alliance/sports-lib",
-  "version": "23.9.0",
+  "version": "23.9.1",
   "description": "TypeScript library for importing, exporting, and analyzing sports activities and routes from FIT, GPX, TCX, and JSON, with standardized activity, health, and sleep metrics.",
   "keywords": [
     "typescript",
@@ -80,7 +80,7 @@
   "dependencies": {
     "@googlemaps/polyline-codec": "^1.0.28",
     "fast-xml-parser": "^5.11.2",
-    "fit-file-parser": "^6.2.4",
+    "fit-file-parser": "^6.2.7",
     "geolib": "^4.0.0",
     "gpx-builder": "3.8.0",
     "kalmanjs": "^1.1.0",

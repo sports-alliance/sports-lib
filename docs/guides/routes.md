@@ -33,6 +33,11 @@ const waypoints = routeFile.getWaypoints();
 - `exportRoutesToFit` returns a FIT Course `ArrayBuffer` and requires exactly one route.
 - `convertRoutesFromGPXToFit` and `convertRoutesFromFitToGPX` compose the matching import and export operations.
 
+FIT exports explicitly use the FIT 2.0 protocol header (`0x20`), matching the corrected
+encoder default. This corrects the header and its checksum without changing route messages
+or measurements. Exact binary hashes change. Re-export retained
+routes to correct older exports; no activity reparse or stored-data migration is required.
+
 ```ts
 const fitCourse = await SportsLib.exportRoutesToFit(routeFile);
 const gpxRoute = await SportsLib.exportRoutesToGPX(routeFile);

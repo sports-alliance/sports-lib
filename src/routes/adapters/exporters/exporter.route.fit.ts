@@ -56,7 +56,7 @@ export class RouteExporterFIT {
       throw new ParsingEventLibError('FIT route export requires at least one route point with valid coordinates');
     }
 
-    const writer = new FitEncoder();
+    const writer = new FitEncoder({ protocolVersion: 0x20 });
     const routeName = route.name || routeFile.name;
     const sport = FITRouteSportMapper.toFIT(route.activityType);
     this.writeFileId(writer, createdAt);

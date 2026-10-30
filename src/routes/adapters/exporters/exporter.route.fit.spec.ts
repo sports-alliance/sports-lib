@@ -26,18 +26,11 @@ describe('RouteExporterFIT', () => {
     const source = await SportsLib.importRoutesFromGPX(GPX_ROUTE, DOMParser);
     const fit = RouteExporterFIT.export(source);
 
-    expect(new Uint8Array(fit)[1]).toBe(0x10);
+    expect(new Uint8Array(fit)[1]).toBe(0x20);
     const parsed = readFitMessages(fit);
-    expect(parsed).toMatchObject({ protocolVersion: 0x10, issues: [] });
-    // Developer fields and 64-bit integers would require a FIT 2.0 header.
-    for (const message of parsed.messages) {
-      expect(message.developerFields).toHaveLength(0);
-      for (const field of message.fields) {
-        expect(field.baseType & 0x1f).toBeLessThan(14);
-      }
-    }
+    expect(parsed).toMatchObject({ protocolVersion: 0x20, issues: [] });
     expect(createHash('sha256').update(new Uint8Array(fit)).digest('hex')).toBe(
-      'b73e49f5a8d4aeb1736179bca783325f26c8811000276377ece1677072f094fa'
+      '548acf025d35efb4d25627895a433e31450e7dc579487f9496216c79309a67be'
     );
   });
 

@@ -52,11 +52,11 @@ Missing per-yard average swim pace is derived from the canonical swim average ra
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.
 See [swim average unit summaries](guides/metrics-and-calculations.md#swim-average-unit-summaries).
 
-**Regression-tested against 195,562 real-world source files.** Coverage includes activity and route imports
+**Regression-tested using a corpus of 212,905 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on
 evidence in the file. See
-[Validation and compatibility](guides/validation.md) for examples, the dated corpus snapshot, activity and route
+[Validation and compatibility](guides/validation.md) for examples, dated validation coverage, activity and route
 coverage, methodology and known limitations.
 
 Sports Lib 23.2 adopts FIT Parser `^6.2.3` to recover timestamps and other supported numeric fields when producers

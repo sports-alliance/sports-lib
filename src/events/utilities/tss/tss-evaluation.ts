@@ -7,6 +7,20 @@ export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET' | 'SWIM_P
 /** HR formula used by a calculated HR evaluation; absent on legacy evaluations. */
 export type TrainingStressScoreHrAlgorithm = 'BANISTER' | 'THRESHOLD';
 
+/** Independent consumer calibration, used only when original-file calibration is unavailable.
+ * These inputs never become recorded activity statistics or replace imported TSS.
+ */
+export interface TrainingStressScoreCalibration {
+  /** Independent FTP in watts. */
+  functionalThresholdPower?: number;
+  /** Independent lactate-threshold heart rate in bpm; uses the threshold-HR estimate. */
+  lactateThresholdHR?: number;
+  /** Independent CSS in metres/second. */
+  thresholdSwimSpeed?: number;
+  /** Body mass in kilograms, used only when the activity has no valid file weight. */
+  bodyMassKg?: number;
+}
+
 /**
  * Stable machine-readable diagnostics, suitable for a consumer's localized explanation.
  * `invalid-hr-calibration` includes inconsistent file settings, such as a scoped threshold

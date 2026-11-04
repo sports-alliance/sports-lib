@@ -1,5 +1,10 @@
 # Sports Lib documentation
 
+Independent dated athlete settings can supply FTP, threshold HR, CSS and body mass through the side-effect-free
+Training stress calibration evaluator. Imported scores and valid file calibration keep priority; recorded activity
+statistics and existing saved results remain unchanged. See
+[consumer calibration](guides/metrics-and-calculations.md#independent-consumer-calibration).
+
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
 and native JSON hydration consistently fill missing speed-derived pace summaries on events, activities, and laps while
 preserving applicable explicit values except Diving-group terrain summaries. Supported activity aliases are normalized to

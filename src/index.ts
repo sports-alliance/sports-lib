@@ -270,6 +270,7 @@ export * from './users/user.service.meta.interface';
 export type {
   TrainingStressScorePreference,
   TrainingStressScoreHrAlgorithm,
+  TrainingStressScoreCalibration,
   TrainingStressScoreReason,
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations

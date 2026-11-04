@@ -2737,7 +2737,7 @@ export class ActivityUtilities {
   }
 
   private static calculatePowerTss(activity: ActivityInterface,
-    ftp = this.resolveFunctionalThresholdPower(activity), persist = true): TssCandidate {
+    ftp = this.resolveFunctionalThresholdPower(activity), persist = true): TssCandidate & { coverage?: PowerCoverage | null } {
     if (ftp === null) {
       return { result: null, reason: 'missing-power-inputs' };
     }
@@ -2750,20 +2750,20 @@ export class ActivityUtilities {
       return { result: null, reason: 'missing-power-inputs' };
     }
 
-    if (computed) {
-      const coverage = powerIntervals(activity).coverage;
+    const coverage = computed ? powerIntervals(activity).coverage : null;
+    if (coverage) {
       const denominator = Math.max(coverage.durationSeconds, durationSeconds);
       if (!(denominator > 0) || coverage.coveredDurationSeconds / denominator < this.MINIMUM_COMPUTED_POWER_TSS_COVERAGE - 1e-9) {
         return { result: null, reason: 'calculation-unavailable' };
       }
     }
 
-    return this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
+    return { ...this.calculatedTssCandidate(TssCalculator.calculatePowerTss({
       totalDurationWithoutPauses: durationSeconds,
       functionalThresholdPower: ftp,
       normalizedPower,
       samples: []
-    }));
+    })), coverage };
   }
 
   private static getHrTssSamples(activity: ActivityInterface): Array<{ duration: number; hr: number }> {
@@ -3045,9 +3045,7 @@ export class ActivityUtilities {
       }
       if (!automatic) automaticReasons.push(metCandidate?.reason ?? 'missing-met-inputs');
     }
-    const powerCoverage = power && (this.isCalculatedNormalizedPower(activity)
-      || this.toPositiveFiniteNumber(this.getFiniteStatValue(activity, DataPowerNormalized.type)) === null)
-      ? powerIntervals(activity).coverage : null;
+    const powerCoverage = powerCandidate?.coverage;
     const estimatedPower = !!powerCoverage && powerCoverage.coveredDurationSeconds <
       Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {

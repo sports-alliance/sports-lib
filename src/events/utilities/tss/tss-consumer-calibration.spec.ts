@@ -63,6 +63,21 @@ describe('independent consumer TSS calibration', () => {
     expect(evaluate(activity, { functionalThresholdPower: 200 }).automatic.score).toBeNull();
   });
 
+  it('marks accepted incomplete computed power as estimated', () => {
+    const activity = workout(); samples(activity, DataPower.type, 200);
+    activity.getStream(DataPower.type).setData(Array.from({ length: 3601 }, (_, i) => i < 3240 ? 200 : null));
+    expect(evaluate(activity, { functionalThresholdPower: 200 }).automatic)
+      .toMatchObject({ score: 100, method: 'POWER', estimated: true });
+  });
+
+  it('retains device normalized power priority without claiming computed coverage', () => {
+    const activity = workout(); samples(activity, DataPower.type, 200);
+    activity.getStream(DataPower.type).setData(Array.from({ length: 3601 }, (_, i) => i < 900 ? 200 : null));
+    activity.addStat(new DataPowerNormalized(200));
+    expect(evaluate(activity, { functionalThresholdPower: 200 }).automatic)
+      .toMatchObject({ score: 100, method: 'POWER', estimated: false });
+  });
+
   it('uses standalone threshold HR without mixing file resting/max HR', () => {
     const activity = workout(ActivityTypes.Walking); samples(activity, DataHeartRate.type, 100);
     fileHeartRateCalibration.set(activity, { restingHeartRate: 54, maxHeartRate: 187, lactateThresholdHR: 62,

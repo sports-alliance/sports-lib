@@ -1261,6 +1261,7 @@ Body mass only fills missing file weight for calorie-derived MET. No resting cal
 
 The API returns modeled evaluations without changing recorded statistics, streams, parse options or the cached
 file-only evaluations. Existing power coverage, pauses, gaps, sport eligibility and calculator limits still apply.
+Power coverage is reused within each evaluation for eligibility and the estimate flag; it is not a persistent cache.
 It does not manage setting dates or persistence: consumers must select and retain the settings applicable to each
 workout. Existing saved results need no migration or recalculation. The compatible
 `evaluateTrainingStressScoreWithSwimThreshold` API retains its supplied-CSS precedence for existing consumers.

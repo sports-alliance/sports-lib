@@ -6,7 +6,7 @@ summary: Compatibility with imperfect files, verified corpus coverage, route val
 # Validation and compatibility
 
 Sports Lib combines automated tests with testing against real activity and route exports. This guide documents the
-October 2026 corpus validation, alongside the project's earlier testing history.
+corpus validation through **4 November 2026**, alongside the project's earlier testing history.
 
 ## Compatibility with imperfect files
 
@@ -34,15 +34,17 @@ conditions and historical reparse requirements. The known limitations below rema
 
 ## Verified corpus
 
-As of **22 October 2026**, the validation covers **195,562 distinct source files**, including activity and route
-imports and file-type validation.
+As of **4 November 2026**, the regression corpus contains **212,905 distinct source files**. Validation covers activity
+and route imports and file-type validation. Coverage combines complete replays with focused follow-ups; the dated
+results below identify each run's scope.
 
 Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
 count does not represent unique workouts or athletes.
 
 The corpus includes FIT, GPX, TCX, provider JSON and SML, with exports from Garmin, Suunto, COROS, Polar and other sources.
 
-The complete snapshot includes these successfully imported activity and route cases:
+The complete **22 October 2026** replay covered **195,562 source files** and included these successfully imported
+activity and route cases:
 
 | Coverage | Count |
 |---|---:|
@@ -75,9 +77,16 @@ readings in nine files, eliminating 60 negative left-side power samples; the oth
 Total power and TSS were unchanged. Both follow-ups checked native JSON roundtrips and repeated generation.
 These focused runs supplement the complete snapshot above; they are not additional unique source files.
 
+The **4 November 2026** FIT refresh added **16,203 distinct originals**, expanding the corpus from **196,702** to
+**212,905 files**.
+All additions and three existing controls received fresh decoder and library checks, covering **16,206 inputs**.
+The activity imports passed **32,408 native JSON restoration cycles**, with imported TSS preserved and no unexpected
+output differences or newly introduced rejections. This incremental replay supplements the earlier coverage; it does
+not represent a new complete replay of every retained source.
+
 ## Route coverage
 
-The validated route corpus contains **1,287 GPX files and one FIT file**.
+The **22 October 2026** route validation covered **1,287 GPX files and one FIT file**.
 
 Each was imported through the route APIs, compared with the published implementation and restored from native JSON.
 Comparisons covered the complete serialized output, including geometry, metadata and statistics. No failures or

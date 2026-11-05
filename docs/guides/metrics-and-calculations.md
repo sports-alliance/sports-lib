@@ -1247,6 +1247,25 @@ The cost ratio follows the equal-energy relation `Cost(g) * Speed = Cost(0) * Ad
 [Minetti running-cost model](https://journals.physiology.org/doi/full/10.1152/japplphysiol.01177.2001).
 Forty active minutes at threshold pace with a twenty-minute explicit pause produce 66.7 TSS.
 
+#### Independent consumer calibration
+
+Consumers with dated athlete settings can call
+`ActivityUtilities.evaluateTrainingStressScoreWithCalibration(activity, calibration)` after initializing
+`getTrainingStressScoreEvaluations(activity)` while parsed inputs are available. The public
+`TrainingStressScoreCalibration` accepts optional independent FTP (`functionalThresholdPower`, watts), threshold HR
+(`lactateThresholdHR`, bpm), CSS (`thresholdSwimSpeed`, metres/second) and body mass (`bodyMassKg`, kilograms).
+All supplied values must be positive and finite. Imported TSS, including zero, always wins. Valid original-file
+calibration precedes these fallback inputs; a recorded activity FTP estimate is still not independent calibration.
+User threshold HR uses the existing threshold-band estimate without combining it with file resting/maximum HR.
+Body mass only fills missing file weight for calorie-derived MET. No resting calories, weight or threshold is invented.
+
+The API returns modeled evaluations without changing recorded statistics, streams, parse options or the cached
+file-only evaluations. Existing power coverage, pauses, gaps, sport eligibility and calculator limits still apply.
+Power coverage is reused within each evaluation for eligibility and the estimate flag; it is not a persistent cache.
+It does not manage setting dates or persistence: consumers must select and retain the settings applicable to each
+workout. Existing saved results need no migration or recalculation. The compatible
+`evaluateTrainingStressScoreWithSwimThreshold` API retains its supplied-CSS precedence for existing consumers.
+
 SWIM_PACE TSS:
 
 Swimming requires an independent threshold from `thresholdSwimSpeed`, the compatible `refSwimSpeed` override, or the

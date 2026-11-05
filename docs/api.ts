@@ -737,6 +737,7 @@ export { EventUtilities } from '../src/events/utilities/event.utilities';
 export type {
   TrainingStressScorePreference,
   TrainingStressScoreHrAlgorithm,
+  TrainingStressScoreCalibration,
   TrainingStressScoreReason,
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations

@@ -468,6 +468,12 @@ canonical metric tokens and `toJSON()` are unchanged, including on display-confi
 to metres; reapply the viewer's preference after hydration. No source reparse, derived-summary regeneration or stored
 activity migration is required. Existing MCP numeric catalog names and canonical metre values remain unchanged.
 
+This follows the canonical weight display preference pattern. Use `getDisplayNumericValue()` for editable inputs,
+not the rounded `getDisplayValue()`. Input conversion has ordinary floating-point precision; preference changes and
+JSON round trips retain the original canonical number exactly rather than converting a rounded display back into storage.
+Explicit constructors reject unsupported display units, and input factories reject nonnumeric or non-finite values
+before conversion. Missing or invalid user preferences still fall back to metres through `DynamicDataLoader`.
+
 Mass display for planned exercise loads uses the existing canonical `DataWeight` primitive in kilograms, not a new
 planned-workout metric or event-stat field. `WeightUnits.Pounds` asks
 `DynamicDataLoader.getUnitBasedDataFromDataInstance` for a display-only `DataWeight` instance; its visible value uses

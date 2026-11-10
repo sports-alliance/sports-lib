@@ -9,20 +9,32 @@ export class DataAltitude extends DataNumber {
   static type = 'Altitude';
   static unit = 'm';
 
-  /** Canonical metres are retained by getValue(), getUnit() and JSON; units affect display only. */
+  /**
+   * Canonical metres are retained by getValue(), getUnit() and JSON; units affect display only.
+   * @throws If the value is not a finite number or the explicit display unit is unsupported.
+   */
   constructor(
     value: number,
     private readonly displayUnits: ElevationUnits = ElevationUnits.Meters
   ) {
     super(value);
+    if (displayUnits !== ElevationUnits.Meters && displayUnits !== ElevationUnits.Feet) {
+      throw new Error('Unsupported elevation display unit');
+    }
   }
 
-  /** Converts an unrounded user-entered elevation to canonical metres, retaining the concrete metric. */
+  /**
+   * Converts an unrounded user-entered elevation to canonical metres, retaining the concrete metric.
+   * @throws If the input is not a finite number or its unit is unsupported; inputs are never coerced.
+   */
   static fromDisplayValue<TData extends DataAltitude>(
     this: new (value: number) => TData,
     value: number,
     units: ElevationUnits
   ): TData {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error('Elevation input must be a finite number');
+    }
     if (units === ElevationUnits.Meters) return new this(value);
     if (units === ElevationUnits.Feet) return new this(value * METERS_PER_FOOT);
     throw new Error('Unsupported elevation display unit');

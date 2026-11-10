@@ -223,7 +223,8 @@ import {
   DistanceUnits,
   SwimPaceUnits,
   UserUnitSettingsInterface,
-  WeightUnits
+  WeightUnits,
+  ElevationUnits
 } from '../users/settings/user.unit.settings.interface';
 import { DataAirPower } from './data.air-power';
 import { DataGroundTime } from './data.ground-time';
@@ -2173,6 +2174,13 @@ export class DynamicDataLoader {
       return [data];
     }
     const dataType = data.getType();
+    if (data instanceof DataAltitude) {
+      const units =
+        userUnitSettings.elevationUnits === ElevationUnits.Feet ? ElevationUnits.Feet : ElevationUnits.Meters;
+      if (data.getDisplayUnit() === units) return [data];
+      const Metric = data.constructor as new (value: number, units: ElevationUnits) => DataAltitude;
+      return [new Metric(data.getValue(), units)];
+    }
     if (dataType === DataWeight.type) {
       return userUnitSettings.weightUnits === WeightUnits.Pounds
         ? [new DataWeight(<number>data.getValue(), WeightUnits.Pounds)]

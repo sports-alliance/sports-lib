@@ -453,6 +453,21 @@ The provider-neutral Health catalog is:
 | `VO2 Max` | `ml/kg/min` | Two decimals; displayed as `VO₂ Max` |
 | `Fitness Age` | `years` | Numeric years |
 
+### Elevation display units
+
+`UserUnitSettingsInterface.elevationUnits` independently selects `ElevationUnits.Meters` (the backward-compatible
+fallback) or `ElevationUnits.Feet`. `DynamicDataLoader.getUnitBasedDataFromDataInstance` returns the same concrete
+altitude, GPS/Stryd/smoothed altitude, minimum/maximum/average/start/end altitude, ascent or descent metric with the
+selected presentation. Distance and vertical-speed preferences remain independent. Accuracy/error distances, diving
+depth and the boolean Fused Altitude flag retain their own existing semantics.
+
+The exact conversion is 0.3048 metres per foot. `getDisplayValue()` and `getDisplayUnit()` show the selected unit;
+`getDisplayNumericValue()` supplies an unrounded numeric input value. `DataAltitude.fromDisplayValue(value, units)`
+(and its inherited concrete-metric variants) converts user input back to canonical metres. `getValue()`, `getUnit()`,
+canonical metric tokens and `toJSON()` are unchanged, including on display-configured instances. JSON hydration defaults
+to metres; reapply the viewer's preference after hydration. No source reparse, derived-summary regeneration or stored
+activity migration is required. Existing MCP numeric catalog names and canonical metre values remain unchanged.
+
 Mass display for planned exercise loads uses the existing canonical `DataWeight` primitive in kilograms, not a new
 planned-workout metric or event-stat field. `WeightUnits.Pounds` asks
 `DynamicDataLoader.getUnitBasedDataFromDataInstance` for a display-only `DataWeight` instance; its visible value uses

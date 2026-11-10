@@ -1,5 +1,8 @@
 # Sports Lib documentation
 
+Altitude, ascent and descent support an independent metres/feet display preference without changing canonical stored
+metres. See [elevation display units](guides/metrics-and-calculations.md#elevation-display-units).
+
 Independent dated athlete settings can supply FTP, threshold HR, CSS and body mass through the side-effect-free
 Training stress calibration evaluator. Imported scores and valid file calibration keep priority; recorded activity
 statistics and existing saved results remain unchanged. See

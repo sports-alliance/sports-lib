@@ -65,7 +65,7 @@
     "prepack": "npm run build",
     "report:tss": "npx --yes tsx scripts/generate-tss-validation-report.ts",
     "prettier:fix": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install && npm run build 1>&2"
   },
   "repository": {
     "type": "git",

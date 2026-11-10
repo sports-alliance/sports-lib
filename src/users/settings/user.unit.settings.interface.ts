@@ -8,6 +8,8 @@ export interface UserUnitSettingsInterface {
   distanceUnits?: DistanceUnits;
   /** Optional mass display preference; older settings default to kilograms. */
   weightUnits?: WeightUnits;
+  /** Display-only elevation preference; omitted settings retain metres. */
+  elevationUnits?: ElevationUnits;
   startOfTheWeek: DaysOfTheWeek;
 }
 
@@ -20,6 +22,12 @@ export enum DistanceUnits {
 export enum WeightUnits {
   Kilograms = 'kg',
   Pounds = 'lb'
+}
+
+/** Display units for canonical metre altitude, ascent and descent values. */
+export enum ElevationUnits {
+  Meters = 'm',
+  Feet = 'ft'
 }
 
 export enum SpeedUnits {
@@ -45,7 +53,7 @@ export enum GradeAdjustedSpeedUnits {
 export enum SpeedUnitsToGradeAdjustedSpeedUnits {
   'Speed in kilometers per hour' = 'KilometersPerHour',
   'Speed in miles per hour' = 'MilesPerHour',
-  'Speed' = 'MetersPerSecond',
+  Speed = 'MetersPerSecond',
   'Speed in feet per second' = 'FeetPerSecond',
   'Speed in meters per minute' = 'MetersPerMinute',
   'Speed in feet per minute' = 'FeetPerMinute',
@@ -74,7 +82,7 @@ export enum GradeAdjustedPaceUnits {
 }
 
 export enum PaceUnitsToGradeAdjustedPaceUnits {
-  'Pace' = 'MinutesPerKilometer',
+  Pace = 'MinutesPerKilometer',
   'Pace in minutes per mile' = 'MinutesPerMile'
 }
 

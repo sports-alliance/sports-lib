@@ -362,7 +362,7 @@ import {
 } from '../../data/data.durability-evidence';
 import { DataThreeDimensionalStrainEvidence } from '../../data/data.three-dimensional-strain-evidence';
 import { TssCalculator, type TssCalculationResult } from './tss/tss-calculator';
-import { supportsCalculatedTrainingStressScore } from './tss/tss-eligibility';
+import { supportsCalculatedTrainingStressScore, supportsRunningPaceTrainingStressScore } from './tss/tss-eligibility';
 import {
   analyzeActivityDurability,
   calculateActivityDurabilitySourceFingerprint,
@@ -2796,8 +2796,8 @@ export class ActivityUtilities {
     });
   }
 
-  private static calculatePaceTss(activity: ActivityInterface): TssCandidate {
-    const functionalThresholdPace = this.resolveFunctionalThresholdPace(activity);
+  private static calculatePaceTss(activity: ActivityInterface,
+    functionalThresholdPace = this.resolveFunctionalThresholdPace(activity)): TssCandidate {
     if (functionalThresholdPace === null) {
       return { result: null, reason: 'missing-pace-inputs' };
     }
@@ -2915,12 +2915,7 @@ export class ActivityUtilities {
   }
 
   private static supportsPaceTss(activity: ActivityInterface): boolean {
-    const activityGroup = ActivityTypesHelper.getActivityGroupForActivityType(activity.type);
-    if (activityGroup === ActivityTypeGroups.RunningGroup || activityGroup === ActivityTypeGroups.TrailRunningGroup) {
-      return true;
-    }
-
-    return activity.type === ActivityTypes.TrackAndField;
+    return supportsRunningPaceTrainingStressScore(activity.type);
   }
 
   /**
@@ -2963,7 +2958,8 @@ export class ActivityUtilities {
         estimated: false, provenance: 'imported', reasons: ['imported-score']
       });
       const result: TrainingStressScoreEvaluations = { version: 1, automatic: importedResult('AUTOMATIC'),
-        hr: importedResult('HR'), met: importedResult('MET'), swimPace: importedResult('SWIM_PACE') };
+        hr: importedResult('HR'), met: importedResult('MET'), swimPace: importedResult('SWIM_PACE'),
+        runningPace: importedResult('RUNNING_PACE') };
       if (!calibration) trainingStressScoreEvaluations.set(activity, result);
       return result;
     }
@@ -3020,12 +3016,15 @@ export class ActivityUtilities {
           lactateThresholdHR: fallbackThreshold, samples: hrSamples })
         : this.calculateHrTss(activity, hrSamples);
     }
-    // Swimming also exposes an explicit pace preference; running pace remains Automatic-only.
-    const needsPace = eligible && !walking && (swimming || (!power && !hr));
+    // Both pace preferences need a candidate even when power or HR wins Automatic.
+    // Missing thresholds return before traversing speed/grade samples.
+    const running = this.supportsPaceTss(activity);
+    const needsPace = eligible && !walking && (swimming || running);
     const swimThreshold = needsPace && swimming
       ? this.resolveThresholdSwimSpeed(activity) ?? calibration?.thresholdSwimSpeed ?? null : null;
     const paceCandidate = needsPace ? swimming
-      ? this.calculateSwimPaceTss(activity, swimThreshold) : this.supportsPaceTss(activity) ? this.calculatePaceTss(activity) : null : null;
+      ? this.calculateSwimPaceTss(activity, swimThreshold) : running ? this.calculatePaceTss(activity,
+        this.resolveFunctionalThresholdPace(activity) ?? calibration?.thresholdRunningSpeed ?? null) : null : null;
     const pace = paceCandidate?.result ?? null;
     const metCandidate = eligible ? this.calculateMetTss(activity, calibration?.bodyMassKg) : null;
     const met = metCandidate?.result ?? null;
@@ -3050,12 +3049,14 @@ export class ActivityUtilities {
       Math.max(powerCoverage.durationSeconds, this.getDurationSecondsWithoutPauses(activity)) - 1e-6;
     const resolve = (preference: TrainingStressScorePreference): TrainingStressScoreEvaluation => {
       const preferred = preference === 'HR' ? hr : preference === 'MET' ? met
-        : preference === 'SWIM_PACE' ? swimming ? pace : null : automatic;
+        : preference === 'SWIM_PACE' ? swimming ? pace : null
+          : preference === 'RUNNING_PACE' ? running ? pace : null : automatic;
       const result = preferred ?? automatic;
       const reasons = preference === 'AUTOMATIC' ? automaticReasons : preferred ? [] :
         [...new Set<TrainingStressScoreReason>([
           preference === 'HR' ? hrReason ?? 'calculation-unavailable'
             : preference === 'SWIM_PACE' ? swimming ? paceCandidate?.reason ?? 'calculation-unavailable' : 'unsupported-sport'
+              : preference === 'RUNNING_PACE' ? running ? paceCandidate?.reason ?? 'missing-pace-inputs' : 'unsupported-sport'
               : metCandidate?.reason ?? 'missing-met-inputs', ...automaticReasons
         ])];
       return { preference, score: result ? this.round(result.trainingStressScore, this.TRAINING_STRESS_SCORE_DECIMALS) : null,
@@ -3067,7 +3068,8 @@ export class ActivityUtilities {
         reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
     };
     const result: TrainingStressScoreEvaluations = { version: 1,
-      automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET'), swimPace: resolve('SWIM_PACE') };
+      automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET'), swimPace: resolve('SWIM_PACE'),
+      runningPace: resolve('RUNNING_PACE') };
     if (!calibration && automatic?.calculationMethod === TrainingStressScoreMethod.POWER) {
       this.persistCalibratedFunctionalThresholdPower(activity);
       this.updatePowerOutputsFromPowerTss(activity, automatic);

@@ -2,7 +2,7 @@ import type { TrainingStressScoreMethodType } from '../../../data/data.training-
 import type { ActivityInterface } from '../../../activities/activity.interface';
 
 /** A requested calculation policy. Imported scores always take precedence. */
-export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET' | 'SWIM_PACE';
+export type TrainingStressScorePreference = 'AUTOMATIC' | 'HR' | 'MET' | 'SWIM_PACE' | 'RUNNING_PACE';
 
 /** HR formula used by a calculated HR evaluation; absent on legacy evaluations. */
 export type TrainingStressScoreHrAlgorithm = 'BANISTER' | 'THRESHOLD';
@@ -17,6 +17,8 @@ export interface TrainingStressScoreCalibration {
   lactateThresholdHR?: number;
   /** Independent CSS in metres/second. */
   thresholdSwimSpeed?: number;
+  /** Independent running threshold speed in metres/second, never workout-average pace. */
+  thresholdRunningSpeed?: number;
   /** Body mass in kilograms, used only when the activity has no valid file weight. */
   bodyMassKg?: number;
 }
@@ -60,6 +62,8 @@ export interface TrainingStressScoreEvaluations {
   met: TrainingStressScoreEvaluation;
   /** Absent in evaluations saved by older versions. */
   swimPace?: TrainingStressScoreEvaluation;
+  /** Absent in evaluations saved by older versions. Uses the existing eligible running sports. */
+  runningPace?: TrainingStressScoreEvaluation;
 }
 
 export interface FileHeartRateCalibration {

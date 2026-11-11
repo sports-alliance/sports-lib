@@ -1287,6 +1287,19 @@ It does not manage setting dates or persistence: consumers must select and retai
 workout. Existing saved results need no migration or recalculation. The compatible
 `evaluateTrainingStressScoreWithSwimThreshold` API retains its supplied-CSS precedence for existing consumers.
 
+For eligible running sports, consumer calibration also accepts `thresholdRunningSpeed` in metres/second. This is an
+independently measured threshold, never the workout's average or best pace. Existing file/parse threshold inputs
+retain priority. The legacy calculator input `functionalThresholdPace` also means speed in metres/second.
+`runningPace` is an additive optional evaluation with preference `RUNNING_PACE` and actual method `PACE` when usable.
+It is calculated once even when power or HR wins Automatic; Automatic keeps its existing power → HR → pace → MET order.
+An unavailable preferred pace candidate falls back through that order and retains its reason. Imported TSS, including
+zero, always wins. `supportsRunningPaceTrainingStressScore(type)` exposes the unchanged Running/Trail Running group
+and Track and Field eligibility; walking, hiking and swimming do not acquire running-pace calculations.
+The existing grade, timer, gap, rolling-window and range checks are unchanged. No input streams, recorded stats,
+ordinary file-only cache or JSON fields are modified by consumer evaluation. Older saved evaluations without
+`runningPace` remain readable. Consumers need original-file parsing to prepare missing candidates, and must retain
+the historically applied threshold or its absence; adding a setting does not authorize recalculating old workouts.
+
 SWIM_PACE TSS:
 
 Swimming requires an independent threshold from `thresholdSwimSpeed`, the compatible `refSwimSpeed` override, or the

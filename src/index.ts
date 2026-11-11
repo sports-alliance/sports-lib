@@ -275,6 +275,7 @@ export type {
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations
 } from './events/utilities/tss/tss-evaluation';
+export { supportsRunningPaceTrainingStressScore } from './events/utilities/tss/tss-eligibility';
 
 export * from './duration/timing-validity';
 

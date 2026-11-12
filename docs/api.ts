@@ -739,11 +739,15 @@ export type {
   TrainingStressScorePreference,
   TrainingStressScoreHrAlgorithm,
   TrainingStressScoreCalibration,
-  isValidTrainingStressScoreHrCalibration,
   TrainingStressScoreReason,
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations
 } from '../src/events/utilities/tss/tss-evaluation';
+
+/** Validate a complete, independent resting/threshold/maximum HR tuple for Banister.
+ * @category Activities and events
+ */
+export { isValidTrainingStressScoreHrCalibration } from '../src/events/utilities/tss/tss-evaluation';
 
 /** Existing running/Trail Running groups and Track and Field eligibility for explicit running pace TSS.
  * Consumer calibration accepts `thresholdRunningSpeed` in m/s and evaluations add optional `runningPace`.

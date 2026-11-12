@@ -16,6 +16,7 @@ export interface TssInput {
   totalDurationWithoutPauses: number;
   functionalThresholdPower?: number;
   normalizedPower?: number;
+  /** Legacy name: this is threshold speed in metres/second, not seconds per distance. */
   functionalThresholdPace?: number;
   lactateThresholdHR?: number;
   maxHeartRate?: number;

@@ -1023,7 +1023,8 @@ components.
 Priority order:
 
 - Valid nonnegative imported TSS always wins, including zero.
-  Imported scores skip unused calculations; running pace is evaluated only when Automatic needs that fallback.
+  Imported scores skip unused calculations. Eligible running pace is evaluated once so it can be selected even when
+  power or HR wins Automatic.
 - Walking, Indoor Walking, Nordic Walking, Speed Walking, Hiking and Trekking:
   IMPORTED -> POWER -> HR -> calorie-derived MET -> unavailable.
 - Pool and open-water swimming: IMPORTED -> SWIM_PACE with independent CSS -> HR -> MET -> unavailable.
@@ -1032,7 +1033,8 @@ Priority order:
 
 Walking and hiking use power when usable power and a valid threshold are available; they do not use running pace TSS.
 HR uses Banister with complete calibration, or the threshold-only estimate for every sport eligible for calculated TSS.
-HR, MET and (for swimming) SWIM_PACE preferences select their available method first, then fall back through the
+HR, MET, SWIM_PACE (for swimming) and RUNNING_PACE (for eligible running sports) select their available method first,
+then fall back through the
 sport's eligible Automatic order. Known calculated scores are recomputed, and removed when no candidate is available;
 they are never reinterpreted as imports. Unmarked legacy scores retain imported semantics. The legacy
 `preserveImportedTss` option is deprecated: remove an imported stat explicitly for a calculation-only comparison.
@@ -1275,10 +1277,24 @@ Consumers with dated athlete settings can call
 `getTrainingStressScoreEvaluations(activity)` while parsed inputs are available. The public
 `TrainingStressScoreCalibration` accepts optional independent FTP (`functionalThresholdPower`, watts), threshold HR
 (`lactateThresholdHR`, bpm), CSS (`thresholdSwimSpeed`, metres/second) and body mass (`bodyMassKg`, kilograms).
-All supplied values must be positive and finite. Imported TSS, including zero, always wins. Valid original-file
+All supplied numeric values must be positive and finite. Imported TSS, including zero, always wins. Valid original-file
 calibration precedes these fallback inputs; a recorded activity FTP estimate is still not independent calibration.
-User threshold HR uses the existing threshold-band estimate without combining it with file resting/maximum HR.
+Without an explicit HR formula choice, user threshold HR uses the existing threshold-band estimate without
+combining it with file resting/maximum HR.
 Body mass only fills missing file weight for calorie-derived MET. No resting calories, weight or threshold is invented.
+
+Optional `restingHeartRate` and `maxHeartRate` (bpm) support the explicit `hrAlgorithm: 'BANISTER' | 'THRESHOLD'` choice.
+Omitting the choice preserves existing file-first behavior and consumer threshold-only estimates, even when consumer
+rest/max fields are supplied. Banister uses a complete valid applicable file tuple, otherwise a complete consumer tuple
+with `0 < restingHeartRate < lactateThresholdHR < maxHeartRate`. It never completes a file tuple with consumer values.
+`isValidTrainingStressScoreHrCalibration(calibration)` checks this complete finite tuple for consumer editors.
+Threshold mode prefers an independently valid file threshold, then the consumer threshold; it never invents rest/max.
+The choice controls the HR candidate, not Automatic method order or imported-score precedence. If the requested formula
+cannot run, another usable HR formula precedes the sport's ordinary method fallbacks, with
+`requested-hr-algorithm-unavailable` and the actual `hrAlgorithm` in the result. Existing formulas, coefficients,
+recorded sample coverage and timer pauses remain unchanged. The models need not agree, especially at low intensity;
+Banister is not a universal accuracy upgrade. Retain the dated choice or its absence when saving workout inputs.
+
 
 The API returns modeled evaluations without changing recorded statistics, streams, parse options or the cached
 file-only evaluations. Existing power coverage, pauses, gaps, sport eligibility and calculator limits still apply.
@@ -1286,6 +1302,19 @@ Power coverage is reused within each evaluation for eligibility and the estimate
 It does not manage setting dates or persistence: consumers must select and retain the settings applicable to each
 workout. Existing saved results need no migration or recalculation. The compatible
 `evaluateTrainingStressScoreWithSwimThreshold` API retains its supplied-CSS precedence for existing consumers.
+
+For eligible running sports, consumer calibration also accepts `thresholdRunningSpeed` in metres/second. This is an
+independently measured threshold, never the workout's average or best pace. Existing file/parse threshold inputs
+retain priority. The legacy calculator input `functionalThresholdPace` also means speed in metres/second.
+`runningPace` is an additive optional evaluation with preference `RUNNING_PACE` and actual method `PACE` when usable.
+It is calculated once even when power or HR wins Automatic; Automatic keeps its existing power → HR → pace → MET order.
+An unavailable preferred pace candidate falls back through that order and retains its reason. Imported TSS, including
+zero, always wins. `supportsRunningPaceTrainingStressScore(type)` exposes the unchanged Running/Trail Running group
+and Track and Field eligibility; walking, hiking and swimming do not acquire running-pace calculations.
+The existing grade, timer, gap, rolling-window and range checks are unchanged. No input streams, recorded stats,
+ordinary file-only cache or JSON fields are modified by consumer evaluation. Older saved evaluations without
+`runningPace` remain readable. Consumers need original-file parsing to prepare missing candidates, and must retain
+the historically applied threshold or its absence; adding a setting does not authorize recalculating old workouts.
 
 SWIM_PACE TSS:
 

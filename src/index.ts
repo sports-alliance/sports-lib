@@ -275,7 +275,10 @@ export type {
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations
 } from './events/utilities/tss/tss-evaluation';
+export { supportsRunningPaceTrainingStressScore } from './events/utilities/tss/tss-eligibility';
 
 export * from './duration/timing-validity';
 
 export type { PowerCoverage } from './activities/power-coverage';
+
+export { isValidTrainingStressScoreHrCalibration } from './events/utilities/tss/tss-evaluation';

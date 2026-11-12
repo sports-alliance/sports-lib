@@ -19,7 +19,9 @@ const requiredPages = [
   'classes/API.RouteParsingOptions.html',
   'classes/API.Stream.html',
   'interfaces/API.EventJSONInterface.html',
-  'interfaces/API.RouteFileJSONInterface.html'
+  'interfaces/API.RouteFileJSONInterface.html',
+  'functions/API.isValidTrainingStressScoreHrCalibration.html',
+  'functions/API.supportsRunningPaceTrainingStressScore.html'
 ];
 
 const healthAndSleepDataClassNames = [

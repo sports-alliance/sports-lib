@@ -3,9 +3,10 @@
 Altitude, ascent and descent support an independent metres/feet display preference without changing canonical stored
 metres. See [elevation display units](guides/metrics-and-calculations.md#elevation-display-units).
 
-Independent dated athlete settings can supply FTP, threshold HR, CSS and body mass through the side-effect-free
+Independent dated athlete settings can supply FTP, threshold HR, running threshold speed, CSS and body mass through the side-effect-free
 Training stress calibration evaluator. Imported scores and valid file calibration keep priority; recorded activity
-statistics and existing saved results remain unchanged. See
+statistics and existing saved results remain unchanged. Explicit HR formula selection also accepts a complete independent
+resting/threshold/maximum-HR tuple; omitting the choice retains existing behavior. See
 [consumer calibration](guides/metrics-and-calculations.md#independent-consumer-calibration).
 
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
@@ -60,7 +61,7 @@ Missing per-yard average swim pace is derived from the canonical swim average ra
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.
 See [swim average unit summaries](guides/metrics-and-calculations.md#swim-average-unit-summaries).
 
-**Regression-tested using a corpus of 212,905 real-world source files.** Coverage includes activity and route imports
+**Regression-tested using a corpus of 221,835 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on
 evidence in the file. See

@@ -61,7 +61,7 @@ Missing per-yard average swim pace is derived from the canonical swim average ra
 recorded summaries retain priority; correcting an older saved derived value requires targeted source reparsing.
 See [swim average unit summaries](guides/metrics-and-calculations.md#swim-average-unit-summaries).
 
-**Regression-tested using a corpus of 212,905 real-world source files.** Coverage includes activity and route imports
+**Regression-tested using a corpus of 221,835 real-world source files.** Coverage includes activity and route imports
 and file-type validation. Corpus investigations
 have driven compatibility fixes for vendor quirks, incomplete recordings and malformed data, with recovery based on
 evidence in the file. See

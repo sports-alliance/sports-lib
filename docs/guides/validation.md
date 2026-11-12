@@ -6,7 +6,7 @@ summary: Compatibility with imperfect files, verified corpus coverage, route val
 # Validation and compatibility
 
 Sports Lib combines automated tests with testing against real activity and route exports. This guide documents the
-corpus validation through **4 November 2026**, alongside the project's earlier testing history.
+corpus validation through **12 November 2026**, alongside the project's earlier testing history.
 
 ## Compatibility with imperfect files
 
@@ -34,28 +34,27 @@ conditions and historical reparse requirements. The known limitations below rema
 
 ## Verified corpus
 
-As of **4 November 2026**, the regression corpus contains **212,905 distinct source files**. Validation covers activity
-and route imports and file-type validation. Coverage combines complete replays with focused follow-ups; the dated
-results below identify each run's scope.
+As of **12 November 2026**, validation covers **221,835 distinct source files**, including activity and route imports
+and file-type validation. The latest coverage combines a complete snapshot replay with checks of every subsequent
+addition against the same calculation build. Additional API contexts and repeated checks of existing files do not
+increase the distinct-file total.
 
-Files are deduplicated by their contents. Different exports of the same workout can remain distinct files, so this
-count does not represent unique workouts or athletes.
+Files are deduplicated by their decompressed contents. Different exports of the same workout can remain distinct
+files, so this count does not represent unique workouts or athletes.
 
 The corpus includes FIT, GPX, TCX, provider JSON and SML, with exports from Garmin, Suunto, COROS, Polar and other sources.
 
-The complete **22 October 2026** replay covered **195,562 source files** and included these successfully imported
-activity and route cases:
+The latest combined coverage includes:
 
 | Coverage | Count |
 |---|---:|
-| Activity source files | 188,277 |
-| Activity legs | 189,455 |
-| Multisport source files | 429 |
-| Laps | 814,607 |
-| Swimming lengths, including rests | 341,872 |
-| Route source files | 1,288 |
+| Distinct source files | 221,835 |
+| Activity legs parsed | 215,444 |
+| Multisport source files | 460 |
+| Route source files checked | 1,660 |
 
-Legs, laps and lengths are nested in activity files; these counts must not be added together as unique activities.
+Legs are nested in activity files, and a file can be checked through more than one import API. These rows must not be
+added together as unique files or activities.
 
 ## What was checked
 
@@ -75,22 +74,21 @@ Focused follow-up replays checked all **2,629 JSON/SML originals** for the Suunt
 **2,337 balance-related FIT originals** for record-balance validation. The latter corrected 100 invalid balance
 readings in nine files, eliminating 60 negative left-side power samples; the other 2,328 files stayed unchanged.
 Total power and TSS were unchanged. Both follow-ups checked native JSON roundtrips and repeated generation.
-These focused runs supplement the complete snapshot above; they are not additional unique source files.
+These focused runs are part of the project's testing history; they are not additional unique source files.
 
-The **4 November 2026** FIT refresh added **16,203 distinct originals**, expanding the corpus from **196,702** to
-**212,905 files**.
-All additions and three existing controls received fresh decoder and library checks, covering **16,206 inputs**.
-The activity imports passed **32,408 native JSON restoration cycles**, with imported TSS preserved and no unexpected
-output differences or newly introduced rejections. This incremental replay supplements the earlier coverage; it does
-not represent a new complete replay of every retained source.
+The latest comparisons preserved **85,325 imported leg TSS scores**, including **82 recorded zeros**. They also checked
+explicit HR formula selection, file-calibration priority, running-pace eligibility and fallback behavior, and that
+supplying resting/maximum HR alone does not change the selected formula. Independent calibration leaves recorded
+statistics, streams, parsing options and cached file-only evaluations unchanged. Both native JSON restoration passes
+retain the previous implementation's behavior, including its existing first-restoration normalization.
 
 ## Route coverage
 
-The **22 October 2026** route validation covered **1,287 GPX files and one FIT file**.
+The combined **12 November 2026** route validation covers **1,659 GPX files and one FIT file**.
 
-Each was imported through the route APIs, compared with the published implementation and restored from native JSON.
-Comparisons covered the complete serialized output, including geometry, metadata and statistics. No failures or
-unexpected differences were found.
+Route import outcomes were compared with the published implementation. Successfully imported routes were also
+restored from native JSON. Comparisons cover the complete serialized output, including geometry, metadata and
+statistics; no unexpected differences or newly introduced rejections were found.
 
 This provides substantially broader corpus coverage for GPX than FIT routes. Exporting every route through every
 supported format and manually reviewing every map were outside this audit.

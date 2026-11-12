@@ -739,6 +739,7 @@ export type {
   TrainingStressScorePreference,
   TrainingStressScoreHrAlgorithm,
   TrainingStressScoreCalibration,
+  isValidTrainingStressScoreHrCalibration,
   TrainingStressScoreReason,
   TrainingStressScoreEvaluation,
   TrainingStressScoreEvaluations

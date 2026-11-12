@@ -9,7 +9,7 @@ import { captureHeartRateCoverageBeforeFill, retainHeartRateCoverageAfterFill, g
 import { calculateNormalizedPower } from './normalized-power';
 import { getHeartRateSamplesWithoutPauses } from './tss/hr-tss-samples';
 import { recordedPoolHeartRate } from '../../streams/recorded-pool-heart-rate';
-import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason, type TrainingStressScoreCalibration } from './tss/tss-evaluation';
+import { fileHeartRateCalibration, fileFunctionalThresholdPower, fileActiveDuration, isValidTrainingStressScoreHrCalibration, trainingStressScoreEvaluations, TrainingStressScoreEvaluations, TrainingStressScoreEvaluation, TrainingStressScorePreference, TrainingStressScoreReason, type TrainingStressScoreCalibration } from './tss/tss-evaluation';
 import { ActivityInterface } from '../../activities/activity.interface';
 import { DataHeartRate } from '../../data/data.heart-rate';
 import { DataMaxHRSetting } from '../../data/data.max-hr-setting';
@@ -2772,14 +2772,14 @@ export class ActivityUtilities {
   }
 
   private static calculateHrTss(activity: ActivityInterface,
-    samples = this.getHrTssSamples(activity)): TssCalculationResult | null {
-    const maxHeartRate = this.resolveMaxHeartRate(activity);
+    samples = this.getHrTssSamples(activity), calibration?: TrainingStressScoreCalibration): TssCalculationResult | null {
+    const maxHeartRate = calibration?.maxHeartRate ?? this.resolveMaxHeartRate(activity);
     if (maxHeartRate === null) {
       return null;
     }
 
-    const lactateThresholdHR = this.resolveLactateThresholdHr(activity);
-    const restingHeartRate = this.resolveRestingHeartRate(activity);
+    const lactateThresholdHR = calibration?.lactateThresholdHR ?? this.resolveLactateThresholdHr(activity);
+    const restingHeartRate = calibration?.restingHeartRate ?? this.resolveRestingHeartRate(activity);
     const gender = this.resolveGender(activity);
 
     if (!samples.length) {
@@ -2998,24 +2998,34 @@ export class ActivityUtilities {
       if (partialCalibrationValid) fallbackThreshold = threshold;
       else if (!hasCalibrationOverride) fallbackThreshold = fileCalibration?.thresholdFallbackHR ?? null;
     }
-    // Consumer LTHR is a standalone threshold estimate, never a mixed Banister
-    // tuple assembled from rejected or incomplete file settings.
-    if (eligible && hrReason && fallbackThreshold === null && calibration?.lactateThresholdHR !== undefined) {
-      fallbackThreshold = calibration.lactateThresholdHR;
-    }
-    if (fallbackThreshold !== null) hrReason = null;
-    const hrSamples = hrReason ? [] : this.getHrTssSamples(activity);
+    // Keep one coherent tuple. Consumer rest/max never complete a partial file tuple,
+    // and merely supplying them does not change the legacy formula selection.
+    const fileBanister = !hrReason && fallbackThreshold === null
+      ? { restingHeartRate: rest!, lactateThresholdHR: threshold!, maxHeartRate: max! } : undefined;
+    const thresholdHR = fallbackThreshold ?? fileBanister?.lactateThresholdHR ?? (eligible ? calibration?.lactateThresholdHR : undefined) ?? null;
+    const requestedAlgorithm = calibration?.hrAlgorithm;
+    const banister = fileBanister ?? (eligible && requestedAlgorithm && calibration && isValidTrainingStressScoreHrCalibration(calibration)
+      ? calibration : undefined);
+    const hasHrCalibration = !!banister || thresholdHR !== null;
+    if (hasHrCalibration) hrReason = null;
+    const hrSamples = hasHrCalibration ? this.getHrTssSamples(activity) : [];
     if (!hrReason && !hrSamples.length) hrReason = 'missing-hr-samples';
     const powerCandidate = eligible && !swimming ? this.calculatePowerTss(activity,
       this.resolveFunctionalThresholdPower(activity) ?? calibration?.functionalThresholdPower ?? null, !calibration) : null;
     const power = powerCandidate?.result ?? null;
-    let hr: TssCalculationResult | null = null;
-    if (eligible && !hrReason) {
-      hr = fallbackThreshold !== null
-        ? TssCalculator.calculateThresholdHrTss({ totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
-          lactateThresholdHR: fallbackThreshold, samples: hrSamples })
-        : this.calculateHrTss(activity, hrSamples);
-    }
+    const calculateHr = (algorithm: 'BANISTER' | 'THRESHOLD'): TssCalculationResult | null => {
+      if (!eligible || hrReason) return null;
+      return algorithm === 'BANISTER' ? banister ? this.calculateHrTss(activity, hrSamples, banister) : null
+        : thresholdHR === null ? null : TssCalculator.calculateThresholdHrTss({
+          totalDurationWithoutPauses: this.getDurationSecondsWithoutPauses(activity),
+          lactateThresholdHR: thresholdHR, samples: hrSamples });
+    };
+    const primaryAlgorithm = requestedAlgorithm ?? (fileBanister ? 'BANISTER' : 'THRESHOLD');
+    let hr = calculateHr(primaryAlgorithm);
+    // An explicit choice may fall back to the other usable HR formula before the sport's ordinary methods.
+    const formulaFallback = !!requestedAlgorithm && !hr;
+    if (formulaFallback) hr = calculateHr(primaryAlgorithm === 'BANISTER' ? 'THRESHOLD' : 'BANISTER');
+    const hrFormulaReasons: TrainingStressScoreReason[] = formulaFallback ? ['requested-hr-algorithm-unavailable'] : [];
     // Both pace preferences need a candidate even when power or HR wins Automatic.
     // Missing thresholds return before traversing speed/grade samples.
     const running = this.supportsPaceTss(activity);
@@ -3065,7 +3075,9 @@ export class ActivityUtilities {
         estimated: result?.calculationMethod === TrainingStressScoreMethod.MET || result?.hrAlgorithm === 'THRESHOLD' ||
           (result?.calculationMethod === TrainingStressScoreMethod.POWER && estimatedPower),
         provenance: result ? 'calculated' : null,
-        reasons: result?.hrAlgorithm === 'THRESHOLD' ? [...new Set<TrainingStressScoreReason>([...reasons, 'threshold-hr-fallback'])] : reasons };
+        reasons: [...new Set<TrainingStressScoreReason>([...reasons,
+          ...(result?.hrAlgorithm || preference === 'HR' || !automatic ? hrFormulaReasons : []),
+          ...(result?.hrAlgorithm === 'THRESHOLD' ? ['threshold-hr-fallback' as const] : [])])] };
     };
     const result: TrainingStressScoreEvaluations = { version: 1,
       automatic: resolve('AUTOMATIC'), hr: resolve('HR'), met: resolve('MET'), swimPace: resolve('SWIM_PACE'),
@@ -3087,14 +3099,17 @@ export class ActivityUtilities {
   /** Evaluate independent consumer calibration without changing recorded statistics,
    * parse options, streams or cached file-only evaluations. Imported scores always win;
    * valid file calibration precedes consumer inputs. LTHR alone uses the threshold-HR
-   * estimate, not Banister. Initialize ordinary evaluations first while parsed inputs
+   * estimate unless Banister is explicitly requested with a complete consumer tuple.
+   * Explicit HR formula selection prefers valid applicable file calibration without mixing sources.
+   * Initialize ordinary evaluations first while parsed inputs
    * are available. Missing inputs retain the sport's ordinary fallback order.
    */
   public static evaluateTrainingStressScoreWithCalibration(
     activity: ActivityInterface, calibration: TrainingStressScoreCalibration,
   ): TrainingStressScoreEvaluations {
-    if (Object.values(calibration).some(value => value !== undefined &&
-      (typeof value !== 'number' || !Number.isFinite(value) || value <= 0))) {
+    if (Object.entries(calibration).some(([key, value]) => value !== undefined && (key === 'hrAlgorithm'
+      ? value !== 'BANISTER' && value !== 'THRESHOLD'
+      : typeof value !== 'number' || !Number.isFinite(value) || value <= 0))) {
       throw new Error('Training stress calibration requires positive finite canonical values.');
     }
     const cached = trainingStressScoreEvaluations.get(activity);

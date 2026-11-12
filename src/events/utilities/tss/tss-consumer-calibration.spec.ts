@@ -100,6 +100,68 @@ describe('independent consumer TSS calibration', () => {
     expect(evaluate(activity, { lactateThresholdHR: 180 }).hr).toMatchObject({ score: 100, hrAlgorithm: 'THRESHOLD' });
   });
 
+  it.each(['BANISTER', 'THRESHOLD'] as const)('honors explicit %s using file calibration before consumer calibration', hrAlgorithm => {
+    const activity = workout(); samples(activity, DataHeartRate.type, 100);
+    fileHeartRateCalibration.set(activity, { restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165 });
+    const chosen = evaluate(activity, { hrAlgorithm, restingHeartRate: 60, maxHeartRate: 180, lactateThresholdHR: 150 }).hr;
+    expect(chosen).toMatchObject({ method: 'HR', hrAlgorithm, score: hrAlgorithm === 'BANISTER' ? 16.2 : 40 });
+    expect(chosen.reasons).not.toContain('requested-hr-algorithm-unavailable');
+  });
+
+  it('requires an explicit formula choice before consumer rest/max can change threshold-only behavior', () => {
+    const activity = workout(); samples(activity, DataHeartRate.type, 100);
+    const tuple = { restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165 };
+    expect(evaluate(activity, tuple).hr).toMatchObject({ score: 40, hrAlgorithm: 'THRESHOLD' });
+    expect(evaluate(activity, { ...tuple, hrAlgorithm: 'BANISTER' }).hr)
+      .toMatchObject({ score: 16.2, hrAlgorithm: 'BANISTER', estimated: false });
+  });
+
+  it('uses a whole consumer tuple rather than completing file calibration', () => {
+    const activity = workout(); samples(activity, DataHeartRate.type, 100);
+    fileHeartRateCalibration.set(activity, { lactateThresholdHR: 180, restingHeartRate: 70 });
+    const consumer = { hrAlgorithm: 'BANISTER' as const, restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165 };
+    const complete = evaluate(activity, consumer).hr;
+    fileHeartRateCalibration.delete(activity);
+    expect(evaluate(activity, consumer).hr).toEqual(complete);
+  });
+
+  it.each([
+    { maxHeartRate: 190 }, { restingHeartRate: 55 }, { restingHeartRate: 55, maxHeartRate: 190 },
+    { restingHeartRate: 170, maxHeartRate: 190, lactateThresholdHR: 165 },
+    { restingHeartRate: 55, maxHeartRate: 160, lactateThresholdHR: 165 },
+  ])('does not fabricate a consumer Banister tuple from %j', partial => {
+    const activity = workout(); samples(activity, DataHeartRate.type, 100);
+    fileHeartRateCalibration.set(activity, { lactateThresholdHR: 165 });
+    const result = evaluate(activity, { ...partial, hrAlgorithm: 'BANISTER' }).hr;
+    expect(result).toMatchObject({ score: 40, hrAlgorithm: 'THRESHOLD', estimated: true });
+    expect(result.reasons).toContain('requested-hr-algorithm-unavailable');
+  });
+
+  it.each(['ambiguous-hr-calibration', 'invalid-hr-calibration'] as const)('never borrows a %s file tuple', reason => {
+    const activity = workout(); samples(activity, DataHeartRate.type, 100);
+    fileHeartRateCalibration.set(activity, { restingHeartRate: 54, maxHeartRate: 187, lactateThresholdHR: 62, reason });
+    const result = evaluate(activity, { restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165, hrAlgorithm: 'BANISTER' }).hr;
+    expect(result).toMatchObject({ score: 16.2, hrAlgorithm: 'BANISTER' });
+    expect(result.reasons).not.toContain('requested-hr-algorithm-unavailable');
+    expect(evaluate(activity, { hrAlgorithm: 'BANISTER' }).hr.score).toBeNull();
+  });
+
+  it.each([0, 42.3])('keeps imported %s authoritative for both explicit formulas', score => {
+    const activity = workout(); activity.addStat(new DataTrainingStressScore(score));
+    for (const hrAlgorithm of ['BANISTER', 'THRESHOLD'] as const) {
+      const result = evaluate(activity, { hrAlgorithm, restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165 });
+      expect(result.hr).toMatchObject({ score, method: 'IMPORTED' });
+    }
+  });
+
+  it('preserves legacy unsupported-sport calibration diagnostics without enabling its calculations', () => {
+    const activity = workout(ActivityTypes.VideoGaming);
+    expect(evaluate(activity, { lactateThresholdHR: 165 }).hr.reasons).toEqual(['missing-hr-calibration', 'unsupported-sport']);
+    fileHeartRateCalibration.set(activity, { restingHeartRate: 55, maxHeartRate: 190, lactateThresholdHR: 165 });
+    const cached = ActivityUtilities.evaluateTrainingStressScore(activity);
+    expect(cached.hr).toMatchObject({ score: null, reasons: ['missing-hr-samples', 'unsupported-sport'] });
+  });
+
   it('does not create an HR candidate without recorded HR', () => {
     expect(evaluate(workout(), { lactateThresholdHR: 165 }).hr)
       .toMatchObject({ score: null, reasons: expect.arrayContaining(['missing-hr-samples']) });

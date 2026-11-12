@@ -1275,10 +1275,23 @@ Consumers with dated athlete settings can call
 `getTrainingStressScoreEvaluations(activity)` while parsed inputs are available. The public
 `TrainingStressScoreCalibration` accepts optional independent FTP (`functionalThresholdPower`, watts), threshold HR
 (`lactateThresholdHR`, bpm), CSS (`thresholdSwimSpeed`, metres/second) and body mass (`bodyMassKg`, kilograms).
-All supplied values must be positive and finite. Imported TSS, including zero, always wins. Valid original-file
+All supplied numeric values must be positive and finite. Imported TSS, including zero, always wins. Valid original-file
 calibration precedes these fallback inputs; a recorded activity FTP estimate is still not independent calibration.
 User threshold HR uses the existing threshold-band estimate without combining it with file resting/maximum HR.
 Body mass only fills missing file weight for calorie-derived MET. No resting calories, weight or threshold is invented.
+
+Optional `restingHeartRate` and `maxHeartRate` (bpm) support the explicit `hrAlgorithm: 'BANISTER' | 'THRESHOLD'` choice.
+Omitting the choice preserves existing file-first behavior and consumer threshold-only estimates, even when consumer
+rest/max fields are supplied. Banister uses a complete valid applicable file tuple, otherwise a complete consumer tuple
+with `0 < restingHeartRate < lactateThresholdHR < maxHeartRate`. It never completes a file tuple with consumer values.
+`isValidTrainingStressScoreHrCalibration(calibration)` checks this complete finite tuple for consumer editors.
+Threshold mode prefers an independently valid file threshold, then the consumer threshold; it never invents rest/max.
+The choice controls the HR candidate, not Automatic method order or imported-score precedence. If the requested formula
+cannot run, another usable HR formula precedes the sport's ordinary method fallbacks, with
+`requested-hr-algorithm-unavailable` and the actual `hrAlgorithm` in the result. Existing formulas, coefficients,
+recorded sample coverage and timer pauses remain unchanged. The models need not agree, especially at low intensity;
+Banister is not a universal accuracy upgrade. Retain the dated choice or its absence when saving workout inputs.
+
 
 The API returns modeled evaluations without changing recorded statistics, streams, parse options or the cached
 file-only evaluations. Existing power coverage, pauses, gaps, sport eligibility and calculator limits still apply.

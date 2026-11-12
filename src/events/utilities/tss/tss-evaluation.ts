@@ -15,12 +15,27 @@ export interface TrainingStressScoreCalibration {
   functionalThresholdPower?: number;
   /** Independent lactate-threshold heart rate in bpm; uses the threshold-HR estimate. */
   lactateThresholdHR?: number;
+  /** Independent resting HR in bpm. Used for Banister only with an explicit formula choice and a complete tuple. */
+  restingHeartRate?: number;
+  /** Independent maximum HR in bpm; never the activity's peak. */
+  maxHeartRate?: number;
+  /** Omit to retain existing file-first/threshold-only behavior, even when consumer rest/max are supplied. */
+  hrAlgorithm?: TrainingStressScoreHrAlgorithm;
   /** Independent CSS in metres/second. */
   thresholdSwimSpeed?: number;
   /** Independent running threshold speed in metres/second, never workout-average pace. */
   thresholdRunningSpeed?: number;
   /** Body mass in kilograms, used only when the activity has no valid file weight. */
   bodyMassKg?: number;
+}
+
+/** Whether a complete, independent HR tuple can calibrate Banister. Partial tuples cannot. */
+export function isValidTrainingStressScoreHrCalibration(
+  calibration: Pick<TrainingStressScoreCalibration, 'restingHeartRate' | 'lactateThresholdHR' | 'maxHeartRate'>,
+): boolean {
+  const { restingHeartRate: rest, lactateThresholdHR: threshold, maxHeartRate: max } = calibration;
+  return [rest, threshold, max].every(value => typeof value === 'number' && Number.isFinite(value) && value > 0)
+    && rest! < threshold! && threshold! < max!;
 }
 
 /**
@@ -33,6 +48,7 @@ export type TrainingStressScoreReason =
   | 'unsupported-sport'
   | 'missing-hr-calibration'
   | 'threshold-hr-fallback'
+  | 'requested-hr-algorithm-unavailable'
   | 'invalid-hr-calibration'
   | 'ambiguous-hr-calibration'
   | 'missing-hr-samples'

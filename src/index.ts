@@ -280,3 +280,5 @@ export { supportsRunningPaceTrainingStressScore } from './events/utilities/tss/t
 export * from './duration/timing-validity';
 
 export type { PowerCoverage } from './activities/power-coverage';
+
+export { isValidTrainingStressScoreHrCalibration } from './events/utilities/tss/tss-evaluation';

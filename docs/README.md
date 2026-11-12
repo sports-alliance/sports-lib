@@ -5,7 +5,8 @@ metres. See [elevation display units](guides/metrics-and-calculations.md#elevati
 
 Independent dated athlete settings can supply FTP, threshold HR, running threshold speed, CSS and body mass through the side-effect-free
 Training stress calibration evaluator. Imported scores and valid file calibration keep priority; recorded activity
-statistics and existing saved results remain unchanged. See
+statistics and existing saved results remain unchanged. Explicit HR formula selection also accepts a complete independent
+resting/threshold/maximum-HR tuple; omitting the choice retains existing behavior. See
 [consumer calibration](guides/metrics-and-calculations.md#independent-consumer-calibration).
 
 Sports Lib normalizes GPX, TCX, FIT, and service-specific JSON into shared activity and route models. Activity imports
